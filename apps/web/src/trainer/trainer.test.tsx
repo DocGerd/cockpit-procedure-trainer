@@ -2,7 +2,7 @@
 import { STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { TrainerProvider, useSessionState, useTrainer } from './index';
+import { shallowEqual, TrainerProvider, useSessionState, useTrainer } from './index';
 import { testAircraft } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => ({
@@ -204,6 +204,27 @@ describe('trainer store', () => {
   });
 });
 
+describe('shallowEqual', () => {
+  it('compares plain objects and arrays one level deep', () => {
+    const shared = {};
+    expect(shallowEqual({ a: 1, b: shared }, { a: 1, b: shared })).toBe(true);
+    expect(shallowEqual({ a: 1 }, { a: 2 })).toBe(false);
+    expect(shallowEqual({ a: 1 }, { a: 1, b: 2 })).toBe(false);
+    expect(shallowEqual([1, shared], [1, shared])).toBe(true);
+    expect(shallowEqual([1], { 0: 1 })).toBe(false);
+    expect(shallowEqual({ a: {} }, { a: {} })).toBe(false);
+  });
+
+  it('compares Sets, Maps and class instances by identity', () => {
+    const set = new Set(['x']);
+    expect(shallowEqual(set, set)).toBe(true);
+    expect(shallowEqual(new Set(), new Set(['x']))).toBe(false);
+    expect(shallowEqual(new Set(['x']), new Set(['x']))).toBe(false);
+    expect(shallowEqual(new Map(), new Map([['k', 1]]))).toBe(false);
+    expect(shallowEqual(new Date(0), new Date(0))).toBe(false);
+  });
+});
+
 describe('session clock', () => {
   it('advances the session by the core step on an interval while mounted', () => {
     vi.useFakeTimers();
@@ -315,6 +336,17 @@ describe('session state', () => {
     expect(result.current.position).toBe('on');
     rerender({ id: 'pump' });
     expect(result.current.position).toBe('off');
+  });
+
+  it('re-renders a failures consumer when a failure is injected', () => {
+    const { result } = renderHook(
+      () => ({ trainer: useTrainer(), failures: useSessionState((s) => s.failures()) }),
+      { wrapper: TrainerProvider },
+    );
+    act(() => result.current.trainer.selectAircraft(second.id));
+    expect(result.current.failures.size).toBe(0);
+    act(() => result.current.trainer.startProcedure('fire'));
+    expect([...result.current.failures]).toEqual(['fire']);
   });
 
   it('uses a custom equality to keep a selection', () => {

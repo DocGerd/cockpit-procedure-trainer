@@ -183,9 +183,16 @@ function storeFor(session: Session): SnapshotStore {
   return store;
 }
 
+const isPlain = (value: unknown): value is object => {
+  if (typeof value !== 'object' || value === null) return false;
+  if (Array.isArray(value)) return true;
+  const proto: unknown = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+};
+
 export function shallowEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (!isPlain(a) || !isPlain(b)) return false;
   if (Array.isArray(a) !== Array.isArray(b)) return false;
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
