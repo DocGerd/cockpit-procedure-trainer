@@ -48,5 +48,5 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", jq `mergeCommit`) and `$` in gh
   endpoints: write such text with Write/Edit, spell endpoints literally.
-- Agent types: `implementer` cannot read claude.ai artifacts (the design
-  canvas) and `reviewer` cannot post review threads; use `general-purpose`.
+- Agents that read the design canvas or post review threads need claude.ai
+  artifact access and gh write access; read-only agent types cannot.
