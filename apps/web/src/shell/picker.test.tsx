@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
+import { LanguageProvider } from '../i18n';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
@@ -23,12 +24,14 @@ function Probe() {
 
 function renderPicker() {
   return render(
-    <ThemeProvider>
-      <TrainerProvider>
-        <Probe />
-        <Shell />
-      </TrainerProvider>
-    </ThemeProvider>,
+    <LanguageProvider>
+      <ThemeProvider>
+        <TrainerProvider>
+          <Probe />
+          <Shell />
+        </TrainerProvider>
+      </ThemeProvider>
+    </LanguageProvider>,
   );
 }
 
