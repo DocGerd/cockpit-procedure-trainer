@@ -242,7 +242,10 @@ describe('device package boundaries', () => {
     expect(await restrictedSyntax(screen, "await import('../logic/x');\n")).toBe(0);
   });
 
-  it('rejects asset imports in device logic', async () => {
-    expect(await restricted(logic, "import './face.png';\n")).toBe(1);
-  });
+  it.each([['./face.png'], ['./face.css?raw'], ['./face.svg?url'], ['./face.svg?url&no-inline']])(
+    'rejects asset import %s in device logic',
+    async (path) => {
+      expect(await restricted(logic, `import '${path}';\n`)).toBe(1);
+    },
+  );
 });

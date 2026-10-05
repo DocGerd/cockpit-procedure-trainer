@@ -4,7 +4,12 @@ import type { Aircraft, ControlChange, TrainerState } from '../contract';
 import { observeControl, startChecklist } from '../checklist';
 import { createControlStore } from '../controls';
 import { defineDevice } from './define-device';
-import { deviceControls, initialDeviceStates, stepDevices } from './device-runtime';
+import {
+  deviceControls,
+  deviceEntryPositions,
+  initialDeviceStates,
+  stepDevices,
+} from './device-runtime';
 import { engineMonitor, fixtureDeviceAircraft, monitorState } from './fixtures';
 import type { MonitorState } from './fixtures';
 
@@ -196,7 +201,7 @@ describe('procedures over device controls', () => {
     expect(procedure.items[1]?.type === 'check' && procedure.items[1].condition(read())).toBe(true);
   });
 
-  it('survives a snapshot load that omits device controls', () => {
+  it('keeps a control that a loaded snapshot omits (store semantics only)', () => {
     const store = createControlStore({
       ...fixtureAircraft.controls,
       ...deviceControls(fixtureDeviceAircraft, devices),
@@ -204,5 +209,43 @@ describe('procedures over device controls', () => {
     store.set('mon.page', 'electrical');
     store.load(fixtureAircraft.phases.parking?.entry.controls ?? {});
     expect(store.positions()['mon.page']).toBe('electrical');
+  });
+});
+
+describe('deviceEntryPositions', () => {
+  const withEntry = (entryDevices: unknown): Aircraft => {
+    const runup = fixtureDeviceAircraft.phases.runup;
+    return {
+      ...fixtureDeviceAircraft,
+      phases: {
+        ...fixtureDeviceAircraft.phases,
+        runup: { ...runup, entry: { ...runup?.entry, devices: entryDevices } },
+      },
+    } as Aircraft;
+  };
+
+  it('gives every device control its declared initial position when the phase names none', () => {
+    expect(deviceEntryPositions(fixtureDeviceAircraft, devices, 'parking')).toEqual({
+      'mon.page': 'engine',
+    });
+  });
+
+  it('uses the phase position where given', () => {
+    const aircraft = withEntry({ mon: { page: 'electrical' } });
+    expect(deviceEntryPositions(aircraft, devices, 'runup')).toEqual({ 'mon.page': 'electrical' });
+    expect(deviceEntryPositions(aircraft, devices, 'parking')).toEqual({ 'mon.page': 'engine' });
+  });
+
+  it('is empty for an aircraft without devices', () => {
+    expect(deviceEntryPositions(fixtureAircraft, devices, 'parking')).toEqual({});
+  });
+
+  it('throws for an unknown phase or an unregistered device', () => {
+    expect(() => deviceEntryPositions(fixtureDeviceAircraft, devices, 'nowhere')).toThrow(
+      /nowhere/,
+    );
+    expect(() => deviceEntryPositions(fixtureDeviceAircraft, [], 'parking')).toThrow(
+      /engineMonitor/,
+    );
   });
 });

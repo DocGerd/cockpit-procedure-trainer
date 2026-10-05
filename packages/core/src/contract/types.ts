@@ -226,6 +226,9 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   readonly entry: {
     readonly controls: { readonly [K in ControlId<CT>]: PositionOf<NoInfer<CT>[K]> };
     readonly state: S;
+    readonly devices?: {
+      readonly [installId: string]: { readonly [controlId: string]: ControlPosition };
+    };
   };
 };
 

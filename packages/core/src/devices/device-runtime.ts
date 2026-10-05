@@ -1,5 +1,6 @@
 import type {
   Aircraft,
+  ControlPosition,
   ControlRecord,
   Device,
   DeviceInstall,
@@ -37,6 +38,24 @@ export function initialDeviceStates(aircraft: Aircraft, registry: readonly Devic
       { on: false, state: deviceOf(registry, installId, install.device).initial },
     ]),
   );
+}
+
+export function deviceEntryPositions(
+  aircraft: Aircraft,
+  registry: readonly Device[],
+  phaseId: string,
+): Positions {
+  if (!Object.hasOwn(aircraft.phases, phaseId)) throw new Error(`Unknown phase "${phaseId}"`);
+  const given = aircraft.phases[phaseId]?.entry.devices ?? {};
+  const positions: Record<string, ControlPosition> = {};
+  for (const [id, definition] of Object.entries(deviceControls(aircraft, registry))) {
+    const split = id.indexOf('.');
+    const preset = Object.hasOwn(given, id.slice(0, split))
+      ? given[id.slice(0, split)]?.[id.slice(split + 1)]
+      : undefined;
+    positions[id] = preset ?? definition.initial;
+  }
+  return positions;
 }
 
 function ownControls(positions: Positions, installId: string): Positions {

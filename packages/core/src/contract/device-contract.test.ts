@@ -103,6 +103,28 @@ describe('device ids and installs', () => {
     });
   });
 
+  it('accepts device control positions in a phase entry and rejects non-positions', () => {
+    const entry = { controls: { master: 'off' }, state: initial } as const;
+    defineAircraft({
+      ...body,
+      devices: { mon: install },
+      phases: {
+        parking: { ...body.phases.parking, entry: { ...entry, devices: { mon: { page: 'a' } } } },
+      },
+    });
+    defineAircraft({
+      ...body,
+      devices: { mon: install },
+      phases: {
+        parking: {
+          ...body.phases.parking,
+          // @ts-expect-error a position is a string or a number
+          entry: { ...entry, devices: { mon: { page: true } } },
+        },
+      },
+    });
+  });
+
   it('accepts an install in any declared view', () => {
     defineAircraft({ ...body, devices: { mon: { ...install, view: 'side' } } });
   });
