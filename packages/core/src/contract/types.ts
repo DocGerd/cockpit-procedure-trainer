@@ -98,10 +98,12 @@ export type ControlChange<C extends string = string> = {
   | { readonly kind: 'guard'; readonly from: GuardPosition; readonly to: GuardPosition }
 );
 
+export type DeviceState<D = unknown> = { readonly on: boolean; readonly state: D };
+
 export type TrainerState<S> = {
   readonly controls: Positions;
   readonly systems: S;
-  readonly devices: Readonly<Record<string, unknown>>;
+  readonly devices: Readonly<Record<string, DeviceState>>;
 };
 
 export type Condition<S> = (state: TrainerState<S>) => boolean;
@@ -143,6 +145,32 @@ export type StepInput<F extends string = string> = {
 export type SystemsDefinition<S, F extends string = string> = {
   readonly initial: S;
   step(state: S, input: StepInput<F>): S;
+};
+
+export type DeviceStepInput = {
+  readonly controls: Positions;
+  readonly powered: boolean;
+  readonly inputs: { readonly [name: string]: IndicatorValue };
+  readonly dtMs: number;
+};
+
+export type DeviceDefinition<D, DC extends ControlRecord = ControlRecord> = {
+  readonly id: string;
+  readonly manual: Text;
+  readonly notModelled: readonly Text[];
+  readonly controls: DC & ControlRules<DC>;
+  readonly initial: D;
+  step(state: D, input: DeviceStepInput): D;
+};
+
+export type Device = DeviceDefinition<unknown>;
+
+export type DeviceInstall<S, V extends string = string> = {
+  readonly device: string;
+  readonly view: V;
+  readonly placement: Placement;
+  readonly powered: Condition<S>;
+  readonly inputs: { readonly [name: string]: (state: TrainerState<S>) => IndicatorValue };
 };
 
 export type FailureDefinition<B extends string = string> = {
@@ -203,15 +231,25 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
 
 type ItemBase = { readonly text: Text };
 
+export type DeviceControlId = `${string}.${string}`;
+
 export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
-  {
-    [K in ControlId<CT>]: {
-      readonly type: 'action';
-      readonly control: K;
-      readonly position: PositionOf<NoInfer<CT>[K]>;
-      readonly holdUntil?: Condition<S>;
-    };
-  }[ControlId<CT>];
+  (
+    | {
+        [K in ControlId<CT>]: {
+          readonly type: 'action';
+          readonly control: K;
+          readonly position: PositionOf<NoInfer<CT>[K]>;
+          readonly holdUntil?: Condition<S>;
+        };
+      }[ControlId<CT>]
+    | {
+        readonly type: 'action';
+        readonly control: DeviceControlId;
+        readonly position: ControlPosition;
+        readonly holdUntil?: Condition<S>;
+      }
+  );
 
 export type CheckItem<
   S,
@@ -219,7 +257,8 @@ export type CheckItem<
   I extends string = string,
 > = ItemBase & {
   readonly type: 'check';
-  readonly target: { readonly indicator: I } | { readonly control: ControlId<CT> };
+  readonly target:
+    { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
 };
 
@@ -250,13 +289,15 @@ export type AircraftDefinition<
   I extends string,
   F extends string,
   P extends string,
+  V extends string = string,
 > = {
   readonly id: string;
   readonly name: Text;
   readonly handbookRevision: string;
   readonly controls: CT & ControlRules<CT>;
   readonly indicators: { readonly [K in I]: IndicatorDefinition<S> };
-  readonly views: { readonly [id: string]: ViewDefinition<ControlId<CT>, NoInfer<I>> };
+  readonly views: { readonly [K in V]: ViewDefinition<ControlId<CT>, NoInfer<I>> };
+  readonly devices?: { readonly [installId: string]: DeviceInstall<S, NoInfer<V>> };
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
@@ -265,6 +306,13 @@ export type AircraftDefinition<
   };
 };
 
-export type Aircraft = AircraftDefinition<unknown, ControlRecord, string, string, string> & {
+export type Aircraft = AircraftDefinition<
+  unknown,
+  ControlRecord,
+  string,
+  string,
+  string,
+  string
+> & {
   readonly contractVersion: number;
 };

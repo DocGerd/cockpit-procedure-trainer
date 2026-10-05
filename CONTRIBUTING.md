@@ -57,6 +57,9 @@ UI changes also need a pass in a real browser at tablet and desktop width.
 - `packages/core`: contract and engines. No UI, no assets, no other workspace packages.
 - `packages/panel-kit`: controls and gauges. Depends on `core` only.
 - `packages/aircraft-*`: one aircraft each. Depends on `core` only.
+- `packages/device-*`: one avionics unit each. Any file may import `core` and `panel-kit`
+  only. `src/logic/` imports `core` only, with no UI or assets. A device never reaches
+  another package, another device included, by relative path.
 - `apps/web`: the app. Imports aircraft only in `src/aircraft-registry.ts`
   and devices only in `src/device-registry.ts`.
 
