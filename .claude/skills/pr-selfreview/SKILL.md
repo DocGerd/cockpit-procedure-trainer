@@ -14,9 +14,10 @@ followed by the `merge-train` skill.
    head SHA with `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .head.sha`.
    Run `pr-review-toolkit:review-pr` on that diff. Check that the PR adds a
    `changelog.d/<issue>.<category>.md` fragment and that its body has
-   `Closes #<issue>`. Release PRs (`release/*`) and backmerge PRs
-   (`chore/backmerge`) are exempt from both: the release PR deletes fragments
-   and neither closes an issue.
+   `Closes #<issue>`. Release PRs (`release/*`), backmerge PRs
+   (`chore/backmerge`) and Dependabot PRs (`dependabot/*`) are exempt from both:
+   the release PR deletes fragments, Dependabot PRs cannot add one, and none of
+   them closes an issue.
 2. **Post one inline thread per finding**, anchored to a changed line. A finding
    outside the diff becomes a PR-level comment through
    `gh api repos/DocGerd/cockpit-procedure-trainer/issues/N/comments --method POST --raw-field body=TEXT`.

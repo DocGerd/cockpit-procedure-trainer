@@ -6,7 +6,9 @@
 2. Branch from `develop`: `feat/<issue>-<slug>`, `fix/…`, `chore/…`, `docs/…` or `ci/…`.
 3. Add a changelog fragment `changelog.d/<issue>.<category>.md` (categories:
    `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
-   issue, name it `+<slug>.<category>.md`.
+   issue, name it `+<slug>.<category>.md`. Dependabot pull requests are exempt:
+   they cannot add a fragment, and a pushed commit stops Dependabot rebasing its
+   branch.
 4. Open a pull request against `develop` whose description contains `Closes #<issue>`.
 5. `develop` and `main` accept changes only through pull requests with a green
    `check` job and all review threads resolved. `develop` takes squash merges, except a `chore/backmerge`
