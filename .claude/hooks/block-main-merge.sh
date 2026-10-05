@@ -16,6 +16,9 @@
 # Text that merely mentions merge is denied too; run the allowed shape, keep
 # the word out of the command, or ask the owner.
 #
+# Deliberate obfuscation is out of scope: shell expansion tricks, and clients
+# other than gh, curl and wget (for example python).
+#
 # Input is only tokenised, never executed. The decision is in the JSON on
 # stdout; the exit code is always 0.
 set -uo pipefail
@@ -70,6 +73,7 @@ if [ "$jq_ok" = 0 ]; then
 fi
 [ -n "$cmd" ] || exit 0
 
+orig="$cmd"
 cmd="${cmd//\\$'\n'/ }"
 unquoted="$(tr '\n' ' ' <<<"$cmd" | sed "s/'[^']*'//g")"
 norm="$(tr -d "\\\\'\"" <<<"$cmd" | tr -s '[:space:]' ' ')"
@@ -81,8 +85,13 @@ if [[ "$unquoted" =~ $has_client ]] && [[ "$unquoted" =~ $expansion_re ]]; then
 fi
 [ "$mergelike" = 1 ] || exit 0
 
+# One command only, checked before any shape is tried.
+case "$orig" in
+  *$'\n'* | *$'\r'* | *';'* | *'&'* | *'|'* | *'`'* | *'$('*) deny "$DENY_SHAPE" ;;
+esac
+
 # Shape 1: git merge and git merge-base never touch a GitHub PR.
-if [[ "$cmd" =~ ^[[:space:]]*git[[:space:]]+merge(-base)?([[:space:]]+[A-Za-z0-9._/@~^-]+)*[[:space:]]*$ ]]; then
+if [[ "$cmd" =~ ^[[:blank:]]*git[[:blank:]]+merge(-base)?([[:blank:]]+[A-Za-z0-9._/@~^-]+)*[[:blank:]]*$ ]]; then
   exit 0
 fi
 

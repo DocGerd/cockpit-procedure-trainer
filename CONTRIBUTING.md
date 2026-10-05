@@ -26,7 +26,9 @@ holds released state and feeds the production site.
    accident tripwire, not a security boundary: the base can change between its
    check and the merge, and anything with the owner's token can still merge
    into `main`. The `protect-main` ruleset blocks direct pushes to `main`, not
-   PR merges by the owner account.
+   PR merges by the owner account. Deliberate obfuscation (shell expansion
+   tricks, clients other than `gh`, `curl` and `wget` such as python) is out of
+   scope for the tripwire.
 3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
    `vX.Y.Z` and the GitHub Release.
 
