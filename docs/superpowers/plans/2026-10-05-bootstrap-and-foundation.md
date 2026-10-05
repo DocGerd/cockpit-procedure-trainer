@@ -967,7 +967,7 @@ it('is uat only for the exact value uat', () => {
 });
 ```
 
-`apps/web/src/App.tsx`. The badge belongs to the app frame (the header), never to the cockpit panel. It uses no colour literal; its colours come from `apps/web/src/styles/tokens.css` once that file exists:
+`apps/web/src/App.tsx`. The badge belongs to the app frame (the header), never to the cockpit panel. It carries only a class name; its colours and spacing are styled from `apps/web/src/styles/tokens.css` when that file exists, and no literal is written here:
 
 ```tsx
 import { CONTRACT_VERSION } from '@cpt/core';
@@ -981,7 +981,7 @@ export function App() {
       <header>
         <h1>Cockpit Procedure Trainer</h1>
         {isUat && (
-          <span role="status" style={{ border: '1px solid currentColor', padding: '0 0.5em' }}>
+          <span role="status" className="uat-badge">
             UAT
           </span>
         )}
@@ -1596,7 +1596,7 @@ lower-case kebab form, for example `m2-core-engine`.
    previous release tag (the first commit for the first release), with the spec
    and the milestone plan. Fix findings through PRs into `develop`.
 3. Branch `release/vX.Y.Z` from `origin/develop`:
-   - Fold every `changelog.d/<issue>.<category>.md` fragment into
+   - Fold every `changelog.d/<issue>.<category>.md` and `+<slug>.<category>.md` fragment into
      `CHANGELOG.md` as `## [X.Y.Z] - <UTC date>` (`date -u +%Y-%m-%d`), one
      `- <text>` bullet under a `### Category` heading, in the order Added,
      Changed, Deprecated, Removed, Fixed, Security. Delete the folded
@@ -1775,14 +1775,18 @@ exit 0
 
 - [ ] **Step 4: Wire the hook into `.claude/settings.json`**
 
-Add next to the existing `PostToolUse` key:
+Add next to the existing `PostToolUse` key. The wrapper denies when the script is missing or not executable, so the guard cannot go inert silently:
 
 ```json
 "PreToolUse": [
   {
     "matcher": "Bash",
     "hooks": [
-      { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-main-merge.sh", "timeout": 30 }
+      {
+        "type": "command",
+        "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/block-main-merge.sh\"; if [ -x \"$H\" ]; then exec \"$H\"; else echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"main-merge guard script missing or not executable\"}}'; fi",
+        "timeout": 30
+      }
     ]
   }
 ]
