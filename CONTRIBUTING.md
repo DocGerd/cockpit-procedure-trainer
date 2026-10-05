@@ -8,7 +8,10 @@
    `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
    issue, name it `+<slug>.<category>.md`. Dependabot pull requests are exempt:
    they cannot add a fragment, and a pushed commit stops Dependabot rebasing its
-   branch. A pull request with no user-visible effect (internal docs, plans, agent config, CI-only, tests-only) may skip the fragment if its description has a line `No changelog: <reason>`.
+   branch. A pull request with no user-visible effect (e.g. internal docs,
+   CI-only, tests-only, agent config, plans or specs that do not change product
+   behaviour) may skip the fragment if its description has a line
+   `No changelog: <reason>`.
 4. Open a pull request against `develop` whose description contains `Closes #<issue>` (not
    required for Dependabot pull requests, which have no issue).
 5. `develop` and `main` accept changes only through pull requests with a green
