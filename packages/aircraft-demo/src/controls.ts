@@ -1,0 +1,147 @@
+import type { ControlRecord } from '@cpt/core';
+import { text } from './text';
+
+export const controls = {
+  battery: {
+    kind: 'toggle',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name: text('Batterie', 'Battery master'),
+    description: text(
+      'Schaltet die Batterie auf die Bordspannung.',
+      'Connects the battery to the electrical bus.',
+    ),
+    appearance: { widget: 'toggle' },
+  },
+  alternator: {
+    kind: 'toggle',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name: text('Generator', 'Alternator'),
+    description: text(
+      'Schaltet den Generator ein. Er lädt nur bei laufendem Triebwerk.',
+      'Switches the alternator on. It charges only with the engine running.',
+    ),
+    appearance: { widget: 'toggle' },
+  },
+  avionics: {
+    kind: 'toggle',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name: text('Avionik', 'Avionics master'),
+    description: text(
+      'Schaltet die Funk- und Navigationsgeräte ein.',
+      'Powers the radio and navigation equipment.',
+    ),
+    appearance: { widget: 'rocker' },
+  },
+  magnetos: {
+    kind: 'rotary',
+    positions: ['off', 'right', 'left', 'both'],
+    initial: 'off',
+    name: text('Zündschalter', 'Magneto key'),
+    description: text(
+      'Schaltet die Zündmagnete. Zum Anlassen auf BOTH, der Anlasser ist ein eigener Taster.',
+      'Selects the magnetos. Set BOTH to start; the starter is a separate button.',
+    ),
+    appearance: { widget: 'key-switch' },
+  },
+  starter: {
+    kind: 'momentary',
+    positions: ['released', 'held'],
+    initial: 'released',
+    name: text('Anlasser', 'Starter'),
+    description: text(
+      'Dreht das Triebwerk, solange er gedrückt wird. Braucht Bordspannung.',
+      'Cranks the engine while held. Needs bus power.',
+    ),
+    appearance: { widget: 'push-button' },
+  },
+  annunciator: {
+    kind: 'rotary',
+    positions: ['dim', 'bright', 'test'],
+    initial: 'bright',
+    springBack: { test: 'bright' },
+    name: text('Warnlampen', 'Annunciator switch'),
+    description: text(
+      'Stellt die Helligkeit der Warnlampen ein. TEST prüft die Lampen und springt zurück.',
+      'Sets the lamp brightness. TEST checks the lamps and springs back.',
+    ),
+    appearance: { widget: 'rotary-knob' },
+  },
+  fuelSelector: {
+    kind: 'rotary',
+    positions: ['off', 'left', 'right', 'both'],
+    initial: 'off',
+    name: text('Tankwahlschalter', 'Fuel selector'),
+    description: text(
+      'Wählt den Tank, aus dem das Triebwerk Kraftstoff bekommt.',
+      'Chooses the tank that feeds the engine.',
+    ),
+    appearance: { widget: 'rotary-knob' },
+  },
+  throttle: {
+    kind: 'lever',
+    positions: 'continuous',
+    initial: 0,
+    name: text('Leistungshebel', 'Throttle'),
+    description: text(
+      'Stellt die Triebwerksleistung ein. Hinten ist Leerlauf, vorn Vollgas.',
+      'Sets engine power. Back is idle, forward is full.',
+    ),
+    appearance: { widget: 'lever' },
+  },
+  mixture: {
+    kind: 'lever',
+    positions: 'continuous',
+    initial: 0,
+    name: text('Gemischhebel', 'Mixture'),
+    description: text(
+      'Stellt das Kraftstoff-Luft-Gemisch ein. Hinten ist Magerstellung, die Kraftstoffzufuhr ist dann unterbrochen.',
+      'Sets the fuel-air mixture. Fully back is idle cut-off and stops the fuel.',
+    ),
+    appearance: { widget: 'lever' },
+  },
+  flaps: {
+    kind: 'lever',
+    positions: ['up', 'takeoff', 'landing'],
+    initial: 'up',
+    name: text('Klappen', 'Flaps'),
+    description: text(
+      'Stellt die Wölbklappen auf eine der Rasten.',
+      'Sets the flaps to one of the notches.',
+    ),
+    appearance: { widget: 'lever' },
+  },
+  fuelShutoff: {
+    kind: 'guarded',
+    positions: ['open', 'shut'],
+    initial: 'open',
+    guard: { name: text('Schutzkappe', 'Guard cover') },
+    name: text('Kraftstoff-Absperrhahn', 'Fuel shut-off'),
+    description: text(
+      'Sperrt die Kraftstoffleitung ab. Nur für den Notfall; die Schutzkappe muss zuerst geöffnet werden.',
+      'Closes the fuel line. For emergencies only; the guard cover has to be opened first.',
+    ),
+    appearance: { widget: 'guarded-handle' },
+  },
+  alternatorBreaker: {
+    kind: 'breaker',
+    positions: ['in', 'pulled'],
+    initial: 'in',
+    name: text('Sicherung Generator', 'Alternator breaker'),
+    description: text(
+      'Schützt den Generatorkreis. Sie fällt bei einem Generatorausfall.',
+      'Protects the alternator circuit. It trips on an alternator failure.',
+    ),
+    appearance: { widget: 'circuit-breaker' },
+  },
+  avionicsBreaker: {
+    kind: 'breaker',
+    positions: ['in', 'pulled'],
+    initial: 'in',
+    name: text('Sicherung Avionik', 'Avionics breaker'),
+    description: text('Schützt den Stromkreis der Avionik.', 'Protects the avionics circuit.'),
+    appearance: { widget: 'circuit-breaker' },
+  },
+} as const satisfies ControlRecord;
