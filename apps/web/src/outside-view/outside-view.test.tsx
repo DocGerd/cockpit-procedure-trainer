@@ -1,0 +1,189 @@
+// @vitest-environment jsdom
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderWithLanguage } from '../i18n/test-utils';
+import { TrainerProvider, useTrainer } from '../trainer';
+import type { Trainer } from '../trainer';
+import { OutsideView } from './OutsideView';
+import { PhaseControl } from './PhaseControl';
+
+vi.mock('../aircraft-registry', async () => ({
+  aircraftRegistry: [(await import('./test-aircraft')).fixture],
+}));
+
+let trainer: Trainer;
+function Probe() {
+  trainer = useTrainer();
+  return null;
+}
+
+function renderStrip(language?: 'de' | 'en') {
+  return renderWithLanguage(
+    <TrainerProvider>
+      <Probe />
+      <header>
+        <PhaseControl />
+      </header>
+      <section aria-label="Outside view">
+        <OutsideView />
+      </section>
+    </TrainerProvider>,
+    language === undefined ? {} : { language },
+  );
+}
+
+const phaseSelect = () => within(screen.getByRole('banner')).getByRole('combobox');
+const image = () => within(screen.getByRole('region')).getByRole('img');
+const master = () => trainer.session.state().controls['master'];
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+afterEach(cleanup);
+
+describe('outside view', () => {
+  it('shows the current phase image with its localized name', () => {
+    renderStrip();
+    expect(image().getAttribute('src')).toBe('ground.svg');
+    expect(image().getAttribute('alt')).toBe('Ground');
+  });
+
+  it('follows the phase when the session changes it', () => {
+    renderStrip();
+    act(() => trainer.session.jumpToPhase('cruise'));
+    expect(image().getAttribute('src')).toBe('cruise.svg');
+    expect(image().getAttribute('alt')).toBe('Cruise');
+  });
+
+  it('follows a procedure into its end phase', () => {
+    renderStrip();
+    act(() => trainer.startProcedure('startUp'));
+    expect(image().getAttribute('src')).toBe('ground.svg');
+    act(() => {
+      trainer.session.set('master', 'on');
+    });
+    expect(trainer.session.phase()).toBe('landed');
+    expect(image().getAttribute('src')).toBe('landed.svg');
+    expect(phaseSelect()).toHaveProperty('value', 'landed');
+  });
+
+  it('localizes the name', () => {
+    renderStrip('de');
+    expect(image().getAttribute('alt')).toBe('Ground (de)');
+  });
+
+  it('shows the labelled placeholder when the image is broken', () => {
+    renderStrip();
+    fireEvent.error(image());
+    expect(image().tagName).toBe('DIV');
+    expect(image().getAttribute('aria-label')).toBe('Ground');
+  });
+
+  it('tries the next phase image after a broken one', () => {
+    renderStrip();
+    fireEvent.error(image());
+    act(() => trainer.session.jumpToPhase('cruise'));
+    expect(image().tagName).toBe('IMG');
+    expect(image().getAttribute('src')).toBe('cruise.svg');
+  });
+});
+
+describe('phase control', () => {
+  it('lists the phases by localized name and marks the current one', () => {
+    renderStrip('de');
+    const options = within(phaseSelect()).getAllByRole('option');
+    expect(options.map((option) => option.textContent)).toEqual([
+      'Ground (de)',
+      'Cruise (de)',
+      'Landed (de)',
+    ]);
+    expect(phaseSelect()).toHaveProperty('value', 'ground');
+  });
+
+  it('is named by a localized label', () => {
+    renderStrip('de');
+    expect(within(screen.getByRole('banner')).getByLabelText('Flugphase')).toBe(phaseSelect());
+  });
+
+  it('jumps straight to the phase and loads its entry snapshot', async () => {
+    renderStrip();
+    expect(master()).toBe('off');
+    await userEvent.selectOptions(phaseSelect(), 'cruise');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(trainer.session.phase()).toBe('cruise');
+    expect(master()).toBe('on');
+    expect(phaseSelect()).toHaveProperty('value', 'cruise');
+  });
+
+  describe('with a procedure running', () => {
+    async function selectCruise(language?: 'de' | 'en') {
+      renderStrip(language);
+      act(() => trainer.startProcedure('startUp'));
+      await userEvent.selectOptions(phaseSelect(), 'cruise');
+    }
+
+    it('asks before jumping and changes nothing yet', async () => {
+      await selectCruise();
+      const dialog = screen.getByRole('alertdialog');
+      expect(dialog.textContent).toContain('Cruise');
+      expect(trainer.session.phase()).toBe('ground');
+      expect(trainer.procedureId).toBe('startUp');
+      expect(phaseSelect()).toHaveProperty('value', 'ground');
+    });
+
+    it('keeps the procedure when cancelled', async () => {
+      await selectCruise();
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBe('startUp');
+      expect(trainer.session.phase()).toBe('ground');
+    });
+
+    it('keeps the procedure on Escape', async () => {
+      await selectCruise();
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBe('startUp');
+    });
+
+    it('ends the procedure and loads the phase when confirmed', async () => {
+      await selectCruise();
+      await userEvent.click(screen.getByRole('button', { name: 'Jump to phase' }));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBeUndefined();
+      expect(trainer.session.phase()).toBe('cruise');
+      expect(master()).toBe('on');
+    });
+
+    it('moves focus into the dialog and back to the control', async () => {
+      await selectCruise();
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(document.activeElement).toBe(phaseSelect());
+    });
+
+    it('keeps Tab inside the dialog', async () => {
+      await selectCruise();
+      await userEvent.tab();
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Jump to phase' }));
+      await userEvent.tab();
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }));
+      await userEvent.tab({ shift: true });
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Jump to phase' }));
+    });
+
+    it('is localized', async () => {
+      await selectCruise('de');
+      expect(screen.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Zur Phase springen' })).toBeTruthy();
+    });
+
+    it('drops the question when the procedure ends meanwhile', async () => {
+      await selectCruise();
+      act(() => trainer.session.jumpToPhase('ground'));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+    });
+  });
+});
