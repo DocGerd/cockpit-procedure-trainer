@@ -35,5 +35,7 @@ lower-case kebab form, for example `m2-core-engine`.
    `vX.Y.Z` and the GitHub Release from the top section of `CHANGELOG.md`.
 6. Give the owner the release PR URL and the open questions.
 7. In the next session, after the owner's merge: confirm tag and Release exist
-   and close the milestone. If `main` holds commits that `develop` lacks (a
-   hotfix), open a PR `main` to `develop`.
+   and close the milestone. Open a PR `main` to `develop` (branch
+   `chore/backmerge`) only if `git log --max-parents=1 origin/develop..origin/main`
+   prints commits: it excludes the release's own merge commit, so anything left
+   is a hotfix.

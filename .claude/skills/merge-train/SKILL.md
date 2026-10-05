@@ -38,13 +38,16 @@ For each PR `N`:
 5. **Merge.** `gh pr merge N --squash --delete-branch --match-head-commit SHA`.
    Run it as a single plain command, with no `--auto`, no quotes, no shell
    expansion and nothing chained, and put the word merge in no other
-   command (use `--body-file` for PR text). The one
+   command (use `--body-file` for PR text). In other `gh`, `curl` and `wget`
+   commands, an expansion (`$`, backtick, `%`) is denied only in the
+   subcommand words, the `gh api` endpoint, a GraphQL query or the URL; spell
+   those as literals. The deny message names the trigger. The one
    exception is a backmerge PR (branch `chore/backmerge`, `main` into
    `develop`): merge it with `--merge` instead of `--squash`, so `main` becomes
    an ancestor of `develop`.
-6. **Confirm.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .merged` prints `true`, and
-   each `Closes #n` issue reads `closed`. If the merge call errored, read
-   `.merged` before any retry; never retry blind.
+6. **Confirm.** `gh pr view N --json state --jq .state` prints `MERGED`, and
+   each `Closes #n` issue reads `closed`. If the merge call errored, read that
+   state before any retry; never retry blind.
 7. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
    wait for its checks again, and restart at step 2 for it.

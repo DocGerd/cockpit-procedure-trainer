@@ -45,7 +45,7 @@ architecture that lets aircraft be added.
 | Devices | Tablet and desktop; touch and mouse both first-class. |
 | Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). Production at the site root, UAT under `/uat/`. |
 | Branching | Gitflow: `develop` is the default branch and the base of every PR; `main` holds released state only. Agents merge PRs into `develop` and never merge into `main`. |
-| Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex header and a "UAT" badge in the app frame. |
+| Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex meta tag and a "UAT" badge in the app frame. |
 | Versioning | Semantic versions below 1.0: milestone Mn releases as v0.(n+1).0, so M0 is v0.1.0. Tag and GitHub Release are created by a workflow when `main` receives the release PR. |
 | Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
 | Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
@@ -334,7 +334,7 @@ parallel.
   an agent and merged by the owner only.
 - Hosting: one GitHub Pages site built from two refs. `main` builds at
   `/cockpit-procedure-trainer/` (production) and `develop` at
-  `/cockpit-procedure-trainer/uat/` (UAT, noindex, "UAT" badge in the app
+  `/cockpit-procedure-trainer/uat/` (UAT, noindex meta tag, "UAT" badge in the app
   frame, never on the cockpit panel). The base-path check runs on both builds.
 - Releases: a workflow on push to `main` reads the top released section of
   `CHANGELOG.md` and creates tag `vX.Y.Z` and the GitHub Release when they do
@@ -354,12 +354,12 @@ parallel.
 1. Create repo, licence, README, contributing guide, project `CLAUDE.md`
 2. pnpm workspace, TypeScript, ESLint with boundary rules, Prettier
 3. CI: lint, typecheck, test
-4. GitHub Pages deployment (superseded by 49)
+4. GitHub Pages deployment (superseded by #50)
 5. Issue and PR templates, labels, milestones
 6. ADR-0001: architecture and aircraft contract; content and licensing policy
 48. Claude Code project setup: plugins, hooks, agents and skills
-49. Gitflow and UAT/prod environments: `develop`, rulesets, dual-ref Pages deploy, release workflow, changelog
-50. Release-cycle skills: release-cycle command, pr-selfreview, merge-train, main-merge guard hook
+50. Gitflow and UAT/prod environments: `develop`, rulesets, dual-ref Pages deploy, release workflow, changelog
+51. Release-cycle skills: release-cycle command, pr-selfreview, merge-train, main-merge guard hook
 
 **M1 Design** (blocks M3 only)
 7. `BRAND.md`: product brand derived from DocGerdSoft, accent decision
