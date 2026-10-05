@@ -70,6 +70,14 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     checkText(id, 'description', control.description);
     if (control.kind === 'guarded') checkText(id, 'guard name', control.guard.name);
 
+    if (control.kind === 'breaker' && JSON.stringify(control.positions) !== '["in","pulled"]') {
+      add(
+        'unknown-position',
+        id,
+        `positions: ${JSON.stringify(control.positions)} must be exactly ["in","pulled"]`,
+      );
+    }
+
     checkPosition(id, 'initial', control.initial);
 
     if (control.kind === 'rotary' && control.springBack) {

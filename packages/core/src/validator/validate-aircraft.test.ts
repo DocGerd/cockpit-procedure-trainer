@@ -78,13 +78,14 @@ describe('validateAircraft', () => {
       only(aircraft, 'unknown-target', 'ghostSwitch');
     });
 
-    it('reports a procedure phase that does not exist', () => {
+    it.each(['startPhase', 'endPhase'])('reports a procedure %s that does not exist', (field) => {
       const aircraft = broken({
         procedures: {
-          beforeStart: { ...fixtureAircraft.procedures.beforeStart, endPhase: 'ghostPhase' },
+          beforeStart: { ...fixtureAircraft.procedures.beforeStart, [field]: 'ghostPhase' },
         },
       });
-      only(aircraft, 'unknown-target', 'ghostPhase');
+      const finding = only(aircraft, 'unknown-target', 'ghostPhase');
+      expect(finding.message).toContain(field);
     });
 
     it('reports a placement of an unknown control or indicator', () => {
@@ -229,6 +230,18 @@ describe('validateAircraft', () => {
       );
       expect(finding.message).toContain('half');
     });
+
+    it.each([[['in', 'pulled', 'tripped']], [['pulled', 'in']], [['in']]])(
+      'reports breaker positions %j that are not exactly in and pulled',
+      (positions) => {
+        const finding = only(
+          withControl('alternatorBreaker', { positions }),
+          'unknown-position',
+          'alternatorBreaker',
+        );
+        expect(finding.message).toContain('positions');
+      },
+    );
 
     it('reports a non-number initial on a continuous lever', () => {
       only(withControl('throttle', { initial: 'idle' }), 'unknown-position', 'throttle');
