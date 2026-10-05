@@ -14,6 +14,7 @@ export type ArtworkControlProps = ControlWidgetProps & {
 const LEVER_STEP = 0.1;
 const inputClass = 'cpt-artwork-input';
 
+const noop = () => {};
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 function nextPosition(positions: readonly string[], current: ControlPosition): string | undefined {
@@ -21,50 +22,32 @@ function nextPosition(positions: readonly string[], current: ControlPosition): s
   return positions[(index + 1) % positions.length];
 }
 
-function DiscreteInput({
-  positions,
-  guarded,
-  position,
-  guardOpen,
-  label,
-  positionLabels,
-  onSet,
-  onOpenGuard,
-  onCloseGuard,
-}: Pick<
-  ControlWidgetProps,
-  'position' | 'guardOpen' | 'label' | 'positionLabels' | 'onSet' | 'onOpenGuard' | 'onCloseGuard'
-> & { positions: readonly string[]; guarded: boolean }) {
-  const shown = positionLabels[String(position)] ?? String(position);
-  return (
-    <button
-      type="button"
-      className={inputClass}
-      aria-label={`${label}: ${shown}`}
-      onClick={() => {
-        if (guarded && !guardOpen) return onOpenGuard();
-        const next = nextPosition(positions, position);
-        if (next !== undefined) onSet(next);
-      }}
-      onKeyDown={(event) => {
-        if (guarded && guardOpen && event.key === 'Escape') onCloseGuard();
-      }}
-    />
-  );
-}
+type Hold = { position?: string };
 
-function MomentaryInput({
-  position,
-  label,
-  held,
+function ButtonInput({
+  name,
+  hold,
+  pressedState,
+  onActivate,
+  onEscape,
   onPress,
   onRelease,
-}: Pick<ControlWidgetProps, 'position' | 'label' | 'onPress' | 'onRelease'> & { held: string }) {
+}: Pick<ControlWidgetProps, 'onPress' | 'onRelease'> & {
+  name: string;
+  hold: Hold | undefined;
+  pressedState?: boolean;
+  onActivate: () => void;
+  onEscape?: () => void;
+}) {
   const pressed = useRef(false);
+  const swallowClick = useRef(false);
   const press = () => {
     if (pressed.current) return;
+    swallowClick.current = hold !== undefined;
+    if (!hold) return;
     pressed.current = true;
-    onPress();
+    if (hold.position === undefined) onPress();
+    else onPress(hold.position);
   };
   const release = () => {
     if (!pressed.current) return;
@@ -76,16 +59,21 @@ function MomentaryInput({
     <button
       type="button"
       className={inputClass}
-      aria-label={label}
-      aria-pressed={position === held}
+      aria-label={name}
+      aria-pressed={pressedState}
       onPointerDown={(event) => {
         event.currentTarget.setPointerCapture?.(event.pointerId);
         press();
       }}
       onPointerUp={release}
       onPointerCancel={release}
+      onClick={() => {
+        if (swallowClick.current) swallowClick.current = false;
+        else onActivate();
+      }}
       onKeyDown={(event) => {
         if (isActivation(event)) press();
+        else if (event.key === 'Escape') onEscape?.();
       }}
       onKeyUp={(event) => {
         if (isActivation(event)) release();
@@ -123,7 +111,7 @@ function LeverInput({
       role="slider"
       tabIndex={0}
       className={inputClass}
-      data-drag={path ? '' : undefined}
+      style={path ? { touchAction: 'none' } : undefined}
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={1}
@@ -169,10 +157,11 @@ export function ArtworkControl(props: ArtworkControlProps) {
   const input = (size: Size | null): ReactNode => {
     if (control.kind === 'momentary') {
       return (
-        <MomentaryInput
-          position={position}
-          label={label}
-          held={control.positions[1]}
+        <ButtonInput
+          name={label}
+          hold={{}}
+          pressedState={position === control.positions[1]}
+          onActivate={noop}
           onPress={props.onPress}
           onRelease={props.onRelease}
         />
@@ -189,11 +178,27 @@ export function ArtworkControl(props: ArtworkControlProps) {
         />
       );
     }
+    const guarded = control.kind === 'guarded';
+    const next = nextPosition(control.positions, position);
+    const springs =
+      control.kind === 'rotary' &&
+      next !== undefined &&
+      control.springBack !== undefined &&
+      Object.hasOwn(control.springBack, next);
+    const shown = props.positionLabels[String(position)] ?? String(position);
     return (
-      <DiscreteInput
-        {...props}
-        positions={control.positions}
-        guarded={control.kind === 'guarded'}
+      <ButtonInput
+        name={`${label}: ${shown}`}
+        hold={springs ? { position: next } : undefined}
+        onActivate={() => {
+          if (guarded && !props.guardOpen) props.onOpenGuard();
+          else if (next !== undefined) props.onSet(next);
+        }}
+        onEscape={() => {
+          if (guarded && props.guardOpen) props.onCloseGuard();
+        }}
+        onPress={props.onPress}
+        onRelease={props.onRelease}
       />
     );
   };

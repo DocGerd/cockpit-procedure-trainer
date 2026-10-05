@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { ArtworkControl, ArtworkIndicator } from './index';
+
 import type { Artwork } from './index';
 
 const FACE = { width: 40, height: 20 };
@@ -87,6 +88,16 @@ describe('ArtworkIndicator needle', () => {
       <ArtworkIndicator value={-5} label="Gauge" artwork={artworkOf(needle)} fallback={fallback} />,
     );
     expect(numbers(transformOf(layers()[0]))[0]).toBeCloseTo(-90);
+  });
+
+  it('draws the image at 0 degrees and rotates it by the absolute angle', () => {
+    renderIndicator(needle, 0);
+    expect(transformOf(layers()[0])).toBe('rotate(-90 12 8)');
+  });
+
+  it('rests at the minimum angle for a range without width, whatever the value', () => {
+    renderIndicator({ ...needle, valueRange: { min: 5, max: 5 } }, 9);
+    expect(transformOf(layers()[0])).toBe('rotate(-90 12 8)');
   });
 
   it('draws the layers in the face coordinate system and names the gauge', () => {
@@ -223,6 +234,12 @@ const base = { name: text('x', 'x'), description: text('x', 'x') };
 
 const toggle: ControlDefinition = { ...base, kind: 'toggle', positions: ['a', 'b'], initial: 'a' };
 const switchImages: MovingPart = { type: 'positions', images: { a: 'a.png', b: 'b.png' } };
+const momentary: ControlDefinition = {
+  ...base,
+  kind: 'momentary',
+  positions: ['a', 'b'],
+  initial: 'a',
+};
 const lever: ControlDefinition = { ...base, kind: 'lever', positions: 'continuous', initial: 0 };
 
 describe('ArtworkControl', () => {
@@ -268,12 +285,6 @@ describe('ArtworkControl', () => {
   });
 
   it('presses on pointer down and releases on pointer up for a momentary control', () => {
-    const momentary: ControlDefinition = {
-      ...base,
-      kind: 'momentary',
-      positions: ['a', 'b'],
-      initial: 'a',
-    };
     const view = renderControl(momentary, switchImages, 'a');
     const button = screen.getByRole('button', { name: 'Control' });
     fireEvent.pointerDown(button);
@@ -286,12 +297,6 @@ describe('ArtworkControl', () => {
   });
 
   it('presses while a key is held on a momentary control', () => {
-    const momentary: ControlDefinition = {
-      ...base,
-      kind: 'momentary',
-      positions: ['a', 'b'],
-      initial: 'a',
-    };
     const view = renderControl(momentary, switchImages, 'a');
     const button = screen.getByRole('button', { name: 'Control' });
     fireEvent.keyDown(button, { key: ' ' });
@@ -299,6 +304,32 @@ describe('ArtworkControl', () => {
     expect(view.onPress).toHaveBeenCalledTimes(1);
     fireEvent.keyUp(button, { key: ' ' });
     expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('activates a momentary control with Enter as well as Space', () => {
+    const view = renderControl(momentary, switchImages, 'a');
+    const button = screen.getByRole('button', { name: 'Control' });
+    fireEvent.keyDown(button, { key: 'Enter' });
+    expect(view.onPress).toHaveBeenCalledTimes(1);
+    fireEvent.keyUp(button, { key: 'Enter' });
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases a held momentary control when it loses focus', () => {
+    const view = renderControl(momentary, switchImages, 'a');
+    const button = screen.getByRole('button', { name: 'Control' });
+    fireEvent.keyDown(button, { key: ' ' });
+    fireEvent.blur(button);
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('captures the pointer while a momentary control is held', () => {
+    renderControl(momentary, switchImages, 'a');
+    const button = screen.getByRole('button', { name: 'Control' });
+    const capture = vi.fn();
+    Object.assign(button, { setPointerCapture: capture });
+    fireEvent.pointerDown(button);
+    expect(capture).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to the generic widget when an image fails', () => {
@@ -334,6 +365,33 @@ describe('ArtworkControl on a continuous lever', () => {
     expect(top.onSet).toHaveBeenLastCalledWith(1);
   });
 
+  it('steps by tenths without accumulating floating-point error', () => {
+    const view = renderControl(lever, travel, 0.2);
+    fireEvent.keyDown(screen.getByRole('slider'), { key: 'ArrowUp' });
+    expect(view.onSet).toHaveBeenLastCalledWith(0.3);
+  });
+
+  it('ignores a drag while the element has no size', () => {
+    const view = renderControl(lever, travel, 0);
+    fireEvent.pointerDown(screen.getByRole('slider'), { clientX: 40, clientY: 40 });
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('captures the pointer for a drag and disables touch panning', () => {
+    renderControl(lever, travel, 0);
+    const slider = screen.getByRole('slider');
+    const capture = vi.fn();
+    Object.assign(slider, { setPointerCapture: capture });
+    fireEvent.pointerDown(slider);
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(slider.style.touchAction).toBe('none');
+  });
+
+  it('offers no drag on a lever without a travel path', () => {
+    renderControl(lever, { type: 'positions', images: { '0': 'zero.png' } }, 0);
+    expect(screen.getByRole('slider').style.touchAction).toBe('');
+  });
+
   it('follows a drag by projecting the pointer onto the path', () => {
     const view = renderControl(lever, travel, 0);
     const slider = screen.getByRole('slider');
@@ -367,5 +425,73 @@ describe('ArtworkControl on a lever with named notches', () => {
   it('places the knob by the notch index along the path', () => {
     renderControl(notched, travel, 'b');
     expect(numbers(transformOf(layers()[0]))).toEqual([4, -12]);
+  });
+});
+
+describe('ArtworkControl on a rotary with a spring-back detent', () => {
+  const key: ControlDefinition = {
+    ...base,
+    kind: 'rotary',
+    positions: ['off', 'both', 'start'],
+    initial: 'off',
+    springBack: { start: 'both' },
+  };
+  const keyImages: MovingPart = {
+    type: 'positions',
+    images: { off: 'off.png', both: 'both.png', start: 'start.png' },
+  };
+
+  it('sets a detent that does not spring back', () => {
+    const view = renderControl(key, keyImages, 'off');
+    fireEvent.pointerDown(screen.getByRole('button'));
+    fireEvent.pointerUp(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button'));
+    expect(view.onSet).toHaveBeenCalledWith('both');
+    expect(view.onPress).not.toHaveBeenCalled();
+    expect(view.onRelease).not.toHaveBeenCalled();
+  });
+
+  it('presses the spring detent while held and releases it on let go', () => {
+    const view = renderControl(key, keyImages, 'both');
+    const button = screen.getByRole('button');
+    fireEvent.pointerDown(button);
+    expect(view.onPress).toHaveBeenCalledWith('start');
+    expect(view.onRelease).not.toHaveBeenCalled();
+    fireEvent.pointerUp(button);
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+    fireEvent.click(button);
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('does the same from the keyboard', () => {
+    const view = renderControl(key, keyImages, 'both');
+    const button = screen.getByRole('button');
+    fireEvent.keyDown(button, { key: ' ' });
+    expect(view.onPress).toHaveBeenCalledWith('start');
+    fireEvent.keyUp(button, { key: ' ' });
+    fireEvent.click(button);
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('still releases when the held detent has become the current position', () => {
+    const view = renderControl(key, keyImages, 'both');
+    fireEvent.pointerDown(screen.getByRole('button'));
+    view.rerender(
+      <ArtworkControl
+        control={key}
+        position="start"
+        guardOpen={false}
+        label="Control"
+        positionLabels={{}}
+        artwork={artworkOf(keyImages)}
+        fallback={fallback}
+        {...{ onSet: view.onSet, onPress: view.onPress, onRelease: view.onRelease }}
+        onOpenGuard={view.onOpenGuard}
+        onCloseGuard={view.onCloseGuard}
+      />,
+    );
+    fireEvent.pointerUp(screen.getByRole('button'));
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
   });
 });

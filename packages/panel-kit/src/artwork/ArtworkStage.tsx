@@ -32,6 +32,7 @@ function movingSource(moving: MovingPart, value: LayerValue): string | undefined
   return moving.type === 'positions' ? moving.images[String(value)] : moving.image;
 }
 
+// The needle image is drawn at 0 degrees, as authored, and rotated clockwise by the absolute angle.
 function movingTransform(
   moving: MovingPart,
   value: LayerValue,
