@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="./css.d.ts" />
 import type { ArtworkAppearance, MovingPart } from '@cpt/core';
 import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
