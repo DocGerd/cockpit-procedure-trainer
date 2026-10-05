@@ -36,10 +36,47 @@ describe('push button', () => {
       render(<PushButton {...props} />);
       fireEvent.pointerDown(button(), { button: 0 });
       fireEvent[event](button());
-      fireEvent.pointerLeave(button());
       expect(props.onRelease).toHaveBeenCalledTimes(1);
     },
   );
+
+  it('releases only once when pointer up is followed by leave', () => {
+    const props = widgetProps(momentary);
+    render(<PushButton {...props} />);
+    fireEvent.pointerDown(button(), { button: 0 });
+    fireEvent.pointerUp(button());
+    fireEvent.pointerLeave(button());
+    expect(props.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('presses then releases on a click with no pointer or key down', () => {
+    const calls: string[] = [];
+    const props = widgetProps(momentary);
+    props.onPress.mockImplementation(() => calls.push('press'));
+    props.onRelease.mockImplementation(() => calls.push('release'));
+    render(<PushButton {...props} />);
+    fireEvent.click(button());
+    expect(calls).toEqual(['press', 'release']);
+  });
+
+  it('does not press again for the click that follows a pointer press', () => {
+    const props = widgetProps(momentary);
+    render(<PushButton {...props} />);
+    fireEvent.pointerDown(button(), { button: 0 });
+    fireEvent.pointerUp(button());
+    fireEvent.click(button());
+    expect(props.onPress).toHaveBeenCalledTimes(1);
+    expect(props.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats a click after an abandoned press as a new activation', () => {
+    const props = widgetProps(momentary);
+    render(<PushButton {...props} />);
+    fireEvent.pointerDown(button(), { button: 0 });
+    fireEvent.pointerLeave(button());
+    fireEvent.click(button());
+    expect(props.onPress).toHaveBeenCalledTimes(2);
+  });
 
   it('does not release without a press', () => {
     const props = widgetProps(momentary);
@@ -126,6 +163,28 @@ describe('guarded handle', () => {
     await userEvent.setup().click(screen.getByRole('radio', { name: 'label pulled' }));
     expect(props.onSet).toHaveBeenCalledWith('pulled');
     expect(props.onOpenGuard).not.toHaveBeenCalled();
+  });
+
+  it('closes an open guard with Escape from the handle', () => {
+    const props = widgetProps(guarded, { guardOpen: true });
+    render(<GuardedHandle {...props} />);
+    fireEvent.keyDown(screen.getByRole('radio', { name: 'label stowed' }), { key: 'Escape' });
+    expect(props.onCloseGuard).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores Escape while the guard is closed', () => {
+    const props = widgetProps(guarded);
+    render(<GuardedHandle {...props} />);
+    fireEvent.keyDown(screen.getByRole('button', { name: 'The control' }), { key: 'Escape' });
+    expect(props.onCloseGuard).not.toHaveBeenCalled();
+  });
+
+  it('points the guard button at the handle group it reveals', () => {
+    render(<GuardedHandle {...widgetProps(guarded, { guardOpen: true })} />);
+    const guard = screen.getByRole('button', { name: 'The control' });
+    expect(guard.getAttribute('aria-controls')).toBe(
+      screen.getByRole('radiogroup', { name: 'The control' }).id,
+    );
   });
 
   it('closes the guard again', async () => {

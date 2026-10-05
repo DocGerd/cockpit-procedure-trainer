@@ -94,9 +94,13 @@ describe('continuous lever', () => {
     slider().focus();
     const user = userEvent.setup();
     await user.keyboard('{ArrowUp}');
-    expect(props.onSet).toHaveBeenLastCalledWith(0.55);
+    expect(props.onSet).toHaveBeenLastCalledWith(0.6);
     await user.keyboard('{ArrowDown}{ArrowDown}');
-    expect(props.onSet).toHaveBeenLastCalledWith(0.45);
+    expect(props.onSet).toHaveBeenLastCalledWith(0.4);
+    await user.keyboard('{PageUp}');
+    expect(props.onSet).toHaveBeenLastCalledWith(0.75);
+    await user.keyboard('{PageDown}');
+    expect(props.onSet).toHaveBeenLastCalledWith(0.25);
     await user.keyboard('{End}');
     expect(props.onSet).toHaveBeenLastCalledWith(1);
     await user.keyboard('{Home}');

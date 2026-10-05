@@ -1,6 +1,6 @@
 import type { ControlWidgetProps } from '../types';
 import { verticalBoxes } from './geometry';
-import { namedPositions } from './positions';
+import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
 import { Legend, Stage, vars } from './Stage';
 
@@ -51,6 +51,7 @@ export function Rocker({
         labels={positionLabels}
         boxes={verticalBoxes(ys)}
         direction="up"
+        springBack={springBackOf(control)}
         onSet={onSet}
         onPress={onPress}
         onRelease={onRelease}

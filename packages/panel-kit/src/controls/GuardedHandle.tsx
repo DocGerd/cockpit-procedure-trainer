@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
 import { along, verticalBoxes } from './geometry';
 import { namedPositions } from './positions';
@@ -20,6 +21,7 @@ export function GuardedHandle({
   onOpenGuard,
   onCloseGuard,
 }: ControlWidgetProps) {
+  const groupId = useId();
   const positions = namedPositions(control);
   const current = positions.indexOf(position as string);
   const ys = positions.map(
@@ -63,7 +65,14 @@ export function GuardedHandle({
     : { x: 50, y: 50, w: 100, h: 100 };
 
   return (
-    <Stage width={100} height={100} art={art}>
+    <Stage
+      width={100}
+      height={100}
+      art={art}
+      onKeyDown={(event) => {
+        if (guardOpen && event.key === 'Escape') onCloseGuard();
+      }}
+    >
       {guardOpen && (
         <PositionGroup
           label={label}
@@ -72,6 +81,7 @@ export function GuardedHandle({
           labels={positionLabels}
           boxes={verticalBoxes(ys, GUARD_ZONE)}
           direction="up"
+          groupProps={{ id: groupId }}
           onSet={onSet}
           onPress={onPress}
           onRelease={onRelease}
@@ -83,6 +93,7 @@ export function GuardedHandle({
         style={hitStyle(guardBox)}
         aria-label={label}
         aria-expanded={guardOpen}
+        aria-controls={guardOpen ? groupId : undefined}
         onClick={guardOpen ? onCloseGuard : onOpenGuard}
       />
     </Stage>

@@ -120,10 +120,20 @@ describe.each([
       render(<Widget {...props} />);
       fireEvent.pointerDown(start(), { button: 0 });
       fireEvent[event](start());
-      fireEvent.pointerLeave(start());
       expect(props.onRelease).toHaveBeenCalledTimes(1);
     },
   );
+
+  it('presses then releases on a click with no pointer or key down', () => {
+    const calls: string[] = [];
+    const props = widgetProps(rotary, { position: 'both' });
+    props.onPress.mockImplementation((position) => calls.push(`press ${String(position)}`));
+    props.onRelease.mockImplementation(() => calls.push('release'));
+    render(<Widget {...props} />);
+    fireEvent.click(start());
+    expect(calls).toEqual(['press start', 'release']);
+    expect(props.onSet).not.toHaveBeenCalled();
+  });
 
   it('presses and releases from the keyboard', async () => {
     const props = widgetProps(rotary, { position: 'both' });
@@ -162,5 +172,21 @@ describe.each([
     await userEvent.setup().click(screen.getByRole('radio', { name: 'label left' }));
     expect(props.onSet).toHaveBeenCalledWith('left');
     expect(props.onPress).not.toHaveBeenCalled();
+  });
+});
+
+describe.each([
+  ['toggle', Toggle],
+  ['rocker', Rocker],
+])('%s given a control with a spring-back detent', (_name, Widget) => {
+  it('presses and releases the detent instead of setting it', () => {
+    const props = widgetProps(rotary, { position: 'both' });
+    render(<Widget {...props} />);
+    const start = screen.getByRole('radio', { name: 'label start' });
+    fireEvent.pointerDown(start, { button: 0 });
+    expect(props.onPress).toHaveBeenCalledWith('start');
+    fireEvent.pointerUp(start);
+    expect(props.onRelease).toHaveBeenCalledTimes(1);
+    expect(props.onSet).not.toHaveBeenCalled();
   });
 });

@@ -8,8 +8,8 @@ import { Fill, Legend, Stage, TARGET, vars } from './Stage';
 
 const SIZE = 100;
 const SLOT = { top: 12, bottom: 88 };
-const KEY_STEP = 0.05;
-const PAGE_STEP = 0.1;
+const KEY_STEP = 0.1;
+const PAGE_STEP = 0.25;
 
 const yOf = (value: number) => SLOT.bottom - value * (SLOT.bottom - SLOT.top);
 

@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference -- a script declaration file cannot be imported
 /// <reference path="../artwork/css.d.ts" />
-import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
+import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactNode } from 'react';
 import type { Box } from './geometry';
 import './controls.css';
 
@@ -24,12 +24,17 @@ type StageProps = {
   height: number;
   art: ReactNode;
   children?: ReactNode;
+  onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 };
 
-export function Stage({ width, height, art, children }: StageProps) {
+export function Stage({ width, height, art, children, onKeyDown }: StageProps) {
   return (
     <div className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
-      <div className="pk-stage" style={vars({ '--pk-ratio': width / height })}>
+      <div
+        className="pk-stage"
+        style={vars({ '--pk-ratio': width / height })}
+        {...(onKeyDown ? { onKeyDown } : {})}
+      >
         <svg
           className="pk-svg"
           viewBox={`0 0 ${width} ${height}`}
