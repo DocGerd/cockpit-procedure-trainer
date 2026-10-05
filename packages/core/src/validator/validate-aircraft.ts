@@ -1,4 +1,5 @@
-import type { Aircraft, ControlDefinition, ControlPosition, Device, Text } from '../contract';
+import { isPosition } from '../contract';
+import type { Aircraft, Device, Text } from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -33,12 +34,6 @@ export function formatFinding(finding: Finding): string {
 
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
-function allows(control: ControlDefinition, position: unknown): boolean {
-  return control.positions === 'continuous'
-    ? typeof position === 'number'
-    : (control.positions as readonly ControlPosition[]).includes(position as ControlPosition);
-}
-
 // The context carries registries the aircraft cannot see.
 export function validateAircraft(aircraft: Aircraft, context: ValidationContext = {}): Finding[] {
   const findings: Finding[] = [];
@@ -64,7 +59,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
 
   const checkPosition = (id: string, field: string, position: unknown) => {
     const control = aircraft.controls[id];
-    if (control && !allows(control, position)) {
+    if (control && !isPosition(control, position)) {
       add(
         'unknown-position',
         id,
@@ -100,7 +95,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       : undefined;
     if (!control) {
       add('unknown-device-control', id, `${where} targets a control ${device.id} does not have`);
-    } else if (position !== undefined && !allows(control, position)) {
+    } else if (position !== undefined && !isPosition(control, position)) {
       add(
         'unknown-position',
         id,

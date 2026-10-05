@@ -1,3 +1,4 @@
+import { isPosition } from '../contract';
 import type {
   ControlChange,
   ControlDefinition,
@@ -51,15 +52,7 @@ export function createControlStore<CT extends ControlRecord>(
   }
 
   function validate(id: string, definition: ControlDefinition, position: ControlPosition): void {
-    const { positions } = definition;
-    const valid =
-      positions === 'continuous'
-        ? typeof position === 'number' &&
-          Number.isFinite(position) &&
-          position >= 0 &&
-          position <= 1
-        : (positions as readonly ControlPosition[]).includes(position);
-    if (!valid) {
+    if (!isPosition(definition, position)) {
       throw new Error(`Control "${id}" has no position ${JSON.stringify(position)}`);
     }
   }
