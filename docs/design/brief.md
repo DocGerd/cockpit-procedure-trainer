@@ -16,7 +16,7 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 ### S1 Main layout, desktop
 
 - Header: aircraft, procedure, mode, phase, language, theme (spec §5). The UAT build adds a "UAT" badge.
-- Free explore hides the procedure button and the phase selector, as the canvas draws it.
+- Free explore hides the procedure button; the phase control stays, because phase is global session state.
 - Outside-view strip on top.
 - Panel below it, with view tabs.
 - Checklist pane at the side.
