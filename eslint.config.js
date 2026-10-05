@@ -112,21 +112,36 @@ const nonZeroNumber = '^[0-9.]*[1-9]';
 const nonZeroNumeral = '^[0-9.]*[1-9][0-9.]*$';
 const spacingKey =
   '^(fontSize|lineHeight|letterSpacing|gap|rowGap|columnGap|(margin|padding|inset)([A-Z][A-Za-z]*)?)$';
-const sizeAttribute = '^(fontSize|lineHeight|letterSpacing)$';
 const notFontToken = (path) =>
   `:not([${path}=/${fontFamilyToken}/]):not([${path}=/${fontFamilyName}/i])`;
+
+const styleObject = [
+  'JSXAttribute[name.name="style"] ObjectExpression',
+  ...['TSSatisfiesExpression', 'TSAsExpression'].map(
+    (type) => `${type}[typeAnnotation.typeName.name="CSSProperties"] > ObjectExpression`,
+  ),
+  'VariableDeclarator[id.typeAnnotation.typeAnnotation.typeName.name="CSSProperties"] > ObjectExpression',
+  'VariableDeclarator[id.typeAnnotation.typeAnnotation.typeName.right.name="CSSProperties"] > ObjectExpression',
+];
+const inStyleObject = (property) =>
+  styleObject.map((object) => `${object} > ${property}[key.name=/${spacingKey}/]`);
+const styleSpacing = [
+  ...inStyleObject('Property').map((selector) => `${selector}[value.raw=/${nonZeroNumber}/]`),
+  ...inStyleObject('Property').map(
+    (selector) => `${selector} > Literal[value=/${nonZeroNumeral}/]`,
+  ),
+  ...inStyleObject('Property').map(
+    (selector) => `${selector} > UnaryExpression > Literal[raw=/${nonZeroNumber}/]`,
+  ),
+];
 
 const typeSpacingSelectors = [
   `Literal[value=/${cssLength}/]`,
   `TemplateElement[value.raw=/${cssLength}/]`,
   'TemplateLiteral > TemplateElement:not(:first-child)[value.raw=/^(px|rem|em)\\b/]',
   `Literal[value=/${fontFamilyName}/i]`,
-  `Property[key.name=/${spacingKey}/][value.raw=/${nonZeroNumber}/]`,
-  `Property[key.name=/${spacingKey}/] > Literal[value=/${nonZeroNumeral}/]`,
-  `Property[key.name=/${spacingKey}/] > UnaryExpression > Literal[raw=/${nonZeroNumber}/]`,
   `Property[key.name="fontFamily"] > Literal${notFontToken('value')}`,
-  `JSXAttribute[name.name=/${sizeAttribute}/] > JSXExpressionContainer > Literal[raw=/${nonZeroNumber}/]`,
-  `JSXAttribute[name.name=/${sizeAttribute}/] > Literal[value=/${nonZeroNumeral}/]`,
+  ...styleSpacing,
   `JSXAttribute[name.name="fontFamily"] > Literal${notFontToken('value')}`,
 ].map((selector) => ({ selector, message: typeSpacingMessage }));
 
@@ -142,6 +157,25 @@ const deviceSelectors = [
   {
     selector: dynamicOtherThanCoreAndPanelKit,
     message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+  },
+];
+
+const panelKitGroups = [{ group: otherThanCore, message: 'panel-kit depends only on @cpt/core.' }];
+const panelKitSelectors = [
+  { selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' },
+];
+
+const webGroups = [
+  { group: content, message: 'Import aircraft and devices only through the registries.' },
+];
+const webSelectors = [
+  {
+    selector: dynamicContent,
+    message: 'Import aircraft and devices only through the registries.',
+  },
+  {
+    selector: globContent,
+    message: 'Import aircraft and devices only through the registries.',
   },
 ];
 
@@ -236,36 +270,27 @@ export default tseslint.config(
   },
   {
     files: ['packages/panel-kit/**/*.{ts,tsx}'],
-    rules: restrict(
-      'panel-kit',
-      [{ group: otherThanCore, message: 'panel-kit depends only on @cpt/core.' }],
-      [
-        { selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' },
-        ...literalSelectors,
-      ],
-    ),
+    rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...literalSelectors]),
   },
   {
     files: ['apps/web/src/**/*.{ts,tsx}'],
     ignores: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict(
-      'web',
-      [{ group: content, message: 'Import aircraft and devices only through the registries.' }],
-      [
-        {
-          selector: dynamicContent,
-          message: 'Import aircraft and devices only through the registries.',
-        },
-        {
-          selector: globContent,
-          message: 'Import aircraft and devices only through the registries.',
-        },
-        ...literalSelectors,
-      ],
-    ),
+    rules: restrict('web', webGroups, [...webSelectors, ...literalSelectors]),
   },
   {
     files: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
     rules: restrict('web', [], literalSelectors),
+  },
+  {
+    files: ['apps/web/src/**/*.test.{ts,tsx}'],
+    rules: restrict('web', webGroups, [...webSelectors, ...colourLiterals]),
+  },
+  {
+    files: ['packages/panel-kit/**/*.test.{ts,tsx}'],
+    rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...colourLiterals]),
+  },
+  {
+    files: ['packages/device-*/src/screen/**/*.test.{ts,tsx}'],
+    rules: restrict(null, deviceGroups, [...deviceSelectors, ...colourLiterals]),
   },
 );
