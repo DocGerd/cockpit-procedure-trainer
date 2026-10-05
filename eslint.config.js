@@ -1,14 +1,28 @@
 import js from '@eslint/js';
 import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import tseslint from 'typescript-eslint';
 
 const ui = ['react', 'react/*', 'react-dom', 'react-dom/*'];
-const assets = ['*.css', '*.svg', '*.png', '*.jpg', '*.webp'];
+const assets = [
+  '*.css',
+  '*.svg',
+  '*.png',
+  '*.jpg',
+  '*.jpeg',
+  '*.gif',
+  '*.webp',
+  '*.avif',
+  '*.mp3',
+  '*.wav',
+  '*.ogg',
+];
+const assetQuery = '\\?(raw|url)$';
 const content = ['@cpt/aircraft-*', '@cpt/device-*'];
 const otherThanCore = ['@cpt/*', '!@cpt/core'];
 
 const workspaceDirs = ['packages', 'apps'].flatMap((root) =>
-  readdirSync(root, { withFileTypes: true })
+  readdirSync(resolve(import.meta.dirname, root), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name),
 );
@@ -75,6 +89,10 @@ export default tseslint.config(
           group: [...ui, ...assets, ...otherThanCore],
           message:
             'core is plain data and pure functions: no UI, assets or other workspace packages.',
+        },
+        {
+          regex: assetQuery,
+          message: 'core is plain data and pure functions: no assets.',
         },
       ],
       [{ selector: dynamicOtherThanCore, message: 'core imports no other workspace package.' }],

@@ -8,11 +8,7 @@ export function App() {
     <main>
       <header>
         <h1>Cockpit Procedure Trainer</h1>
-        {isUat && (
-          <span role="status" className="uat-badge">
-            UAT
-          </span>
-        )}
+        {isUat && <span className="uat-badge">UAT</span>}
       </header>
       <p>Training aid only. The aircraft&apos;s handbook is authoritative.</p>
       <p>
