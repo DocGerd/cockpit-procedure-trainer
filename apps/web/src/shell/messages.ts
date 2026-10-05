@@ -1,4 +1,6 @@
-export const messages = {
+import { defineMessages } from '../i18n';
+
+export const messages = defineMessages({
   en: {
     brandName: 'Procedure Trainer',
     uatBadge: 'UAT',
@@ -63,4 +65,4 @@ export const messages = {
     startProcedure: 'Verfahren starten',
     exploreCockpit: 'Cockpit erkunden',
   },
-} as const;
+});
