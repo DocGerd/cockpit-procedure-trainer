@@ -1,3 +1,11 @@
+:root {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-md);
