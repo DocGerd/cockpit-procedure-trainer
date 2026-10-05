@@ -33,7 +33,15 @@ export function createSystemsRuntime<S, F extends string = string>(
   const listeners = new Set<() => void>();
 
   const notify = () => {
-    for (const listener of [...listeners]) listener();
+    const errors: unknown[] = [];
+    for (const listener of [...listeners]) {
+      try {
+        listener();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    if (errors.length > 0) throw errors[0];
   };
 
   const stepBy = (dtMs: number) => {
@@ -51,7 +59,12 @@ export function createSystemsRuntime<S, F extends string = string>(
       controls = positions;
       stepBy(0);
     },
-    advance: stepBy,
+    advance(dtMs) {
+      if (!Number.isFinite(dtMs) || dtMs < 0) {
+        throw new RangeError(`dtMs must be a finite number >= 0, got ${dtMs}`);
+      }
+      stepBy(dtMs);
+    },
     setEnvironment(next) {
       environment = next;
     },

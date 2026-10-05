@@ -111,6 +111,62 @@ describe('createSystemsRuntime', () => {
     expect(listener).toHaveBeenCalledTimes(2);
   });
 
+  describe('a listener that throws', () => {
+    it('still notifies the others, advances the state, stays running, then rethrows the first error', () => {
+      const runtime = createSystemsRuntime(counting, { environment: ground });
+      const first = new Error('first');
+      const after = vi.fn();
+      runtime.subscribe(() => {
+        throw first;
+      });
+      runtime.subscribe(() => {
+        throw new Error('second');
+      });
+      runtime.subscribe(after);
+      expect(() => runtime.advance(STEP_MS)).toThrow(first);
+      expect(after).toHaveBeenCalledTimes(1);
+      expect(runtime.state().elapsedMs).toBe(STEP_MS);
+      expect(runtime.status()).toEqual({ kind: 'running' });
+    });
+
+    it('does the same on onControlsChanged and on reset', () => {
+      const runtime = createSystemsRuntime(counting, { environment: ground });
+      const boom = new Error('listener');
+      const after = vi.fn();
+      runtime.subscribe(() => {
+        throw boom;
+      });
+      runtime.subscribe(after);
+      expect(() => runtime.onControlsChanged({ master: 'on' })).toThrow(boom);
+      expect(runtime.state().steps).toBe(1);
+      expect(() => runtime.reset(initial)).toThrow(boom);
+      expect(runtime.state()).toBe(initial);
+      expect(after).toHaveBeenCalledTimes(2);
+      expect(runtime.status()).toEqual({ kind: 'running' });
+    });
+  });
+
+  describe('an invalid dtMs', () => {
+    it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+      'throws a RangeError for %s without stepping or failing',
+      (dtMs) => {
+        const runtime = createSystemsRuntime(counting, { environment: ground });
+        const listener = vi.fn();
+        runtime.subscribe(listener);
+        expect(() => runtime.advance(dtMs)).toThrow(RangeError);
+        expect(runtime.state()).toBe(initial);
+        expect(runtime.status()).toEqual({ kind: 'running' });
+        expect(listener).not.toHaveBeenCalled();
+      },
+    );
+
+    it('accepts 0', () => {
+      const runtime = createSystemsRuntime(counting, { environment: ground });
+      runtime.advance(0);
+      expect(runtime.state().steps).toBe(1);
+    });
+  });
+
   describe('a step that throws', () => {
     const boom = new Error('step blew up');
     const make = () => {
@@ -166,6 +222,27 @@ describe('createSystemsRuntime', () => {
       expect(runtime.state()).toEqual({ n: 0 });
       expect(listener).not.toHaveBeenCalled();
       expect(runtime.status().kind).toBe('failed');
+    });
+
+    it('freezes on a throw from onControlsChanged too', () => {
+      const { runtime, failNext } = make();
+      runtime.onControlsChanged({});
+      const good = runtime.state();
+      failNext();
+      expect(() => runtime.onControlsChanged({ master: 'on' })).not.toThrow();
+      expect(runtime.state()).toBe(good);
+      expect(runtime.status()).toEqual({ kind: 'failed', error: boom });
+    });
+
+    it('reset followed by onControlsChanged recovers and steps', () => {
+      const { runtime, failNext, recover } = make();
+      failNext();
+      runtime.advance(STEP_MS);
+      recover();
+      runtime.reset({ n: 5 });
+      runtime.onControlsChanged({});
+      expect(runtime.state()).toEqual({ n: 6 });
+      expect(runtime.status()).toEqual({ kind: 'running' });
     });
 
     it('reset replaces the state, clears the error, notifies and resumes stepping', () => {
