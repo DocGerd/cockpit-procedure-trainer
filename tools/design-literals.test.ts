@@ -14,8 +14,15 @@ async function eslintCount(ruleId: string, filePath: string, code: string): Prom
 const literals = (filePath: string, code: string) =>
   eslintCount('no-restricted-syntax', filePath, code);
 
+const repoRoot = resolve(import.meta.dirname, '..');
+
 async function cssWarnings(filePath: string, code: string): Promise<number> {
-  const result = await stylelint.lint({ code, codeFilename: resolve(filePath), configFile });
+  const result = await stylelint.lint({
+    code,
+    codeFilename: resolve(repoRoot, filePath),
+    configFile,
+    cwd: repoRoot,
+  });
   return result.results.reduce((total, r) => total + r.warnings.length, 0);
 }
 
@@ -92,6 +99,11 @@ describe('literals in CSS', () => {
     ['color: rgb(0 0 0)'],
     ['color: oklch(60% 0.1 280)'],
     ['font-family: Arial'],
+    ['font: 14px Arial'],
+    ['outline-color: Highlight'],
+    ['background-color: canvastext'],
+    ['background: Window'],
+    ['border: 1px solid Highlight'],
     ['padding: 12px'],
     ['margin-block: 1rem'],
     ['gap: 0.5em'],
@@ -108,6 +120,9 @@ describe('literals in CSS', () => {
     ['border-width: 1px'],
     ['font-family: var(--font-sans)'],
     ['font-family: inherit'],
+    ['font: inherit'],
+    ['font-weight: var(--weight-medium)'],
+    ['border-color: var(--color-mark)'],
     ['width: 24px'],
     ['margin: 0'],
   ])('allows %s', async (declaration) => {

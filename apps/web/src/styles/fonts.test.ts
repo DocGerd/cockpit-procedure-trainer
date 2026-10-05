@@ -1,8 +1,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const webRoot = new URL('../../', import.meta.url).pathname;
+const webRoot = fileURLToPath(new URL('../../', import.meta.url));
 const read = (path: string) => readFileSync(path, 'utf8');
 
 const sources = (readdirSync(join(webRoot, 'src'), { recursive: true }) as string[])

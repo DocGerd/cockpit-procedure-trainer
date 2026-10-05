@@ -59,6 +59,9 @@ UI changes also need a pass in a real browser at tablet and desktop width.
 
 ESLint enforces these.
 
+Colours, type and spacing come only from `apps/web/src/styles/tokens.css`. ESLint and Stylelint enforce
+this in `apps/web/src` (`pnpm lint` runs both); `tools/design-literals.test.ts` proves it.
+
 ## Aircraft content
 
 Write checklists in your own words and use your own photos. Do not commit
