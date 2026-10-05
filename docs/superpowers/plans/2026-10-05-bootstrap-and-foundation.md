@@ -57,7 +57,8 @@ milestone boundaries, not per task.
 Sequence: Task 3 (base `main`), then Task 4 (CI), then Task 4A (creates
 `develop`, makes it the default branch, adds rulesets and the deploy and release
 workflows), then Tasks 6, 7 and 7A in parallel in separate worktrees off
-`origin/develop`, with Task 7B in parallel once Task 7A is merged, then Task 8.
+`origin/develop`, then Task 7B after Task 7A is merged (it edits 7A's
+`.claude/settings.json`), then Task 8.
 Rulesets need the `check` job from Task 4, and `Closes #<n>` only fires on the
 default branch, which is why Task 4A comes before the rest.
 
@@ -1208,7 +1209,7 @@ Expected: `closed` twice. This proves a `Closes` PR merged into `develop` closes
 
 - [ ] **Step 11: Rulesets for `main` and `develop`**
 
-Before writing these, confirm in the GitHub REST documentation for repository rules that the `pull_request` rule has an `allowed_merge_methods` parameter (values `merge`, `squash`, `rebase`). The two rulesets differ only in the target branch and the allowed merge method. `15368` is the integration id of GitHub Actions. `strict_required_status_checks_policy` is `false` because the release PR `develop` to `main` is never up to date with `main`, which holds the previous release merge commit.
+Before writing these, confirm in the GitHub REST documentation for repository rules that the `pull_request` rule has an `allowed_merge_methods` parameter (values `merge`, `squash`, `rebase`). The two rulesets differ only in the target branch and the allowed merge methods: `main` allows `merge` only; `develop` allows `squash` and `merge`. Feature PRs squash; only a `chore/backmerge` PR (`main` into `develop`) uses a merge commit, which keeps `main` an ancestor of `develop`. `15368` is the integration id of GitHub Actions. `strict_required_status_checks_policy` is `false` because the release PR `develop` to `main` is never up to date with `main`, which holds the previous release merge commit.
 
 ```bash
 gh api --method POST repos/DocGerd/cockpit-procedure-trainer/rulesets --input - --jq '.name' <<'JSON'
@@ -1246,7 +1247,7 @@ gh api --method POST repos/DocGerd/cockpit-procedure-trainer/rulesets --input - 
 JSON
 ```
 
-Run the same command again with `"name": "protect-develop"`, `"include": ["refs/heads/develop"]` and `"allowed_merge_methods": ["squash"]`.
+Run the same command again with `"name": "protect-develop"`, `"include": ["refs/heads/develop"]` and `"allowed_merge_methods": ["squash", "merge"]`.
 
 Expected: `protect-main`, then `protect-develop`.
 
@@ -1261,7 +1262,7 @@ git push origin develop; echo "exit=$?"
 git reset --hard origin/develop
 ```
 
-Expected: `["merge"]`, `["squash"]`, then the push is rejected with a message that changes must be made through a pull request, `exit=1`.
+Expected: `["merge"]`, `["squash","merge"]`, then the push is rejected with a message that changes must be made through a pull request, `exit=1`.
 
 - [ ] **Step 13: Verify the live sites**
 
@@ -1638,8 +1639,8 @@ that the six plugins show as enabled for this project.
 
 ### Task 7B: Release-cycle skills (Closes #51)
 
-Runs after Task 4A. It edits `.claude/settings.json`, which Task 7A creates, so
-merge Task 7A first.
+Depends on Task 7A: it edits `.claude/settings.json`, which Task 7A creates, so
+start it only after Task 7A is merged.
 
 Repo-local Claude Code tooling for a full release cycle: open PRs, review them,
 fix findings, merge into `develop`, and cut a release that only the owner can
@@ -1719,6 +1720,9 @@ For each PR `N`:
 4. **Threads.** Every review thread is resolved (enumerate query in
    `pr-selfreview`). One unresolved thread: stop.
 5. **Merge.** `gh pr merge N --squash --delete-branch --match-head-commit SHA`.
+   The one exception is a backmerge PR (branch `chore/backmerge`, `main` into
+   `develop`): merge it with `--merge` instead of `--squash`, so `main` becomes
+   an ancestor of `develop`.
 6. **Confirm.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .merged` prints `true`, and
    each `Closes #n` issue reads `closed`. If the merge call errored, read
    `.merged` before any retry; never retry blind.
@@ -1744,6 +1748,7 @@ cmd="$(jq -r '.tool_input.command // empty')"
 
 case "$cmd" in
   *"gh api"*"/merge"*) deny "Merging through the API is not allowed. Use gh pr merge on a PR whose base is develop." ;;
+  *"gh api"*graphql*mergePullRequest*) deny "Merging through GraphQL is not allowed. Use gh pr merge on a PR whose base is develop." ;;
   *"gh pr merge"*) ;;
   *) exit 0 ;;
 esac
@@ -1803,10 +1808,11 @@ probe 'gh pr merge 12 --squash --delete-branch' develop
 probe 'gh pr merge --squash' develop
 probe 'gh api repos/o/r/pulls/12/merge --method PUT' develop
 probe 'gh pr list' main
+probe 'gh api graphql --raw-field query=mutation{mergePullRequest(input:{pullRequestId:X}){clientMutationId}}' develop
 rm -r "$stub"
 ```
 
-Expected: the first, third and fourth probes print a JSON object whose `permissionDecision` is `deny`; the second and fifth print nothing before their `exit=0` line. All five end with `exit=0` (the decision is in the JSON, not the exit code).
+Expected: the first, third, fourth and sixth probes print a JSON object whose `permissionDecision` is `deny`; the second and fifth print nothing before their `exit=0` line. All six end with `exit=0` (the decision is in the JSON, not the exit code).
 
 - [ ] **Step 6: `.claude/commands/release-cycle.md`**
 

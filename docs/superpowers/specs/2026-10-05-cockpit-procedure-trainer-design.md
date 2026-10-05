@@ -326,7 +326,7 @@ parallel.
 - GitHub Actions: lint, typecheck, unit, validator, browser tests on every PR.
 - Rulesets on `main` and `develop`: PRs only, required checks, all review
   threads resolved, no deletion or non-fast-forward pushes, no required
-  approvals. `main` accepts merge commits only; `develop` accepts squash merges.
+  approvals. `main` accepts merge commits only; `develop` accepts squash merges, and merge commits only for a `main` into `develop` backmerge.
 - Delivery follows gitflow. Feature, fix, chore, docs and ci branches
   (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`) branch from `develop` and merge
   into it. A `release/vX.Y.Z` branch folds the changelog fragments into

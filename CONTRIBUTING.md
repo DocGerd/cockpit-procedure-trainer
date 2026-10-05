@@ -9,7 +9,8 @@
    issue, name it `+<slug>.<category>.md`.
 4. Open a pull request against `develop` whose description contains `Closes #<issue>`.
 5. `develop` and `main` accept changes only through pull requests with a green
-   `check` job and all review threads resolved. `develop` takes squash merges.
+   `check` job and all review threads resolved. `develop` takes squash merges, except a `chore/backmerge`
+   PR (`main` into `develop`), which uses a merge commit.
 
 ## Releases
 
