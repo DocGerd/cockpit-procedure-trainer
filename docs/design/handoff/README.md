@@ -14,4 +14,6 @@ The artboards are exported unchanged from the product's design canvas. Nothing w
 
 `canvas.json` is the canvas index: board titles, sizes and positions.
 
+Opening an artboard makes a Google Fonts request. The artboards do not render standalone: `./support.js`, the editor runtime, is deliberately not committed.
+
 The screens the canvas does not draw are specified in `../brief.md`. The panel controls are stand-ins, not the target look (spec §6.2).
