@@ -69,3 +69,30 @@
   --color-warning: #d6a23e;
   --color-danger: #e0726a;
 }
+
+/* Panel hardware: theme-independent, never brand or status colours. */
+:root {
+  --panel-surface: #26282c;
+  --panel-frame: #3b4046;
+  --panel-face: #0b0c0e;
+  --panel-dial: #131518;
+  --panel-bezel: #5e646b;
+  --panel-bezel-dark: #2a2e33;
+  --panel-cap: #8c9199;
+  --panel-cap-light: #c2c7cd;
+  --panel-legend: #eceef1;
+  --panel-legend-muted: #969ca4;
+  --panel-needle: #ffffff;
+  --panel-screen: #050607;
+  --panel-lamp-off: #1b1e22;
+  --panel-lamp-amber: #f0a830;
+  --panel-lamp-red: #e5483c;
+  --panel-lamp-green: #3fbf5f;
+  --panel-lamp-blue: #4a90e2;
+  --panel-lamp-white: #f4f5f7;
+  --panel-arc-green: #3fa35b;
+  --panel-arc-yellow: #e0b43a;
+  --panel-arc-red: #d8483c;
+  --panel-arc-white: #eceef1;
+  --panel-focus: #ffffff;
+}

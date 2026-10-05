@@ -24,19 +24,19 @@ const brand = (() => {
 const css = read('./tokens.css');
 
 function block(selector: RegExp): Tokens {
-  const found = selector.exec(css);
-  if (!found) return new Map();
-  const open = found.index + found[0].length;
-  const body = css.slice(open, css.indexOf('}', open));
   const tokens: Tokens = new Map();
-  for (const match of body.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) {
-    if (match[1] && match[2]) tokens.set(match[1], normalise(match[2].trim()));
+  for (const found of css.matchAll(selector)) {
+    const open = found.index + found[0].length;
+    const body = css.slice(open, css.indexOf('}', open));
+    for (const match of body.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) {
+      if (match[1] && match[2]) tokens.set(match[1], normalise(match[2].trim()));
+    }
   }
   return tokens;
 }
 
-const root = block(/:root\s*\{/);
-const darkBlock = block(/\[data-theme=["']dark["']\]\s*\{/);
+const root = block(/:root\s*\{/g);
+const darkBlock = block(/\[data-theme=["']dark["']\]\s*\{/g);
 
 const themes: Record<string, Tokens> = {
   light: root,
@@ -61,6 +61,15 @@ describe('tokens.css matches BRAND.md', () => {
       } else {
         expect(darkBlock.get(name), name).toBe(value);
       }
+    }
+  });
+
+  it('keeps the panel hardware tokens the same in both themes', () => {
+    const panel = [...brand.light.keys()].filter((name) => name.startsWith('--panel-'));
+    expect(panel.length).toBeGreaterThan(0);
+    for (const name of panel) {
+      expect(brand.dark.get(name), name).toBe(brand.light.get(name));
+      expect(darkBlock.has(name), name).toBe(false);
     }
   });
 
