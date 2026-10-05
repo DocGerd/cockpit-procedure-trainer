@@ -125,6 +125,9 @@ describe('round gauge', () => {
     cleanup();
     const outside = draw(gauge, 10, { ...range, arcs: [{ from: 40, to: 50, colour: 'green' }] });
     expect(outside.container.querySelectorAll('[data-arc]')).toHaveLength(0);
+    cleanup();
+    const below = draw(gauge, 10, { ...range, arcs: [{ from: -50, to: -10, colour: 'green' }] });
+    expect(below.container.querySelectorAll('[data-arc]')).toHaveLength(0);
     expect(outside.container.querySelector('[data-placeholder]')).toBeNull();
   });
 
