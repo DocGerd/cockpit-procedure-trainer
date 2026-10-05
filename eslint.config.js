@@ -31,6 +31,14 @@ const dynamicContent = dynamicSource(`^@cpt${slash}(aircraft|device)-`);
 const globContent =
   'CallExpression[callee.object.type="MetaProperty"][callee.property.name="glob"]:has(Literal[value=/(aircraft|device)-/])';
 
+const hexColour = '#[0-9a-fA-F]{3,8}\\b';
+const colourFunction = '\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\\(';
+const colourMessage = 'Colours come only from apps/web/src/styles/tokens.css.';
+const colourLiterals = [hexColour, colourFunction].flatMap((pattern) => [
+  { selector: `Literal[value=/${pattern}/]`, message: colourMessage },
+  { selector: `TemplateElement[value.raw=/${pattern}/]`, message: colourMessage },
+]);
+
 const restrict = (own, groups, selectors = []) => ({
   'no-restricted-imports': [
     'error',
@@ -110,11 +118,12 @@ export default tseslint.config(
           selector: globContent,
           message: 'Import aircraft and devices only through the registries.',
         },
+        ...colourLiterals,
       ],
     ),
   },
   {
     files: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict('web', []),
+    rules: restrict('web', [], colourLiterals),
   },
 );
