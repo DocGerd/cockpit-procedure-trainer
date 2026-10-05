@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Aircraft } from '../contract';
+import type { Aircraft, Device } from '../contract';
 import { engineMonitor, fixtureDeviceAircraft } from '../devices/fixtures';
 import { formatFinding, validateAircraft } from './validate-aircraft';
 import type { Finding } from './validate-aircraft';
@@ -205,5 +205,33 @@ describe('phase entry device positions', () => {
     expect(codes(withEntryDevices({ mon: { page: 'weather' } }))).toEqual([
       expect.objectContaining({ code: 'unknown-position', id: 'mon.page' }),
     ]);
+  });
+});
+
+describe('inexact-lever-target on a device control', () => {
+  const gain = {
+    kind: 'lever',
+    positions: 'continuous',
+    initial: 0,
+    name: text,
+    description: text,
+  };
+  const leveredMonitor = {
+    ...engineMonitor,
+    controls: { ...engineMonitor.controls, gain },
+  } as unknown as Device;
+  const action = (position: unknown) =>
+    codes(withItems([{ type: 'action', control: 'mon.gain', position, text }]), {
+      devices: [leveredMonitor],
+    });
+
+  it('reports an in-between target', () => {
+    expect(action(0.5)).toEqual([
+      expect.objectContaining({ code: 'inexact-lever-target', id: 'mon.gain' }),
+    ]);
+  });
+
+  it.each([0, 1])('accepts the stop %s', (value) => {
+    expect(action(value)).toEqual([]);
   });
 });
