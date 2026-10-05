@@ -38,14 +38,16 @@ Out of scope:
    and aircraft packages depend on `core` only; an aircraft refers to
    panel-kit widgets and devices by id, not by import. A device's logic
    depends on `core` only and its screen may use `panel-kit`. `apps/web`
-   reaches aircraft and devices only through its two registries, and lint
-   enforces all of it. Reason: an aircraft is added without touching engine or
+   reaches aircraft and devices only through its two registries, and ESLint
+   enforces the `core`, `panel-kit`, aircraft and registry rules; the rule for
+   device packages is not in place yet. Reason: an aircraft is added without touching engine or
    app code.
 2. **Aircraft as typed data plus one pure `step` function.** An aircraft
    declares its controls, indicators, views, failures, phases and procedures as
-   typed data, and its systems model as an initial state and a pure
-   `step(state, input)`. `core` ships reusable building blocks that an aircraft
-   composes. Reason: wrong operation needs no scripting, because it simply
+   typed data, with every text in German and English, and its systems model as an
+   initial state and a pure `step(state, input)`. A validator in `core` checks
+   the contract for every registered aircraft in CI. `core` ships reusable
+   building blocks that an aircraft composes. Reason: wrong operation needs no scripting, because it simply
    fails to satisfy the rules, and the model is testable without a browser.
 3. **The checklist engine observes and never blocks.** It watches control
    changes and state, completes items, and records actions outside the current
