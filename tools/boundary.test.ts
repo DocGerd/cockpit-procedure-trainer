@@ -37,12 +37,17 @@ describe('package boundaries', () => {
     expect(await restricted('packages/core/src/x.ts', "import './panel.png';\n")).toBe(1);
   });
 
-  it.each([['./panel.jpeg'], ['./click.mp3'], ['./panel.css?raw'], ['./panel.svg?url']])(
-    'rejects asset import %s in core',
-    async (path) => {
-      expect(await restricted('packages/core/src/x.ts', `import '${path}';\n`)).toBe(1);
-    },
-  );
+  it.each([
+    ['./panel.jpeg'],
+    ['./click.mp3'],
+    ['./panel.css?raw'],
+    ['./panel.svg?url'],
+    ['./panel.svg?url&no-inline'],
+    ['./panel.css?raw&inline'],
+    ['./panel.svg?url#frag'],
+  ])('rejects asset import %s in core', async (path) => {
+    expect(await restricted('packages/core/src/x.ts', `import '${path}';\n`)).toBe(1);
+  });
 
   it('allows a core import whose name merely ends in raw', async () => {
     expect(await restricted('packages/core/src/x.ts', "import './draw';\n")).toBe(0);

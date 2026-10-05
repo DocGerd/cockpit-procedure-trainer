@@ -17,7 +17,7 @@ const assets = [
   '*.wav',
   '*.ogg',
 ];
-const assetQuery = '\\?(raw|url)$';
+const assetQuery = '\\?(raw|url)([&#]|$)';
 const content = ['@cpt/aircraft-*', '@cpt/device-*'];
 const otherThanCore = ['@cpt/*', '!@cpt/core'];
 
