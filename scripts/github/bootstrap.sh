@@ -2,6 +2,10 @@
 # Creates labels, milestones and issues from backlog.json. Safe to re-run.
 set -euo pipefail
 
+for tool in jq gh timeout; do
+  command -v "$tool" >/dev/null || { echo "missing required tool: $tool" >&2; exit 1; }
+done
+
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 manifest="$dir/backlog.json"
 repo="$(jq -r '.repo' "$manifest")"
@@ -11,9 +15,10 @@ gh_() { timeout -k 5 60 gh "$@" </dev/null; }
 
 unknown="$(jq -r '
   (.labels | map(.name)) as $l | (.milestones | map(.title)) as $m
-  | .issues[]
-  | select((.milestone as $x | $m | index($x) | not) or (.labels - $l | length > 0))
-  | "issue \(.id): unknown milestone or label"' "$manifest")"
+  | (.issues[]
+     | select((.milestone as $x | $m | index($x) | not) or (.labels - $l | length > 0))
+     | "issue \(.id): unknown milestone or label"),
+    (.issues | group_by(.title)[] | select(length > 1) | "duplicate title: \(.[0].title)")' "$manifest")"
 if [[ -n "$unknown" ]]; then
   echo "$unknown" >&2
   exit 1
