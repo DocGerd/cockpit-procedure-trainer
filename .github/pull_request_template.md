@@ -1,6 +1,12 @@
 Closes #
 
+Feature, fix and chore pull requests target `develop`.
+
 ## What changed
+
+## Decisions
+
+Anything the spec or plan does not settle, with the reason. Write "none" if there is nothing.
 
 ## How it was verified
 
