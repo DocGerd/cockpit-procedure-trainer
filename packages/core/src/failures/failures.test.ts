@@ -133,3 +133,68 @@ describe('createFailureSet', () => {
     expect(store.set('alternatorBreaker', 'in')).toEqual({ applied: true });
   });
 });
+
+describe('createFailureSet collaborator calls', () => {
+  function recording() {
+    const calls: string[] = [];
+    const received: ReadonlySet<string>[] = [];
+    const store = {
+      systemSet: (id: string, position: string) => {
+        calls.push(`systemSet ${id} ${position}`);
+        return { applied: true } as const;
+      },
+    };
+    const runtime = {
+      setFailures: (failures: ReadonlySet<string>) => {
+        calls.push(`setFailures ${[...failures].join(',')}`);
+        received.push(failures);
+      },
+    };
+    const failures = createFailureSet(fixtureAircraft, { store, runtime });
+    return { calls, received, failures };
+  }
+
+  it('forwards the set to the runtime before pulling the breaker', () => {
+    const { calls, failures } = recording();
+    failures.inject('alternatorFailure');
+    expect(calls).toEqual(['setFailures alternatorFailure', 'systemSet alternatorBreaker pulled']);
+  });
+
+  it('makes no calls when injecting an active failure again', () => {
+    const { calls, failures } = recording();
+    failures.inject('alternatorFailure');
+    calls.length = 0;
+    failures.inject('alternatorFailure');
+    expect(calls).toEqual([]);
+  });
+
+  it('does not trip a breaker the pilot reset while the failure stays active', () => {
+    const { store, failures, changes } = setup();
+    failures.inject('alternatorFailure');
+    store.set('alternatorBreaker', 'in');
+    changes.length = 0;
+    failures.inject('alternatorFailure');
+    expect(changes).toEqual([]);
+    expect(store.positions().alternatorBreaker).toBe('in');
+  });
+
+  it('makes no calls when clearing an inactive failure', () => {
+    const { calls, failures } = recording();
+    failures.clear('alternatorFailure');
+    failures.clearAll();
+    expect(calls).toEqual([]);
+  });
+
+  it('hands the runtime a copy of the active set', () => {
+    const { received, failures } = recording();
+    failures.inject('alternatorFailure');
+    const first = received[0] as Set<string>;
+    first.clear();
+    expect([...failures.active()]).toEqual(['alternatorFailure']);
+    failures.clear('alternatorFailure');
+    expect([...(received[1] as ReadonlySet<string>)]).toEqual([]);
+    expect([...first]).toEqual([]);
+    failures.inject('alternatorFailure');
+    expect([...first]).toEqual([]);
+  });
+});

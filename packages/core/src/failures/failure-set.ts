@@ -26,25 +26,27 @@ export function createFailureSet<F extends string>(
     return declared[id] as FailureDefinition;
   }
 
+  const publish = () => runtime.setFailures(new Set(active));
+
   return {
     inject(id) {
       const definition = definitionOf(id);
       if (active.has(id)) return;
       active.add(id);
-      runtime.setFailures(active);
+      publish();
       for (const breaker of definition.trips ?? []) store.systemSet(breaker, 'pulled');
     },
 
     clear(id) {
       definitionOf(id);
       if (!active.delete(id)) return;
-      runtime.setFailures(active);
+      publish();
     },
 
     clearAll() {
       if (active.size === 0) return;
       active.clear();
-      runtime.setFailures(active);
+      publish();
     },
 
     active: () => new Set(active),
