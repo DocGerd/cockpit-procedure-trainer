@@ -1,5 +1,5 @@
 import { isPosition } from '../contract';
-import type { Aircraft, Device, Text } from '../contract';
+import type { Aircraft, ControlDefinition, Device, Text } from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -10,6 +10,7 @@ export type FindingCode =
   | 'phase-without-snapshot'
   | 'undeclared-failure'
   | 'unknown-position'
+  | 'inexact-lever-target'
   | 'unknown-device'
   | 'unknown-device-control'
   | 'unplaced-device'
@@ -68,7 +69,27 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
-  const checkDeviceTarget = (id: string, where: string, position?: unknown) => {
+  const checkActionStop = (
+    id: string,
+    where: string,
+    control: ControlDefinition,
+    position: unknown,
+  ) => {
+    if (
+      control.positions === 'continuous' &&
+      isPosition(control, position) &&
+      position !== 0 &&
+      position !== 1
+    ) {
+      add(
+        'inexact-lever-target',
+        id,
+        `${where} targets ${String(position)} on a continuous lever; target 0 or 1, or use a check item with a condition, or give the lever named notches`,
+      );
+    }
+  };
+
+  const checkDeviceTarget = (id: string, where: string, position?: unknown, action = false) => {
     const install = installs.find(
       ([installId]) => !installId.includes('.') && id.startsWith(`${installId}.`),
     );
@@ -80,7 +101,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     const device = deviceById(deviceId);
     if (!device) return;
     const controlId = id.slice(installId.length + 1);
-    checkDeviceControl(id, device, controlId, where, position);
+    checkDeviceControl(id, device, controlId, where, position, action);
   };
 
   const checkDeviceControl = (
@@ -89,6 +110,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     controlId: string,
     where: string,
     position?: unknown,
+    action = false,
   ) => {
     const control = Object.hasOwn(device.controls, controlId)
       ? device.controls[controlId]
@@ -101,14 +123,18 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         id,
         `${where} position: ${JSON.stringify(position)} is not a position of ${id}`,
       );
+    } else if (action) {
+      checkActionStop(id, where, control, position);
     }
   };
 
-  const checkControlTarget = (id: string, where: string, position?: unknown) => {
+  const checkControlTarget = (id: string, where: string, position?: unknown, action = false) => {
     if (hasControl(id)) {
       if (position !== undefined) checkPosition(id, `${where} position`, position);
+      const control = aircraft.controls[id];
+      if (action && control) checkActionStop(id, where, control, position);
     } else if (id.includes('.')) {
-      checkDeviceTarget(id, where, position);
+      checkDeviceTarget(id, where, position, action);
     } else {
       add('unknown-target', id, `${where} targets an unknown control`);
     }
@@ -279,7 +305,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       const where = `procedure ${procedureId} item ${index}`;
       checkText(procedureId, `item ${index} text`, item.text);
       if (item.type === 'action') {
-        checkControlTarget(item.control, where, item.position);
+        checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
         if ('indicator' in item.target) {
           if (!hasIndicator(item.target.indicator)) {
