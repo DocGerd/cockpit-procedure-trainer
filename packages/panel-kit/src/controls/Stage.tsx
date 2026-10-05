@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- a script declaration file cannot be imported
+/// <reference path="../artwork/css.d.ts" />
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 import type { Box } from './geometry';
 import './controls.css';

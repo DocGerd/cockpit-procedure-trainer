@@ -1,3 +1,4 @@
+// @ts-expect-error panel-kit declares no node types; its manifest belongs to the scaffold
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
