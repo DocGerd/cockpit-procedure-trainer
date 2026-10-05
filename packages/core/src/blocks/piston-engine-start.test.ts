@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CRANK_MS_TO_START, pistonEngineStart } from './piston-engine-start';
+import { pistonEngineStart as createPistonEngineStart } from './piston-engine-start';
 import type { PistonEngineInputs, PistonEngineState } from './piston-engine-start';
+
+const CRANK_MS_TO_START = 700;
+const pistonEngineStart = createPistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });
 
 const inputs = (overrides: Partial<PistonEngineInputs> = {}): PistonEngineInputs => ({
   starterEngaged: true,
@@ -67,6 +70,33 @@ describe('pistonEngineStart', () => {
     expect(partial.crankMs).toBeGreaterThan(0);
     const released = pistonEngineStart.step(partial, inputs({ starterEngaged: false }), 100);
     expect(released).toEqual({ running: false, crankMs: 0 });
+  });
+
+  it('loses crank progress when bus power drops mid-crank', () => {
+    const partial = run(pistonEngineStart.initial, {}, CRANK_MS_TO_START / 2);
+    expect(partial.crankMs).toBeGreaterThan(0);
+    const dropped = pistonEngineStart.step(partial, inputs({ busPowered: false }), 100);
+    expect(dropped).toEqual({ running: false, crankMs: 0 });
+  });
+
+  it('loses crank progress when the magnetos go off mid-crank', () => {
+    const partial = run(pistonEngineStart.initial, {}, CRANK_MS_TO_START / 2);
+    expect(partial.crankMs).toBeGreaterThan(0);
+    const off = pistonEngineStart.step(partial, inputs({ magnetos: 'off' }), 100);
+    expect(off).toEqual({ running: false, crankMs: 0 });
+  });
+
+  it('takes its crank time from the aircraft config', () => {
+    const slow = createPistonEngineStart({ crankMsToStart: 2000 });
+    const state = slow.step(slow.initial, inputs(), CRANK_MS_TO_START + 100);
+    expect(state.running).toBe(false);
+    expect(slow.step(state, inputs(), 2000).running).toBe(true);
+  });
+
+  it('does not mutate its state or inputs', () => {
+    const state = Object.freeze({ ...pistonEngineStart.initial });
+    const frozen = Object.freeze(inputs());
+    expect(() => pistonEngineStart.step(state, frozen, 100)).not.toThrow();
   });
 
   it.each(['left', 'right', 'both'] as const)('starts on the %s magneto', (magnetos) => {

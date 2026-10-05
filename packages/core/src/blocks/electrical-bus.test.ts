@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { electricalBus } from './electrical-bus';
+import { electricalBus as createElectricalBus } from './electrical-bus';
 import type { ElectricalBusInputs } from './electrical-bus';
+
+const BATTERY_VOLTS = 11;
+const CHARGING_VOLTS = 13;
+const electricalBus = createElectricalBus({
+  batteryVolts: BATTERY_VOLTS,
+  chargingVolts: CHARGING_VOLTS,
+});
 
 const inputs = (overrides: Partial<ElectricalBusInputs> = {}): ElectricalBusInputs => ({
   masterOn: true,
@@ -19,7 +26,7 @@ describe('electricalBus', () => {
   });
 
   it('powers the bus from the battery when the master is on', () => {
-    expect(step()).toEqual({ busPowered: true, charging: false, volts: 12 });
+    expect(step()).toEqual({ busPowered: true, charging: false, volts: BATTERY_VOLTS });
   });
 
   it('leaves the bus dead with the master off', () => {
@@ -32,7 +39,11 @@ describe('electricalBus', () => {
 
   it('charges only with the engine running', () => {
     expect(step({ engineRunning: false }).charging).toBe(false);
-    expect(step({ engineRunning: true })).toEqual({ busPowered: true, charging: true, volts: 14 });
+    expect(step({ engineRunning: true })).toEqual({
+      busPowered: true,
+      charging: true,
+      volts: CHARGING_VOLTS,
+    });
   });
 
   it('does not charge with the alternator switched off', () => {
@@ -43,13 +54,19 @@ describe('electricalBus', () => {
     expect(step({ engineRunning: true, alternatorFailed: true })).toEqual({
       busPowered: true,
       charging: false,
-      volts: 12,
+      volts: BATTERY_VOLTS,
     });
   });
 
-  it('does not mutate the previous state', () => {
-    const before = { ...electricalBus.initial };
-    electricalBus.step(electricalBus.initial, inputs(), 50);
-    expect(electricalBus.initial).toEqual(before);
+  it('takes its voltages from the aircraft config', () => {
+    const other = createElectricalBus({ batteryVolts: 24, chargingVolts: 28 });
+    expect(other.step(other.initial, inputs(), 50).volts).toBe(24);
+    expect(other.step(other.initial, inputs({ engineRunning: true }), 50).volts).toBe(28);
+  });
+
+  it('does not mutate its state or inputs', () => {
+    const state = Object.freeze({ ...electricalBus.initial });
+    const frozen = Object.freeze(inputs({ engineRunning: true }));
+    expect(() => electricalBus.step(state, frozen, 50)).not.toThrow();
   });
 });

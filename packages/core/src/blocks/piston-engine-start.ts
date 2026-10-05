@@ -1,7 +1,5 @@
 import type { SystemBlock } from './types';
 
-export const CRANK_MS_TO_START = 1000;
-
 export type Magnetos = 'off' | 'left' | 'right' | 'both';
 
 export type PistonEngineState = {
@@ -16,7 +14,13 @@ export type PistonEngineInputs = {
   engineFailed: boolean;
 };
 
-export const pistonEngineStart: SystemBlock<PistonEngineState, PistonEngineInputs> = {
+export type PistonEngineConfig = {
+  crankMsToStart: number;
+};
+
+export const pistonEngineStart = ({
+  crankMsToStart,
+}: PistonEngineConfig): SystemBlock<PistonEngineState, PistonEngineInputs> => ({
   initial: { running: false, crankMs: 0 },
   step(state, { starterEngaged, magnetos, busPowered, engineFailed }, dtMs) {
     const ignition = magnetos !== 'off' && !engineFailed;
@@ -24,8 +28,6 @@ export const pistonEngineStart: SystemBlock<PistonEngineState, PistonEngineInput
     if (state.running) return { running: true, crankMs: 0 };
     if (!starterEngaged || !busPowered) return { running: false, crankMs: 0 };
     const crankMs = state.crankMs + dtMs;
-    return crankMs >= CRANK_MS_TO_START
-      ? { running: true, crankMs: 0 }
-      : { running: false, crankMs };
+    return crankMs >= crankMsToStart ? { running: true, crankMs: 0 } : { running: false, crankMs };
   },
-};
+});

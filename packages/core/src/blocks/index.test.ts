@@ -1,5 +1,11 @@
 import { expect, it } from 'vitest';
-import { electricalBus, pistonEngineStart } from './index';
+import {
+  electricalBus as createElectricalBus,
+  pistonEngineStart as createPistonEngineStart,
+} from './index';
+
+const electricalBus = createElectricalBus({ batteryVolts: 12, chargingVolts: 14 });
+const pistonEngineStart = createPistonEngineStart({ crankMsToStart: 1000 });
 
 it('composes the bus and the engine through the blocks alone', () => {
   let bus = electricalBus.initial;
