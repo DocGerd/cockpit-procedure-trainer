@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Aircraft } from '../contract';
 import { fixtureAircraft, STARTER_MS_TO_START } from '../contract/fixtures';
 import type { FixtureState } from '../contract/fixtures';
+import { defineDevice } from '../devices';
 import { engineMonitor, fixtureDeviceAircraft, monitorState } from '../devices/fixtures';
 import { STEP_MS } from '../runtime';
 import { createSession } from './index';
@@ -414,5 +415,225 @@ describe('devices in the session', () => {
 
   it('throws when an install names a device that is not registered', () => {
     expect(() => createSession(fixtureDeviceAircraft)).toThrow(/engineMonitor/);
+  });
+});
+
+describe('a failing device step', () => {
+  const throwing = defineDevice({
+    id: 'engineMonitor',
+    manual: engineMonitor.manual,
+    notModelled: engineMonitor.notModelled,
+    controls: engineMonitor.controls,
+    initial: engineMonitor.initial,
+    step: (state, input) => {
+      if (input.controls.page === 'electrical') throw new Error('device broke');
+      return engineMonitor.step(state, input);
+    },
+  });
+  const start = () => {
+    const session = createSession(fixtureDeviceAircraft, { devices: [throwing] });
+    session.startProcedure('beforeStart');
+    return session;
+  };
+
+  it('applies the whole change, reports failed and notifies once', () => {
+    const session = start();
+    let calls = 0;
+    session.subscribe(() => calls++);
+    expect(session.set('mon.page', 'electrical')).toEqual({ applied: true });
+    expect(session.state().controls['mon.page']).toBe('electrical');
+    expect(session.status()).toMatchObject({ kind: 'failed' });
+    expect(session.checklist()?.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'mon.page' },
+    ]);
+    expect(calls).toBe(1);
+  });
+
+  it('ignores input, time and check-off while failed', () => {
+    const session = start();
+    session.set('mon.page', 'electrical');
+    let calls = 0;
+    session.subscribe(() => calls++);
+    const before = session.state();
+    expect(session.set('master', 'on')).toEqual({ applied: false, reason: 'failed' });
+    expect(session.openGuard('fuelPump')).toEqual({ applied: false, reason: 'failed' });
+    session.advance(STEP_MS);
+    session.checkOff();
+    expect(session.state()).toBe(before);
+    expect(calls).toBe(0);
+    expect(() => session.advance(-1)).toThrow(RangeError);
+  });
+
+  it('recovers on a phase jump or a procedure start', () => {
+    const session = start();
+    session.set('mon.page', 'electrical');
+    session.jumpToPhase('parking');
+    expect(session.status()).toEqual({ kind: 'running' });
+    expect(session.set('master', 'on')).toEqual({ applied: true });
+    session.set('mon.page', 'electrical');
+    expect(session.status()).toMatchObject({ kind: 'failed' });
+    session.startProcedure('beforeStart');
+    expect(session.status()).toEqual({ kind: 'running' });
+  });
+
+  it('still completes a snapshot load whose device step throws', () => {
+    const aircraft = {
+      ...fixtureDeviceAircraft,
+      phases: {
+        ...fixtureDeviceAircraft.phases,
+        runup: {
+          ...fixtureDeviceAircraft.phases.runup,
+          entry: {
+            ...fixtureDeviceAircraft.phases.runup?.entry,
+            devices: { mon: { page: 'electrical' } },
+          },
+        },
+      },
+    } as Aircraft;
+    const session = createSession(aircraft, { devices: [throwing] });
+    let calls = 0;
+    session.subscribe(() => calls++);
+    session.jumpToPhase('runup');
+    expect(session.phase()).toBe('runup');
+    expect(session.state().controls['mon.page']).toBe('electrical');
+    expect(session.status()).toMatchObject({ kind: 'failed' });
+    expect(calls).toBe(1);
+  });
+
+  it('reports the aircraft step failure the same way', () => {
+    const broken = {
+      ...fixtureAircraft,
+      systems: {
+        ...fixtureAircraft.systems,
+        step: (state: unknown, input: { controls: { master?: unknown } }) => {
+          if (input.controls.master === 'on') throw new Error('step broke');
+          return state;
+        },
+      },
+    } as Aircraft;
+    const session = createSession(broken);
+    session.set('master', 'on');
+    expect(session.set('flaps', 'landing')).toEqual({ applied: false, reason: 'failed' });
+    expect(session.state().controls.flaps).toBe('up');
+  });
+});
+
+describe('an injected failure that trips no breaker', () => {
+  const quiet = {
+    ...fixtureAircraft,
+    failures: { alternatorFailure: { name: { de: 'Ausfall', en: 'Failure' } } },
+  } as Aircraft;
+
+  it('reaches the systems state before the checklist starts', () => {
+    const session = createSession(quiet);
+    session.startProcedure('alternatorFailure');
+    expect(session.state().controls.alternatorBreaker).toBe('in');
+    expect((session.state().systems as FixtureState).volts).toBe(12);
+  });
+});
+
+describe('notifications and errors', () => {
+  const noisy = (session: Session) => {
+    let calls = 0;
+    session.subscribe(() => {
+      calls++;
+      throw new Error('listener broke');
+    });
+    return () => calls;
+  };
+
+  it('does not notify, and throws the original error, for an unknown phase or procedure', () => {
+    const session = createSession(fixtureAircraft);
+    const calls = noisy(session);
+    expect(() => session.jumpToPhase('nowhere')).toThrow('nowhere');
+    expect(() => session.startProcedure('engineFire')).toThrow('engineFire');
+    expect(calls()).toBe(0);
+  });
+
+  it('rejects a procedure naming an undeclared failure before changing anything', () => {
+    const aircraft = {
+      ...fixtureAircraft,
+      procedures: {
+        ...fixtureAircraft.procedures,
+        broken: { ...fixtureAircraft.procedures.alternatorFailure, failure: 'engineFire' },
+      },
+    } as Aircraft;
+    const session = createSession(aircraft);
+    session.set('master', 'on');
+    const before = fingerprint(session);
+    const calls = noisy(session);
+    expect(() => session.startProcedure('broken')).toThrow('engineFire');
+    expect(fingerprint(session)).toEqual(before);
+    expect(calls()).toBe(0);
+  });
+
+  it('still throws a listener error after a successful jump', () => {
+    const session = createSession(fixtureAircraft);
+    const calls = noisy(session);
+    expect(() => session.jumpToPhase('runup')).toThrow('listener broke');
+    expect(calls()).toBe(1);
+    expect(session.phase()).toBe('runup');
+  });
+});
+
+describe('device state reset', () => {
+  const counter = defineDevice({
+    id: 'engineMonitor',
+    manual: engineMonitor.manual,
+    notModelled: engineMonitor.notModelled,
+    controls: engineMonitor.controls,
+    initial: { steps: 0 },
+    step: (state) => ({ steps: (state as { steps: number }).steps + 1 }),
+  });
+  const create = (phase: string) =>
+    createSession(fixtureDeviceAircraft, { devices: [counter], phase });
+
+  it('restarts devices from their initial state on a jump', () => {
+    const session = create('parking');
+    for (let tick = 0; tick < 5; tick++) session.advance(STEP_MS);
+    session.set('master', 'on');
+    session.jumpToPhase('runup');
+    expect(session.state().devices).toEqual(create('runup').state().devices);
+  });
+});
+
+describe('stable snapshots', () => {
+  it('returns the same references until something changes', () => {
+    const session = createSession(fixtureAircraft);
+    expect(session.state()).toBe(session.state());
+    expect(session.guards()).toBe(session.guards());
+    expect(session.failures()).toBe(session.failures());
+    expect(session.status()).toBe(session.status());
+    session.startProcedure('beforeStart');
+    expect(session.checklist()).toBe(session.checklist());
+  });
+
+  it('returns new references after each kind of change', () => {
+    const session = createSession(fixtureAircraft);
+    const first = session.state();
+    session.set('master', 'on');
+    const second = session.state();
+    expect(second).not.toBe(first);
+    session.advance(STEP_MS);
+    expect(session.state()).not.toBe(second);
+    const guards = session.guards();
+    session.openGuard('fuelPump');
+    expect(session.guards()).not.toBe(guards);
+    const failures = session.failures();
+    session.startProcedure('alternatorFailure');
+    expect(session.failures()).not.toBe(failures);
+    const afterStart = session.state();
+    session.jumpToPhase('parking');
+    expect(session.state()).not.toBe(afterStart);
+  });
+
+  it('is current inside a subscriber', () => {
+    const session = createSession(fixtureAircraft);
+    let seen: unknown;
+    session.subscribe(() => {
+      seen = session.state().controls.master;
+    });
+    session.set('master', 'on');
+    expect(seen).toBe('on');
   });
 });

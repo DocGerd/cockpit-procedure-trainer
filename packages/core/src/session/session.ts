@@ -22,6 +22,9 @@ export type SessionOptions = {
   readonly phase?: string;
 };
 
+export type SessionControlResult =
+  ControlResult | { readonly applied: false; readonly reason: 'failed' };
+
 export type Session = {
   phase(): string;
   environment(): Environment;
@@ -31,11 +34,11 @@ export type Session = {
   status(): RuntimeStatus;
   procedureId(): string | undefined;
   checklist(): ChecklistState<unknown> | undefined;
-  set(id: string, position: string | number): ControlResult;
-  press(id: string, position?: string | number): ControlResult;
-  release(id: string): ControlResult;
-  openGuard(id: string): ControlResult;
-  closeGuard(id: string): ControlResult;
+  set(id: string, position: string | number): SessionControlResult;
+  press(id: string, position?: string | number): SessionControlResult;
+  release(id: string): SessionControlResult;
+  openGuard(id: string): SessionControlResult;
+  closeGuard(id: string): SessionControlResult;
   jumpToPhase(id: string): void;
   startProcedure(id: string): void;
   advance(dtMs: number): void;
@@ -43,10 +46,11 @@ export type Session = {
   subscribe(listener: () => void): () => void;
 };
 
+const FAILED: SessionControlResult = { applied: false, reason: 'failed' };
+
 export function createSession(aircraft: Aircraft, options: SessionOptions = {}): Session {
   const registry = options.devices ?? [];
-  const firstPhase = Object.keys(aircraft.phases)[0];
-  const initialPhase = options.phase ?? firstPhase;
+  const initialPhase = options.phase ?? Object.keys(aircraft.phases)[0];
   if (initialPhase === undefined) throw new Error(`Aircraft "${aircraft.id}" has no phases`);
   const initial = entrySnapshot(aircraft, registry, initialPhase);
 
@@ -62,15 +66,30 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let devices: DeviceStates = initial.devices;
   let procedureId: string | undefined;
   let checklist: ChecklistState<unknown> | undefined;
-  let loading = false;
+  let deviceFailure: RuntimeStatus | undefined;
   let depth = 0;
   const listeners = new Set<() => void>();
 
-  const trainerState = (): TrainerState<unknown> => ({
+  const status = (): RuntimeStatus => deviceFailure ?? runtime.status();
+  const failed = () => status().kind === 'failed';
+
+  const buildState = (): TrainerState<unknown> => ({
     controls: store.positions(),
     systems: runtime.state(),
     devices,
   });
+
+  let dirty = true;
+  let cachedState: TrainerState<unknown>;
+  let cachedGuards: Readonly<Record<string, GuardPosition>>;
+  let cachedFailures: ReadonlySet<string>;
+  function refresh(): void {
+    if (!dirty) return;
+    cachedState = buildState();
+    cachedGuards = store.guards();
+    cachedFailures = failureSet.active();
+    dirty = false;
+  }
 
   function notify(): void {
     if (depth > 0) return;
@@ -87,18 +106,32 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
   function batch(change: () => void): void {
     depth++;
+    dirty = true;
     try {
       change();
-    } finally {
+    } catch (error) {
       depth--;
-      notify();
+      throw error;
+    } finally {
+      dirty = true;
+    }
+    depth--;
+    notify();
+  }
+
+  function settleDevices(dtMs: number, base: DeviceStates = devices): void {
+    try {
+      devices = stepDevices(aircraft, registry, { ...buildState(), devices: base }, dtMs);
+    } catch (error) {
+      devices = base;
+      deviceFailure = { kind: 'failed', error };
     }
   }
 
   function enterPhase(id: string): void {
-    const snapshot = entrySnapshot(aircraft, registry, id);
+    const next = entrySnapshot(aircraft, registry, id);
     phase = id;
-    environment = snapshot.environment;
+    environment = next.environment;
     runtime.setEnvironment(environment);
   }
 
@@ -111,71 +144,94 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
   function loadSnapshot(id: string): void {
     const snapshot = entrySnapshot(aircraft, registry, id);
-    loading = true;
-    try {
-      store.load(snapshot.positions);
-    } finally {
-      loading = false;
-    }
+    procedureId = undefined;
+    checklist = undefined;
+    store.load(snapshot.positions);
     failureSet.clearAll();
     runtime.setEnvironment(snapshot.environment);
     runtime.onControlsChanged(store.positions());
     runtime.reset(snapshot.systems);
-    devices = stepDevices(aircraft, registry, { ...trainerState(), devices: snapshot.devices }, 0);
+    deviceFailure = undefined;
+    settleDevices(0, snapshot.devices);
     phase = id;
     environment = snapshot.environment;
-    procedureId = undefined;
-    checklist = undefined;
   }
 
   store.subscribe((change: ControlChange) => {
-    if (loading) return;
-    runtime.onControlsChanged(store.positions());
-    devices = stepDevices(aircraft, registry, trainerState(), 0);
-    if (checklist) track(observeControl(checklist, change, trainerState()));
+    dirty = true;
+    try {
+      runtime.onControlsChanged(store.positions());
+      if (runtime.status().kind === 'running') settleDevices(0);
+      if (checklist) track(observeControl(checklist, change, buildState()));
+    } finally {
+      dirty = true;
+    }
     notify();
   });
 
   loadSnapshot(initialPhase);
 
+  const pilot =
+    <A extends unknown[]>(input: (...args: A) => ControlResult) =>
+    (...args: A): SessionControlResult =>
+      failed() ? FAILED : input(...args);
+
   return {
     phase: () => phase,
     environment: () => environment,
-    state: trainerState,
-    guards: store.guards,
-    failures: () => failureSet.active(),
-    status: runtime.status,
+    state: () => (refresh(), cachedState),
+    guards: () => (refresh(), cachedGuards),
+    failures: () => (refresh(), cachedFailures),
+    status,
     procedureId: () => procedureId,
     checklist: () => checklist,
 
-    set: store.set,
-    press: store.press,
-    release: store.release,
-    openGuard: store.openGuard,
-    closeGuard: store.closeGuard,
+    set: pilot(store.set),
+    press: pilot(store.press),
+    release: pilot(store.release),
+    openGuard: pilot(store.openGuard),
+    closeGuard: pilot(store.closeGuard),
 
     jumpToPhase: (id) => batch(() => loadSnapshot(id)),
 
     startProcedure(id) {
       const procedure = procedureOf(aircraft, id);
+      if (procedure.type === 'emergency' && !Object.hasOwn(aircraft.failures, procedure.failure)) {
+        throw new Error(`Procedure "${id}" names unknown failure "${procedure.failure}"`);
+      }
       batch(() => {
         loadSnapshot(procedure.startPhase);
-        if (procedure.type === 'emergency') failureSet.inject(procedure.failure);
+        if (procedure.type === 'emergency') {
+          failureSet.inject(procedure.failure);
+          runtime.onControlsChanged(store.positions());
+          settleDevices(0);
+        }
         procedureId = id;
-        track(startChecklist(procedure, trainerState()));
+        track(startChecklist(procedure, buildState()));
       });
     },
 
     advance(dtMs) {
+      const wasFailed = failed();
       runtime.advance(dtMs);
-      devices = stepDevices(aircraft, registry, trainerState(), dtMs);
-      if (checklist) track(observeState(checklist, trainerState()));
+      if (wasFailed) return;
+      dirty = true;
+      try {
+        if (runtime.status().kind === 'running') settleDevices(dtMs);
+        if (checklist) track(observeState(checklist, buildState()));
+      } finally {
+        dirty = true;
+      }
       notify();
     },
 
     checkOff() {
-      if (!checklist) return;
-      track(checkOff(checklist, trainerState()));
+      if (!checklist || failed()) return;
+      try {
+        track(checkOff(checklist, buildState()));
+      } finally {
+        dirty = true;
+      }
       notify();
     },
 
