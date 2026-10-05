@@ -38,17 +38,17 @@ milestone boundaries, not per task.
   are made, recorded in the PR description, and listed in the milestone summary.
 - A milestone ends with a GitHub release and a summary for the owner (Task 8).
 
-| Task | Worker | Reviewer |
-|---|---|---|
-| 1 Baseline documents and repo | sonnet, medium | sonnet, high |
-| 2 Labels, milestones, issues | sonnet, high | sonnet, high |
-| 3 Workspace and boundary rules | sonnet, high | opus, xhigh (boundaries are architecture) |
-| 4 CI | sonnet, high | sonnet, high |
-| 5 Pages | sonnet, high | sonnet, high |
-| 6 Templates and branch protection | sonnet, medium | sonnet, high |
-| 7 ADR and content policy | sonnet, medium | opus, xhigh |
-| 7A Claude Code project setup | sonnet, medium | sonnet, high |
-| 8 Milestone release | sonnet, medium | opus, xhigh (whole-milestone review) |
+| Task                              | Worker         | Reviewer                                  |
+| --------------------------------- | -------------- | ----------------------------------------- |
+| 1 Baseline documents and repo     | sonnet, medium | sonnet, high                              |
+| 2 Labels, milestones, issues      | sonnet, high   | sonnet, high                              |
+| 3 Workspace and boundary rules    | sonnet, high   | opus, xhigh (boundaries are architecture) |
+| 4 CI                              | sonnet, high   | sonnet, high                              |
+| 5 Pages                           | sonnet, high   | sonnet, high                              |
+| 6 Templates and branch protection | sonnet, medium | sonnet, high                              |
+| 7 ADR and content policy          | sonnet, medium | opus, xhigh                               |
+| 7A Claude Code project setup      | sonnet, medium | sonnet, high                              |
+| 8 Milestone release               | sonnet, medium | opus, xhigh (whole-milestone review)      |
 
 Tasks 4, 5, 6, 7 and 7A are independent once Task 3 is merged and can run in
 parallel in separate worktrees.
@@ -66,10 +66,12 @@ parallel in separate worktrees.
 ### Task 1: Baseline documents and public repo
 
 **Files:**
+
 - Create: `LICENSE`, `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`
 - Modify: `.gitignore`
 
 **Interfaces:**
+
 - Produces: remote `origin` = `git@github.com:DocGerd/cockpit-procedure-trainer.git`, default branch `main`.
 
 - [ ] **Step 1: Write `LICENSE`**
@@ -220,10 +222,12 @@ Expected: `public	main	MIT`
 ### Task 2: Labels, milestones and issues
 
 **Files:**
+
 - Create: `scripts/github/bootstrap.sh`
 - Existing (committed with this plan): `scripts/github/backlog.json`
 
 **Interfaces:**
+
 - Consumes: `scripts/github/backlog.json` with keys `repo`, `spec`, `labels[] {name,color,description}`, `milestones[] {title,description}`, `issues[] {id,milestone,labels[],title,body}`.
 - Produces: GitHub issues #1 to #48 whose numbers equal the manifest `id`. This holds only if the script runs before any PR is opened; Task 3 onwards rely on it.
 
@@ -348,6 +352,7 @@ Self-review, resolve threads, merge. Issue #1 closes with the merge (Task 1 deli
 ### Task 3: Workspace, tooling and boundary rules (Closes #2)
 
 **Files:**
+
 - Create: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `vitest.config.ts`, `tools/boundary.test.ts`
 - Create: `packages/core/{package.json,tsconfig.json,src/index.ts,src/index.test.ts}`
 - Create: `packages/panel-kit/{package.json,tsconfig.json,src/index.ts,src/index.test.ts}`
@@ -355,6 +360,7 @@ Self-review, resolve threads, merge. Issue #1 closes with the merge (Task 1 deli
 - Create: `apps/web/{package.json,tsconfig.json,vite.config.ts,index.html,src/main.tsx,src/App.tsx,src/aircraft-registry.ts,src/device-registry.ts,src/aircraft-registry.test.ts}`
 
 **Interfaces:**
+
 - Produces: `@cpt/core` exports `CONTRACT_VERSION: 1`. `@cpt/panel-kit` exports `PANEL_KIT_READY: true`. `@cpt/aircraft-demo` exports `demoAircraft: { id: 'demo'; contractVersion: number }`. `apps/web/src/aircraft-registry.ts` exports `aircraftRegistry: readonly { id: string }[]`; `device-registry.ts` exports `deviceRegistry: readonly { id: string }[]`.
 - Produces scripts: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm dev`.
 - Later milestones replace the placeholder exports; the registry file names and the script names are fixed.
@@ -533,7 +539,9 @@ describe('package boundaries', () => {
   });
 
   it('rejects panel-kit imports in an aircraft', async () => {
-    expect(await restricted('packages/aircraft-demo/src/x.ts', "import '@cpt/panel-kit';\n")).toBe(1);
+    expect(await restricted('packages/aircraft-demo/src/x.ts', "import '@cpt/panel-kit';\n")).toBe(
+      1,
+    );
   });
 
   it('allows core imports in an aircraft', async () => {
@@ -541,7 +549,9 @@ describe('package boundaries', () => {
   });
 
   it('rejects aircraft imports in panel-kit', async () => {
-    expect(await restricted('packages/panel-kit/src/x.tsx', "import '@cpt/aircraft-demo';\n")).toBe(1);
+    expect(await restricted('packages/panel-kit/src/x.tsx', "import '@cpt/aircraft-demo';\n")).toBe(
+      1,
+    );
   });
 
   it('rejects aircraft imports in the app outside the registry', async () => {
@@ -778,9 +788,11 @@ Self-review, resolve threads, merge.
 ### Task 4: CI and dependency updates (Closes #3)
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`, `.github/dependabot.yml`
 
 **Interfaces:**
+
 - Produces: a status check named `check`. Task 6 makes it required.
 
 - [ ] **Step 1: Write `.github/workflows/ci.yml`**
@@ -866,6 +878,7 @@ Expected: `check` passes, `exit=0`. Self-review, resolve threads, merge.
 ### Task 5: GitHub Pages deployment (Closes #4)
 
 **Files:**
+
 - Create: `.github/workflows/pages.yml`
 
 - [ ] **Step 1: Enable Pages with the workflow source**
@@ -946,6 +959,7 @@ Expected: `1` or more. Then open the URL in a real browser and confirm the headi
 ### Task 6: Templates and branch protection (Closes #5)
 
 **Files:**
+
 - Create: `.github/ISSUE_TEMPLATE/feature.yml`, `bug.yml`, `new-aircraft.yml`, `new-device.yml`, `config.yml`
 - Create: `.github/pull_request_template.md`
 
@@ -1110,6 +1124,7 @@ Expected: push rejected with a protected-branch message, `exit=1`.
 ### Task 7: ADR-0001 and content policy (Closes #6)
 
 **Files:**
+
 - Create: `docs/adr/0001-architecture-and-aircraft-contract.md`, `docs/content-policy.md`
 
 - [ ] **Step 1: Write the ADR**
@@ -1181,6 +1196,7 @@ every agent session and every worktree gets the same tooling;
 `.claude/settings.local.json` is untracked and would be missing in worktrees.
 
 **Files:**
+
 - Create: `.claude/settings.json`, `.claude/agents/ui-verifier.md`, `.claude/skills/milestone-release/SKILL.md`
 
 **Machine prerequisite (not in the repo):** `npm install -g typescript-language-server typescript` for the TypeScript language server plugin.
@@ -1290,6 +1306,7 @@ that the six plugins show as enabled for this project.
 ### Task 8: Milestone release and owner summary
 
 **Files:**
+
 - Create: `docs/milestones/m0-foundation.md`
 
 - [ ] **Step 1: Confirm every M0 issue is closed**
