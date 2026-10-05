@@ -14,7 +14,7 @@ import { deviceControls, stepDevices } from '../devices';
 import type { DeviceStates } from '../devices';
 import { createFailureSet } from '../failures';
 import { entrySnapshot, procedureOf } from '../phases';
-import { createSystemsRuntime } from '../runtime';
+import { assertDtMs, createSystemsRuntime } from '../runtime';
 import type { RuntimeStatus } from '../runtime';
 
 export type SessionOptions = {
@@ -212,9 +212,11 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     },
 
     advance(dtMs) {
-      const wasFailed = failed();
+      if (failed()) {
+        assertDtMs(dtMs);
+        return;
+      }
       runtime.advance(dtMs);
-      if (wasFailed) return;
       dirty = true;
       try {
         if (runtime.status().kind === 'running') settleDevices(dtMs);
