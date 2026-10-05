@@ -84,7 +84,7 @@ jobs:
             echo "::warning::UAT build failed; deploying production without /uat/"
           fi
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
       - id: deployment
