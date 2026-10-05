@@ -464,6 +464,37 @@ describe('a failing device step', () => {
     expect(() => session.advance(-1)).toThrow(RangeError);
   });
 
+  describe('with the systems mid-start', () => {
+    const failWhileCranking = () => {
+      const session = start();
+      session.set('master', 'on');
+      session.set('ignition', 'start');
+      session.set('mon.page', 'electrical');
+      return session;
+    };
+
+    it('does not step the systems while failed', () => {
+      const session = failWhileCranking();
+      for (let elapsed = 0; elapsed < STARTER_MS_TO_START * 2; elapsed += STEP_MS) {
+        session.advance(STEP_MS);
+      }
+      expect(session.status()).toMatchObject({ kind: 'failed' });
+      expect(fixtureSystems(session).starterMs).toBe(0);
+      expect(fixtureSystems(session).engineRunning).toBe(false);
+    });
+
+    it('resumes stepping after a snapshot load', () => {
+      const session = failWhileCranking();
+      session.advance(STEP_MS);
+      session.jumpToPhase('parking');
+      session.set('master', 'on');
+      session.set('ignition', 'start');
+      session.advance(STEP_MS);
+      expect(session.status()).toEqual({ kind: 'running' });
+      expect(fixtureSystems(session).starterMs).toBe(STEP_MS);
+    });
+  });
+
   it('recovers on a phase jump or a procedure start', () => {
     const session = start();
     session.set('mon.page', 'electrical');
