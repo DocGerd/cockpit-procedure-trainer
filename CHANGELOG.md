@@ -8,6 +8,30 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.3.0] - 2026-10-05
+
+### Added
+
+- Aircraft contract types and defineAircraft, with compile-time checks of every reference and bilingual text.
+- Control store with spring-return, momentary and guarded controls.
+- Systems runtime that steps the aircraft model on control changes and over time, and reports a failing step.
+- Reusable electrical bus and piston-engine start blocks.
+- Failure injection, including circuit breakers tripped by a failure.
+- Checklist engine with action, check and confirm items, and deviation recording.
+- A session that composes the engines, with phase handling: entry snapshots, procedure start and end phases, and failure injection on emergency procedures.
+- Aircraft validator, run in CI over every registered aircraft.
+- Device contract: a device declares controls, state and logic; an aircraft installs it with power and data wiring.
+
+### Changed
+
+- Pull requests with no user-visible change may skip the changelog fragment with a `No changelog: <reason>` line in the description.
+- Settle the M1 design open questions: phase control stays in the header, Practice shows no immediate deviation banner, and the Explore selection outline is the second accent exception on the panel.
+
+### Fixed
+
+- Declare a light and dark `color-scheme` so native controls and scrollbars follow the theme, and add a favicon so the first load no longer logs a 404.
+- The aircraft validator rejects a continuous lever value outside 0 to 1, as the control store does, and every registered aircraft is tested to start a session and enter each phase.
+
 ## [0.2.0] - 2026-10-05
 
 ### Added
@@ -47,6 +71,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DocGerd/cockpit-procedure-trainer/releases/tag/v0.1.0

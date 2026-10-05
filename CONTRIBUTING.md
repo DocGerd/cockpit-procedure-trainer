@@ -8,7 +8,10 @@
    `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
    issue, name it `+<slug>.<category>.md`. Dependabot pull requests are exempt:
    they cannot add a fragment, and a pushed commit stops Dependabot rebasing its
-   branch.
+   branch. A pull request with no user-visible effect (e.g. internal docs,
+   CI-only, tests-only, agent config, plans or specs that do not change product
+   behaviour) may skip the fragment if its description has a line
+   `No changelog: <reason>`.
 4. Open a pull request against `develop` whose description contains `Closes #<issue>` (not
    required for Dependabot pull requests, which have no issue).
 5. `develop` and `main` accept changes only through pull requests with a green
@@ -54,6 +57,10 @@ UI changes also need a pass in a real browser at tablet and desktop width.
 - `packages/core`: contract and engines. No UI, no assets, no other workspace packages.
 - `packages/panel-kit`: controls and gauges. Depends on `core` only.
 - `packages/aircraft-*`: one aircraft each. Depends on `core` only.
+- `packages/device-*`: one avionics unit each. Of the workspace packages, any file may
+  import only `core` and `panel-kit`. `src/logic/` imports `core` only, with no UI or
+  assets. A device never reaches another package, another device included, by relative
+  path.
 - `apps/web`: the app. Imports aircraft only in `src/aircraft-registry.ts`
   and devices only in `src/device-registry.ts`.
 

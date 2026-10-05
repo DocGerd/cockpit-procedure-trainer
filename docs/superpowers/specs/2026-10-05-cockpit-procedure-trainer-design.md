@@ -267,8 +267,9 @@ the radii, and the status inks. It adds exactly one product accent.
   controls on the design canvas are stand-ins, not the target look.
 - Status inks (success, warning, danger) appear only in the chrome, never drawn
   on the panel, where the same colours carry aircraft meaning.
-- The Guided highlight uses the accent plus a shape cue (outline and pulse), so
-  it does not depend on hue alone.
+- The accent appears on the panel in two places, each with a shape cue so it
+  does not depend on hue alone: the Guided highlight (outline and pulse) and
+  the selected control in Free explore (outline).
 - Fonts are bundled with the app, not loaded from Google Fonts, because the app
   must work offline. Both are OFL-licensed.
 

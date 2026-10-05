@@ -17,7 +17,10 @@ followed by the `merge-train` skill.
    `Closes #<issue>`. Release PRs (`release/*`), backmerge PRs
    (`chore/backmerge`) and Dependabot PRs (`dependabot/*`) are exempt from both:
    the release PR deletes fragments, Dependabot PRs cannot add one, and none of
-   them closes an issue.
+   them closes an issue. Accept a missing fragment on any other PR only if its
+   body has `No changelog: <reason>` and the reason is valid: no user-visible
+   effect (e.g. internal docs, CI-only, tests-only, agent config, plans or specs
+   that do not change product behaviour).
 2. **Post one inline thread per finding**, anchored to a changed line. A finding
    outside the diff becomes a PR-level comment through
    `gh api repos/DocGerd/cockpit-procedure-trainer/issues/N/comments --method POST --raw-field body=TEXT`.

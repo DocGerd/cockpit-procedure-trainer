@@ -186,3 +186,66 @@ describe('package boundaries', () => {
     ).toBe(1);
   });
 });
+
+describe('device package boundaries', () => {
+  const logic = 'packages/device-x/src/logic/x.ts';
+  const screen = 'packages/device-x/src/screen/x.tsx';
+  const entry = 'packages/device-x/src/index.ts';
+
+  it.each([['react'], ['react-dom/client'], ['@cpt/panel-kit']])(
+    'rejects %s in device logic',
+    async (name) => {
+      expect(await restricted(logic, `import '${name}';\n`)).toBe(1);
+      expect(await restrictedSyntax(logic, `await import('${name}');\n`)).toBe(1);
+    },
+  );
+
+  it.each([[screen], [entry]])('allows panel-kit in %s', async (filePath) => {
+    expect(await restricted(filePath, "import '@cpt/panel-kit';\n")).toBe(0);
+    expect(await restrictedSyntax(filePath, "await import('@cpt/panel-kit');\n")).toBe(0);
+  });
+
+  it.each([[logic], [screen], [entry]])('allows core in %s', async (filePath) => {
+    expect(await restricted(filePath, "import '@cpt/core';\n")).toBe(0);
+    expect(await restrictedSyntax(filePath, "await import('@cpt/core');\n")).toBe(0);
+  });
+
+  it.each([[logic], [screen], [entry]])(
+    'rejects aircraft, device and web imports in %s',
+    async (filePath) => {
+      for (const name of ['@cpt/aircraft-demo', '@cpt/device-y', '@cpt/web']) {
+        expect(await restricted(filePath, `import '${name}';\n`)).toBe(1);
+        expect(await restrictedSyntax(filePath, `await import('${name}');\n`)).toBe(1);
+      }
+    },
+  );
+
+  it.each([['../../core/src'], ['../../aircraft-demo/src'], ['../../device-y/src']])(
+    'rejects a relative import of %s from every part of a device package',
+    async (path) => {
+      for (const filePath of [logic, screen, entry]) {
+        expect(await restricted(filePath, `import '${path}';\n`)).toBe(1);
+        expect(await restrictedSyntax(filePath, `await import('${path}');\n`)).toBe(1);
+      }
+    },
+  );
+
+  it('rejects a relative import that climbs further out to another package', async () => {
+    expect(await restricted(screen, "import '../../../core/src/index';\n")).toBe(1);
+    expect(await restricted(screen, "import '../../../../device-y/src/index';\n")).toBe(1);
+    expect(await restricted(screen, "import '../../../../apps/web/src/App';\n")).toBe(1);
+  });
+
+  it('allows a relative import inside its own package', async () => {
+    expect(await restricted(screen, "import '../logic/x';\n")).toBe(0);
+    expect(await restricted(entry, "import './screen/x';\n")).toBe(0);
+    expect(await restrictedSyntax(screen, "await import('../logic/x');\n")).toBe(0);
+  });
+
+  it.each([['./face.png'], ['./face.css?raw'], ['./face.svg?url'], ['./face.svg?url&no-inline']])(
+    'rejects asset import %s in device logic',
+    async (path) => {
+      expect(await restricted(logic, `import '${path}';\n`)).toBe(1);
+    },
+  );
+});

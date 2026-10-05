@@ -1,1 +1,3 @@
-export const deviceRegistry: readonly { id: string }[] = [];
+import type { Device } from '@cpt/core';
+
+export const deviceRegistry: readonly Device[] = [];

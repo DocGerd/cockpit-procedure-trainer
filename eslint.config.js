@@ -20,6 +20,7 @@ const assets = [
 const assetQuery = '\\?(raw|url)([&#]|$)';
 const content = ['@cpt/aircraft-*', '@cpt/device-*'];
 const otherThanCore = ['@cpt/*', '!@cpt/core'];
+const otherThanCoreAndPanelKit = ['@cpt/*', '!@cpt/core', '!@cpt/panel-kit'];
 
 const workspaceDirs = ['packages', 'apps'].flatMap((root) =>
   readdirSync(resolve(import.meta.dirname, root), { withFileTypes: true })
@@ -27,10 +28,18 @@ const workspaceDirs = ['packages', 'apps'].flatMap((root) =>
     .map((entry) => entry.name),
 );
 
-const reachesOtherPackage = (own) =>
-  workspaceDirs
-    .filter((name) => name !== own)
-    .flatMap((name) => [`../**/${name}`, `../**/${name}/**`]);
+const isDevice = (name) => name.startsWith('device-');
+
+// A device has no package name to exclude, so every device directory is reached by wildcard.
+const reachableDirs = (own) =>
+  own === null
+    ? workspaceDirs.filter((name) => !isDevice(name))
+    : workspaceDirs.filter((name) => name !== own);
+
+const reachesOtherPackage = (own) => [
+  ...reachableDirs(own).flatMap((name) => [`../**/${name}`, `../**/${name}/**`]),
+  ...(own === null ? ['../**/device-*', '../**/device-*/**'] : []),
+];
 
 // esquery regex literals cannot contain a slash, so match it by code point.
 const slash = '\\x2f';
@@ -38,9 +47,11 @@ const dynamicSource = (pattern) => `ImportExpression[source.value=/${pattern}/]`
 
 const dynamicReach = (own) =>
   dynamicSource(
-    `^\\.\\.${slash}(.*${slash})?(${workspaceDirs.filter((name) => name !== own).join('|')})(${slash}|$)`,
+    `^\\.\\.${slash}(.*${slash})?(${[...reachableDirs(own), ...(own === null ? [`device-[^${slash}]+`] : [])].join('|')})(${slash}|$)`,
   );
 const dynamicOtherThanCore = dynamicSource(`^@cpt${slash}(?!core$)`);
+const dynamicOtherThanCoreAndPanelKit = dynamicSource(`^@cpt${slash}(?!(core|panel-kit)$)`);
+const dynamicUi = dynamicSource(`^(react|react-dom)(${slash}|$)`);
 const dynamicContent = dynamicSource(`^@cpt${slash}(aircraft|device)-`);
 const globContent =
   'CallExpression[callee.object.type="MetaProperty"][callee.property.name="glob"]:has(Literal[value=/(aircraft|device)-/])';
@@ -113,6 +124,45 @@ export default tseslint.config(
         [{ selector: dynamicOtherThanCore, message: 'An aircraft depends only on @cpt/core.' }],
       ),
     })),
+  {
+    files: ['packages/device-*/**/*.{ts,tsx}'],
+    rules: restrict(
+      null,
+      [
+        {
+          group: otherThanCoreAndPanelKit,
+          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+        },
+      ],
+      [
+        {
+          selector: dynamicOtherThanCoreAndPanelKit,
+          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+        },
+      ],
+    ),
+  },
+  {
+    files: ['packages/device-*/src/logic/**/*.{ts,tsx}'],
+    rules: restrict(
+      null,
+      [
+        {
+          group: [...ui, ...assets, ...otherThanCore],
+          message:
+            'Device logic is plain data and pure functions: only @cpt/core, no UI or assets.',
+        },
+        {
+          regex: assetQuery,
+          message: 'Device logic is plain data and pure functions: no assets.',
+        },
+      ],
+      [
+        { selector: dynamicOtherThanCore, message: 'Device logic imports only @cpt/core.' },
+        { selector: dynamicUi, message: 'Device logic imports no UI.' },
+      ],
+    ),
+  },
   {
     files: ['packages/panel-kit/**/*.{ts,tsx}'],
     rules: restrict(
