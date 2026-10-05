@@ -28,7 +28,9 @@ Versions are semantic and below 1.0: milestone Mn is released as v0.(n+1).0.
 
 ## Machine prerequisites
 
-Node 24, pnpm, `gh` and `jq`. The Claude Code formatting hook uses `jq`.
+Node 24, pnpm, `gh` and `jq`. The Claude Code formatting hook uses `jq`. The
+TypeScript language server plugin needs
+`npm install --global typescript-language-server typescript`.
 
 ## Checks
 
