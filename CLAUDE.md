@@ -18,7 +18,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
 - Gitflow: the base branch is `develop`. Agents merge reviewed PRs into
-  `develop` and never merge into `main`, from any source.
+  `develop`. From the gitflow switch (Task 4A) on, agents never merge into
+  `main`, from any source.
 - Feature PRs are squash-merged into `develop`; only a `chore/backmerge` PR
   (`main` into `develop`) uses a merge commit.
 - The release PR `develop` to `main` is opened by an agent and merged by the

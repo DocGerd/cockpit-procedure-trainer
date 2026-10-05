@@ -19,7 +19,7 @@ This is the first of one plan per milestone. M1 to M7 each get their own plan wh
 - Package scope `@cpt/`: `@cpt/core`, `@cpt/panel-kit`, `@cpt/aircraft-demo`, `@cpt/web`.
 - Boundaries (spec §3): `core` imports no UI, assets or workspace packages; aircraft packages import only `@cpt/core`; `panel-kit` imports no aircraft, device or web code; `apps/web` imports aircraft and devices only in `src/aircraft-registry.ts` and `src/device-registry.ts`.
 - After Task 1, every change reaches the base branch through a PR whose body has `Closes #<n>`. The base is `main` until Task 4A creates `develop`, and `develop` from then on. No force-push, no `--no-verify`.
-- Agents never merge into `main`, from any source. The release PR `develop` to `main` is opened by an agent and merged by the owner. Agents merge reviewed PRs into `develop` only.
+- From the gitflow switch (Task 4A) on, agents never merge into `main`, from any source; the bootstrap PRs before Task 4A merge into `main`. The release PR `develop` to `main` is opened by an agent and merged by the owner. Agents merge reviewed PRs into `develop` only.
 - From Task 4A every PR adds a changelog fragment `changelog.d/<issue>.<category>.md` (`+<slug>.<category>.md` when there is no issue). Branch prefixes: `feat/`, `fix/`, `chore/`, `docs/`, `ci/`, `release/`.
 - Every PR is self-reviewed with `pr-review-toolkit:review-pr`: one inline thread per finding, fix, resolve every thread.
 - Comments in code only where the code cannot say it. No dates, durations or measured figures in comments or docs unless they are requirements.
@@ -69,7 +69,7 @@ default branch, which is why Task 4A comes before the rest.
 3. **Test run that finds no tests** must fail, or CI is green while testing nothing. Pinned in Task 3, Step 9.
 4. **Boundary rules that silently do not match** (wrong glob) give false safety. Pinned in Task 3, Step 3 (`tools/boundary.test.ts`).
 5. **Manifest entry naming a label or milestone that does not exist** must stop the script before anything is created. Pinned in Task 2, Step 2 (validation block) and Step 3.
-6. **Merge into `main` by an agent** must be impossible. Rulesets in Task 4A, Step 11 and the fail-closed hook in Task 7B, Step 3 (probed in Step 5).
+6. **Merge into `main` by an agent** must be impossible. The rulesets in Task 4A, Step 11 cannot stop it, because agents act under the owner's account and the rulesets require no approvals. The local guard is the fail-closed hook in Task 7B, Step 3 (probed in Step 5).
 
 ---
 
@@ -998,7 +998,7 @@ export function App() {
 
 - [ ] **Step 6: Write `.github/workflows/deploy.yml`**
 
-One Pages site, two builds. Production is built from a checkout of `main` and served at the site root; UAT is built from `develop` and served under `/uat/`. Either push rebuilds both, so the site always shows the tips of both branches.
+One Pages site, two builds. Production is built from a checkout of `main` and served at the site root; UAT is built from `develop` and served under `/uat/`. Either push rebuilds both, so the site always shows the tips of both branches. A failing UAT build never blocks production: the UAT matrix entry is `continue-on-error`, and the deploy job publishes production alone with a warning.
 
 ```yaml
 name: Deploy
@@ -1018,6 +1018,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.env == 'uat' }}
     strategy:
       matrix:
         include:
@@ -1073,8 +1074,12 @@ jobs:
         run: |
           mkdir -p site/uat
           cp -r dist/dist-prod/. site/
-          cp -r dist/dist-uat/. site/uat/
-          test -f site/index.html && test -f site/uat/index.html
+          test -f site/index.html
+          if [ -d dist/dist-uat ]; then
+            cp -r dist/dist-uat/. site/uat/
+          else
+            echo "::warning::UAT build failed; deploying production without /uat/"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -1505,7 +1510,7 @@ every agent session and every worktree gets the same tooling;
 - Create: `.claude/settings.json`, `.claude/agents/ui-verifier.md`, `.claude/skills/milestone-release/SKILL.md`, `changelog.d/48.added.md`
 - Modify: `CONTRIBUTING.md` (machine prerequisites)
 
-**Machine prerequisites (not in the repo):** `npm install --global typescript-language-server typescript` for the TypeScript language server plugin, and `jq` for the hook. Both go in a "Machine prerequisites" list in `CONTRIBUTING.md` (Step 5).
+**Machine prerequisites (not in the repo):** `npm install --global typescript-language-server typescript` for the TypeScript language server plugin, and `jq` for the hook. Both are listed in the "Machine prerequisites" section of `CONTRIBUTING.md` (Step 5).
 
 - [ ] **Step 1: `.claude/settings.json`**
 
@@ -1582,7 +1587,6 @@ Return at most 25 lines: verdict first, then findings by severity.
 ---
 name: milestone-release
 description: Cut a milestone release under gitflow - whole-milestone review, changelog fold, owner summary, and the release PR develop to main. Use when every issue of a milestone is closed. Never merges the release PR.
-disable-model-invocation: true
 ---
 
 # Milestone release
@@ -1620,7 +1624,7 @@ lower-case kebab form, for example `m2-core-engine`.
 
 - [ ] **Step 5: Document prerequisites, PR and merge**
 
-Add to `CONTRIBUTING.md` a "Machine prerequisites" list: Node 24, pnpm, `gh`, `jq` (the formatting hook uses it), and for the TypeScript plugin `typescript-language-server`.
+Extend the existing "Machine prerequisites" section of `CONTRIBUTING.md` (it already lists Node 24, pnpm, `gh` and `jq`) with `typescript-language-server` for the TypeScript plugin, and note that the formatting hook uses `jq`.
 
 `changelog.d/48.added.md`: `Committed Claude Code configuration: plugins, a formatting hook, a UI verifier agent and a milestone release skill.`
 
@@ -1733,48 +1737,61 @@ For each PR `N`:
 
 - [ ] **Step 3: `.claude/hooks/block-main-merge.sh`**
 
-Blocks any merge whose target is `main`, and fails closed: if the target cannot be determined, the merge is denied. Needs `jq` and `gh`.
+Blocks any merge whose target is `main`, and fails closed: if the target cannot be determined, or `jq` is missing, the command is denied. Needs `jq` and `gh`.
 
 ```bash
 #!/usr/bin/env bash
 set -uo pipefail
 
 deny() {
-  jq -n --arg reason "$1" '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
+  if command -v jq >/dev/null 2>&1; then
+    jq -n --arg reason "$1" '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
+  else
+    printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' "$1"
+  fi
   exit 0
 }
 
-cmd="$(jq -r '.tool_input.command // empty')"
+command -v jq >/dev/null 2>&1 || deny "jq is not installed, so the main-merge guard cannot inspect the command."
 
-case "$cmd" in
+cmd="$(jq -r '.tool_input.command // empty')"
+flat="$(tr -s '[:space:]' ' ' <<<"$cmd")"
+
+case "$flat" in
   *"gh api"*"/merge"*) deny "Merging through the API is not allowed. Use gh pr merge on a PR whose base is develop." ;;
-  *"gh api"*graphql*mergePullRequest*) deny "Merging through GraphQL is not allowed. Use gh pr merge on a PR whose base is develop." ;;
-  *"gh pr merge"*) ;;
-  *) exit 0 ;;
+  *"gh api graphql"*mergePullRequest*) deny "Merging through GraphQL is not allowed. Use gh pr merge on a PR whose base is develop." ;;
+  *"gh api graphql"*"--input"* | *"gh api graphql"*@*) deny "GraphQL calls must pass the query inline so it can be inspected." ;;
 esac
 
-read -ra words <<<"$cmd"
-num=""
-seen=0
-for word in "${words[@]}"; do
-  if [ "$seen" = 1 ]; then
-    if [[ "$word" =~ ^([0-9]+)$ || "$word" =~ /pull/([0-9]+) ]]; then
+check_merge() {
+  local words word num="" seen=0
+  read -ra words <<<"$1"
+  for word in "${words[@]}"; do
+    if [ "$seen" = 1 ] && [[ "$word" =~ ^([0-9]+)$ || "$word" =~ /pull/([0-9]+) ]]; then
       num="${BASH_REMATCH[1]}"
       break
     fi
+    [ "$word" = merge ] && seen=1
+  done
+  [ -n "$num" ] || deny "Name the PR by number or URL so its base branch can be checked."
+  local base
+  base="$(timeout -k 5 20 gh api "repos/{owner}/{repo}/pulls/$num" --jq .base.ref </dev/null)" \
+    || deny "Could not read the base branch of PR $num."
+  [ -n "$base" ] || deny "Could not read the base branch of PR $num."
+  [ "$base" != main ] || deny "PR $num targets main. Agents never merge into main; the owner merges the release PR."
+}
+
+mapfile -t segments < <(sed -e 's/&&/\n/g' -e 's/||/\n/g' -e 's/[;|]/\n/g' <<<"$cmd")
+for segment in "${segments[@]}"; do
+  segment="$(tr -s '[:space:]' ' ' <<<"$segment")"
+  if [[ "$segment" =~ gh([[:space:]]+[^[:space:]]+)*[[:space:]]+pr[[:space:]]+merge ]]; then
+    check_merge "$segment"
   fi
-  [ "$word" = merge ] && seen=1
 done
-
-[ -n "$num" ] || deny "Name the PR by number or URL so its base branch can be checked."
-
-base="$(timeout -k 5 20 gh api "repos/{owner}/{repo}/pulls/$num" --jq .base.ref </dev/null)" \
-  || deny "Could not read the base branch of PR $num."
-
-[ -n "$base" ] || deny "Could not read the base branch of PR $num."
-[ "$base" != main ] || deny "PR $num targets main. Agents never merge into main; the owner merges the release PR."
 exit 0
 ```
+
+Every `gh pr merge` in the command is checked, across lines and across `&&`, `||`, `;` and `|` segments; any one that targets `main`, or whose target cannot be read, denies the whole command.
 
 `chmod +x .claude/hooks/block-main-merge.sh`.
 
@@ -1801,18 +1818,23 @@ Add next to the existing `PostToolUse` key. The wrapper denies when the script i
 
 ```bash
 stub="$(mktemp --directory)"
-printf '#!/bin/sh\necho "$STUB_BASE"\n' > "$stub/gh" && chmod +x "$stub/gh"
-probe() { printf '{"tool_input":{"command":"%s"}}' "$1" | PATH="$stub:$PATH" STUB_BASE="$2" .claude/hooks/block-main-merge.sh; echo "[$1 | base=$2] exit=$?"; }
-probe 'gh pr merge 12 --squash --delete-branch' main
-probe 'gh pr merge 12 --squash --delete-branch' develop
-probe 'gh pr merge --squash' develop
-probe 'gh api repos/o/r/pulls/12/merge --method PUT' develop
-probe 'gh pr list' main
-probe 'gh api graphql --raw-field query=mutation{mergePullRequest(input:{pullRequestId:X}){clientMutationId}}' develop
-rm -r "$stub"
+empty="$(mktemp --directory)"
+printf '#!/bin/sh\ncase "$*" in *pulls/13*) echo main ;; *) echo develop ;; esac\n' > "$stub/gh" && chmod +x "$stub/gh"
+probe() { printf '{"tool_input":{"command":"%s"}}' "$1" | PATH="$stub:$PATH" .claude/hooks/block-main-merge.sh; echo "[$1] exit=$?"; }
+probe 'gh pr merge 13 --squash --delete-branch'
+probe 'gh pr merge 12 --squash --delete-branch'
+probe 'gh pr merge --squash'
+probe 'gh api repos/o/r/pulls/12/merge --method PUT'
+probe 'gh pr list'
+probe 'gh api graphql --raw-field query=mutation{mergePullRequest(input:{pullRequestId:X}){clientMutationId}}'
+probe 'gh pr merge 12 --squash && gh pr merge 13 --merge'
+probe 'gh pr merge 12 --squash\ngh pr merge 13 --merge'
+probe 'gh api graphql --input query.json'
+printf '{"tool_input":{"command":"gh pr merge 12 --squash"}}' | PATH="$empty" "$(command -v bash)" .claude/hooks/block-main-merge.sh; echo "[no jq] exit=$?"
+rm -r "$stub" "$empty"
 ```
 
-Expected: the first, third, fourth and sixth probes print a JSON object whose `permissionDecision` is `deny`; the second and fifth print nothing before their `exit=0` line. All six end with `exit=0` (the decision is in the JSON, not the exit code).
+Expected: probes 1, 3, 4, 6, 7, 8, 9 and the `no jq` run print a JSON object whose `permissionDecision` is `deny`; probes 2 and 5 print nothing before their `exit=0` line. Every line ends with `exit=0` (the decision is in the JSON, not the exit code).
 
 - [ ] **Step 6: `.claude/commands/release-cycle.md`**
 
@@ -1889,6 +1911,7 @@ gh pr checks --watch
 Self-review, resolve threads, merge into `develop`.
 
 ---
+
 ### Task 8: Milestone release for the owner
 
 Runs after Tasks 4A, 6, 7, 7A and 7B are merged into `develop`. The session
@@ -1897,45 +1920,34 @@ the release PR, and the `Release` workflow then creates tag `v0.1.0` and the
 GitHub Release.
 
 **Files:**
-- Create: `docs/milestones/m0-foundation.md`
+- Create: `docs/milestones/m0-foundation.md` (by the skill)
 
 - [ ] **Step 1: Confirm every M0 issue is closed**
 
 Run: `gh api "repos/DocGerd/cockpit-procedure-trainer/milestones?state=all" --jq '.[] | select(.title == "M0 Foundation") | "\(.open_issues) open, \(.closed_issues) closed"'`
 Expected: `0 open, 9 closed`
 
-- [ ] **Step 2: Whole-milestone review**
-
-Dispatch one reviewer over `git diff <first commit>..origin/develop` with the spec
-and this plan. Fix findings through PRs into `develop` before continuing.
-
-- [ ] **Step 3: Write `docs/milestones/m0-foundation.md`**
-
-Four sections, each a short list: **What shipped** (with the production and UAT URLs),
-**Decisions made** (anything not settled by the spec, with reasons, collected
-from the PR descriptions), **Open questions for the owner**, **How to verify**
-(the commands and URLs from this plan's verification steps).
-
-Merge it into `develop` through a PR (`docs/m0-summary`, no closing issue, with a
-`changelog.d/+m0-summary.added.md` fragment).
-
-- [ ] **Step 4: Run the milestone-release skill**
+- [ ] **Step 2: Run the milestone-release skill**
 
 Run: `/milestone-release M0 Foundation`
 
-The skill folds the changelog fragments into `CHANGELOG.md` as `## [0.1.0]` on a
-`release/v0.1.0` branch merged into `develop`, then opens the release PR
-`develop` to `main`. It does not merge it.
+The steps are defined once, in Task 7A, Step 4. They cover the whole-milestone
+review, the changelog fold as `## [0.1.0]`, `docs/milestones/m0-foundation.md`
+and the release PR `develop` to `main`. The skill does not merge that PR.
 
-- [ ] **Step 5: Confirm the release PR is open and unmerged**
+- [ ] **Step 3: Confirm the outcome**
 
-Run: `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/<release PR number> --jq '{base: .base.ref, state: .state, merged: .merged}'`
-Expected: `{"base":"main","state":"open","merged":false}`
+```bash
+gh api repos/DocGerd/cockpit-procedure-trainer/contents/docs/milestones/m0-foundation.md --raw-field ref=develop --jq .name
+gh api repos/DocGerd/cockpit-procedure-trainer/pulls/<release PR number> --jq '{base: .base.ref, state: .state, merged: .merged}'
+```
+
+Expected: `m0-foundation.md`, then `{"base":"main","merged":false,"state":"open"}` (`gh --jq` prints keys in sorted order).
 
 Give the owner the release PR URL, the open questions and the milestone summary.
 **The session ends here.**
 
-- [ ] **Step 6: After the owner's merge (next session)**
+- [ ] **Step 4: After the owner's merge (next session)**
 
 ```bash
 gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.1.0 --jq .tag_name

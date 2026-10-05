@@ -20,7 +20,7 @@ holds released state and feeds the production site.
 1. A `release/vX.Y.Z` branch folds the fragments into `CHANGELOG.md` and merges
    into `develop`.
 2. A release pull request `develop` to `main` is opened and merged with a merge
-   commit by the owner. Nobody else, and no agent, merges into `main`.
+   commit by the owner. Since the gitflow switch, no agent merges into `main`.
 3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
    `vX.Y.Z` and the GitHub Release.
 
