@@ -1,0 +1,22 @@
+name: Bug
+description: Something behaves wrongly
+labels: ['type:bug']
+body:
+  - type: input
+    id: aircraft
+    attributes: { label: Aircraft and procedure }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected, description: 'What the real aircraft or the checklist does.' }
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes: { label: Actual }
+    validations: { required: true }
+  - type: input
+    id: device
+    attributes: { label: Browser and device }
