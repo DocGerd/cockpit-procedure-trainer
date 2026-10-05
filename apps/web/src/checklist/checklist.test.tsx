@@ -6,9 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerLayout } from '../shell/TrainerLayout';
 import { ThemeProvider } from '../theme';
-import { TrainerProvider, useTrainer } from '../trainer';
+import { TrainerProvider, useSessionState, useTrainer } from '../trainer';
 import type { Mode, Trainer } from '../trainer';
-import { ChecklistPane, useCurrentTarget } from './index';
+import { ChecklistPane, DeviationSummary, useCurrentTarget } from './index';
 import { fixture } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => ({
@@ -154,14 +154,26 @@ describe('deviations per mode', () => {
   it('shows a deviation at once in Guided, in the banner and on the item', () => {
     renderPane();
     start(flow);
-    expect(screen.queryByRole('status')).toBeNull();
+    const status = screen.getByRole('status');
+    expect(status.textContent).toBe('');
     operate('avionics', 'on');
-    expect(
-      within(screen.getByRole('status')).getByText('Avionics operated. Not part of item 1.'),
-    ).toBeTruthy();
+    expect(screen.getByRole('status')).toBe(status);
+    expect(within(status).getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
     expect(screen.getByText('1 deviation')).toBeTruthy();
     operate('master', 'on');
     expect(stateLabels()[0]).toBe('Deviated');
+  });
+
+  it('shows the latest deviation in the Guided banner', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('master', 'on');
+    checkOff();
+    const banner = screen.getByRole('status').textContent;
+    expect(banner).toContain('Item 2 was checked off, but its condition was not met.');
+    expect(banner).not.toContain('Avionics operated');
+    expect(screen.getByText('2 deviations')).toBeTruthy();
   });
 
   it('names an unmet check in the Guided banner', () => {
@@ -269,6 +281,38 @@ describe('deviation summary', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Back to selection' }));
     expect(trainer.screen).toBe('picker');
     expect(trainer.procedureId).toBeUndefined();
+  });
+
+  it('moves focus to the summary heading when it replaces the list', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('master', 'on');
+    checkOff();
+    checkOff();
+    operate('pump', 'on');
+    const heading = screen.getByRole('heading', { name: 'Flow complete' });
+    expect(heading.getAttribute('tabindex')).toBe('-1');
+    expect(document.activeElement).toBe(heading);
+  });
+
+  it('names a control missing from the aircraft by its id', () => {
+    function Forged() {
+      const checklist = useSessionState((snapshot) => snapshot.checklist());
+      if (!checklist) return null;
+      const deviations = [
+        { kind: 'unexpected-control' as const, itemIndex: 0, controlId: 'gps.power' },
+      ];
+      return <DeviationSummary checklist={{ ...checklist, done: true, deviations }} />;
+    }
+    renderWithLanguage(
+      <TrainerProvider>
+        <Probe />
+        <Forged />
+      </TrainerProvider>,
+    );
+    start(flow);
+    expect(screen.getByText('gps.power operated')).toBeTruthy();
   });
 
   it('renders the German summary', () => {

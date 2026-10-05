@@ -1,5 +1,5 @@
 import type { ChecklistState } from '@cpt/core';
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
@@ -12,6 +12,11 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const describe = useDeviationText(checklist);
   const headingId = useId();
   const listId = useId();
+  const heading = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    heading.current?.focus();
+  }, []);
 
   const { aircraft, procedureId, mode } = trainer;
   const { procedure, completed, deviations } = checklist;
@@ -30,7 +35,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
         <div className="checklist-eyebrow">
           {localize(aircraft.name)} · {mode === 'practice' ? text.modePractice : text.modeGuided}
         </div>
-        <h1 id={headingId} className="checklist-title">
+        <h1 id={headingId} ref={heading} tabIndex={-1} className="checklist-title">
           {format(text.summaryTitle, { title: localize(procedure.title) })}
         </h1>
       </div>

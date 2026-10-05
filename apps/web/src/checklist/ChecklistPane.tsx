@@ -123,10 +123,14 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         </div>
       </div>
 
-      {guided && latest && (
-        <div role="status" className="checklist-banner">
-          <div className="checklist-eyebrow">{text.deviationBanner}</div>
-          <div>{describe.banner(latest)}</div>
+      {guided && (
+        <div role="status">
+          {latest && (
+            <div className="checklist-banner">
+              <div className="checklist-eyebrow">{text.deviationBanner}</div>
+              <div>{describe.banner(latest)}</div>
+            </div>
+          )}
         </div>
       )}
 
