@@ -46,4 +46,20 @@ describe('fixture systems model', () => {
     const failed = run({ ...parked, ignition: 'both' }, 0, running, new Set(['alternatorFailure']));
     expect(failed.volts).toBe(12);
   });
+
+  it('stops charging when the alternator breaker is pulled', () => {
+    const both = { ...parked, ignition: 'both' };
+    const running = run(both, 0, { ...(systems.initial as FixtureState), engineRunning: true });
+    expect(running.volts).toBeGreaterThan(12);
+    expect(run({ ...both, alternatorBreaker: 'pulled' }, 0, running).volts).toBe(12);
+  });
+
+  it('restarts the crank time when the starter is released before the engine catches', () => {
+    const held = { ...parked, ignition: 'start' };
+    const cranking = run(held, STARTER_MS_TO_START - 1);
+    const released = run({ ...parked, ignition: 'both' }, 0, cranking);
+    expect(released.engineRunning).toBe(false);
+    expect(released.starterMs).toBe(0);
+    expect(run(held, STARTER_MS_TO_START - 1, released).engineRunning).toBe(false);
+  });
 });

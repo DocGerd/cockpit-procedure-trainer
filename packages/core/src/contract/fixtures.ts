@@ -139,6 +139,7 @@ export const fixtureAircraft = defineAircraft({
     },
     alternatorBreaker: {
       kind: 'breaker',
+      positions: ['in', 'pulled'],
       initial: 'in',
       name: text('Sicherung Lichtmaschine', 'Alternator breaker'),
       description: text('Löst bei Lichtmaschinenausfall aus.', 'Trips on alternator failure.'),
@@ -239,9 +240,8 @@ export const fixtureAircraft = defineAircraft({
       },
     },
   },
-  procedures: [
-    {
-      id: 'beforeStart',
+  procedures: {
+    beforeStart: {
       title: text('Vor dem Anlassen', 'Before start'),
       type: 'normal',
       startPhase: 'parking',
@@ -284,8 +284,7 @@ export const fixtureAircraft = defineAircraft({
         },
       ],
     },
-    {
-      id: 'alternatorFailure',
+    alternatorFailure: {
       title: text('Lichtmaschinenausfall', 'Alternator failure'),
       type: 'emergency',
       startPhase: 'runup',
@@ -303,5 +302,5 @@ export const fixtureAircraft = defineAircraft({
         },
       ],
     },
-  ],
+  },
 });

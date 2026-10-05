@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONTRACT_VERSION, defineAircraft } from './index';
+import type { Aircraft, ControlChange, ControlPosition, GuardPosition } from './index';
 import type { Text, TrainerState } from './index';
 import { fixtureAircraft } from './fixtures';
 
@@ -16,7 +17,22 @@ const toggle = {
   description: text,
 } as const;
 
-const breaker = { kind: 'breaker', initial: 'in', name: text, description: text } as const;
+const breaker = {
+  kind: 'breaker',
+  positions: ['in', 'pulled'],
+  initial: 'in',
+  name: text,
+  description: text,
+} as const;
+
+const rotary = {
+  kind: 'rotary',
+  positions: ['off', 'both', 'start'],
+  initial: 'off',
+  springBack: { start: 'both' },
+  name: text,
+  description: text,
+} as const;
 
 const initial: State = { on: false };
 const select = (state: TrainerState<State>) => state.systems.on;
@@ -40,7 +56,7 @@ const body = {
   systems,
   failures: { alt: { name: text, trips: ['cb'] } },
   phases: { parking: phase },
-  procedures: [],
+  procedures: {},
 } as const;
 
 describe('defineAircraft', () => {
@@ -51,9 +67,31 @@ describe('defineAircraft', () => {
     expect(aircraft.controls).toBe(definition.controls);
   });
 
-  it('returns the shared fixture unchanged apart from the version', () => {
+  it('stamps the contract version on the fixture', () => {
     expect(fixtureAircraft.contractVersion).toBe(CONTRACT_VERSION);
-    expect(Object.keys(fixtureAircraft.controls)).toContain('ignition');
+    expect(Object.keys(fixtureAircraft.procedures)).toEqual(['beforeStart', 'alternatorFailure']);
+  });
+});
+
+describe('erased Aircraft', () => {
+  it('types failure trips as plain string ids', () => {
+    const trips: NonNullable<Aircraft['failures'][string]['trips']> = ['anything'];
+    const plain: readonly string[] = trips;
+    const back: NonNullable<Aircraft['failures'][string]['trips']> = plain;
+    expect(back).toEqual(['anything']);
+  });
+
+  it('narrows a ControlChange on its kind', () => {
+    const toPosition = (change: ControlChange): ControlPosition | GuardPosition => {
+      if (change.kind === 'guard') {
+        // @ts-expect-error guard positions are not numbers
+        const asNumber: number = change.to;
+        return asNumber;
+      }
+      const position: ControlPosition = change.to;
+      return position;
+    };
+    expect(toPosition({ id: 'x', kind: 'position', from: 1, to: 2, source: 'pilot' })).toBe(2);
   });
 });
 
@@ -62,39 +100,38 @@ describe('compile-time reference checks', () => {
     const aircraft = defineAircraft({
       ...identity,
       ...body,
-      procedures: [
-        {
-          id: 'p',
+      controls: { master: toggle, cb: breaker, ignition: rotary },
+      phases: {
+        parking: {
+          ...phase,
+          entry: { controls: { master: 'off', cb: 'in', ignition: 'start' }, state: initial },
+        },
+      },
+      procedures: {
+        p: {
           title: text,
           type: 'normal',
           startPhase: 'parking',
           items: [
             { type: 'action', control: 'master', position: 'on', text },
+            { type: 'action', control: 'cb', position: 'pulled', text },
             { type: 'check', target: { indicator: 'lamp' }, condition, text },
             { type: 'check', target: { control: 'master' }, condition, text },
             { type: 'confirm', text },
           ],
         },
-        {
-          id: 'e',
-          title: text,
-          type: 'emergency',
-          startPhase: 'parking',
-          failure: 'alt',
-          items: [],
-        },
-      ],
+        e: { title: text, type: 'emergency', startPhase: 'parking', failure: 'alt', items: [] },
+      },
     });
-    expect(aircraft.procedures).toHaveLength(2);
+    expect(Object.keys(aircraft.procedures)).toEqual(['p', 'e']);
   });
 
   it('rejects an action item that targets an unknown control', () => {
     defineAircraft({
       ...identity,
       ...body,
-      procedures: [
-        {
-          id: 'p',
+      procedures: {
+        p: {
           title: text,
           type: 'normal',
           startPhase: 'parking',
@@ -103,7 +140,7 @@ describe('compile-time reference checks', () => {
             { type: 'action', control: 'nope', position: 'on', text },
           ],
         },
-      ],
+      },
     });
   });
 
@@ -111,9 +148,8 @@ describe('compile-time reference checks', () => {
     defineAircraft({
       ...identity,
       ...body,
-      procedures: [
-        {
-          id: 'p',
+      procedures: {
+        p: {
           title: text,
           type: 'normal',
           startPhase: 'parking',
@@ -124,7 +160,7 @@ describe('compile-time reference checks', () => {
             { type: 'check', target: { control: 'nope' }, condition, text },
           ],
         },
-      ],
+      },
     });
   });
 
@@ -132,11 +168,10 @@ describe('compile-time reference checks', () => {
     defineAircraft({
       ...identity,
       ...body,
-      procedures: [
+      procedures: {
         // @ts-expect-error unknown start phase
-        { id: 'p', title: text, type: 'normal', startPhase: 'nope', items: [] },
-        {
-          id: 'q',
+        p: { title: text, type: 'normal', startPhase: 'nope', items: [] },
+        q: {
           title: text,
           type: 'normal',
           startPhase: 'parking',
@@ -144,7 +179,7 @@ describe('compile-time reference checks', () => {
           endPhase: 'nope',
           items: [],
         },
-      ],
+      },
     });
   });
 
@@ -152,9 +187,8 @@ describe('compile-time reference checks', () => {
     defineAircraft({
       ...identity,
       ...body,
-      procedures: [
-        {
-          id: 'p',
+      procedures: {
+        p: {
           title: text,
           type: 'emergency',
           startPhase: 'parking',
@@ -163,8 +197,8 @@ describe('compile-time reference checks', () => {
           items: [],
         },
         // @ts-expect-error emergency needs a failure
-        { id: 'q', title: text, type: 'emergency', startPhase: 'parking', items: [] },
-      ],
+        q: { title: text, type: 'emergency', startPhase: 'parking', items: [] },
+      },
     });
   });
 
@@ -253,6 +287,128 @@ describe('compile-time reference checks', () => {
             controls: { master: 'off', cb: 'in', nope: 'x' },
           },
         },
+      },
+    });
+  });
+});
+
+describe('compile-time position checks', () => {
+  it('rejects an initial position the control does not have', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        // @ts-expect-error 'of' is not a position of master
+        master: { ...toggle, initial: 'of' },
+        cb: breaker,
+      },
+    });
+  });
+
+  it('rejects an entry snapshot position the control does not have', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      phases: {
+        parking: {
+          ...phase,
+          entry: {
+            state: initial,
+            controls: {
+              // @ts-expect-error 'onn' is not a position of master
+              master: 'onn',
+              // @ts-expect-error 'out' is not a position of a breaker
+              cb: 'out',
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('rejects an action position the control does not have', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      procedures: {
+        p: {
+          title: text,
+          type: 'normal',
+          startPhase: 'parking',
+          items: [
+            // @ts-expect-error 'onn' is not a position of master
+            { type: 'action', control: 'master', position: 'onn', text },
+            // @ts-expect-error 'out' is not a position of a breaker
+            { type: 'action', control: 'cb', position: 'out', text },
+          ],
+        },
+      },
+    });
+  });
+
+  it('rejects breaker positions other than in and pulled', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        master: toggle,
+        // @ts-expect-error breakers have exactly in and pulled
+        cb: { ...breaker, positions: ['in', 'out'] },
+      },
+    });
+  });
+
+  it('rejects a spring-back detent the rotary does not have', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        master: toggle,
+        cb: breaker,
+        // @ts-expect-error 'strat' is not a detent
+        ignition: { ...rotary, springBack: { strat: 'both' } },
+      },
+      phases: {
+        parking: {
+          ...phase,
+          entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
+        },
+      },
+    });
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        master: toggle,
+        cb: breaker,
+        // @ts-expect-error 'bothh' is not a detent
+        ignition: { ...rotary, springBack: { start: 'bothh' } },
+      },
+      phases: {
+        parking: {
+          ...phase,
+          entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
+        },
+      },
+    });
+  });
+
+  it('rejects an artwork image for a position the control does not have', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        master: {
+          ...toggle,
+          appearance: {
+            artwork: {
+              face: 'face.png',
+              // @ts-expect-error the images are keyed 'off' and 'onn', not 'off' and 'on'
+              moving: { type: 'positions', images: { off: 'off.png', onn: 'on.png' } },
+            },
+          },
+        },
+        cb: breaker,
       },
     });
   });

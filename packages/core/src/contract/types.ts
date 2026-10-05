@@ -81,6 +81,7 @@ export type GuardedControl = ControlBase & {
 
 export type BreakerControl = ControlBase & {
   readonly kind: 'breaker';
+  readonly positions: readonly ['in', 'pulled'];
   readonly initial: BreakerPosition;
 };
 
@@ -91,11 +92,11 @@ export type ControlKind = ControlDefinition['kind'];
 
 export type ControlChange<C extends string = string> = {
   readonly id: C;
-  readonly from: ControlPosition | GuardPosition;
-  readonly to: ControlPosition | GuardPosition;
-  readonly kind: 'position' | 'guard';
   readonly source: 'pilot' | 'spring' | 'system';
-};
+} & (
+  | { readonly kind: 'position'; readonly from: ControlPosition; readonly to: ControlPosition }
+  | { readonly kind: 'guard'; readonly from: GuardPosition; readonly to: GuardPosition }
+);
 
 export type TrainerState<S> = {
   readonly controls: Positions;
@@ -149,60 +150,99 @@ export type FailureDefinition<B extends string = string> = {
   readonly trips?: readonly B[];
 };
 
-export type PhaseDefinition<S, C extends string = string> = {
+export type ControlRecord = { readonly [id: string]: ControlDefinition };
+
+export type ControlId<CT extends ControlRecord> = keyof NoInfer<CT> & string;
+
+export type PositionOf<D extends ControlDefinition> = D extends { readonly kind: 'breaker' }
+  ? BreakerPosition
+  : D extends { readonly positions: 'continuous' }
+    ? number
+    : D extends { readonly positions: readonly (infer P)[] }
+      ? P
+      : never;
+
+export type BreakerId<CT extends ControlRecord> = string extends keyof CT
+  ? string
+  : {
+      [K in keyof CT & string]: CT[K] extends { readonly kind: 'breaker' } ? K : never;
+    }[keyof CT & string];
+
+type PositionRules<D> = D extends { readonly positions: readonly (infer P extends string)[] }
+  ? { readonly initial: P } & (D extends { readonly springBack: infer SB }
+      ? { readonly springBack: { readonly [K in keyof SB]: K extends P ? P : never } }
+      : unknown) &
+      (D extends {
+        readonly appearance: {
+          readonly artwork: { readonly moving: { readonly type: 'positions' } };
+        };
+      }
+        ? {
+            readonly appearance: {
+              readonly artwork: {
+                readonly moving: { readonly images: { readonly [K in P]: string } };
+              };
+            };
+          }
+        : unknown)
+  : unknown;
+
+export type ControlRules<CT extends ControlRecord> = string extends keyof CT
+  ? unknown
+  : { readonly [K in keyof NoInfer<CT>]: PositionRules<NoInfer<CT>[K]> };
+
+export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   readonly name: Text;
   readonly image: string;
   readonly environment: Environment;
   readonly entry: {
-    readonly controls: { readonly [K in C]: ControlPosition };
+    readonly controls: { readonly [K in ControlId<CT>]: PositionOf<NoInfer<CT>[K]> };
     readonly state: S;
   };
 };
 
 type ItemBase = { readonly text: Text };
 
-export type ActionItem<S, C extends string = string> = ItemBase & {
-  readonly type: 'action';
-  readonly control: C;
-  readonly position: ControlPosition;
-  readonly holdUntil?: Condition<S>;
-};
+export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
+  {
+    [K in ControlId<CT>]: {
+      readonly type: 'action';
+      readonly control: K;
+      readonly position: PositionOf<NoInfer<CT>[K]>;
+      readonly holdUntil?: Condition<S>;
+    };
+  }[ControlId<CT>];
 
-export type CheckItem<S, C extends string = string, I extends string = string> = ItemBase & {
+export type CheckItem<
+  S,
+  CT extends ControlRecord = ControlRecord,
+  I extends string = string,
+> = ItemBase & {
   readonly type: 'check';
-  readonly target: { readonly indicator: I } | { readonly control: C };
+  readonly target: { readonly indicator: I } | { readonly control: ControlId<CT> };
   readonly condition: Condition<S>;
 };
 
 export type ConfirmItem = ItemBase & { readonly type: 'confirm' };
 
-export type ProcedureItem<S, C extends string = string, I extends string = string> =
-  ActionItem<S, C> | CheckItem<S, C, I> | ConfirmItem;
+export type ProcedureItem<S, CT extends ControlRecord = ControlRecord, I extends string = string> =
+  ActionItem<S, CT> | CheckItem<S, CT, I> | ConfirmItem;
 
 export type ProcedureDefinition<
   S,
-  C extends string = string,
+  CT extends ControlRecord = ControlRecord,
   I extends string = string,
   F extends string = string,
   P extends string = string,
 > = {
-  readonly id: string;
   readonly title: Text;
   readonly startPhase: P;
   readonly endPhase?: P;
-  readonly items: readonly ProcedureItem<S, C, I>[];
+  readonly items: readonly ProcedureItem<S, CT, I>[];
 } & (
   | { readonly type: 'normal'; readonly failure?: never }
   | { readonly type: 'emergency'; readonly failure: F }
 );
-
-export type ControlRecord = { readonly [id: string]: ControlDefinition };
-
-export type ControlId<CT extends ControlRecord> = keyof NoInfer<CT> & string;
-
-export type BreakerId<CT extends ControlRecord> = {
-  [K in keyof CT & string]: CT[K] extends { readonly kind: 'breaker' } ? K : never;
-}[keyof CT & string];
 
 export type AircraftDefinition<
   S,
@@ -214,19 +254,15 @@ export type AircraftDefinition<
   readonly id: string;
   readonly name: Text;
   readonly handbookRevision: string;
-  readonly controls: CT;
+  readonly controls: CT & ControlRules<CT>;
   readonly indicators: { readonly [K in I]: IndicatorDefinition<S> };
   readonly views: { readonly [id: string]: ViewDefinition<ControlId<CT>, NoInfer<I>> };
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
-  readonly phases: { readonly [K in P]: PhaseDefinition<S, ControlId<CT>> };
-  readonly procedures: readonly ProcedureDefinition<
-    S,
-    ControlId<CT>,
-    NoInfer<I>,
-    NoInfer<F>,
-    NoInfer<P>
-  >[];
+  readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
+  readonly procedures: {
+    readonly [id: string]: ProcedureDefinition<S, CT, NoInfer<I>, NoInfer<F>, NoInfer<P>>;
+  };
 };
 
 export type Aircraft = AircraftDefinition<unknown, ControlRecord, string, string, string> & {
