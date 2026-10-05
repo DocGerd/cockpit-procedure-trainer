@@ -113,8 +113,10 @@ describe('action items', () => {
   });
 
   it('stay current while the target is at another position', () => {
-    const checklist = observeControl(begin(), position('master', 'on', 'off'), stateOf());
-    expect(checklist.completed).toEqual([]);
+    const detent = stateOf({ master: 'on', fuelPump: 'on', ignition: 'both' });
+    const checklist = observeControl(atStarter(), position('ignition', 'off', 'both'), detent);
+    expect(checklist.current).toBe(4);
+    expect(checklist.completed).not.toContain(4);
     expect(checklist.deviations).toEqual([]);
   });
 
@@ -126,7 +128,7 @@ describe('action items', () => {
     let checklist = atStarter();
     expect(checklist.current).toBe(4);
 
-    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
     expect(checklist.current).toBe(4);
 
     checklist = observeState(checklist, cranking);
@@ -139,7 +141,7 @@ describe('action items', () => {
 
   it('with holdUntil do not complete when the target was released first', () => {
     let checklist = atStarter();
-    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
     const letGo = stateOf({ master: 'on', fuelPump: 'on', ignition: 'both' });
     checklist = observeControl(checklist, position('ignition', 'start', 'both', 'spring'), letGo);
     checklist = observeState(checklist, released);
@@ -203,7 +205,7 @@ describe('check and confirm items', () => {
   });
 
   it('finish the procedure when the last item completes', () => {
-    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
+    let checklist = observeControl(atStarter(), position('ignition', 'off', 'start'), running);
     expect(checklist.current).toBe(5);
     checklist = checkOff(checklist, running);
     expect(checklist.done).toBe(true);
@@ -244,6 +246,19 @@ describe('deviations', () => {
     ]);
   });
 
+  it('record a deviation against the item that was current before the change completed it', () => {
+    const throttled = stateOf(
+      { master: 'on', fuelPump: 'on', ignition: 'start', throttle: 0.5 },
+      { busPowered: true, engineRunning: true, rpm: 1500 },
+    );
+    const checklist = observeControl(atStarter(), position('throttle', 0, 0.5), throttled);
+    expect(checklist.completed).toContain(4);
+    expect(checklist.current).toBe(5);
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 4, controlId: 'throttle' },
+    ]);
+  });
+
   it('record a pilot position change while a confirm item is current', () => {
     const checklist = observeControl(atConfirm(), position('flaps', 'up', 'landing'), pumpOn);
     expect(checklist.deviations).toEqual([
@@ -271,7 +286,7 @@ describe('deviations', () => {
   });
 
   it('never record spring changes, such as a released starter', () => {
-    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
+    let checklist = observeControl(atStarter(), position('ignition', 'off', 'start'), running);
     expect(checklist.current).toBe(5);
     checklist = observeControl(
       checklist,
