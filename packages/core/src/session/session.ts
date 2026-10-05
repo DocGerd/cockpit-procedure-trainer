@@ -14,7 +14,7 @@ import { deviceControls, stepDevices } from '../devices';
 import type { DeviceStates } from '../devices';
 import { createFailureSet } from '../failures';
 import { entrySnapshot, procedureOf } from '../phases';
-import { createSystemsRuntime } from '../runtime';
+import { assertDtMs, createSystemsRuntime } from '../runtime';
 import type { RuntimeStatus } from '../runtime';
 
 export type SessionOptions = {
@@ -213,9 +213,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
     advance(dtMs) {
       if (failed()) {
-        if (!Number.isFinite(dtMs) || dtMs < 0) {
-          throw new RangeError(`dtMs must be a finite number >= 0, got ${dtMs}`);
-        }
+        assertDtMs(dtMs);
         return;
       }
       runtime.advance(dtMs);
