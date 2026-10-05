@@ -26,3 +26,5 @@ Requires Node 24 and pnpm.
 ## Licence
 
 MIT. © 2026 Patrick Kuhn
+
+Geist and Geist Mono are under the SIL Open Font License 1.1; see apps/web/public/licenses/.
