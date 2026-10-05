@@ -24,7 +24,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   (`main` into `develop`) uses a merge commit.
 - The release PR `develop` to `main` is opened by an agent and merged by the
   owner. A workflow then tags and publishes the release.
-- Every PR adds a fragment `changelog.d/<issue>.<category>.md`.
+- Every PR adds a fragment `changelog.d/<issue>.<category>.md`; Dependabot PRs
+  are exempt (no fragment, no `Closes`).
 - Branch prefixes: `feat/ fix/ chore/ docs/ ci/ release/`.
 - A decision the spec does not settle: make it, state it and its reason in the
   PR description, and carry it into the milestone summary.
@@ -44,3 +45,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - The brand styles the app frame, never the cockpit panel. Status colours do
   not appear on the panel.
 - No handbook scans or manufacturer artwork in the repo.
+- `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
+  substring "merge" (also "emergency", jq `mergeCommit`) and `$` in gh
+  endpoints: write such text with Write/Edit, spell endpoints literally.
+- Agent types: `implementer` cannot read claude.ai artifacts (the design
+  canvas) and `reviewer` cannot post review threads; use `general-purpose`.
