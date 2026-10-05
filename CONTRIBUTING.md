@@ -21,6 +21,12 @@ holds released state and feeds the production site.
    into `develop`.
 2. A release pull request `develop` to `main` is opened and merged with a merge
    commit by the owner. Since the gitflow switch, no agent merges into `main`.
+   A Claude Code hook (`.claude/hooks/block-main-merge.sh`) denies merge-like
+   commands except a plain `gh pr merge` of a PR based on `develop`. It is an
+   accident tripwire, not a security boundary: the base can change between its
+   check and the merge, and anything with the owner's token can still merge
+   into `main`. The `protect-main` ruleset blocks direct pushes to `main`, not
+   PR merges by the owner account.
 3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
    `vX.Y.Z` and the GitHub Release.
 

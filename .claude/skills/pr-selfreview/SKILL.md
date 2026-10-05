@@ -1,6 +1,6 @@
 ---
 name: pr-selfreview
-description: Review a pull request - run a review, post one inline thread per finding, fix, reply, resolve every thread. Use whenever a PR is opened or updated, by its author or by a separate reviewer agent.
+description: Review a pull request - run a review, post one inline thread per finding, fix, reply, resolve every thread. Run by a separate reviewer agent, never the PR's implementer, whenever a PR is opened or updated.
 ---
 
 # Review a PR

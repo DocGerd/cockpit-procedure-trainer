@@ -31,7 +31,7 @@ lower-case kebab form, for example `m2-core-engine`.
      skill once `check` is green and all review threads are resolved.
 4. Open the release PR: `gh pr create --base main --head develop --title "Release vX.Y.Z" --body-file docs/milestones/<slug>.md`.
 5. Stop. NEVER merge the release PR: no `gh pr merge`, no auto-merge, no API
-   merge; the `block-main-merge.sh` hook denies these. The owner merges it; the `Release` workflow then creates tag
+   merge; the `block-main-merge.sh` tripwire denies the usual forms but is not a boundary. The owner merges it; the `Release` workflow then creates tag
    `vX.Y.Z` and the GitHub Release from the top section of `CHANGELOG.md`.
 6. Give the owner the release PR URL and the open questions.
 7. In the next session, after the owner's merge: confirm tag and Release exist
