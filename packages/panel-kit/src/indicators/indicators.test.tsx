@@ -100,6 +100,20 @@ describe('round gauge', () => {
     expect(narrowPath).toMatch(/ 0 0 1 /);
   });
 
+  it('sets the large-arc flag only for an arc wider than half a turn', () => {
+    const half = draw(gauge, 10, { ...range, arcs: [{ from: 10, to: 20, colour: 'green' }] });
+    expect(half.container.querySelector('[data-arc]')?.getAttribute('d')).toMatch(/ 0 0 1 /);
+    cleanup();
+    const most = draw(gauge, 10, { ...range, arcs: [{ from: 10, to: 28, colour: 'green' }] });
+    expect(most.container.querySelector('[data-arc]')?.getAttribute('d')).toMatch(/ 0 1 1 /);
+  });
+
+  it('draws the needle in the needle token', () => {
+    const { container } = draw(gauge, 20, range);
+    const needle = container.querySelector('[data-needle] line') as SVGElement;
+    expect(needle.style.stroke).toBe('var(--panel-needle)');
+  });
+
   it('shows units and label', () => {
     const { container } = draw(gauge, 10, { ...range, units: 'psi' });
     expect(container.querySelector('[data-units]')?.textContent).toBe('psi');
