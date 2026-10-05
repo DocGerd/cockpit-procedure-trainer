@@ -108,6 +108,39 @@ drawn on the canvas.
 | `--radius-pill`          | `100px`                                                                       | `100px`                                                                       | chips, pills                      |
 | `--size-target`          | `44px`                                                                        | `44px`                                                                        | minimum touch target              |
 
+## Panel hardware
+
+The colours of the generic panel widgets: hardware, not brand. They do not
+change with the theme, so both columns repeat the value. The neutrals come from
+the generic GA panel on the design canvas; the lit lamp colours are not drawn
+there. Aircraft artwork brings its own colours and does not use these.
+
+| Token                  | Light     | Dark      | Use                                 |
+| ---------------------- | --------- | --------- | ----------------------------------- |
+| `--panel-surface`      | `#26282C` | `#26282C` | panel ground                        |
+| `--panel-frame`        | `#3B4046` | `#3B4046` | panel frame, group rules            |
+| `--panel-face`         | `#0B0C0E` | `#0B0C0E` | instrument case, switch body, label |
+| `--panel-dial`         | `#131518` | `#131518` | gauge dial                          |
+| `--panel-bezel`        | `#5E646B` | `#5E646B` | bezel ring, outlines                |
+| `--panel-bezel-dark`   | `#2A2E33` | `#2A2E33` | inner ring, needle hub              |
+| `--panel-cap`          | `#8C9199` | `#8C9199` | switch cap, knob                    |
+| `--panel-cap-light`    | `#C2C7CD` | `#C2C7CD` | raised face of a cap                |
+| `--panel-legend`       | `#ECEEF1` | `#ECEEF1` | legends, ticks                      |
+| `--panel-legend-muted` | `#969CA4` | `#969CA4` | units, secondary legends            |
+| `--panel-needle`       | `#FFFFFF` | `#FFFFFF` | needle                              |
+| `--panel-screen`       | `#050607` | `#050607` | display glass, unpowered screen     |
+| `--panel-lamp-off`     | `#1B1E22` | `#1B1E22` | unlit annunciator                   |
+| `--panel-lamp-amber`   | `#F0A830` | `#F0A830` | lit amber annunciator               |
+| `--panel-lamp-red`     | `#E5483C` | `#E5483C` | lit red annunciator                 |
+| `--panel-lamp-green`   | `#3FBF5F` | `#3FBF5F` | lit green annunciator               |
+| `--panel-lamp-blue`    | `#4A90E2` | `#4A90E2` | lit blue annunciator                |
+| `--panel-lamp-white`   | `#F4F5F7` | `#F4F5F7` | lit white annunciator               |
+| `--panel-arc-green`    | `#3FA35B` | `#3FA35B` | gauge arc, normal range             |
+| `--panel-arc-yellow`   | `#E0B43A` | `#E0B43A` | gauge arc, caution range            |
+| `--panel-arc-red`      | `#D8483C` | `#D8483C` | gauge arc, limit                    |
+| `--panel-arc-white`    | `#ECEEF1` | `#ECEEF1` | gauge arc, flap range               |
+| `--panel-focus`        | `#FFFFFF` | `#FFFFFF` | keyboard focus ring on the panel    |
+
 ## Delta mark
 
 Two shapes on a 100-unit box, filled with the accent:
@@ -125,8 +158,9 @@ The name beside the mark is "Procedure Trainer".
   the panel, where the same colours carry aircraft meaning.
 - Status inks used as text (success, warning, danger) sit
   only on `--color-bg` or `--color-surface`.
-- Panel colours (gauge arcs, lamps, switch caps, artwork) are aircraft content,
-  not tokens, and are outside the literal rule.
+- The generic panel widgets take their colours (gauge arcs, lamps, switch caps)
+  only from the panel hardware tokens. Aircraft artwork is aircraft content and
+  outside the literal rule.
 - The one brand colour allowed over the panel is the accent, as the Guided
   highlight. It is paired with a shape cue (outline and pulse), so it does not
   depend on hue alone.
