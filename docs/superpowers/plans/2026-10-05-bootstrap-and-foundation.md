@@ -23,7 +23,7 @@ This is the first of one plan per milestone. M1 to M7 each get their own plan wh
 - Comments in code only where the code cannot say it. No dates, durations or measured figures in comments or docs unless they are requirements.
 - Personal local tooling is never added to committed config, CLAUDE.md or CI; ignore its folders in `.git/info/exclude`.
 - Shell scripts that call `gh`: `timeout -k 5 60 gh … </dev/null`; loop with `mapfile` + `for`, never `while read` around a spawned command.
-- Commit identity: `user.email` is `13460098+DocGerd@users.noreply.github.com` (set in the repo's local git config). No other address may appear as author or committer. Merges made by GitHub use the account's own email setting, so until the owner confirms "Keep my email addresses private" is on, merge a reviewed PR by fast-forwarding `main` to the PR head locally and pushing; do not use the merge button or `gh pr merge`.
+- Commit identity: `user.email` is `13460098+DocGerd@users.noreply.github.com` (set in the repo's local git config). No other address may appear as author or committer. The owner's GitHub account keeps its email private, so merges made by GitHub also use the noreply address; merge reviewed PRs with `gh pr merge --squash --delete-branch`.
 - Nothing committed, and no issue or PR text, contains local absolute paths, machine or user names, or links to private artifacts.
 - Commit trailer: `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`. PR bodies end with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
 
