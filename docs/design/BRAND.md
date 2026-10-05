@@ -98,7 +98,7 @@ The name beside the mark is "Procedure Trainer".
   tabs and dialogs. It never styles the cockpit panel.
 - Status inks (success, warning, danger) appear only in the chrome, never on
   the panel, where the same colours carry aircraft meaning.
-- Status inks used as text (success, warning, and any danger or info inks) sit
+- Status inks used as text (success, warning, danger) sit
   only on `--color-bg` or `--color-surface`.
 - Panel colours (gauge arcs, lamps, switch caps, artwork) are aircraft content,
   not tokens, and are outside the literal rule.

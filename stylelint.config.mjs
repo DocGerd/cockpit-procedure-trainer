@@ -10,6 +10,30 @@ const spacing = [
   'letter-spacing',
 ];
 
+const systemColours = [
+  'Canvas',
+  'CanvasText',
+  'LinkText',
+  'VisitedText',
+  'ActiveText',
+  'ButtonFace',
+  'ButtonText',
+  'ButtonBorder',
+  'Field',
+  'FieldText',
+  'Highlight',
+  'HighlightText',
+  'SelectedItem',
+  'SelectedItemText',
+  'Mark',
+  'MarkText',
+  'GrayText',
+  'AccentColor',
+  'AccentColorText',
+];
+
+const systemColour = new RegExp(`(?<![\\w-])(${systemColours.join('|')})(?![\\w-])`, 'i');
+
 export default {
   ignoreFiles: ['apps/web/src/styles/tokens.css', 'docs/**', '**/dist/**', '**/node_modules/**'],
   rules: {
@@ -28,7 +52,14 @@ export default {
       'color',
     ],
     'declaration-property-value-allowed-list': {
+      font: ['inherit'],
       'font-family': ['/^var\\(--font-/', 'inherit'],
+      'font-weight': ['/^var\\(--weight-/', 'inherit', 'normal'],
+    },
+    'declaration-property-value-disallowed-list': {
+      '/(color|^background|^border|^outline|^fill|^stroke|shadow|^text-decoration|^column-rule)/': [
+        systemColour,
+      ],
     },
     'declaration-property-unit-disallowed-list': Object.fromEntries(
       spacing.map((property) => [property, ['px', 'rem', 'em']]),
