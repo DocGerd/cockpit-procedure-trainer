@@ -63,11 +63,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: dist-prod
           path: dist/prod
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: dist-uat
