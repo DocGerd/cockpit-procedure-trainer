@@ -1,5 +1,5 @@
 import type { IndicatorWidgetProps } from '../types';
-import { angleAt, arcPath, CENTRE, formatNumber, polar } from './geometry';
+import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze } from './geometry';
 import { readGaugeOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
@@ -8,6 +8,8 @@ const TICK_OUTER = 38;
 const TICK_INNER = 33;
 const NUMERAL_RADIUS = 26;
 const NEEDLE_LENGTH = 34;
+const LABEL_CAPACITY = 18;
+const LABEL_WIDTH = 66;
 
 const sans = 'var(--font-sans)';
 const mono = 'var(--font-mono)';
@@ -26,8 +28,12 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
       width="100%"
       height="100%"
       viewBox="0 0 100 100"
-      role="img"
-      aria-label={`${label}: ${reading}`}
+      role="meter"
+      aria-label={label}
+      aria-valuenow={value}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuetext={reading}
     >
       <circle
         cx={CENTRE}
@@ -96,6 +102,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         fontSize={5.5}
         textAnchor="middle"
         style={{ fill: 'var(--panel-legend)', fontFamily: sans }}
+        {...squeeze(label, LABEL_CAPACITY, LABEL_WIDTH)}
       >
         {label}
       </text>

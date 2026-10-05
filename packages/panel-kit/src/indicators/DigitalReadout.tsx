@@ -6,7 +6,8 @@ import { IndicatorPlaceholder } from './Placeholder';
 const GLYPH_WIDTH = 9.6;
 const TEXT_RIGHT = 94;
 const TEXT_LEFT = 6;
-const UNITS_WIDTH = 24;
+export const UNITS_WIDTH = 24;
+const LABEL_CAPACITY = 24;
 
 export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) {
   const config = readReadoutOptions(options);
@@ -46,6 +47,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
         y={10}
         fontSize={6}
         style={{ fill: 'var(--panel-legend-muted)', fontFamily: 'var(--font-sans)' }}
+        {...squeeze(label, LABEL_CAPACITY, TEXT_RIGHT - TEXT_LEFT)}
       >
         {label}
       </text>

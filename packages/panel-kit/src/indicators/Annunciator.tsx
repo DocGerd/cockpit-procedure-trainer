@@ -1,16 +1,19 @@
 import type { IndicatorWidgetProps } from '../types';
 import { squeeze } from './geometry';
-import { readLamp } from './options';
+import { readAnnunciatorOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
 const LABEL_CAPACITY = 9;
 const LABEL_WIDTH = 80;
 
 export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
-  const lamp = readLamp(options);
-  if (lamp === null || typeof value !== 'boolean') {
+  const config = readAnnunciatorOptions(options);
+  if (config === null || typeof value !== 'boolean') {
     return <IndicatorPlaceholder label={label} />;
   }
+  const { lamp, stateLabels } = config;
+  const accessibleName =
+    stateLabels === null ? label : `${label}: ${value ? stateLabels.lit : stateLabels.dark}`;
   const colour = `var(--panel-lamp-${lamp})`;
 
   return (
@@ -21,7 +24,7 @@ export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
       height="100%"
       viewBox="0 0 100 50"
       role="img"
-      aria-label={label}
+      aria-label={accessibleName}
     >
       <rect
         x={1}

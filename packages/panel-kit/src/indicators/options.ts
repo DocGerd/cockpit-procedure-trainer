@@ -16,13 +16,18 @@ export type GaugeConfig = {
   readonly arcs: readonly GaugeArc[];
 };
 
+export type AnnunciatorConfig = {
+  readonly lamp: LampColour;
+  readonly stateLabels: { readonly lit: string; readonly dark: string } | null;
+};
+
 export type ReadoutConfig = { readonly units: string; readonly decimals: number | null };
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = 100;
 const DEFAULT_TICK_INTERVALS = 5;
-const MAX_TICKS = 40;
-const MAX_DECIMALS = 6;
+export const MAX_TICKS = 40;
+export const MAX_DECIMALS = 6;
 
 const isNumber = (value: JsonValue | undefined): value is number =>
   typeof value === 'number' && Number.isFinite(value);
@@ -79,9 +84,16 @@ export function readGaugeOptions(options: JsonObject | undefined): GaugeConfig |
   return { min, max, units, ticks, arcs };
 }
 
-export function readLamp(options: JsonObject | undefined): LampColour | null {
-  const lamp = options?.lamp ?? 'amber';
-  return isOneOf(LAMP_COLOURS, lamp) ? lamp : null;
+export function readAnnunciatorOptions(options: JsonObject | undefined): AnnunciatorConfig | null {
+  const raw = options ?? {};
+  const lamp = raw.lamp ?? 'amber';
+  if (!isOneOf(LAMP_COLOURS, lamp)) return null;
+  const labels = raw.stateLabels;
+  if (labels === undefined) return { lamp, stateLabels: null };
+  if (!isObject(labels)) return null;
+  const { lit, dark } = labels;
+  if (typeof lit !== 'string' || typeof dark !== 'string') return null;
+  return { lamp, stateLabels: { lit, dark } };
 }
 
 export function readReadoutOptions(options: JsonObject | undefined): ReadoutConfig | null {
