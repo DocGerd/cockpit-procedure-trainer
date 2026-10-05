@@ -48,7 +48,7 @@ jobs:
           elif grep -q 'name="robots"' apps/web/dist/index.html; then
             exit 1
           fi
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-${{ matrix.env }}
           path: apps/web/dist
