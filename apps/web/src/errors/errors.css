@@ -1,0 +1,109 @@
+.startup-notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 70ch;
+  padding: var(--space-4) var(--space-5);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-lg);
+}
+
+.startup-notice-title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.startup-notice-body {
+  color: var(--color-text-secondary);
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: var(--space-12);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.image-placeholder-label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.error-backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+
+.error-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 30rem;
+  padding: var(--space-8);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+}
+
+.error-title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: var(--weight-semibold);
+}
+
+.error-body {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.session-failure {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-6);
+  background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface));
+  border-bottom: 1px solid var(--color-danger);
+}
+
+.session-failure-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.session-failure-title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.session-failure-body {
+  color: var(--color-text-secondary);
+}
+
+.session-failure-detail {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
