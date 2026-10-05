@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineMessages, messagesBrand } from './define-messages';
+import { defineMessages, format, messagesBrand } from './define-messages';
 
 type Modules = Record<string, Record<string, unknown>>;
 
@@ -60,6 +60,19 @@ describe('messages file scan', () => {
     expect(findMessageProblems({ 'ok.ts': { messages: good } })).toEqual([]);
   });
 
+  it('flags a plain object in a messages.tsx or ui-messages.ts file', () => {
+    const plain = { en: { a: 'A' }, de: { a: 'Ä' } };
+    expect(
+      findMessageProblems({
+        '../feat/deep/messages.tsx': { messages: plain },
+        '../feat/ui-messages.ts': { uiMessages: plain },
+      }),
+    ).toEqual([
+      '../feat/deep/messages.tsx#messages: not built by defineMessages',
+      '../feat/ui-messages.ts#uiMessages: not built by defineMessages',
+    ]);
+  });
+
   it('flags a plain object, differing keys, an empty string and an empty module', () => {
     const plain = { en: { a: 'A' }, de: { a: 'Ä' } };
     const mismatched = defineMessages({ en: { a: 'A' }, de: { a: 'Ä' } });
@@ -81,8 +94,11 @@ describe('messages file scan', () => {
   });
 });
 
-describe('every messages.ts in the app', () => {
-  const modules = import.meta.glob<Record<string, unknown>>('../**/messages.ts', { eager: true });
+describe('every messages file in the app', () => {
+  const modules = import.meta.glob<Record<string, unknown>>(
+    ['../**/*messages*.{ts,tsx}', '!../**/*.test.*', '!../i18n/define-messages.ts'],
+    { eager: true },
+  );
 
   it('finds the messages files', () => {
     expect(Object.keys(modules).length).toBeGreaterThan(0);
@@ -90,5 +106,23 @@ describe('every messages.ts in the app', () => {
 
   it('builds each with defineMessages, with identical keys and no empty string', () => {
     expect(findMessageProblems(modules)).toEqual([]);
+  });
+});
+
+describe('format', () => {
+  it('fills placeholders, numbers included', () => {
+    expect(format('{done} of {total} done', { done: 2, total: 5 })).toBe('2 of 5 done');
+    expect(format('{a}{a}', { a: 'x' })).toBe('xx');
+  });
+
+  it('keeps a placeholder that has no value and ignores unused values', () => {
+    expect(format('Set {control} to {position}', { control: 'Master' })).toBe(
+      'Set Master to {position}',
+    );
+    expect(format('Plain', { unused: 1 })).toBe('Plain');
+  });
+
+  it('does not interpret a value as a placeholder', () => {
+    expect(format('{a} {b}', { a: '{b}', b: 'B' })).toBe('{b} B');
   });
 });

@@ -151,6 +151,13 @@ describe('language switch', () => {
     expect(document.documentElement.lang).toBe('de');
   });
 
+  it('declares the language of each option', () => {
+    renderApp();
+    const option = (name: string) => within(switchGroup()).getByRole('button', { name });
+    expect(option('Deutsch').getAttribute('lang')).toBe('de');
+    expect(option('English').getAttribute('lang')).toBe('en');
+  });
+
   it('marks the active language', async () => {
     renderApp();
     const pressed = (name: string) =>

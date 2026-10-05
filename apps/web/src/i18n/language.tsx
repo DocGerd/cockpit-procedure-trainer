@@ -22,8 +22,14 @@ type LanguageContextValue = { language: Language; setLanguage(language: Language
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setChoice] = useState<Language>(initialLanguage);
+export function LanguageProvider({
+  children,
+  initial,
+}: {
+  children: ReactNode;
+  initial?: Language | undefined;
+}) {
+  const [language, setChoice] = useState<Language>(() => initial ?? initialLanguage());
 
   useEffect(() => {
     document.documentElement.lang = language;

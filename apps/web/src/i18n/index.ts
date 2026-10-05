@@ -1,4 +1,4 @@
-export { defineMessages } from './define-messages';
+export { defineMessages, format } from './define-messages';
 export type { Messages } from './define-messages';
 export {
   LanguageProvider,
