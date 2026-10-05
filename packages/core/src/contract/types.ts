@@ -196,19 +196,41 @@ export type BreakerId<CT extends ControlRecord> = string extends keyof CT
       [K in keyof CT & string]: CT[K] extends { readonly kind: 'breaker' } ? K : never;
     }[keyof CT & string];
 
+type PositionError<Got, Valid> = {
+  readonly invalidPosition: Got;
+  readonly validPositions: Valid;
+};
+
+type CheckPosition<Got, Valid, Then = unknown> = [Got] extends [Valid]
+  ? Then
+  : PositionError<Got, Valid>;
+
 type PositionRules<D> = D extends { readonly positions: readonly (infer P extends string)[] }
-  ? { readonly initial: P } & (D extends { readonly springBack: infer SB }
-      ? { readonly springBack: { readonly [K in keyof SB]: K extends P ? P : never } }
+  ? (D extends { readonly initial: infer I }
+      ? { readonly initial: CheckPosition<I, P> }
       : unknown) &
+      (D extends { readonly springBack: infer SB }
+        ? {
+            readonly springBack: {
+              readonly [K in keyof SB]: CheckPosition<K, P, CheckPosition<SB[K], P>>;
+            };
+          }
+        : unknown) &
       (D extends {
         readonly appearance: {
-          readonly artwork: { readonly moving: { readonly type: 'positions' } };
+          readonly artwork: {
+            readonly moving: { readonly type: 'positions'; readonly images: infer Images };
+          };
         };
       }
         ? {
             readonly appearance: {
               readonly artwork: {
-                readonly moving: { readonly images: { readonly [K in P]: string } };
+                readonly moving: {
+                  readonly images: { readonly [K in P]: string } & {
+                    readonly [K in keyof Images]: CheckPosition<K, P>;
+                  };
+                };
               };
             };
           }
