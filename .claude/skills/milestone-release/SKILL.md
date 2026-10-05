@@ -20,7 +20,7 @@ lower-case kebab form, for example `m2-core-engine`.
      `- <text>` bullet under a `### Category` heading, in the order Added,
      Changed, Deprecated, Removed, Fixed, Security. Delete the folded
      fragments and keep `changelog.d/README.md`. Keep `## [Unreleased]`
-     empty. Update the link references at the bottom.
+     free of entries and keep the pointer line beneath it. Update the link references at the bottom.
    - Write `docs/milestones/<slug>.md` with four sections: What shipped,
      Decisions made (from the PR descriptions, with reasons), Open questions
      for the owner, How to verify (commands and URLs).
