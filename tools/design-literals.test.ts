@@ -102,6 +102,8 @@ describe('literals in CSS', () => {
     ['font: 14px Arial'],
     ['outline-color: Highlight'],
     ['background-color: canvastext'],
+    ['background: Window'],
+    ['border: 1px solid Highlight'],
     ['padding: 12px'],
     ['margin-block: 1rem'],
     ['gap: 0.5em'],
@@ -120,6 +122,7 @@ describe('literals in CSS', () => {
     ['font-family: inherit'],
     ['font: inherit'],
     ['font-weight: var(--weight-medium)'],
+    ['border-color: var(--color-mark)'],
     ['width: 24px'],
     ['margin: 0'],
   ])('allows %s', async (declaration) => {
