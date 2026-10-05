@@ -64,6 +64,87 @@ const colourLiterals = [hexColour, colourFunction].flatMap((pattern) => [
   { selector: `TemplateElement[value.raw=/${pattern}/]`, message: colourMessage },
 ]);
 
+const typeSpacingMessage = 'Type and spacing come only from apps/web/src/styles/tokens.css.';
+const cssLength = '\\d(px|rem|em)\\b';
+
+const fontNames = [
+  'Geist',
+  'Geist Mono',
+  'Inter',
+  'Arial',
+  'Helvetica',
+  'Helvetica Neue',
+  'Verdana',
+  'Tahoma',
+  'Georgia',
+  'Times',
+  'Times New Roman',
+  'Courier',
+  'Courier New',
+  'Roboto',
+  'Open Sans',
+  'Segoe UI',
+  'SF Pro',
+  'Menlo',
+  'Monaco',
+  'Consolas',
+  'JetBrains Mono',
+  'Fira Code',
+  'Fira Sans',
+  'Source Sans Pro',
+  'Source Code Pro',
+  'Noto Sans',
+  'Ubuntu',
+  'sans-serif',
+  'serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui',
+  'ui-sans-serif',
+  'ui-serif',
+  'ui-monospace',
+  'ui-rounded',
+].join('|');
+const fontFamilyName = `(^|,)\\s*['"]?(${fontNames})['"]?\\s*(,|$)`;
+const fontFamilyToken = '^(var\\(--font-|inherit$)';
+const nonZeroNumber = '^[0-9.]*[1-9]';
+const nonZeroNumeral = '^[0-9.]*[1-9][0-9.]*$';
+const spacingKey =
+  '^(fontSize|lineHeight|letterSpacing|gap|rowGap|columnGap|(margin|padding|inset)([A-Z][A-Za-z]*)?)$';
+const sizeAttribute = '^(fontSize|lineHeight|letterSpacing)$';
+const notFontToken = (path) =>
+  `:not([${path}=/${fontFamilyToken}/]):not([${path}=/${fontFamilyName}/i])`;
+
+const typeSpacingSelectors = [
+  `Literal[value=/${cssLength}/]`,
+  `TemplateElement[value.raw=/${cssLength}/]`,
+  'TemplateLiteral > TemplateElement:not(:first-child)[value.raw=/^(px|rem|em)\\b/]',
+  `Literal[value=/${fontFamilyName}/i]`,
+  `Property[key.name=/${spacingKey}/][value.raw=/${nonZeroNumber}/]`,
+  `Property[key.name=/${spacingKey}/] > Literal[value=/${nonZeroNumeral}/]`,
+  `Property[key.name=/${spacingKey}/] > UnaryExpression > Literal[raw=/${nonZeroNumber}/]`,
+  `Property[key.name="fontFamily"] > Literal${notFontToken('value')}`,
+  `JSXAttribute[name.name=/${sizeAttribute}/] > JSXExpressionContainer > Literal[raw=/${nonZeroNumber}/]`,
+  `JSXAttribute[name.name=/${sizeAttribute}/] > Literal[value=/${nonZeroNumeral}/]`,
+  `JSXAttribute[name.name="fontFamily"] > Literal${notFontToken('value')}`,
+].map((selector) => ({ selector, message: typeSpacingMessage }));
+
+const literalSelectors = [...colourLiterals, ...typeSpacingSelectors];
+
+const deviceGroups = [
+  {
+    group: otherThanCoreAndPanelKit,
+    message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+  },
+];
+const deviceSelectors = [
+  {
+    selector: dynamicOtherThanCoreAndPanelKit,
+    message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+  },
+];
+
 const restrict = (own, groups, selectors = []) => ({
   'no-restricted-imports': [
     'error',
@@ -126,21 +207,11 @@ export default tseslint.config(
     })),
   {
     files: ['packages/device-*/**/*.{ts,tsx}'],
-    rules: restrict(
-      null,
-      [
-        {
-          group: otherThanCoreAndPanelKit,
-          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
-        },
-      ],
-      [
-        {
-          selector: dynamicOtherThanCoreAndPanelKit,
-          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
-        },
-      ],
-    ),
+    rules: restrict(null, deviceGroups, deviceSelectors),
+  },
+  {
+    files: ['packages/device-*/src/screen/**/*.{ts,tsx}'],
+    rules: restrict(null, deviceGroups, [...deviceSelectors, ...literalSelectors]),
   },
   {
     files: ['packages/device-*/src/logic/**/*.{ts,tsx}'],
@@ -168,7 +239,10 @@ export default tseslint.config(
     rules: restrict(
       'panel-kit',
       [{ group: otherThanCore, message: 'panel-kit depends only on @cpt/core.' }],
-      [{ selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' }],
+      [
+        { selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' },
+        ...literalSelectors,
+      ],
     ),
   },
   {
@@ -186,12 +260,12 @@ export default tseslint.config(
           selector: globContent,
           message: 'Import aircraft and devices only through the registries.',
         },
-        ...colourLiterals,
+        ...literalSelectors,
       ],
     ),
   },
   {
     files: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict('web', [], colourLiterals),
+    rules: restrict('web', [], literalSelectors),
   },
 );
