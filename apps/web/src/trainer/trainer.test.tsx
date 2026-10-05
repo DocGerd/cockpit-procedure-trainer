@@ -1,21 +1,17 @@
 // @vitest-environment jsdom
 import { STEP_MS } from '@cpt/core';
-import type { Aircraft } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { aircraftRegistry } from '../aircraft-registry';
 import { TrainerProvider, useSessionState, useTrainer } from './index';
+import { testAircraft } from './test-aircraft';
 
-vi.mock('../aircraft-registry', async (importOriginal) => {
-  const { aircraftRegistry } = await importOriginal<typeof import('../aircraft-registry')>();
-  const first = aircraftRegistry[0] as Aircraft;
-  const second: Aircraft = { ...first, id: 'second', name: { de: 'Zweites', en: 'Second' } };
-  return { aircraftRegistry: [first, second] };
-});
+vi.mock('../aircraft-registry', async () => ({
+  aircraftRegistry: (await import('./test-aircraft')).testAircraft,
+}));
 
-const [first, second] = aircraftRegistry as [Aircraft, Aircraft];
-const firstProcedure = Object.keys(first.procedures)[0] as string;
-const firstControl = Object.keys(first.controls)[0] as string;
+const [first, second] = testAircraft;
+const firstProcedure = 'powerUp';
+const firstControl = 'master';
 
 const useBoth = () => ({ trainer: useTrainer(), snapshot: useSessionState() });
 const renderTrainer = () => renderHook(useBoth, { wrapper: TrainerProvider });
@@ -162,14 +158,11 @@ describe('session state', () => {
   it('re-renders with the new state after a control change', () => {
     const { result } = renderTrainer();
     const { session } = result.current.trainer;
-    const before = result.current.snapshot.state().controls[firstControl];
-    const other = first.controls[firstControl]?.positions;
-    const next = Array.isArray(other) ? other.find((p) => p !== before) : undefined;
-    expect(next).toBeDefined();
+    expect(result.current.snapshot.state().controls[firstControl]).toBe('off');
     act(() => {
-      session.set(firstControl, next as string);
+      session.set(firstControl, 'on');
     });
-    expect(result.current.snapshot.state().controls[firstControl]).toBe(next);
+    expect(result.current.snapshot.state().controls[firstControl]).toBe('on');
   });
 
   it('keeps the same snapshot while nothing changes', () => {

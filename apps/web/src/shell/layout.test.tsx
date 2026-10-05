@@ -2,16 +2,20 @@
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { aircraftRegistry } from '../aircraft-registry';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
+import { testAircraft } from '../trainer/test-aircraft';
 import { DESKTOP_MIN_WIDTH } from './layout';
 import { Shell } from './Shell';
 
-const demo = aircraftRegistry[0];
-const procedureId = Object.keys(demo?.procedures ?? {})[0] as string;
-const itemCount = demo?.procedures[procedureId]?.items.length ?? 0;
+vi.mock('../aircraft-registry', async () => ({
+  aircraftRegistry: (await import('../trainer/test-aircraft')).testAircraft,
+}));
+
+const [alpha] = testAircraft;
+const procedureId = 'powerUp';
+const itemCount = 2;
 
 let trainer: Trainer;
 function Probe() {
@@ -77,10 +81,10 @@ describe('trainer layout on desktop', () => {
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
-    const title = demo?.procedures[procedureId]?.title.en ?? '';
+    const title = alpha.procedures[procedureId]?.title.en ?? '';
     expect(within(header).getByRole('button', { name: new RegExp(title) })).toBeTruthy();
     await userEvent.click(
-      within(header).getByRole('button', { name: new RegExp(demo?.name.en ?? '') }),
+      within(header).getByRole('button', { name: `Aircraft ${alpha.name.en}` }),
     );
     expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
   });
@@ -135,7 +139,7 @@ describe('trainer layout on a tablet', () => {
     renderShell();
     await startProcedure();
     act(() => {
-      trainer.session.set('breaker', 'in');
+      trainer.session.set('master', 'on');
     });
     expect(checklistToggle().textContent).toContain(`1 / ${itemCount}`);
   });

@@ -27,7 +27,7 @@ function ChecklistToggle({
       aria-controls={controls}
       onClick={onToggle}
     >
-      {text.checklist}
+      {text.checklist}{' '}
       {checklist && (
         <span className="shell-progress">
           {checklist.completed.length} / {checklist.procedure.items.length}

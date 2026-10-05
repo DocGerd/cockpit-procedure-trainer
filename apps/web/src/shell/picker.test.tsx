@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import type { Aircraft } from '@cpt/core';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,32 +6,14 @@ import { aircraftRegistry } from '../aircraft-registry';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
+import { testAircraft } from '../trainer/test-aircraft';
 import { Shell } from './Shell';
 
-vi.mock('../aircraft-registry', async (importOriginal) => {
-  const { aircraftRegistry } = await importOriginal<typeof import('../aircraft-registry')>();
-  const first = aircraftRegistry[0] as Aircraft;
-  const base = Object.values(first.procedures)[0];
-  if (!base) throw new Error('The first aircraft needs a procedure');
-  const second: Aircraft = {
-    ...first,
-    id: 'second',
-    name: { de: 'Zweites Flugzeug', en: 'Second aircraft' },
-    procedures: {
-      routine: { ...base, title: { de: 'Routine', en: 'Routine check' } },
-      fire: {
-        title: { de: 'Feuer', en: 'Engine fire' },
-        type: 'emergency',
-        failure: 'fire',
-        startPhase: base.startPhase,
-        items: base.items,
-      },
-    },
-  };
-  return { aircraftRegistry: [first, second] };
-});
+vi.mock('../aircraft-registry', async () => ({
+  aircraftRegistry: (await import('../trainer/test-aircraft')).testAircraft,
+}));
 
-const [first, second] = aircraftRegistry as [Aircraft, Aircraft];
+const [first, second] = testAircraft;
 
 let trainer: Trainer;
 function Probe() {
@@ -91,13 +72,13 @@ describe('aircraft and procedure picker', () => {
     expect(trainer.aircraft).toBe(second);
     const titles = procedureButtons().map((button) => button.textContent);
     expect(titles).toEqual([
-      expect.stringContaining('Routine check'),
-      expect.stringContaining('Engine fire'),
+      expect.stringContaining('Bravo power up'),
+      expect.stringContaining('Bravo engine fire'),
     ]);
     const emergency = within(procedureSection()).getByRole('group', { name: 'Emergency' });
-    expect(within(emergency).getByRole('button', { name: /Engine fire/ })).toBeTruthy();
+    expect(within(emergency).getByRole('button', { name: /Bravo engine fire/ })).toBeTruthy();
     const normal = within(procedureSection()).getByRole('group', { name: 'Normal' });
-    expect(within(normal).queryByRole('button', { name: /Engine fire/ })).toBeNull();
+    expect(within(normal).queryByRole('button', { name: /Bravo engine fire/ })).toBeNull();
   });
 
   it('offers Guided and Practice as modes and Free explore as a separate button', () => {
@@ -114,12 +95,12 @@ describe('aircraft and procedure picker', () => {
     await userEvent.click(
       within(aircraftSection()).getByRole('button', { name: new RegExp(second.name.en) }),
     );
-    await userEvent.click(screen.getByRole('button', { name: /Routine check/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Bravo engine fire/ }));
     await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Start procedure' }));
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
-    expect(trainer.procedureId).toBe('routine');
+    expect(trainer.procedureId).toBe('fire');
     expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
   });
 

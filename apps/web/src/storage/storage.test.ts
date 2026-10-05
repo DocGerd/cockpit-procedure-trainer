@@ -18,9 +18,9 @@ describe('settings storage', () => {
   });
 
   it('keeps the settings apart', () => {
-    writeSetting('aircraft', 'demo');
+    writeSetting('aircraft', 'alpha');
     expect(readSetting('theme')).toBeUndefined();
-    expect(readSetting('aircraft')).toBe('demo');
+    expect(readSetting('aircraft')).toBe('alpha');
   });
 
   it('reads as absent and writes nothing when localStorage throws', () => {
@@ -38,7 +38,7 @@ describe('settings storage', () => {
     vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
       throw new Error('blocked');
     });
-    expect(() => writeSetting('aircraft', 'demo')).not.toThrow();
+    expect(() => writeSetting('aircraft', 'alpha')).not.toThrow();
     expect(readSetting('aircraft')).toBeUndefined();
   });
 });

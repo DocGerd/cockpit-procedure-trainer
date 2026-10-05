@@ -22,10 +22,10 @@ function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: 
       aria-pressed={selected}
       onClick={() => selectAircraft(aircraft.id)}
     >
-      <span className="picker-card-title">{aircraft.name.en}</span>
+      <span className="picker-card-title">{aircraft.name.en}</span>{' '}
       <span className="picker-card-text">
         {text.handbookRevision}: {aircraft.handbookRevision}
-      </span>
+      </span>{' '}
       <span className="picker-meta">
         {count(Object.keys(aircraft.views).length, text.viewOne, text.viewOther)} ·{' '}
         {count(Object.keys(aircraft.procedures).length, text.procedureOne, text.procedureOther)}
@@ -65,7 +65,7 @@ function ProcedureGroup({
             aria-pressed={id === selected}
             onClick={() => onSelect(id)}
           >
-            <span className="picker-row-title">{procedure.title.en}</span>
+            <span className="picker-row-title">{procedure.title.en}</span>{' '}
             <span className="picker-meta">
               {phase ? `${phase.name.en} · ` : ''}
               {count(procedure.items.length, text.itemOne, text.itemOther)}
@@ -154,7 +154,7 @@ export function Picker() {
                     onChange={() => setMode(value)}
                   />
                   <span className="picker-mode-text">
-                    <span className="picker-mode-label">{label}</span>
+                    <span className="picker-mode-label">{label}</span>{' '}
                     <span className="picker-card-text">{hint}</span>
                   </span>
                 </label>

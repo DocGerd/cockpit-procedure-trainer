@@ -28,7 +28,7 @@ function HeaderChoice({
 }) {
   return (
     <button type="button" className="chrome-button shell-choice" onClick={onClick}>
-      <span className="shell-eyebrow">{eyebrow}</span>
+      <span className="shell-eyebrow">{eyebrow}</span>{' '}
       <span className="shell-choice-value">{value}</span>
     </button>
   );
