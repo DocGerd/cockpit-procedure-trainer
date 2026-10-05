@@ -8,3 +8,4 @@ export * from './phases';
 export * from './validator';
 export * from './devices';
 export * from './session';
+export * from './walkthrough';
