@@ -2,6 +2,7 @@
 
 Every pull request adds one file here: `<issue>.<category>.md`, for example
 `50.added.md`. A pull request without an issue uses `+<slug>.<category>.md`.
+Dependabot pull requests are exempt.
 
 Categories: `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`.
 
