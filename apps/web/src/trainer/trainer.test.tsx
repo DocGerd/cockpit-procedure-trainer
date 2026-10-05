@@ -88,11 +88,9 @@ describe('trainer store', () => {
     expect(snapshot.checklist()?.procedure).toBe(first.procedures[firstProcedure]);
   });
 
-  it('enters Free explore without a procedure', () => {
+  it('enters Free explore from the picker and shows the trainer', () => {
     const { result } = renderTrainer();
-    act(() => result.current.trainer.startProcedure(firstProcedure));
-    act(() => result.current.trainer.backToPicker());
-    act(() => result.current.trainer.explore());
+    act(() => result.current.trainer.setMode('explore'));
     const { trainer, snapshot } = result.current;
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('explore');
@@ -100,12 +98,87 @@ describe('trainer store', () => {
     expect(snapshot.checklist()).toBeUndefined();
   });
 
-  it('goes back to the picker', () => {
+  it('ends the running procedure when switching to Free explore', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.setMode('explore'));
+    const { trainer, snapshot } = result.current;
+    expect(trainer.mode).toBe('explore');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.procedureId()).toBeUndefined();
+    expect(snapshot.checklist()).toBeUndefined();
+  });
+
+  it('keeps the procedure when switching between Guided and Practice', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.setMode('practice'));
+    expect(result.current.trainer.procedureId).toBe(firstProcedure);
+    expect(result.current.trainer.screen).toBe('trainer');
+  });
+
+  it('drops the procedure with a newly selected aircraft', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.selectAircraft(second.id));
+    expect(result.current.trainer.procedureId).toBeUndefined();
+    expect(result.current.trainer.session.procedureId()).toBeUndefined();
+  });
+
+  it('goes back to the picker and ends the procedure', () => {
     const { result } = renderTrainer();
     act(() => result.current.trainer.startProcedure(firstProcedure));
     act(() => result.current.trainer.backToPicker());
     expect(result.current.trainer.screen).toBe('picker');
     expect(result.current.trainer.procedureId).toBeUndefined();
+    expect(result.current.trainer.session.procedureId()).toBeUndefined();
+  });
+
+  it('jumps to a phase, which ends the procedure', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.jumpToPhase('cruise'));
+    const { trainer, snapshot } = result.current;
+    expect(snapshot.phase()).toBe('cruise');
+    expect(snapshot.state().controls).toEqual({ master: 'on', pump: 'on' });
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.screen).toBe('trainer');
+  });
+
+  it('follows a procedure the session ends on its own', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.jumpToPhase('cruise'));
+    expect(result.current.trainer.procedureId).toBeUndefined();
+  });
+
+  it('does not restart a procedure that a phase jump ended', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.jumpToPhase('cruise'));
+    act(() => result.current.trainer.resetSession());
+    expect(result.current.trainer.session.procedureId()).toBeUndefined();
+    expect(result.current.trainer.procedureId).toBeUndefined();
+    expect(result.current.trainer.session.phase()).toBe('cruise');
+  });
+
+  it('keeps the current phase on reset when no procedure is chosen', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.jumpToPhase('cruise'));
+    act(() => result.current.trainer.session.set('pump', 'off'));
+    act(() => result.current.trainer.resetSession());
+    const { session } = result.current.trainer;
+    expect(session.phase()).toBe('cruise');
+    expect(session.state().controls).toEqual({ master: 'on', pump: 'on' });
+  });
+
+  it('resets the session of the selected aircraft', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.selectAircraft(second.id));
+    act(() => result.current.trainer.startProcedure('fire'));
+    act(() => result.current.trainer.resetSession());
+    expect(result.current.trainer.aircraft).toBe(second);
+    expect(result.current.trainer.session.procedureId()).toBe('fire');
   });
 
   it('recreates the session and restarts the procedure on reset', () => {
@@ -170,6 +243,96 @@ describe('session state', () => {
     const before = result.current.snapshot;
     rerender();
     expect(result.current.snapshot).toBe(before);
+  });
+
+  it('re-renders a whole-snapshot consumer on every tick', () => {
+    vi.useFakeTimers();
+    let renders = 0;
+    renderHook(
+      () => {
+        renders++;
+        return useSessionState();
+      },
+      { wrapper: TrainerProvider },
+    );
+    const before = renders;
+    act(() => vi.advanceTimersByTime(STEP_MS * 3));
+    expect(renders).toBeGreaterThan(before);
+  });
+
+  it('does not re-render a selector consumer on a tick that leaves its slice alone', () => {
+    vi.useFakeTimers();
+    let phaseRenders = 0;
+    let objectRenders = 0;
+    const phase = renderHook(
+      () => {
+        phaseRenders++;
+        return useSessionState((s) => s.phase());
+      },
+      { wrapper: TrainerProvider },
+    );
+    const controls = renderHook(
+      () => {
+        objectRenders++;
+        return useSessionState((s) => ({ master: s.state().controls[firstControl] }));
+      },
+      { wrapper: TrainerProvider },
+    );
+    const phaseBefore = phaseRenders;
+    const objectBefore = objectRenders;
+    act(() => vi.advanceTimersByTime(STEP_MS * 3));
+    expect(phaseRenders).toBe(phaseBefore);
+    expect(objectRenders).toBe(objectBefore);
+    expect(phase.result.current).toBe('ground');
+    expect(controls.result.current).toEqual({ master: 'off' });
+  });
+
+  it('re-renders a selector consumer when its slice changes', () => {
+    const { result } = renderHook(
+      () => ({
+        trainer: useTrainer(),
+        master: useSessionState((s) => s.state().controls[firstControl]),
+      }),
+      { wrapper: TrainerProvider },
+    );
+    act(() => {
+      result.current.trainer.session.set(firstControl, 'on');
+    });
+    expect(result.current.master).toBe('on');
+  });
+
+  it('applies a new selector without waiting for a session change', () => {
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => ({
+        trainer: useTrainer(),
+        position: useSessionState((s) => s.state().controls[id]),
+      }),
+      { wrapper: TrainerProvider, initialProps: { id: firstControl } },
+    );
+    act(() => {
+      result.current.trainer.session.set(firstControl, 'on');
+    });
+    expect(result.current.position).toBe('on');
+    rerender({ id: 'pump' });
+    expect(result.current.position).toBe('off');
+  });
+
+  it('uses a custom equality to keep a selection', () => {
+    vi.useFakeTimers();
+    let renders = 0;
+    renderHook(
+      () => {
+        renders++;
+        return useSessionState(
+          (s) => ({ nested: [s.phase()] }),
+          (a, b) => a.nested[0] === b.nested[0],
+        );
+      },
+      { wrapper: TrainerProvider },
+    );
+    const before = renders;
+    act(() => vi.advanceTimersByTime(STEP_MS * 3));
+    expect(renders).toBe(before);
   });
 
   it('exposes phase, status, guards and failures', () => {

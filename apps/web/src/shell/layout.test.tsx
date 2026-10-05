@@ -99,14 +99,27 @@ describe('trainer layout on desktop', () => {
     ).toBeNull();
   });
 
-  it('hides the checklist and the procedure when switching to Free explore mid-procedure', async () => {
+  it('ends the procedure when switching to Free explore mid-procedure', async () => {
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
     expect(within(header).getByRole('button', { name: /^Procedure/ })).toBeTruthy();
     act(() => trainer.setMode('explore'));
+    expect(trainer.session.procedureId()).toBeUndefined();
     expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
     expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+  });
+
+  it('drops the procedure from the header and the pane after a phase jump, also after a reset', async () => {
+    renderShell();
+    await startProcedure();
+    const header = screen.getByRole('banner');
+    act(() => trainer.jumpToPhase('cruise'));
+    expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    act(() => trainer.resetSession());
+    expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
   });
 
   it('shows the UAT badge in a UAT build only', async () => {

@@ -43,6 +43,12 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
         environment,
         entry: { controls: { master: 'off', pump: 'off' }, state: initial },
       },
+      cruise: {
+        name: text('Cruise'),
+        image: 'cruise.svg',
+        environment: { airspeedKt: 100, altitudeFt: 3000, onGround: false },
+        entry: { controls: { master: 'on', pump: 'on' }, state: initial },
+      },
     },
     procedures: {
       powerUp: {

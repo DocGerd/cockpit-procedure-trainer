@@ -139,6 +139,7 @@ there. Aircraft artwork brings its own colours and does not use these.
 | `--panel-arc-yellow`   | `#E0B43A` | `#E0B43A` | gauge arc, caution range            |
 | `--panel-arc-red`      | `#D8483C` | `#D8483C` | gauge arc, limit                    |
 | `--panel-arc-white`    | `#ECEEF1` | `#ECEEF1` | gauge arc, flap range               |
+| `--panel-focus`        | `#FFFFFF` | `#FFFFFF` | keyboard focus ring on the panel    |
 
 ## Delta mark
 

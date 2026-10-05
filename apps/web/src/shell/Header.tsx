@@ -35,12 +35,12 @@ function HeaderChoice({
 }
 
 function TrainerChoices() {
-  const { aircraft, procedureId, mode, backToPicker } = useTrainer();
+  const { aircraft, procedureId, backToPicker } = useTrainer();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   return (
     <>
       <HeaderChoice eyebrow={text.aircraft} value={aircraft.name.en} onClick={backToPicker} />
-      {mode !== 'explore' && procedure && (
+      {procedure && (
         <HeaderChoice eyebrow={text.procedure} value={procedure.title.en} onClick={backToPicker} />
       )}
     </>

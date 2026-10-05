@@ -23,18 +23,17 @@ export type Trainer = {
   session: Session;
   procedureId: string | undefined;
   startProcedure(id: string): void;
+  jumpToPhase(phaseId: string): void;
   mode: Mode;
   setMode(mode: Mode): void;
   resetSession(): void;
   backToPicker(): void;
   screen: TrainerScreen;
-  explore(): void;
 };
 
 type TrainerState = {
   aircraft: Aircraft;
   session: Session;
-  procedureId: string | undefined;
   mode: Mode;
   screen: TrainerScreen;
 };
@@ -43,17 +42,21 @@ function findAircraft(id: string): Aircraft | undefined {
   return aircraftRegistry.find((aircraft) => aircraft.id === id);
 }
 
+const newSession = (aircraft: Aircraft, phase?: string) =>
+  createSession(
+    aircraft,
+    phase === undefined ? { devices: deviceRegistry } : { devices: deviceRegistry, phase },
+  );
+
+function endProcedure(session: Session): void {
+  if (session.procedureId() !== undefined) session.jumpToPhase(session.phase());
+}
+
 function initialState(): TrainerState {
   const stored = readSetting('aircraft');
   const aircraft = (stored === undefined ? undefined : findAircraft(stored)) ?? aircraftRegistry[0];
   if (!aircraft) throw new Error('The aircraft registry is empty');
-  return {
-    aircraft,
-    session: createSession(aircraft, { devices: deviceRegistry }),
-    procedureId: undefined,
-    mode: 'guided',
-    screen: 'picker',
-  };
+  return { aircraft, session: newSession(aircraft), mode: 'guided', screen: 'picker' };
 }
 
 const TrainerContext = createContext<Trainer | undefined>(undefined);
@@ -64,6 +67,8 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
   current.current = state;
 
   const { session } = state;
+  const procedureId = useSyncExternalStore(session.subscribe, session.procedureId);
+
   useEffect(() => {
     const timer = setInterval(() => session.advance(STEP_MS), STEP_MS);
     return () => clearInterval(timer);
@@ -76,39 +81,45 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
     };
     return {
       ...state,
+      procedureId,
       selectAircraft(id) {
         const aircraft = findAircraft(id);
         if (!aircraft) throw new Error(`Unknown aircraft "${id}"`);
         writeSetting('aircraft', id);
-        update({
-          aircraft,
-          session: createSession(aircraft, { devices: deviceRegistry }),
-          procedureId: undefined,
-        });
+        update({ aircraft, session: newSession(aircraft) });
       },
       startProcedure(id) {
         current.current.session.startProcedure(id);
-        update({ procedureId: id, screen: 'trainer' });
+        update({ screen: 'trainer' });
+      },
+      jumpToPhase(phaseId) {
+        current.current.session.jumpToPhase(phaseId);
       },
       setMode(mode) {
-        update({ mode });
+        if (mode === 'explore') {
+          endProcedure(current.current.session);
+          update({ mode, screen: 'trainer' });
+        } else {
+          update({ mode });
+        }
       },
       resetSession() {
-        const { aircraft, procedureId } = current.current;
-        const fresh = createSession(aircraft, { devices: deviceRegistry });
-        if (procedureId !== undefined) fresh.startProcedure(procedureId);
-        update({ session: fresh });
+        const { aircraft, session: old } = current.current;
+        const running = old.procedureId();
+        if (running === undefined) {
+          update({ session: newSession(aircraft, old.phase()) });
+        } else {
+          const fresh = newSession(aircraft);
+          fresh.startProcedure(running);
+          update({ session: fresh });
+        }
       },
       backToPicker() {
-        update({ procedureId: undefined, screen: 'picker' });
-      },
-      explore() {
-        const { session: active } = current.current;
-        if (active.procedureId() !== undefined) active.jumpToPhase(active.phase());
-        update({ mode: 'explore', procedureId: undefined, screen: 'trainer' });
+        endProcedure(current.current.session);
+        update({ screen: 'picker' });
       },
     };
-  }, [state]);
+  }, [state, procedureId]);
 
   return <TrainerContext.Provider value={trainer}>{children}</TrainerContext.Provider>;
 }
@@ -172,7 +183,54 @@ function storeFor(session: Session): SnapshotStore {
   return store;
 }
 
-export function useSessionState(): SessionSnapshot {
+export function shallowEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every(
+    (key) =>
+      Object.hasOwn(b, key) &&
+      Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
+  );
+}
+
+const whole = (snapshot: SessionSnapshot) => snapshot;
+
+type Selection<T> = {
+  store: SnapshotStore;
+  snapshot: SessionSnapshot;
+  select: (snapshot: SessionSnapshot) => T;
+  value: T;
+};
+
+export function useSessionState(): SessionSnapshot;
+export function useSessionState<T>(
+  selector: (snapshot: SessionSnapshot) => T,
+  isEqual?: (a: T, b: T) => boolean,
+): T;
+export function useSessionState<T>(
+  selector?: (snapshot: SessionSnapshot) => T,
+  isEqual: (a: T, b: T) => boolean = shallowEqual,
+): T | SessionSnapshot {
   const store = storeFor(useTrainer().session);
-  return useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const select = selector ?? whole;
+  const cache = useRef<Selection<T | SessionSnapshot> | undefined>(undefined);
+  const equal = isEqual as (a: T | SessionSnapshot, b: T | SessionSnapshot) => boolean;
+
+  const getSelection = () => {
+    const snapshot = store.getSnapshot();
+    const last = cache.current;
+    if (last && last.store === store && last.snapshot === snapshot && last.select === select) {
+      return last.value;
+    }
+    const next = select(snapshot);
+    const value = last && last.store === store && equal(last.value, next) ? last.value : next;
+    cache.current = { store, snapshot, select, value };
+    return value;
+  };
+
+  return useSyncExternalStore(store.subscribe, getSelection);
 }

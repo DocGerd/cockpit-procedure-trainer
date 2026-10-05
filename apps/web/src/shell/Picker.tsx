@@ -169,7 +169,11 @@ export function Picker() {
               >
                 {text.startProcedure}
               </button>
-              <button type="button" className="button-secondary" onClick={trainer.explore}>
+              <button
+                type="button"
+                className="button-secondary"
+                onClick={() => trainer.setMode('explore')}
+              >
                 {text.exploreCockpit}
               </button>
             </div>

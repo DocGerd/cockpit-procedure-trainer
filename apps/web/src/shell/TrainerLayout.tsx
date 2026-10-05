@@ -18,7 +18,7 @@ function ChecklistToggle({
   controls: string;
   onToggle(): void;
 }) {
-  const checklist = useSessionState().checklist();
+  const checklist = useSessionState((s) => s.checklist());
   return (
     <button
       type="button"
@@ -39,11 +39,11 @@ function ChecklistToggle({
 
 export function TrainerLayout() {
   const layout = useLayout();
-  const { mode } = useTrainer();
+  const { mode, procedureId } = useTrainer();
   const [expanded, setExpanded] = useState(false);
   const paneId = useId();
   const overlay = layout === 'tablet';
-  const hasChecklist = mode !== 'explore';
+  const hasChecklist = mode !== 'explore' && procedureId !== undefined;
   const showPane = hasChecklist && (!overlay || expanded);
 
   useEffect(() => {
