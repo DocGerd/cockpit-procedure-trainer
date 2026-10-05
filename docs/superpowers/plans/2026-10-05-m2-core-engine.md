@@ -110,9 +110,12 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 **Interfaces (produced):**
 
 - `Text = { de: string; en: string }`.
-- Controls declared as a record keyed by control id, each with `kind` (`toggle`, `rotary`, `lever`, `momentary`, `guarded`, `breaker`), positions, starting position, `name: Text`, `description: Text`. Rotary detents may name the detent they spring back to. Levers are continuous `0..1` or named notches. Guarded controls declare the guard. Breakers have positions `in` and `pulled`.
-- Indicators keyed by id: a selector over `TrainerState` and a display declaration; no state of their own.
-- Views: `image: string`, placements per control and indicator id (2D rectangle, optional 3D position and orientation).
+- Aircraft identity: `id`, `name: Text`, `handbookRevision: string` (spec §7: the handbook revision its content follows).
+- Controls declared as a record keyed by control id, each with `kind` (`toggle`, `rotary`, `lever`, `momentary`, `guarded`, `breaker`), positions, starting position, `name: Text`, `description: Text`, optional `appearance`. Rotary detents may name the detent they spring back to. Levers are continuous `0..1` or named notches. Guarded controls declare the guard. Breakers have positions `in` and `pulled`.
+- Indicators keyed by id: a selector over `TrainerState`, `name: Text`, and `appearance`; no state of their own.
+- `Appearance` (spec §4.8), plain data only: either `{ widget: string; options }` naming a panel-kit widget by id with its options (range, units, arcs, cap colour, digits), or `{ artwork: { face: string; moving: … } }` with image URLs and the moving part as data (needle with pivot and angle range, one image per position, lever travel path). A control without `appearance` falls back to the generic widget for its kind. Panel-kit (M3) decides which widget ids exist; core types the shape only.
+- Views keyed by view id, each with `name: Text`, `image: string`, and placements per control and indicator id (2D rectangle, optional 3D position and orientation). #44's device install and M3's Guided view switching refer to views by this id.
+- `ControlChange = { id; from; to; kind: 'position' | 'guard'; source: 'pilot' | 'spring' | 'system' }`, the event #12 emits and #16 and #17 consume. Defined here so #16 depends on #11 only, not on #12 in the same wave.
 - `systems: { initial: S; step(state: S, input: StepInput): S }`, `StepInput = { controls, failures: ReadonlySet<FailureId>, environment: Environment, dtMs: number }`.
 - Failures keyed by id with `name: Text` and an optional list of breaker ids the failure trips.
 - Phases keyed by id with `image: string`, `environment` (airspeed, altitude, on ground), `entry: { controls: positions; state: S }`.
@@ -120,9 +123,9 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 - `TrainerState<S> = { controls: positions; systems: S; devices: Readonly<Record<string, unknown>> }` and `Condition<S> = (state: TrainerState<S>) => boolean`. `devices` is empty until #44 fills it; reserving it now keeps #16's signature stable.
 - `Aircraft` (the non-generic type the registry holds) and `defineAircraft(definition)`, generic over the control, indicator, failure and phase id unions so wrong references are type errors. It stamps `contractVersion: CONTRACT_VERSION` on the value it returns.
 
-- [ ] **Step 1: Failing type tests.** `contract/define-aircraft.test.ts` with `// @ts-expect-error` cases: an action item targets an unknown control; a check targets an unknown indicator; a procedure names an unknown phase; an emergency procedure names an unknown failure or none; a failure trips an unknown control or a non-breaker; a `Text` lacks `de` or `en`; a placement names an unknown control. Plus runtime assertions that a valid fixture round-trips unchanged.
+- [ ] **Step 1: Failing type tests.** `contract/define-aircraft.test.ts` with `// @ts-expect-error` cases: an action item targets an unknown control; a check targets an unknown indicator; a procedure names an unknown phase; an emergency procedure names an unknown failure or none; a failure trips an unknown control or a non-breaker; a `Text` lacks `de` or `en`; a placement names an unknown control; an aircraft lacks `name` or `handbookRevision`; an appearance holds a function (appearance options are JSON-like data). Plus runtime assertions that a valid fixture round-trips unchanged.
 - [ ] **Step 2: Types and `defineAircraft`** until `pnpm typecheck` and `pnpm test` pass. `defineAircraft` returns its input plus `contractVersion`; it adds no runtime checks (that is #18).
-- [ ] **Step 3: Shared fixture.** `contract/fixtures.ts`: a small valid aircraft covering every control kind, one emergency procedure and two phases. Later issues import it read-only; one that needs more builds its own fixture in its own directory.
+- [ ] **Step 3: Shared fixture.** `contract/fixtures.ts`: a small valid aircraft covering every control kind and both appearance sources, two views, and two phases (`parking`, `runup`) with entry snapshots. Its own small `step` (no #14 blocks, which do not exist yet) makes an engine run after the starter is held with magnetos on. Procedures: a normal procedure starting in `parking` and ending in `runup`, with an action on a spring-return detent held until the engine runs, an action on a guarded control, a check and a confirm; and an emergency procedure naming a failure that trips a breaker. Task 9's walk-through runs the normal one. Later issues import the fixture read-only; one that needs more builds its own fixture in its own directory.
 - [ ] **Step 4: Stubs and barrel.** Create the nine stub directories and re-export each from `index.ts`.
 - [ ] **Step 5: Fragment** `changelog.d/11.added.md`: `Aircraft contract types and defineAircraft, with compile-time checks of every reference and bilingual text.`
 
@@ -142,9 +145,9 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 - Pilot input: `set(id, position)`, `press(id, position?)`, `release(id)`, `openGuard(id)`, `closeGuard(id)`. Each returns whether the change applied, and why not (`guarded`).
 - `systemSet(id, position)`: a move by the engine (breaker trip), ignoring guards, emitted with source `system`.
 - `load(positions)`: replace all positions (phase entry snapshot), emitted as one `system` change per moved control.
-- `positions()`, `subscribe(listener)` receiving `ControlChange = { id, from, to, source: 'pilot' | 'spring' | 'system' }`.
+- `positions()`, `subscribe(listener)` receiving #11's `ControlChange`, with sources per Decision 4.
 
-- [ ] **Step 1: Failing tests** for each "Done when": a spring-return detent goes back on `release` (change with source `spring`); a momentary control is active only between `press` and `release`; a guarded control refuses `set` while its guard is closed and accepts it once open. Plus: `systemSet` moves a guarded control; `load` emits only for controls that moved; unknown ids throw.
+- [ ] **Step 1: Failing tests** for each "Done when": a spring-return detent goes back on `release` (change with source `spring`); a momentary control is active only between `press` and `release`, and its release emits source `spring`; a guarded control refuses `set` while its guard is closed and accepts it once open; `openGuard` and `closeGuard` emit `kind: 'guard'`, source `pilot`. Plus: `systemSet` moves a guarded control; `load` emits only for controls that moved; unknown ids throw.
 - [ ] **Step 2: Implement** until green.
 - [ ] **Step 3: Fragment** `changelog.d/12.added.md`: `Control store with spring-return, momentary and guarded controls.`
 
@@ -198,11 +201,11 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 
 **Interfaces (produced):** a pure reducer: `startChecklist(procedure, state)`, `observeControl(checklist, change, state)`, `observeState(checklist, state)`, `checkOff(checklist, state)`. The checklist state holds the current item index, completed items, deviations (`{ kind: 'unexpected-control' | 'unmet-check', itemIndex, controlId? }`) and `done`.
 
-- [ ] **Step 1: Failing tests** for each "Done when": an action item completes when its target reaches the position; with `holdUntil` it completes only once the condition also holds; check and confirm items complete on `checkOff`; a pilot change to a non-target control records a deviation; checking off an unmet check records a deviation and still completes the item. Plus: changes with source `spring` or `system` never record a deviation; an action item that becomes current while already satisfied completes at once; the engine never alters its inputs.
+- [ ] **Step 1: Failing tests** for each "Done when": an action item completes when its target reaches the position; with `holdUntil` it completes only once the condition also holds; check and confirm items complete on `checkOff`; a pilot change to a non-target control records a deviation; checking off an unmet check records a deviation and still completes the item. Plus: changes with source `spring` or `system` and changes of `kind: 'guard'` never record a deviation (a starter released after its hold-until item completed is not one); an action item that becomes current while already satisfied completes at once; the engine never alters its inputs.
 - [ ] **Step 2: Implement** until green.
 - [ ] **Step 3: Fragment** `changelog.d/16.added.md`: `Checklist engine with action, check and confirm items, and deviation recording.`
 
-**Definition of done:** each "Done when" and each Decision 5–7 rule has a test. PR with `Closes #16`, reviewed, in `develop`.
+**Definition of done:** each "Done when" and each Decision 4–7 rule has a test; the only cross-module import is `../contract`. PR with `Closes #16`, reviewed, in `develop`.
 
 ---
 
@@ -259,18 +262,18 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 **Interfaces (produced):**
 
 - `defineDevice({ id, manual: Text, notModelled: Text[], controls, initial, step })`, where `step(state, { controls, powered, inputs, dtMs })` is pure.
-- Aircraft install: `devices: { [installId]: { device: string; view; placement; powered: Condition; inputs: { [name]: (state) => number | boolean | string } } }`. The device is named by id, never imported.
+- Aircraft install: `devices: { [installId]: { device: string; view: ViewId; placement; powered: Condition; inputs: { [name]: (state) => number | boolean | string } } }`. The device is named by id, never imported. `powered` is how the install names its power bus: a condition reading that bus's state (Decision 13).
 - Device controls appear in the store as `<installId>.<controlId>`; items target them by that id; device state appears in `TrainerState.devices[installId]` as `{ on: boolean; state }`.
 - `stepDevices(...)` for #17 to call after the aircraft step; `on` equals `powered`.
 - Validator codes: `unknown-device`, `unknown-device-control`, `unplaced-device`, checked against the device list passed in `context`.
 
-- [ ] **Step 1: Failing tests** for each "Done when": a fixture device (in `devices/`, not a package) declares controls, initial state and a pure step; an aircraft installs it with placement, power and inputs; with its power condition false the device is `on: false`; a procedure action targets a device control and a check reads device state; boundary tests show a React or panel-kit import in `packages/device-x/src/logic/` is rejected, a panel-kit import in `packages/device-x/src/screen/` is allowed, and `@cpt/core` is allowed in both.
+- [ ] **Step 1: Failing tests** for each "Done when": a fixture device (in `devices/`, not a package) declares controls, initial state and a pure step; an aircraft installs it with placement, power bus (a `powered` condition reading the fixture's bus state) and data inputs; with that bus unpowered the device is `on: false`; a procedure action targets a device control and a check reads device state; boundary tests on virtual paths show: a React or panel-kit import in `packages/device-x/src/logic/` is rejected; a panel-kit import in `packages/device-x/src/screen/` and in any other file of the package (`src/index.ts`) is allowed; an aircraft, device or web import anywhere in the package is rejected; `@cpt/core` is allowed everywhere; a relative import into `../../core/src`, `../../aircraft-demo/src` or `../../device-y/src` is rejected and `../logic/x` from `src/screen/` is allowed.
 - [ ] **Step 2: Contract and devices** until green; the #11 type tests still pass.
-- [ ] **Step 3: Lint rules** with static globs `packages/device-*/src/logic/**` (core only) and `packages/device-*/src/screen/**` (core and panel-kit); relative reach into another package rejected as for aircraft. `CONTRIBUTING.md` gains the two device lines.
+- [ ] **Step 3: Lint rules,** two static-glob blocks. `packages/device-*/**/*.{ts,tsx}`: `@cpt/core` and `@cpt/panel-kit` only, so every file of a device package is covered, not only `logic/` and `screen/`. `packages/device-*/src/logic/**`: `@cpt/core` only, no UI. Flat config replaces a rule's options per file rather than merging them, so the logic block repeats the full rule set (reach patterns included), not just the extra restrictions. Relative reach without a package name: the reach patterns list every non-device workspace directory as today, plus the wildcard segments `../**/device-*` and `../**/device-*/**`; the dynamic-import selector gets the matching `device-[^/]+` alternative. A device then cannot reach another package, including another device, while relative imports inside its own package never name a `device-*` segment and stay allowed. `CONTRIBUTING.md` gains the device lines.
 - [ ] **Step 4: Validator and registry.** Device findings; `device-registry.ts` typed; the validation test passes the device registry.
 - [ ] **Step 5: Fragment** `changelog.d/44.added.md`: `Device contract: a device declares controls, state and logic; an aircraft installs it with power and data wiring.`
 
-**Definition of done:** each "Done when" has a test, the lint rules fire on virtual device paths, no device package is created. PR with `Closes #44`, reviewed, in `develop`.
+**Definition of done:** each "Done when" has a test, mapped as: "controls, starting state and a pure step function" → `defineDevice`; "placement, power bus and data inputs" → install `view`/`placement`, `powered` (the bus, Decision 13), `inputs`; "without bus power is off" → `on: false` test; "target device controls and test device state" → `<installId>.<controlId>` targets and `TrainerState.devices`; "lint rules keep device logic free of UI imports" → the boundary tests above. No device package is created. PR with `Closes #44`, reviewed, in `develop`.
 
 ---
 
@@ -282,7 +285,7 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 
 **Interfaces (produced):** `createSession(aircraft, { devices })` composing store, runtime, failures, checklist and devices, with `jumpToPhase(id)`, `startProcedure(id)`, pilot input forwarded to the store, `advance(dtMs)`, `checkOff()`, and `subscribe`. This is the object the M3 app uses.
 
-- [ ] **Step 1: Failing tests** for each "Done when": jumping to a phase loads its entry snapshot (positions, systems state, environment); completing a procedure with an end phase moves to it; starting an emergency procedure injects its failure. Plus: a walk-through of the #11 fixture's normal procedure from its start phase completes with no deviations; snapshot loads and breaker trips record no deviation; a procedure end phase keeps positions, state and failures.
+- [ ] **Step 1: Failing tests** for each "Done when": jumping to a phase loads its entry snapshot (positions, systems state, environment); completing a procedure with an end phase moves to it; starting an emergency procedure injects its failure. Plus: a walk-through of the #11 fixture's normal procedure from `parking` completes with no deviations, including opening and closing the guard and releasing the starter after its hold-until item, and ends in `runup`; snapshot loads and breaker trips record no deviation; a procedure end phase keeps positions, state and failures.
 - [ ] **Step 2: Implement** until green, using only the other modules' public interfaces.
 - [ ] **Step 3: Fragment** `changelog.d/17.added.md`: `Phase handling: entry snapshots, procedure start and end phases, failure injection on emergency procedures.`
 
@@ -303,10 +306,10 @@ The summary carries what shipped, the Decisions below and any made in PRs, the o
 ## Decisions
 
 1. **One directory per issue, barrel pre-created by #11.** The barrel is the only file every issue would otherwise share; stubs let waves 2–4 run without touching it.
-2. **Controls, indicators, failures and phases are records keyed by id.** Keys become literal type unions, which is what makes an unknown target a compile error (#11's done-when).
+2. **Controls, indicators, views, failures and phases are records keyed by id.** Keys become literal type unions, which is what makes an unknown target a compile error (#11's done-when).
 3. **Core owns no timers.** The runtime exposes `advance(dtMs)` and a fixed step constant; the app drives it. Tests then control time exactly.
-4. **Every control change carries a source** (`pilot`, `spring`, `system`). Only `pilot` changes can be deviations; a spring return, breaker trip or snapshot load is the aircraft or the engine acting, not the pilot.
-5. **The checklist follows the current item strictly.** A pilot change to any other control, including a later item's target, is a deviation; spec §5 defines deviation against the current item.
+4. **Every control change carries a kind and a source, fixed in #11's contract.** `pilot`: `set`, `press`, `openGuard`, `closeGuard`. `spring`: a detent springing back and a momentary control returning on `release`, because letting go is not choosing a position; the control moves by itself. `system`: breaker trips and snapshot loads. Guard operations have `kind: 'guard'`. Only `pilot` changes of `kind: 'position'` can be deviations. So releasing the starter after "starter until engine running" completed is not a deviation, nor is lifting or closing a guard: a guard changes no aircraft configuration, and the guarded move that follows is what the checklist judges. This keeps spec §9's walk-through deviation-free.
+5. **The checklist follows the current item strictly.** A pilot position change to any other control, including a later item's target, is a deviation; spec §5 defines deviation against the current item.
 6. **An action item already satisfied when it becomes current completes at once,** so an out-of-order action is recorded once and never stalls the list.
 7. **Checking off an unmet check completes it and records a deviation.** Spec §5 records it; the checklist never blocks.
 8. **A throwing `step` freezes the runtime at the last good state with a `failed` status** until reset. Rethrowing would escape the app's interval driver; spec §8 asks for reporting, not swallowing.
@@ -314,13 +317,17 @@ The summary carries what shipped, the Decisions below and any made in PRs, the o
 10. **A procedure's end phase changes phase, environment and outside view, but keeps positions, systems state and failures.** Overwriting them would erase what the pilot just did. Only an explicit phase jump loads a snapshot, and it clears active failures.
 11. **Blocks are pure over plain inputs and know no control ids.** Aircraft differ in switch layout; the mapping belongs in the aircraft's `step`.
 12. **A failure declares the breakers it trips.** Placed in #11's contract so #15 needs no contract edit.
-13. **Device power is a condition over the trainer state,** not a bus id. Aircraft with the electrical block write `powered: (s) => s.systems.electrical.avionicsBus`; #44 then needs nothing from #14.
+13. **Device power is a condition over the trainer state, not a bus id.** This departs from the "power bus" wording of spec §4.9 and #44: the install still names the bus that powers the unit, but as a condition reading that bus's state, e.g. `powered: (s) => s.systems.electrical.avionicsBus`. Buses live in each aircraft's own state shape, so there is no bus id core could resolve, and #44 needs nothing from #14. It changes no row of the spec's decisions table; Task 8's done-when maps it.
 14. **Device control ids are `<installId>.<controlId>`, checked by the validator, not the compiler.** An aircraft may not import a device package, so the device's control list is unknown to its types.
 15. **No device package in M2.** #44 tests with an in-core fixture device; lint rules use static globs so they fire before the first device package (M4).
 16. **Image fields are URL strings; the validator checks they are declared, not that the file exists.** Core cannot import assets; spec §8 gives a missing file a placeholder at runtime.
 17. **#18 converts the demo aircraft to a minimal valid aircraft and types the registry.** "Validate every registered aircraft" needs registered aircraft to be contract values; M4 fills the demo out.
 18. **Validation runs inside `pnpm test`, no separate CI step.** The required `check` job already runs it, so any finding fails CI; a second step would only repeat the run.
 19. **`CONTRACT_VERSION` stays 1.** No aircraft contract was released before M2. `defineAircraft` stamps it on every aircraft, so the demo's `contractVersion` test keeps holding.
+
+20. **Everything later issues consume is in #11's contract:** appearance (§4.8), aircraft identity and handbook revision (§7), named views, `ControlChange`, failure breaker trips, `TrainerState.devices`. Wave 2 then has no dependency inside the wave, and only #44 reopens `contract/`.
+21. **Appearance is typed as data only; panel-kit owns the widget ids.** Core cannot import panel-kit, so a widget is named by string and its existence is checked when M3 renders it.
+22. **Device lint covers the whole package with static globs** and rejects relative reach through `device-*` wildcard segments, since a static glob has no package name to exclude.
 
 ## Open questions for the owner
 
