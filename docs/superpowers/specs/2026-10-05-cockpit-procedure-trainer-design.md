@@ -43,7 +43,10 @@ architecture that lets aircraft be added.
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
 | Devices | Tablet and desktop; touch and mouse both first-class. |
-| Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). |
+| Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). Production at the site root, UAT under `/uat/`. |
+| Branching | Gitflow: `develop` is the default branch and the base of every PR; `main` holds released state only. Agents merge PRs into `develop` and never merge into `main`. |
+| Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex header and a "UAT" badge in the app frame. |
+| Versioning | Semantic versions below 1.0: milestone Mn releases as v0.(n+1).0, so M0 is v0.1.0. Tag and GitHub Release are created by a workflow when `main` receives the release PR. |
 | Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
 | Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
 | Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design. |
@@ -320,9 +323,26 @@ parallel.
 ## 10. Project setup
 
 - pnpm workspace, strict TypeScript, ESLint with boundary rules, Prettier.
-- GitHub Actions: lint, typecheck, unit, validator, browser tests on every PR;
-  deploy to GitHub Pages on `main`.
-- Branch protection on `main`: PRs only, checks required.
+- GitHub Actions: lint, typecheck, unit, validator, browser tests on every PR.
+- Rulesets on `main` and `develop`: PRs only, required checks, all review
+  threads resolved, no deletion or non-fast-forward pushes, no required
+  approvals. `main` accepts merge commits only; `develop` accepts squash merges, and merge commits only for a `main` into `develop` backmerge.
+- Delivery follows gitflow. Feature, fix, chore, docs and ci branches
+  (`feat/`, `fix/`, `chore/`, `docs/`, `ci/`) branch from `develop` and merge
+  into it. A `release/vX.Y.Z` branch folds the changelog fragments into
+  `CHANGELOG.md` on `develop`. The release PR `develop` to `main` is opened by
+  an agent and merged by the owner only.
+- Hosting: one GitHub Pages site built from two refs. `main` builds at
+  `/cockpit-procedure-trainer/` (production) and `develop` at
+  `/cockpit-procedure-trainer/uat/` (UAT, noindex, "UAT" badge in the app
+  frame, never on the cockpit panel). The base-path check runs on both builds.
+- Releases: a workflow on push to `main` reads the top released section of
+  `CHANGELOG.md` and creates tag `vX.Y.Z` and the GitHub Release when they do
+  not exist. `CHANGELOG.md` follows Keep a Changelog; every PR adds a fragment
+  `changelog.d/<issue>.<category>.md`, folded at the cut.
+- Repo-local Claude Code skills cover the release cycle (PR creation, review,
+  fixing, merging into `develop`) and a hook blocks `gh pr merge` on a PR
+  whose base is `main`.
 - Issue templates (feature, bug, new aircraft), PR template, labels, milestones.
 - `README`, `CONTRIBUTING`, `LICENSE`, project `CLAUDE.md`, ADRs under
   `docs/adr/`, authoring guide `docs/adding-an-aircraft.md`.
@@ -334,10 +354,12 @@ parallel.
 1. Create repo, licence, README, contributing guide, project `CLAUDE.md`
 2. pnpm workspace, TypeScript, ESLint with boundary rules, Prettier
 3. CI: lint, typecheck, test
-4. GitHub Pages deployment from `main`
-5. Issue and PR templates, labels, milestones, branch protection
+4. GitHub Pages deployment (superseded by 49)
+5. Issue and PR templates, labels, milestones
 6. ADR-0001: architecture and aircraft contract; content and licensing policy
 48. Claude Code project setup: plugins, hooks, agents and skills
+49. Gitflow and UAT/prod environments: `develop`, rulesets, dual-ref Pages deploy, release workflow, changelog
+50. Release-cycle skills: release-cycle command, pr-selfreview, merge-train, main-merge guard hook
 
 **M1 Design** (blocks M3 only)
 7. `BRAND.md`: product brand derived from DocGerdSoft, accent decision
@@ -395,3 +417,10 @@ Ticket numbers are spec ids, not GitHub issue numbers.
 
 **M7 3D** (later)
 43. 3D renderer on the same aircraft data
+
+## 12. Open questions
+
+- M5 service worker scope: production and UAT share one origin, so a worker
+  registered at the site root also controls `/uat/`. Decide in the M5 plan
+  whether each environment registers a worker scoped to its own path, and how
+  cache names stay separate.

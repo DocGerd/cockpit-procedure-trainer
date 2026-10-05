@@ -433,6 +433,26 @@
       "labels": ["type:chore", "area:infra"],
       "title": "Claude Code project setup: plugins, hooks, agents and skills",
       "body": "Scope: committed .claude/ configuration so every agent session and worktree has the same tooling.\n\nDone when:\n- .claude/settings.json enables playwright, typescript-lsp, frontend-design, context7, pr-review-toolkit and superpowers\n- A PostToolUse hook formats edited files with Prettier\n- A ui-verifier agent does the real-browser pass at tablet and desktop width\n- A milestone-release skill produces the owner summary and the release\n\nSpec: §10"
+    },
+    {
+      "id": 49,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Gitflow and UAT/prod environments",
+      "body": "Scope: switch to gitflow with a default `develop` branch, rulesets, UAT and production deploys, and a tag-and-release workflow.\n\nDone when:\n- `develop` is the default branch\n- Rulesets on `main` and `develop` require PRs, the CI check and resolved threads; `main` allows merge commits only, `develop` allows squash and merge (merge only for `chore/backmerge` PRs)\n- Production builds from `main` and UAT from `develop` at `/uat/`, with noindex and a UAT badge in the app frame\n- A push to `main` creates tag and GitHub Release from the top `CHANGELOG.md` section\n- `CHANGELOG.md` and `changelog.d` fragments are in place\n\nSpec: §2, §10"
+    },
+    {
+      "id": 50,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Release-cycle skills",
+      "body": "Scope: repo-local Claude Code skills and a guard hook covering a full release cycle.\n\nDone when:\n- A release-cycle command runs a milestone: one implementer per issue, PR with changelog fragment\n- A pr-selfreview skill posts one thread per finding, fixes and resolves them\n- A merge-train skill merges green, fully resolved PRs into `develop` only\n- A hook blocks `gh pr merge` on any PR whose base is `main`\n\nSpec: §10"
     }
   ]
 }
