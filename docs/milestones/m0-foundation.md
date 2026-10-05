@@ -54,7 +54,7 @@
 
 ## Carried findings
 
-The whole-milestone review found no critical issues. Its two important findings (a skill command the guard denied, and release notes missing the #1 to #3 deliverables) and the cheap minors were fixed in #72. Eighteen minor findings were triaged as safe to carry and are tracked in #71:
+The whole-milestone review found no critical issues. Its two important findings (a skill command the guard denied, and release notes missing the #1 to #3 deliverables) and the cheap minors were fixed in #72. Nineteen minor findings were triaged as safe to carry and are tracked in #71:
 
 - `readdirSync('packages')` in the boundary test depends on the working directory; tests always run from the root.
 - `typescript` is `^6.0.3` rather than `~`; the lockfile pins it and Dependabot ignores 6.1 and above.
@@ -74,3 +74,4 @@ The whole-milestone review found no critical issues. Its two important findings 
 - The `/plugin` check in a fresh session is pending (open question 3).
 - A JSON `\u0000` inside a merge command is allowed; Node spawn rejects NUL, so it cannot execute.
 - A missing `jq` denies only merge-like commands; `jq` is a documented prerequisite.
+- The guard hook's expansion check covers only the first two `gh` words, the `gh api` endpoint and the first URL-like token; an expansion in a later positional or a second URL is unchecked. Exploiting it needs the merge word hidden in a variable, which is deliberate obfuscation outside the tripwire's scope. Hardening: allow expansions only in values of known non-routing flags and check every positional and URL.
