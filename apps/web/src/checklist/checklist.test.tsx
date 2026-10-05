@@ -176,7 +176,7 @@ describe('deviations per mode', () => {
     ).toBeTruthy();
   });
 
-  it('shows no deviation detail in Practice until the summary, only the count', () => {
+  it('shows no deviation in Practice until the summary, not even a count', () => {
     renderPane();
     start(flow, 'practice');
     operate('avionics', 'on');
@@ -186,7 +186,8 @@ describe('deviations per mode', () => {
     expect(screen.queryByText(/Avionics operated/)).toBeNull();
     expect(screen.queryByText(/condition was not met/)).toBeNull();
     expect(stateLabels()).toEqual(['Done', 'Done', 'Current', 'Pending']);
-    expect(screen.getByText('2 deviations')).toBeTruthy();
+    expect(screen.queryByText(/\d+ deviations?$/)).toBeNull();
+    expect(screen.queryByText('No deviations')).toBeNull();
 
     checkOff();
     operate('pump', 'on');

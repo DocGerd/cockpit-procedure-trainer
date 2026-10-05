@@ -143,11 +143,13 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
       </ol>
 
       <div className="checklist-footer">
-        <div className="checklist-footer-count" data-deviated={count > 0}>
-          {count === 0
-            ? text.noDeviations
-            : format(count === 1 ? text.deviationOne : text.deviationOther, { count })}
-        </div>
+        {guided && (
+          <div className="checklist-footer-count" data-deviated={count > 0}>
+            {count === 0
+              ? text.noDeviations
+              : format(count === 1 ? text.deviationOne : text.deviationOther, { count })}
+          </div>
+        )}
         <button
           type="button"
           className="chrome-button"

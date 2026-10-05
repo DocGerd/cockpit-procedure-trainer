@@ -208,6 +208,10 @@
   border-top: 1px solid var(--color-divider);
 }
 
+.checklist-footer .chrome-button {
+  margin-inline-start: auto;
+}
+
 .checklist-footer-count {
   flex-grow: 1;
   color: var(--color-text-muted);

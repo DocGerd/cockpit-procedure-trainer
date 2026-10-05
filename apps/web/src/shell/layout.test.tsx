@@ -172,6 +172,19 @@ describe('trainer layout on a tablet', () => {
     expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
   });
 
+  it('opens the pane with the summary when the procedure completes', async () => {
+    renderShell();
+    await startProcedure();
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+    const pane = screen.getByRole('complementary', { name: 'Checklist' });
+    expect(within(pane).getByRole('heading', { name: /complete$/ })).toBeTruthy();
+    expect(checklistToggle().getAttribute('aria-expanded')).toBe('true');
+  });
+
   it('closes the pane on a tap outside it and on Escape', async () => {
     renderShell();
     await startProcedure();

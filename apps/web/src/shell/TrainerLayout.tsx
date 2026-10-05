@@ -44,8 +44,13 @@ export function TrainerLayout() {
   const [expanded, setExpanded] = useState(false);
   const paneId = useId();
   const overlay = layout === 'tablet';
+  const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
   const hasChecklist = mode !== 'explore' && procedureId !== undefined;
   const showPane = hasChecklist && (!overlay || expanded);
+
+  useEffect(() => {
+    if (done) setExpanded(true);
+  }, [done]);
 
   useEffect(() => {
     if (!overlay || !expanded) return;
