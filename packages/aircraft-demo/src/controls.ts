@@ -97,7 +97,7 @@ export const controls = {
     initial: 0,
     name: text('Gemischhebel', 'Mixture'),
     description: text(
-      'Stellt das Kraftstoff-Luft-Gemisch ein. Hinten ist Magerstellung, die Kraftstoffzufuhr ist dann unterbrochen.',
+      'Stellt das Kraftstoff-Luft-Gemisch ein. Hinten ist die Leerlaufabschaltung, die Kraftstoffzufuhr ist dann unterbrochen.',
       'Sets the fuel-air mixture. Fully back is idle cut-off and stops the fuel.',
     ),
     appearance: { widget: 'lever' },

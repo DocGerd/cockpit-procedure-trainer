@@ -118,11 +118,63 @@ describe('demo aircraft', () => {
     expect(systems(session).engine.running).toBe(false);
   });
 
-  it('lights the lamps while the annunciator switch is held at test', () => {
-    const session = readyToStart({ battery: 'on' });
-    session.press('annunciator', 'test');
-    expect(reading(session, 'lowVoltageLamp')).toBe(true);
-    expect(reading(session, 'oilPressureLamp')).toBe(true);
+  describe('with the engine running', () => {
+    const running = (): Session => createSession(demoAircraft, { phase: 'holding' });
+
+    it('lights the lamps only while the annunciator switch is held at test', () => {
+      const session = running();
+      expect(reading(session, 'lowVoltageLamp')).toBe(false);
+      expect(reading(session, 'oilPressureLamp')).toBe(false);
+      session.press('annunciator', 'test');
+      expect(reading(session, 'lowVoltageLamp')).toBe(true);
+      expect(reading(session, 'oilPressureLamp')).toBe(true);
+      session.release('annunciator');
+      expect(reading(session, 'lowVoltageLamp')).toBe(false);
+      expect(reading(session, 'oilPressureLamp')).toBe(false);
+    });
+
+    it('stops when the fuel shut-off is closed', () => {
+      const session = running();
+      session.openGuard('fuelShutoff');
+      session.set('fuelShutoff', 'shut');
+      expect(systems(session).engine.running).toBe(false);
+    });
+
+    it('stops when the fuel selector is turned off', () => {
+      const session = running();
+      session.set('fuelSelector', 'off');
+      expect(systems(session).engine.running).toBe(false);
+    });
+
+    it('does not charge with the alternator breaker pulled', () => {
+      const session = running();
+      session.advance(STEP_MS);
+      expect(systems(session).bus.charging).toBe(true);
+      session.set('alternatorBreaker', 'pulled');
+      expect(systems(session).bus.charging).toBe(false);
+      expect(reading(session, 'lowVoltageLamp')).toBe(true);
+    });
+
+    it('unpowers the avionics with the avionics breaker pulled', () => {
+      const session = running();
+      expect(systems(session).avionicsPowered).toBe(true);
+      session.set('avionicsBreaker', 'pulled');
+      expect(systems(session).avionicsPowered).toBe(false);
+    });
+
+    it('loses rpm on a single magneto and recovers on both', () => {
+      const session = running();
+      session.set('throttle', 1);
+      const both = systems(session).rpm;
+      session.set('magnetos', 'right');
+      const right = systems(session).rpm;
+      expect(right).toBeLessThan(both);
+      expect(both - right).toBeLessThanOrEqual(150);
+      session.set('magnetos', 'left');
+      expect(systems(session).rpm).toBe(right);
+      session.set('magnetos', 'both');
+      expect(systems(session).rpm).toBe(both);
+    });
   });
 
   describe('alternator failure', () => {

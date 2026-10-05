@@ -3,7 +3,7 @@ import type { Environment } from '@cpt/core';
 import { images } from './assets';
 import { controls } from './controls';
 import { indicators } from './indicators';
-import { initial, lowVoltageLit, runningFrom, step } from './systems';
+import { initial, lowVoltageLit, oilPressureLit, runningFrom, step } from './systems';
 import type { DemoFailure } from './systems';
 import { text } from './text';
 
@@ -121,7 +121,7 @@ export const demoAircraft = defineAircraft({
         {
           type: 'confirm',
           text: text(
-            'Rundgang beendet, Propellerbereich frei',
+            'Außenkontrolle beendet, Propellerbereich frei',
             'Walk-around done, propeller area clear',
           ),
         },
@@ -159,11 +159,11 @@ export const demoAircraft = defineAircraft({
           type: 'action',
           control: 'annunciator',
           position: 'test',
-          text: text('Warnlampen auf TEST halten', 'Hold the annunciator switch at TEST'),
-        },
-        {
-          type: 'confirm',
-          text: text('Beide Warnlampen leuchten', 'Both annunciator lamps light'),
+          holdUntil: (state) => lowVoltageLit(state) && oilPressureLit(state),
+          text: text(
+            'Warnlampen auf TEST halten, bis beide leuchten',
+            'Hold the annunciator switch at TEST until both lamps light',
+          ),
         },
         {
           type: 'action',

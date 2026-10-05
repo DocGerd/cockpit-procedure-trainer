@@ -16,6 +16,6 @@ Fictional aircraft; no handbook.
 - Phases: parking, holding point, departure, cruise.
 - Procedures: `engineStart`, `beforeTakeoff` and the emergency `alternatorFailure`.
 
-Throttle and mixture action targets are only 0 or 1; run-up readings are check items on the tachometer.
+Throttle and mixture action targets are only 0 or 1; run-up readings are check items on the tachometer. The rpm ranges, the magneto drop and the oil pressure limits are invented for this aircraft and belong to no real one. Because levers take only the stops 0 and 1 as action targets, the magneto check runs with the throttle at its full stop rather than at a partial-power setting.
 
 This package installs no devices.
