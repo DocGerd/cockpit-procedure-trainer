@@ -247,6 +247,19 @@ describe('validateAircraft', () => {
       only(withControl('throttle', { initial: 'idle' }), 'unknown-position', 'throttle');
     });
 
+    it.each([1.5, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+      'reports a continuous lever value %s outside 0 to 1',
+      (value) => {
+        only(withControl('throttle', { initial: value }), 'unknown-position', 'throttle');
+        only(withEntry('parking', { throttle: value }), 'unknown-position', 'throttle');
+        const aircraft = withItems('beforeStart', [
+          { type: 'action', control: 'throttle', position: value, text },
+          ...beforeStartItems.slice(1),
+        ]);
+        only(aircraft, 'unknown-position', 'throttle');
+      },
+    );
+
     it('reports a phase entry value', () => {
       only(withEntry('parking', { master: 'half' }), 'unknown-position', 'master');
     });
