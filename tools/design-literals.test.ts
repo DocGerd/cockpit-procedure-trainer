@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import stylelint from 'stylelint';
 import { describe, expect, it } from 'vitest';
 
-const eslint = new ESLint();
+const eslint = new ESLint({ cwd: resolve(import.meta.dirname, '..') });
 const configFile = resolve(import.meta.dirname, '../stylelint.config.mjs');
 
 async function eslintCount(ruleId: string, filePath: string, code: string): Promise<number> {
