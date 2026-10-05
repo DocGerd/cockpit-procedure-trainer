@@ -128,6 +128,11 @@ describe('phase control', () => {
       await selectCruise();
       const dialog = screen.getByRole('alertdialog');
       expect(dialog.textContent).toContain('Cruise');
+      expect(dialog.getAttribute('aria-modal')).toBe('true');
+      const description = document.getElementById(dialog.getAttribute('aria-describedby') ?? '');
+      expect(description?.textContent).toContain('Cruise');
+      const title = document.getElementById(dialog.getAttribute('aria-labelledby') ?? '');
+      expect(title?.textContent).toBe('End the procedure?');
       expect(trainer.session.phase()).toBe('ground');
       expect(trainer.procedureId).toBe('startUp');
       expect(phaseSelect()).toHaveProperty('value', 'ground');

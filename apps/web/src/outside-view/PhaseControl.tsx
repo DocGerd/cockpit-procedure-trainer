@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 import './outside-view.css';
 

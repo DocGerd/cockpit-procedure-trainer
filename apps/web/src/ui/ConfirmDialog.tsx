@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
-import './outside-view.css';
+import './ui.css';
 
 type ConfirmDialogProps = {
   title: string;
@@ -24,23 +24,22 @@ export function ConfirmDialog({
   const bodyId = useId();
   const cancel = useRef<HTMLButtonElement>(null);
   const confirm = useRef<HTMLButtonElement>(null);
-  const onCancelRef = useRef(onCancel);
-  onCancelRef.current = onCancel;
 
   useEffect(() => {
     const opener = document.activeElement;
     cancel.current?.focus();
-    const onKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onCancelRef.current();
-    };
-    document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('keydown', onKey);
       if (opener instanceof HTMLElement) opener.focus();
     };
   }, []);
 
-  const trapTab = (event: KeyboardEvent) => {
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+
+      onCancel();
+      return;
+    }
     if (event.key !== 'Tab') return;
     const [first, last] = [cancel.current, confirm.current];
     if (event.shiftKey && document.activeElement === first) {
@@ -60,7 +59,7 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={bodyId}
         className="confirm-dialog"
-        onKeyDown={trapTab}
+        onKeyDown={onKeyDown}
       >
         <h2 id={titleId} className="confirm-title">
           {title}
