@@ -24,7 +24,12 @@ matches:
   and H2.
 - Radii: `--radius-sm` is the bundle's extra-small radius; `--radius-md`,
   `--radius-lg` and `--radius-xl` are its small, medium and large radii.
-- Spacing: `--space-N` is N times 4px; the bundle names the same steps 1 to 7.
+- Spacing: `--space-N` is N times 4px. The bundle's s1 to s7 (4, 8, 12, 16, 24,
+  32 and 48px) are `--space-1`, `-2`, `-3`, `-4`, `-6`, `-8` and `-12`. The
+  bundle's s5 (24px) is not `--space-5` (20px).
+- Eyebrow tracking: the bundle README gives the kicker 0.16em, while its
+  stylesheet `.kicker` rule uses 0.18em. `--tracking-eyebrow` keeps 0.16em,
+  where the README, the stylesheet's `.sublabel` rule and the canvas agree.
 
 Product tokens the bundle does not define: the Violet accent in the dark theme,
 `--color-on-accent`, `--text-xs` and `--leading-xs`, `--leading-2xs`,
@@ -39,8 +44,7 @@ Violet: `#6A57C4` in the light theme, `#9A8BE8` in the dark theme.
 - It is the family member furthest from the red, amber, green and blue a
   cockpit already uses.
 - It reads like the magenta pilots know as active guidance.
-- The dark value has the same lightness as the system's dark Azure and clears
-  WCAG AA on the dark surface.
+- The dark value clears WCAG AA on the dark surface.
 - Text on a dark-theme accent fill is `#0D0E10`.
 
 ## Tokens
