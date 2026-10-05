@@ -25,7 +25,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - The release PR `develop` to `main` is opened by an agent and merged by the
   owner. A workflow then tags and publishes the release.
 - Every PR adds a fragment `changelog.d/<issue>.<category>.md`; Dependabot PRs
-  are exempt (no fragment, no `Closes`).
+  are exempt (no fragment, no `Closes`). A PR with no user-visible effect may
+  skip the fragment with a body line `No changelog: <reason>`.
 - Branch prefixes: `feat/ fix/ chore/ docs/ ci/ release/`.
 - A decision the spec does not settle: make it, state it and its reason in the
   PR description, and carry it into the milestone summary.
