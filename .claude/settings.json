@@ -1,0 +1,23 @@
+{
+  "enabledPlugins": {
+    "playwright@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in */../*) ;; \"$CLAUDE_PROJECT_DIR\"/*) pnpm exec prettier --write --ignore-unknown --log-level warn \"$f\" ;; esac; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
