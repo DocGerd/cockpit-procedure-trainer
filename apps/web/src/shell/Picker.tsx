@@ -2,18 +2,19 @@ import type { Aircraft } from '@cpt/core';
 import { useId, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { StartupNotice } from '../errors/StartupNotice';
+import { useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
-
-const text = messages.en;
 
 type PickerMode = 'guided' | 'practice';
 
 const count = (n: number, one: string, other: string) => `${n} ${n === 1 ? one : other}`;
 
 function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: boolean }) {
+  const text = useMessages(messages);
+  const localize = useLocalize();
   const { selectAircraft } = useTrainer();
   return (
     <button
@@ -22,7 +23,7 @@ function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: 
       aria-pressed={selected}
       onClick={() => selectAircraft(aircraft.id)}
     >
-      <span className="picker-card-title">{aircraft.name.en}</span>{' '}
+      <span className="picker-card-title">{localize(aircraft.name)}</span>{' '}
       <span className="picker-card-text">
         {text.handbookRevision}: {aircraft.handbookRevision}
       </span>{' '}
@@ -45,6 +46,8 @@ function ProcedureGroup({
   selected: string | undefined;
   onSelect(id: string): void;
 }) {
+  const text = useMessages(messages);
+  const localize = useLocalize();
   const { aircraft } = useTrainer();
   const labelId = useId();
   if (ids.length === 0) return null;
@@ -65,9 +68,9 @@ function ProcedureGroup({
             aria-pressed={id === selected}
             onClick={() => onSelect(id)}
           >
-            <span className="picker-row-title">{procedure.title.en}</span>{' '}
+            <span className="picker-row-title">{localize(procedure.title)}</span>{' '}
             <span className="picker-meta">
-              {phase ? `${phase.name.en} · ` : ''}
+              {phase ? `${localize(phase.name)} · ` : ''}
               {count(procedure.items.length, text.itemOne, text.itemOther)}
             </span>
           </button>
@@ -78,6 +81,7 @@ function ProcedureGroup({
 }
 
 export function Picker() {
+  const text = useMessages(messages);
   const layout = useLayout();
   const trainer = useTrainer();
   const { aircraft } = trainer;

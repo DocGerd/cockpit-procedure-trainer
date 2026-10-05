@@ -2,6 +2,7 @@
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { LanguageProvider } from '../i18n';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
@@ -25,12 +26,14 @@ function Probe() {
 
 function renderShell() {
   return render(
-    <ThemeProvider>
-      <TrainerProvider>
-        <Probe />
-        <Shell />
-      </TrainerProvider>
-    </ThemeProvider>,
+    <LanguageProvider>
+      <ThemeProvider>
+        <TrainerProvider>
+          <Probe />
+          <Shell />
+        </TrainerProvider>
+      </ThemeProvider>
+    </LanguageProvider>,
   );
 }
 

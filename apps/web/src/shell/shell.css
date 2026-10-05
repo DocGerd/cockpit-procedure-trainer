@@ -338,3 +338,21 @@
   line-height: var(--leading-sm);
   color: var(--color-text-muted);
 }
+
+.language-switch {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.language-switch-option {
+  min-width: var(--size-target);
+  padding: 0 var(--space-2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+.language-switch-option[aria-pressed='true'] {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border-color: var(--color-accent);
+}

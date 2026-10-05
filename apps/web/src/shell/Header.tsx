@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
+import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
 import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useTrainer } from '../trainer';
 import { messages } from './messages';
-
-const text = messages.en;
 
 function BrandMark() {
   return (
@@ -35,13 +34,23 @@ function HeaderChoice({
 }
 
 function TrainerChoices() {
+  const text = useMessages(messages);
+  const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   return (
     <>
-      <HeaderChoice eyebrow={text.aircraft} value={aircraft.name.en} onClick={backToPicker} />
+      <HeaderChoice
+        eyebrow={text.aircraft}
+        value={localize(aircraft.name)}
+        onClick={backToPicker}
+      />
       {procedure && (
-        <HeaderChoice eyebrow={text.procedure} value={procedure.title.en} onClick={backToPicker} />
+        <HeaderChoice
+          eyebrow={text.procedure}
+          value={localize(procedure.title)}
+          onClick={backToPicker}
+        />
       )}
     </>
   );
@@ -54,6 +63,7 @@ export function Header({
   variant: 'picker' | 'trainer';
   checklistToggle?: ReactNode;
 }) {
+  const text = useMessages(messages);
   const isUat = deployEnv(import.meta.env.VITE_DEPLOY_ENV) === 'uat';
   return (
     <header className="shell-header">
@@ -71,6 +81,7 @@ export function Header({
           {checklistToggle}
         </>
       )}
+      <LanguageSwitch />
       <ThemeSwitch
         labels={{
           light: text.themeLight,

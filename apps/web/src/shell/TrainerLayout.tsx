@@ -1,13 +1,12 @@
 import { useEffect, useId, useState } from 'react';
 import { ChecklistPane } from '../checklist/ChecklistPane';
+import { useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
 import { PanelArea } from '../panel/PanelArea';
 import { useSessionState, useTrainer } from '../trainer';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
-
-const text = messages.en;
 
 function ChecklistToggle({
   expanded,
@@ -18,6 +17,7 @@ function ChecklistToggle({
   controls: string;
   onToggle(): void;
 }) {
+  const text = useMessages(messages);
   const checklist = useSessionState((s) => s.checklist());
   return (
     <button
@@ -38,6 +38,7 @@ function ChecklistToggle({
 }
 
 export function TrainerLayout() {
+  const text = useMessages(messages);
   const layout = useLayout();
   const { mode, procedureId } = useTrainer();
   const [expanded, setExpanded] = useState(false);
