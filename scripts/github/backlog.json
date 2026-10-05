@@ -1,0 +1,595 @@
+{
+  "repo": "DocGerd/cockpit-procedure-trainer",
+  "spec": "docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md",
+  "labels": [
+    {
+      "name": "type:feature",
+      "color": "6A57C4",
+      "description": "New capability"
+    },
+    {
+      "name": "type:bug",
+      "color": "BC4438",
+      "description": "Something behaves wrongly"
+    },
+    {
+      "name": "type:docs",
+      "color": "5E646B",
+      "description": "Documentation only"
+    },
+    {
+      "name": "type:chore",
+      "color": "5E646B",
+      "description": "Tooling, CI, repo upkeep"
+    },
+    {
+      "name": "area:core",
+      "color": "2C6CB0",
+      "description": "Contract, systems runtime, checklist engine, validator"
+    },
+    {
+      "name": "area:panel-kit",
+      "color": "2C6CB0",
+      "description": "Controls, gauges, artwork renderer"
+    },
+    {
+      "name": "area:web",
+      "color": "2C6CB0",
+      "description": "The web app"
+    },
+    {
+      "name": "area:aircraft",
+      "color": "0F7C72",
+      "description": "An aircraft package"
+    },
+    {
+      "name": "area:device",
+      "color": "0F7C72",
+      "description": "An avionics device package"
+    },
+    {
+      "name": "area:design",
+      "color": "B0457E",
+      "description": "Brand, tokens, design canvas"
+    },
+    {
+      "name": "area:infra",
+      "color": "5E646B",
+      "description": "Repo, CI, hosting"
+    },
+    {
+      "name": "blocked",
+      "color": "9A6B1A",
+      "description": "Waiting on another issue or on material"
+    }
+  ],
+  "milestones": [
+    {
+      "title": "M0 Foundation",
+      "description": "Repo, tooling, CI, hosting, templates"
+    },
+    {
+      "title": "M1 Design",
+      "description": "Brand, design pass, tokens. Blocks M3 only"
+    },
+    {
+      "title": "M2 Core engine",
+      "description": "Contract, runtime, checklist engine, validator, device contract"
+    },
+    {
+      "title": "M3 Web shell",
+      "description": "App shell, panel kit, checklist pane, modes"
+    },
+    {
+      "title": "M4 Demo aircraft",
+      "description": "Fictional aircraft end to end, tests, authoring guides"
+    },
+    {
+      "title": "M5 Offline and tablet",
+      "description": "PWA, touch, accessibility"
+    },
+    {
+      "title": "M6 CTSL",
+      "description": "Flight Design CTSL from the club's photos and handbook"
+    },
+    {
+      "title": "M7 3D",
+      "description": "3D renderer on the same aircraft data"
+    }
+  ],
+  "issues": [
+    {
+      "id": 1,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Create repo with licence, README, contributing guide and project CLAUDE.md",
+      "body": "Scope: public repo with the baseline documents.\n\nDone when:\n- LICENSE is MIT with \"Copyright (c) 2026 Patrick Kuhn\"\n- README states what the trainer is and is not, and links the spec\n- CONTRIBUTING describes branch, PR and review flow\n- CLAUDE.md gives commands and package boundaries\n\nSpec: §2, §10"
+    },
+    {
+      "id": 2,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Set up pnpm workspace, TypeScript, ESLint boundary rules and Prettier",
+      "body": "Scope: workspace with packages core, panel-kit, aircraft-demo and apps/web, each with one passing test.\n\nDone when:\n- `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` and `pnpm build` pass\n- A test proves the boundary rules reject a React import in core and an aircraft import outside the registry\n- The test run fails when no tests are found\n\nSpec: §3, §10"
+    },
+    {
+      "id": 3,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "CI: lint, format, typecheck, test and build on every PR",
+      "body": "Scope: one GitHub Actions workflow with a job named `check`.\n\nDone when:\n- The job runs on pull requests and on pushes to main\n- A failing test or lint error fails the job\n- Dependency updates are automated for npm and GitHub Actions\n\nSpec: §10"
+    },
+    {
+      "id": 4,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Deploy the web app to GitHub Pages from main",
+      "body": "Scope: build with the Pages base path and deploy on every push to main.\n\nDone when:\n- The published URL shows the app and its assets load\n- The workflow fails if the built page does not reference the base path\n\nSpec: §2, §10"
+    },
+    {
+      "id": 5,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Issue and PR templates, labels, milestones and branch protection",
+      "body": "Scope: repo hygiene.\n\nDone when:\n- Issue templates exist for feature, bug, new aircraft and new device\n- A PR template asks for the closing issue, verification and the real-browser pass for UI changes\n- main requires a PR and the `check` job\n\nSpec: §10"
+    },
+    {
+      "id": 6,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:docs",
+        "area:infra"
+      ],
+      "title": "ADR-0001 architecture and aircraft contract; content and licensing policy",
+      "body": "Scope: record the decisions from the spec and the content rules.\n\nDone when:\n- docs/adr/0001 records packages, boundaries and the aircraft and device contracts with their reasons\n- docs/content-policy.md states the own-words and own-photos rule, handbook revision note and the in-app notice\n\nSpec: §3, §4, §7"
+    },
+    {
+      "id": 7,
+      "milestone": "M1 Design",
+      "labels": [
+        "type:docs",
+        "area:design"
+      ],
+      "title": "BRAND.md: product brand derived from DocGerdSoft",
+      "body": "Scope: docs/design/BRAND.md.\n\nDone when:\n- It lists the inherited tokens for light and dark with exact values\n- It records the Violet accent (#6A57C4 light, #9A8BE8 dark) and the reason\n- It states the chrome-only rule, the no-status-inks-on-panel rule and the legal rules\n\nSpec: §6.1, §6.2"
+    },
+    {
+      "id": 8,
+      "milestone": "M1 Design",
+      "labels": [
+        "type:docs",
+        "area:design"
+      ],
+      "title": "Design brief: screens and states",
+      "body": "Scope: docs/design/brief.md listing every screen and state to design.\n\nDone when:\n- It covers main layout on tablet and desktop, checklist pane per mode, outside view, picker, deviation summary, control details, device screens, light and dark\n- It lists what the first canvas draft already covers and what is missing\n\nSpec: §6.3"
+    },
+    {
+      "id": 9,
+      "milestone": "M1 Design",
+      "labels": [
+        "type:feature",
+        "area:design"
+      ],
+      "title": "Claude Design pass and handoff export",
+      "body": "Scope: refine the canvas draft (the owner's private Claude Design canvas) and export the handoff.\n\nDone when:\n- All screens from the brief exist on the canvas, including the tablet layout with collapsed checklist\n- The handoff package is committed under docs/design/handoff/ as reference only\n\nSpec: §6.3"
+    },
+    {
+      "id": 10,
+      "milestone": "M1 Design",
+      "labels": [
+        "type:feature",
+        "area:design",
+        "area:web"
+      ],
+      "title": "Lock design: tokens file, no-literals lint rule, bundled fonts",
+      "body": "Scope: apps/web/src/styles/tokens.css as the only place colours, type and spacing are defined.\n\nDone when:\n- Tokens exist for light and dark and match BRAND.md\n- A lint rule rejects colour literals outside the tokens file\n- Geist and Geist Mono are bundled, not loaded from a CDN\n\nSpec: §6.2, §6.3"
+    },
+    {
+      "id": 11,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Contract types and defineAircraft",
+      "body": "Scope: types for controls, indicators, views, systems, failures, phases, procedures and appearance.\n\nDone when:\n- defineAircraft gives compile errors for a procedure item that targets an unknown control\n- Every text field requires German and English\n\nSpec: §4"
+    },
+    {
+      "id": 12,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Control store with spring-return and momentary controls",
+      "body": "Scope: holds control positions and applies changes.\n\nDone when:\n- A spring-return detent goes back when released\n- A momentary control is active only while held\n- A guarded control cannot move while its guard is on\n\nSpec: §4.1, §5"
+    },
+    {
+      "id": 13,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Systems runtime: step loop, tick and environment from phase",
+      "body": "Scope: calls the aircraft step function on control changes and on a fixed tick.\n\nDone when:\n- Time-dependent effects advance with the tick and are deterministic in tests\n- The phase's environment presets reach step\n- An exception in step is reported, not swallowed\n\nSpec: §4.4, §5, §8"
+    },
+    {
+      "id": 14,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Reusable system blocks: electrical bus and piston-engine start",
+      "body": "Scope: building blocks aircraft compose.\n\nDone when:\n- Starter with magnetos off does not start the engine\n- Starter without bus power does nothing\n- A running engine keeps running after the starter is released\n\nSpec: §4.4"
+    },
+    {
+      "id": 15,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Failure injection",
+      "body": "Scope: activate and clear declared failures at runtime.\n\nDone when:\n- The active failure set reaches step\n- Injecting an undeclared failure is an error\n- A failure can trip a circuit breaker\n\nSpec: §4.5"
+    },
+    {
+      "id": 16,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Checklist engine: item kinds, completion and deviations",
+      "body": "Scope: observes control changes and state; never blocks input.\n\nDone when:\n- Action items complete when their condition is met, including hold-until\n- Check and confirm items complete when ticked\n- A change to a non-target control and a tick on an unmet check are recorded as deviations\n\nSpec: §4.7, §5"
+    },
+    {
+      "id": 17,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Phase handling: entry snapshots and procedure end phase",
+      "body": "Scope: switching phase and starting procedures.\n\nDone when:\n- Jumping to a phase loads its entry snapshot\n- Completing a procedure with an end phase moves to it\n- Starting an emergency procedure injects its failure\n\nSpec: §4.6, §4.7"
+    },
+    {
+      "id": 18,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Aircraft validator and CI wiring",
+      "body": "Scope: validate every registered aircraft in CI.\n\nDone when:\n- It reports unknown targets, unplaced controls, missing translations, phases without image or snapshot, and undeclared failures\n- Each finding names the aircraft and the offending id\n- CI fails on any finding\n\nSpec: §8"
+    },
+    {
+      "id": 19,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "App shell: layout, header, theme and aircraft registry",
+      "body": "Scope: the page frame per the locked design.\n\nDone when:\n- Header, outside-view area, panel area and checklist pane are laid out for tablet and desktop\n- Theme follows the system setting and can be switched\n- Aircraft come only from aircraft-registry.ts\n\nSpec: §3, §5, §6"
+    },
+    {
+      "id": 20,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Panel renderer: views, placements and tabs",
+      "body": "Scope: draw a view's background and place each control and indicator.\n\nDone when:\n- Placements scale with the panel\n- View tabs switch views\n- 3D position data is ignored without error\n\nSpec: §4.3"
+    },
+    {
+      "id": 21,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:panel-kit"
+      ],
+      "title": "Panel kit: realistic generic GA controls",
+      "body": "Scope: toggle, rocker, key switch, push button, circuit breaker, rotary knob, lever and guarded handle, for touch and mouse.\n\nDone when:\n- Each widget shows every position and animates between them\n- Press-and-hold works for momentary and spring-return controls\n- Hit targets are at least 44 px\n\nSpec: §4.1, §4.8"
+    },
+    {
+      "id": 22,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:panel-kit"
+      ],
+      "title": "Panel kit: realistic generic GA indicators",
+      "body": "Scope: round gauge with needle, ticks and coloured arcs; annunciator lamp; digital readout.\n\nDone when:\n- A gauge is configured by range, units and arcs\n- Indicators hold no state of their own\n\nSpec: §4.2, §4.8"
+    },
+    {
+      "id": 23,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:panel-kit"
+      ],
+      "title": "Panel kit: layer renderer for aircraft artwork",
+      "body": "Scope: draw a control or gauge from image layers.\n\nDone when:\n- A needle rotates about a declared pivot over a declared angle range\n- A switch shows one image per position\n- A lever follows a declared travel path\n- A missing image falls back to the generic widget\n\nSpec: §4.8, §8"
+    },
+    {
+      "id": 24,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:panel-kit"
+      ],
+      "title": "Panel kit gallery page",
+      "body": "Scope: a page showing every widget in every state.\n\nDone when:\n- Each generic control and indicator appears with all positions\n- It is reachable in development builds\n\nSpec: §4.8"
+    },
+    {
+      "id": 25,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Checklist pane and deviation summary",
+      "body": "Scope: the checklist UI and the end-of-procedure summary.\n\nDone when:\n- Done, current and upcoming items are distinguishable without colour alone\n- Check and confirm items can be ticked\n- The summary lists each deviation with the item it happened during\n\nSpec: §5"
+    },
+    {
+      "id": 26,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Modes: Guided, Practice and Free explore",
+      "body": "Scope: the three modes.\n\nDone when:\n- Guided highlights the current target with accent plus a shape cue and switches to its view\n- Practice shows no highlight\n- Free explore shows control details on tap and has an operate toggle\n\nSpec: §5, §6.2"
+    },
+    {
+      "id": 27,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Outside-view strip",
+      "body": "Scope: the phase image above the panel and the phase selector.\n\nDone when:\n- The image follows the current phase\n- Selecting a phase loads its entry snapshot\n\nSpec: §4.6, §5"
+    },
+    {
+      "id": 28,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Translations: UI dictionary with parity check and language switch",
+      "body": "Scope: German and English for the interface.\n\nDone when:\n- A missing key in either language is a compile error\n- The language switch changes UI text and aircraft content\n- The choice is remembered\n\nSpec: §2, §5"
+    },
+    {
+      "id": 29,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Error boundary, image fallback and start-up notice",
+      "body": "Scope: failure handling in the app.\n\nDone when:\n- A runtime error shows a readable message and a reset\n- A missing image shows a labelled placeholder\n- The training-aid notice is shown on start\n- The app works when localStorage is unavailable\n\nSpec: §5, §7, §8"
+    },
+    {
+      "id": 30,
+      "milestone": "M4 Demo aircraft",
+      "labels": [
+        "type:feature",
+        "area:aircraft"
+      ],
+      "title": "Fictional demo aircraft",
+      "body": "Scope: packages/aircraft-demo with controls, views, systems model, two normal procedures and one emergency.\n\nDone when:\n- It passes the validator\n- Scenario tests cover starter without magnetos and starter without bus power\n- It uses only generic widgets\n\nSpec: §3, §4"
+    },
+    {
+      "id": 31,
+      "milestone": "M4 Demo aircraft",
+      "labels": [
+        "type:feature",
+        "area:core"
+      ],
+      "title": "Generic procedure walk-through test",
+      "body": "Scope: one test that runs for every registered aircraft and every normal procedure.\n\nDone when:\n- Starting from the phase entry snapshot, performing each item completes the procedure with no deviations\n- A failure names aircraft, procedure and item\n\nSpec: §9"
+    },
+    {
+      "id": 32,
+      "milestone": "M4 Demo aircraft",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "Browser tests",
+      "body": "Scope: Playwright tests in CI.\n\nDone when:\n- A procedure is completed in Guided and one in Practice\n- Language switch is covered\n- Tests wait on state, not on fixed timeouts\n\nSpec: §9"
+    },
+    {
+      "id": 33,
+      "milestone": "M4 Demo aircraft",
+      "labels": [
+        "type:docs",
+        "area:aircraft"
+      ],
+      "title": "Authoring guide: adding an aircraft",
+      "body": "Scope: docs/adding-an-aircraft.md.\n\nDone when:\n- It walks through package, registry line, controls, views, systems, phases, procedures, appearance and artwork\n- Following it with the demo aircraft as reference yields a validating aircraft\n\nSpec: §4"
+    },
+    {
+      "id": 34,
+      "milestone": "M5 Offline and tablet",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "PWA: manifest, service worker, offline caching and update prompt",
+      "body": "Scope: installable and usable without network.\n\nDone when:\n- After one visit the app loads and runs a procedure offline\n- A new version prompts for reload instead of silently mixing versions\n\nSpec: §2"
+    },
+    {
+      "id": 35,
+      "milestone": "M5 Offline and tablet",
+      "labels": [
+        "type:feature",
+        "area:web",
+        "area:panel-kit"
+      ],
+      "title": "Touch polish: hit targets, press-and-hold and panel zoom",
+      "body": "Scope: tablet use.\n\nDone when:\n- Small controls remain operable by touch\n- Pinch zoom and pan work on the panel without moving the page\n- Verified on a real tablet\n\nSpec: §2"
+    },
+    {
+      "id": 36,
+      "milestone": "M5 Offline and tablet",
+      "labels": [
+        "type:feature",
+        "area:web",
+        "area:panel-kit"
+      ],
+      "title": "Accessibility: keyboard operation, labels and reduced motion",
+      "body": "Scope: operate the trainer without a pointer.\n\nDone when:\n- Every control is reachable and operable by keyboard\n- Controls expose name and position to assistive technology\n- Animations respect prefers-reduced-motion\n\nSpec: §6.2"
+    },
+    {
+      "id": 37,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:chore",
+        "area:aircraft",
+        "blocked"
+      ],
+      "title": "CTSL content intake: photos, handbook revision and clearance check",
+      "body": "Scope: collect and clear the source material.\n\nDone when:\n- Panel photos exist for every view\n- The handbook revision is recorded\n- The installed avionics units are identified\n- Every asset is confirmed as the club's own\n\nBlocked on material from the club.\n\nSpec: §7"
+    },
+    {
+      "id": 38,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:aircraft",
+        "blocked"
+      ],
+      "title": "CTSL views and placements",
+      "body": "Scope: packages/aircraft-ctsl views with every control and indicator placed.\n\nDone when:\n- Every control from the photos is declared and placed\n- The validator passes\n\nSpec: §4.1 to §4.3"
+    },
+    {
+      "id": 39,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:aircraft",
+        "blocked"
+      ],
+      "title": "CTSL systems model and scenario tests",
+      "body": "Scope: electrical, engine, fuel, flaps and trim behaviour.\n\nDone when:\n- Wrong-operation scenarios from the handbook are covered by tests\n- Indicators follow the model\n\nSpec: §4.4"
+    },
+    {
+      "id": 40,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:aircraft",
+        "blocked"
+      ],
+      "title": "CTSL normal procedures",
+      "body": "Scope: normal checklists in the club's own words, German and English.\n\nDone when:\n- Every normal procedure passes the walk-through test\n- Each procedure states the handbook revision it follows\n\nSpec: §4.7, §7"
+    },
+    {
+      "id": 41,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:aircraft",
+        "blocked"
+      ],
+      "title": "CTSL emergency procedures and failures",
+      "body": "Scope: emergency checklists with their injected failures.\n\nDone when:\n- Each emergency procedure declares and injects its failure\n- The systems model reacts to each failure\n\nSpec: §4.5, §4.7"
+    },
+    {
+      "id": 42,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:aircraft",
+        "area:panel-kit",
+        "blocked"
+      ],
+      "title": "CTSL control and gauge artwork matching the real panel",
+      "body": "Scope: replace generic widgets with artwork from the club's photos.\n\nDone when:\n- Gauges and controls look like the real panel\n- Each asset has a licence note\n\nSpec: §4.8, §7"
+    },
+    {
+      "id": 43,
+      "milestone": "M7 3D",
+      "labels": [
+        "type:feature",
+        "area:web"
+      ],
+      "title": "3D renderer on the same aircraft data",
+      "body": "Scope: a second renderer using the optional 3D positions.\n\nDone when:\n- The demo aircraft is operable in 3D with unchanged aircraft logic\n- Needs its own design and plan before work starts\n\nSpec: §2, §4.3"
+    },
+    {
+      "id": 44,
+      "milestone": "M2 Core engine",
+      "labels": [
+        "type:feature",
+        "area:core",
+        "area:device"
+      ],
+      "title": "Device contract and runtime",
+      "body": "Scope: the shape of an avionics device and how an aircraft installs one.\n\nDone when:\n- A device declares controls, starting state and a pure step function\n- An aircraft installs a device with placement, power bus and data inputs\n- A device without bus power is off\n- Procedure items can target device controls and test device state\n- Lint rules keep device logic free of UI imports\n\nSpec: §4.9"
+    },
+    {
+      "id": 45,
+      "milestone": "M3 Web shell",
+      "labels": [
+        "type:feature",
+        "area:web",
+        "area:device"
+      ],
+      "title": "Device screens in the panel",
+      "body": "Scope: host a device's screen in a view.\n\nDone when:\n- The screen is drawn at its placement and receives input\n- A powered-off device shows a dark screen\n- Devices come only from device-registry.ts\n\nSpec: §4.9"
+    },
+    {
+      "id": 46,
+      "milestone": "M4 Demo aircraft",
+      "labels": [
+        "type:feature",
+        "area:device"
+      ],
+      "title": "Generic COM radio and transponder devices; authoring guide for devices",
+      "body": "Scope: two generic devices installed in the demo aircraft, and docs/adding-a-device.md.\n\nDone when:\n- COM: power, volume, standby frequency entry, active/standby swap\n- Transponder: power, modes, squawk entry, ident\n- A demo procedure includes a device item\n- Each device lists what it does not model\n\nSpec: §4.9"
+    },
+    {
+      "id": 47,
+      "milestone": "M6 CTSL",
+      "labels": [
+        "type:feature",
+        "area:device",
+        "blocked"
+      ],
+      "title": "Avionics devices installed in the club's CTSL",
+      "body": "Scope: tracking issue. Split into one issue per unit once intake (#37) has identified them.\n\nDone when:\n- Each installed unit has a device package with its base logic\n- Each states the manual revision it follows and what it does not model\n\nSpec: §4.9"
+    },
+    {
+      "id": 48,
+      "milestone": "M0 Foundation",
+      "labels": [
+        "type:chore",
+        "area:infra"
+      ],
+      "title": "Claude Code project setup: plugins, hooks, agents and skills",
+      "body": "Scope: committed .claude/ configuration so every agent session and worktree has the same tooling.\n\nDone when:\n- .claude/settings.json enables playwright, typescript-lsp, frontend-design, context7, pr-review-toolkit and superpowers\n- A PostToolUse hook formats edited files with Prettier\n- A ui-verifier agent does the real-browser pass at tablet and desktop width\n- A milestone-release skill produces the owner summary and the release\n\nSpec: §10"
+    }
+  ]
+}
