@@ -130,6 +130,21 @@ describe('spring-return detent', () => {
     ]);
   });
 
+  it('springs back on release after the detent was reached by systemSet or load', () => {
+    for (const reach of [
+      (store: ReturnType<typeof setup>['store']) => store.systemSet('ignition', 'start'),
+      (store: ReturnType<typeof setup>['store']) => store.load({ ignition: 'start' }),
+    ]) {
+      const { store, changes } = setup();
+      reach(store);
+      changes.length = 0;
+      expect(store.release('ignition')).toEqual({ applied: true });
+      expect(changes).toEqual([
+        { id: 'ignition', source: 'spring', kind: 'position', from: 'start', to: 'both' },
+      ]);
+    }
+  });
+
   it('press moves to a spring detent as a pilot change', () => {
     const { store, changes } = setup();
     store.press('ignition', 'start');
@@ -194,6 +209,8 @@ describe('momentary control', () => {
 describe('press and release on controls that do not spring', () => {
   it('press throws', () => {
     expect(() => setup().store.press('master', 'on')).toThrow(/master/);
+    expect(() => setup().store.press('flaps', 'half')).toThrow(/flaps/);
+    expect(() => setup().store.press('throttle', 0.5)).toThrow(/throttle/);
   });
 
   it('release leaves the control where it is', () => {
@@ -216,6 +233,22 @@ describe('guarded control', () => {
     expect(store.set('brs', 'deployed')).toEqual({ applied: false, reason: 'guarded' });
     expect(store.positions().brs).toBe('stowed');
     expect(changes).toEqual([]);
+  });
+
+  it('reports the current position as unchanged, not guarded, while the guard is closed', () => {
+    const { store, changes } = setup();
+    expect(store.set('brs', 'stowed')).toEqual({ applied: false, reason: 'unchanged' });
+    expect(changes).toEqual([]);
+  });
+
+  it('throws on an invalid position while the guard is closed', () => {
+    expect(() => setup().store.set('brs', 'bogus')).toThrow(/brs.*bogus/);
+  });
+
+  it('cannot be pressed', () => {
+    const { store } = setup();
+    store.openGuard('brs');
+    expect(() => store.press('brs', 'deployed')).toThrow(/brs/);
   });
 
   it('accepts set once the guard is open', () => {
@@ -320,6 +353,31 @@ describe('load', () => {
     const { store } = setup();
     store.load({ starter: 'held', brs: 'deployed' });
     expect(store.positions()).toMatchObject({ starter: 'held', brs: 'deployed' });
+  });
+
+  it('closes every open guard with a system guard change', () => {
+    const { store, changes } = setup();
+    store.openGuard('brs');
+    changes.length = 0;
+    store.load({ master: 'on' });
+    expect(store.guards()).toEqual({ brs: 'closed' });
+    expect(changes).toEqual([
+      { id: 'master', source: 'system', kind: 'position', from: 'off', to: 'on' },
+      { id: 'brs', source: 'system', kind: 'guard', from: 'open', to: 'closed' },
+    ]);
+  });
+
+  it('emits no guard change when every guard is already closed', () => {
+    const { store, changes } = setup();
+    store.load({ master: 'on' });
+    expect(changes.filter((change) => change.kind === 'guard')).toEqual([]);
+  });
+
+  it('refuses a guarded move again after a load closed the guard', () => {
+    const { store } = setup();
+    store.openGuard('brs');
+    store.load({});
+    expect(store.set('brs', 'deployed')).toEqual({ applied: false, reason: 'guarded' });
   });
 
   it('leaves controls missing from the snapshot where they are', () => {

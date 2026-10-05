@@ -175,6 +175,12 @@ export function createControlStore<CT extends ControlRecord>(
         const change = move(id, position, 'system');
         if (change) changes.push(change);
       }
+      for (const [id, from] of guards) {
+        if (from === 'open') {
+          guards.set(id, 'closed');
+          changes.push({ id: id as C, source: 'system', kind: 'guard', from, to: 'closed' });
+        }
+      }
       emit(changes);
     },
 
