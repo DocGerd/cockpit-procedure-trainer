@@ -7,7 +7,7 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 ## Frame rules
 
 - The brand styles the chrome only: header, checklist pane, outside-view frame, tabs, popovers, dialogs. The panel shows the aircraft, never brand colours.
-- The one exception is the accent as an outline on the panel, always paired with a shape cue: the Guided highlight (S9) and the selected control in Free explore (S7). Status inks never appear on the panel.
+- The accent as an outline on the panel is the only brand colour there, always paired with a shape cue, in two places: the Guided highlight (S9) and the selected control in Free explore (S7). Status inks never appear on the panel.
 - Status inks appear only in the chrome.
 - Every screen exists in light and dark with the same layout. Tablet and desktop are both first-class, touch and mouse alike.
 
@@ -28,14 +28,14 @@ The same regions as S1. The checklist pane is collapsed to a header toggle that 
 ### S3 Checklist pane per mode
 
 - Guided: current item highlighted, deviations shown at once.
-- Practice: no highlight on the panel, the current item marked in the pane, a deviation count in the footer, summary at the end. Deviations are recorded without an immediate banner (spec §5).
+- Practice: no highlight on the panel, the current item marked in the pane, a deviation count in the footer, summary at the end. Deviations are recorded without an immediate banner (spec §5), because Practice tests recall and instant correction would make it Guided.
 - Free explore: no checklist; control details instead (S7).
 - Each item shows its state: pending, current, done, deviated.
 - An emergency procedure is marked as such in the pane header.
 
 ### S4 Outside-view strip
 
-The outside view of the current phase, with the phase selector.
+The outside view of the current phase. The phase control lives in the header, because phase is global session state; the strip may mirror it.
 
 ### S5 Aircraft and procedure picker
 
@@ -75,6 +75,8 @@ Both themes for S1 to S9 and S11.
 - Missing panel image: a labelled placeholder.
 
 ## Covered and missing
+
+Where the spec and the canvas disagree, this brief follows the spec for behaviour and the canvas for appearance.
 
 The product's design canvas has five artboards.
 
@@ -144,11 +146,3 @@ The same layout with the other theme's tokens. Nothing moves, resizes or changes
 
 - Error boundary: a chrome dialog over the app with a short readable message and a reset action. It does not show a stack trace.
 - Missing panel image: a neutral placeholder in the image's place, labelled with the view name. Controls and indicators stay usable on it.
-
-## Open questions for the owner
-
-Where the spec and the canvas disagree, this brief follows the spec for behaviour and the canvas for appearance.
-
-1. Phase control: the spec puts the phase in the header; the canvas draws it only as a selector in the outside-view strip. The brief keeps both.
-2. Practice: the canvas draws a deviation banner at once; the spec records deviations and shows a summary at the end. The brief drops the banner and keeps the count.
-3. Free explore selection: the canvas outlines the selected control in the accent. The brief keeps it as the one non-Guided accent outline on the panel; confirm that is acceptable under spec §6.2.
