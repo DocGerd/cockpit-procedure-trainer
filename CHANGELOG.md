@@ -8,6 +8,24 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.2.0] - 2026-10-05
+
+### Added
+
+- Product brand document with the inherited tokens, the Violet accent and the brand rules.
+- Design brief listing every screen and state, with what the design canvas covers.
+- Design handoff from the design canvas, committed as reference.
+- Design tokens for light and dark, a lint rule against colour, type and spacing literals in the web app, and bundled Geist fonts.
+
+### Changed
+
+- Dependabot pull requests are exempt from the changelog fragment rule.
+
+### Fixed
+
+- Carried M0 review findings fixed or triaged, including CI cancellation, Dependabot grouping and the UAT badge.
+- Design-literal lint now rejects the `font` shorthand and CSS system colours; doc and test fixes from the M1 review.
+
 ## [0.1.0] - 2026-10-05
 
 ### Added
@@ -29,5 +47,6 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DocGerd/cockpit-procedure-trainer/releases/tag/v0.1.0
