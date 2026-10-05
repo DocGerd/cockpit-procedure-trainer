@@ -34,19 +34,19 @@ architecture that lets aircraft be added.
 
 ## 2. Decisions
 
-| Topic         | Decision                                                                                                                        |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Cockpit view  | 2D layered panel now. The aircraft contract carries optional 3D positions so a 3D renderer is a later milestone, not a rewrite. |
-| Behaviour     | Rule-based systems model per aircraft, including failures.                                                                      |
-| Modes         | Guided, Practice, Free explore.                                                                                                 |
-| Step order    | Never block input. Record actions outside the current item as deviations.                                                       |
-| Procedures    | Normal and emergency (failure injection).                                                                                       |
-| Languages     | German and English, for UI and aircraft content.                                                                                |
-| Devices       | Tablet and desktop; touch and mouse both first-class.                                                                           |
-| Hosting       | Static site on GitHub Pages, installable and offline-capable (PWA).                                                             |
-| Repo          | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn.                                                          |
-| Stack         | TypeScript, React, SVG panel, Vite, pnpm workspace.                                                                             |
-| Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design.                                    |
+| Topic | Decision |
+|---|---|
+| Cockpit view | 2D layered panel now. The aircraft contract carries optional 3D positions so a 3D renderer is a later milestone, not a rewrite. |
+| Behaviour | Rule-based systems model per aircraft, including failures. |
+| Modes | Guided, Practice, Free explore. |
+| Step order | Never block input. Record actions outside the current item as deviations. |
+| Procedures | Normal and emergency (failure injection). |
+| Languages | German and English, for UI and aircraft content. |
+| Devices | Tablet and desktop; touch and mouse both first-class. |
+| Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). |
+| Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
+| Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
+| Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design. |
 
 ## 3. Architecture
 
@@ -86,14 +86,14 @@ The shapes below are illustrative; exact types are settled in the core tickets.
 Each control has an id, a kind, its positions, a starting position, and a name
 and description in German and English.
 
-| Kind        | Example                     | Notes                                     |
-| ----------- | --------------------------- | ----------------------------------------- |
-| `toggle`    | master switch               | two or more fixed positions               |
-| `rotary`    | ignition key, fuel selector | detents; a detent may spring back (START) |
-| `lever`     | throttle, flaps, trim       | continuous 0–1 or named notches           |
-| `momentary` | starter button, PTT         | active only while held                    |
-| `guarded`   | BRS handle                  | needs the guard removed first             |
-| `breaker`   | circuit breaker             | in or pulled; a failure can trip it       |
+| Kind | Example | Notes |
+|---|---|---|
+| `toggle` | master switch | two or more fixed positions |
+| `rotary` | ignition key, fuel selector | detents; a detent may spring back (START) |
+| `lever` | throttle, flaps, trim | continuous 0–1 or named notches |
+| `momentary` | starter button, PTT | active only while held |
+| `guarded` | BRS handle | needs the guard removed first |
+| `breaker` | circuit breaker | in or pulled; a failure can trip it |
 
 ### 4.2 Indicators
 
@@ -222,11 +222,11 @@ keeps it independent of the systems model and testable alone.
 
 ### Modes
 
-| Mode         | Checklist | Highlight                                       | Deviations                                                                                              |
-| ------------ | --------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Guided       | shown     | current target highlighted, view switches to it | recorded, shown immediately                                                                             |
-| Practice     | shown     | none                                            | recorded, summary at the end                                                                            |
-| Free explore | none      | none                                            | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
+| Mode | Checklist | Highlight | Deviations |
+|---|---|---|---|
+| Guided | shown | current target highlighted, view switches to it | recorded, shown immediately |
+| Practice | shown | none | recorded, summary at the end |
+| Free explore | none | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
 
 ### Screen
 
@@ -309,13 +309,13 @@ parallel.
 
 ## 9. Testing
 
-| Level                                    | What                                                                                                                                                   |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit (Vitest)                            | `core`: control store, runtime tick, checklist engine, validator                                                                                       |
-| Aircraft scenarios (Vitest)              | per aircraft: wrong-operation cases such as starter without magnetos                                                                                   |
+| Level | What |
+|---|---|
+| Unit (Vitest) | `core`: control store, runtime tick, checklist engine, validator |
+| Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
 | Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations |
-| Browser (Playwright)                     | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload                                                        |
-| Manual                                   | real-browser pass at tablet and desktop size for every UI ticket                                                                                       |
+| Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload |
+| Manual | real-browser pass at tablet and desktop size for every UI ticket |
 
 ## 10. Project setup
 
@@ -331,27 +331,67 @@ parallel.
 ## 11. Milestones and tickets
 
 **M0 Foundation**
-
 1. Create repo, licence, README, contributing guide, project `CLAUDE.md`
 2. pnpm workspace, TypeScript, ESLint with boundary rules, Prettier
 3. CI: lint, typecheck, test
 4. GitHub Pages deployment from `main`
 5. Issue and PR templates, labels, milestones, branch protection
 6. ADR-0001: architecture and aircraft contract; content and licensing policy
-7. Claude Code project setup: plugins, hooks, agents and skills
+48. Claude Code project setup: plugins, hooks, agents and skills
 
-**M1 Design** (blocks M3 only) 7. `BRAND.md`: product brand derived from DocGerdSoft, accent decision 8. Design brief: screens and states 9. Claude Design pass and handoff export 10. Lock design; tokens file and no-literals lint rule; bundled fonts
+**M1 Design** (blocks M3 only)
+7. `BRAND.md`: product brand derived from DocGerdSoft, accent decision
+8. Design brief: screens and states
+9. Claude Design pass and handoff export
+10. Lock design; tokens file and no-literals lint rule; bundled fonts
 
-**M2 Core engine** 11. Contract types and `defineAircraft` 12. Control store, including spring-return and momentary controls 13. Systems runtime: `step` loop, tick, environment from phase 14. Reusable blocks: electrical bus, piston-engine start 15. Failure injection 16. Checklist engine: item kinds, completion, deviations 17. Phase handling: entry snapshots, procedure end phase 18. Aircraft validator and CI wiring 44. Device contract and runtime: logic shape, power and data wiring from the aircraft, device registry
+**M2 Core engine**
+11. Contract types and `defineAircraft`
+12. Control store, including spring-return and momentary controls
+13. Systems runtime: `step` loop, tick, environment from phase
+14. Reusable blocks: electrical bus, piston-engine start
+15. Failure injection
+16. Checklist engine: item kinds, completion, deviations
+17. Phase handling: entry snapshots, procedure end phase
+18. Aircraft validator and CI wiring
+44. Device contract and runtime: logic shape, power and data wiring from the aircraft, device registry
 
-**M3 Web shell** 19. App shell: layout, header, theme, aircraft registry 20. Panel renderer: views, placements, tabs 21. Panel kit: generic GA controls with realistic look, touch and mouse (toggle, rocker, key switch, push button, circuit breaker, rotary knob, lever, guarded handle) 22. Panel kit: generic GA indicators with realistic look (round gauge with needle and arcs, annunciator lamp, digital readout) 23. Panel kit: layer renderer for aircraft artwork (face plus moving part, per-position images, lever travel) 24. Panel kit gallery page showing every widget in every state 25. Checklist pane and deviation summary 26. Modes: Guided highlight and view switching, Practice, Free explore 27. Outside-view strip 28. Translations: UI dictionary with parity check, language switch 29. Error boundary, image fallback, start-up notice 45. Device screens in the panel: placement, input routing, powered-off state
+**M3 Web shell**
+19. App shell: layout, header, theme, aircraft registry
+20. Panel renderer: views, placements, tabs
+21. Panel kit: generic GA controls with realistic look, touch and mouse (toggle, rocker, key switch, push button, circuit breaker, rotary knob, lever, guarded handle)
+22. Panel kit: generic GA indicators with realistic look (round gauge with needle and arcs, annunciator lamp, digital readout)
+23. Panel kit: layer renderer for aircraft artwork (face plus moving part, per-position images, lever travel)
+24. Panel kit gallery page showing every widget in every state
+25. Checklist pane and deviation summary
+26. Modes: Guided highlight and view switching, Practice, Free explore
+27. Outside-view strip
+28. Translations: UI dictionary with parity check, language switch
+29. Error boundary, image fallback, start-up notice
+45. Device screens in the panel: placement, input routing, powered-off state
 
-**M4 Demo aircraft** 30. Fictional demo aircraft: controls, views, systems, two normal procedures, one emergency 31. Generic procedure walk-through test 32. Browser tests 33. Authoring guide: adding an aircraft, including appearance and artwork 46. Generic COM radio and transponder devices for the demo aircraft; authoring guide: adding a device
+**M4 Demo aircraft**
+30. Fictional demo aircraft: controls, views, systems, two normal procedures, one emergency
+31. Generic procedure walk-through test
+32. Browser tests
+33. Authoring guide: adding an aircraft, including appearance and artwork
+46. Generic COM radio and transponder devices for the demo aircraft; authoring guide: adding a device
 
-**M5 Offline and tablet** 34. PWA: manifest, service worker, offline caching, update prompt 35. Touch polish: hit targets, press-and-hold, pinch zoom on the panel 36. Accessibility: keyboard operation, labels, reduced motion
+**M5 Offline and tablet**
+34. PWA: manifest, service worker, offline caching, update prompt
+35. Touch polish: hit targets, press-and-hold, pinch zoom on the panel
+36. Accessibility: keyboard operation, labels, reduced motion
 
-**M6 CTSL** (next session, tickets refined once material is in hand) 37. Content intake: photos, handbook revision, clearance check 38. Views and placements 39. Systems model and scenario tests 40. Normal procedures 41. Emergency procedures and failures 42. Control and gauge artwork matching the real panel, replacing generic widgets 47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake
+**M6 CTSL** (next session, tickets refined once material is in hand)
+37. Content intake: photos, handbook revision, clearance check
+38. Views and placements
+39. Systems model and scenario tests
+40. Normal procedures
+41. Emergency procedures and failures
+42. Control and gauge artwork matching the real panel, replacing generic widgets
+47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake
 
 Ticket numbers are spec ids, not GitHub issue numbers.
 
-**M7 3D** (later) 43. 3D renderer on the same aircraft data
+**M7 3D** (later)
+43. 3D renderer on the same aircraft data
