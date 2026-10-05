@@ -64,6 +64,121 @@ const colourLiterals = [hexColour, colourFunction].flatMap((pattern) => [
   { selector: `TemplateElement[value.raw=/${pattern}/]`, message: colourMessage },
 ]);
 
+const typeSpacingMessage = 'Type and spacing come only from apps/web/src/styles/tokens.css.';
+const cssLength = '\\d(px|rem|em)\\b';
+
+const fontNames = [
+  'Geist',
+  'Geist Mono',
+  'Inter',
+  'Arial',
+  'Helvetica',
+  'Helvetica Neue',
+  'Verdana',
+  'Tahoma',
+  'Georgia',
+  'Times',
+  'Times New Roman',
+  'Courier',
+  'Courier New',
+  'Roboto',
+  'Open Sans',
+  'Segoe UI',
+  'SF Pro',
+  'Menlo',
+  'Monaco',
+  'Consolas',
+  'JetBrains Mono',
+  'Fira Code',
+  'Fira Sans',
+  'Source Sans Pro',
+  'Source Code Pro',
+  'Noto Sans',
+  'Ubuntu',
+  'sans-serif',
+  'serif',
+  'monospace',
+  'cursive',
+  'fantasy',
+  'system-ui',
+  'ui-sans-serif',
+  'ui-serif',
+  'ui-monospace',
+  'ui-rounded',
+].join('|');
+const fontFamilyName = `(^|,)\\s*['"]?(${fontNames})['"]?\\s*(,|$)`;
+const fontFamilyToken = '^(var\\(--font-|inherit$)';
+const nonZeroNumber = '^[0-9.]*[1-9]';
+const nonZeroNumeral = '^[0-9.]*[1-9][0-9.]*$';
+const spacingKey =
+  '^(fontSize|lineHeight|letterSpacing|gap|rowGap|columnGap|(margin|padding|inset)([A-Z][A-Za-z]*)?)$';
+const notFontToken = (path) =>
+  `:not([${path}=/${fontFamilyToken}/]):not([${path}=/${fontFamilyName}/i])`;
+
+const styleObject = [
+  'JSXAttribute[name.name="style"] ObjectExpression',
+  ...['TSSatisfiesExpression', 'TSAsExpression'].map(
+    (type) => `${type}[typeAnnotation.typeName.name="CSSProperties"] > ObjectExpression`,
+  ),
+  'VariableDeclarator[id.typeAnnotation.typeAnnotation.typeName.name="CSSProperties"] > ObjectExpression',
+  'VariableDeclarator[id.typeAnnotation.typeAnnotation.typeName.right.name="CSSProperties"] > ObjectExpression',
+];
+const inStyleObject = (property) =>
+  styleObject.map((object) => `${object} > ${property}[key.name=/${spacingKey}/]`);
+const styleSpacing = [
+  ...inStyleObject('Property').map((selector) => `${selector}[value.raw=/${nonZeroNumber}/]`),
+  ...inStyleObject('Property').map(
+    (selector) => `${selector} > Literal[value=/${nonZeroNumeral}/]`,
+  ),
+  ...inStyleObject('Property').map(
+    (selector) => `${selector} > UnaryExpression > Literal[raw=/${nonZeroNumber}/]`,
+  ),
+];
+
+const typeSpacingSelectors = [
+  `Literal[value=/${cssLength}/]`,
+  `TemplateElement[value.raw=/${cssLength}/]`,
+  'TemplateLiteral > TemplateElement:not(:first-child)[value.raw=/^(px|rem|em)\\b/]',
+  `Literal[value=/${fontFamilyName}/i]`,
+  `Property[key.name="fontFamily"] > Literal${notFontToken('value')}`,
+  ...styleSpacing,
+  `JSXAttribute[name.name="fontFamily"] > Literal${notFontToken('value')}`,
+].map((selector) => ({ selector, message: typeSpacingMessage }));
+
+const literalSelectors = [...colourLiterals, ...typeSpacingSelectors];
+
+const deviceGroups = [
+  {
+    group: otherThanCoreAndPanelKit,
+    message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+  },
+];
+const deviceSelectors = [
+  {
+    selector: dynamicOtherThanCoreAndPanelKit,
+    message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
+  },
+];
+
+const panelKitGroups = [{ group: otherThanCore, message: 'panel-kit depends only on @cpt/core.' }];
+const panelKitSelectors = [
+  { selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' },
+];
+
+const webGroups = [
+  { group: content, message: 'Import aircraft and devices only through the registries.' },
+];
+const webSelectors = [
+  {
+    selector: dynamicContent,
+    message: 'Import aircraft and devices only through the registries.',
+  },
+  {
+    selector: globContent,
+    message: 'Import aircraft and devices only through the registries.',
+  },
+];
+
 const restrict = (own, groups, selectors = []) => ({
   'no-restricted-imports': [
     'error',
@@ -126,21 +241,11 @@ export default tseslint.config(
     })),
   {
     files: ['packages/device-*/**/*.{ts,tsx}'],
-    rules: restrict(
-      null,
-      [
-        {
-          group: otherThanCoreAndPanelKit,
-          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
-        },
-      ],
-      [
-        {
-          selector: dynamicOtherThanCoreAndPanelKit,
-          message: 'A device depends only on @cpt/core and @cpt/panel-kit.',
-        },
-      ],
-    ),
+    rules: restrict(null, deviceGroups, deviceSelectors),
+  },
+  {
+    files: ['packages/device-*/src/screen/**/*.{ts,tsx}'],
+    rules: restrict(null, deviceGroups, [...deviceSelectors, ...literalSelectors]),
   },
   {
     files: ['packages/device-*/src/logic/**/*.{ts,tsx}'],
@@ -165,33 +270,27 @@ export default tseslint.config(
   },
   {
     files: ['packages/panel-kit/**/*.{ts,tsx}'],
-    rules: restrict(
-      'panel-kit',
-      [{ group: otherThanCore, message: 'panel-kit depends only on @cpt/core.' }],
-      [{ selector: dynamicOtherThanCore, message: 'panel-kit depends only on @cpt/core.' }],
-    ),
+    rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...literalSelectors]),
   },
   {
     files: ['apps/web/src/**/*.{ts,tsx}'],
     ignores: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict(
-      'web',
-      [{ group: content, message: 'Import aircraft and devices only through the registries.' }],
-      [
-        {
-          selector: dynamicContent,
-          message: 'Import aircraft and devices only through the registries.',
-        },
-        {
-          selector: globContent,
-          message: 'Import aircraft and devices only through the registries.',
-        },
-        ...colourLiterals,
-      ],
-    ),
+    rules: restrict('web', webGroups, [...webSelectors, ...literalSelectors]),
   },
   {
     files: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict('web', [], colourLiterals),
+    rules: restrict('web', [], literalSelectors),
+  },
+  {
+    files: ['apps/web/src/**/*.test.{ts,tsx}'],
+    rules: restrict('web', webGroups, [...webSelectors, ...colourLiterals]),
+  },
+  {
+    files: ['packages/panel-kit/**/*.test.{ts,tsx}'],
+    rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...colourLiterals]),
+  },
+  {
+    files: ['packages/device-*/src/screen/**/*.test.{ts,tsx}'],
+    rules: restrict(null, deviceGroups, [...deviceSelectors, ...colourLiterals]),
   },
 );
