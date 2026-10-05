@@ -301,6 +301,47 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('inexact-lever-target', () => {
+    const action = (control: string, position: unknown) =>
+      withItems('beforeStart', [
+        { type: 'action', control, position, text },
+        ...beforeStartItems.slice(1),
+      ]);
+
+    it('reports an in-between target on a continuous lever, naming procedure and item', () => {
+      const finding = only(action('throttle', 0.5), 'inexact-lever-target', 'throttle');
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('check item');
+      expect(finding.message).toContain('notches');
+    });
+
+    it.each([0, 1])('accepts the stop %s on a continuous lever', (value) => {
+      expect(ofCode(action('throttle', value), 'inexact-lever-target')).toEqual([]);
+    });
+
+    it('does not affect a notched lever', () => {
+      const aircraft = action('flaps', 'takeoff');
+      expect(ofCode(aircraft, 'inexact-lever-target')).toEqual([]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports an unknown position only, for a value outside the travel', () => {
+      const aircraft = action('throttle', 1.5);
+      expect(ofCode(aircraft, 'inexact-lever-target')).toEqual([]);
+      only(aircraft, 'unknown-position', 'throttle');
+    });
+
+    it('ignores an in-between initial, phase entry and check target', () => {
+      const aircraft = withEntry('parking', { throttle: 0.5 });
+      expect(ofCode(withControl('throttle', { initial: 0.5 }), 'inexact-lever-target')).toEqual([]);
+      expect(ofCode(aircraft, 'inexact-lever-target')).toEqual([]);
+      const check = withItems('beforeStart', [
+        { type: 'check', target: { control: 'throttle' }, condition: () => true, text },
+      ]);
+      expect(ofCode(check, 'inexact-lever-target')).toEqual([]);
+    });
+  });
+
   it('formats a finding with the aircraft, code and id', () => {
     const [finding] = validateAircraft(withPhase('parking', { image: '' }));
     const line = formatFinding(finding as Finding);
