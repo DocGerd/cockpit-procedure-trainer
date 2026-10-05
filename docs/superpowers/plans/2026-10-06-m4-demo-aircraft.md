@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md`, sections 1 (Success criteria), 3, 4 (all), 4.9, 7, 9 and 11 (M4 Demo aircraft). Content policy: `docs/content-policy.md`. M3 plan: `docs/superpowers/plans/2026-10-06-m3-web-shell.md` (waves 1–5, Decisions 1–15).
 
-**Issues:** #30 demo aircraft, #31 procedure walk-through test, #32 browser tests, #33 authoring guide (aircraft), #46 COM radio and transponder plus device authoring guide, and one new issue filed by the orchestrator (Task 4: install the devices in the demo aircraft).
+**Issues:** #30 demo aircraft, #31 procedure walk-through test, #32 browser tests, #33 authoring guide (aircraft), #46 COM radio and transponder plus device authoring guide, and #123 (Task 4: install the devices in the demo aircraft).
 
 ## Pre-flight checks
 
@@ -33,11 +33,11 @@
 
 - Everything in the M3 plan's Global Constraints applies (base `develop`, one issue per PR with `Closes #<n>`, fragments, `pr-selfreview` review with mutation checks, `merge-train`, tests first, minimal comments, the gh and hook rules, the gate before every push).
 - **Wave invariant across milestones:** M4 tasks run in M3's waves. No path appears under two issues of the same wave, M3 or M4. Each task's **Files** list is its complete allowlist; a task that needs another file stops and reports.
-- **M3 tests never hard-code demo content.** #30 rewrites the demo while M3 is in flight; any M3 test that asserts on the demo's breaker or procedure breaks. M3 tests use the registry or a test-local fixture aircraft. The orchestrator puts this line into every M3 brief from wave 3 on.
+- **M3 tests never hard-code demo content.** #30 rewrites the demo while M3 is in flight; any M3 test that asserts on the demo's breaker or procedure breaks. M3 tests use the registry or a test-local fixture aircraft. The orchestrator puts this line into every M3 brief from wave 1 on.
 - Aircraft and device content: own words, self-drawn SVGs, no manufacturer names, artwork or handbook text (`docs/content-policy.md`). Each package has a `README.md` with `## Source revision`, a `LICENSES.md` with one entry per image file, and devices a `## Not modelled` section matching their `notModelled` texts.
 - Aircraft refer to widgets and devices by id, never by import. `apps/web` imports aircraft only in `aircraft-registry.ts` and devices only in `device-registry.ts`.
 - Device screens use only `DeviceScreenProps` (from M3 #19) and panel-kit; every operable element is a native `<button>` with an accessible name, so M5's keyboard work never edits a device package. The bezel and the dark powered-off screen are M3 #45's `DeviceScreenFrame`; a screen draws its display contents only.
-- Fragments: #30, #31, #46, Task 4: `added`; #32: `added`; #33: `added`.
+- Fragments: #30, #31, #46, #123: `added`; #32: `added`; #33: `added`.
 
 ## Vocabulary
 
@@ -62,7 +62,7 @@ Release: none in M4. The combined v0.6.0 release is the M5 plan's last task.
 
 ```
 M3 #21 + #22 (wave 2) → #30
-#30 → #33
+#30 + M3 #20 (wave 4) → #33
 M3 #19 (wave 1) → #46
 #30 + #46 + M3 #45 (wave 5) → Task 4
 M3 complete + M5 #34, #36 + Task 4 → #32
@@ -77,10 +77,10 @@ M3's waves are repeated for the collision check. M5 tasks are listed for the sam
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1           | #19 (all manifests, lockfile, `web/src/{App.tsx,main.tsx,shell,theme,storage,trainer,styles}/**`, mount stubs), #95, #77, #118 | none                                                                                                                                                                                                                                                         |
 | 2           | #28 `web/src/{i18n,shell}/**`, `App.tsx` · #21 · #22 · #23 (panel-kit `controls`, `indicators`, `artwork`)                | **#31** `core/src/walkthrough/**`, `core/src/index.ts`, `web/src/procedure-walkthrough.test.ts` · **#46** `packages/device-com/**`, `packages/device-transponder/**`, `pnpm-lock.yaml`, `docs/adding-a-device.md`                                              |
-| 3           | #29 `web/src/errors/**` · #25 `web/src/checklist/**` · #24 `web/gallery.html`, `web/src/gallery/**`                      | **#30** `packages/aircraft-demo/**`, `web/src/aircraft-widgets.test.ts` · **M5 deps chore** `package.json`, `web/package.json`, `pnpm-lock.yaml`                                                                                                               |
-| 4           | #20 `web/src/panel/**`, `panel-kit/src/resolve/**`, stubs in `modes/`, `devices/` · #27 `web/src/outside-view/**`          | **#33** `docs/adding-an-aircraft.md`, `README.md`                                                                                                                                                                                                             |
-| 5           | #26 `web/src/modes/**` · #45 `web/src/devices/**`, `web/src/device-registry.ts`, `panel-kit/src/device-screen/**`          | **M5 #35** `panel-kit/src/controls/**`, `web/src/panel/**`, `web/src/styles/base.css`                                                                                                                                                                         |
-| 6           | —                                                                                                                       | **Task 4** `web/package.json`, `pnpm-lock.yaml`, `web/src/device-registry.ts`, `packages/aircraft-demo/**` · **M5 #34** `web/vite.config.ts`, `web/src/pwa/**`, `web/src/App.tsx`, `web/public/**`, `web/index.html` · **M5 #36** `panel-kit/src/{controls,indicators,artwork,device-screen}/**`, `web/src/{panel,modes,devices}/**` |
+| 3           | #29 `web/src/errors/**` · #25 `web/src/checklist/**` · #24 `web/gallery.html`, `web/src/gallery/**`                      | **#30** `packages/aircraft-demo/**`, `web/src/aircraft-widgets.test.ts` · **#124** (M5) `package.json`, `web/package.json`, `pnpm-lock.yaml`                                                                                                               |
+| 4           | #20 `web/src/panel/**`, `panel-kit/src/resolve/**`, stubs in `modes/`, `devices/` · #27 `web/src/outside-view/**`          | none                                                                                                                                                                                                                                                         |
+| 5           | #26 `web/src/modes/**` · #45 `web/src/devices/**`, `web/src/device-registry.ts`, `panel-kit/src/device-screen/**`          | **#33** `docs/adding-an-aircraft.md`, `README.md` · **M5 #35** `panel-kit/src/controls/**`, `web/src/panel/**`, `web/src/styles/base.css`                                                                                                                                                                       |
+| 6           | —                                                                                                                       | **#123** `web/package.json`, `pnpm-lock.yaml`, `web/src/device-registry.ts`, `packages/aircraft-demo/**` · **M5 #34** `web/vite.config.ts`, `web/src/pwa/**`, `web/src/App.tsx`, `web/public/**`, `web/index.html` · **M5 #36** `panel-kit/src/{controls,indicators,artwork,device-screen}/**`, `web/src/{panel,modes,devices}/**` |
 | 7           | —                                                                                                                       | **#32** `web/e2e/**`, `web/playwright.config.ts`, `web/tsconfig.json`, `package.json` (scripts only), `.github/workflows/ci.yml`, `eslint.config.js`                                                                                                           |
 | then        | —                                                                                                                       | release v0.6.0 (M5 plan Task 6)                                                                                                                                                                                                                                |
 
@@ -98,7 +98,7 @@ M3's waves are repeated for the collision check. M5 tasks are listed for the sam
 
 ### Task 1: Fictional demo aircraft (Closes #30) — lane 3
 
-**Files:** `packages/aircraft-demo/**` (sources, SVGs, tests, `README.md`, `LICENSES.md`), `apps/web/src/aircraft-widgets.test.ts`, `changelog.d/30.added.md`
+**Files:** `packages/aircraft-demo/**` (sources, SVGs, tests, `README.md`, `LICENSES.md`), `apps/web/src/aircraft-widgets.test.ts`, `changelog.d/30.added.md`, and any existing test already in `develop` that pins the old demo content (only to make it use the registry or a fixture; not a test owned by an issue of the current wave, which stops and reports instead)
 
 **Dependencies:** M3 #21 and #22 in `develop` (widget ids for the widget test). Respects M3 Decision 9 / #118.
 
@@ -119,7 +119,7 @@ M3's waves are repeated for the collision check. M5 tasks are listed for the sam
 - [ ] **Step 3: Package docs:** `README.md` with `## Source revision` ("fictional aircraft; no handbook"), `LICENSES.md` with one entry per SVG (drawn for this project, MIT).
 - [ ] **Step 4: Fragment:** `A fictional demo aircraft with a full panel, two views, two normal procedures and an alternator-failure procedure.`
 
-**Definition of done:** #30's three bullets each have a test; #118's registry test and the existing validation and session tests pass; no file outside the allowlist. No `ui-verifier` on this PR (no rendering code); the demo's look is checked by M3 #20's and #26's `ui-verifier` passes, which the orchestrator points at the new demo if #30 is in `develop` by then. PR with `Closes #30`, reviewed, in `develop`.
+**Definition of done:** #30's three bullets each have a test; #118's registry test and the existing validation and session tests pass; no file outside the allowlist; every pinned-content test #30 updated is listed in the PR description and the report. No `ui-verifier` on this PR (no rendering code); the demo's look is checked by M3 #20's and #26's `ui-verifier` passes, which the orchestrator points at the new demo if #30 is in `develop` by then. PR with `Closes #30`, reviewed, in `develop`.
 
 ---
 
@@ -160,11 +160,11 @@ M3's waves are repeated for the collision check. M5 tasks are listed for the sam
 
 ---
 
-### Task 4: Install the COM radio and transponder in the demo aircraft (new issue, filed by the orchestrator) — wave 6
+### Task 4: Install the COM radio and transponder in the demo aircraft (Closes #123) — wave 6
 
-The orchestrator files an M4 issue "Install the COM radio and transponder in the demo aircraft" (type:feature, area:aircraft) with the bullet moved from #46 ("A demo procedure includes a device item") plus "both screens render and operate in the panel", and edits #46's body to point to it.
+#123 (M4) carries the bullet moved from #46 ("A demo procedure includes a device item") plus "both screens render and operate in the panel", and edits #46's body to point to it.
 
-**Files:** `apps/web/package.json` (two workspace dependencies), `pnpm-lock.yaml`, `apps/web/src/device-registry.ts`, `packages/aircraft-demo/**`, `changelog.d/<n>.added.md`
+**Files:** `apps/web/package.json` (two workspace dependencies), `pnpm-lock.yaml`, `apps/web/src/device-registry.ts`, `packages/aircraft-demo/**`, `changelog.d/123.added.md`
 
 **Dependencies:** #30, #46, M3 #45 (wave 5: `deviceScreens`, `DeviceLayer`).
 
@@ -172,15 +172,15 @@ The orchestrator files an M4 issue "Install the COM radio and transponder in the
 - [ ] **Step 2: Implement:** installs in the demo (console view or panel, bus, altitude input to the transponder); register both devices and screens.
 - [ ] **Step 3: Fragment:** `The demo aircraft has a COM radio and a transponder, with a procedure that uses them.`
 
-**Definition of done:** the issue's bullets have tests; `ui-verifier` operates both screens in the panel at tablet and desktop, light and dark, including the dark powered-off screen. PR with `Closes #<n>`, reviewed, in `develop`.
+**Definition of done:** the issue's bullets have tests; `ui-verifier` operates both screens in the panel at tablet and desktop, light and dark, including the dark powered-off screen. PR with `Closes #123`, reviewed, in `develop`.
 
 ---
 
-### Task 5: Authoring guide: adding an aircraft (Closes #33) — lane 4
+### Task 5: Authoring guide: adding an aircraft (Closes #33) — lane 5
 
 **Files:** `docs/adding-an-aircraft.md` (create), `README.md` (one link line under Development), `changelog.d/33.added.md`
 
-**Dependencies:** #30 (the reference), #46 (links to the device guide). M3 #23 (artwork renderer behaviour) is in `develop` from wave 2.
+**Dependencies:** #30 (the reference), #46 (links to the device guide), M3 #20 (wave 4: the resolver that picks a generic widget or artwork, which the appearance section describes).
 
 - [ ] **Step 1: Write** the guide in this order: create the package (`package.json`, `tsconfig.json`, depends on `@cpt/core` only), the registry line, controls (kinds, positions, the lever rule of M3 Decision 9), indicators and selectors, views and placements, systems from core's blocks, failures, phases and entry snapshots, procedures (item kinds, `holdUntil`, emergency failure), appearance (generic widget ids and options; artwork layers: face, needle, per-position images, travel path), installing devices (link to `docs/adding-a-device.md`), content policy (README sections, `LICENSES.md`), and the checks that must pass (validator, walk-through, `pnpm test`). Code excerpts come from the demo by file reference, not copied wholesale.
 - [ ] **Step 2: Verify:** the reviewer follows the guide in a scratch worktree, creates a minimal `packages/aircraft-scratch` with one view, one control and one procedure, registers it, and runs `pnpm test`; the validator and walk-through pass. The scratch work is not committed; the reviewer reports each step where the guide was unclear as a finding.
@@ -208,7 +208,7 @@ The orchestrator files an M4 issue "Install the COM radio and transponder in the
 
 ## Decisions
 
-1. **#46 is split.** #46 keeps the device packages and the device guide and starts in lane 2; a new issue (Task 4) installs both devices in the demo, registers them, and takes #46's bullet "a demo procedure includes a device item". Reason: the install needs `device-registry.ts` (M3 #45, wave 5) and `packages/aircraft-demo/**` (#30); keeping #46 whole would push all device work behind M3 wave 5. Same precedent as M3's Task 4.
+1. **#46 is split.** #46 keeps the device packages and the device guide and starts in lane 2; #123 (Task 4) installs both devices in the demo, registers them, and takes #46's bullet "a demo procedure includes a device item". Reason: the install needs `device-registry.ts` (M3 #45, wave 5) and `packages/aircraft-demo/**` (#30); keeping #46 whole would push all device work behind M3 wave 5. Same precedent as M3's Task 4.
 2. **The walk-through driver is a core function**, `walkProcedure` in `packages/core/src/walkthrough/`, and the registry-wide test lives in `apps/web/src/` next to the validation test. Reason: core cannot import aircraft; a pure driver is testable with core fixtures alone and lets authors run one procedure in their own package tests. It walks `normal` procedures only, as the spec says; emergencies are covered by the aircraft's scenario tests.
 3. **The demo covers every control kind and every generic widget at least once,** with two views. Reason: M3's renderer, modes and M5's touch and keyboard work all need a real aircraft that exercises every widget; the gallery is development-only.
 4. **Generic widget ids are checked by a registry test in `apps/web`** (`aircraft-widgets.test.ts`). Reason: an aircraft cannot import panel-kit, and an unknown id silently falls back to the kind's default, which the validator cannot see.

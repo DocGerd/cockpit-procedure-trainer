@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md`, sections 1 (Success criteria: installs on a tablet, works offline), 2 (Hosting, Devices), 5 (Modes, Screen), 6.2, 9, 10 (Hosting) and 12 (service worker scope). M3 plan: `docs/superpowers/plans/2026-10-06-m3-web-shell.md`. M4 plan: `docs/superpowers/plans/2026-10-06-m4-demo-aircraft.md` (combined wave table).
 
-**Issues:** #34 PWA, #35 touch polish, #36 accessibility, plus two issues filed by the orchestrator: Task 3 (add the M4/M5 dependencies) and Task 5 (owner verification on a real tablet).
+**Issues:** #34 PWA, #35 touch polish, #36 accessibility, #124 (Task 3: add the M4/M5 dependencies), and #125 (Task 5: owner verification on a real tablet, no milestone).
 
 ## Pre-flight checks
 
@@ -32,7 +32,7 @@
 - Page zoom stays enabled; only the panel area sets `touch-action: none`. The viewport meta is not changed to block zoom.
 - Every interaction is reachable by mouse, touch and keyboard; none depends on hover.
 - Manifest and theme colours come from `tokens.css` read at build time, never a literal in `vite.config.ts` (Decision 3).
-- Fragments: #34, #35, #36: `added`; Task 3: `No changelog: dependencies for later tasks, no user-visible effect`; Task 5: no PR.
+- Fragments: #34, #35, #36: `added`; #124: `No changelog: dependencies for later tasks, no user-visible effect`; Task 5: no PR.
 
 ## Vocabulary
 
@@ -59,7 +59,7 @@ M3 #20 (wave 4) → #35
 #35 + M3 wave 5 → #36
 M3 complete + Task 3 → #34
 #34 + #36 + M4 Task 4 → M4 #32
-everything → Task 5 (owner, on the UAT build) → Task 6
+everything → Task 6 (release PR opened) → #125 (owner, on UAT) → owner merges the release PR
 ```
 
 ## Waves
@@ -68,13 +68,13 @@ The combined M3/M4/M5 table is in the M4 plan. M5's entries:
 
 | Wave / lane       | M5 issue | Files (beyond each issue's fragment)                                                                                                                                                         |
 | ----------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| lane 3 (M3 wave 3) | Task 3   | `package.json` (`@playwright/test` dev), `apps/web/package.json` (`vite-plugin-pwa` dev), `pnpm-lock.yaml`                                                                                   |
+| lane 3 (M3 wave 3) | #124     | `package.json` (`@playwright/test` dev), `apps/web/package.json` (`vite-plugin-pwa` dev), `pnpm-lock.yaml`                                                                                   |
 | lane 5 (M3 wave 5) | #35      | `packages/panel-kit/src/controls/**`, `apps/web/src/panel/**`, `apps/web/src/styles/base.css`                                                                                                |
 | 6                 | #34      | `apps/web/vite.config.ts`, `apps/web/src/pwa/**`, `apps/web/src/App.tsx`, `apps/web/public/**`, `apps/web/index.html`                                                                        |
 | 6                 | #36      | `packages/panel-kit/src/{controls,indicators,artwork,device-screen}/**`, `apps/web/src/{panel,modes,devices}/**`                                                                              |
-| 6                 | (M4 Task 4) | `apps/web/package.json`, `pnpm-lock.yaml`, `apps/web/src/device-registry.ts`, `packages/aircraft-demo/**`                                                                               |
+| 6                 | (M4 #123)  | `apps/web/package.json`, `pnpm-lock.yaml`, `apps/web/src/device-registry.ts`, `packages/aircraft-demo/**`                                                                               |
 | 7                 | (M4 #32) | browser tests, including the offline reload                                                                                                                                                  |
-| after 7           | Task 5   | none (owner, on UAT)                                                                                                                                                                         |
+| after release PR  | #125     | none (owner, on UAT)                                                                                                                                                                         |
 | then              | Task 6   | `CHANGELOG.md`, `changelog.d/**`, `docs/milestones/m3-web-shell.md`, `docs/milestones/m4-demo-aircraft.md`, `docs/milestones/m5-offline-and-tablet.md`                                       |
 
 Lane 5 check: wave 5's M3 files are `modes/**`, `devices/**`, `device-registry.ts` and `panel-kit/src/device-screen/**`; #35's are disjoint. #26 and #45 render inside `PanelArea`, so they land inside #35's zoom wrapper without editing `panel/`.
@@ -89,11 +89,11 @@ Lane 5 check: wave 5's M3 files are `modes/**`, `devices/**`, `device-registry.t
 
 **Interfaces (produced):** `PanelArea` gains a zoom container: `usePanelZoom()` → `{ scale, offset, reset }`; scale is bounded (a named constant pair), pan is clamped so the panel never leaves the viewport. Widgets get hit slop to `--size-target`.
 
-- [ ] **Step 1: Failing tests** (jsdom, synthesized pointer events): two pointers moving apart on the panel raise the scale, together lower it, within bounds; one-pointer drag on an empty panel area pans when zoomed and does nothing at scale 1; a second pointer landing while a momentary control is pressed cancels that press (`onRelease`) before zooming; a press-and-hold that drifts within the control's hit slop keeps holding (pointer capture), and only lifting or cancelling releases; the panel area has `touch-action: none` and no other element does; the panel suppresses the context menu, text selection and touch callout; the reset button restores scale 1; every control's hit area is at least `--size-target` even when its placement rect is smaller.
+- [ ] **Step 1: Failing tests** (jsdom, synthesized pointer events): two pointers moving apart on the panel raise the scale, together lower it, within bounds; one-pointer drag on an empty panel area pans when zoomed and does nothing at scale 1; a second pointer landing while a momentary control is pressed cancels that press (`onRelease`) before zooming; a press-and-hold that drifts within the control's hit slop keeps holding (pointer capture), and only lifting or cancelling releases; the panel area has `touch-action: none` and no other element does; the panel suppresses the context menu, text selection and touch callout; the reset button restores scale 1; at a scale other than 1, an Explore tap still selects the control under the finger and opens its details (M3 #26), and the Guided outline (`PanelOverlay`) and the device screens (`DeviceLayer`) stay aligned with their placement rects; a one-pointer drag that starts on a control operates that control and does not pan; every control's hit area is at least `--size-target` even when its placement rect is smaller.
 - [ ] **Step 2: Implement** with pointer events, no gesture library (Decision 5).
 - [ ] **Step 3: Fragment:** `Touch polish: larger hit areas, reliable press-and-hold, pinch zoom and pan on the panel.`
 
-**Definition of done:** #35's first two bullets have tests; `ui-verifier` with touch emulation at tablet size operates the smallest demo control, holds the starter, and zooms and pans the panel without the page moving. The third bullet ("verified on a real tablet") moves to Task 5 (Decision 8). PR with `Closes #35`, reviewed, in `develop`.
+**Definition of done:** #35's first two bullets have tests; `ui-verifier` with touch emulation at tablet size operates the smallest demo control, holds the starter, and zooms and pans the panel without the page moving. The third bullet ("verified on a real tablet") moves to #125 (Task 5, Decision 8). PR with `Closes #35`, reviewed, in `develop`.
 
 ---
 
@@ -125,9 +125,7 @@ Accessible names are the localized control or indicator names (resolved strings,
 
 ---
 
-### Task 3: Add the M4/M5 dependencies (new issue, filed by the orchestrator) — lane 3
-
-The orchestrator files "Add the Playwright and PWA plugin dependencies" (type:chore, area:web) in M5.
+### Task 3: Add the Playwright and PWA plugin dependencies (Closes #124) — lane 3
 
 **Files:** `package.json` (`@playwright/test` in `devDependencies`), `apps/web/package.json` (`vite-plugin-pwa` in `devDependencies`), `pnpm-lock.yaml`. No code, no config.
 
@@ -136,7 +134,7 @@ The orchestrator files "Add the Playwright and PWA plugin dependencies" (type:ch
 - [ ] **Step 1:** `pnpm add` both; `pnpm install --frozen-lockfile` and the full gate pass; `pnpm build` output is unchanged (the plugin is not used yet).
 - [ ] **Step 2:** PR body: `No changelog: dependencies for later tasks, no user-visible effect`, and the peer range check of pre-flight (a).
 
-**Definition of done:** gate green; PR with `Closes #<n>`, reviewed, in `develop`.
+**Definition of done:** gate green; PR with `Closes #124`, reviewed, in `develop`.
 
 ---
 
@@ -156,21 +154,21 @@ The orchestrator files "Add the Playwright and PWA plugin dependencies" (type:ch
 
 ---
 
-### Task 5: Verification on a real tablet (new owner-only issue, filed by the orchestrator) — after wave 7
+### Task 5: Verification on a real tablet (#125, owner only, no milestone) — after the release PR is open
 
-The orchestrator files "Verify on a real tablet: touch, zoom, install, offline" (type:chore) in M5, assigned to the owner, with #35's third bullet and spec success criterion 4. No PR.
+#125 carries #35's third bullet and spec success criterion 4. No PR, no agent work.
 
-**Checks for the owner, on the UAT site after wave 7 is in `develop`:** smallest controls operable by finger; starter held without the page scrolling or a callout; pinch zoom and pan on the panel only; install to the home screen; airplane mode, start from the home screen, run a procedure; deploy a newer `develop` and see the update prompt.
+**Checks for the owner, on the UAT site (wave 7 in `develop`):** smallest controls operable by finger; starter held without the page scrolling or a callout; pinch zoom and pan on the panel only; install to the home screen; airplane mode, start from the home screen, run a procedure; deploy a newer `develop` and see the update prompt.
 
-**Definition of done:** the owner closes the issue, or moves it out of M5. Until then `milestone-release` cannot run (it requires every issue of the milestone closed), the same as M3's #94.
+**Definition of done:** the owner closes #125. It has no milestone, so it does not block `milestone-release` or the release cut; it gates only the owner's merge of the release PR.
 
 ---
 
 ### Task 6: Release v0.6.0 (M3 + M4 + M5)
 
-Run the `milestone-release` skill once every issue of M3, M4 and M5 is closed, as one cut: whole-milestone review across the three milestones, fragment fold into one `## v0.6.0` section on `release/v0.6.0`, one summary per milestone (`docs/milestones/m3-web-shell.md`, `m4-demo-aircraft.md`, `m5-offline-and-tablet.md`), release PR `develop` to `main`. The owner reviews and merges it. This supersedes the M3 plan's Task 18 (release v0.4.0).
+Run the `milestone-release` skill once every issue of M3, M4 and M5 is closed, as one cut: whole-milestone review across the three milestones, fragment fold into one `## v0.6.0` section on `release/v0.6.0`, one summary per milestone (`docs/milestones/m3-web-shell.md`, `m4-demo-aircraft.md`, `m5-offline-and-tablet.md`), release PR `develop` to `main`. The owner reviews and merges it. This supersedes the M3 plan's Task 18 (release v0.4.0); the owner confirmed the single v0.6.0 release.
 
-**Blocked by:** #94 (M3, owner only) and Task 5 (owner only), unless the owner closes them or moves them out.
+**Blocked by:** nothing outside M3–M5. The owner's merge of the release PR waits for #125; the release PR lists #125's checks under how to verify.
 
 The summary carries what shipped, the Decisions of the three plans and those made in PRs, the open questions, and how to verify: the local gate, `pnpm test:e2e`, `pnpm dev` and the gallery, the UAT site including install and offline.
 
@@ -187,12 +185,11 @@ The summary carries what shipped, the Decisions of the three plans and those mad
 5. **Pinch zoom and pan with pointer events, no gesture library**, applied to the panel's content box only, page zoom left enabled. Reason: no new dependency; the panel already routes all input through pointer events (M3 #21); keeping page zoom serves accessibility.
 6. **Keyboard model:** positioned controls are ARIA sliders with position names as value text, momentary controls are buttons held by Space or Enter, guards are a separate button. Reason: one consistent pattern for every multi-position control; Home/End give exact lever stops for M3 Decision 9.
 7. **No axe or similar library;** roles, names and values are asserted with Testing Library queries, and the browser tests select by role. Reason: no dependency, and the queries fail exactly where assistive technology would.
-8. **"Verified on a real tablet" moves from #35 to an owner-only issue (Task 5)**, together with the install-and-offline success criterion. Reason: no agent has a tablet; keeping it in #35 would leave a merged PR's issue open with nothing an agent can do.
+8. **"Verified on a real tablet" moves from #35 to the owner-only #125 (Task 5, no milestone)**, together with the install-and-offline success criterion. Reason: no agent has a tablet; keeping it in #35 would leave a merged PR's issue open with nothing an agent can do.
 9. **Dependencies are added early in one chore PR (Task 3)** so wave 6 holds three tasks instead of two waves.
 
 ## Open questions for the owner
 
-1. **NEEDS OWNER: real-tablet verification (Task 5).** Touch, pinch zoom, install and offline on a real device, on the UAT site. Blocks the release cut until closed or moved.
-2. **NEEDS OWNER: #94** (brand-bundle check, M3) still blocks the release cut; unchanged from the M3 plan.
-3. **NEEDS OWNER (confirm): one release v0.6.0 for M3, M4 and M5.** The decisions table's Versioning row ("Mn releases as v0.(n+1).0") still holds for M5, but v0.4.0 and v0.5.0 are never cut and the M3 plan's Task 18 is superseded. The production site jumps from v0.3.0 to v0.6.0.
-4. Production gets its first service worker with v0.6.0. A pilot who visited production before keeps the old page until the first load after the release, which installs the worker; from then on updates prompt.
+1. **NEEDS OWNER: real-tablet verification (#125).** Touch, pinch zoom, install and offline on a real device, on the UAT site. Gates the owner's merge of the release PR, not the release cut.
+2. One release v0.6.0 for M3, M4 and M5, confirmed by the owner. The Versioning row ("Mn releases as v0.(n+1).0") still holds for M5; v0.4.0 and v0.5.0 are never cut, and production goes from v0.3.0 to v0.6.0.
+3. Production gets its first service worker with v0.6.0. A pilot who visited production before keeps the old page until the first load after the release, which installs the worker; from then on updates prompt.
