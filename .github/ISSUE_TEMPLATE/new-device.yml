@@ -1,0 +1,19 @@
+name: New avionics device
+description: Add a device package
+labels: ['type:feature', 'area:device']
+body:
+  - type: input
+    id: unit
+    attributes: { label: Manufacturer and model }
+    validations: { required: true }
+  - type: input
+    id: manual
+    attributes: { label: Manual revision the logic will follow }
+    validations: { required: true }
+  - type: textarea
+    id: functions
+    attributes: { label: Functions to model }
+    validations: { required: true }
+  - type: textarea
+    id: excluded
+    attributes: { label: Functions not modelled }
