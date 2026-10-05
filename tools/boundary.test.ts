@@ -1,7 +1,12 @@
 import { ESLint } from 'eslint';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const eslint = new ESLint();
+const root = resolve(import.meta.dirname, '..');
+const eslint = new ESLint({ cwd: root });
 
 async function count(ruleId: string, filePath: string, code: string): Promise<number> {
   const [result] = await eslint.lintText(code, { filePath });
@@ -14,12 +19,38 @@ const restrictedSyntax = (filePath: string, code: string) =>
   count('no-restricted-syntax', filePath, code);
 
 describe('package boundaries', () => {
+  it('loads the config from any working directory', () => {
+    const config = pathToFileURL(resolve(root, 'eslint.config.js')).href;
+    expect(() =>
+      execFileSync(process.execPath, ['--input-type=module', '-e', `await import('${config}')`], {
+        cwd: tmpdir(),
+        stdio: 'pipe',
+      }),
+    ).not.toThrow();
+  });
+
   it('rejects UI imports in core', async () => {
     expect(await restricted('packages/core/src/x.ts', "import 'react';\n")).toBe(1);
   });
 
   it('rejects asset imports in core', async () => {
     expect(await restricted('packages/core/src/x.ts', "import './panel.png';\n")).toBe(1);
+  });
+
+  it.each([
+    ['./panel.jpeg'],
+    ['./click.mp3'],
+    ['./panel.css?raw'],
+    ['./panel.svg?url'],
+    ['./panel.svg?url&no-inline'],
+    ['./panel.css?raw&inline'],
+    ['./panel.svg?url#frag'],
+  ])('rejects asset import %s in core', async (path) => {
+    expect(await restricted('packages/core/src/x.ts', `import '${path}';\n`)).toBe(1);
+  });
+
+  it('allows a core import whose name merely ends in raw', async () => {
+    expect(await restricted('packages/core/src/x.ts', "import './draw';\n")).toBe(0);
   });
 
   it('rejects panel-kit imports in an aircraft', async () => {

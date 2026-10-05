@@ -6,8 +6,11 @@
 2. Branch from `develop`: `feat/<issue>-<slug>`, `fix/…`, `chore/…`, `docs/…` or `ci/…`.
 3. Add a changelog fragment `changelog.d/<issue>.<category>.md` (categories:
    `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
-   issue, name it `+<slug>.<category>.md`.
-4. Open a pull request against `develop` whose description contains `Closes #<issue>`.
+   issue, name it `+<slug>.<category>.md`. Dependabot pull requests are exempt:
+   they cannot add a fragment, and a pushed commit stops Dependabot rebasing its
+   branch.
+4. Open a pull request against `develop` whose description contains `Closes #<issue>` (not
+   required for Dependabot pull requests, which have no issue).
 5. `develop` and `main` accept changes only through pull requests with a green
    `check` job and all review threads resolved. `develop` takes squash merges, except a `chore/backmerge`
    PR (`main` into `develop`), which uses a merge commit.
@@ -55,6 +58,9 @@ UI changes also need a pass in a real browser at tablet and desktop width.
   and devices only in `src/device-registry.ts`.
 
 ESLint enforces these.
+
+Colours, type and spacing come only from `apps/web/src/styles/tokens.css`. ESLint and Stylelint enforce
+this in `apps/web/src` (`pnpm lint` runs both); `tools/design-literals.test.ts` proves it.
 
 ## Aircraft content
 

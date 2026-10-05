@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Procedure summary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B4046}a:hover{color:#14161A}
+</style>
+</helmet>
+<div style="min-height: 860px; box-sizing: border-box; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 8px 24px; border-bottom: 1px solid #DCE0E4; background: #FFFFFF">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+<svg viewBox="0 0 100 100" width="26" height="26" aria-hidden="true" style="color: {{accent}}"><path fill="currentColor" d="M50 17.09 L69.87 51.5 L30.13 51.5 Z"></path><path fill="currentColor" d="M26.96 57 L73.04 57 L88 82.91 L12 82.91 Z"></path></svg>
+<div style="font-weight: 600; font-size: 16px; letter-spacing: -0.02em">Procedure Trainer</div>
+</div>
+<div style="flex-grow: 1"></div>
+<button type="button" aria-label="Language: English. Switch to German" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer">EN</button>
+<button type="button" aria-label="Switch to dark theme" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Dark</button>
+</header>
+
+<div style="width: 100%; max-width: 840px; margin: 0 auto; padding: 48px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 32px">
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Demo aircraft · Practice</div>
+<h1 style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 600; letter-spacing: -0.02em">Before engine start complete</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Items completed</div>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 36px; line-height: 40px; font-weight: 500">9 / 9</div>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Deviations</div>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 36px; line-height: 40px; font-weight: 500; color: #9A6B1A">2</div>
+</div>
+</div>
+
+<section aria-label="Deviations" style="display: flex; flex-direction: column; gap: 12px">
+<h2 style="margin: 0; font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -0.02em">What differed from the checklist</h2>
+<ol style="list-style: none; margin: 0; padding: 0; background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 10px; overflow: hidden">
+<li style="display: flex; flex-wrap: wrap; gap: 16px; padding: 16px 20px">
+<div style="width: 96px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">During item 4</div>
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="font-weight: 600">Avionics switched on</div>
+<div style="color: #3B4046">The current item was Master switch. Avionics stay off until after engine start.</div>
+</div>
+</li>
+<li style="display: flex; flex-wrap: wrap; gap: 16px; padding: 16px 20px; border-top: 1px solid #E6E9EC">
+<div style="width: 96px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">Item 6</div>
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="font-weight: 600">Circuit breakers confirmed, one was pulled</div>
+<div style="color: #3B4046">The item was ticked while its condition was not met.</div>
+</div>
+</li>
+</ol>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="Main.dc.html" style="min-height: 48px; padding: 0 24px; box-sizing: border-box; border-radius: 6px; background: {{accent}}; color: #FFFFFF; font-size: 16px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center">Next: Engine start</a>
+<a href="Main.dc.html" style="min-height: 48px; padding: 0 24px; box-sizing: border-box; border: 1px solid currentColor; border-radius: 6px; color: {{accent}}; font-size: 16px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center">Repeat this procedure</a>
+<a href="Picker.dc.html" style="min-height: 48px; padding: 0 16px; box-sizing: border-box; color: #3B4046; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center">Back to selection</a>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#6A57C4","options":["#6A57C4","#0F7C72","#2C6CB0"]},"$preview":{"width":1280,"height":860}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#6A57C4' };
+}
+}
+</script>
+</body>
+</html>

@@ -1,14 +1,28 @@
 import js from '@eslint/js';
 import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
 import tseslint from 'typescript-eslint';
 
 const ui = ['react', 'react/*', 'react-dom', 'react-dom/*'];
-const assets = ['*.css', '*.svg', '*.png', '*.jpg', '*.webp'];
+const assets = [
+  '*.css',
+  '*.svg',
+  '*.png',
+  '*.jpg',
+  '*.jpeg',
+  '*.gif',
+  '*.webp',
+  '*.avif',
+  '*.mp3',
+  '*.wav',
+  '*.ogg',
+];
+const assetQuery = '\\?(raw|url)([&#]|$)';
 const content = ['@cpt/aircraft-*', '@cpt/device-*'];
 const otherThanCore = ['@cpt/*', '!@cpt/core'];
 
 const workspaceDirs = ['packages', 'apps'].flatMap((root) =>
-  readdirSync(root, { withFileTypes: true })
+  readdirSync(resolve(import.meta.dirname, root), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name),
 );
@@ -30,6 +44,14 @@ const dynamicOtherThanCore = dynamicSource(`^@cpt${slash}(?!core$)`);
 const dynamicContent = dynamicSource(`^@cpt${slash}(aircraft|device)-`);
 const globContent =
   'CallExpression[callee.object.type="MetaProperty"][callee.property.name="glob"]:has(Literal[value=/(aircraft|device)-/])';
+
+const hexColour = '#[0-9a-fA-F]{3,8}\\b';
+const colourFunction = '\\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\\(';
+const colourMessage = 'Colours come only from apps/web/src/styles/tokens.css.';
+const colourLiterals = [hexColour, colourFunction].flatMap((pattern) => [
+  { selector: `Literal[value=/${pattern}/]`, message: colourMessage },
+  { selector: `TemplateElement[value.raw=/${pattern}/]`, message: colourMessage },
+]);
 
 const restrict = (own, groups, selectors = []) => ({
   'no-restricted-imports': [
@@ -67,6 +89,10 @@ export default tseslint.config(
           group: [...ui, ...assets, ...otherThanCore],
           message:
             'core is plain data and pure functions: no UI, assets or other workspace packages.',
+        },
+        {
+          regex: assetQuery,
+          message: 'core is plain data and pure functions: no assets.',
         },
       ],
       [{ selector: dynamicOtherThanCore, message: 'core imports no other workspace package.' }],
@@ -110,11 +136,12 @@ export default tseslint.config(
           selector: globContent,
           message: 'Import aircraft and devices only through the registries.',
         },
+        ...colourLiterals,
       ],
     ),
   },
   {
     files: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
-    rules: restrict('web', []),
+    rules: restrict('web', [], colourLiterals),
   },
 );

@@ -4,9 +4,10 @@
 # Never blocks the tool: every path out of here exits 0.
 
 file=$(jq -r '.tool_input.file_path // empty')
-[ -n "$file" ] && [ -n "${CLAUDE_PROJECT_DIR:-}" ] || exit 0
+project=${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null)}
+[ -n "$file" ] && [ -n "$project" ] || exit 0
 
-root=$(realpath -e -- "$CLAUDE_PROJECT_DIR" 2>/dev/null) || exit 0
+root=$(realpath -e -- "$project" 2>/dev/null) || exit 0
 file=$(realpath -e -- "$file" 2>/dev/null) || exit 0
 [ -n "$root" ] && [ -f "$file" ] || exit 0
 

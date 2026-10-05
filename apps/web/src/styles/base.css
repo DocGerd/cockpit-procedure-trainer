@@ -1,0 +1,19 @@
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.uat-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-eyebrow);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-pill);
+}
