@@ -36,7 +36,6 @@ lower-case kebab form, for example `m2-core-engine`.
 6. Give the owner the release PR URL and the open questions.
 7. In the next session, after the owner's merge: confirm tag and Release exist
    and close the milestone. Open a PR `main` to `develop` (branch
-   `chore/backmerge`) only if `git diff --stat origin/develop origin/main`
-   prints changes, which means a hotfix landed on `main`. The release itself
-   leaves only a commit on `main` that `develop` lacks, with no change in
-   content, so it needs no backmerge.
+   `chore/backmerge`) only if `git log --max-parents=1 origin/develop..origin/main`
+   prints commits: it excludes the release's own merge commit, so anything left
+   is a hotfix.
