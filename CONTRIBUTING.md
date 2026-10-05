@@ -3,9 +3,31 @@
 ## Flow
 
 1. Pick or open an issue.
-2. Branch from `main`: `feat/<issue>-<slug>`, `fix/…`, `docs/…` or `chore/…`.
-3. Open a pull request whose description contains `Closes #<issue>`.
-4. `main` accepts changes only through pull requests with a green `check` job.
+2. Branch from `develop`: `feat/<issue>-<slug>`, `fix/…`, `chore/…`, `docs/…` or `ci/…`.
+3. Add a changelog fragment `changelog.d/<issue>.<category>.md` (categories:
+   `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
+   issue, name it `+<slug>.<category>.md`.
+4. Open a pull request against `develop` whose description contains `Closes #<issue>`.
+5. `develop` and `main` accept changes only through pull requests with a green
+   `check` job and all review threads resolved. `develop` takes squash merges.
+
+## Releases
+
+`develop` is the default branch and feeds the UAT site under `/uat/`. `main`
+holds released state and feeds the production site.
+
+1. A `release/vX.Y.Z` branch folds the fragments into `CHANGELOG.md` and merges
+   into `develop`.
+2. A release pull request `develop` to `main` is opened and merged with a merge
+   commit by the owner. Nobody else, and no agent, merges into `main`.
+3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
+   `vX.Y.Z` and the GitHub Release.
+
+Versions are semantic and below 1.0: milestone Mn is released as v0.(n+1).0.
+
+## Machine prerequisites
+
+Node 24, pnpm, `gh` and `jq`. The Claude Code formatting hook uses `jq`.
 
 ## Checks
 
