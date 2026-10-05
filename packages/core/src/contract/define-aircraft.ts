@@ -7,7 +7,8 @@ export function defineAircraft<
   const I extends string,
   const F extends string,
   const P extends string,
->(definition: AircraftDefinition<S, CT, I, F, P>): Aircraft {
+  const V extends string = string,
+>(definition: AircraftDefinition<S, CT, I, F, P, V>): Aircraft {
   // The type parameters only constrain the input; the stored value is the erased Aircraft.
   return { ...definition, contractVersion: CONTRACT_VERSION } as unknown as Aircraft;
 }
