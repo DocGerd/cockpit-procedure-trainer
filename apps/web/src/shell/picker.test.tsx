@@ -1,0 +1,133 @@
+// @vitest-environment jsdom
+import type { Aircraft } from '@cpt/core';
+import { cleanup, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { aircraftRegistry } from '../aircraft-registry';
+import { ThemeProvider } from '../theme';
+import { TrainerProvider, useTrainer } from '../trainer';
+import type { Trainer } from '../trainer';
+import { Shell } from './Shell';
+
+vi.mock('../aircraft-registry', async (importOriginal) => {
+  const { aircraftRegistry } = await importOriginal<typeof import('../aircraft-registry')>();
+  const first = aircraftRegistry[0] as Aircraft;
+  const base = Object.values(first.procedures)[0];
+  if (!base) throw new Error('The first aircraft needs a procedure');
+  const second: Aircraft = {
+    ...first,
+    id: 'second',
+    name: { de: 'Zweites Flugzeug', en: 'Second aircraft' },
+    procedures: {
+      routine: { ...base, title: { de: 'Routine', en: 'Routine check' } },
+      fire: {
+        title: { de: 'Feuer', en: 'Engine fire' },
+        type: 'emergency',
+        failure: 'fire',
+        startPhase: base.startPhase,
+        items: base.items,
+      },
+    },
+  };
+  return { aircraftRegistry: [first, second] };
+});
+
+const [first, second] = aircraftRegistry as [Aircraft, Aircraft];
+
+let trainer: Trainer;
+function Probe() {
+  trainer = useTrainer();
+  return null;
+}
+
+function renderPicker() {
+  return render(
+    <ThemeProvider>
+      <TrainerProvider>
+        <Probe />
+        <Shell />
+      </TrainerProvider>
+    </ThemeProvider>,
+  );
+}
+
+const aircraftSection = () => screen.getByRole('region', { name: 'Aircraft' });
+const procedureSection = () => screen.getByRole('region', { name: 'Procedure' });
+const procedureButtons = () =>
+  within(procedureSection())
+    .getAllByRole('button')
+    .filter((button) => button.hasAttribute('aria-pressed'));
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+afterEach(() => {
+  cleanup();
+});
+
+describe('aircraft and procedure picker', () => {
+  it('lists exactly the registry aircraft', () => {
+    renderPicker();
+    const buttons = within(aircraftSection()).getAllByRole('button');
+    expect(buttons).toHaveLength(aircraftRegistry.length);
+    aircraftRegistry.forEach((aircraft, index) => {
+      expect(buttons[index]?.textContent).toContain(aircraft.name.en);
+    });
+    expect(buttons[0]?.getAttribute('aria-pressed')).toBe('true');
+    expect(buttons[1]?.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('lists the chosen aircraft procedures, grouped by type', async () => {
+    renderPicker();
+    expect(procedureButtons().map((button) => button.textContent)).toEqual(
+      Object.values(first.procedures).map((procedure) =>
+        expect.stringContaining(procedure.title.en),
+      ),
+    );
+    await userEvent.click(
+      within(aircraftSection()).getByRole('button', { name: new RegExp(second.name.en) }),
+    );
+    expect(trainer.aircraft).toBe(second);
+    const titles = procedureButtons().map((button) => button.textContent);
+    expect(titles).toEqual([
+      expect.stringContaining('Routine check'),
+      expect.stringContaining('Engine fire'),
+    ]);
+    const emergency = within(procedureSection()).getByRole('group', { name: 'Emergency' });
+    expect(within(emergency).getByRole('button', { name: /Engine fire/ })).toBeTruthy();
+    const normal = within(procedureSection()).getByRole('group', { name: 'Normal' });
+    expect(within(normal).queryByRole('button', { name: /Engine fire/ })).toBeNull();
+  });
+
+  it('offers Guided and Practice as modes and Free explore as a separate button', () => {
+    renderPicker();
+    const modes = within(screen.getByRole('group', { name: 'Mode' })).getAllByRole('radio');
+    expect(modes.map((radio) => radio.getAttribute('value'))).toEqual(['guided', 'practice']);
+    expect(screen.getByRole('radio', { name: /Guided/ })).toHaveProperty('checked', true);
+    expect(screen.queryByRole('radio', { name: /explore/i })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Explore the cockpit' })).toBeTruthy();
+  });
+
+  it('starts the chosen procedure in the chosen mode', async () => {
+    renderPicker();
+    await userEvent.click(
+      within(aircraftSection()).getByRole('button', { name: new RegExp(second.name.en) }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: /Routine check/ }));
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Start procedure' }));
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBe('routine');
+    expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
+  });
+
+  it('enters Free explore from its button', async () => {
+    renderPicker();
+    await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('explore');
+    expect(trainer.procedureId).toBeUndefined();
+  });
+});
