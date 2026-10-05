@@ -7,6 +7,7 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 ## Frame rules
 
 - The brand styles the chrome only: header, checklist pane, outside-view frame, tabs, popovers, dialogs. The panel shows the aircraft, never brand colours.
+- The one exception is the accent as an outline on the panel, always paired with a shape cue: the Guided highlight (S9) and the selected control in Free explore (S7). Status inks never appear on the panel.
 - Status inks appear only in the chrome.
 - Every screen exists in light and dark with the same layout. Tablet and desktop are both first-class, touch and mouse alike.
 
@@ -14,7 +15,8 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 
 ### S1 Main layout, desktop
 
-- Header: aircraft, procedure, mode, phase, language, theme. The UAT build adds a "UAT" badge.
+- Header: aircraft, procedure, mode, phase, language, theme (spec §5). The UAT build adds a "UAT" badge.
+- Free explore hides the procedure button and the phase selector, as the canvas draws it.
 - Outside-view strip on top.
 - Panel below it, with view tabs.
 - Checklist pane at the side.
@@ -26,7 +28,7 @@ The same regions as S1. The checklist pane is collapsed to a header toggle that 
 ### S3 Checklist pane per mode
 
 - Guided: current item highlighted, deviations shown at once.
-- Practice: no highlight, a deviation count, summary at the end.
+- Practice: no highlight on the panel, the current item marked in the pane, a deviation count in the footer, summary at the end. Deviations are recorded without an immediate banner (spec §5).
 - Free explore: no checklist; control details instead (S7).
 - Each item shows its state: pending, current, done, deviated.
 - An emergency procedure is marked as such in the pane header.
@@ -37,15 +39,23 @@ The outside view of the current phase, with the phase selector.
 
 ### S5 Aircraft and procedure picker
 
-Aircraft, procedure and mode choice. On start it shows the notice: training aid only, the aircraft's handbook is authoritative, not for use in flight.
+Aircraft and procedure choice, with Guided and Practice as the mode options. Free explore is a separate button, not a mode option.
+
+The notice is a permanent block at the bottom of the picker, with no acknowledgement: training aid only, the aircraft's handbook is authoritative, not for use in flight.
 
 ### S6 Deviation summary
 
-Shown when a procedure ends: the deviations, and the end phase if the procedure names one.
+Shown when a procedure ends:
+
+- items completed (`9 / 9`) and the deviation count;
+- the deviations, each with its position and an explanation;
+- three actions: next procedure, repeat, back to selection.
+
+If the procedure names an end phase, the app moves to it (spec §5).
 
 ### S7 Control details in Free explore
 
-Name and purpose of the tapped control, with a toggle to operate controls freely instead.
+The tapped control is selected with the accent outline (S9). Its details show name and purpose, type and view as tags, the positions with the current one marked, and a "Used in" list of procedures and items. A toggle switches to operating controls freely instead.
 
 ### S8 Device screens in the panel
 
@@ -53,7 +63,7 @@ An avionics unit's own screen and bezel inside its panel placement (spec §4.9):
 
 ### S9 Guided highlight on the panel
 
-Accent outline with a pulse around the current target. A reduced-motion variant keeps the outline and drops the pulse.
+Accent outline with a pulse around the current target. A reduced-motion variant keeps the outline and drops the pulse. The selected control in Free explore uses the same outline without the pulse.
 
 ### S10 Light and dark
 
@@ -81,6 +91,8 @@ Not drawn, specified below in words:
 | Screen | Missing                                                          |
 | ------ | ---------------------------------------------------------------- |
 | S2     | tablet with the collapsed and the expanded checklist             |
+| S3     | the deviated item state                                          |
+| S6     | the end phase after the summary                                  |
 | S7     | control details as a popover                                     |
 | S8     | device screens                                                   |
 | S9     | reduced-motion variant                                           |
@@ -98,9 +110,17 @@ Each derives from a drawn artboard, so the web shell can be built without new dr
 - A tap outside the pane, or the same button, closes it. Guided keeps highlighting and switching views while the pane is closed.
 - Header, outside-view strip and panel keep the S1 layout.
 
+### S3 Deviated item
+
+An item whose step was deviated from is marked with a distinct icon and a status ink in the chrome, so it does not rely on hue alone. Otherwise it keeps the layout of a done item.
+
+### S6 End phase
+
+When the app moves to the end phase, the phase in the header and the outside-view strip update. The summary itself is unchanged.
+
 ### S7 Popover
 
-- Tapping a control in Free explore opens its details in a popover anchored to that control, replacing the side pane of the drawn Explore artboard. Content is the same: name, purpose and the operate-freely toggle.
+- Tapping a control in Free explore opens its details in a popover anchored to that control, replacing the side pane of the drawn Explore artboard. It carries the same fields as the pane (name, purpose, type and view tags, positions, "Used in", the operate-freely toggle); the "Used in" list is condensed to a few entries with a count for the rest, and a long positions list scrolls.
 - It closes on a tap outside or on Escape, and only one is open at a time.
 - It stays inside the viewport and flips to the opposite side of the control when it does not fit.
 - It is chrome: surface, border and text tokens apply, the control keeps its own look.
@@ -124,3 +144,11 @@ The same layout with the other theme's tokens. Nothing moves, resizes or changes
 
 - Error boundary: a chrome dialog over the app with a short readable message and a reset action. It does not show a stack trace.
 - Missing panel image: a neutral placeholder in the image's place, labelled with the view name. Controls and indicators stay usable on it.
+
+## Open questions for the owner
+
+Where the spec and the canvas disagree, this brief follows the spec for behaviour and the canvas for appearance.
+
+1. Phase control: the spec puts the phase in the header; the canvas draws it only as a selector in the outside-view strip. The brief keeps both.
+2. Practice: the canvas draws a deviation banner at once; the spec records deviations and shows a summary at the end. The brief drops the banner and keeps the count.
+3. Free explore selection: the canvas outlines the selected control in the accent. The brief keeps it as the one non-Guided accent outline on the panel; confirm that is acceptable under spec §6.2.
