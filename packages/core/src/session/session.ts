@@ -212,9 +212,13 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     },
 
     advance(dtMs) {
-      const wasFailed = failed();
+      if (failed()) {
+        if (!Number.isFinite(dtMs) || dtMs < 0) {
+          throw new RangeError(`dtMs must be a finite number >= 0, got ${dtMs}`);
+        }
+        return;
+      }
       runtime.advance(dtMs);
-      if (wasFailed) return;
       dirty = true;
       try {
         if (runtime.status().kind === 'running') settleDevices(dtMs);
