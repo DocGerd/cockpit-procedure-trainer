@@ -1,0 +1,24 @@
+name: New aircraft
+description: Add an aircraft package
+labels: ['type:feature', 'area:aircraft']
+body:
+  - type: input
+    id: type
+    attributes: { label: Aircraft type and variant }
+    validations: { required: true }
+  - type: input
+    id: handbook
+    attributes: { label: Handbook revision the content will follow }
+    validations: { required: true }
+  - type: textarea
+    id: avionics
+    attributes: { label: Installed avionics units }
+  - type: checkboxes
+    id: clearance
+    attributes:
+      label: Content clearance
+      options:
+        - label: Photos are our own and may be published
+          required: true
+        - label: 'Checklists will be written in our own words, with no handbook scans'
+          required: true
