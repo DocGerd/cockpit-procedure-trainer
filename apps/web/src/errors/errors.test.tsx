@@ -2,6 +2,7 @@
 import type { Aircraft } from '@cpt/core';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { renderWithLanguage } from '../i18n/test-utils';
@@ -41,8 +42,13 @@ function Probe() {
 let broken = false;
 function Child() {
   useTrainer();
+  const [clicks, setClicks] = useState(0);
   if (broken) throw new Error('child exploded');
-  return <p>trainer is running</p>;
+  return (
+    <button type="button" onClick={() => setClicks(clicks + 1)}>
+      clicks {clicks}
+    </button>
+  );
 }
 
 function renderBoundary(language?: 'de' | 'en') {
@@ -72,7 +78,7 @@ afterEach(() => {
 describe('error boundary', () => {
   it('renders its children while nothing throws', () => {
     renderBoundary();
-    expect(screen.getByText('trainer is running')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^clicks/ })).toBeTruthy();
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
@@ -83,7 +89,7 @@ describe('error boundary', () => {
     expect(within(dialog).getByText(/unexpected error/)).toBeTruthy();
     expect(within(dialog).getByRole('button', { name: 'Reset' })).toBeTruthy();
     expect(dialog.textContent).not.toContain('child exploded');
-    expect(screen.queryByText('trainer is running')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^clicks/ })).toBeNull();
   });
 
   it('puts keyboard focus on the reset button', () => {
@@ -102,7 +108,7 @@ describe('error boundary', () => {
     broken = false;
     await userEvent.click(screen.getByRole('button', { name: 'Reset' }));
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.getByText('trainer is running')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^clicks/ })).toBeTruthy();
     expect(trainer.session).not.toBe(afterError);
     expect(trainer.session).not.toBe(before);
   });
@@ -134,7 +140,7 @@ describe('a failed session', () => {
     expect(within(alert).getByText('The simulation stopped')).toBeTruthy();
     expect(within(alert).getByText('pump seized')).toBeTruthy();
     expect(within(alert).getByRole('button', { name: 'Reset' })).toBeTruthy();
-    expect(screen.getByText('trainer is running')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^clicks/ })).toBeTruthy();
   });
 
   it('is cleared by the reset, which starts a fresh session', async () => {
@@ -154,6 +160,16 @@ describe('a failed session', () => {
     expect(
       within(screen.getByRole('alert')).getByText('Die Simulation wurde angehalten'),
     ).toBeTruthy();
+  });
+
+  it('remounts the children on reset so local state does not survive', async () => {
+    registry.list = [throwingStep('pump seized')];
+    renderBoundary();
+    await userEvent.click(screen.getByRole('button', { name: 'clicks 0' }));
+    expect(screen.getByRole('button', { name: 'clicks 1' })).toBeTruthy();
+    fail();
+    await userEvent.click(within(screen.getByRole('alert')).getByRole('button', { name: 'Reset' }));
+    expect(screen.getByRole('button', { name: 'clicks 0' })).toBeTruthy();
   });
 
   it('does not show the message for a running session', () => {

@@ -1,4 +1,4 @@
-import { Component, useEffect, useId, useRef } from 'react';
+import { Component, Fragment, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
@@ -34,9 +34,8 @@ function ErrorDialog({ onReset }: { onReset(): void }) {
   );
 }
 
-function SessionFailure() {
+function SessionFailure({ onReset }: { onReset(): void }) {
   const text = useMessages(messages);
-  const { resetSession } = useTrainer();
   const status = useSessionState((snapshot) => snapshot.status());
   if (status.kind !== 'failed') return null;
   const detail = status.error instanceof Error ? status.error.message : undefined;
@@ -47,7 +46,7 @@ function SessionFailure() {
         <div className="session-failure-body">{text.sessionFailedBody}</div>
         {detail && <code className="session-failure-detail">{detail}</code>}
       </div>
-      <button type="button" className="button-primary" onClick={resetSession}>
+      <button type="button" className="button-primary" onClick={onReset}>
         {text.reset}
       </button>
     </div>
@@ -76,10 +75,15 @@ class Boundary extends Component<BoundaryProps, BoundaryState> {
 
 export function TrainerErrorBoundary({ children }: { children: ReactNode }) {
   const { resetSession } = useTrainer();
+  const [attempt, setAttempt] = useState(0);
+  const reset = () => {
+    resetSession();
+    setAttempt((count) => count + 1);
+  };
   return (
-    <Boundary onReset={resetSession}>
-      <SessionFailure />
-      {children}
+    <Boundary onReset={reset}>
+      <SessionFailure onReset={reset} />
+      <Fragment key={attempt}>{children}</Fragment>
     </Boundary>
   );
 }
