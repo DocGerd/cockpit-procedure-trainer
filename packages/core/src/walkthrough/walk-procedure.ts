@@ -35,7 +35,7 @@ function isPressed(definition: ControlDefinition | undefined, position: string |
 
 function rejection(result: SessionControlResult): string | undefined {
   if (result.applied || result.reason === 'unchanged') return undefined;
-  return result.reason === 'failed' ? 'runtime failed' : `control ${result.reason}`;
+  return `control ${result.reason}`;
 }
 
 function progressed(session: Session, index: number): boolean {
@@ -115,6 +115,8 @@ export function walkProcedure(
     reason,
   });
 
+  if (procedure.items.length === 0) return fail(0, 'procedure has no items');
+
   for (let checklist = session.checklist(); checklist && !checklist.done;) {
     const index = checklist.current;
     const item = procedure.items[index] as Item;
@@ -132,7 +134,9 @@ export function walkProcedure(
     checklist = session.checklist();
   }
 
-  const deviation = session.checklist()?.deviations[0];
+  const finished = session.checklist();
+  if (!finished?.done) return fail(finished?.current ?? 0, 'checklist not complete');
+  const deviation = finished.deviations[0];
   if (deviation) {
     const named = deviation.controlId === undefined ? '' : ` ${deviation.controlId}`;
     return fail(deviation.itemIndex, `${deviation.kind}${named}`);

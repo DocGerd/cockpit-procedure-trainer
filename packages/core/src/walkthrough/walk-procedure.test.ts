@@ -1,23 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { defineAircraft } from '../contract';
-import type { Aircraft, ControlRecord, ProcedureItem, Text, TrainerState } from '../contract';
+import type {
+  Aircraft,
+  ControlRecord,
+  ProcedureItem,
+  SystemsDefinition,
+  Text,
+  TrainerState,
+} from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import { engineMonitor, fixtureDeviceAircraft } from '../devices/fixtures';
 import { MAX_STEPS, walkProcedure } from './index';
 
-type ClockState = { readonly ms: number; readonly heldMs: number };
+type ClockState = { readonly ms: number; readonly heldMs: number; readonly keyMs: number };
 type Items = readonly ProcedureItem<ClockState, ControlRecord, never>[];
 
 const text = (de: string, en: string): Text => ({ de, en });
 const environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
-const initial: ClockState = { ms: 0, heldMs: 0 };
+const initial: ClockState = { ms: 0, heldMs: 0, keyMs: 0 };
 const ms = (atLeast: number) => (state: TrainerState<ClockState>) => state.systems.ms >= atLeast;
 const heldMs = (atLeast: number) => (state: TrainerState<ClockState>) =>
   state.systems.heldMs >= atLeast;
+const keyMs = (atLeast: number) => (state: TrainerState<ClockState>) =>
+  state.systems.keyMs >= atLeast;
 const never = () => false;
+const keyReleased = (state: TrainerState<ClockState>) => state.controls.key === 'both';
 const buttonReleased = (state: TrainerState<ClockState>) => state.controls.button === 'rest';
 
-const clockAircraft = (items: Items): Aircraft =>
+const clockAircraft = (items: Items, step?: SystemsDefinition<ClockState>['step']): Aircraft =>
   defineAircraft({
     id: 'clock',
     name: text('Uhr', 'Clock'),
@@ -37,6 +47,14 @@ const clockAircraft = (items: Items): Aircraft =>
         name: text('Taste', 'Button'),
         description: text('Taste', 'Button'),
       },
+      key: {
+        kind: 'rotary',
+        positions: ['off', 'both', 'start'],
+        initial: 'off',
+        springBack: { start: 'both' },
+        name: text('Schlüssel', 'Key'),
+        description: text('Schlüssel', 'Key'),
+      },
       cover: {
         kind: 'guarded',
         positions: ['off', 'on'],
@@ -50,10 +68,13 @@ const clockAircraft = (items: Items): Aircraft =>
     views: { panel: { name: text('Tafel', 'Panel'), image: 'panel.png' } },
     systems: {
       initial,
-      step: (state: ClockState, { controls, dtMs }) => ({
-        ms: controls.master === 'on' ? state.ms + dtMs : state.ms,
-        heldMs: controls.button === 'held' ? state.heldMs + dtMs : state.heldMs,
-      }),
+      step:
+        step ??
+        ((state: ClockState, { controls, dtMs }) => ({
+          ms: controls.master === 'on' ? state.ms + dtMs : state.ms,
+          heldMs: controls.button === 'held' ? state.heldMs + dtMs : state.heldMs,
+          keyMs: controls.key === 'start' ? state.keyMs + dtMs : state.keyMs,
+        })),
     },
     failures: {},
     phases: {
@@ -61,7 +82,10 @@ const clockAircraft = (items: Items): Aircraft =>
         name: text('Start', 'Start'),
         image: 'start.png',
         environment,
-        entry: { controls: { master: 'off', button: 'rest', cover: 'off' }, state: initial },
+        entry: {
+          controls: { master: 'off', button: 'rest', key: 'off', cover: 'off' },
+          state: initial,
+        },
       },
     },
     procedures: {
@@ -69,7 +93,12 @@ const clockAircraft = (items: Items): Aircraft =>
     },
   }) as Aircraft;
 
-const walk = (items: Items) => walkProcedure(clockAircraft(items), 'run');
+const walk = (items: Items, step?: SystemsDefinition<ClockState>['step']) =>
+  walkProcedure(clockAircraft(items, step), 'run');
+
+const failingStep = (): ClockState => {
+  throw new Error('systems broke');
+};
 
 const masterOn = {
   type: 'action',
@@ -212,10 +241,70 @@ describe('walkProcedure', () => {
       position: 'sideways',
       text: text('Falsch', 'Wrong'),
     };
-    expect(walk([wrong] as unknown as Items)).toMatchObject({
+    expect(walk([wrong] as unknown as Items)).toEqual({
       ok: false,
+      aircraft: 'clock',
+      procedure: 'run',
       itemIndex: 0,
       item: 'Wrong',
+      reason: 'Control "master" has no position "sideways"',
+    });
+  });
+
+  it('presses a spring-back detent and releases it', () => {
+    const start = {
+      type: 'action',
+      control: 'key',
+      position: 'start',
+      text: text('Starten', 'Key to START'),
+    } as const;
+    const released = {
+      type: 'check',
+      target: { control: 'key' },
+      condition: keyReleased,
+      text: text('Zurückgefedert', 'Key sprang back'),
+    } as const;
+    expect(walk([start, released])).toEqual({ ok: true });
+  });
+
+  it('holds a spring-back detent until the hold condition is met', () => {
+    const start = {
+      type: 'action',
+      control: 'key',
+      position: 'start',
+      holdUntil: keyMs(500),
+      text: text('Starten', 'Key to START'),
+    } as const;
+    const released = {
+      type: 'check',
+      target: { control: 'key' },
+      condition: keyReleased,
+      text: text('Zurückgefedert', 'Key sprang back'),
+    } as const;
+    expect(walk([start, released])).toEqual({ ok: true });
+  });
+
+  it('fails an item once the systems model has failed', () => {
+    expect(walk([masterOn, { type: 'confirm', text: text('Frei', 'Clear') }], failingStep)).toEqual(
+      {
+        ok: false,
+        aircraft: 'clock',
+        procedure: 'run',
+        itemIndex: 0,
+        item: 'Master ON',
+        reason: 'runtime failed',
+      },
+    );
+  });
+
+  it('fails a procedure without items instead of passing it', () => {
+    expect(walk([])).toEqual({
+      ok: false,
+      aircraft: 'clock',
+      procedure: 'run',
+      itemIndex: 0,
+      item: '',
+      reason: 'procedure has no items',
     });
   });
 
