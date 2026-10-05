@@ -24,7 +24,7 @@ text in your own words, in German and English.
       src/screen/           the screen component, depends on @cpt/panel-kit
 
 `package.json` depends on `@cpt/core` and `@cpt/panel-kit` as `workspace:*`.
-React and `@types/react` are dev dependencies and React is a peer dependency, as
+React, React DOM and their types are dev dependencies (the screen tests render) and React is a peer dependency, as
 in `packages/panel-kit`. `pnpm-workspace.yaml` already covers `packages/*`; run
 `pnpm install` so the lockfile gains the new workspace entry. ESLint enforces the
 boundaries: logic imports `@cpt/core` only and no UI or assets, a screen imports
