@@ -65,15 +65,21 @@ jobs:
     steps:
       - uses: actions/download-artifact@v5
         with:
-          pattern: dist-*
-          path: dist
+          name: dist-prod
+          path: dist/prod
+      - uses: actions/download-artifact@v5
+        continue-on-error: true
+        with:
+          name: dist-uat
+          path: dist/uat
       - name: Assemble the site
         run: |
-          mkdir -p site/uat
-          cp -r dist/dist-prod/. site/
+          mkdir -p site
+          cp -r dist/prod/. site/
           test -f site/index.html
-          if [ -d dist/dist-uat ]; then
-            cp -r dist/dist-uat/. site/uat/
+          if [ -d dist/uat ]; then
+            mkdir -p site/uat
+            cp -r dist/uat/. site/uat/
           else
             echo "::warning::UAT build failed; deploying production without /uat/"
           fi
