@@ -179,6 +179,7 @@ describe('image with fallback', () => {
         src="views/missing.svg"
         label="Main view"
         className="backdrop"
+        style={{ width: 'var(--space-12)' }}
         onError={onError}
       />,
     );
@@ -187,6 +188,7 @@ describe('image with fallback', () => {
     expect(placeholder.tagName).toBe('DIV');
     expect(placeholder.textContent).toBe('Main view');
     expect(placeholder.className).toContain('backdrop');
+    expect(placeholder.style.width).toBe('var(--space-12)');
     expect(document.querySelector('img')).toBeNull();
     expect(onError).toHaveBeenCalledTimes(1);
   });

@@ -11,6 +11,7 @@ export function ImageWithFallback({
   src,
   label,
   className,
+  style,
   onError,
   ...rest
 }: ImageWithFallbackProps) {
@@ -20,6 +21,7 @@ export function ImageWithFallback({
       <div
         role="img"
         aria-label={label}
+        style={style}
         className={className ? `image-placeholder ${className}` : 'image-placeholder'}
       >
         <span className="image-placeholder-label">{label}</span>
@@ -32,6 +34,7 @@ export function ImageWithFallback({
       src={src}
       alt={label}
       className={className}
+      style={style}
       onError={(event) => {
         setFailedSrc(src);
         onError?.(event);
