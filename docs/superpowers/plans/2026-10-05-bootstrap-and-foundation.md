@@ -1739,9 +1739,9 @@ For each PR `N`:
    The one exception is a backmerge PR (branch `chore/backmerge`, `main` into
    `develop`): merge it with `--merge` instead of `--squash`, so `main` becomes
    an ancestor of `develop`.
-6. **Confirm.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .merged` prints `true`, and
-   each `Closes #n` issue reads `closed`. If the merge call errored, read
-   `.merged` before any retry; never retry blind.
+6. **Confirm.** `gh pr view N --json state --jq .state` prints `MERGED`, and
+   each `Closes #n` issue reads `closed`. If the merge call errored, read that
+   state before any retry; never retry blind.
 7. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
    wait for its checks again, and restart at step 2 for it.
@@ -1937,7 +1937,7 @@ GitHub Release.
 - [ ] **Step 1: Confirm every M0 issue is closed**
 
 Run: `gh api "repos/DocGerd/cockpit-procedure-trainer/milestones?state=all" --jq '.[] | select(.title == "M0 Foundation") | "\(.open_issues) open, \(.closed_issues) closed"'`
-Expected: `0 open, 9 closed`
+Expected: `0 open, 11 closed` (#1 to #6, #48, #50, #51, #63 and the fix wave #70)
 
 - [ ] **Step 2: Run the milestone-release skill**
 
@@ -1951,10 +1951,10 @@ and the release PR `develop` to `main`. The skill does not merge that PR.
 
 ```bash
 gh api repos/DocGerd/cockpit-procedure-trainer/contents/docs/milestones/m0-foundation.md --raw-field ref=develop --jq .name
-gh api repos/DocGerd/cockpit-procedure-trainer/pulls/<release PR number> --jq '{base: .base.ref, state: .state, merged: .merged}'
+gh pr view <release PR number> --json baseRefName,state
 ```
 
-Expected: `m0-foundation.md`, then `{"base":"main","merged":false,"state":"open"}` (`gh --jq` prints keys in sorted order).
+Expected: `m0-foundation.md`, then `{"baseRefName":"main","state":"OPEN"}`.
 
 Give the owner the release PR URL, the open questions and the milestone summary.
 **The session ends here.**
@@ -1963,8 +1963,7 @@ Give the owner the release PR URL, the open questions and the milestone summary.
 
 ```bash
 gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.1.0 --jq .tag_name
-number="$(gh api "repos/DocGerd/cockpit-procedure-trainer/milestones" --jq '.[] | select(.title == "M0 Foundation") | .number')"
-gh api --method PATCH "repos/DocGerd/cockpit-procedure-trainer/milestones/$number" --raw-field state=closed --jq '.state'
+gh api --method PATCH repos/DocGerd/cockpit-procedure-trainer/milestones/1 --raw-field state=closed --jq .state
 ```
 
 Expected: `v0.1.0`, then `closed`. If the release is missing, read the `Release` workflow run on `main` and report; do not create the tag by hand.
