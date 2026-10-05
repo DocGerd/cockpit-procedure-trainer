@@ -118,10 +118,10 @@ Issues within a wave touch disjoint files and run in parallel. A wave starts whe
 - Phases keyed by id with `image: string`, `environment` (airspeed, altitude, on ground), `entry: { controls: positions; state: S }`.
 - Procedures with `id`, `title: Text`, `type: 'normal' | 'emergency'`, `startPhase`, optional `endPhase`, `failure` (required when the type is `emergency`), and items: `action` (target control, position, optional `holdUntil: Condition`), `check` (target indicator or control, `condition: Condition`), `confirm` (no target). Every item has `text: Text`.
 - `TrainerState<S> = { controls: positions; systems: S; devices: Readonly<Record<string, unknown>> }` and `Condition<S> = (state: TrainerState<S>) => boolean`. `devices` is empty until #44 fills it; reserving it now keeps #16's signature stable.
-- `Aircraft` (the non-generic type the registry holds) and `defineAircraft(definition)`, generic over the control, indicator, failure and phase id unions so wrong references are type errors.
+- `Aircraft` (the non-generic type the registry holds) and `defineAircraft(definition)`, generic over the control, indicator, failure and phase id unions so wrong references are type errors. It stamps `contractVersion: CONTRACT_VERSION` on the value it returns.
 
 - [ ] **Step 1: Failing type tests.** `contract/define-aircraft.test.ts` with `// @ts-expect-error` cases: an action item targets an unknown control; a check targets an unknown indicator; a procedure names an unknown phase; an emergency procedure names an unknown failure or none; a failure trips an unknown control or a non-breaker; a `Text` lacks `de` or `en`; a placement names an unknown control. Plus runtime assertions that a valid fixture round-trips unchanged.
-- [ ] **Step 2: Types and `defineAircraft`** until `pnpm typecheck` and `pnpm test` pass. `defineAircraft` returns its input; it adds no runtime checks (that is #18).
+- [ ] **Step 2: Types and `defineAircraft`** until `pnpm typecheck` and `pnpm test` pass. `defineAircraft` returns its input plus `contractVersion`; it adds no runtime checks (that is #18).
 - [ ] **Step 3: Shared fixture.** `contract/fixtures.ts`: a small valid aircraft covering every control kind, one emergency procedure and two phases. Later issues import it read-only; one that needs more builds its own fixture in its own directory.
 - [ ] **Step 4: Stubs and barrel.** Create the nine stub directories and re-export each from `index.ts`.
 - [ ] **Step 5: Fragment** `changelog.d/11.added.md`: `Aircraft contract types and defineAircraft, with compile-time checks of every reference and bilingual text.`
@@ -320,8 +320,8 @@ The summary carries what shipped, the Decisions below and any made in PRs, the o
 16. **Image fields are URL strings; the validator checks they are declared, not that the file exists.** Core cannot import assets; spec §8 gives a missing file a placeholder at runtime.
 17. **#18 converts the demo aircraft to a minimal valid aircraft and types the registry.** "Validate every registered aircraft" needs registered aircraft to be contract values; M4 fills the demo out.
 18. **Validation runs inside `pnpm test`, no separate CI step.** The required `check` job already runs it, so any finding fails CI; a second step would only repeat the run.
-19. **`CONTRACT_VERSION` stays 1.** No aircraft contract was released before M2.
+19. **`CONTRACT_VERSION` stays 1.** No aircraft contract was released before M2. `defineAircraft` stamps it on every aircraft, so the demo's `contractVersion` test keeps holding.
 
 ## Open questions for the owner
 
-None blocking. Every point the spec leaves open for M2 is decided above; the owner reviews the decisions at the release.
+1. Spec §10 lists the validator as its own CI item; Decision 18 runs it inside the required `check` job instead. Confirm, or ask for a named step.
