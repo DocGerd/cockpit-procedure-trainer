@@ -59,7 +59,7 @@
 }
 
 .panel-stage[data-zoomed] {
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* Everything drawn on the panel sits in here, so a zoom moves placements, overlay and devices together. */

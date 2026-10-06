@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
-import type { PointerEvent, RefObject } from 'react';
-import { clampZoom, panned, pinched, pinchSample } from './zoom';
+import type { FocusEvent, PointerEvent, RefObject } from 'react';
+import { clampZoom, panned, pinched, pinchSample, revealed, sameZoom } from './zoom';
 import type { PinchSample, Point, ZoomState } from './zoom';
 
 /** A drag that starts on one of these operates it; only a drag on bare panel pans. */
 const OPERABLE =
   '[data-kind="control"], button, a[href], input, select, textarea, [role="slider"], [role="radiogroup"], [role="radio"], [role="button"], [role="switch"]';
+
+/** Marks an element, and everything inside it, as not blocking a pan even where it matches `OPERABLE`. */
+const PAN_THROUGH = '[data-pan-through]';
 
 type Tracked = { x: number; y: number; target: Element; operating: boolean };
 
@@ -20,12 +23,15 @@ export type ZoomTarget = {
 
 const gestures = (event: PointerEvent) => event.pointerType !== 'mouse';
 
-function cancelPress(tracked: Tracked, pointerId: number) {
+const focusVisible = (element: Element) => {
   try {
-    tracked.target.releasePointerCapture?.(pointerId);
+    return element.matches(':focus-visible');
   } catch {
-    // Nothing is captured for a synthetic pointer.
+    return true;
   }
+};
+
+function cancelPress(tracked: Tracked, pointerId: number) {
   const init = { bubbles: true, pointerId, pointerType: 'touch' };
   tracked.target.dispatchEvent(
     typeof PointerEvent === 'function'
@@ -47,6 +53,7 @@ export function useZoomGestures(viewport: RefObject<HTMLElement | null>, target:
   const pointers = useRef(new Map<number, Tracked>());
   const gesture = useRef<Gesture | undefined>(undefined);
   const cancelling = useRef(false);
+  const lastType = useRef('');
 
   const origin = (): { left: number; top: number; size: { width: number; height: number } } => {
     const rect = viewport.current?.getBoundingClientRect();
@@ -87,6 +94,7 @@ export function useZoomGestures(viewport: RefObject<HTMLElement | null>, target:
   }
 
   function onPointerDownCapture(event: PointerEvent) {
+    lastType.current = event.pointerType;
     if (!gestures(event)) return;
     const live = pointers.current;
     for (const [id, tracked] of live) if (!tracked.target.isConnected) live.delete(id);
@@ -111,7 +119,7 @@ export function useZoomGestures(viewport: RefObject<HTMLElement | null>, target:
       x: event.clientX,
       y: event.clientY,
       target: next,
-      operating: !joining && next.closest(OPERABLE) !== null,
+      operating: !joining && next.closest(OPERABLE) !== null && next.closest(PAN_THROUGH) === null,
     });
     regroup(false);
   }
@@ -140,15 +148,28 @@ export function useZoomGestures(viewport: RefObject<HTMLElement | null>, target:
     regroup(gesture.current?.kind === 'pinch');
   }
 
+  function onFocus(event: FocusEvent) {
+    const focused = event.target;
+    if (!(focused instanceof Element) || !focusVisible(focused)) return;
+    const { left, top, size } = origin();
+    const rect = focused.getBoundingClientRect();
+    const next = revealed(
+      latest.current,
+      {
+        left: rect.left - left,
+        top: rect.top - top,
+        right: rect.right - left,
+        bottom: rect.bottom - top,
+      },
+      size,
+    );
+    if (!sameZoom(next, latest.current)) commit(next);
+  }
+
   useEffect(() => {
     const refit = () => {
       const fitted = clampZoom(latest.current, origin().size);
-      if (
-        fitted.scale !== latest.current.scale ||
-        fitted.offset.x !== latest.current.offset.x ||
-        fitted.offset.y !== latest.current.offset.y
-      )
-        commit(fitted);
+      if (!sameZoom(fitted, latest.current)) commit(fitted);
     };
     window.addEventListener('resize', refit);
     return () => window.removeEventListener('resize', refit);
@@ -159,6 +180,9 @@ export function useZoomGestures(viewport: RefObject<HTMLElement | null>, target:
     onPointerMove,
     onPointerUp: onPointerEnd,
     onPointerCancel: onPointerEnd,
-    onContextMenu: (event: { preventDefault(): void }) => event.preventDefault(),
+    onFocus,
+    onContextMenu: (event: { preventDefault(): void }) => {
+      if (lastType.current === 'touch' || lastType.current === 'pen') event.preventDefault();
+    },
   };
 }

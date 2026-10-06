@@ -13,6 +13,9 @@ export const NO_ZOOM: ZoomState = { scale: 1, offset: { x: 0, y: 0 } };
 export const isZoomed = (zoom: ZoomState) =>
   zoom.scale !== NO_ZOOM.scale || zoom.offset.x !== 0 || zoom.offset.y !== 0;
 
+export const sameZoom = (a: ZoomState, b: ZoomState) =>
+  a.scale === b.scale && a.offset.x === b.offset.x && a.offset.y === b.offset.y;
+
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
 /** Keeps the scale in bounds and the zoomed content covering the whole viewport. */
@@ -56,6 +59,31 @@ export function pinched(
   };
   return clampZoom(
     { scale, offset: { x: to.center.x - anchor.x * scale, y: to.center.y - anchor.y * scale } },
+    viewport,
+  );
+}
+
+export type Box = {
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+};
+
+const shiftInto = (low: number, high: number, size: number) => {
+  if (low < 0) return -low;
+  if (high > size) return -Math.min(high - size, low);
+  return 0;
+};
+
+/** Pans just far enough to bring `box`, in viewport coordinates, into view; a box too big to fit is aligned to the top-left. */
+export function revealed(zoom: ZoomState, box: Box, viewport: Size): ZoomState {
+  return panned(
+    zoom,
+    {
+      x: shiftInto(box.left, box.right, viewport.width),
+      y: shiftInto(box.top, box.bottom, viewport.height),
+    },
     viewport,
   );
 }

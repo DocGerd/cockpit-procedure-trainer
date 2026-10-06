@@ -48,7 +48,10 @@ vi.mock('../modes/PanelOverlay', () => ({
         data-testid="overlay"
         className="panel-placement"
         style={target ? box(target) : undefined}
-      />
+      >
+        <button type="button" data-testid="through" data-pan-through="" />
+        <button type="button" data-testid="plain" />
+      </div>
     );
   },
 }));
@@ -72,11 +75,12 @@ function Probe() {
   return null;
 }
 
-const VIEWPORT = { width: 400, height: 200 };
+let VIEWPORT = { width: 400, height: 200 };
 
 beforeEach(() => {
   localStorage.clear();
   calls.input = [];
+  VIEWPORT = { width: 400, height: 200 };
   const real = Element.prototype.getBoundingClientRect;
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
     return this.classList.contains('panel-stage')
@@ -383,8 +387,103 @@ describe('reset', () => {
 });
 
 describe('page and text gestures', () => {
-  it('suppresses the context menu on the panel', () => {
+  it('suppresses the context menu after a touch, so a long press opens nothing', () => {
+    down(background(), { id: 1, x: 100, y: 100 });
     expect(fireEvent.contextMenu(background())).toBe(false);
     expect(fireEvent.contextMenu(placement('master') as HTMLElement)).toBe(false);
+  });
+
+  it('leaves the mouse context menu alone', () => {
+    fireEvent.pointerDown(background(), { pointerId: 1, pointerType: 'mouse', button: 2 });
+    expect(fireEvent.contextMenu(background())).toBe(true);
+  });
+
+  it('leaves the keyboard context menu alone', () => {
+    expect(fireEvent.contextMenu(background())).toBe(true);
+  });
+});
+
+describe('panning through an element', () => {
+  it('lets a drag that starts on a data-pan-through element pan, but not on another button', () => {
+    spread(200);
+    const before = offset();
+    const through = screen.getByTestId('through');
+    down(through, { id: 3, x: 100, y: 100 });
+    move(through, { id: 3, x: 90, y: 100 });
+    expect(offset().x).toBe(before.x - 10);
+    up(through, { id: 3, x: 90, y: 100 });
+
+    const plain = screen.getByTestId('plain');
+    down(plain, { id: 4, x: 100, y: 100 });
+    move(plain, { id: 4, x: 50, y: 100 });
+    expect(offset().x).toBe(before.x - 10);
+  });
+});
+
+describe('focus', () => {
+  const focusByKeyboard = (element: HTMLElement) => {
+    fireEvent.keyDown(document.body, { key: 'Tab' });
+    act(() => element.focus());
+  };
+  const placeAt = (element: Element, rect: DOMRect) =>
+    Object.defineProperty(element, 'getBoundingClientRect', { value: () => rect });
+
+  const master = () =>
+    within(placement('master') as HTMLElement).getByRole('radio', { name: 'on' });
+
+  it('pans a control focused out of view into view and never scrolls the stage', () => {
+    spread(200);
+    const before = offset();
+    placeAt(master(), new DOMRect(-50, 20, 40, 40));
+    focusByKeyboard(master());
+    expect(offset()).toEqual({ x: before.x + 50, y: before.y });
+    expect(stage().scrollLeft).toBe(0);
+    expect(stage().scrollTop).toBe(0);
+  });
+
+  it('pans the other way for a control past the far edge, clamped to the panel', () => {
+    spread(200);
+    const before = offset();
+    placeAt(master(), new DOMRect(390, 20, 40, 40));
+    focusByKeyboard(master());
+    expect(offset().x).toBe(before.x - 30);
+  });
+
+  it('does not pan for a control focused by a tap', () => {
+    spread(200);
+    const before = offset();
+    placeAt(master(), new DOMRect(-50, 20, 40, 40));
+    fireEvent.mouseDown(master());
+    act(() => master().focus());
+    expect(offset()).toEqual(before);
+  });
+
+  it('leaves the zoom alone for a control already in view', () => {
+    spread(200);
+    const before = offset();
+    placeAt(master(), new DOMRect(100, 50, 40, 40));
+    focusByKeyboard(master());
+    expect(offset()).toEqual(before);
+  });
+});
+
+describe('stale state', () => {
+  it('refits the zoom to a smaller viewport on resize', () => {
+    spread(200);
+    expect(offset().x).toBe(-200);
+    VIEWPORT = { width: 100, height: 50 };
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(offset()).toEqual({ x: -100, y: -50 });
+  });
+
+  it('forgets a finger whose element has gone, so the next one pans instead of pinching', async () => {
+    down(background(), { id: 1, x: 150, y: 100 });
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const fresh = background();
+    down(fresh, { id: 2, x: 250, y: 100 });
+    move(fresh, { id: 2, x: 350, y: 100 });
+    expect(scale()).toBe(1);
   });
 });

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_SCALE, MIN_SCALE, NO_ZOOM, clampZoom, panned, pinchSample, pinched } from './zoom';
+import {
+  MAX_SCALE,
+  MIN_SCALE,
+  NO_ZOOM,
+  clampZoom,
+  panned,
+  pinchSample,
+  pinched,
+  revealed,
+} from './zoom';
 import type { ZoomState } from './zoom';
 
 const viewport = { width: 400, height: 200 };
@@ -68,5 +77,42 @@ describe('panned', () => {
     expect(panned(start, { x: -30, y: 20 }, viewport).offset).toEqual({ x: -130, y: -30 });
     expect(panned(start, { x: 500, y: -500 }, viewport).offset).toEqual({ x: 0, y: -200 });
     expect(panned(start, { x: -500, y: 500 }, viewport).offset).toEqual({ x: -400, y: 0 });
+  });
+});
+
+describe('revealed', () => {
+  const zoomed: ZoomState = { scale: 2, offset: { x: -200, y: -100 } };
+  const box = (left: number, top: number, right: number, bottom: number) => ({
+    left,
+    top,
+    right,
+    bottom,
+  });
+
+  it('leaves a box that is in view', () => {
+    expect(revealed(zoomed, box(10, 10, 60, 60), viewport)).toEqual(zoomed);
+  });
+
+  it('moves a box past the top-left edge in, by just enough', () => {
+    expect(revealed(zoomed, box(-30, -10, 20, 40), viewport).offset).toEqual({ x: -170, y: -90 });
+  });
+
+  it('moves a box past the bottom-right edge in, by just enough', () => {
+    expect(revealed(zoomed, box(380, 180, 430, 230), viewport).offset).toEqual({
+      x: -230,
+      y: -130,
+    });
+  });
+
+  it('aligns a box that cannot fit to its top-left', () => {
+    expect(revealed(zoomed, box(-20, 10, 520, 60), viewport).offset.x).toBe(-180);
+  });
+
+  it('aligns a box too wide to fit to its left edge when it starts inside the view', () => {
+    expect(revealed(zoomed, box(10, 10, 520, 60), viewport).offset.x).toBe(-210);
+  });
+
+  it('stays inside the panel', () => {
+    expect(revealed(zoomed, box(-500, 10, -450, 60), viewport).offset.x).toBe(0);
   });
 });

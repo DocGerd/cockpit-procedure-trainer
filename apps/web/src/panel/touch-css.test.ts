@@ -32,6 +32,12 @@ describe('panel stylesheet', () => {
     expect(body).toMatch(/justify-content:\s*center/);
   });
 
+  it('clips the zoomed panel without making the stage scrollable', () => {
+    const body = rule('.panel-stage[data-zoomed]')?.body;
+    expect(body).toMatch(/overflow:\s*clip/);
+    expect(body).not.toMatch(/overflow:\s*(hidden|auto|scroll)/);
+  });
+
   it('only draws the zoom transform while zoomed', () => {
     expect(rule('.panel-zoom')?.body).not.toMatch(/transform:/);
     expect(rule('.panel-zoom[data-zoomed]')?.body).toMatch(/transform:/);
