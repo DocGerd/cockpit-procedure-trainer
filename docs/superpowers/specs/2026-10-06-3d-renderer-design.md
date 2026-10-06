@@ -319,3 +319,15 @@ also meets #253's goal on desktop for aircraft that have 3D data.
    with the same technique and is left for later.
 4. **CSP.** G2 asks for a strict CSP, and none is set (§2). This design needs
    none of its relaxations, but the gap should get its own issue.
+
+## 13. Spec changes proposed
+
+This design changes one row of the parent spec's decisions table (§2). The
+table is not edited here; the owner decides.
+
+| Topic        | Current                                                                                                                                       | Proposed                                                                                                                                                                                                                                                           |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cockpit view | 2D layered panel now. The aircraft contract carries optional 3D positions so a 3D renderer is a later milestone, not a rewrite. | 2D layered panel, and a 3D cockpit view from the left seat that the pilot switches to. The 3D view places the same panel planes and widgets in space with CSS 3D transforms. The aircraft contract carries optional 3D frames per view and 3D poses per placement; an aircraft without them is 2D only. |
+
+Checked and unchanged: the Stack row (no library is added; the panel stays
+SVG in the DOM) and spec §5 Persistence (the 2D/3D choice is not persisted).
