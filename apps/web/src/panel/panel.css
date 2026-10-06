@@ -1,3 +1,11 @@
+.panel-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
 .panel-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -42,6 +50,28 @@
   position: relative;
   width: min(100%, max(var(--panel-fit-height), var(--panel-min-height)) * var(--panel-ratio));
   margin-inline: auto;
+
+  /* The panel handles every gesture itself: pinch and pan, never page scroll, double-tap zoom or selection. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.panel-stage[data-zoomed] {
+  overflow: clip;
+}
+
+/* Everything drawn on the panel sits in here, so a zoom moves placements, overlay and devices together. */
+.panel-zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.panel-zoom[data-zoomed] {
+  transform: translate(calc(var(--panel-x) * 1px), calc(var(--panel-y) * 1px))
+    scale(var(--panel-scale));
 }
 
 .panel-image {
@@ -57,6 +87,8 @@
 .panel-placement {
   position: absolute;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel-placement > * {
