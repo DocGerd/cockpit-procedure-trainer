@@ -57,8 +57,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - No handbook scans or manufacturer artwork in the repo.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
-  commands that contain it, `$` in gh endpoints, `--noEmit` and `+0`-like
-  text: write such text with Write/Edit, spell endpoints literally, run
-  `git pull --ff-only origin develop` on its own.
+  commands that contain it, and `$` in gh endpoints: write such text with
+  Write/Edit, spell endpoints literally, run `git pull --ff-only origin
+develop` on its own. A global force-push guard also refuses `--noEmit` and
+  `+0`-like text in commands.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
