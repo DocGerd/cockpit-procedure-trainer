@@ -9,7 +9,8 @@ export const messages = defineMessages({
     operate: 'Operate controls',
     operateHint: 'Off: a tap shows details only',
     exploreTitle: 'End the procedure?',
-    exploreBody: 'Free explore ends the running procedure. The controls stay where they are.',
+    exploreBody:
+      'Free explore ends the running procedure and resets the cockpit to the start of the current phase.',
     exploreConfirm: 'Switch to Free explore',
     exploreCancel: 'Cancel',
     details: 'Control details',
@@ -41,7 +42,7 @@ export const messages = defineMessages({
     operateHint: 'Aus: Antippen zeigt nur Details',
     exploreTitle: 'Verfahren beenden?',
     exploreBody:
-      'Freies Erkunden beendet das laufende Verfahren. Die Bedienelemente bleiben, wie sie sind.',
+      'Freies Erkunden beendet das laufende Verfahren und setzt das Cockpit auf den Beginn der aktuellen Flugphase zurück.',
     exploreConfirm: 'Zu Freiem Erkunden wechseln',
     exploreCancel: 'Abbrechen',
     details: 'Details zum Bedienelement',

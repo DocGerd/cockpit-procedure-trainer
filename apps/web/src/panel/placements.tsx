@@ -8,6 +8,7 @@ import { usePanelInput } from '../modes/panel-input';
 import { useSessionState, useTrainer } from '../trainer';
 import { messages } from './messages';
 import type { PanelBox } from './rects';
+import { useGatedInput } from './touch-gate';
 
 const boxStyle = (box: PanelBox): CSSProperties => ({
   left: `${box.left}%`,
@@ -57,7 +58,7 @@ export function ControlPlacement({
   const localize = useLocalize();
   const position = useSessionState((s) => s.state().controls[id] ?? control.initial);
   const guardOpen = useSessionState((s) => s.guards()[id] === 'open');
-  const input = usePanelInput(id);
+  const input = useGatedInput(id, usePanelInput(id));
   const { mode } = useTrainer();
   const explore = useExploreStore();
   const { widget: Widget, options } = resolveControl(control);

@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
-import { PanelArea } from '../panel';
+import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Mode, Trainer } from '../trainer';
 import { ModeControl } from './ModeControl';
@@ -232,6 +232,128 @@ describe('Guided', () => {
       trainer.session.set('master', 'off');
     });
     expect(outline()).toBeNull();
+  });
+});
+
+describe('Guided while zoomed', () => {
+  const viewport = { width: 400, height: 200 };
+  const zoomVar = (name: string) =>
+    Number(document.querySelector<HTMLElement>('.panel-zoom')?.style.getPropertyValue(name));
+  const ringRect = () => {
+    const ring = outline();
+    if (!ring) throw new Error('no outline');
+    const scale = zoomVar('--panel-scale');
+    const left =
+      (parseFloat(ring.style.left) / 100) * viewport.width * scale + zoomVar('--panel-x');
+    const width = (parseFloat(ring.style.width) / 100) * viewport.width * scale;
+    return { left, right: left + width };
+  };
+
+  beforeEach(() => {
+    const real = Element.prototype.getBoundingClientRect;
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this.classList.contains('panel-stage')) {
+        return new DOMRect(0, 0, viewport.width, viewport.height);
+      }
+      if (this instanceof HTMLElement && this.dataset.outline === 'target') {
+        const { left, right } = ringRect();
+        return new DOMRect(left, 0, right - left, 10);
+      }
+      return real.call(this);
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('pans the next target into view when it is out of sight', async () => {
+    renderTrainer();
+    start('inview', 'guided');
+    const surface = screen.getByRole('tabpanel');
+    act(() => surface.focus());
+    await userEvent.keyboard('++++');
+    await userEvent.keyboard('{ArrowLeft>20/}');
+    const before = zoomVar('--panel-x');
+    expect(before).toBe(0);
+
+    act(() => {
+      trainer.session.openGuard('cutoff');
+      trainer.session.set('cutoff', 'cut');
+    });
+
+    expect(zoomVar('--panel-x')).toBeLessThan(before);
+    const { left, right } = ringRect();
+    expect(left).toBeGreaterThanOrEqual(0);
+    expect(right).toBeLessThanOrEqual(viewport.width + 0.001);
+  });
+
+  it('pans the next item on the same control back into view after the pilot panned away', async () => {
+    renderTrainer();
+    start('cycle', 'guided');
+    const surface = screen.getByRole('tabpanel');
+    act(() => surface.focus());
+    await userEvent.keyboard('++++');
+    await userEvent.keyboard('{ArrowRight>20/}');
+    expect(ringRect().right).toBeLessThan(0);
+
+    act(() => trainer.session.set('master', 'on'));
+
+    expect(trainer.session.checklist()?.current).toBe(1);
+    const { left, right } = ringRect();
+    expect(left).toBeGreaterThanOrEqual(-0.001);
+    expect(right).toBeLessThanOrEqual(viewport.width + 0.001);
+  });
+
+  it('leaves the zoom alone when the next target is already in view', async () => {
+    renderTrainer();
+    start('cycle', 'guided');
+    const surface = screen.getByRole('tabpanel');
+    act(() => surface.focus());
+    await userEvent.keyboard('+');
+    const before = [zoomVar('--panel-x'), zoomVar('--panel-y')];
+    act(() => trainer.session.set('master', 'on'));
+    expect([zoomVar('--panel-x'), zoomVar('--panel-y')]).toEqual(before);
+  });
+});
+
+describe('a pinch that starts on a control', () => {
+  const touch = (id: number, x: number) => ({
+    pointerId: id,
+    pointerType: 'touch',
+    clientX: x,
+    clientY: 100,
+    button: 0,
+  });
+
+  it.each(['guided', 'practice'] as const)(
+    'does not operate it or record a deviation in %s',
+    (mode) => {
+      renderTrainer();
+      start('start', mode);
+      const starter = screen.getByRole('button', { name: 'Starter' });
+      const panel = screen.getByRole('img', { name: 'Main panel' });
+      fireEvent.pointerDown(starter, touch(1, 100));
+      fireEvent.pointerDown(panel, touch(2, 300));
+      fireEvent.pointerMove(panel, touch(2, 360));
+      fireEvent.pointerUp(starter, touch(1, 100));
+      fireEvent.pointerUp(panel, touch(2, 360));
+
+      expect(trainer.session.state().controls.starter).toBe('off');
+      expect(trainer.session.checklist()?.deviations).toEqual([]);
+    },
+  );
+
+  it('operates it when it is a plain tap', () => {
+    renderTrainer();
+    start('start', 'practice');
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    fireEvent.pointerDown(starter, touch(1, 100));
+    expect(trainer.session.state().controls.starter).toBe('off');
+    fireEvent.pointerUp(starter, touch(1, 100));
+    expect(trainer.session.checklist()?.deviations).toHaveLength(1);
   });
 });
 
