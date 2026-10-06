@@ -8,6 +8,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 
 - `pnpm dev` runs the web app
 - `pnpm test` runs all unit tests (fails if none are found)
+- `pnpm test:e2e` runs the Playwright browser tests (once:
+  `pnpm exec playwright install chromium`)
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 
 ## How work is done
@@ -28,6 +30,10 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   are exempt (no fragment, no `Closes`). A PR with no user-visible effect may
   skip the fragment with a body line `No changelog: <reason>`.
 - Branch prefixes: `feat/ fix/ chore/ docs/ ci/ release/`.
+- Every agent works in its own git worktree; never switch branches or edit
+  files in the main checkout.
+- Rebase only before a branch's first push (force-push is blocked); after
+  that the merge train updates the branch from `develop`.
 - A decision the spec does not settle: make it, state it and its reason in the
   PR description, and carry it into the milestone summary.
 - A milestone ends with the release PR, whose summary is the owner's review:
@@ -40,14 +46,19 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
-- Adding an aircraft: a new `packages/aircraft-<id>` plus one line in
-  `apps/web/src/aircraft-registry.ts`. Nothing else in `apps/web` changes.
+- Adding an aircraft: a new `packages/aircraft-<id>`, one line in
+  `apps/web/src/aircraft-registry.ts` and its workspace dependency in
+  `apps/web/package.json`. Nothing else in `apps/web` changes.
+- Outside-view images are first-person views out of the cockpit from the
+  pilot's seat, never the aircraft seen from outside.
 - Colours, type and spacing come only from `apps/web/src/styles/tokens.css`.
 - The brand styles the app frame, never the cockpit panel. Status colours do
   not appear on the panel.
 - No handbook scans or manufacturer artwork in the repo.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
-  substring "merge" (also "emergency", jq `mergeCommit`) and `$` in gh
-  endpoints: write such text with Write/Edit, spell endpoints literally.
+  substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
+  commands that contain it, `$` in gh endpoints, `--noEmit` and `+0`-like
+  text: write such text with Write/Edit, spell endpoints literally, run
+  `git pull --ff-only origin develop` on its own.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
