@@ -2,9 +2,7 @@ import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import { MODES } from '../logic';
 import type { TransponderState } from '../logic';
-
-const focusRule =
-  '.cpt-device-transponder button:focus-visible { outline: var(--space-1) solid var(--panel-focus); }';
+import './TransponderScreen.css';
 
 const screenStyle: CSSProperties = {
   display: 'grid',
@@ -68,7 +66,6 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
 
   return (
     <div className="cpt-device-transponder" style={screenStyle}>
-      <style>{focusRule}</style>
       <div data-display style={displayStyle}>
         {on && (
           <>

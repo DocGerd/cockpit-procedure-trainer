@@ -353,7 +353,7 @@ export type AircraftDefinition<
 > = {
   readonly id: string;
   readonly name: Text;
-  readonly handbookRevision: string;
+  readonly handbookRevision: Text;
   readonly controls: CT & ControlRules<CT>;
   readonly indicators: { readonly [K in I]: IndicatorDefinition<S> };
   readonly views: { readonly [K in V]: ViewDefinition<ControlId<CT>, NoInfer<I>> };

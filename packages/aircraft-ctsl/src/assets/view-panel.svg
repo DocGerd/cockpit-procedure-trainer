@@ -4,13 +4,13 @@
 <g fill="#5E646B"><circle cx="30" cy="30" r="4"/><circle cx="822" cy="30" r="4"/><circle cx="30" cy="670" r="4"/><circle cx="822" cy="670" r="4"/></g>
 <rect x="852" y="16" width="1032" height="668" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
 <g fill="#5E646B"><circle cx="866" cy="30" r="4"/><circle cx="1870" cy="30" r="4"/><circle cx="866" cy="670" r="4"/><circle cx="1870" cy="670" r="4"/></g>
-<rect x="26" y="40" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
+<rect x="26" y="40" width="128" height="112" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
 <text x="90" y="92" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">TAKE</text>
 <text x="90" y="130" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">OFF</text>
-<path d="M34 70 H146" stroke="#2B3138" stroke-width="1.5"/>
-<rect x="26" y="240" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
-<text x="90" y="300" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">LIMITS</text>
-<path d="M34 270 H146" stroke="#2B3138" stroke-width="1.5"/>
+<path d="M34 56 H146" stroke="#2B3138" stroke-width="1.5"/>
+<rect x="26" y="240" width="128" height="76" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
+<text x="90" y="292" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">LIMITS</text>
+<path d="M34 256 H146" stroke="#2B3138" stroke-width="1.5"/>
 <circle cx="270" cy="200" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="475" cy="112" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="685" cy="225" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>

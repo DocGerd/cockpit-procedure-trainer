@@ -111,6 +111,13 @@ describe('TransponderScreen controls', () => {
   });
 });
 
+describe('TransponderScreen styling', () => {
+  it('renders no style element, which a strict content security policy would block', () => {
+    const { view } = show();
+    expect(view.container.querySelector('style')).toBeNull();
+  });
+});
+
 describe('TransponderScreen natural size', () => {
   it('gives every button the touch-target minimum', () => {
     const buttons = [...show().view.container.querySelectorAll<HTMLElement>('button')];
