@@ -315,6 +315,36 @@ describe('controls under touch', () => {
     expect(calls.input).toEqual([]);
   });
 
+  describe('while another touch waits to be confirmed', () => {
+    const console = () => userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const space = { key: ' ' };
+
+    it('another control acts at once, and a pinch does not drop it', async () => {
+      await console();
+      const starter = screen.getByRole('button', { name: 'Starter' });
+      down(placement('beacon') as HTMLElement, { id: 1, x: 50, y: 100 });
+      act(() => starter.focus());
+      fireEvent.keyDown(starter, space);
+      expect(calls.input).toEqual(['press starter']);
+      fireEvent.keyUp(starter, space);
+      expect(calls.input).toEqual(['press starter', 'release starter']);
+      down(background(), { id: 2, x: 250, y: 100 });
+      expect(calls.input).toEqual(['press starter', 'release starter']);
+    });
+
+    it('a release of a press that already went through is not dropped', async () => {
+      await console();
+      const starter = screen.getByRole('button', { name: 'Starter' });
+      act(() => starter.focus());
+      fireEvent.keyDown(starter, space);
+      expect(calls.input).toEqual(['press starter']);
+      down(starter, { id: 1, x: 50, y: 100 });
+      fireEvent.keyUp(starter, space);
+      down(background(), { id: 2, x: 250, y: 100 });
+      expect(calls.input).toEqual(['press starter', 'release starter']);
+    });
+  });
+
   it.each(['mouse', 'pen'])('a %s press operates the control at once', async (pointerType) => {
     await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
     const starter = screen.getByRole('button', { name: 'Starter' });

@@ -150,8 +150,9 @@ export function useZoomGestures(
     const operating =
       !joining && next.closest(OPERABLE) !== null && next.closest(PAN_THROUGH) === null;
     live.set(event.pointerId, { x: event.clientX, y: event.clientY, target: next, operating });
-    if (operating && event.pointerType === 'touch') {
-      gate.hold();
+    const touched = next.closest<HTMLElement>('[data-kind="control"]')?.dataset.placement;
+    if (operating && touched !== undefined && event.pointerType === 'touch') {
+      gate.hold(touched);
       pending.current = {
         id: event.pointerId,
         x: event.clientX,

@@ -58,7 +58,7 @@ export function ControlPlacement({
   const localize = useLocalize();
   const position = useSessionState((s) => s.state().controls[id] ?? control.initial);
   const guardOpen = useSessionState((s) => s.guards()[id] === 'open');
-  const input = useGatedInput(usePanelInput(id));
+  const input = useGatedInput(id, usePanelInput(id));
   const { mode } = useTrainer();
   const explore = useExploreStore();
   const { widget: Widget, options } = resolveControl(control);

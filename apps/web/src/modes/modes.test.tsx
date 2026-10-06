@@ -290,6 +290,23 @@ describe('Guided while zoomed', () => {
     expect(right).toBeLessThanOrEqual(viewport.width + 0.001);
   });
 
+  it('pans the next item on the same control back into view after the pilot panned away', async () => {
+    renderTrainer();
+    start('cycle', 'guided');
+    const surface = screen.getByRole('tabpanel');
+    act(() => surface.focus());
+    await userEvent.keyboard('++++');
+    await userEvent.keyboard('{ArrowRight>20/}');
+    expect(ringRect().right).toBeLessThan(0);
+
+    act(() => trainer.session.set('master', 'on'));
+
+    expect(trainer.session.checklist()?.current).toBe(1);
+    const { left, right } = ringRect();
+    expect(left).toBeGreaterThanOrEqual(-0.001);
+    expect(right).toBeLessThanOrEqual(viewport.width + 0.001);
+  });
+
   it('leaves the zoom alone when the next target is already in view', async () => {
     renderTrainer();
     start('cycle', 'guided');
