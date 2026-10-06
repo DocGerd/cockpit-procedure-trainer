@@ -126,3 +126,30 @@ describe('ComScreen styling', () => {
     }
   });
 });
+
+describe('ComScreen natural size', () => {
+  const natural = () => render(<ComScreen on state={state} send={vi.fn()} />).container;
+
+  it('gives every button and the slider the touch-target minimum', () => {
+    const container = natural();
+    const controls = [...container.querySelectorAll<HTMLElement>('button, input')];
+    expect(controls).toHaveLength(6);
+    for (const control of controls) {
+      expect(control.style.minHeight).toBe('var(--size-target)');
+    }
+    for (const button of container.querySelectorAll<HTMLElement>('button')) {
+      expect(button.style.minWidth).toBe('var(--size-target)');
+    }
+  });
+
+  it('sets no text below the legibility floor', () => {
+    const container = natural();
+    const sizes = [...container.querySelectorAll<HTMLElement>('*')]
+      .map((element) => element.style.fontSize)
+      .filter((size) => size !== '' && size !== 'inherit');
+    for (const size of sizes) expect(size).toMatch(/^var\(--text-(2xs|xs|sm|md|lg|xl|2xl|3xl)\)$/);
+    expect(container.querySelector<HTMLElement>('.cpt-device-com')?.style.fontSize).toMatch(
+      /^var\(--text-(2xs|xs|sm|md|lg|xl|2xl|3xl)\)$/,
+    );
+  });
+});

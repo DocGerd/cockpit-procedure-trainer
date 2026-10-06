@@ -276,3 +276,19 @@ describe('declared view sizes', () => {
     expect(demoAircraft.views[id]?.size).toEqual({ width, height });
   });
 });
+
+describe('radio stack layout', () => {
+  const rect = (id: string) => {
+    const placement = demoAircraft.devices?.[id]?.placement.rect;
+    if (!placement) throw new Error(`no placement for ${id}`);
+    return placement;
+  };
+
+  it('stacks the two screens vertically in one view', () => {
+    const radio = rect('radio');
+    const xpdr = rect('xpdr');
+    expect(demoAircraft.devices?.radio?.view).toBe(demoAircraft.devices?.xpdr?.view);
+    expect(radio.y + radio.h).toBeLessThanOrEqual(xpdr.y);
+    expect(radio.x).toBe(xpdr.x);
+  });
+});

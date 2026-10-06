@@ -99,21 +99,21 @@ export const demoAircraft = defineAircraft({
     avionics: {
       name: text('Funkgeräte', 'Radio stack'),
       image: images.avionics,
-      size: { width: 1040, height: 440 },
+      size: { width: 640, height: 432 },
     },
   },
   devices: {
     radio: {
       device: 'com',
       view: 'avionics',
-      placement: { rect: { x: 40, y: 40, w: 456, h: 360 } },
+      placement: { rect: { x: 16, y: 16, w: 608, h: 192 } },
       powered: avionicsPowered,
       inputs: {},
     },
     xpdr: {
       device: 'transponder',
       view: 'avionics',
-      placement: { rect: { x: 544, y: 40, w: 456, h: 360 } },
+      placement: { rect: { x: 16, y: 232, w: 608, h: 184 } },
       powered: avionicsPowered,
       inputs: { pressureAltitude },
     },
