@@ -137,7 +137,9 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
         .precache.filter((entry) => entry.endsWith('.js'))
         .map((entry) => readFile(join(output().dir, entry), 'utf8')),
     );
-    const inlined = inlinedSvgs(scripts.join('\n'));
+    const inlined = inlinedSvgs(scripts.join('\n')).map((svg) =>
+      svg.replace(/>\s+</g, '><').trim(),
+    );
 
     for (const url of urls) {
       const path = fileURLToPath(url);

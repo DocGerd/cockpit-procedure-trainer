@@ -37,9 +37,37 @@
   border-radius: var(--radius-xl);
 }
 
-.panel-surface[data-panel-surface]:focus-visible {
+.panel-surface[data-cockpit] {
+  position: relative;
+}
+
+.panel-surface[data-panel-surface]:focus-visible,
+.panel-cell[data-panel-surface]:focus-visible {
   outline: 2px solid var(--panel-focus);
   outline-offset: 2px;
+}
+
+/*
+ * The combined layout: every view in its own cell of one arrangement. The cell is sized in script
+ * from the arrangement's scale; the stage inside it contain-fits the cell.
+ */
+.panel-cockpit {
+  position: relative;
+  margin-inline: auto;
+}
+
+.panel-cell {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-surface[data-cockpit] .panel-zoom-reset {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  z-index: 1;
 }
 
 /*
@@ -61,6 +89,12 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+.panel-stage[data-fit='cell'] {
+  flex: none;
+  width: min(100%, calc(var(--cell-height) * 1px * var(--panel-ratio)));
+  margin-inline: 0;
 }
 
 .panel-stage[data-zoomed] {

@@ -17,7 +17,13 @@ export type FindingCode =
   | 'invalid-install-id'
   | 'control-in-device-namespace'
   | 'invalid-view-size'
-  | 'placement-outside-view';
+  | 'placement-outside-view'
+  | 'invalid-cockpit-size'
+  | 'missing-cockpit-view'
+  | 'unknown-cockpit-view'
+  | 'cockpit-cell-outside'
+  | 'cockpit-cells-overlap'
+  | 'invalid-cockpit-min-width';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -230,6 +236,62 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       if (!hasIndicator(id))
         add('unknown-target', id, `view ${viewId} places an unknown indicator`);
     }
+  }
+
+  if (aircraft.cockpit !== undefined) {
+    const { size: cockpitSize, views: cells } = aircraft.cockpit as {
+      size?: unknown;
+      views?: Readonly<Record<string, { rect?: Rect; minWidth?: unknown } | null | undefined>>;
+    };
+    const { width, height } = (cockpitSize ?? {}) as { width?: unknown; height?: unknown };
+    const bounds =
+      isLength(width) && isLength(height) ? ({ width, height } as ViewSize) : undefined;
+    if (!bounds) {
+      add('invalid-cockpit-size', 'cockpit', 'size must be a positive, finite width and height');
+    }
+
+    const placed = Object.entries(cells ?? {});
+    for (const [viewId] of views) {
+      if (!placed.some(([id]) => id === viewId)) {
+        add('missing-cockpit-view', viewId, 'has no cell in the cockpit arrangement');
+      }
+    }
+    for (const [viewId, cell] of placed) {
+      if (!Object.hasOwn(aircraft.views, viewId)) {
+        add('unknown-cockpit-view', viewId, 'has a cockpit cell but is not a view');
+      }
+      if (!isLength(cell?.minWidth)) {
+        add('invalid-cockpit-min-width', viewId, 'minWidth must be a positive, finite number');
+      }
+      const rect = cell?.rect;
+      if (bounds && rect) {
+        if (
+          rect.x < 0 ||
+          rect.y < 0 ||
+          rect.x + rect.w > bounds.width ||
+          rect.y + rect.h > bounds.height
+        ) {
+          add(
+            'cockpit-cell-outside',
+            viewId,
+            `cell lies outside the ${bounds.width}x${bounds.height} arrangement`,
+          );
+        }
+      }
+    }
+    placed.forEach(([firstId, first], index) => {
+      for (const [secondId, second] of placed.slice(index + 1)) {
+        const a = first?.rect;
+        const b = second?.rect;
+        if (a && b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) {
+          add(
+            'cockpit-cells-overlap',
+            firstId,
+            `cell of ${firstId} overlaps the cell of ${secondId}`,
+          );
+        }
+      }
+    });
   }
 
   const named = new Set<string>();

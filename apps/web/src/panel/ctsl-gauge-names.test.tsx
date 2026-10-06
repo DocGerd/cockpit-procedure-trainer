@@ -19,6 +19,7 @@ describe('CTSL drawn gauges', () => {
       'airspeed',
       'altimeter',
       'cht',
+      'compass',
       'oilPressure',
       'oilTemperature',
       'tachometer',

@@ -51,11 +51,15 @@ const summaryHeading = (page: Page, procedureId: string) =>
     name: copy.checklist.summaryTitle.replace('{title}', procedure(procedureId).title.en),
   });
 
-async function selectView(page: Page, controlId: string) {
-  const tab = page.getByRole('tab', { name: viewOf(controlId).name.en });
+/** Bring a view on screen: select its tab, or nothing when every view is already shown. */
+export async function showView(page: Page, viewName: string) {
+  if ((await page.getByRole('tablist').count()) === 0) return;
+  const tab = page.getByRole('tab', { name: viewName });
   await tab.click();
   await expect(tab).toHaveAttribute('aria-selected', 'true');
 }
+
+const selectView = (page: Page, controlId: string) => showView(page, viewOf(controlId).name.en);
 
 async function setControl(page: Page, controlId: string, position: string | number) {
   const definition = control(controlId);

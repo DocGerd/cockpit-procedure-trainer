@@ -65,7 +65,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 - Below it, four round engine gauges in a row: a larger tachometer on the left,
   then oil pressure, oil temperature and cylinder head temperature (CHT).
 - A small item at the top left next to the type name: probably the magnetic
-  compass (drawn in the background).
+  compass. The trainer models it as an indicator that reads the heading of each
+  phase from the airfield of `src/airfield.ts`.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -256,6 +257,7 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | ----------------- | --------- | --- | -------------- | --------------------------------------------------------------------------- |
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set  |
+| `linedUp`         | yes       | 0   | 0              | as `holding`, lined up on the runway                                        |
 | `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                  |
 | `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate      |
 | `approach`        | no        | 59  | 500            | low power, flaps 15°                                                        |
