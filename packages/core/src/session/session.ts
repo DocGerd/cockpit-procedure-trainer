@@ -147,7 +147,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     const snapshot = entrySnapshot(aircraft, registry, id);
     procedureId = undefined;
     checklist = undefined;
-    store.load(snapshot.positions);
+    store.load(snapshot.positions, snapshot.guards);
     failureSet.clearAll();
     runtime.setEnvironment(snapshot.environment);
     runtime.onControlsChanged(store.positions());

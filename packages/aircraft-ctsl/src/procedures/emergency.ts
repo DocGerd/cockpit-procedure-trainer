@@ -194,6 +194,10 @@ export const emergencyProcedures = {
           'Ignition OFF so the propeller cannot damage the parachute',
         ),
       },
+      confirm(
+        'Sicherungsstift gezogen (vor dem Flug entfernt)',
+        'Safety pin out (removed before flight)',
+      ),
       {
         type: 'action',
         control: 'rescueHandle',

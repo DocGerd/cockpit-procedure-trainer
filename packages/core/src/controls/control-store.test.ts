@@ -367,6 +367,29 @@ describe('load', () => {
     ]);
   });
 
+  it('opens the guards it is given and closes the rest, with system guard changes', () => {
+    const { store, changes } = setup();
+    store.load({ master: 'on' }, { brs: 'open' });
+    expect(store.guards()).toEqual({ brs: 'open' });
+    expect(changes).toEqual([
+      { id: 'master', source: 'system', kind: 'position', from: 'off', to: 'on' },
+      { id: 'brs', source: 'system', kind: 'guard', from: 'closed', to: 'open' },
+    ]);
+    changes.length = 0;
+    store.load({ master: 'on' }, { brs: 'open' });
+    expect(changes).toEqual([]);
+    store.load({ master: 'on' });
+    expect(store.guards()).toEqual({ brs: 'closed' });
+  });
+
+  it('throws on a guard position for a control without a guard, changing nothing', () => {
+    const { store, changes } = setup();
+    expect(() => store.load({ master: 'on' }, { master: 'open' })).toThrow(/master/);
+    expect(() => store.load({ master: 'on' }, { ghost: 'open' })).toThrow(/ghost/);
+    expect(store.positions()).toMatchObject({ master: 'off' });
+    expect(changes).toEqual([]);
+  });
+
   it('emits no guard change when every guard is already closed', () => {
     const { store, changes } = setup();
     store.load({ master: 'on' });

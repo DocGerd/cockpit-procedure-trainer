@@ -331,7 +331,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['holding', '0'],
-    ['departure', '15'],
+    ['departure', '0'],
     ['cruise', '-12'],
     ['approach', '15'],
     ['landing', '30'],
@@ -383,6 +383,20 @@ describe('CTSL aircraft', () => {
       ...avionicsProcedures,
     });
     expect(ctslAircraft.devices).toEqual(installs);
+  });
+
+  it.each([
+    ['parking', 'closed'],
+    ['holding', 'closed'],
+    ['departure', 'open'],
+    ['cruise', 'open'],
+    ['approach', 'open'],
+    ['landing', 'open'],
+    ['taxiIn', 'open'],
+    ['parkingSecuring', 'open'],
+  ])('enters %s with the rescue safety pin %s', (phase, guard) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.guards().rescueHandle).toBe(guard);
   });
 
   it('starts a session at every phase', () => {

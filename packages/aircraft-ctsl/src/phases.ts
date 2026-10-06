@@ -51,12 +51,15 @@ const holdingShort = {
 
 const rolling = { ...holdingShort, parkingBrakeValve: 'open' } as const;
 
-const departing = { ...rolling, throttle: 'full', flapSelector: '15' } as const;
+const departing = { ...rolling, throttle: 'full', flapSelector: '0' } as const;
 const cruising = { ...rolling, throttle: 'cruise', flapSelector: '-12' } as const;
 const approaching = { ...rolling, throttle: 'low', flapSelector: '15' } as const;
 const flaring = { ...rolling, flapSelector: '30' } as const;
 const taxiingIn = { ...rolling, throttle: 'low', flapSelector: '30' } as const;
 const securing = { ...rolling } as const;
+
+// Intake §4.5: the pin is removed before take-off and back in at shutdown.
+const pinOut = { rescueHandle: 'open' } as const;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
 const departureEnvironment: Environment = { airspeedKt: 57, altitudeFt: 200, onGround: false };
@@ -81,37 +84,45 @@ export const phases = {
     name: text('Abflug', 'Departure'),
     image: images.departure,
     environment: departureEnvironment,
-    entry: { controls: departing, state: runningFrom(departing, departureEnvironment) },
+    entry: {
+      controls: departing,
+      state: runningFrom(departing, departureEnvironment),
+      guards: pinOut,
+    },
   },
   cruise: {
     name: text('Reiseflug', 'Cruise'),
     image: images.cruise,
     environment: cruiseEnvironment,
-    entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment) },
+    entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment), guards: pinOut },
   },
   approach: {
     name: text('Anflug', 'Approach'),
     image: images.approach,
     environment: approachEnvironment,
-    entry: { controls: approaching, state: runningFrom(approaching, approachEnvironment) },
+    entry: {
+      controls: approaching,
+      state: runningFrom(approaching, approachEnvironment),
+      guards: pinOut,
+    },
   },
   landing: {
     name: text('Landung', 'Landing'),
     image: images.landing,
     environment: landingEnvironment,
-    entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment) },
+    entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment), guards: pinOut },
   },
   taxiIn: {
     name: text('Rollen zum Vorfeld', 'Taxi in'),
     image: images.taxiIn,
     environment: ground(),
-    entry: { controls: taxiingIn, state: runningFrom(taxiingIn) },
+    entry: { controls: taxiingIn, state: runningFrom(taxiingIn), guards: pinOut },
   },
   parkingSecuring: {
     name: text('Parken und Sichern', 'Parking and securing'),
     image: images.parkingSecuring,
     environment: ground(),
-    entry: { controls: securing, state: runningFrom(securing) },
+    entry: { controls: securing, state: runningFrom(securing), guards: pinOut },
   },
 } as const satisfies Record<string, PhaseDefinition<CtslState, Controls>>;
 

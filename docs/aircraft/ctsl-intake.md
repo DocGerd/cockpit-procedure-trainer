@@ -256,12 +256,15 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | ----------------- | --------- | --- | -------------- | --------------------------------------------------------------------------- |
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set  |
-| `departure`       | no        | 57  | 200            | full throttle, flaps 15°, climbing                                          |
+| `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                  |
 | `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate      |
 | `approach`        | no        | 59  | 500            | low power, flaps 15°                                                        |
 | `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare                                               |
 | `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°                                                        |
 | `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi                                     |
+
+From `departure` to `parkingSecuring` the rescue safety pin is out (§4.5): it is removed
+before take-off and put back at shutdown.
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -412,22 +415,23 @@ get out, fire risk).
 
 ## 8. Handbook contradictions and the value used
 
-| Topic                         | Value A                                                                           | Value B                                            | Trainer uses                                                  |
-| ----------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------- |
-| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)              | 120 °C (lowest)                                               |
-| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                    | 120 °C                                                        |
-| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)            | 124 l                                                         |
-| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                | 51 °C                                                         |
-| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1) | the by-flap table of §4.1; the checklist pair is flagged      |
-| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                         | 105 km/h (more margin over the stall)                         |
-| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)     | 125 km/h flaps 0° (the emergency chapter)                     |
-| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)         | gauge arcs as marked; speeds as listed                        |
-| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)     | 184 km/h at 0°; 15°, 30° and 35° per §4.1                     |
-| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)   | never deploy; the fire procedure ends in an emergency landing |
-| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off         | left armed                                                    |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                              | 260 km/h                                                      |
-| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                         | 130 °C                                                        |
-| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop           | GEN first, then avionics, after the engine runs               |
+| Topic                         | Value A                                                                           | Value B                                                | Trainer uses                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                  | 120 °C (lowest)                                                                                |
+| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                        | 120 °C                                                                                         |
+| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                | 124 l                                                                                          |
+| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                    | 51 °C                                                                                          |
+| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)     | the by-flap table of §4.1; the checklist pair is flagged                                       |
+| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                             | 105 km/h (more margin over the stall)                                                          |
+| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)         | 125 km/h flaps 0° (the emergency chapter)                                                      |
+| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)             | gauge arcs as marked; speeds as listed                                                         |
+| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)         | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
+| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)       | never deploy; the fire procedure ends in an emergency landing                                  |
+| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off             | left armed                                                                                     |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                  | 260 km/h                                                                                       |
+| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                             | 130 °C                                                                                         |
+| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop               | GEN first, then avionics, after the engine runs                                                |
+| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4) | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
 
 ## 9. Open questions for the club and instructor
 

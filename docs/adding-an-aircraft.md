@@ -145,7 +145,7 @@ placement that is not inside it as `placement-outside-view`.
 outside view. Draw it as the first-person view out of the windshield from the
 pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
-state. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
+state. Guards start closed unless `entry.guards` names them `open`. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
 steps the systems once from a running engine. A procedure starts from its
 `startPhase` snapshot, so the snapshot must be a state the procedure's first item
 makes sense in.
