@@ -33,3 +33,11 @@ export const fitStyle = (size: ImageSize, top: number) =>
     '--panel-ratio': size.width / size.height,
     '--panel-top': top,
   }) as CSSProperties;
+
+/** Inputs of the stage's contain-fit inside a cockpit cell, in `panel.css`. */
+export const cellFitStyle = (size: ImageSize, cellHeight: number) =>
+  ({
+    aspectRatio: `${size.width} / ${size.height}`,
+    '--panel-ratio': size.width / size.height,
+    '--cell-height': cellHeight,
+  }) as CSSProperties;

@@ -42,6 +42,7 @@ export const views = {
       outletBreaker: at(1606, 520, 84, 130),
     },
     indicators: {
+      compass: at(845, 28, 150, 150),
       airspeed: at(160, 90, 220, 220),
       verticalSpeed: at(395, 32, 160, 160),
       chargeLamp: at(570, 32, 110, 70),

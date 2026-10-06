@@ -54,3 +54,24 @@ export const zoomStyle = (zoom: ZoomState) =>
     '--panel-x': zoom.offset.x,
     '--panel-y': zoom.offset.y,
   }) as CSSProperties;
+
+const NO_ZOOMS: Readonly<Record<string, ZoomState>> = {};
+
+/** One zoom per view for the combined layout; all of them start over whenever `resetKey` changes. */
+export function useZoomMap(resetKey: string) {
+  const [stored, setStored] = useState<{ key: string; zooms: Readonly<Record<string, ZoomState>> }>(
+    { key: resetKey, zooms: NO_ZOOMS },
+  );
+  const zooms = stored.key === resetKey ? stored.zooms : NO_ZOOMS;
+  const apply = useCallback(
+    (viewId: string, next: ZoomState) =>
+      setStored((previous) => ({
+        key: resetKey,
+        zooms: { ...(previous.key === resetKey ? previous.zooms : NO_ZOOMS), [viewId]: next },
+      })),
+    [resetKey],
+  );
+  const reset = useCallback(() => setStored({ key: resetKey, zooms: NO_ZOOMS }), [resetKey]);
+  const of = useCallback((viewId: string) => zooms[viewId] ?? NO_ZOOM, [zooms]);
+  return { of, apply, reset };
+}

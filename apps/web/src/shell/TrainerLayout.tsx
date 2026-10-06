@@ -5,7 +5,9 @@ import { ChecklistPane } from '../checklist/ChecklistPane';
 import { format, useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
 import { PanelArea } from '../panel/PanelArea';
+import { useCockpitLayout, useCockpitRegion } from '../panel/use-cockpit-layout';
 import { useSessionState, useTrainer } from '../trainer';
+import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
@@ -65,7 +67,7 @@ function ChecklistToggle({
 export function TrainerLayout() {
   const text = useMessages(messages);
   const layout = useLayout();
-  const { mode, procedureId } = useTrainer();
+  const { aircraft, mode, procedureId } = useTrainer();
   const [expanded, setExpanded] = useState(false);
   const paneId = useId();
   const overlay = layout === 'tablet';
@@ -74,6 +76,10 @@ export function TrainerLayout() {
   const pane = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const openedByToggle = useRef(false);
+  const shell = useRef<HTMLDivElement>(null);
+  const section = useRef<HTMLElement>(null);
+  const frame = useRef<HTMLDivElement>(null);
+  const cockpit = useCockpitLayout(aircraft, useCockpitRegion(shell, section), frame);
   const hasChecklist = mode !== 'explore' && procedureId !== undefined;
   const showPane = hasChecklist && (!overlay || expanded);
 
@@ -122,7 +128,13 @@ export function TrainerLayout() {
   };
 
   return (
-    <div className="shell" data-layout={layout} data-screen="trainer">
+    <div
+      ref={shell}
+      className="shell"
+      data-layout={layout}
+      data-cockpit-layout={cockpit.kind}
+      data-screen="trainer"
+    >
       <Header
         variant="trainer"
         checklistToggle={
@@ -145,8 +157,8 @@ export function TrainerLayout() {
           <section className="shell-outside-view" aria-label={text.outsideView}>
             <OutsideView />
           </section>
-          <section className="shell-panel" aria-label={text.cockpitPanel}>
-            <PanelArea />
+          <section ref={section} className="shell-panel" aria-label={text.cockpitPanel}>
+            <PanelArea layout={cockpit} frame={frame} />
           </section>
         </main>
         {showPane && overlay && (
@@ -170,6 +182,7 @@ export function TrainerLayout() {
           </aside>
         )}
       </div>
+      <AppFooter />
       <ChecklistAnnouncer announceDeviations={overlay && !expanded} />
     </div>
   );

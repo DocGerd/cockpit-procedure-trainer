@@ -15,6 +15,7 @@ test('the trainer reloads and starts a procedure while offline', async ({ page, 
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
   await isControlled(page);
+  await expect(page.getByRole('contentinfo')).toContainText(`${copy.shell.version} v`);
 
   await startProcedure(page, engineStart, 'guided');
   const [firstItem] = procedure(engineStart).items;

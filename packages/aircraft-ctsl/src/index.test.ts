@@ -99,6 +99,7 @@ const expectedControls: Record<string, Expected> = {
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {
+  compass: { widget: 'artwork', view: 'panel' },
   airspeed: { widget: 'artwork', view: 'panel' },
   altimeter: { widget: 'artwork', view: 'panel' },
   verticalSpeed: { widget: 'artwork', view: 'panel' },
@@ -114,6 +115,7 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
 const expectedPhases = {
   parking: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   holding: { airspeedKt: 0, altitudeFt: 0, onGround: true },
+  linedUp: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   departure: { airspeedKt: 57, altitudeFt: 200, onGround: false },
   cruise: { airspeedKt: 108, altitudeFt: 2500, onGround: false },
   approach: { airspeedKt: 59, altitudeFt: 500, onGround: false },
@@ -135,6 +137,12 @@ describe('CTSL aircraft', () => {
 
   it('passes the validator', () => {
     expect(validateAircraft(ctslAircraft, { devices })).toEqual([]);
+  });
+
+  it('arranges every view in the cockpit', () => {
+    expect(Object.keys(ctslAircraft.cockpit?.views ?? {}).sort()).toEqual(
+      Object.keys(ctslAircraft.views).sort(),
+    );
   });
 
   it('calls the panel representative in both languages', () => {

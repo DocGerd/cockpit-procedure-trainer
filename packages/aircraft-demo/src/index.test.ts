@@ -52,6 +52,12 @@ describe('demo aircraft', () => {
     expect(validateAircraft(demoAircraft, { devices })).toEqual([]);
   });
 
+  it('arranges every view in the cockpit', () => {
+    expect(Object.keys(demoAircraft.cockpit?.views ?? {}).sort()).toEqual(
+      Object.keys(demoAircraft.views).sort(),
+    );
+  });
+
   it('uses every control kind and springs one rotary detent back', () => {
     const controls = Object.values(demoAircraft.controls);
     expect(new Set(controls.map((control) => control.kind))).toEqual(new Set(CONTROL_KINDS));
@@ -79,6 +85,7 @@ describe('demo aircraft', () => {
     expect(Object.keys(demoAircraft.phases)).toEqual([
       'parking',
       'holding',
+      'linedUp',
       'departure',
       'cruise',
       'approach',
@@ -245,9 +252,9 @@ describe('demo aircraft', () => {
     expect(walkProcedure(demoAircraft, id, { devices })).toEqual({ ok: true });
   });
 
-  it('has six normal procedures and an emergency naming its failure', () => {
+  it('has seven normal procedures and an emergency naming its failure', () => {
     const procedures = Object.values(demoAircraft.procedures);
-    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(6);
+    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(7);
     const emergencies = procedures.filter((procedure) => procedure.type === 'emergency');
     expect(emergencies).toHaveLength(1);
     expect(emergencies[0]?.failure).toBe('alternatorFailure');

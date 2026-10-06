@@ -143,6 +143,19 @@ export type ViewDefinition<C extends string, I extends string> = {
   readonly indicators?: { readonly [K in I]?: Placement };
 };
 
+export type CockpitCell = {
+  /** Where the view sits in the cockpit arrangement; the view is contain-fit inside it. */
+  readonly rect: Rect;
+  /** Narrowest rendered width, in CSS px, at which the view stays legible and operable. Owned by the floor test. */
+  readonly minWidth: number;
+};
+
+export type CockpitLayout<V extends string> = {
+  /** The arrangement's coordinate space, origin 0,0. Its unit is the author's; only proportions matter. */
+  readonly size: ViewSize;
+  readonly views: { readonly [K in V]: CockpitCell };
+};
+
 export type Environment = {
   readonly airspeedKt: number;
   readonly altitudeFt: number;
@@ -345,6 +358,7 @@ export type AircraftDefinition<
   readonly indicators: { readonly [K in I]: IndicatorDefinition<S> };
   readonly views: { readonly [K in V]: ViewDefinition<ControlId<CT>, NoInfer<I>> };
   readonly devices?: { readonly [installId: string]: DeviceInstall<S, NoInfer<V>> };
+  readonly cockpit?: CockpitLayout<NoInfer<V>>;
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };

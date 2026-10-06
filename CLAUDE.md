@@ -40,9 +40,15 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   what shipped, decisions made, open questions, how to verify.
 - Stop and ask only for: publishing content of unclear copyright, anything
   that changes the spec's decisions table, or destructive repo operations.
+- After the owner merges a release PR, let the `main` Deploy run's
+  `prod-environment` job finish before any push to `develop` (backmerge):
+  Pages deploys cancel in-progress runs.
 
 ## Rules
 
+- Quality trade-offs follow `docs/adr/0002-quality-priorities.md`: gates
+  (legal, security/privacy) are never traded; otherwise the higher rank wins
+  and the PR names any sacrificed quality.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
@@ -55,6 +61,14 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - The brand styles the app frame, never the cockpit panel. Status colours do
   not appear on the panel.
 - No handbook scans or manufacturer artwork in the repo.
+- Every operable control shows a printed label on the panel (`placard`,
+  artwork `lettering` or view `printed`), in the panel's own fixed wording; the
+  contract test in `apps/web/src/panel/printed-labels.test.tsx` enforces it.
+- Avionics devices get their own view (like `radios`/`gps`); a device in a
+  scaled panel slot misses the 44 px touch targets.
+- Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
+  `reference/` is local-only — never read it in implementation agents, never
+  commit or quote it.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
   commands that contain it, and `$` in gh endpoints: write such text with
@@ -63,3 +77,5 @@ develop` on its own. A global force-push guard also refuses `--noEmit` and
   `+0`-like text in commands.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
+- `doc-writer` cannot run git or gh: pair it with an agent that commits and
+  opens the PR.

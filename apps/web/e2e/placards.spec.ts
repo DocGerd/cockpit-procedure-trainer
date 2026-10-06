@@ -1,43 +1,14 @@
-import { readFileSync } from 'node:fs';
-import type { Aircraft } from '@cpt/core';
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
-import { copy, openPicker } from './trainer';
+import { openAircraft, placardProblems, selectLanguage, showView } from './legibility';
 
 const viewports = [
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
   { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 3840, height: 2160 },
 ];
-
-const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
-const MIN_TEXT_PX = Number(/--text-2xs:\s*(\d+)px/.exec(tokens)?.[1]);
-const TOUCH_TARGET_PX = Number(/--size-target:\s*(\d+)px/.exec(tokens)?.[1]);
-if (!Number.isFinite(MIN_TEXT_PX) || !Number.isFinite(TOUCH_TARGET_PX)) {
-  throw new Error('tokens.css has no --text-2xs or --size-target');
-}
-
-const printsText = (lines: readonly string[] | undefined) =>
-  lines?.some((line) => line.trim() !== '') ?? false;
-
-const widgetPlacards = (aircraft: Aircraft, viewId: string) =>
-  Object.entries(aircraft.views[viewId]?.controls ?? {}).flatMap(([id, placement]) => {
-    const control = aircraft.controls[id];
-    if (!control || !placement || printsText(placement.printed)) return [];
-    if (control.appearance && 'artwork' in control.appearance) return [];
-    return [{ id, text: (control.placard ?? control.name.en).toUpperCase() }];
-  });
-
-async function openAircraft(page: Page, aircraft: Aircraft) {
-  const first = Object.values(aircraft.procedures).find(({ type }) => type === 'normal');
-  if (!first) throw new Error(`${aircraft.id} has no normal procedure`);
-  await openPicker(page);
-  await page.getByRole('button', { name: aircraft.name.en }).click();
-  await page.getByRole('button', { name: first.title.en }).click();
-  await page.getByRole('radio', { name: copy.shell.guided }).check();
-  await page.getByRole('button', { name: copy.shell.startProcedure, exact: true }).click();
-}
 
 const runs = aircraftRegistry.flatMap((aircraft) =>
   viewports.flatMap((viewport) =>
@@ -51,75 +22,10 @@ for (const { aircraft, viewport, language } of runs) {
   }) => {
     await page.setViewportSize(viewport);
     await openAircraft(page, aircraft);
-    if (language === 'de') await page.getByRole('button', { name: copy.language.german }).click();
-    for (const [viewId, view] of Object.entries(aircraft.views)) {
-      const expected = widgetPlacards(aircraft, viewId);
-      if (expected.length === 0) continue;
-      const tab = page.getByRole('tab', { name: view.name[language] });
-      await tab.click();
-      await expect(tab).toHaveAttribute('aria-selected', 'true');
-      for (const { id, text } of expected) {
-        const where = `${viewId}/${id}`;
-        const placement = page.locator(`[data-placement="${id}"]`);
-        const placard = placement.locator('[data-placard]');
-        await expect(placard, where).toHaveText(text);
-        const geometry = await placement.evaluate((element) => {
-          const box = (target: Element | null) => {
-            const rect = target?.getBoundingClientRect();
-            return (
-              rect && { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right }
-            );
-          };
-          const label = element.querySelector('[data-placard]');
-          const labelBox = label?.getBoundingClientRect();
-          const hit = labelBox
-            ? document.elementFromPoint(
-                (labelBox.left + labelBox.right) / 2,
-                (labelBox.top + labelBox.bottom) / 2,
-              )
-            : null;
-          return {
-            placement: box(element),
-            label: box(label),
-            overfull: label?.hasAttribute('data-overfull') ?? false,
-            underPlacard: hit?.closest('button, [role="slider"], [role="radio"]')
-              ? 'a control'
-              : '',
-            moving: [...element.querySelectorAll('.pk-move')].map(box),
-            targets: [...element.querySelectorAll('button, [role="slider"]')].map((target) => {
-              const { width, height } = target.getBoundingClientRect();
-              return Math.min(width, height);
-            }),
-            fontPx: label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0,
-            scale: (() => {
-              const svg = element.querySelector('svg');
-              const width = svg?.viewBox.baseVal.width ?? 0;
-              return width > 0 ? (svg?.getBoundingClientRect().width ?? 0) / width : 0;
-            })(),
-          };
-        });
-        const { placement: outer, label, moving, fontPx, scale } = geometry;
-        if (!outer || !label) throw new Error(`${where} has no placard box`);
-        expect(geometry.overfull, `${where} placard fits; shorten it`).toBe(false);
-        expect(fontPx * scale, `${where} text size`).toBeGreaterThanOrEqual(MIN_TEXT_PX - 0.5);
-        expect(label.left, `${where} inside its placement`).toBeGreaterThanOrEqual(outer.left - 1);
-        expect(label.right).toBeLessThanOrEqual(outer.right + 1);
-        expect(label.top).toBeGreaterThanOrEqual(outer.top - 1);
-        expect(geometry.underPlacard, `${where} placard is not a touch target`).toBe('');
-        expect(
-          geometry.targets.filter((size) => size < TOUCH_TARGET_PX - 0.5),
-          `${where} touch targets`,
-        ).toEqual([]);
-        const overlapping = moving.filter(
-          (part) =>
-            part !== undefined &&
-            part.left < label.right - 1 &&
-            part.right > label.left + 1 &&
-            part.top < label.bottom - 1 &&
-            part.bottom > label.top + 1,
-        );
-        expect(overlapping, `${where} clear of the moving parts`).toEqual([]);
-      }
+    await selectLanguage(page, language);
+    for (const viewId of Object.keys(aircraft.views)) {
+      const root = await showView(page, aircraft, viewId, language);
+      expect(await placardProblems(root, aircraft, viewId)).toEqual([]);
     }
   });
 }

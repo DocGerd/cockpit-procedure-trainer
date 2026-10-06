@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
+import type { CockpitLayoutChoice } from '../panel/cockpit-layout';
 import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Mode, Trainer } from '../trainer';
@@ -26,12 +27,15 @@ function Probe() {
   return null;
 }
 
-function renderTrainer(language: 'de' | 'en' = 'en') {
+function renderTrainer(
+  language: 'de' | 'en' = 'en',
+  layout: CockpitLayoutChoice = { kind: 'tabs' },
+) {
   return renderWithLanguage(
     <TrainerProvider>
       <Probe />
       <ModeControl />
-      <PanelArea />
+      <PanelArea layout={layout} />
     </TrainerProvider>,
     { language },
   );
@@ -728,6 +732,65 @@ describe('Guided focus', () => {
     act(() => tab.focus());
     act(() => trainer.session.set('master', 'on'));
     expect(document.activeElement).toBe(tab);
+  });
+});
+
+const combined: CockpitLayoutChoice = {
+  kind: 'combined',
+  scale: 1,
+  width: 1000,
+  height: 500,
+  cells: [
+    { viewId: 'main', left: 0, top: 0, width: 600, height: 500, fitWidth: 600 },
+    { viewId: 'console', left: 600, top: 0, width: 400, height: 500, fitWidth: 400 },
+  ],
+};
+
+describe('Guided in the combined layout', () => {
+  const outlines = () => [...document.querySelectorAll<HTMLElement>('[data-outline="target"]')];
+
+  it('rings the target in its own cell only and never switches views', () => {
+    renderTrainer('en', combined);
+    start('start', 'guided');
+    expect(screen.queryByRole('tab')).toBeNull();
+    expect(outlines()).toHaveLength(1);
+    expect(outlines()[0]?.closest('[data-view]')?.getAttribute('data-view')).toBe('main');
+
+    act(() => trainer.session.set('master', 'on'));
+    expect(outlines()).toHaveLength(1);
+    expect(outlines()[0]?.closest('[data-view]')?.getAttribute('data-view')).toBe('console');
+    expect(boxOf(outlines()[0] ?? null)).toEqual(boxOf(placement('pump')));
+  });
+
+  it('moves focus to the target in its cell when the target changes cell', () => {
+    renderTrainer('en', combined);
+    start('start', 'guided');
+    act(() => radio('Master', 'off').focus());
+    act(() => trainer.session.set('master', 'on'));
+    expect(placement('pump')?.contains(document.activeElement)).toBe(true);
+    expect(placement('pump')?.closest('[data-view]')?.getAttribute('data-view')).toBe('console');
+  });
+
+  it('moves focus into the install of a device control target in its cell', () => {
+    renderTrainer('en', combined);
+    start('start', 'guided');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+    const volts = placement('volts');
+    act(() => volts?.querySelector<HTMLElement>('[tabindex="0"]')?.focus());
+    act(() => trainer.session.checkOff());
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Radio page B' }));
+  });
+
+  it('leaves focus alone when the next target is in the same cell', () => {
+    renderTrainer('en', combined);
+    start('cycle', 'guided');
+    act(() => radio('Master', 'off').focus());
+    const focused = document.activeElement;
+    act(() => trainer.session.set('master', 'on'));
+    expect(document.activeElement).toBe(focused);
   });
 });
 

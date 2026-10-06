@@ -1,28 +1,37 @@
 import type { Aircraft } from '@cpt/core';
 import { printsText } from '@cpt/panel-kit';
-import { Fragment, useId, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import { Fragment, useCallback, useId, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent, RefObject } from 'react';
 import { DeviceLayer } from '../devices/DeviceLayer';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
 import { useLocalize, useMessages } from '../i18n';
 import { PanelOverlay } from '../modes/PanelOverlay';
 import { useTrainer } from '../trainer';
 import { ActiveViewContext } from './active-view';
+import type { CockpitLayoutChoice, CombinedCell } from './cockpit-layout';
 import type { ActiveView } from './active-view';
-import { fitStyle, usePageTop } from './fit';
+import { cellFitStyle, fitStyle, usePageTop } from './fit';
 import { useBackgroundSize } from './image-size';
 import { messages } from './messages';
-import { PanelRevealProvider, PanelZoomContext, useZoomState, zoomStyle } from './panel-zoom';
+import {
+  PanelRevealProvider,
+  PanelZoomContext,
+  useZoomMap,
+  useZoomState,
+  zoomStyle,
+} from './panel-zoom';
+import type { PanelZoom } from './panel-zoom';
 import { ControlPlacement, IndicatorPlacement } from './placements';
 import { panelRects, placementExtent, viewPlacements } from './rects';
 import { createTouchGate, TouchGateContext } from './touch-gate';
 import type { TouchGate } from './touch-gate';
 import { useZoomGestures } from './use-zoom-gestures';
 import type { ZoomTarget } from './use-zoom-gestures';
-import { isZoomed, keyZoom, sameZoom } from './zoom';
+import { isZoomed, keyZoom, NO_ZOOM, sameZoom } from './zoom';
+import type { ZoomState } from './zoom';
 import './panel.css';
 
-function useViewState(aircraft: Aircraft): ActiveView {
+function useViewState(aircraft: Aircraft, combined: boolean): ActiveView {
   const viewIds = Object.keys(aircraft.views);
   const [chosen, setChosen] = useState<{ aircraftId: string; viewId: string }>();
   const current =
@@ -32,11 +41,14 @@ function useViewState(aircraft: Aircraft): ActiveView {
   return useMemo(
     () => ({
       viewId: current,
+      combined,
       setView: (viewId: string) => {
+        if (combined) return;
         if (Object.hasOwn(aircraft.views, viewId)) setChosen({ aircraftId: aircraft.id, viewId });
       },
+      visible: (viewId: string) => combined || viewId === current,
     }),
-    [aircraft, current],
+    [aircraft, current, combined],
   );
 }
 
@@ -91,7 +103,18 @@ function ViewTabs({ active, panelId }: { active: ActiveView; panelId: string }) 
   );
 }
 
-function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; gate: TouchGate }) {
+function PanelView({
+  viewId,
+  zoom,
+  gate,
+  cellHeight,
+}: {
+  viewId: string;
+  zoom: ZoomTarget;
+  gate: TouchGate;
+  /** Set in the combined layout: the height of the cell the view is contain-fit in. */
+  cellHeight?: number;
+}) {
   const { aircraft } = useTrainer();
   const localize = useLocalize();
   const view = aircraft.views[viewId];
@@ -110,7 +133,8 @@ function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; g
     <div
       ref={stage}
       className="panel-stage"
-      style={fitStyle(size, top)}
+      style={cellHeight === undefined ? fitStyle(size, top) : cellFitStyle(size, cellHeight)}
+      data-fit={cellHeight === undefined ? undefined : 'cell'}
       data-zoomed={isZoomed(zoom.zoom) ? '' : undefined}
       {...gestures}
     >
@@ -160,26 +184,128 @@ function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; g
   );
 }
 
-export function PanelArea() {
-  const { aircraft } = useTrainer();
-  const active = useViewState(aircraft);
-  const panelId = useId();
-  const text = useMessages(messages);
-  const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
-  const gate = useMemo(createTouchGate, []);
+const TABS: CockpitLayoutChoice = { kind: 'tabs' };
 
-  // Keys reach the surface only while it has focus itself; a focused control keeps its own keys.
-  const onSurfaceKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+// Keys reach the surface only while it has focus itself; a focused control keeps its own keys.
+function zoomKeyHandler(zoom: ZoomState, apply: (next: ZoomState) => void) {
+  return (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey) {
       return;
     }
     const viewport = event.currentTarget.firstElementChild?.getBoundingClientRect();
     if (!viewport) return;
-    const next = keyZoom(zoom.zoom, event.key, viewport);
-    if (next === undefined || sameZoom(next, zoom.zoom)) return;
+    const next = keyZoom(zoom, event.key, viewport);
+    if (next === undefined || sameZoom(next, zoom)) return;
     event.preventDefault();
-    zoom.apply(next);
+    apply(next);
   };
+}
+
+function CockpitCellView({
+  cell,
+  panelId,
+  zoom,
+  applyZoom,
+  gate,
+}: {
+  cell: CombinedCell;
+  panelId: string;
+  zoom: ZoomState;
+  applyZoom(viewId: string, next: ZoomState): void;
+  gate: TouchGate;
+}) {
+  const { aircraft } = useTrainer();
+  const localize = useLocalize();
+  const view = aircraft.views[cell.viewId];
+  const { viewId } = cell;
+  const apply = useCallback((next: ZoomState) => applyZoom(viewId, next), [applyZoom, viewId]);
+  const target = useMemo(() => ({ zoom, apply }), [zoom, apply]);
+  const value = useMemo<PanelZoom>(
+    () => ({ scale: zoom.scale, offset: zoom.offset, reset: () => apply(NO_ZOOM) }),
+    [zoom, apply],
+  );
+  return (
+    <div
+      role="region"
+      id={`${panelId}-${viewId}`}
+      aria-label={view ? localize(view.name) : viewId}
+      aria-describedby={`${panelId}-keys`}
+      tabIndex={0}
+      className="panel-cell"
+      data-view={viewId}
+      data-panel-surface=""
+      style={{ left: cell.left, top: cell.top, width: cell.width, height: cell.height }}
+      onKeyDown={zoomKeyHandler(zoom, apply)}
+    >
+      <PanelZoomContext.Provider value={value}>
+        <PanelView viewId={viewId} zoom={target} gate={gate} cellHeight={cell.height} />
+      </PanelZoomContext.Provider>
+    </div>
+  );
+}
+
+function CombinedCockpit({
+  layout,
+  frame,
+  gate,
+}: {
+  layout: Extract<CockpitLayoutChoice, { kind: 'combined' }>;
+  frame: RefObject<HTMLDivElement | null>;
+  gate: TouchGate;
+}) {
+  const { aircraft } = useTrainer();
+  const text = useMessages(messages);
+  const panelId = useId();
+  const zooms = useZoomMap(aircraft.id);
+  const zoomed = layout.cells.filter((cell) => isZoomed(zooms.of(cell.viewId)));
+
+  const resetZoom = () => {
+    const first = zoomed[0];
+    zooms.reset();
+    if (first) document.getElementById(`${panelId}-${first.viewId}`)?.focus();
+  };
+
+  return (
+    <div ref={frame} className="panel-surface" data-cockpit="combined">
+      {zoomed.length > 0 && (
+        <button type="button" className="chrome-button panel-zoom-reset" onClick={resetZoom}>
+          {text.resetZoom}
+        </button>
+      )}
+      <TouchGateContext.Provider value={gate}>
+        <div className="panel-cockpit" style={{ width: layout.width, height: layout.height }}>
+          {layout.cells.map((cell) => (
+            <CockpitCellView
+              key={cell.viewId}
+              cell={cell}
+              panelId={panelId}
+              zoom={zooms.of(cell.viewId)}
+              applyZoom={zooms.apply}
+              gate={gate}
+            />
+          ))}
+        </div>
+      </TouchGateContext.Provider>
+      <span id={`${panelId}-keys`} hidden>
+        {text.zoomKeys}
+      </span>
+    </div>
+  );
+}
+
+function TabbedCockpit({
+  active,
+  frame,
+  gate,
+}: {
+  active: ActiveView;
+  frame: RefObject<HTMLDivElement | null>;
+  gate: TouchGate;
+}) {
+  const { aircraft } = useTrainer();
+  const panelId = useId();
+  const text = useMessages(messages);
+  const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
 
   const resetZoom = () => {
     zoom.reset();
@@ -187,34 +313,60 @@ export function PanelArea() {
   };
 
   return (
+    <PanelZoomContext.Provider value={zoom.value}>
+      <div className="panel-bar">
+        <ViewTabs active={active} panelId={panelId} />
+        {isZoomed(zoom.zoom) && (
+          <button type="button" className="chrome-button panel-zoom-reset" onClick={resetZoom}>
+            {text.resetZoom}
+          </button>
+        )}
+      </div>
+      <div
+        ref={frame}
+        role="tabpanel"
+        id={panelId}
+        aria-labelledby={`${panelId}-${active.viewId}`}
+        aria-describedby={`${panelId}-keys`}
+        tabIndex={0}
+        className="panel-surface"
+        data-panel-surface=""
+        data-view={active.viewId}
+        onKeyDown={zoomKeyHandler(zoom.zoom, zoom.apply)}
+      >
+        <TouchGateContext.Provider value={gate}>
+          <PanelView viewId={active.viewId} zoom={zoom} gate={gate} />
+        </TouchGateContext.Provider>
+        <span id={`${panelId}-keys`} hidden>
+          {text.zoomKeys}
+        </span>
+      </div>
+    </PanelZoomContext.Provider>
+  );
+}
+
+export type PanelAreaProps = {
+  /** How the cockpit is laid out; tabs when absent. */
+  layout?: CockpitLayoutChoice;
+  /** The element that frames the cockpit in either layout, so its padding can be measured. */
+  frame?: RefObject<HTMLDivElement | null>;
+};
+
+export function PanelArea({ layout = TABS, frame }: PanelAreaProps) {
+  const { aircraft } = useTrainer();
+  const combined = layout.kind === 'combined';
+  const active = useViewState(aircraft, combined);
+  const gate = useMemo(createTouchGate, []);
+  const fallback = useRef<HTMLDivElement>(null);
+  const ref = frame ?? fallback;
+
+  return (
     <ActiveViewContext.Provider value={active}>
-      <PanelZoomContext.Provider value={zoom.value}>
-        <div className="panel-bar">
-          <ViewTabs active={active} panelId={panelId} />
-          {isZoomed(zoom.zoom) && (
-            <button type="button" className="chrome-button panel-zoom-reset" onClick={resetZoom}>
-              {text.resetZoom}
-            </button>
-          )}
-        </div>
-        <div
-          role="tabpanel"
-          id={panelId}
-          aria-labelledby={`${panelId}-${active.viewId}`}
-          aria-describedby={`${panelId}-keys`}
-          tabIndex={0}
-          className="panel-surface"
-          data-panel-surface=""
-          onKeyDown={onSurfaceKeyDown}
-        >
-          <TouchGateContext.Provider value={gate}>
-            <PanelView viewId={active.viewId} zoom={zoom} gate={gate} />
-          </TouchGateContext.Provider>
-          <span id={`${panelId}-keys`} hidden>
-            {text.zoomKeys}
-          </span>
-        </div>
-      </PanelZoomContext.Provider>
+      {layout.kind === 'combined' ? (
+        <CombinedCockpit layout={layout} frame={ref} gate={gate} />
+      ) : (
+        <TabbedCockpit active={active} frame={ref} gate={gate} />
+      )}
     </ActiveViewContext.Provider>
   );
 }

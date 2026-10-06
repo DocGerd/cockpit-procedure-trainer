@@ -92,6 +92,13 @@ describe('error boundary', () => {
     expect(screen.queryByRole('button', { name: /^clicks/ })).toBeNull();
   });
 
+  it('shows the version footer on the error screen', () => {
+    broken = true;
+    renderBoundary();
+    expect(screen.getByRole('contentinfo').textContent).toContain('Version');
+    expect(screen.getByRole('alertdialog').getAttribute('aria-modal')).toBeNull();
+  });
+
   it('puts keyboard focus on the reset button', () => {
     broken = true;
     renderBoundary();

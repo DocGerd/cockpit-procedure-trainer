@@ -11,7 +11,7 @@ const thumb =
   'width: var(--space-4); height: var(--space-4); border-radius: var(--radius-pill); background: var(--panel-cap-light); border: 0;';
 
 const sl40ScreenCss = [
-  '.cpt-device-sl40 button:focus-visible, .cpt-device-sl40 input:focus-visible { outline: var(--space-1) solid var(--panel-focus); }',
+  '.cpt-device-sl40 button:focus-visible, .cpt-device-sl40 input:focus-visible { outline: var(--space-1) solid var(--panel-focus); outline-offset: calc(var(--space-1) * -1); }',
   '.cpt-device-sl40 input[type="range"] { accent-color: var(--panel-cap-light); appearance: none; background: transparent; }',
   `.cpt-device-sl40 input[type="range"]::-webkit-slider-runnable-track { ${track} }`,
   `.cpt-device-sl40 input[type="range"]::-moz-range-track { ${track} }`,
@@ -21,8 +21,6 @@ const sl40ScreenCss = [
 
 const screenStyle: CSSProperties = {
   display: 'grid',
-  gap: 'var(--space-2)',
-  padding: 'var(--space-2)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
   fontFamily: 'var(--font-mono)',
@@ -35,13 +33,18 @@ const readoutStyle: CSSProperties = {
   gridTemplateColumns: '1fr 1fr',
   columnGap: 'var(--space-3)',
   alignItems: 'baseline',
+  padding: '0 var(--space-1)',
 };
 
-const legendStyle: CSSProperties = { color: 'var(--panel-legend-muted)' };
+const legendStyle: CSSProperties = {
+  color: 'var(--panel-legend-muted)',
+  fontSize: 'var(--text-2xs)',
+  lineHeight: 'var(--leading-2xs)',
+};
 
 const valueStyle: CSSProperties = {
-  fontSize: 'var(--text-3xl)',
-  lineHeight: 'var(--leading-3xl)',
+  fontSize: 'var(--text-2xl)',
+  lineHeight: 'var(--leading-2xl)',
   textAlign: 'right',
 };
 
@@ -49,21 +52,24 @@ const standbyLegendStyle: CSSProperties = {
   ...legendStyle,
   display: 'flex',
   justifyContent: 'space-between',
-  minHeight: 'var(--leading-md)',
+  minHeight: 'var(--leading-2xs)',
 };
 
-const rowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' };
+// Buttons touch: the visible space between them is drawn inside each target, so the rows need
+// no more room than the targets themselves.
+const rowStyle: CSSProperties = { display: 'flex', gap: 0 };
 
 const buttonStyle: CSSProperties = {
   minWidth: 'var(--size-target)',
   minHeight: 'var(--size-target)',
-  padding: 'var(--space-2) var(--space-3)',
+  padding: '0 var(--space-1)',
   border: 'none',
   borderRadius: 'var(--radius-sm)',
+  boxShadow: 'inset 0 0 0 var(--space-1) var(--panel-screen)',
   background: 'var(--panel-bezel-dark)',
   color: 'var(--panel-legend)',
   fontFamily: 'inherit',
-  fontSize: 'inherit',
+  fontSize: 'var(--text-sm)',
   cursor: 'pointer',
 };
 
@@ -75,6 +81,7 @@ const volumeLabelStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 'var(--space-2)',
+  paddingLeft: 'var(--space-2)',
 };
 
 type HoldButtonProps = { name: string; control: string; send: DeviceScreenProps['send'] };

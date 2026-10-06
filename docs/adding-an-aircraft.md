@@ -139,6 +139,36 @@ reports its size. The validator reports a `size` that is not a positive, finite
 width and height as `invalid-view-size`, and a control, indicator or device
 placement that is not inside it as `placement-outside-view`.
 
+### Cockpit arrangement
+
+`cockpit` is optional. It describes the whole cockpit as one left-seat arrangement:
+`size: { width, height }` is a coordinate space of your choosing (only proportions
+matter), and `views` holds one cell per view id, `{ rect, minWidth }`. A view
+without a cell fails to type-check, and so does a cell for a view that does not
+exist. An aircraft without `cockpit` always shows its views as tabs.
+
+Cells are spatial, not to scale: each view is contain-fit in its own cell, so a
+radio stack can take far more screen per image unit than the panel. Keep the
+left-seat relationships (what is above, below, left and right) and give each cell
+the aspect of its view. Cells may touch but must not overlap or leave `size`.
+Put the arrangement in its own file, `src/cockpit.ts`, and add it to the
+definition with one line.
+
+`minWidth` is the narrowest rendered width, in CSS px, at which the view stays
+legible and operable: every touch target and installed-device button at least
+`--size-target`, no placard overfull, and all placards and lettering at least
+`--text-2xs`. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
+of every registered aircraft at exactly its `minWidth`, in English and German,
+and runs those checks. To find a floor, lower `minWidth` until the test fails and
+keep the last passing value; to confirm one, run `pnpm test:e2e floors`. Size the
+cell widths in proportion to the floors so the arrangement wastes no width.
+
+The validator reports a `size` that is not a positive, finite width and height as
+`invalid-cockpit-size`, a view without a cell as `missing-cockpit-view`, a cell for
+a non-view as `unknown-cockpit-view`, a cell outside `size` as `cockpit-cell-outside`,
+overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
+finite number as `invalid-cockpit-min-width`.
+
 ### Phases
 
 `phases` maps a phase id to `{ name, image, environment, entry }`. `image` is the
@@ -260,7 +290,8 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `missing-translation`, `phase-without-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
-`control-in-device-namespace`, `invalid-view-size` and `placement-outside-view`. `formatFinding` prints one.
+`control-in-device-namespace`, `invalid-view-size`, `placement-outside-view` and the six
+`cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
