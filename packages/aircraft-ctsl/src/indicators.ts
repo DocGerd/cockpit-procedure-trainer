@@ -7,7 +7,7 @@ export const chargeLampLit = (state: CtslTrainerState) =>
 
 export const indicators = {
   airspeed: {
-    name: text('Fahrtmesser', 'Airspeed indicator'),
+    name: text('IAS', 'IAS'),
     select: (state: CtslTrainerState) => state.systems.airspeedKmh,
     appearance: {
       widget: 'round-gauge',
@@ -26,7 +26,7 @@ export const indicators = {
     },
   },
   altimeter: {
-    name: text('Höhenmesser', 'Altimeter'),
+    name: text('ALT', 'ALT'),
     select: (state: CtslTrainerState) => state.systems.altitudeFt,
     appearance: {
       widget: 'round-gauge',
@@ -39,7 +39,7 @@ export const indicators = {
     },
   },
   verticalSpeed: {
-    name: text('Variometer', 'Vertical speed indicator'),
+    name: text('VSI', 'VSI'),
     select: (state: CtslTrainerState) => state.systems.verticalSpeedMs,
     appearance: {
       widget: 'round-gauge',
@@ -47,7 +47,7 @@ export const indicators = {
     },
   },
   tachometer: {
-    name: text('Drehzahlmesser', 'Tachometer'),
+    name: text('RPM', 'RPM'),
     select: (state: CtslTrainerState) => state.systems.rpm,
     appearance: {
       widget: 'round-gauge',
@@ -65,7 +65,7 @@ export const indicators = {
     },
   },
   oilPressure: {
-    name: text('Öldruck', 'Oil pressure'),
+    name: text('OP', 'OP'),
     select: (state: CtslTrainerState) => state.systems.oilPressureBar,
     appearance: {
       widget: 'round-gauge',
@@ -84,7 +84,7 @@ export const indicators = {
     },
   },
   oilTemperature: {
-    name: text('Öltemperatur', 'Oil temperature'),
+    name: text('OT', 'OT'),
     select: (state: CtslTrainerState) => state.systems.oilTempC,
     appearance: {
       widget: 'round-gauge',
@@ -103,7 +103,7 @@ export const indicators = {
     },
   },
   cht: {
-    name: text('Zylinderkopftemperatur', 'Cylinder head temperature'),
+    name: text('CHT', 'CHT'),
     select: (state: CtslTrainerState) => state.systems.chtC,
     appearance: {
       widget: 'round-gauge',

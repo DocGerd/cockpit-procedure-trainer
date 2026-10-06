@@ -4,8 +4,13 @@ import { describe, expect, it } from 'vitest';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
+import { devices as installs } from './devices';
 import { ctslAircraft } from './index';
-import type { CtslState } from './systems';
+import { chargeLampLit } from './indicators';
+import { avionicsProcedures } from './procedures/avionics';
+import { emergencyProcedures } from './procedures/emergency';
+import { normalProcedures } from './procedures/normal';
+import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 import { deviceSlots } from './views';
 
@@ -190,6 +195,16 @@ describe('CTSL aircraft', () => {
     },
   );
 
+  it.each(
+    Object.entries(expectedIndicators)
+      .filter(([, expected]) => expected.widget === 'round-gauge')
+      .map(([id]) => id),
+  )('names gauge %s as short as its dial lettering, so the caption clears the needle', (id) => {
+    const name = ctslAircraft.indicators[id]?.name;
+    expect(name?.en.length).toBeLessThanOrEqual(3);
+    expect(name?.de.length).toBeLessThanOrEqual(3);
+  });
+
   it('has the three views of the panel inventory', () => {
     expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console']);
   });
@@ -245,9 +260,74 @@ describe('CTSL aircraft', () => {
       expect(ctslAircraft.phases[id]?.entry.controls).toMatchObject({
         ignition: 'both',
         fuelValve: 'open',
+        battery: 'in',
+        generator: 'in',
+        avionicsMaster: 'on',
+        choke: 'off',
+      });
+      expect(entryState(id).bus).toEqual({
+        mainPowered: true,
+        avionicsPowered: true,
+        charging: true,
       });
     },
   );
+
+  it('enters parking with a dead bus', () => {
+    expect(entryState('parking').bus).toEqual({
+      mainPowered: false,
+      avionicsPowered: false,
+      charging: false,
+    });
+  });
+
+  it.each([
+    ['parking', 'idle'],
+    ['holding', 'idle'],
+    ['departure', 'full'],
+    ['cruise', 'cruise'],
+    ['approach', 'low'],
+    ['landing', 'idle'],
+    ['taxiIn', 'low'],
+    ['parkingSecuring', 'idle'],
+  ])('enters %s with the throttle at %s', (id, throttle) => {
+    expect(ctslAircraft.phases[id]?.entry.controls.throttle).toBe(throttle);
+  });
+
+  it.each([
+    ['parking', true],
+    ['holding', true],
+    ['departure', false],
+    ['cruise', false],
+    ['approach', false],
+    ['landing', false],
+    ['taxiIn', false],
+    ['parkingSecuring', false],
+  ])('enters %s with the parking brake set: %s', (id, set) => {
+    expect(ctslAircraft.phases[id]?.entry.controls).toMatchObject({
+      parkingBrakeValve: set ? 'closed' : 'open',
+      brake: 'off',
+    });
+    expect(entryState(id).parkingBrakeSet).toBe(set);
+  });
+
+  it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
+    const state: CtslTrainerState = {
+      controls: ctslAircraft.phases[id]?.entry.controls ?? {},
+      systems: entryState(id),
+      devices: {},
+    };
+    expect(chargeLampLit(state)).toBe(false);
+  });
+
+  it.each([
+    [{ mainPowered: true, avionicsPowered: false, charging: false }, true],
+    [{ mainPowered: true, avionicsPowered: false, charging: true }, false],
+    [{ mainPowered: false, avionicsPowered: false, charging: false }, false],
+  ])('lights the charge lamp only on a powered bus that is not charging: %o', (bus, lit) => {
+    const systems = { ...entryState('parking'), bus };
+    expect(chargeLampLit({ controls: {}, systems, devices: {} })).toBe(lit);
+  });
 
   it.each([
     ['holding', '0'],
@@ -256,6 +336,7 @@ describe('CTSL aircraft', () => {
     ['approach', '15'],
     ['landing', '30'],
     ['taxiIn', '30'],
+    ['parkingSecuring', '0'],
   ])('enters %s with the flaps at %s°', (id, flaps) => {
     expect(ctslAircraft.phases[id]?.entry.controls.flapSelector).toBe(flaps);
     expect(entryState(id).flaps).toEqual({ angle: Number(flaps), moving: false });
@@ -269,7 +350,17 @@ describe('CTSL aircraft', () => {
     const phase = ctslAircraft.phases[id];
     expect(entryState(id).altitudeFt).toBe(phase?.environment.altitudeFt);
     expect(entryState(id).onGround).toBe(false);
-    expect(entryState(id).airspeedKmh).toBeGreaterThan(phase?.environment.airspeedKt ?? 0);
+    expect(entryState(id).airspeedKmh).toBeCloseTo((phase?.environment.airspeedKt ?? 0) * 1.852);
+  });
+
+  it.each(
+    Object.entries(expectedPhases)
+      .filter(([, environment]) => environment.onGround)
+      .map(([id]) => id),
+  )('enters %s on the ground at rest', (id) => {
+    expect(entryState(id).onGround).toBe(true);
+    expect(entryState(id).airspeedKmh).toBe(0);
+    expect(entryState(id).altitudeFt).toBe(0);
   });
 
   it('declares every failure of the plan, none tripping a breaker', () => {
@@ -285,9 +376,13 @@ describe('CTSL aircraft', () => {
       expect(failure.trips).toBeUndefined();
   });
 
-  it('has no procedures and no installed devices yet', () => {
-    expect(ctslAircraft.procedures).toEqual({});
-    expect(ctslAircraft.devices).toEqual({});
+  it('assembles the procedures of its three modules and the installs of its devices module', () => {
+    expect(ctslAircraft.procedures).toEqual({
+      ...normalProcedures,
+      ...emergencyProcedures,
+      ...avionicsProcedures,
+    });
+    expect(ctslAircraft.devices).toEqual(installs);
   });
 
   it('starts a session at every phase', () => {

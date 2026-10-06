@@ -58,7 +58,6 @@ const withEnvironment = (state: CtslState, environment: Environment): CtslState 
   onGround: environment.onGround,
 });
 
-// Task 1 stub: the behaviour of #39 replaces it.
 export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (state, { environment }) =>
   withEnvironment(state, environment);
 
