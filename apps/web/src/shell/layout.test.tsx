@@ -289,3 +289,57 @@ describe('trainer layout on a tablet', () => {
     expect(screen.getByRole('complementary', { name: 'Checklist' }).dataset.overlay).toBe('false');
   });
 });
+
+describe('the tablet drawer from the keyboard', () => {
+  beforeEach(() => setWidth(DESKTOP_MIN_WIDTH - 1));
+
+  const pane = () => screen.getByRole('complementary', { name: 'Checklist' });
+
+  it('puts focus on the checklist toggle after the procedure starts', async () => {
+    renderShell();
+    await startProcedure();
+    expect(document.activeElement).toBe(checklistToggle());
+  });
+
+  it('moves focus into the drawer when it opens', async () => {
+    renderShell();
+    await startProcedure();
+    await userEvent.keyboard('{Enter}');
+    expect(pane().contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(within(pane()).getAllByRole('button')[0]);
+  });
+
+  it('returns focus to the toggle on Escape and on a tap outside', async () => {
+    renderShell();
+    await startProcedure();
+    await userEvent.click(checklistToggle());
+    await userEvent.keyboard('{Escape}');
+    expect(document.activeElement).toBe(checklistToggle());
+    await userEvent.click(checklistToggle());
+    await userEvent.click(screen.getByTestId('checklist-scrim'));
+    expect(document.activeElement).toBe(checklistToggle());
+  });
+
+  it('keeps Tab between the drawer and its toggle, not the panel behind it', async () => {
+    renderShell();
+    await startProcedure();
+    await userEvent.click(checklistToggle());
+    const buttons = within(pane()).getAllByRole('button');
+    act(() => buttons.at(-1)?.focus());
+    await userEvent.tab();
+    expect(document.activeElement).toBe(checklistToggle());
+    act(() => buttons[0]?.focus());
+    await userEvent.tab({ shift: true });
+    expect(document.activeElement).toBe(checklistToggle());
+  });
+
+  it('leaves the summary heading focused when the drawer opens on completion', async () => {
+    renderShell();
+    await startProcedure();
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+    expect(document.activeElement).toBe(within(pane()).getByRole('heading', { name: /complete$/ }));
+  });
+});

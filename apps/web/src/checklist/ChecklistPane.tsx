@@ -1,4 +1,5 @@
 import type { ChecklistState, ProcedureItem } from '@cpt/core';
+import { useEffect, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
@@ -62,6 +63,7 @@ function ItemRow({
       className="checklist-item"
       data-state={state}
       aria-current={state === 'current' ? 'step' : undefined}
+      tabIndex={state === 'current' ? -1 : undefined}
     >
       <span className="checklist-item-row">
         <span className="checklist-mark" role="img" aria-label={labels[state]}>
@@ -97,6 +99,15 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const guided = mode === 'guided';
   const latest = deviations.at(-1);
   const count = deviations.length;
+  const list = useRef<HTMLOListElement>(null);
+
+  // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new current item.
+  useEffect(() => {
+    const focused = document.activeElement;
+    if (focused && focused !== document.body && focused.isConnected) return;
+    const row = list.current?.querySelector<HTMLElement>('[aria-current="step"]');
+    (row?.querySelector<HTMLElement>('button') ?? row)?.focus();
+  }, [checklist.current]);
 
   return (
     <div className="checklist">
@@ -134,7 +145,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         </div>
       )}
 
-      <ol className="checklist-items">
+      <ol ref={list} className="checklist-items">
         {procedure.items.map((item, index) => (
           <ItemRow
             key={index}

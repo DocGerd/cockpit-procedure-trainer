@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react';
+import { ChecklistAnnouncer } from '../checklist/ChecklistAnnouncer';
 import { ChecklistPane } from '../checklist/ChecklistPane';
 import { useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
@@ -8,19 +10,30 @@ import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
 
+const FOCUSABLE =
+  'button:not([disabled]), a[href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
+
+const focusLost = () => {
+  const focused = document.activeElement;
+  return !focused || focused === document.body || !focused.isConnected;
+};
+
 function ChecklistToggle({
   expanded,
   controls,
+  buttonRef,
   onToggle,
 }: {
   expanded: boolean;
   controls: string;
+  buttonRef: RefObject<HTMLButtonElement | null>;
   onToggle(): void;
 }) {
   const text = useMessages(messages);
   const checklist = useSessionState((s) => s.checklist());
   return (
     <button
+      ref={buttonRef}
       type="button"
       className="chrome-button shell-checklist-toggle"
       aria-expanded={expanded}
@@ -47,6 +60,8 @@ export function TrainerLayout() {
   const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
   const current = useSessionState((snapshot) => snapshot.checklist()?.current);
   const pane = useRef<HTMLElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const openedByToggle = useRef(false);
   const hasChecklist = mode !== 'explore' && procedureId !== undefined;
   const showPane = hasChecklist && (!overlay || expanded);
 
@@ -73,6 +88,27 @@ export function TrainerLayout() {
     return () => document.removeEventListener('keydown', onKey);
   }, [overlay, expanded]);
 
+  useEffect(() => {
+    if (!expanded || !openedByToggle.current) return;
+    openedByToggle.current = false;
+    pane.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+  }, [expanded]);
+
+  // A collapsed pane takes its focus with it, as does a procedure start; the toggle leads back to it.
+  useEffect(() => {
+    if (overlay && hasChecklist && !expanded && focusLost()) toggle.current?.focus();
+  }, [overlay, hasChecklist, expanded, procedureId]);
+
+  // The open drawer covers the panel, so Tab leaves it for the toggle instead of the panel behind.
+  const onPaneKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (!overlay || event.key !== 'Tab') return;
+    const focusable = [...(pane.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])];
+    const edge = event.shiftKey ? focusable[0] : focusable.at(-1);
+    if (edge === undefined || document.activeElement !== edge) return;
+    event.preventDefault();
+    toggle.current?.focus();
+  };
+
   return (
     <div className="shell" data-layout={layout} data-screen="trainer">
       <Header
@@ -83,7 +119,11 @@ export function TrainerLayout() {
             <ChecklistToggle
               expanded={expanded}
               controls={paneId}
-              onToggle={() => setExpanded((open) => !open)}
+              buttonRef={toggle}
+              onToggle={() => {
+                openedByToggle.current = !expanded;
+                setExpanded(!expanded);
+              }}
             />
           )
         }
@@ -112,11 +152,13 @@ export function TrainerLayout() {
             className="shell-checklist"
             aria-label={text.checklist}
             data-overlay={overlay}
+            onKeyDown={onPaneKeyDown}
           >
             <ChecklistPane />
           </aside>
         )}
       </div>
+      <ChecklistAnnouncer />
     </div>
   );
 }
