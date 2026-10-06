@@ -32,6 +32,7 @@ export type MovingPart =
 
 export type ArtworkAppearance = {
   readonly artwork: { readonly face: string; readonly moving: MovingPart };
+  readonly options?: JsonObject;
 };
 
 export type Appearance = WidgetAppearance | ArtworkAppearance;

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { ControlDefinition, ControlPosition, MovingPart } from '@cpt/core';
+import type { ControlDefinition, JsonObject, ControlPosition, MovingPart } from '@cpt/core';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -52,11 +52,16 @@ const layers = () => [...document.querySelectorAll('svg image')];
 const transformOf = (element: Element | undefined) => element?.getAttribute('transform') ?? '';
 const numbers = (text: string) => (text.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
 
-function renderIndicator(moving: MovingPart, value: number | boolean | string) {
+function renderIndicator(
+  moving: MovingPart,
+  value: number | boolean | string,
+  options?: JsonObject,
+) {
   const view = render(
     <ArtworkIndicator
       value={value}
       label="Gauge"
+      {...(options ? { options } : {})}
       artwork={artworkOf(moving)}
       fallback={fallback}
     />,
@@ -108,6 +113,26 @@ describe('ArtworkIndicator needle', () => {
     expect(layers()).toHaveLength(1);
     expect(layers()[0]?.getAttribute('href')).toBe('needle.png');
     expect(screen.getByRole('img', { name: 'Gauge: 0' })).toBeTruthy();
+  });
+
+  it('names the gauge with its units', () => {
+    renderIndicator(needle, 200.02, { units: 'km/h' });
+    expect(screen.getByRole('img', { name: 'Gauge: 200.02 km/h' })).toBeTruthy();
+  });
+
+  it('names the gauge rounded to the declared decimals', () => {
+    renderIndicator(needle, 200.06, { units: 'km/h', decimals: 0 });
+    expect(screen.getByRole('img', { name: 'Gauge: 200 km/h' })).toBeTruthy();
+  });
+
+  it('never names a negative zero', () => {
+    renderIndicator(needle, -0.4, { units: 'm/s', decimals: 0 });
+    expect(screen.getByRole('img', { name: 'Gauge: 0 m/s' })).toBeTruthy();
+  });
+
+  it('keeps a bare name for invalid readout options', () => {
+    renderIndicator(needle, 3, { units: 7, decimals: 1.5 });
+    expect(screen.getByRole('img', { name: 'Gauge: 3' })).toBeTruthy();
   });
 
   it('draws no layer before the face has loaded', () => {
