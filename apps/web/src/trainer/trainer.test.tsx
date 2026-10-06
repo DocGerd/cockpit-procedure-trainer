@@ -109,6 +109,15 @@ describe('trainer store', () => {
     expect(snapshot.checklist()).toBeUndefined();
   });
 
+  it('resets the cockpit to the start of the phase when Free explore ends the procedure', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set(firstControl, 'on'));
+    expect(result.current.snapshot.state().controls[firstControl]).toBe('on');
+    act(() => result.current.trainer.setMode('explore'));
+    expect(result.current.snapshot.state().controls[firstControl]).toBe('off');
+  });
+
   it('keeps the procedure when switching between Guided and Practice', () => {
     const { result } = renderTrainer();
     act(() => result.current.trainer.startProcedure(firstProcedure));

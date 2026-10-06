@@ -11,9 +11,11 @@ import type { ActiveView } from './active-view';
 import { fitStyle, usePageTop } from './fit';
 import { useBackgroundSize } from './image-size';
 import { messages } from './messages';
-import { PanelZoomContext, useZoomState, zoomStyle } from './panel-zoom';
+import { PanelRevealProvider, PanelZoomContext, useZoomState, zoomStyle } from './panel-zoom';
 import { ControlPlacement, IndicatorPlacement } from './placements';
 import { panelRects, placementExtent, viewPlacements } from './rects';
+import { createTouchGate, TouchGateContext } from './touch-gate';
+import type { TouchGate } from './touch-gate';
 import { useZoomGestures } from './use-zoom-gestures';
 import type { ZoomTarget } from './use-zoom-gestures';
 import { isZoomed, keyZoom, sameZoom } from './zoom';
@@ -88,7 +90,7 @@ function ViewTabs({ active, panelId }: { active: ActiveView; panelId: string }) 
   );
 }
 
-function PanelView({ viewId, zoom }: { viewId: string; zoom: ZoomTarget }) {
+function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; gate: TouchGate }) {
   const { aircraft } = useTrainer();
   const localize = useLocalize();
   const view = aircraft.views[viewId];
@@ -99,7 +101,7 @@ function PanelView({ viewId, zoom }: { viewId: string; zoom: ZoomTarget }) {
   const rects = useMemo(() => panelRects(placements, size), [placements, size]);
   const stage = useRef<HTMLDivElement>(null);
   const top = usePageTop(stage);
-  const gestures = useZoomGestures(stage, zoom);
+  const { reveal, ...gestures } = useZoomGestures(stage, zoom, gate);
   if (!view) return null;
   const name = localize(view.name);
 
@@ -139,7 +141,9 @@ function PanelView({ viewId, zoom }: { viewId: string; zoom: ZoomTarget }) {
           })}
         </Fragment>
         <DeviceLayer viewId={viewId} rects={rects} />
-        <PanelOverlay viewId={viewId} rects={rects} />
+        <PanelRevealProvider value={reveal}>
+          <PanelOverlay viewId={viewId} rects={rects} />
+        </PanelRevealProvider>
       </div>
     </div>
   );
@@ -151,6 +155,7 @@ export function PanelArea() {
   const panelId = useId();
   const text = useMessages(messages);
   const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
+  const gate = useMemo(createTouchGate, []);
 
   // Keys reach the surface only while it has focus itself; a focused control keeps its own keys.
   const onSurfaceKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -191,7 +196,9 @@ export function PanelArea() {
           data-panel-surface=""
           onKeyDown={onSurfaceKeyDown}
         >
-          <PanelView viewId={active.viewId} zoom={zoom} />
+          <TouchGateContext.Provider value={gate}>
+            <PanelView viewId={active.viewId} zoom={zoom} gate={gate} />
+          </TouchGateContext.Provider>
           <span id={`${panelId}-keys`} hidden>
             {text.zoomKeys}
           </span>

@@ -8,9 +8,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
-import { PanelArea, useActiveView, viewPlacements } from './index';
-import { placementExtent } from './rects';
-import type { PanelRects } from './index';
+import { useActiveView } from './active-view';
+import { PanelArea } from './PanelArea';
+import { placementExtent, viewPlacements } from './rects';
+import type { PanelRects } from './rects';
 import { IMAGE, fixture } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => {

@@ -6,7 +6,7 @@ import { aircraftRegistry } from '../aircraft-registry';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
-import { PanelArea } from './index';
+import { PanelArea } from './PanelArea';
 
 let trainer: Trainer;
 function Probe() {
