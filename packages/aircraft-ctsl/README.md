@@ -10,19 +10,19 @@ Flight Design CT Supralight flight and maintenance manual AE04300003, revision 0
 
 ## Contents
 
-- Views: `panel` (both upper fields: flight gauges, charge lamp, the device slots for COM radio, transponder and GPS, engine gauges, breaker block), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN) and `console` (brake, throttle, choke, parking-brake valve, carb heat, trim wheel, rescue-system handle).
+- Views: `panel` (both upper fields: flight gauges, charge lamp, the empty device bezels, engine gauges, breaker block), `radios` (the COM radio above the transponder), `gps` (the GPS in its cradle), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN) and `console` (brake, throttle, choke, parking-brake valve, carb heat, trim wheel, rescue-system handle).
 - Controls: eight panel breakers (COM, transponder, GPS, position lights, strobe, landing light, intercom, 12 V outlet), six rockers (Avionics Master, beacon, position lights, intercom, cockpit light, landing light), the ELT remote switch, the flap breaker, the fuel valve (Brandhahn), the flap selector with its two override positions, the ignition key with START springing back to BOTH, the BAT and GEN push-pull switches, the console levers with named notches, the parking-brake valve and the rescue handle guarded by its safety pin.
 - Carb heat is a provisional console control: the handbook names it in its checklists but shows no knob (intake §9).
 - Indicators: airspeed (km/h), altimeter (ft), vertical speed (m/s), tachometer, oil pressure (bar), oil temperature and CHT (°C), the charge warning lamp, the flap position readout and the ELT lamp. Arcs and red lines follow intake §4.3.
 - Failures: `generatorFailure`, `engineStoppage`, `engineFire`, `coolantLoss`, `oilLoss`, `flapControlFailure`.
 - Phases, in flight order: parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing, with the presets of intake §5. Each outside view is drawn first-person from the left seat.
-- Systems: the state shape and entry snapshots. The behaviour of the electrical system, engine, flaps, brakes and failures follows in #39.
+- Systems: the electrical system, engine, fuel valve, flaps, brakes and every failure above. Values the intake does not give are trainer assumptions, named as constants in `src/systems.ts`.
 
 The second warning lamp of the upper-left field, the compass, the slip ball, the placards, the intercom panel, the jacks, the 12 V socket and the blank D-180 and autopilot breaker positions are drawn in the background and not modelled.
 
-## Planned procedures
+## Procedures
 
-Normal (#40):
+Normal:
 
 | Id              | Intake  |
 | --------------- | ------- |
@@ -41,7 +41,7 @@ Normal (#40):
 
 Warm-up (N4) is no procedure of its own: the holding-point snapshot is warm and `beforeTakeoff` checks the oil temperature.
 
-Emergency (#41):
+Emergency:
 
 | Id                     | Intake                         | Failure              |
 | ---------------------- | ------------------------------ | -------------------- |
@@ -56,7 +56,7 @@ Emergency (#41):
 
 `generatorFailure` is **club-authored**: the handbook has no such procedure. It awaits the instructor's confirmation.
 
-Avionics (#211): `radioAndTransponder` at the holding point.
+Avionics: `radioAndTransponder` at the holding point.
 
 ## Not trained
 
@@ -67,12 +67,12 @@ Avionics (#211): `radioAndTransponder` at the holding point.
 
 - `takeoff` starts with releasing the parking brake (valve open, then a check that it is released). The handbook's take-off list has no such item; it is a trainer addition because the holding-point snapshot has the parking brake set (intake §9 item 18).
 
-## Planned devices
+## Devices
 
-All three sit in the `panel` view, on the avionics bus, each behind its own breaker:
+All three are on the avionics bus, each behind its own breaker, and shown in their own views, where the keys are large enough to touch; the `panel` view keeps their empty bezels in the background.
 
-- `com`: Garmin SL40 COM radio (#210)
-- `xpdr`: Garmin GTX 327 transponder, fed by the altitude encoder (#211)
-- `gps`: Garmin GPSMAP 496 in its cradle (#212)
+- `com`: Garmin SL40 COM radio, in `radios`
+- `xpdr`: Garmin GTX 327 transponder, fed by the altitude encoder, in `radios`
+- `gps`: Garmin GPSMAP 496, in `gps`
 
-Until they are installed, the panel shows the empty bezels. The intercom and the ELT remote are aircraft controls, not devices.
+The intercom and the ELT remote are aircraft controls, not devices.

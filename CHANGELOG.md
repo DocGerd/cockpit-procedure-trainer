@@ -8,6 +8,29 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.7.0] - 2026-10-06
+
+### Added
+
+- The club's CT Supralight as a second aircraft: a representative analog panel in five views (panel, radio stack, GPS, centre field, centre console) with every control and gauge placed, and eight phases with outside views from the pilot's seat.
+- The CT Supralight's electrical system, engine, fuel valve, flaps, brakes and failures behave as its handbook describes.
+- The CT Supralight's normal checklists, from pre-flight to shutdown.
+- The CT Supralight's emergency procedures with their failures: engine failure, fire, coolant and oil loss, flap control and generator failure, rescue system.
+- The CT Supralight panel has its own drawn gauges and controls.
+- An SL40 COM radio, installed in the CT Supralight.
+- A GTX 327 transponder, installed in the CT Supralight, with a radio and transponder checklist.
+- A GPSMAP 496 in the CT Supralight, in its own GPS view, with power, backlight and page keys.
+- The README links the live app and the UAT preview.
+- Every panel control prints its function on a placard beside it, such as BAT, FUEL or AVIONICS, in the panel's own wording; the COM and SL40 volume sliders are lettered VOL.
+
+### Fixed
+
+- Fix the PWA build test so it recognises small SVGs that Vite inlines as base64 data URIs.
+- Notched artwork controls, such as flap selectors and ignition keys, now step one position each way without wrapping, by tap on the side to move toward and by arrow keys, Home and End.
+- Artwork indicators take optional `options` (units, decimals, arcs) like the generic gauge, so their accessible name and fallback gauge keep units and rounding.
+- Trim, throttle and the other notched controls now step the same way from a tap, the arrow keys and the printed legend, and focus returns to the ignition switch after holding START.
+- The CT Supralight's printed labels, such as STRB, PUSH, FLAPS, INTERCOM, HEADSET, OPEN and SHUT, are lettered large enough to read at tablet width.
+
 ## [0.6.0] - 2026-10-06
 
 ### Added
@@ -118,7 +141,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...v0.6.0
 [0.3.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.1.0...v0.2.0
