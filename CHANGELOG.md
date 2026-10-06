@@ -8,6 +8,26 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.9.0] - 2026-10-06
+
+### Changed
+
+- The demo cockpit's keyboard and screen-reader order now follows its panel layout: panel, radios, console.
+
+### Fixed
+
+- Long procedure titles and the aircraft name in the header now truncate inside their own chip instead of overlapping the phase selector.
+- The CT Supralight knee-board cards are drawn smaller and the rule line clears the title.
+- The CT Supralight panel draws its empty radio, transponder and GPS bays as labelled blanking plates, and its two top lamp recesses read as lamps.
+- The aircraft picker shows each aircraft's handbook revision in the selected language, German or English.
+- The demo panel's switch row is spaced so the annunciator knob's touch targets no longer overlap the avionics switch and the starter.
+- The Demo aircraft no longer scrolls the page by a few pixels at 1024x768 or in a short desktop window: the panel now leaves room for the footer.
+- The CTSL compass is drawn larger, with larger card lettering, so its heading reads at the panel's smallest size.
+
+### Security
+
+- Ship a strict Content-Security-Policy as a meta tag in the built app: scripts, workers, connections, images, fonts and the manifest load from the app's own origin only (images and fonts may also be `data:` URLs), with no inline or eval script. Inline device-screen styles moved into stylesheets.
+
 ## [0.8.0] - 2026-10-06
 
 ### Added
@@ -162,7 +182,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...v0.6.0
