@@ -37,8 +37,12 @@ describe('pwaOptions', () => {
     for (const options of [prod, uat]) {
       expect(options.workbox?.clientsClaim).toBe(true);
       expect(options.workbox?.navigateFallback).toBe('index.html');
-      expect(options.workbox?.cleanupOutdatedCaches).toBe(true);
     }
+  });
+
+  it('never lets the production worker clean up caches, which would match UAT caches', () => {
+    expect(prod.workbox?.cleanupOutdatedCaches).toBe(false);
+    expect(uat.workbox?.cleanupOutdatedCaches).toBe(true);
   });
 
   it('scopes each environment to its own base path', () => {
