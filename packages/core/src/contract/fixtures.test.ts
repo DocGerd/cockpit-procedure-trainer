@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { defineAircraft } from './define-aircraft';
 import { STARTER_MS_TO_START, fixtureAircraft } from './fixtures';
 import type { FixtureState } from './fixtures';
-import type { Positions } from './types';
+import type { Positions, Text } from './types';
 
 const { systems } = fixtureAircraft;
 const environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
@@ -61,5 +62,57 @@ describe('fixture systems model', () => {
     expect(released.engineRunning).toBe(false);
     expect(released.starterMs).toBe(0);
     expect(run(held, STARTER_MS_TO_START - 1, released).engineRunning).toBe(false);
+  });
+});
+
+describe('cockpit arrangement types', () => {
+  const name: Text = { de: 'Text', en: 'Text' };
+  const cell = { rect: { x: 0, y: 0, w: 1, h: 1 }, minWidth: 100 };
+  const aircraft = {
+    id: 'mini',
+    name,
+    handbookRevision: 'rev 1',
+    controls: {},
+    indicators: {},
+    views: {
+      panel: { name, image: 'panel.png' },
+      console: { name, image: 'console.png' },
+    },
+    systems: { initial: {}, step: (state: object) => state },
+    failures: {},
+    phases: {},
+    procedures: {},
+  } as const;
+  const size = { width: 2, height: 1 };
+
+  it('accepts a cell for every view', () => {
+    const defined = defineAircraft({
+      ...aircraft,
+      cockpit: { size, views: { panel: cell, console: cell } },
+    });
+    expect(Object.keys(defined.cockpit?.views ?? {})).toEqual(['panel', 'console']);
+  });
+
+  it('rejects a cell for an unknown view', () => {
+    defineAircraft({
+      ...aircraft,
+      cockpit: {
+        size,
+        views: {
+          panel: cell,
+          console: cell,
+          // @ts-expect-error nope is not a view
+          nope: cell,
+        },
+      },
+    });
+  });
+
+  it('rejects an arrangement that leaves a view without a cell', () => {
+    defineAircraft({
+      ...aircraft,
+      // @ts-expect-error console has no cell
+      cockpit: { size, views: { panel: cell } },
+    });
   });
 });
