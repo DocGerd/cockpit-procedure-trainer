@@ -18,6 +18,8 @@ confirm against it:
 - The VFR key sets 7000, the usual VFR code in Germany. The unit's installed VFR code is configurable.
 - IDENT starts a reply flag of 18 s in ON and ALT only.
 - The pressure altitude is shown in every mode except OFF and TST, and is reported in ALT only.
+- The install feeds the indicated altitude; no altimeter setting is modelled, so it is not a true pressure altitude.
+- In OFF every key is ignored and the timer is reset.
 - The power-up code is a placeholder, 2000.
 
 ## Controls

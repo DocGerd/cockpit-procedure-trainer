@@ -209,6 +209,19 @@ describe('gtx327Device', () => {
     });
   });
 
+  describe('in OFF', () => {
+    it('ignores every key and resets the timer', () => {
+      let running = tap(tap(start, 'func'), 'startStop');
+      running = step(running, {}, { dtMs: 2000 });
+      const off = step(running, { mode: 'off', func: 'pressed', startStop: 'pressed' });
+      expect(off).toMatchObject({ page: 'countUp', timerRunning: false, timerMs: 0 });
+      const after = step(off, { mode: 'off', clr: 'pressed' }, { dtMs: 5000 });
+      expect(after).toMatchObject({ page: 'countUp', timerRunning: false, timerMs: 0 });
+      expect(tap(start, 'func', { mode: 'off' }).page).toBe('altitude');
+      expect(tap(tap(start, 'func'), 'startStop', { mode: 'off' }).timerRunning).toBe(false);
+    });
+  });
+
   it('records the keys it saw so a held key counts once', () => {
     expect(step(start, { vfr: 'pressed' }).held.vfr).toBe('pressed');
     expect(step(start, {}, { powered: false }).held.vfr).toBe('released');

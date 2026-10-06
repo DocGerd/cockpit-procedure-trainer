@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -9,7 +10,9 @@ if (!procedure || !radios) throw new Error('The CTSL has no radioAndTransponder 
 const procedureTitle = procedure.title.en;
 const radiosTab = radios.name.en;
 
-const TOUCH_TARGET_PX = 44;
+const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
+const TOUCH_TARGET_PX = Number(/--size-target:\s*(\d+)px/.exec(tokens)?.[1]);
+if (!Number.isFinite(TOUCH_TARGET_PX)) throw new Error('tokens.css has no --size-target');
 const viewports = [
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },

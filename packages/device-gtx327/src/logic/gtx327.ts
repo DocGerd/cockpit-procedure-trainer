@@ -158,7 +158,21 @@ export const gtx327Device = defineDevice({
     }
 
     const mode = isMode(controls.mode) ? controls.mode : state.mode;
-    const live = mode !== 'off' && mode !== 'tst';
+    if (mode === 'off') {
+      return {
+        ...state,
+        mode,
+        entry: '',
+        altitude: null,
+        reporting: false,
+        ident: false,
+        identRemainingMs: 0,
+        timerMs: 0,
+        timerRunning: false,
+        held,
+      };
+    }
+    const live = mode !== 'tst';
     const replying = mode === 'on' || mode === 'alt';
     const tapped = (id: Key): boolean => held[id] === 'pressed' && state.held[id] !== 'pressed';
 

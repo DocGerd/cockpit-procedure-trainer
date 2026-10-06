@@ -1,4 +1,6 @@
+import { createSession } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import { ctslAircraft } from './index';
 import { devices } from './devices';
 import { initial } from './systems';
 import type { CtslTrainerState } from './systems';
@@ -104,6 +106,18 @@ describe('the GTX 327 install', () => {
 });
 
 describe('the avionics master', () => {
-  // Needs the avionics bus of the systems model (#39); the step there is still a stub.
-  it.todo('turns the radio and the transponder off together, and on again');
+  it('turns the radio and the transponder off together, and on again', () => {
+    const session = createSession(ctslAircraft, { devices: testDevices, phase: 'holding' });
+    session.advance(100);
+    const powered = () => [session.state().devices.com?.on, session.state().devices.xpdr?.on];
+    expect(powered()).toEqual([true, true]);
+
+    session.set('avionicsMaster', 'off');
+    session.advance(100);
+    expect(powered()).toEqual([false, false]);
+
+    session.set('avionicsMaster', 'on');
+    session.advance(100);
+    expect(powered()).toEqual([true, true]);
+  });
 });
