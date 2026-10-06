@@ -89,3 +89,6 @@ export const resolveIndicatorWidget = (
   indicator: { readonly appearance: Appearance },
   value: IndicatorValue,
 ): IndicatorWidget => resolveIndicator(indicator, value).widget;
+
+export { checkAppearance } from './appearance-check';
+export type { AppearanceFinding, AppearanceSubject } from './appearance-check';
