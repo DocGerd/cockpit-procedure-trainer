@@ -4,6 +4,7 @@ import { aircraftRegistry } from '../aircraft-registry';
 import { StartupNotice } from '../errors/StartupNotice';
 import { useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
+import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
@@ -184,8 +185,8 @@ export function Picker() {
           </section>
         </div>
         <StartupNotice />
-        <p className="picker-legal">© 2026 Patrick Kuhn</p>
       </main>
+      <AppFooter />
     </div>
   );
 }

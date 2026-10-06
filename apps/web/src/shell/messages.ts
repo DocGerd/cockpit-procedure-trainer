@@ -4,6 +4,7 @@ export const messages = defineMessages({
   en: {
     brandName: 'Procedure Trainer',
     uatBadge: 'UAT',
+    version: 'Version',
     aircraft: 'Aircraft',
     procedure: 'Procedure',
     themeLight: 'Light',
@@ -38,6 +39,7 @@ export const messages = defineMessages({
   de: {
     brandName: 'Procedure Trainer',
     uatBadge: 'UAT',
+    version: 'Version',
     aircraft: 'Flugzeug',
     procedure: 'Verfahren',
     themeLight: 'Hell',

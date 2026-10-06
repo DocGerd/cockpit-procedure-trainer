@@ -38,6 +38,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Expose the built commit to the app
+        run: echo "VITE_BUILD_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: pnpm build
       - name: Built page must reference the base path
         run: grep -q "src=\"${BASE_PATH}assets/" apps/web/dist/index.html
