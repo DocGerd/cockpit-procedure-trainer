@@ -1,4 +1,5 @@
 import type { Aircraft } from '@cpt/core';
+import { printsText } from '@cpt/panel-kit';
 import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { DeviceLayer } from '../devices/DeviceLayer';
@@ -131,7 +132,17 @@ function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; g
           />
           {Object.entries(rects.controls).map(([id, box]) => {
             const control = aircraft.controls[id];
-            return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
+            return (
+              control && (
+                <ControlPlacement
+                  key={id}
+                  id={id}
+                  control={control}
+                  box={box}
+                  viewPrintsLabel={printsText(view.controls?.[id]?.printed)}
+                />
+              )
+            );
           })}
           {Object.entries(rects.indicators).map(([id, box]) => {
             const indicator = aircraft.indicators[id];

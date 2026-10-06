@@ -9,6 +9,7 @@ export function PushButton({
   control,
   position,
   label,
+  placard,
   positionLabels,
   onPress,
   onRelease,
@@ -30,7 +31,7 @@ export function PushButton({
   );
 
   return (
-    <Stage width={100} height={100} art={art}>
+    <Stage placard={placard} width={100} height={100} art={art}>
       <button
         type="button"
         className="pk-hit"

@@ -6,7 +6,10 @@ import { text } from './text';
 
 type CtslView = ViewDefinition<ControlId<typeof controls>, IndicatorId>;
 
-const at = (x: number, y: number, w: number, h: number): Placement => ({ rect: { x, y, w, h } });
+const at = (x: number, y: number, w: number, h: number, ...printed: string[]): Placement => ({
+  rect: { x, y, w, h },
+  ...(printed.length > 0 ? { printed } : {}),
+});
 
 export const deviceSlots = {
   com: at(190, 360, 520, 150),
@@ -70,13 +73,13 @@ export const views = {
       intercom: at(580, 30, 150, 200),
       cockpitLight: at(740, 30, 150, 200),
       landingLight: at(900, 30, 150, 200),
-      elt: at(60, 380, 150, 160),
+      elt: at(60, 380, 150, 160, 'ELT'),
       flapBreaker: at(690, 380, 110, 150),
       fuelValve: at(40, 570, 150, 300),
-      ignition: at(210, 610, 260, 260),
+      ignition: at(210, 610, 260, 260, 'IGNITION'),
       flapSelector: at(520, 570, 290, 290),
-      battery: at(860, 640, 140, 220),
-      generator: at(1020, 640, 140, 220),
+      battery: at(860, 640, 140, 220, 'BAT'),
+      generator: at(1020, 640, 140, 220, 'GEN'),
     },
     indicators: {
       eltLamp: at(220, 400, 110, 70),

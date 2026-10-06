@@ -182,9 +182,15 @@ export const gaugeArtwork = {
   ),
 } as const;
 
-const breaker = (face: string) =>
-  positions(face, { in: images.breakerIn, pulled: images.breakerPulled });
-const rocker = (face: string) => positions(face, { off: images.rockerOff, on: images.rockerOn });
+const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): ArtworkAppearance => ({
+  ...appearance,
+  artwork: { ...appearance.artwork, lettering },
+});
+
+const breaker = (face: string, lettering: string) =>
+  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), lettering);
+const rocker = (face: string, lettering: string) =>
+  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), lettering);
 const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
@@ -195,44 +201,60 @@ const brakeSlide = [
 ] as const;
 
 export const controlArtwork = {
-  comBreaker: breaker(images.breakerCom),
-  xpdrBreaker: breaker(images.breakerXpdr),
-  gpsBreaker: breaker(images.breakerGps),
-  positionBreaker: breaker(images.breakerPosition),
-  strobeBreaker: breaker(images.breakerStrobe),
-  landingBreaker: breaker(images.breakerLanding),
-  intercomBreaker: breaker(images.breakerIntercom),
-  outletBreaker: breaker(images.breakerOutlet),
-  flapBreaker: positions(images.breakerFlap, {
-    in: images.breakerFlapIn,
-    pulled: images.breakerFlapPulled,
-  }),
-  avionicsMaster: positions(images.rockerAvionics, {
-    off: images.rockerMasterOff,
-    on: images.rockerMasterOn,
-  }),
-  beacon: rocker(images.rockerBeacon),
-  positionLights: rocker(images.rockerPosition),
-  intercom: rocker(images.rockerIntercom),
-  cockpitLight: rocker(images.rockerCockpit),
-  landingLight: rocker(images.rockerLanding),
-  fuelValve: positions(images.fuelValveFace, {
-    open: images.fuelValveOpen,
-    closed: images.fuelValveClosed,
-  }),
-  parkingBrakeValve: positions(images.valveFace, {
-    open: images.valveOpen,
-    closed: images.valveClosed,
-  }),
-  flapSelector: positions(images.flapSelectorFace, {
-    'override-up': images.flapKnob0,
-    '-12': images.flapKnob1,
-    '0': images.flapKnob2,
-    '15': images.flapKnob3,
-    '30': images.flapKnob4,
-    '35': images.flapKnob5,
-    'override-down': images.flapKnob6,
-  }),
+  comBreaker: breaker(images.breakerCom, 'COM'),
+  xpdrBreaker: breaker(images.breakerXpdr, 'XPDR'),
+  gpsBreaker: breaker(images.breakerGps, 'GPS'),
+  positionBreaker: breaker(images.breakerPosition, 'POS'),
+  strobeBreaker: breaker(images.breakerStrobe, 'STROBE'),
+  landingBreaker: breaker(images.breakerLanding, 'LDG'),
+  intercomBreaker: breaker(images.breakerIntercom, 'INT'),
+  outletBreaker: breaker(images.breakerOutlet, '12 V'),
+  flapBreaker: lettered(
+    positions(images.breakerFlap, {
+      in: images.breakerFlapIn,
+      pulled: images.breakerFlapPulled,
+    }),
+    'FLAP',
+  ),
+  avionicsMaster: lettered(
+    positions(images.rockerAvionics, {
+      off: images.rockerMasterOff,
+      on: images.rockerMasterOn,
+    }),
+    'AVIONICS',
+  ),
+  beacon: rocker(images.rockerBeacon, 'BEACON'),
+  positionLights: rocker(images.rockerPosition, 'POSITION'),
+  intercom: rocker(images.rockerIntercom, 'INTERCOM'),
+  cockpitLight: rocker(images.rockerCockpit, 'COCKPIT'),
+  landingLight: rocker(images.rockerLanding, 'LANDING'),
+  fuelValve: lettered(
+    positions(images.fuelValveFace, {
+      open: images.fuelValveOpen,
+      closed: images.fuelValveClosed,
+    }),
+    'FUEL',
+    'VALVE',
+  ),
+  parkingBrakeValve: lettered(
+    positions(images.valveFace, {
+      open: images.valveOpen,
+      closed: images.valveClosed,
+    }),
+    'PARK BRAKE',
+  ),
+  flapSelector: lettered(
+    positions(images.flapSelectorFace, {
+      'override-up': images.flapKnob0,
+      '-12': images.flapKnob1,
+      '0': images.flapKnob2,
+      '15': images.flapKnob3,
+      '30': images.flapKnob4,
+      '35': images.flapKnob5,
+      'override-down': images.flapKnob6,
+    }),
+    'FLAPS',
+  ),
   ignition: positions(images.ignitionFace, {
     off: images.ignitionKeyOff,
     left: images.ignitionKeyL,
@@ -242,22 +264,34 @@ export const controlArtwork = {
   }),
   battery: pushPull,
   generator: pushPull,
-  brake: travel(images.leverBrakeFace, images.handleBrake, brakeSlide),
-  choke: travel(images.leverChokeFace, images.handleBrake, brakeSlide),
-  throttle: travel(images.leverThrottleFace, images.handleThrottle, [
-    { x: 34, y: 300 },
-    { x: 34, y: 110 },
-  ]),
-  carbHeat: travel(images.leverCarbFace, images.handleCarb, [
-    { x: 75, y: 95 },
-    { x: 75, y: 235 },
-  ]),
-  trim: travel(images.leverTrimFace, images.handleTrim, [
-    { x: 44, y: 70 },
-    { x: 44, y: 210 },
-  ]),
-  rescueHandle: positions(images.rescueFace, {
-    stowed: images.rescueStowed,
-    pulled: images.rescuePulled,
-  }),
+  brake: lettered(travel(images.leverBrakeFace, images.handleBrake, brakeSlide), 'BRAKE'),
+  choke: lettered(travel(images.leverChokeFace, images.handleBrake, brakeSlide), 'CHOKE'),
+  throttle: lettered(
+    travel(images.leverThrottleFace, images.handleThrottle, [
+      { x: 34, y: 300 },
+      { x: 34, y: 110 },
+    ]),
+    'THROTTLE',
+  ),
+  carbHeat: lettered(
+    travel(images.leverCarbFace, images.handleCarb, [
+      { x: 75, y: 95 },
+      { x: 75, y: 235 },
+    ]),
+    'CARB HEAT',
+  ),
+  trim: lettered(
+    travel(images.leverTrimFace, images.handleTrim, [
+      { x: 44, y: 70 },
+      { x: 44, y: 210 },
+    ]),
+    'TRIM',
+  ),
+  rescueHandle: lettered(
+    positions(images.rescueFace, {
+      stowed: images.rescueStowed,
+      pulled: images.rescuePulled,
+    }),
+    'RESCUE',
+  ),
 } as const satisfies Record<string, ArtworkAppearance>;

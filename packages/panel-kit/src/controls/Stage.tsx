@@ -2,7 +2,17 @@
 /// <reference path="../artwork/css.d.ts" />
 import type { ComponentProps, CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import type { Box } from './geometry';
-import { useRenderedMetrics } from './legibility';
+import type { Size } from './legibility';
+import {
+  CAPS_ADVANCE,
+  EDGE,
+  FALLBACK_MIN_PX,
+  placeTitle,
+  placard as capitals,
+  readMinPx,
+  useBoxSize,
+  useRenderedMetrics,
+} from './legibility';
 import type { Metrics } from './legibility';
 import './controls.css';
 
@@ -18,6 +28,7 @@ export function hitStyle(box: Box): CSSProperties {
     height: `${box.h}%`,
     minWidth: TARGET,
     minHeight: TARGET,
+    ...vars({ '--pk-hit-y': box.y, '--pk-hit-h': box.h }),
   };
 }
 
@@ -25,29 +36,103 @@ type StageProps = {
   width: number;
   height: number;
   art: ReactNode | ((metrics: Metrics | undefined) => ReactNode);
+  placard?: string | undefined;
   children?: ReactNode;
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 };
 
-export function Stage({ width, height, art, children, onKeyDown }: StageProps) {
-  const [svgRef, metrics] = useRenderedMetrics({ width, height });
+export const PLACARD_BAND = 26;
+const PLATE_PAD = 4;
+
+function Placard({
+  text,
+  width,
+  band,
+  metrics,
+}: {
+  text: string;
+  width: number;
+  band: number;
+  metrics: Metrics | undefined;
+}) {
+  const room = width - 2 * (EDGE + PLATE_PAD);
+  const title = placeTitle(metrics, text, room, band - 2 * EDGE);
+  const natural = text.length * CAPS_ADVANCE * title.fontSize;
+  const length = natural > room ? room : undefined;
+  const textWidth = length ?? natural;
+  const plate = textWidth + 2 * PLATE_PAD;
   return (
-    <div className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
+    <>
+      <rect
+        x={(width - plate) / 2}
+        y={-band + EDGE}
+        width={plate}
+        height={band - 2 * EDGE}
+        rx={3}
+        className="pk-placard-plate"
+      />
+      <text
+        x={width / 2}
+        y={-band / 2}
+        className="pk-placard"
+        data-placard=""
+        {...(title.show ? {} : { 'data-overfull': '' })}
+        style={vars({ '--pk-font': title.fontSize })}
+        {...(length === undefined ? {} : { textLength: length, lengthAdjust: 'spacingAndGlyphs' })}
+      >
+        {text}
+      </text>
+    </>
+  );
+}
+
+/** Tall enough for the placard at the minimum text size in the space the widget is given. */
+export function placardBand(
+  room: Size | undefined,
+  minPx: number,
+  width: number,
+  height: number,
+): number {
+  if (room === undefined) return PLACARD_BAND;
+  const byWidth = (minPx * width) / room.width + 2 * EDGE;
+  const byHeight =
+    room.height > minPx
+      ? ((minPx * height) / room.height + 2 * EDGE) / (1 - minPx / room.height)
+      : Infinity;
+  const band = Math.ceil(Math.max(PLACARD_BAND, byWidth, byHeight));
+  return Number.isFinite(band) ? Math.min(band, height) : PLACARD_BAND;
+}
+
+export function Stage({ width, height, art, placard, children, onKeyDown }: StageProps) {
+  const text = placard ? capitals(placard) : '';
+  const [rootRef, room] = useBoxSize(text !== '');
+  const band = text ? placardBand(room, room ? readMinPx() : FALLBACK_MIN_PX, width, height) : 0;
+  const total = height + band;
+  const [svgRef, metrics] = useRenderedMetrics({ width, height: total });
+  return (
+    <div ref={rootRef} className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
       <div
         className="pk-stage"
-        style={vars({ '--pk-ratio': width / height })}
+        style={vars({ '--pk-ratio': width / total })}
         {...(onKeyDown ? { onKeyDown } : {})}
       >
         <svg
           ref={svgRef}
           className="pk-svg"
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 ${-band} ${width} ${total}`}
           aria-hidden="true"
           focusable="false"
         >
+          {text && <Placard text={text} width={width} band={band} metrics={metrics} />}
           {typeof art === 'function' ? art(metrics) : art}
         </svg>
-        {children}
+        <div
+          className="pk-body"
+          {...(band > 0 ? { 'data-band': '' } : {})}
+          style={{ top: `${(band / total) * 100}%`, height: `${(height / total) * 100}%` }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export type ControlWidgetProps = {
   position: ControlPosition;
   guardOpen: boolean;
   label: string;
+  placard?: string | undefined;
   positionLabels: Readonly<Record<string, string>>;
   options?: JsonObject;
   onSet(position: ControlPosition): void;
