@@ -8,6 +8,24 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.8.0] - 2026-10-06
+
+### Added
+
+- The app frame always shows the running version and the copyright notice; UAT adds the short commit.
+- On a desktop screen the whole cockpit shows at once, as from the left seat; small screens keep the view tabs.
+- Aircraft can describe their whole cockpit as one left-seat arrangement.
+
+### Changed
+
+- Larger CT Supralight legends and avionics buttons, so the whole cockpit fits one HD screen.
+
+### Fixed
+
+- Each aircraft has one runway, so every phase heading follows from it; a lined-up-on-runway phase with its outside view and a compass-versus-runway check open the take-off, and the outside views show the runway designator. The CTSL compass card and a new demo compass readout now show the heading of each phase.
+- The CTSL engine start turns the ignition key to BOTH before the START step, so the guided run can reach START.
+- The version footer stays in view on the picker and also shows on the error screen.
+
 ## [0.7.0] - 2026-10-06
 
 ### Added
@@ -144,7 +162,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...v0.6.0
 [0.3.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...v0.3.0
