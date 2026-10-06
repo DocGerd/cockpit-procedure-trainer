@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react';
 import { ChecklistAnnouncer } from '../checklist/ChecklistAnnouncer';
 import { ChecklistPane } from '../checklist/ChecklistPane';
-import { useMessages } from '../i18n';
+import { format, useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
 import { PanelArea } from '../panel/PanelArea';
 import { useSessionState, useTrainer } from '../trainer';
@@ -30,20 +30,32 @@ function ChecklistToggle({
   onToggle(): void;
 }) {
   const text = useMessages(messages);
+  const { mode } = useTrainer();
   const checklist = useSessionState((s) => s.checklist());
+  const deviations = mode === 'guided' ? (checklist?.deviations.length ?? 0) : 0;
+  const progress = checklist
+    ? `${checklist.completed.length} / ${checklist.procedure.items.length}`
+    : undefined;
+  const label =
+    deviations > 0
+      ? format(deviations === 1 ? text.toggleDeviationOne : text.toggleDeviationOther, {
+          count: deviations,
+        })
+      : undefined;
   return (
     <button
       ref={buttonRef}
       type="button"
       className="chrome-button shell-checklist-toggle"
+      aria-label={label && `${text.checklist} ${progress}, ${label}`}
       aria-expanded={expanded}
       aria-controls={controls}
       onClick={onToggle}
     >
-      {text.checklist}{' '}
-      {checklist && (
-        <span className="shell-progress">
-          {checklist.completed.length} / {checklist.procedure.items.length}
+      {text.checklist} {progress && <span className="shell-progress">{progress}</span>}
+      {deviations > 0 && (
+        <span className="shell-deviation-badge" aria-hidden="true">
+          {deviations}
         </span>
       )}
     </button>
@@ -158,7 +170,7 @@ export function TrainerLayout() {
           </aside>
         )}
       </div>
-      <ChecklistAnnouncer />
+      <ChecklistAnnouncer announceDeviations={overlay && !expanded} />
     </div>
   );
 }

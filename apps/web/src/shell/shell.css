@@ -78,6 +78,21 @@
   color: var(--color-text-secondary);
 }
 
+.shell-deviation-badge {
+  min-width: var(--space-5);
+  padding: 0 var(--space-1);
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-pill);
+}
+
 @media (min-width: 1024px) {
   .shell-header {
     flex-wrap: nowrap;
@@ -435,7 +450,7 @@
   border-color: var(--color-accent);
 }
 
-@media (max-height: 800px) {
+@media (max-height: 1024px) {
   .picker {
     gap: var(--space-3);
     padding-block: var(--space-4);

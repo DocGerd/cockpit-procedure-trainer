@@ -255,6 +255,32 @@ describe('trainer layout on a tablet', () => {
     expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
   });
 
+  it('shows a deviation on the closed toggle in Guided, with a count and an accessible name', async () => {
+    renderShell();
+    await startProcedure();
+    expect(checklistToggle().getAttribute('aria-label')).toBeNull();
+    expect(document.querySelector('.shell-deviation-badge')).toBeNull();
+    act(() => {
+      trainer.session.set('pump', 'on');
+    });
+    expect(checklistToggle().getAttribute('aria-label')).toBe(
+      `Checklist 0 / ${itemCount}, 1 deviation`,
+    );
+    expect(checklistToggle().querySelector('.shell-deviation-badge')?.textContent).toBe('1');
+  });
+
+  it('shows no deviation on the toggle in Practice', async () => {
+    renderShell();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    await startProcedure();
+    act(() => {
+      trainer.session.set('pump', 'on');
+    });
+    expect(checklistToggle().getAttribute('aria-label')).toBeNull();
+    expect(checklistToggle().querySelector('.shell-deviation-badge')).toBeNull();
+    expect(checklistToggle().textContent).toContain(`0 / ${itemCount}`);
+  });
+
   it('opens the pane with the summary when the procedure completes', async () => {
     renderShell();
     await startProcedure();

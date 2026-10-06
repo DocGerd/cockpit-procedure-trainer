@@ -148,6 +148,85 @@ describe('checklist announcements', () => {
     expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
   });
 
+  describe('on a tablet with the checklist closed', () => {
+    beforeEach(() => {
+      vi.stubGlobal('innerWidth', 1000);
+    });
+
+    it('announces a Guided deviation, and says nothing more when the item advances', () => {
+      renderLayout();
+      start('flow');
+      operate('pump', 'on');
+      expect(announcer()?.textContent).toBe('Deviation: Pump operated. Not part of item 1.');
+      operate('master', 'on');
+      expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
+    });
+
+    it('counts deviations on the toggle, in either language', () => {
+      renderLayout();
+      start('flow');
+      operate('pump', 'on');
+      operate('avionics', 'on');
+      const toggle = screen.getByRole('button', { name: /^Checklist/ });
+      expect(toggle.getAttribute('aria-label')).toBe('Checklist 0 / 4, 2 deviations');
+      expect(toggle.querySelector('.shell-deviation-badge')?.textContent).toBe('2');
+      act(() => setLanguage('de'));
+      expect(screen.getByRole('button', { name: /^Checkliste/ }).getAttribute('aria-label')).toBe(
+        'Checkliste 0 / 4, 2 Abweichungen',
+      );
+    });
+
+    it('announces a deviation together with the advance it came with', () => {
+      renderLayout();
+      start('flow');
+      operate('master', 'on');
+      act(() => trainer.session.checkOff());
+      expect(announcer()?.textContent).toBe(
+        'Item 3 of 4: Walk-around done. Deviation: Item 2 was checked off, but its condition was not met.',
+      );
+    });
+
+    it('announces no deviation in Practice', () => {
+      renderLayout();
+      start('flow', 'practice');
+      operate('pump', 'on');
+      expect(announcer()?.textContent).toBe('');
+    });
+
+    it('leaves the deviation to the banner while the drawer is open', async () => {
+      renderLayout();
+      start('flow');
+      await userEvent.click(screen.getByRole('button', { name: /^Checklist/ }));
+      operate('pump', 'on');
+      expect(announcer()?.textContent).toBe('');
+    });
+
+    it('does not announce a deviation that was recorded while the drawer was open', async () => {
+      renderLayout();
+      start('flow');
+      await userEvent.click(screen.getByRole('button', { name: /^Checklist/ }));
+      operate('pump', 'on');
+      await userEvent.click(screen.getByRole('button', { name: /^Checklist/ }));
+      expect(announcer()?.textContent).toBe('');
+    });
+
+    it('speaks German', () => {
+      renderLayout('de');
+      start('flow');
+      operate('pump', 'on');
+      expect(announcer()?.textContent).toBe(
+        'Abweichung: Pump (de) bedient. Nicht Teil von Punkt 1.',
+      );
+    });
+  });
+
+  it('leaves the deviation to the banner on desktop', () => {
+    renderLayout();
+    start('flow');
+    operate('pump', 'on');
+    expect(announcer()?.textContent).toBe('');
+  });
+
   it('speaks German', () => {
     renderLayout('de');
     start('flow');

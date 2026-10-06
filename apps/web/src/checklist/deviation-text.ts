@@ -4,17 +4,18 @@ import { messages } from './messages';
 
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 
-export function useDeviationText(checklist: ChecklistState<unknown>) {
+export function useDeviationText(checklist: ChecklistState<unknown> | undefined) {
   const text = useMessages(messages);
   const localize = useLocalize();
 
   const control = (deviation: Deviation) => {
     const id = deviation.controlId ?? '';
-    const definition = Object.hasOwn(checklist.controls, id) ? checklist.controls[id] : undefined;
+    const definition =
+      checklist && Object.hasOwn(checklist.controls, id) ? checklist.controls[id] : undefined;
     return definition ? localize(definition.name) : id;
   };
   const item = (deviation: Deviation) => {
-    const found = checklist.procedure.items[deviation.itemIndex];
+    const found = checklist?.procedure.items[deviation.itemIndex];
     return found ? localize(found.text) : '';
   };
 
