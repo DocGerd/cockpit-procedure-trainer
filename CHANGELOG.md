@@ -23,7 +23,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 - Outside-view strip and the phase control in the header.
 - Device screens in the panel, with input routing and a dark screen when unpowered.
 - Generic COM radio and transponder devices, and a guide to adding a device.
-- A fictional demo aircraft with three panel views (panel, console and radio stack), three normal procedures (one of them uses the COM radio and the transponder) and an alternator-failure procedure.
+- A fictional demo aircraft for a whole flight: three panel views (panel, console and radio stack); eight phases (parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing), each with an outside view from the pilot's seat; six normal procedures (engine start, before take-off, radio and transponder, before landing, after landing, engine shutdown and securing); and an alternator-failure procedure.
 - Error boundary with reset, labelled placeholder for missing images, training-aid notice; the app works without localStorage.
 - The trainer installs as an app, works offline after one visit, and asks before switching to a new version.
 - Touch polish: larger hit areas, reliable press-and-hold, pinch zoom and pan on the panel.

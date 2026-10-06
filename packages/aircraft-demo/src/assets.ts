@@ -6,4 +6,8 @@ export const images = {
   holding: new URL('./assets/phase-holding.svg', import.meta.url).href,
   departure: new URL('./assets/phase-departure.svg', import.meta.url).href,
   cruise: new URL('./assets/phase-cruise.svg', import.meta.url).href,
+  approach: new URL('./assets/phase-approach.svg', import.meta.url).href,
+  landing: new URL('./assets/phase-landing.svg', import.meta.url).href,
+  taxiIn: new URL('./assets/phase-taxi-in.svg', import.meta.url).href,
+  parkingSecuring: new URL('./assets/phase-parking-securing.svg', import.meta.url).href,
 } as const;

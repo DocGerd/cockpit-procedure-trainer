@@ -35,10 +35,15 @@ const idling = {
 
 const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
+const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
+const flaring = { ...idling, flaps: 'landing' } as const;
+const taxiingIn = { ...idling, throttle: 0.15, flaps: 'landing' } as const;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
 const departureEnvironment: Environment = { airspeedKt: 75, altitudeFt: 800, onGround: false };
 const cruiseEnvironment: Environment = { airspeedKt: 105, altitudeFt: 4500, onGround: false };
+const approachEnvironment: Environment = { airspeedKt: 85, altitudeFt: 1000, onGround: false };
+const landingEnvironment: Environment = { airspeedKt: 60, altitudeFt: 10, onGround: false };
 
 type ComReading = { readonly active: number; readonly standby: number };
 type TransponderReading = {
@@ -149,6 +154,30 @@ export const demoAircraft = defineAircraft({
       image: images.cruise,
       environment: cruiseEnvironment,
       entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment) },
+    },
+    approach: {
+      name: text('Anflug', 'Approach'),
+      image: images.approach,
+      environment: approachEnvironment,
+      entry: { controls: approaching, state: runningFrom(approaching, approachEnvironment) },
+    },
+    landing: {
+      name: text('Landung', 'Landing'),
+      image: images.landing,
+      environment: landingEnvironment,
+      entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment) },
+    },
+    taxiIn: {
+      name: text('Rollen zum Vorfeld', 'Taxi in'),
+      image: images.taxiIn,
+      environment: ground(),
+      entry: { controls: taxiingIn, state: runningFrom(taxiingIn) },
+    },
+    parkingSecuring: {
+      name: text('Parken und Sichern', 'Parking and securing'),
+      image: images.parkingSecuring,
+      environment: ground(),
+      entry: { controls: idling, state: runningFrom(idling) },
     },
   },
   procedures: {
@@ -383,6 +412,161 @@ export const demoAircraft = defineAircraft({
           text: text(
             'Code 1200, die Höhe wird gemeldet',
             'Code 1200 is set and the altitude is reported',
+          ),
+        },
+      ],
+    },
+    beforeLanding: {
+      title: text('Vor der Landung', 'Before landing'),
+      type: 'normal',
+      startPhase: 'approach',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            'Sitze verriegelt, Gurte fest, Türen verriegelt',
+            'Seats locked, harnesses tight, doors latched',
+          ),
+        },
+        {
+          type: 'check',
+          target: { control: 'fuelSelector' },
+          condition: (state) => state.controls.fuelSelector === 'both',
+          text: text('Tankwahlschalter auf BOTH', 'Fuel selector is on BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'mixture',
+          position: 1,
+          text: text('Gemisch fett', 'Mixture rich'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'oilPressure' },
+          condition: (state) => state.systems.oilPsi >= 40 && state.systems.oilPsi <= 85,
+          text: text('Öldruck im grünen Bereich', 'Oil pressure in the green'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landescheinwerfer EIN', 'Landing light ON'),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'takeoff',
+          text: text('Klappen auf TAKEOFF, erste Stufe', 'Flaps TAKEOFF, first stage'),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'landing',
+          text: text('Klappen im Endanflug auf LANDING', 'Flaps LANDING on final'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landefreigabe erhalten, Piste frei', 'Cleared to land, runway clear'),
+        },
+      ],
+    },
+    afterLanding: {
+      title: text('Nach der Landung', 'After landing'),
+      type: 'normal',
+      startPhase: 'taxiIn',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            'Piste verlassen, hinter der Haltelinie',
+            'Runway vacated, clear of the holding line',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'up',
+          text: text('Klappen auf UP', 'Flaps UP'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landescheinwerfer AUS', 'Landing light OFF'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm > 0 && state.systems.rpm <= 1200,
+          text: text('Rollleistung, höchstens 1200 U/min', 'Taxi power, no more than 1200 rpm'),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            'Rollfreigabe zum Abstellplatz erhalten',
+            'Taxi clearance to the parking position received',
+          ),
+        },
+      ],
+    },
+    shutdownSecuring: {
+      title: text('Triebwerk abstellen und sichern', 'Engine shutdown and securing'),
+      type: 'normal',
+      startPhase: 'parkingSecuring',
+      items: [
+        {
+          type: 'check',
+          target: { control: 'throttle' },
+          condition: (state) => state.controls.throttle === 0,
+          text: text('Leistungshebel auf Leerlauf', 'Throttle is at idle'),
+        },
+        {
+          type: 'action',
+          control: 'avionics',
+          position: 'off',
+          text: text('Avionik AUS', 'Avionics master OFF'),
+        },
+        {
+          type: 'action',
+          control: 'mixture',
+          position: 0,
+          text: text('Gemisch auf Leerlaufabschaltung', 'Mixture idle cut-off'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => !state.systems.engine.running && state.systems.rpm === 0,
+          text: text('Triebwerk steht', 'Engine has stopped'),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'off',
+          text: text('Zündschalter AUS, Schlüssel abziehen', 'Magneto key OFF, key removed'),
+        },
+        {
+          type: 'confirm',
+          text: text('Beleuchtung AUS', 'Lights OFF'),
+        },
+        {
+          type: 'action',
+          control: 'alternator',
+          position: 'off',
+          text: text('Generator AUS', 'Alternator OFF'),
+        },
+        {
+          type: 'action',
+          control: 'battery',
+          position: 'off',
+          text: text('Batterie AUS', 'Battery master OFF'),
+        },
+        {
+          type: 'action',
+          control: 'fuelSelector',
+          position: 'off',
+          text: text('Tankwahlschalter auf OFF', 'Fuel selector OFF'),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            'Steuersperre gesteckt, Bremsklötze vorgelegt, Flugzeug gesichert',
+            'Control lock fitted, chocks in place, aircraft secured',
           ),
         },
       ],

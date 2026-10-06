@@ -1,6 +1,6 @@
 # @cpt/aircraft-demo
 
-An invented single-engine piston aircraft that exercises every control kind and every generic widget, with three views, four phases, three normal procedures, one emergency and two installed devices.
+An invented single-engine piston aircraft that exercises every control kind and every generic widget, with three views, eight phases covering a whole flight, six normal procedures, one emergency and two installed devices.
 
 ## Source revision
 
@@ -14,9 +14,11 @@ Fictional aircraft; no handbook.
 - Devices: a generic COM radio (`radio`) and a transponder (`xpdr`), both on the radio stack and powered by the avionics bus. The transponder reads the pressure altitude of the phase.
 - Systems: core's `electricalBus` and `pistonEngineStart`, plus the gauge values derived from them.
 - Failure: `alternatorFailure`, which trips the alternator breaker.
-- Phases: parking, holding point, departure, cruise.
-- Procedures: `engineStart`, `beforeTakeoff`, `radioAndTransponder` and the emergency `alternatorFailure`.
+- Phases, in flight order: parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing. Each outside view is drawn from the pilot's seat. The engine runs on entry to every phase but the first parking; approach and landing are airborne, landing in the flare.
+- Procedures: `engineStart` (parking), `beforeTakeoff` and `radioAndTransponder` (holding point), `beforeLanding` (approach), `afterLanding` (taxi in), `shutdownSecuring` (parking and securing) and the emergency `alternatorFailure` (cruise).
 
-Throttle and mixture action targets are only 0 or 1; run-up readings are check items on the tachometer. The rpm ranges, the magneto drop and the oil pressure limits are invented for this aircraft and belong to no real one. Because levers take only the stops 0 and 1 as action targets, the magneto check runs with the throttle at its full stop rather than at a partial-power setting.
+Throttle and mixture action targets are only 0 or 1; run-up readings are check items on the tachometer. The rpm ranges, the magneto drop and the oil pressure limits are invented for this aircraft and belong to no real one. Because levers take only the stops 0 and 1 as action targets, the magneto check runs with the throttle at its full stop rather than at a partial-power setting. The approach snapshot has the mixture leaned and the taxi-in snapshot a little taxi power, so `beforeLanding` sets the mixture rich and `afterLanding` checks the taxi rpm on the tachometer.
+
+`shutdownSecuring` ends with the controls of the first parking phase: engine stopped by the mixture, magnetos, alternator, battery and avionics off, fuel selector off. The aircraft has no light switches, so the light items are confirm items.
 
 The COM knobs step the standby frequency, so `radioAndTransponder` checks the device state after the knob action instead of targeting a frequency. An aircraft depends on core only, so this package's tests install stand-ins for the two devices; the web app's registry tests walk every normal procedure with the real ones.
