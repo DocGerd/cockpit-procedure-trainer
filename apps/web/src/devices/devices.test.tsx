@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
-import { PanelArea } from '../panel';
+import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { aircraft, deviceScreens, devices, screenInput } from './test-fixtures';

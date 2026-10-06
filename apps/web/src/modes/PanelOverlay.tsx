@@ -2,6 +2,7 @@ import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCurrentTarget } from '../checklist';
 import { useActiveView } from '../panel/active-view';
+import { useReveal } from '../panel/panel-zoom';
 import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
@@ -54,7 +55,11 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
   const latest = useRef(active);
   latest.current = active;
   const layer = useRef<HTMLDivElement>(null);
+  const ring = useRef<HTMLDivElement>(null);
   const focusPending = useRef(false);
+  const reveal = useReveal();
+  const revealRing = useRef(reveal);
+  revealRing.current = reveal;
 
   const key = target && targetKey(target);
   const view = target && targetView(aircraft, target);
@@ -66,6 +71,11 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
   }, [key, item, view]);
 
   const box = target && targetBox(rects, target);
+  const shown = box !== undefined;
+  useEffect(() => {
+    if (shown && ring.current) revealRing.current(ring.current);
+  }, [key, item, shown]);
+
   const focusControl = target && 'control' in target ? target.control : undefined;
   useEffect(() => {
     if (!focusPending.current || active.viewId !== view) return;
@@ -80,6 +90,7 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
     <div ref={layer} className="modes-overlay" data-modes-overlay="">
       {box && (
         <div
+          ref={ring}
           className="modes-outline"
           data-outline="target"
           data-pulse={reducedMotion ? undefined : 'true'}

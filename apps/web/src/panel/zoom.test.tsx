@@ -5,9 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
-import { PanelArea, usePanelZoom } from './index';
-import type { PanelRects } from './index';
+import { PanelArea } from './PanelArea';
+import { usePanelZoom } from './panel-zoom';
+import type { PanelRects } from './rects';
 import { MAX_SCALE } from './zoom';
+import { GESTURE_WINDOW_MS } from './use-zoom-gestures';
 import { other } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => {
@@ -97,6 +99,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -254,8 +257,8 @@ describe('controls under touch', () => {
     const before = offset();
     const starter = screen.getByRole('button', { name: 'Starter' });
     down(starter, { id: 3, x: 50, y: 100 });
-    expect(calls.input).toEqual(['press starter']);
     move(starter, { id: 3, x: 0, y: 40 });
+    expect(calls.input).toEqual(['press starter']);
     move(starter, { id: 3, x: -300, y: 0 });
     expect(offset()).toEqual(before);
     up(starter, { id: 3, x: -300, y: 0 });
@@ -263,10 +266,67 @@ describe('controls under touch', () => {
     expect(offset()).toEqual(before);
   });
 
+  it('a first touch on a control waits for a second finger before it operates the control', async () => {
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    vi.useFakeTimers();
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    down(starter, { id: 1, x: 50, y: 100 });
+    move(starter, { id: 1, x: 53, y: 100 });
+    expect(calls.input).toEqual([]);
+    act(() => {
+      vi.advanceTimersByTime(GESTURE_WINDOW_MS);
+    });
+    expect(calls.input).toEqual(['press starter']);
+    up(starter, { id: 1, x: 53, y: 100 });
+    expect(calls.input).toEqual(['press starter', 'release starter']);
+  });
+
+  it('a tap on a control operates it when the finger lifts', async () => {
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    down(starter, { id: 1, x: 50, y: 100 });
+    expect(calls.input).toEqual([]);
+    up(starter, { id: 1, x: 50, y: 100 });
+    expect(calls.input).toEqual(['press starter', 'release starter']);
+  });
+
+  it('a second finger before the touch is confirmed leaves the control alone', async () => {
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    vi.useFakeTimers();
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    down(starter, { id: 1, x: 50, y: 100 });
+    const bg = background();
+    down(bg, { id: 2, x: 250, y: 100 });
+    move(bg, { id: 2, x: 350, y: 100 });
+    expect(scale()).toBeGreaterThan(1);
+    act(() => {
+      vi.advanceTimersByTime(GESTURE_WINDOW_MS * 2);
+    });
+    up(starter, { id: 1, x: 50, y: 100 });
+    up(bg, { id: 2, x: 350, y: 100 });
+    expect(calls.input).toEqual([]);
+  });
+
+  it('a browser cancel of the touch before it is confirmed leaves the control alone', async () => {
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    down(starter, { id: 1, x: 50, y: 100 });
+    fireEvent.pointerCancel(starter, { pointerId: 1, pointerType: 'touch' });
+    expect(calls.input).toEqual([]);
+  });
+
+  it.each(['mouse', 'pen'])('a %s press operates the control at once', async (pointerType) => {
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const starter = screen.getByRole('button', { name: 'Starter' });
+    fireEvent.pointerDown(starter, { pointerId: 1, pointerType, button: 0 });
+    expect(calls.input).toEqual(['press starter']);
+  });
+
   it('a second finger cancels a press in progress before it zooms', async () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
     const starter = screen.getByRole('button', { name: 'Starter' });
     down(starter, { id: 1, x: 50, y: 100 });
+    move(starter, { id: 1, x: 50, y: 140 });
     expect(calls.input).toEqual(['press starter']);
 
     const bg = background();
@@ -276,7 +336,7 @@ describe('controls under touch', () => {
 
     move(bg, { id: 2, x: 350, y: 100 });
     expect(scale()).toBeGreaterThan(1);
-    up(starter, { id: 1, x: 50, y: 100 });
+    up(starter, { id: 1, x: 50, y: 140 });
     expect(calls.input).toEqual(['press starter', 'release starter']);
   });
 

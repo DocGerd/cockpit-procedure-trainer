@@ -18,6 +18,16 @@ export function usePanelZoom(): PanelZoom {
   return useContext(PanelZoomContext);
 }
 
+const NO_REVEAL = (): void => {};
+
+const PanelRevealContext = createContext<(element: Element) => void>(NO_REVEAL);
+export const PanelRevealProvider = PanelRevealContext.Provider;
+
+/** Pans the zoomed panel just far enough to bring an element on it into view. A no-op outside `PanelArea`. */
+export function useReveal(): (element: Element) => void {
+  return useContext(PanelRevealContext);
+}
+
 /** Zoom state that starts over whenever `resetKey` changes, e.g. on another view. */
 export function useZoomState(resetKey: string) {
   const [stored, setStored] = useState<{ key: string; zoom: ZoomState }>({
