@@ -26,8 +26,10 @@ const expected = [
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
-  engineStart: ['All breakers in', 'Flap readout shows 0°'],
+  engineStart: ['Parking brake holds', 'All breakers in', 'Flap readout shows 0°'],
+  shortTakeoff: ['Parking brake holds'],
   beforeTakeoff: [
+    'Parking brake holds',
     'Oil pressure in the green',
     'Oil temperature below the red line',
     'Cylinder head temperature in the green',

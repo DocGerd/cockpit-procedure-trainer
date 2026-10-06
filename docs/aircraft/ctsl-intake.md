@@ -466,3 +466,7 @@ Each item lists the value the trainer uses until it is answered.
     revision or supplement?
 17. **Climb speeds**: the climb checklist's Vx 120 / Vy 135 km/h with −12° versus
     the by-flap table; which does the club teach?
+18. **Parking brake before take-off**: the take-off list (N7) has no brake item,
+    but the holding-point snapshot has the parking brake set. The trainer's
+    `takeoff` checklist starts with releasing it (valve open, then a check that
+    it is released), marked as a trainer addition. Is that how the club teaches it?

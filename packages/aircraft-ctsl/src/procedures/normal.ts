@@ -31,6 +31,43 @@ const circuitDropWithinLimit = (state: State) =>
 
 const confirm = (de: string, en: string) => ({ type: 'confirm', text: text(de, en) }) as const;
 
+// Intake §3.4: close the valve, then apply the brake lever.
+const setParkingBrake = [
+  {
+    type: 'action',
+    control: 'parkingBrakeValve',
+    position: 'closed',
+    text: text('Rückflusshahn zu', 'Parking-brake valve closed'),
+  },
+  {
+    type: 'action',
+    control: 'brake',
+    position: 'on',
+    text: text('Bremshebel ziehen', 'Brake lever on'),
+  },
+  {
+    type: 'check',
+    target: { control: 'brake' },
+    condition: (state: State) => state.systems.parkingBrakeSet,
+    text: text('Parkbremse hält', 'Parking brake holds'),
+  },
+] as const;
+
+const releaseParkingBrake = [
+  {
+    type: 'action',
+    control: 'parkingBrakeValve',
+    position: 'open',
+    text: text('Rückflusshahn auf', 'Parking-brake valve open'),
+  },
+  {
+    type: 'action',
+    control: 'brake',
+    position: 'off',
+    text: text('Bremshebel lösen', 'Brake lever off'),
+  },
+] as const;
+
 const oilPressureGreen = {
   type: 'check',
   target: { indicator: 'oilPressure' },
@@ -169,12 +206,7 @@ export const normalProcedures = {
         'Vor dem ersten Start des Tages Propeller von Hand durchgedreht',
         'Before the first start of the day, prop turned by hand',
       ),
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'closed',
-        text: text('Parkbremse gesetzt (Rückflusshahn zu)', 'Parking brake set (valve closed)'),
-      },
+      ...setParkingBrake,
       {
         type: 'action',
         control: 'carbHeat',
@@ -294,12 +326,7 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'holding',
     items: [
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'closed',
-        text: text('Parkbremse gesetzt (Rückflusshahn zu)', 'Parking brake set (valve closed)'),
-      },
+      ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
@@ -428,12 +455,7 @@ export const normalProcedures = {
         'Passenger briefed: belts, door latch, rescue handle, extinguisher, ELT switch',
       ),
       confirm('Anflug und Abflug frei', 'Approach and departure clear'),
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'open',
-        text: text('Parkbremse gelöst (Rückflusshahn auf)', 'Parking brake released (valve open)'),
-      },
+      ...releaseParkingBrake,
     ],
   },
   takeoff: {
@@ -442,6 +464,24 @@ export const normalProcedures = {
     startPhase: 'holding',
     endPhase: 'departure',
     items: [
+      {
+        type: 'action',
+        control: 'parkingBrakeValve',
+        position: 'open',
+        text: text(
+          'Parkbremse lösen, Rückflusshahn auf (Ergänzung des Trainers)',
+          'Release the parking brake, valve open (trainer addition)',
+        ),
+      },
+      {
+        type: 'check',
+        target: { control: 'parkingBrakeValve' },
+        condition: (state: State) => !state.systems.parkingBrakeSet,
+        text: text(
+          'Parkbremse gelöst (Ergänzung des Trainers)',
+          'Parking brake released (trainer addition)',
+        ),
+      },
       {
         type: 'action',
         control: 'flapSelector',
@@ -517,12 +557,7 @@ export const normalProcedures = {
         condition: flapsAt(15),
         text: text('Klappenanzeige zeigt 15°', 'Flap readout shows 15°'),
       },
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'closed',
-        text: text('Parkbremse gesetzt (Rückflusshahn zu)', 'Parking brake set (valve closed)'),
-      },
+      ...setParkingBrake,
       {
         type: 'action',
         control: 'choke',
@@ -541,12 +576,7 @@ export const normalProcedures = {
         position: 'full',
         text: text('Gashebel Vollgas', 'Throttle full'),
       },
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'open',
-        text: text('Bremse lösen (Rückflusshahn auf)', 'Brake released (valve open)'),
-      },
+      ...releaseParkingBrake,
       confirm('Rotieren bei 65 km/h', 'Rotate at 65 km/h'),
       confirm('Auf 105 km/h beschleunigen', 'Accelerate to 105 km/h'),
       confirm('Steilster Steigflug mit 105 km/h', 'Steepest climb at 105 km/h'),
@@ -562,7 +592,10 @@ export const normalProcedures = {
         type: 'action',
         control: 'flapSelector',
         position: '-12',
-        text: text('Klappen −12°', 'Flaps −12°'),
+        text: text(
+          'Klappen −12°, erst in sicherer Höhe, nie negativ in Bodennähe',
+          'Flaps −12°, only at a safe height, never negative near the ground',
+        ),
       },
       {
         type: 'check',
@@ -763,24 +796,7 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'parkingSecuring',
     items: [
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'closed',
-        text: text('Rückflusshahn zu', 'Parking-brake valve closed'),
-      },
-      {
-        type: 'action',
-        control: 'brake',
-        position: 'on',
-        text: text('Bremshebel ziehen', 'Brake lever on'),
-      },
-      {
-        type: 'check',
-        target: { control: 'brake' },
-        condition: (state: State) => state.systems.parkingBrakeSet,
-        text: text('Parkbremse hält', 'Parking brake holds'),
-      },
+      ...setParkingBrake,
       {
         type: 'action',
         control: 'avionicsMaster',
