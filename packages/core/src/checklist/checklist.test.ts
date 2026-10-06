@@ -10,6 +10,7 @@ function procedureOf(id: string): ProcedureDefinition<FixtureState> {
   return procedure;
 }
 
+const controls = fixtureAircraft.controls;
 const beforeStart = procedureOf('beforeStart');
 const alternatorFailure = procedureOf('alternatorFailure');
 
@@ -58,7 +59,7 @@ function deepFreeze<T>(value: T): T {
 }
 
 const begin = (procedure: ProcedureDefinition<FixtureState> = beforeStart) =>
-  startChecklist(procedure, stateOf());
+  startChecklist(procedure, stateOf(), controls);
 
 const masterOn = stateOf({ master: 'on' }, { busPowered: true, volts: 12 });
 const pumpOn = stateOf({ master: 'on', fuelPump: 'on' }, { busPowered: true, volts: 12 });
@@ -97,7 +98,7 @@ describe('startChecklist', () => {
   });
 
   it('completes leading action items that are already satisfied', () => {
-    const checklist = startChecklist(beforeStart, pumpOn);
+    const checklist = startChecklist(beforeStart, pumpOn, controls);
     expect(checklist.completed).toEqual([0, 1]);
     expect(checklist.current).toBe(2);
     expect(checklist.deviations).toEqual([]);
@@ -251,7 +252,8 @@ describe('deviations', () => {
       { master: 'on', fuelPump: 'on', ignition: 'start', throttle: 0.5 },
       { busPowered: true, engineRunning: true, rpm: 1500 },
     );
-    const checklist = observeControl(atStarter(), position('throttle', 0, 0.5), throttled);
+    const cranked = observeControl(atStarter(), position('ignition', 'off', 'start'), cranking);
+    const checklist = observeControl(cranked, position('throttle', 0, 0.5), throttled);
     expect(checklist.completed).toContain(4);
     expect(checklist.current).toBe(5);
     expect(checklist.deviations).toEqual([
@@ -276,7 +278,7 @@ describe('deviations', () => {
   });
 
   it('accept a pilot change to the control a check targets', () => {
-    const checklist = startChecklist(alternatorFailure, stateOf());
+    const checklist = startChecklist(alternatorFailure, stateOf(), controls);
     const next = observeControl(
       checklist,
       position('alternatorBreaker', 'in', 'pulled'),
@@ -346,7 +348,6 @@ describe('consecutive spring-back actions', () => {
   for (const [name, control, detent, rest] of cases) {
     it(`need one press per item on ${name}`, () => {
       const { procedure, held, letGo } = twice(control, detent, rest);
-      const controls = fixtureAircraft.controls;
       let checklist = startChecklist(procedure, letGo, controls);
       checklist = observeControl(checklist, position(control, rest, detent), held);
       expect(checklist.completed).toEqual([0]);
@@ -367,7 +368,7 @@ describe('consecutive spring-back actions', () => {
 
   it('do not complete from a control already held when the checklist starts', () => {
     const { procedure, held } = twice('ignition', 'start', 'both');
-    const checklist = startChecklist(procedure, held, fixtureAircraft.controls);
+    const checklist = startChecklist(procedure, held, controls);
     expect(checklist.completed).toEqual([]);
     expect(checklist.current).toBe(0);
   });
@@ -378,11 +379,27 @@ describe('consecutive spring-back actions', () => {
       items: [{ type: 'confirm', text: { de: 'Frei', en: 'Clear' } }, press('ignition', 'start')],
     };
     const held = stateOf({ ignition: 'start' });
-    let checklist = startChecklist(procedure, stateOf(), fixtureAircraft.controls);
+    let checklist = startChecklist(procedure, stateOf(), controls);
     checklist = observeControl(checklist, position('ignition', 'both', 'start'), held);
     checklist = checkOff(checklist, held);
     expect(checklist.current).toBe(1);
     expect(observeState(checklist, held).current).toBe(1);
+  });
+
+  it('ignore a move that is not a pilot press of the detent', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [press('ignition', 'start')],
+    };
+    const held = stateOf({ ignition: 'start' });
+    const start = () => startChecklist(procedure, stateOf(), controls);
+
+    const system = observeControl(start(), position('ignition', 'both', 'start', 'system'), held);
+    expect(system.current).toBe(0);
+    expect(observeState(system, held).current).toBe(0);
+
+    const other = observeControl(start(), position('ignition', 'off', 'both'), stateOf());
+    expect(observeState(other, held).current).toBe(0);
   });
 
   it('count a press made while a hold condition is still unmet', () => {
@@ -394,7 +411,7 @@ describe('consecutive spring-back actions', () => {
         }),
       ],
     };
-    let checklist = startChecklist(procedure, stateOf(), fixtureAircraft.controls);
+    let checklist = startChecklist(procedure, stateOf(), controls);
     checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
     expect(checklist.current).toBe(0);
     checklist = observeState(checklist, running);
@@ -406,7 +423,7 @@ describe('consecutive spring-back actions', () => {
       ...beforeStart,
       items: [press('lampTest', 'released')],
     };
-    const checklist = startChecklist(procedure, stateOf(), fixtureAircraft.controls);
+    const checklist = startChecklist(procedure, stateOf(), controls);
     expect(checklist.done).toBe(true);
   });
 });
@@ -417,7 +434,7 @@ describe('purity', () => {
     const state = deepFreeze(masterOn);
     const change = deepFreeze(position('master', 'off', 'on'));
 
-    const started = deepFreeze(startChecklist(procedure, stateOf()));
+    const started = deepFreeze(startChecklist(procedure, stateOf(), controls));
     const moved = deepFreeze(observeControl(started, change, state));
     deepFreeze(observeState(moved, pumpOn));
     deepFreeze(checkOff(moved, pumpOn));

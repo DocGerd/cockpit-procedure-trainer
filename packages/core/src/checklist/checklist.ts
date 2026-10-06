@@ -75,7 +75,7 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
 export function startChecklist<S>(
   procedure: ProcedureDefinition<S>,
   state: TrainerState<S>,
-  controls: Readonly<Record<string, ControlDefinition>> = {},
+  controls: Readonly<Record<string, ControlDefinition>>,
 ): ChecklistState<S> {
   return settle(
     {
