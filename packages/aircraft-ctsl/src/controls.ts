@@ -1,44 +1,47 @@
-import type { ControlRecord, Text } from '@cpt/core';
+import type { ArtworkAppearance, ControlRecord, Text } from '@cpt/core';
+import { controlArtwork } from './artwork';
 import { text } from './text';
 
-const breakerOf = (name: Text, description: Text) =>
+const breakerOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
     kind: 'breaker',
     positions: ['in', 'pulled'],
     initial: 'in',
     name,
     description,
-    appearance: { widget: 'circuit-breaker' },
+    appearance,
   }) as const;
 
-const rockerOf = (name: Text, description: Text) =>
+const rockerOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
     kind: 'toggle',
     positions: ['off', 'on'],
     initial: 'off',
     name,
     description,
-    appearance: { widget: 'rocker' },
+    appearance,
   }) as const;
 
-const pushPullOf = (name: Text, description: Text) =>
+const pushPullOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
     kind: 'lever',
     positions: ['off', 'on'],
     initial: 'off',
     name,
     description,
-    appearance: { widget: 'lever' },
+    appearance,
   }) as const;
 
 export const controls = {
   comBreaker: breakerOf(
     text('Sicherung COM', 'COM breaker'),
     text('Schützt das Funkgerät am Avionikbus.', 'Protects the COM radio on the avionics bus.'),
+    controlArtwork.comBreaker,
   ),
   xpdrBreaker: breakerOf(
     text('Sicherung Transponder', 'Transponder breaker'),
     text('Schützt den Transponder am Avionikbus.', 'Protects the transponder on the avionics bus.'),
+    controlArtwork.xpdrBreaker,
   ),
   gpsBreaker: breakerOf(
     text('Sicherung GPS', 'GPS breaker'),
@@ -46,26 +49,32 @@ export const controls = {
       'Schützt die GPS-Halterung am Avionikbus.',
       'Protects the GPS cradle on the avionics bus.',
     ),
+    controlArtwork.gpsBreaker,
   ),
   positionBreaker: breakerOf(
     text('Sicherung Positionslichter', 'Position lights breaker'),
     text('Schützt die Positionslichter.', 'Protects the position lights.'),
+    controlArtwork.positionBreaker,
   ),
   strobeBreaker: breakerOf(
     text('Sicherung Blitzlicht', 'Strobe breaker'),
     text('Schützt das Blitzlicht (Beacon).', 'Protects the beacon strobe.'),
+    controlArtwork.strobeBreaker,
   ),
   landingBreaker: breakerOf(
     text('Sicherung Landescheinwerfer', 'Landing light breaker'),
     text('Schützt den Landescheinwerfer.', 'Protects the landing light.'),
+    controlArtwork.landingBreaker,
   ),
   intercomBreaker: breakerOf(
     text('Sicherung Bordsprechanlage', 'Intercom breaker'),
     text('Schützt die Bordsprechanlage.', 'Protects the intercom.'),
+    controlArtwork.intercomBreaker,
   ),
   outletBreaker: breakerOf(
     text('Sicherung 12-V-Steckdose', '12 V outlet breaker'),
     text('Schützt die 12-V-Steckdose.', 'Protects the 12 V outlet.'),
+    controlArtwork.outletBreaker,
   ),
   avionicsMaster: rockerOf(
     text('Avionik', 'Avionics Master'),
@@ -73,26 +82,32 @@ export const controls = {
       'Schaltet den Avionikbus mit Funkgerät, Transponder und GPS. Beim Anlassen und Abstellen aus.',
       'Switches the avionics bus with the radio, transponder and GPS. Off for engine start and stop.',
     ),
+    controlArtwork.avionicsMaster,
   ),
   beacon: rockerOf(
     text('Blitzlicht', 'Beacon light'),
     text('Schaltet das Blitzlicht (Beacon).', 'Switches the beacon strobe.'),
+    controlArtwork.beacon,
   ),
   positionLights: rockerOf(
     text('Positionslichter', 'Position lights'),
     text('Schaltet die Positionslichter.', 'Switches the position lights.'),
+    controlArtwork.positionLights,
   ),
   intercom: rockerOf(
     text('Bordsprechanlage', 'Intercom'),
     text('Schaltet die Bordsprechanlage.', 'Switches the intercom.'),
+    controlArtwork.intercom,
   ),
   cockpitLight: rockerOf(
     text('Cockpitbeleuchtung', 'Cockpit light'),
     text('Schaltet die Cockpitbeleuchtung.', 'Switches the cockpit light.'),
+    controlArtwork.cockpitLight,
   ),
   landingLight: rockerOf(
     text('Landescheinwerfer', 'Landing light'),
     text('Schaltet den Landescheinwerfer.', 'Switches the landing light.'),
+    controlArtwork.landingLight,
   ),
   elt: {
     kind: 'toggle',
@@ -111,6 +126,7 @@ export const controls = {
       'Thermische Sicherung des Klappenantriebs. Sie kann nach einer Überlastung auslösen.',
       'Thermal breaker of the flap drive. It can trip after an overload.',
     ),
+    controlArtwork.flapBreaker,
   ),
   fuelValve: {
     kind: 'toggle',
@@ -121,7 +137,7 @@ export const controls = {
       'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt er den Zündschlüssel.',
       'Slide lever for the fuel supply, up open, down closed. Closed, it covers the ignition key.',
     ),
-    appearance: { widget: 'toggle' },
+    appearance: controlArtwork.fuelValve,
   },
   flapSelector: {
     kind: 'rotary',
@@ -132,7 +148,7 @@ export const controls = {
       'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
       'Preselects the flap setting in degrees. Past each end detent is a manual override: the motor runs while the knob stays there.',
     ),
-    appearance: { widget: 'rotary-knob' },
+    appearance: controlArtwork.flapSelector,
   },
   ignition: {
     kind: 'rotary',
@@ -144,7 +160,7 @@ export const controls = {
       'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. START dreht das Triebwerk und springt auf BOTH zurück.',
       'Ignition key with starter: OFF, L, R, BOTH, START. START cranks the engine and springs back to BOTH.',
     ),
-    appearance: { widget: 'key-switch' },
+    appearance: controlArtwork.ignition,
   },
   battery: {
     ...breakerOf(
@@ -153,6 +169,7 @@ export const controls = {
         'Zieh-Druck-Schalter der Batterie. Eingedrückt ist die Batterie auf dem Hauptbus.',
         'Push-pull switch of the battery. Pushed in, the battery feeds the main bus.',
       ),
+      controlArtwork.battery,
     ),
     initial: 'pulled',
   },
@@ -163,6 +180,7 @@ export const controls = {
         'Zieh-Druck-Schalter des Generators. Eingedrückt lädt der Generator bei laufendem Triebwerk.',
         'Push-pull switch of the generator. Pushed in, the generator charges while the engine runs.',
       ),
+      controlArtwork.generator,
     ),
     initial: 'pulled',
   },
@@ -172,6 +190,7 @@ export const controls = {
       'Hydraulische Bremse beider Haupträder. Mit geschlossenem Rückflusshahn wird sie zur Parkbremse.',
       'Hydraulic brake on both main wheels. With the parking-brake valve closed it sets the parking brake.',
     ),
+    controlArtwork.brake,
   ),
   throttle: {
     kind: 'lever',
@@ -182,7 +201,7 @@ export const controls = {
       'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',
       'Sets engine power: idle, low power, run-up, cruise and full.',
     ),
-    appearance: { widget: 'lever' },
+    appearance: controlArtwork.throttle,
   },
   choke: pushPullOf(
     text('Choke', 'Choke'),
@@ -190,6 +209,7 @@ export const controls = {
       'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
       'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
     ),
+    controlArtwork.choke,
   ),
   carbHeat: pushPullOf(
     text('Vergaservorwärmung', 'Carb heat'),
@@ -197,6 +217,7 @@ export const controls = {
       'Vorläufiges Bedienelement: das Handbuch nennt die Vergaservorwärmung in den Checklisten, zeigt aber keinen Zug. Ort und Ausführung muss der Verein bestätigen.',
       'Provisional control: the handbook names carb heat in its checklists but shows no knob. Its place and form await the club.',
     ),
+    controlArtwork.carbHeat,
   ),
   trim: {
     kind: 'lever',
@@ -207,7 +228,7 @@ export const controls = {
       'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
       'Trims the stabilator. Forward is nose down; neutral for take-off.',
     ),
-    appearance: { widget: 'lever' },
+    appearance: controlArtwork.trim,
   },
   parkingBrakeValve: {
     kind: 'toggle',
@@ -218,7 +239,7 @@ export const controls = {
       'Parkbremse: Hahn schließen, dann den Bremshebel ziehen. Der Druck hält, bis der Hahn wieder öffnet.',
       'Parking brake: close the valve, then apply the brake lever. The pressure holds until the valve opens again.',
     ),
-    appearance: { widget: 'toggle' },
+    appearance: controlArtwork.parkingBrakeValve,
   },
   rescueHandle: {
     kind: 'guarded',
@@ -230,6 +251,6 @@ export const controls = {
       'Griff des ballistischen Rettungssystems. Am Boden mit dem Sicherungsstift gesichert; zum Auslösen kräftig und weit ziehen.',
       'Handle of the ballistic rescue system. Secured by the safety pin on the ground; pull hard and far to deploy.',
     ),
-    appearance: { widget: 'guarded-handle' },
+    appearance: controlArtwork.rescueHandle,
   },
 } as const satisfies ControlRecord;

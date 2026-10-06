@@ -97,13 +97,13 @@ const expectedControls: Record<string, Expected> = {
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {
-  airspeed: { widget: 'round-gauge', view: 'panel' },
-  altimeter: { widget: 'round-gauge', view: 'panel' },
-  verticalSpeed: { widget: 'round-gauge', view: 'panel' },
-  tachometer: { widget: 'round-gauge', view: 'panel' },
-  oilPressure: { widget: 'round-gauge', view: 'panel' },
-  oilTemperature: { widget: 'round-gauge', view: 'panel' },
-  cht: { widget: 'round-gauge', view: 'panel' },
+  airspeed: { widget: 'artwork', view: 'panel' },
+  altimeter: { widget: 'artwork', view: 'panel' },
+  verticalSpeed: { widget: 'artwork', view: 'panel' },
+  tachometer: { widget: 'artwork', view: 'panel' },
+  oilPressure: { widget: 'artwork', view: 'panel' },
+  oilTemperature: { widget: 'artwork', view: 'panel' },
+  cht: { widget: 'artwork', view: 'panel' },
   chargeLamp: { widget: 'annunciator', view: 'panel' },
   flapReadout: { widget: 'digital-readout', view: 'centre' },
   eltLamp: { widget: 'annunciator', view: 'centre' },
@@ -164,7 +164,7 @@ describe('CTSL aircraft', () => {
   it('springs the ignition key back from START to BOTH', () => {
     const ignition = ctslAircraft.controls.ignition;
     expect(ignition?.kind === 'rotary' && ignition.springBack).toEqual({ start: 'both' });
-    expect(ignition?.appearance).toEqual({ widget: 'key-switch' });
+    expect(ignition?.appearance).toHaveProperty('artwork');
   });
 
   it('guards the rescue handle with the safety pin', () => {
@@ -190,7 +190,9 @@ describe('CTSL aircraft', () => {
     'declares indicator %s with its widget and view',
     (id, expected) => {
       const appearance = ctslAircraft.indicators[id]?.appearance;
-      expect(appearance && 'widget' in appearance && appearance.widget).toBe(expected.widget);
+      expect(appearance && ('widget' in appearance ? appearance.widget : 'artwork')).toBe(
+        expected.widget,
+      );
       expect(viewOfIndicator(id)).toBe(expected.view);
     },
   );
