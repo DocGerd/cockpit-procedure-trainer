@@ -17,13 +17,15 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Agents build this project. The owner steers and reviews at milestone
   boundaries, so do not wait for approval mid-milestone on anything the spec
   or the milestone plan settles.
-- Branches, changelog fragments, squash/backmerge and releases follow
-  `CONTRIBUTING.md` (Flow, Releases); the skills in `.claude/skills/`
-  (`pr-selfreview`, `merge-train`, `milestone-release`) run those steps.
+- Branch prefixes, squash/backmerge and releases follow `CONTRIBUTING.md`
+  (Flow, Releases). Review, merging and the release PR run through the skills
+  `pr-selfreview`, `merge-train` and `milestone-release` in `.claude/skills/`.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
-- Agents merge reviewed PRs into `develop` only, never into `main`. The owner
-  merges the release PR `develop` to `main`.
+- Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line
+  `No changelog: <reason>` when it has no user-visible effect.
+- Agents merge reviewed PRs into `develop` only, never into `main`. An agent
+  opens the release PR `develop` to `main`; the owner merges it.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
 - Every agent works in its own git worktree; never switch branches or edit
@@ -51,8 +53,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Adding an aircraft: a new `packages/aircraft-<id>`, one line in
   `apps/web/src/aircraft-registry.ts` and its workspace dependency in
   `apps/web/package.json`. Nothing else in `apps/web` changes.
-- Adding an avionics device: a new `packages/device-<id>`, one line in
-  `apps/web/src/device-registry.ts` and its workspace dependency in
+- Adding an avionics device: a new `packages/device-<id>`, its import and
+  entries in `deviceRegistry` and `deviceScreens` in
+  `apps/web/src/device-registry.ts`, and its workspace dependency in
   `apps/web/package.json`; see `docs/adding-a-device.md`.
 - Outside-view images are first-person views out of the cockpit from the
   pilot's seat, never the aircraft seen from outside.
@@ -70,9 +73,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   commit or quote it.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
-  commands that contain it (a newline in a quoted body counts), and any
-  expansion in the command word, a gh subcommand or endpoint, a GraphQL query
-  or a curl/wget URL: write such text to a file (`--body-file`), spell
+  commands that contain it (a newline in a quoted body counts as chaining), and
+  in gh, curl and wget commands any expansion in the subcommand, endpoint,
+  GraphQL query or URL: write such text to a file (`--body-file`), spell
   endpoints literally, run `git pull --ff-only origin develop` on its own. A global force-push guard also refuses `--noEmit` and
   `+0`-like text in commands.
 - Agents that read the design canvas or post review threads need claude.ai

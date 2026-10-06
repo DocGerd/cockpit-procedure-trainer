@@ -3,4 +3,4 @@ dist/
 *.tsbuildinfo
 .claude/worktrees/
 .claude/settings.local.json
-reference/
+/reference/
