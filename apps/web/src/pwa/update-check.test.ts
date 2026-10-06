@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { UPDATE_CHECK_INTERVAL_MS, watchForUpdates } from './update-check';
+import { MIN_CHECK_GAP_MS, UPDATE_CHECK_INTERVAL_MS, watchForUpdates } from './update-check';
 
 const registration = () => ({ update: vi.fn().mockResolvedValue(undefined) });
 
@@ -13,7 +13,7 @@ const setVisibility = (state: DocumentVisibilityState) => {
 };
 
 beforeEach(() => {
-  vi.useFakeTimers();
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
   setOnline(true);
   setVisibility('visible');
 });
@@ -24,14 +24,14 @@ afterEach(() => {
 });
 
 describe('watchForUpdates', () => {
-  it('checks once per interval', () => {
+  it('checks once per interval', async () => {
     const reg = registration();
     watchForUpdates(reg);
     vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS - 1);
     expect(reg.update).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     expect(reg.update).toHaveBeenCalledTimes(1);
-    vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS);
+    await vi.advanceTimersByTimeAsync(UPDATE_CHECK_INTERVAL_MS);
     expect(reg.update).toHaveBeenCalledTimes(2);
   });
 
@@ -77,13 +77,53 @@ describe('watchForUpdates', () => {
     expect(reg.update).toHaveBeenCalledTimes(1);
   });
 
-  it('survives a failed check', async () => {
-    const reg = { update: vi.fn().mockRejectedValueOnce(new Error('network')) };
+  it('swallows a failed check, reports it and keeps checking', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    try {
+      const reg = { update: vi.fn().mockRejectedValueOnce(new Error('network')) };
+      watchForUpdates(reg);
+      await vi.advanceTimersByTimeAsync(UPDATE_CHECK_INTERVAL_MS);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandled).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledTimes(1);
+      reg.update.mockResolvedValue(undefined);
+      await vi.advanceTimersByTimeAsync(UPDATE_CHECK_INTERVAL_MS);
+      expect(reg.update).toHaveBeenCalledTimes(2);
+    } finally {
+      process.off('unhandledRejection', unhandled);
+      warn.mockRestore();
+    }
+  });
+
+  it('does not start a check while one is in flight', async () => {
+    let finish: () => void = () => undefined;
+    const reg = { update: vi.fn(() => new Promise<void>((resolve) => (finish = resolve))) };
     watchForUpdates(reg);
     vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS);
-    await Promise.resolve();
-    reg.update.mockResolvedValue(undefined);
-    vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS);
+    vi.advanceTimersByTime(MIN_CHECK_GAP_MS);
+    setVisibility('hidden');
+    setVisibility('visible');
+    expect(reg.update).toHaveBeenCalledTimes(1);
+    finish();
+    await vi.advanceTimersByTimeAsync(0);
+    setVisibility('hidden');
+    setVisibility('visible');
+    expect(reg.update).toHaveBeenCalledTimes(2);
+  });
+
+  it('enforces a minimum gap between checks', async () => {
+    const reg = registration();
+    watchForUpdates(reg);
+    setVisibility('hidden');
+    setVisibility('visible');
+    setVisibility('hidden');
+    setVisibility('visible');
+    expect(reg.update).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(MIN_CHECK_GAP_MS);
+    setVisibility('hidden');
+    setVisibility('visible');
     expect(reg.update).toHaveBeenCalledTimes(2);
   });
 });
