@@ -39,6 +39,7 @@ in no bundler types. Copy both.
 The app imports aircraft in `apps/web/src/aircraft-registry.ts` and nowhere else:
 
     import { demoAircraft } from '@cpt/aircraft-demo';
+    import type { Aircraft } from '@cpt/core';
     import { myAircraft } from '@cpt/aircraft-<id>';
 
     export const aircraftRegistry: readonly Aircraft[] = [demoAircraft, myAircraft];
@@ -105,6 +106,17 @@ failure ids, `environment` the phase's `airspeedKt`, `altitudeFt` and `onGround`
 (`rpm`, `oilPsi`, `amps`) in the same state. Wrong operation needs no special
 code: it fails to satisfy the rules, so the engine does not start.
 
+When the aircraft is split over files, the types come from `@cpt/core` and your
+own state and failure types. Declare the failure ids as a union, `type DemoFailure =
+'alternatorFailure'`, and type the step as `SystemsDefinition<DemoState,
+DemoFailure>['step']` with `StepInput<DemoFailure>`, so `failures.has(...)` only
+accepts declared ids. Type each selector's argument as `TrainerState<DemoState>`
+(the demo names it `DemoTrainerState`), so `state.systems` is your state. The
+blocks' input types are `ElectricalBusInputs` and `PistonEngineInputs`, and their
+states `ElectricalBusState` and `PistonEngineState`. The keys of `failures` must
+match the union, and the `failure` of an emergency procedure must be one of them;
+the demo writes `'alternatorFailure' satisfies DemoFailure`.
+
 ### Failures
 
 `failures` maps a failure id to `{ name, trips? }`. `trips` lists breaker control
@@ -113,11 +125,18 @@ ids pulled when the failure is injected; the validator rejects an id that is not
 
 ### Views and placements
 
-`views` maps a view id to `{ name, image, controls?, indicators? }`. Each placement
+`views` maps a view id to `{ name, image, size?, controls?, indicators? }`. Each placement
 is `{ rect: { x, y, w, h } }` in the coordinate space of the view's background: an
 SVG's `viewBox`, or a raster image's natural size. `position3d` and `orientation`
 are optional and the 2D renderer ignores them. Every control and every indicator
 must be placed in at least one view. The demo has a `panel` and a `console` view.
+
+A view may also declare `size: { width, height }`, the coordinate space of its
+placements with the origin at 0,0. The panel uses it in preference to the image's
+`viewBox` or natural size, so the placements do not depend on how the image
+reports its size. The validator reports a `size` that is not a positive, finite
+width and height as `invalid-view-size`, and a control, indicator or device
+placement that is not inside it as `placement-outside-view`.
 
 ### Phases
 
@@ -213,8 +232,8 @@ instead. The demo declares generic widgets only.
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `missing-translation`, `phase-without-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
-`unknown-device-control`, `unplaced-device`, `invalid-install-id` and
-`control-in-device-namespace`. `formatFinding` prints one.
+`unknown-device-control`, `unplaced-device`, `invalid-install-id`,
+`control-in-device-namespace`, `invalid-view-size` and `placement-outside-view`. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
