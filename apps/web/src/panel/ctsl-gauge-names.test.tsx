@@ -34,10 +34,22 @@ describe('CTSL drawn gauges', () => {
     '%s keeps its full %s name as the accessible name and prints no caption',
     (_id, lang, indicator) => {
       const name = indicator.name[lang];
-      const { widget: Gauge } = resolveIndicator(indicator, 0);
-      const { container } = render(<Gauge value={0} label={name} />);
-      expect(screen.getByRole('img', { name: new RegExp(`^${name}`) })).toBeTruthy();
+      const { widget: Gauge, options } = resolveIndicator(indicator, 0);
+      const { container } = render(
+        <Gauge value={0} label={name} {...(options ? { options } : {})} />,
+      );
+      expect(
+        screen.getByRole('img', { name: new RegExp(`^${name}: -?[\\d.]+ \\S+$`) }),
+      ).toBeTruthy();
       expect(container.textContent).toBe('');
     },
   );
+
+  it('reads the airspeed with its unit', () => {
+    const airspeed = ctslAircraft.indicators.airspeed;
+    if (!airspeed) throw new Error('no airspeed indicator');
+    const { widget: Gauge, options } = resolveIndicator(airspeed, 200.02);
+    render(<Gauge value={200.02} label={airspeed.name.en} {...(options ? { options } : {})} />);
+    expect(screen.getByRole('img', { name: 'Airspeed indicator: 200 km/h' })).toBeTruthy();
+  });
 });

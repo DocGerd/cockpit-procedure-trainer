@@ -1,4 +1,4 @@
-import type { ArtworkAppearance, Point } from '@cpt/core';
+import type { ArtworkAppearance, JsonObject, Point } from '@cpt/core';
 
 export const images = {
   gaugeAirspeed: new URL('./assets/artwork/gauge-airspeed.svg', import.meta.url).href,
@@ -72,8 +72,10 @@ export const images = {
 const needle = (
   face: string,
   valueRange: { min: number; max: number },
+  options: JsonObject,
   angleRange = { min: -135, max: 135 },
 ): ArtworkAppearance => ({
+  options: { ...valueRange, ...options },
   artwork: {
     face,
     moving: {
@@ -95,13 +97,89 @@ const travel = (face: string, image: string, path: readonly Point[]): ArtworkApp
 });
 
 export const gaugeArtwork = {
-  airspeed: needle(images.gaugeAirspeed, { min: 40, max: 300 }),
-  altimeter: needle(images.gaugeAltimeter, { min: 0, max: 5000 }),
-  verticalSpeed: needle(images.gaugeVsi, { min: -5, max: 5 }, { min: -225, max: 45 }),
-  tachometer: needle(images.gaugeTachometer, { min: 0, max: 7000 }),
-  oilPressure: needle(images.gaugeOilPressure, { min: 0, max: 10 }),
-  oilTemperature: needle(images.gaugeOilTemperature, { min: 40, max: 150 }),
-  cht: needle(images.gaugeCht, { min: 40, max: 150 }),
+  airspeed: needle(
+    images.gaugeAirspeed,
+    { min: 40, max: 300 },
+    {
+      units: 'km/h',
+      decimals: 0,
+      ticks: [40, 80, 120, 160, 200, 240, 280],
+      arcs: [
+        { from: 72, to: 115, colour: 'white' },
+        { from: 94, to: 245, colour: 'green' },
+        { from: 245, to: 260, colour: 'yellow' },
+        { from: 260, to: 300, colour: 'red' },
+      ],
+    },
+  ),
+  altimeter: needle(
+    images.gaugeAltimeter,
+    { min: 0, max: 5000 },
+    { units: 'ft', decimals: 0, ticks: [0, 1000, 2000, 3000, 4000, 5000] },
+  ),
+  verticalSpeed: needle(
+    images.gaugeVsi,
+    { min: -5, max: 5 },
+    { units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
+    { min: -225, max: 45 },
+  ),
+  tachometer: needle(
+    images.gaugeTachometer,
+    { min: 0, max: 7000 },
+    {
+      units: 'rpm',
+      decimals: 0,
+      ticks: [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000],
+      arcs: [
+        { from: 1400, to: 5500, colour: 'green' },
+        { from: 5500, to: 5800, colour: 'yellow' },
+        { from: 5800, to: 7000, colour: 'red' },
+      ],
+    },
+  ),
+  oilPressure: needle(
+    images.gaugeOilPressure,
+    { min: 0, max: 10 },
+    {
+      units: 'bar',
+      decimals: 1,
+      ticks: [0, 2, 4, 6, 8, 10],
+      arcs: [
+        { from: 0, to: 0.8, colour: 'red' },
+        { from: 0.8, to: 2, colour: 'yellow' },
+        { from: 2, to: 5, colour: 'green' },
+        { from: 5, to: 10, colour: 'red' },
+      ],
+    },
+  ),
+  oilTemperature: needle(
+    images.gaugeOilTemperature,
+    { min: 40, max: 150 },
+    {
+      units: '°C',
+      decimals: 0,
+      ticks: [40, 50, 70, 90, 110, 130, 150],
+      arcs: [
+        { from: 50, to: 90, colour: 'yellow' },
+        { from: 90, to: 110, colour: 'green' },
+        { from: 110, to: 130, colour: 'yellow' },
+        { from: 130, to: 150, colour: 'red' },
+      ],
+    },
+  ),
+  cht: needle(
+    images.gaugeCht,
+    { min: 40, max: 150 },
+    {
+      units: '°C',
+      decimals: 0,
+      ticks: [40, 50, 70, 90, 110, 120, 150],
+      arcs: [
+        { from: 50, to: 120, colour: 'green' },
+        { from: 120, to: 150, colour: 'red' },
+      ],
+    },
+  ),
 } as const;
 
 const breaker = (face: string) =>
