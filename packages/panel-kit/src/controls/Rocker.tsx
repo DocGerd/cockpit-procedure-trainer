@@ -1,6 +1,6 @@
 import type { ControlWidgetProps } from '../types';
 import { minGap, verticalBoxes } from './geometry';
-import { EDGE, placard, placeLegends } from './legibility';
+import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
 import type { Metrics } from './legibility';
@@ -15,6 +15,7 @@ export function Rocker({
   control,
   position,
   label,
+  placard,
   positionLabels,
   onSet,
   onPress,
@@ -30,7 +31,7 @@ export function Rocker({
   const art = (metrics: Metrics | undefined) => {
     const legends = placeLegends(
       metrics,
-      positions.map((id) => ({ text: placard(id), room: WIDTH - LEGEND_X - EDGE })),
+      positions.map((id) => ({ text: capitals(id), room: WIDTH - LEGEND_X - EDGE })),
       minGap(ys),
     );
     return (
@@ -46,7 +47,7 @@ export function Rocker({
               key={id}
               x={LEGEND_X}
               y={ys[index] ?? 0}
-              text={placard(id)}
+              text={capitals(id)}
               current={index === current}
               font={legends.fontSize}
             />
@@ -56,7 +57,7 @@ export function Rocker({
   };
 
   return (
-    <Stage width={100} height={100} art={art}>
+    <Stage placard={placard} width={100} height={100} art={art}>
       <PositionGroup
         label={label}
         positions={positions}

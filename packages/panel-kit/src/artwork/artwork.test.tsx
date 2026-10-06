@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { ControlDefinition, ControlPosition, MovingPart } from '@cpt/core';
+import type { ControlDefinition, JsonObject, ControlPosition, MovingPart } from '@cpt/core';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -52,11 +52,16 @@ const layers = () => [...document.querySelectorAll('svg image')];
 const transformOf = (element: Element | undefined) => element?.getAttribute('transform') ?? '';
 const numbers = (text: string) => (text.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
 
-function renderIndicator(moving: MovingPart, value: number | boolean | string) {
+function renderIndicator(
+  moving: MovingPart,
+  value: number | boolean | string,
+  options?: JsonObject,
+) {
   const view = render(
     <ArtworkIndicator
       value={value}
       label="Gauge"
+      {...(options ? { options } : {})}
       artwork={artworkOf(moving)}
       fallback={fallback}
     />,
@@ -108,6 +113,26 @@ describe('ArtworkIndicator needle', () => {
     expect(layers()).toHaveLength(1);
     expect(layers()[0]?.getAttribute('href')).toBe('needle.png');
     expect(screen.getByRole('img', { name: 'Gauge: 0' })).toBeTruthy();
+  });
+
+  it('names the gauge with its units', () => {
+    renderIndicator(needle, 200.02, { units: 'km/h' });
+    expect(screen.getByRole('img', { name: 'Gauge: 200.02 km/h' })).toBeTruthy();
+  });
+
+  it('names the gauge rounded to the declared decimals', () => {
+    renderIndicator(needle, 200.06, { units: 'km/h', decimals: 0 });
+    expect(screen.getByRole('img', { name: 'Gauge: 200 km/h' })).toBeTruthy();
+  });
+
+  it('never names a negative zero', () => {
+    renderIndicator(needle, -0.4, { units: 'm/s', decimals: 0 });
+    expect(screen.getByRole('img', { name: 'Gauge: 0 m/s' })).toBeTruthy();
+  });
+
+  it('keeps a bare name for invalid readout options', () => {
+    renderIndicator(needle, 3, { units: 7, decimals: 1.5 });
+    expect(screen.getByRole('img', { name: 'Gauge: 3' })).toBeTruthy();
   });
 
   it('draws no layer before the face has loaded', () => {
@@ -559,6 +584,374 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
     fireEvent.pointerDown(hold());
     view.unmount();
     expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('ArtworkControl stepping a notched control both ways', () => {
+  const flaps: ControlDefinition = {
+    ...base,
+    kind: 'lever',
+    positions: ['up', 'to', 'land'],
+    initial: 'up',
+  };
+  const flapImages: MovingPart = {
+    type: 'positions',
+    images: { up: 'up.png', to: 'to.png', land: 'land.png' },
+  };
+  const ignition: ControlDefinition = {
+    ...base,
+    kind: 'rotary',
+    positions: ['off', 'l', 'r', 'both', 'start'],
+    initial: 'off',
+    springBack: { start: 'both' },
+  };
+  const ignitionImages: MovingPart = {
+    type: 'positions',
+    images: { off: 'o.png', l: 'l.png', r: 'r.png', both: 'b.png', start: 's.png' },
+  };
+  const slider = () => screen.getByRole('slider');
+  const rectOf = (width: number, height: number) =>
+    vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ left: 0, top: 0, width, height } as DOMRect);
+  const tap = (x: number, y: number) =>
+    fireEvent.click(slider(), { detail: 1, clientX: x, clientY: y });
+  const key = (name: string) => fireEvent.keyDown(slider(), { key: name });
+
+  it('exposes the notch as a slider with the label as value text', () => {
+    renderControl(flaps, flapImages, 'to');
+    expect(slider().getAttribute('aria-valuenow')).toBe('1');
+    expect(slider().getAttribute('aria-valuemax')).toBe('2');
+    expect(slider().getAttribute('aria-valuetext')).toBe('to');
+    expect(slider().getAttribute('aria-label')).toBe('Control');
+  });
+
+  it('steps one notch each way from the keyboard', () => {
+    const view = renderControl(flaps, flapImages, 'to');
+    key('ArrowUp');
+    key('ArrowRight');
+    expect(view.onSet).toHaveBeenNthCalledWith(1, 'land');
+    expect(view.onSet).toHaveBeenNthCalledWith(2, 'land');
+    key('ArrowDown');
+    key('ArrowLeft');
+    expect(view.onSet).toHaveBeenNthCalledWith(3, 'up');
+    expect(view.onSet).toHaveBeenNthCalledWith(4, 'up');
+  });
+
+  it('jumps to the ends with Home and End', () => {
+    const view = renderControl(flaps, flapImages, 'to');
+    key('End');
+    key('Home');
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does not wrap past either end', () => {
+    const top = renderControl(flaps, flapImages, 'land');
+    key('ArrowUp');
+    key('End');
+    expect(top.onSet).not.toHaveBeenCalled();
+    top.unmount();
+    const bottom = renderControl(flaps, flapImages, 'up');
+    key('ArrowDown');
+    key('Home');
+    expect(bottom.onSet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Enter and Space without effect', () => {
+    const view = renderControl(flaps, flapImages, 'to');
+    key('Enter');
+    key(' ');
+    fireEvent.click(slider());
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps toward the tapped half on a tall control', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'to');
+    tap(20, 10);
+    tap(20, 90);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('steps toward the tapped half on a wide control', () => {
+    rectOf(100, 44);
+    const view = renderControl(flaps, flapImages, 'to');
+    tap(90, 20);
+    tap(10, 20);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does not wrap on a tap past either end', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'land');
+    tap(20, 10);
+    expect(view.onSet).not.toHaveBeenCalled();
+    view.unmount();
+    const low = renderControl(flaps, flapImages, 'up');
+    tap(20, 90);
+    expect(low.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps toward the tap along a travel path', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, travel, 'to');
+    tap(30, 8);
+    tap(4, 16);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('ignores a click that carries no pointer, as from assistive technology', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'to');
+    fireEvent.click(slider(), { detail: 0, clientX: 20, clientY: 10 });
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps an ignition key one position each way and skips the spring detent', () => {
+    const view = renderControl(ignition, ignitionImages, 'both');
+    key('ArrowDown');
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenCalledTimes(1);
+    key('End');
+    expect(view.onSet).toHaveBeenCalledTimes(1);
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith('off');
+  });
+
+  it('names the ignition position and keeps START a momentary hold', () => {
+    const view = renderControl(ignition, ignitionImages, 'both');
+    expect(slider().getAttribute('aria-valuetext')).toBe('both');
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Control: start' }));
+    expect(view.onPress).toHaveBeenCalledWith('start');
+    fireEvent.pointerUp(screen.getByRole('button', { name: 'Control: start' }));
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('steps from the position a held spring detent returns to', () => {
+    const view = renderControl(ignition, ignitionImages, 'start');
+    key('ArrowDown');
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+  });
+
+  const downhill: MovingPart = {
+    type: 'travel',
+    image: 'knob.png',
+    path: [
+      { x: 20, y: 2 },
+      { x: 20, y: 18 },
+    ],
+  };
+
+  it('steps along a travel path that runs downwards, against the halves rule', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 18);
+    tap(20, 2);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does nothing for a tap on the current notch along a path', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 10);
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('does nothing for a tap at the centre of a halved control', () => {
+    rectOf(44, 100);
+    const tall = renderControl(flaps, flapImages, 'to');
+    tap(20, 50);
+    expect(tall.onSet).not.toHaveBeenCalled();
+    tall.unmount();
+    rectOf(100, 44);
+    const wide = renderControl(flaps, flapImages, 'to');
+    tap(50, 20);
+    expect(wide.onSet).not.toHaveBeenCalled();
+  });
+
+  it('ignores taps just inside the dead zone and steps just outside it', () => {
+    rectOf(44, 100);
+    const tall = renderControl(flaps, flapImages, 'to');
+    tap(20, 40);
+    tap(20, 60);
+    expect(tall.onSet).not.toHaveBeenCalled();
+    tap(20, 25);
+    expect(tall.onSet).toHaveBeenLastCalledWith('land');
+    tall.unmount();
+    rectOf(100, 44);
+    const wide = renderControl(flaps, flapImages, 'to');
+    tap(60, 20);
+    tap(40, 20);
+    expect(wide.onSet).not.toHaveBeenCalled();
+    tap(75, 20);
+    expect(wide.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('ignores taps just beside the notch along a path and steps just beyond', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 11);
+    tap(20, 9);
+    expect(view.onSet).not.toHaveBeenCalled();
+    tap(20, 14);
+    expect(view.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('turns a tall rotary by left and right, not upper and lower', () => {
+    rectOf(60, 100);
+    const view = renderControl(ignition, ignitionImages, 'l');
+    tap(6, 10);
+    expect(view.onSet).toHaveBeenLastCalledWith('off');
+    tap(54, 90);
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+  });
+
+  it('turns a rotary by its left and right halves, even when square or tall', () => {
+    for (const [w, h] of [
+      [100, 100],
+      [60, 100],
+    ] as const) {
+      rectOf(w, h);
+      const view = renderControl(ignition, ignitionImages, 'l');
+      tap(w * 0.9, h * 0.1);
+      tap(w * 0.1, h * 0.9);
+      expect(view.onSet.mock.calls).toEqual([['r'], ['off']]);
+      view.unmount();
+    }
+  });
+
+  it('keeps focus on the ignition slider across stepping onto and off BOTH', () => {
+    function Harness() {
+      const [position, setPosition] = useState<ControlPosition>('off');
+      return (
+        <ArtworkControl
+          control={ignition}
+          position={position}
+          guardOpen={false}
+          label="Control"
+          positionLabels={{}}
+          artwork={artworkOf(ignitionImages)}
+          fallback={fallback}
+          onSet={setPosition}
+          onPress={vi.fn()}
+          onRelease={vi.fn()}
+          onOpenGuard={vi.fn()}
+          onCloseGuard={vi.fn()}
+        />
+      );
+    }
+    render(<Harness />);
+    loadFace();
+    act(() => slider().focus());
+    key('End');
+    expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('both');
+    expect(document.activeElement).toBe(slider());
+    key('Home');
+    expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('off');
+    expect(document.activeElement).toBe(slider());
+  });
+
+  it('keeps a two-position toggle as tap to toggle', () => {
+    const view = renderControl(toggle, switchImages, 'a');
+    expect(screen.queryByRole('slider')).toBeNull();
+    fireEvent.click(screen.getByRole('button'));
+    expect(view.onSet).toHaveBeenCalledWith('b');
+  });
+
+  describe('after a START hold', () => {
+    const start = () => screen.getByRole('button', { name: 'Control: start' });
+
+    it('returns focus to the slider when the pointer hold ends', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      start().focus();
+      fireEvent.pointerDown(start());
+      fireEvent.pointerUp(start());
+      expect(document.activeElement).toBe(slider());
+    });
+
+    it('returns focus to the slider when the key hold ends', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      start().focus();
+      fireEvent.keyDown(start(), { key: ' ' });
+      fireEvent.keyUp(start(), { key: ' ' });
+      expect(document.activeElement).toBe(slider());
+    });
+
+    it('does not pull focus back when the hold ends by focus leaving', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      fireEvent.pointerDown(start());
+      start().focus();
+      start().blur();
+      expect(document.activeElement).not.toBe(slider());
+    });
+  });
+
+  it('reads aria-valuenow in the drawn direction on a reversed path', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(flaps, reversed, 'to');
+    expect(slider().getAttribute('aria-valuenow')).toBe('1');
+    expect(slider().getAttribute('aria-valuetext')).toBe('to');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    key('End');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    view.rerender(
+      <ArtworkControl
+        control={flaps}
+        position="up"
+        guardOpen={false}
+        label="Control"
+        positionLabels={{}}
+        artwork={artworkOf(reversed)}
+        fallback={fallback}
+        {...{ onSet: view.onSet, onPress: view.onPress, onRelease: view.onRelease }}
+        onOpenGuard={view.onOpenGuard}
+        onCloseGuard={view.onCloseGuard}
+      />,
+    );
+    expect(slider().getAttribute('aria-valuenow')).toBe('2');
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('reads a continuous lever on a reversed path in the drawn direction', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(lever, reversed, 0.25);
+    expect(slider().getAttribute('aria-valuenow')).toBe('0.75');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith(0.15);
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith(1);
+  });
+
+  it('takes ArrowUp toward the end of the path drawn higher up', () => {
+    const down: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(flaps, down, 'to');
+    key('ArrowUp');
+    key('ArrowDown');
+    expect(view.onSet.mock.calls).toEqual([['up'], ['land']]);
   });
 });
 

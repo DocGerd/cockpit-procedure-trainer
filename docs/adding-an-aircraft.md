@@ -74,7 +74,8 @@ Names, descriptions, guard names, failure names, titles and item texts are a
 ### Controls
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
-(both `Text`), an `initial` position and an optional `appearance`.
+(both `Text`), an `initial` position, an optional `appearance` and an optional
+`placard` (see [Printed labels](#printed-labels)).
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -145,7 +146,8 @@ outside view. Draw it as the first-person view out of the windshield from the
 pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
 state. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
-steps the systems once from a running engine. A procedure starts from its
+steps the systems once from a running engine. Guards start closed unless
+`entry.guards` names them `open`. A procedure starts from its
 `startPhase` snapshot, so the snapshot must be a state the procedure's first item
 makes sense in.
 
@@ -227,6 +229,28 @@ the package. `face` is the static image URL and `moving` is one of:
 
 If an image fails to load, the control or indicator shows its generic widget
 instead. The demo declares generic widgets only.
+
+### Printed labels
+
+Every control a view places prints its function on the panel, as a real cockpit
+placard does: a short legend in capitals beside the control, such as `BAT`, `FUEL` or
+`AVIONICS`. Declare it in one of three places:
+
+- `placard: string` on the control, for a generic widget. The widget prints it above
+  the control. It is the panel's own wording and does not follow the UI language, as
+  a real placard does not. Without one, the widget prints the name.
+- `lettering: string[]` on the `artwork`, the text the face image prints.
+- `printed: string[]` on the placement, the text the view background prints beside
+  the control; when it holds visible text, the widget prints no placard of its own.
+
+The label must name the function: a placard or lettering of only position legends
+(`ON`, `OFF`, `OPEN`, the control's own positions) does not count. `checkPlacards` from
+`@cpt/panel-kit` reports a placed control without such a label, and
+`apps/web/src/panel/printed-labels.test.tsx` runs it over every registered aircraft. That
+test also reads the SVG images and fails when declared `lettering` is not a `<text>` of
+the face, or `printed` text is not a `<text>` of the view near the placement. A placard
+too long for its widget at the minimum text size is squeezed and marked `data-overfull`;
+`apps/web/e2e/placards.spec.ts` fails on it at 768, 1024 and 1440 px, so shorten it.
 
 ## Validate and walk through
 

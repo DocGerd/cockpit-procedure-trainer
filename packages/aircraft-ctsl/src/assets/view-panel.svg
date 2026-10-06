@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 700" preserveAspectRatio="xMidYMid slice">
+<rect width="1900" height="700" fill="#26282C"/>
+<rect x="16" y="16" width="820" height="668" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
+<g fill="#5E646B"><circle cx="30" cy="30" r="4"/><circle cx="822" cy="30" r="4"/><circle cx="30" cy="670" r="4"/><circle cx="822" cy="670" r="4"/></g>
+<rect x="852" y="16" width="1032" height="668" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
+<g fill="#5E646B"><circle cx="866" cy="30" r="4"/><circle cx="1870" cy="30" r="4"/><circle cx="866" cy="670" r="4"/><circle cx="1870" cy="670" r="4"/></g>
+<rect x="26" y="40" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
+<text x="90" y="92" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">TAKE</text>
+<text x="90" y="130" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">OFF</text>
+<path d="M34 70 H146" stroke="#2B3138" stroke-width="1.5"/>
+<rect x="26" y="240" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
+<text x="90" y="300" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#2B3138" text-anchor="middle">LIMITS</text>
+<path d="M34 270 H146" stroke="#2B3138" stroke-width="1.5"/>
+<circle cx="270" cy="200" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<circle cx="475" cy="112" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<circle cx="685" cy="225" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<path d="M402 222 Q475 262 548 222" fill="none" stroke="#141517" stroke-width="26" stroke-linecap="round"/>
+<path d="M402 222 Q475 262 548 222" fill="none" stroke="#3E4349" stroke-width="20" stroke-linecap="round"/>
+<path d="M463 228 V256 M487 228 V256" stroke="#D9DCE0" stroke-width="2"/>
+<circle cx="475" cy="242" r="9" fill="#0E0F10"/>
+<rect x="566" y="28" width="118" height="78" rx="10" fill="#1C1E21"/>
+<rect x="694" y="28" width="118" height="78" rx="10" fill="#1C1E21"/>
+<circle cx="753" cy="67" r="26" fill="#3A3C3F" stroke="#55595E" stroke-width="3"/>
+<circle cx="745" cy="59" r="7" fill="#4A4D51"/>
+<rect x="182" y="352" width="536" height="166" rx="10" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<rect x="190" y="360" width="520" height="150" rx="6" fill="#141517"/>
+<g fill="#5E646B"><circle cx="188" cy="435" r="3"/><circle cx="712" cy="435" r="3"/></g>
+<rect x="182" y="512" width="536" height="166" rx="10" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<rect x="190" y="520" width="520" height="150" rx="6" fill="#141517"/>
+<g fill="#5E646B"><circle cx="188" cy="595" r="3"/><circle cx="712" cy="595" r="3"/></g>
+<rect x="1150" y="28" width="436" height="330" rx="16" fill="#1A1B1D" stroke="#44494F" stroke-width="3"/>
+<rect x="1160" y="340" width="416" height="14" rx="6" fill="#33363A"/>
+<rect x="1168" y="40" width="400" height="300" rx="10" fill="#141517"/>
+<rect x="874" y="36" width="96" height="80" rx="12" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<rect x="888" y="58" width="68" height="34" rx="6" fill="#E3E5E8"/>
+<text data-decor="knee card" x="904" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">33</text>
+<text data-decor="knee card" x="922" y="82" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#2B3138" text-anchor="middle">N</text>
+<text data-decor="knee card" x="940" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">3</text>
+<path d="M922 56 V62 M922 88 V94" stroke="#2B3138" stroke-width="2"/>
+<circle cx="982" cy="470" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<circle cx="1182" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<circle cx="1347" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<circle cx="1512" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<rect x="1598" y="28" width="276" height="636" rx="10" fill="#232528" stroke="#44494F" stroke-width="2"/>
+<text x="1736" y="54" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#B9BEC4" text-anchor="middle">BREAKERS</text>
+<circle cx="1736" cy="135" r="20" fill="#1A1B1D" stroke="#3B4046" stroke-width="2"/><path d="M1727 135 H1745" stroke="#3B4046" stroke-width="3"/>
+<circle cx="1824" cy="135" r="20" fill="#1A1B1D" stroke="#3B4046" stroke-width="2"/><path d="M1815 135 H1833" stroke="#3B4046" stroke-width="3"/>
+</svg>

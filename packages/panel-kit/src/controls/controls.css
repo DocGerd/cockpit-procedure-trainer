@@ -16,6 +16,21 @@
   aspect-ratio: var(--pk-ratio);
 }
 
+.pk-body {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  container-type: size;
+}
+
+/* A touch target that would reach up into the placard band moves down instead of shrinking. */
+.pk-body[data-band] .pk-hit {
+  margin-top: max(
+    0px,
+    calc(max(var(--size-target), var(--pk-hit-h) * 1cqh) / 2 - var(--pk-hit-y) * 1cqh)
+  );
+}
+
 .pk-svg,
 .pk-fill {
   position: absolute;
@@ -166,4 +181,17 @@
 .pk-legend[data-current='true'] {
   font-weight: var(--weight-semibold);
   fill: var(--panel-legend);
+}
+
+.pk-placard-plate {
+  fill: var(--panel-face);
+}
+
+.pk-placard {
+  font-family: var(--font-sans);
+  font-size: calc(var(--pk-font) * 1px);
+  font-weight: var(--weight-semibold);
+  fill: var(--panel-legend);
+  text-anchor: middle;
+  dominant-baseline: central;
 }

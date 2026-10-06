@@ -1,18 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRegisterSW } from './register';
 import { useMessages } from '../i18n';
 import { messages } from './messages';
+import { watchForUpdates } from './update-check';
 import './pwa.css';
 
 export function UpdatePrompt() {
   const text = useMessages(messages);
   const [waitingAtStart, setWaitingAtStart] = useState(false);
+  const stopWatching = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => stopWatching.current?.(), []);
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_url, registration) {
       if (registration?.waiting) setWaitingAtStart(true);
+      if (registration) stopWatching.current = watchForUpdates(registration);
     },
   });
 

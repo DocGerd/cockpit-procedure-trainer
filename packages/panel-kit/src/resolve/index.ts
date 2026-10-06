@@ -72,7 +72,10 @@ export function resolveIndicator(
 ): Resolved<IndicatorWidget> {
   const { appearance } = indicator;
   if ('artwork' in appearance) {
-    return { widget: artworkIndicator(appearance, appearance.artwork), options: undefined };
+    return {
+      widget: artworkIndicator(appearance, appearance.artwork),
+      options: appearance.options,
+    };
   }
   return (
     declared(indicatorWidgets, appearance) ?? {
@@ -92,3 +95,5 @@ export const resolveIndicatorWidget = (
 
 export { checkAppearance } from './appearance-check';
 export type { AppearanceFinding, AppearanceSubject } from './appearance-check';
+export { checkPlacards, printsText } from './placard-check';
+export type { PlacardFinding, PlacardSubject } from './placard-check';

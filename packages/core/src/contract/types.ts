@@ -31,7 +31,13 @@ export type MovingPart =
   | { readonly type: 'travel'; readonly image: string; readonly path: readonly Point[] };
 
 export type ArtworkAppearance = {
-  readonly artwork: { readonly face: string; readonly moving: MovingPart };
+  readonly artwork: {
+    readonly face: string;
+    readonly moving: MovingPart;
+    /** The text the face image prints, so a check can see that the control is labelled. */
+    readonly lettering?: readonly string[];
+  };
+  readonly options?: JsonObject;
 };
 
 export type Appearance = WidgetAppearance | ArtworkAppearance;
@@ -45,6 +51,8 @@ export type GuardPosition = 'closed' | 'open';
 type ControlBase = {
   readonly name: Text;
   readonly description: Text;
+  /** The panel's own short function legend beside the control, such as BAT or FUEL; it does not follow the UI language. */
+  readonly placard?: string;
   readonly appearance?: Appearance;
 };
 
@@ -118,6 +126,8 @@ export type IndicatorDefinition<S> = {
 
 export type Placement = {
   readonly rect: Rect;
+  /** The text the view image prints beside this placement; a widget then prints no placard of its own. */
+  readonly printed?: readonly string[];
   readonly position3d?: Vec3;
   readonly orientation?: Vec3;
 };
@@ -186,6 +196,12 @@ export type ControlRecord = { readonly [id: string]: ControlDefinition };
 
 export type ControlId<CT extends ControlRecord> = keyof NoInfer<CT> & string;
 
+export type GuardedId<CT extends ControlRecord> = string extends keyof CT
+  ? string
+  : {
+      [K in ControlId<CT>]: NoInfer<CT>[K] extends { readonly kind: 'guarded' } ? K : never;
+    }[ControlId<CT>];
+
 export type PositionOf<D extends ControlDefinition> = D extends { readonly kind: 'breaker' }
   ? BreakerPosition
   : D extends { readonly positions: 'continuous' }
@@ -252,6 +268,8 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   readonly entry: {
     readonly controls: { readonly [K in ControlId<CT>]: PositionOf<NoInfer<CT>[K]> };
     readonly state: S;
+    /** Guards not named here are closed on entry. */
+    readonly guards?: { readonly [K in GuardedId<CT>]?: GuardPosition };
     readonly devices?: {
       readonly [installId: string]: { readonly [controlId: string]: ControlPosition };
     };

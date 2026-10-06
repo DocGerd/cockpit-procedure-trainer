@@ -1,7 +1,7 @@
 import type { IndicatorValue, JsonObject } from '@cpt/core';
 import type { ReactNode } from 'react';
 import { formatNumber } from '../indicators/geometry';
-import { readAnnunciatorOptions } from '../indicators/options';
+import { readAnnunciatorOptions, readReadoutOptions } from '../indicators/options';
 import type { IndicatorWidgetProps } from '../types';
 import { ArtworkStage } from './ArtworkStage';
 import type { Artwork } from './ArtworkStage';
@@ -17,10 +17,12 @@ function nameOf(label: string, value: IndicatorValue, options: JsonObject | unde
     return labels ? `${label}: ${value ? labels.lit : labels.dark}` : label;
   }
   if (typeof value !== 'number') return `${label}: ${String(value)}`;
-  const units = typeof options?.units === 'string' ? options.units : '';
-  return units === ''
-    ? `${label}: ${formatNumber(value)}`
-    : `${label}: ${formatNumber(value)} ${units}`;
+  const readout = readReadoutOptions(options);
+  const text =
+    readout?.decimals == null
+      ? formatNumber(value)
+      : value.toFixed(readout.decimals).replace(/^-(0(\.0+)?)$/, '$1');
+  return readout?.units ? `${label}: ${text} ${readout.units}` : `${label}: ${text}`;
 }
 
 export function ArtworkIndicator({

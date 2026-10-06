@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import type { ControlWidgetProps } from '../types';
 import { along, clamp01, minGap, verticalBoxes } from './geometry';
-import { EDGE, placard, placeLegends, placeTitle } from './legibility';
+import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions } from './positions';
 import { PositionGroup } from './PositionGroup';
 import type { Metrics } from './legibility';
@@ -10,7 +10,6 @@ import { Fill, Legend, Stage, TARGET, vars } from './Stage';
 
 const SIZE = 100;
 const LEGEND_X = 58;
-const TITLE_X = 78;
 const SLOT = { top: 12, bottom: 88 };
 const KEY_STEP = 0.1;
 const PAGE_STEP = 0.25;
@@ -56,7 +55,7 @@ function keyValue(key: string, value: number): number | undefined {
 }
 
 export function Lever(props: ControlWidgetProps) {
-  const { control, position, label, positionLabels, onSet, onPress, onRelease } = props;
+  const { control, position, label, placard, positionLabels, onSet, onPress, onRelease } = props;
   const positions = namedPositions(control);
   const continuous = control.positions === 'continuous';
   const count = positions.length;
@@ -124,10 +123,9 @@ export function Lever(props: ControlWidgetProps) {
   const art = (metrics: Metrics | undefined) => {
     const legends = placeLegends(
       metrics,
-      positions.map((id) => ({ text: placard(id), room: SIZE - LEGEND_X - EDGE })),
+      positions.map((id) => ({ text: capitals(id), room: SIZE - LEGEND_X - EDGE })),
       minGap(ys),
     );
-    const title = placeTitle(metrics, placard(label), SIZE - 2 * EDGE, SIZE - LEGEND_X - EDGE);
     return (
       <>
         <rect x={8} y={2} width={44} height={96} rx={8} className="pk-bezel-dark" />
@@ -146,25 +144,13 @@ export function Lever(props: ControlWidgetProps) {
               <Legend
                 x={LEGEND_X}
                 y={ys[index] ?? 0}
-                text={placard(id)}
+                text={capitals(id)}
                 current={index === current}
                 font={legends.fontSize}
               />
             )}
           </g>
         ))}
-        {continuous && title.show && (
-          <Legend
-            x={TITLE_X}
-            y={SIZE / 2}
-            text={placard(label)}
-            current={false}
-            font={title.fontSize}
-            length={title.length}
-            anchor="middle"
-            turn={-90}
-          />
-        )}
         <g className="pk-move pk-slide" style={vars({ '--pk-y': yOf(value) })}>
           <rect x={12} y={-9} width={36} height={18} rx={5} className="pk-cap-light" />
           <rect x={12} y={-9} width={36} height={18} rx={5} className="pk-mark" />
@@ -175,7 +161,7 @@ export function Lever(props: ControlWidgetProps) {
   };
 
   return (
-    <Stage width={SIZE} height={SIZE} art={art}>
+    <Stage placard={placard} width={SIZE} height={SIZE} art={art}>
       {continuous ? (
         <Fill
           role="slider"
