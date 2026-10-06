@@ -62,7 +62,9 @@ The spec's decisions table is unchanged.
 4. **Device manual revisions**: the SL40, GTX 327 and GPSMAP 496 logic follows general knowledge; each package README lists its assumptions. The club's installed versions are unknown.
 5. **Keep #212 (GPS)?** Resolved by shipping it as an operable unit (#235).
 6. **Placards in English** regardless of UI language (#240): confirm, or ask for translated placards.
-7. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
+7. **Release review: rescue-system safety pin.** Entering a phase closes every guard, and the CTSL handle's guard is its safety pin, so in flight the pin is back in and `rescueDeployment` has the pilot pull it mid-emergency, although `beforeTakeoff` removed it. Fix through a core change (a phase entry declares guard positions, related to question 2), or accept as a trainer simplification?
+8. **Release review: take-off and climb flaps.** `takeoff` ends with flaps 0, the `departure` snapshot (intake §5) has flaps 15, and `climbCruise` sets −12° from 15° at 200 ft, which conflicts with N7 (retract to 0 above 50 m) and the §4.4 caution. The intake's contradiction is not yet in §8; fix the snapshot and `climbCruise` together?
+9. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
 
 Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #243, #244; older #157–#162 and #178–#186.
 
