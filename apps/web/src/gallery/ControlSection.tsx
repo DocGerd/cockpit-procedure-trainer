@@ -33,7 +33,7 @@ function ControlInstance({ fixture, position, guardOpen, label, handlers }: Inst
       position={position}
       guardOpen={guardOpen}
       label={label}
-      placard={(fixture.control.placard ?? fixture.control.name).en}
+      placard={fixture.control.placard ?? fixture.control.name.en}
       positionLabels={fixture.labels}
       {...handlers}
     />

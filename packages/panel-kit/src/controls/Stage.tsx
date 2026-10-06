@@ -28,6 +28,7 @@ export function hitStyle(box: Box): CSSProperties {
     height: `${box.h}%`,
     minWidth: TARGET,
     minHeight: TARGET,
+    ...vars({ '--pk-hit-y': box.y, '--pk-hit-h': box.h }),
   };
 }
 
@@ -56,8 +57,9 @@ function Placard({
 }) {
   const room = width - 2 * (EDGE + PLATE_PAD);
   const title = placeTitle(metrics, text, room, band - 2 * EDGE);
-  if (!title.show) return null;
-  const textWidth = title.length ?? Math.min(room, text.length * CAPS_ADVANCE * title.fontSize);
+  const natural = text.length * CAPS_ADVANCE * title.fontSize;
+  const length = natural > room ? room : undefined;
+  const textWidth = length ?? natural;
   const plate = textWidth + 2 * PLATE_PAD;
   return (
     <>
@@ -74,10 +76,9 @@ function Placard({
         y={-band / 2}
         className="pk-placard"
         data-placard=""
+        {...(title.show ? {} : { 'data-overfull': '' })}
         style={vars({ '--pk-font': title.fontSize })}
-        {...(title.length === undefined
-          ? {}
-          : { textLength: title.length, lengthAdjust: 'spacingAndGlyphs' })}
+        {...(length === undefined ? {} : { textLength: length, lengthAdjust: 'spacingAndGlyphs' })}
       >
         {text}
       </text>
@@ -127,6 +128,7 @@ export function Stage({ width, height, art, placard, children, onKeyDown }: Stag
         </svg>
         <div
           className="pk-body"
+          {...(band > 0 ? { 'data-band': '' } : {})}
           style={{ top: `${(band / total) * 100}%`, height: `${(height / total) * 100}%` }}
         >
           {children}
@@ -159,7 +161,6 @@ export function Legend({
   anchor = 'start',
   turn,
   length,
-  placard = false,
 }: {
   x: number;
   y: number;
@@ -169,14 +170,12 @@ export function Legend({
   anchor?: Anchor;
   turn?: number;
   length?: number | undefined;
-  placard?: boolean;
 }) {
   return (
     <text
       x={x}
       y={y}
       className="pk-legend"
-      {...(placard ? { 'data-placard': '' } : {})}
       style={vars({ '--pk-font': font })}
       data-current={current}
       data-anchor={anchor}

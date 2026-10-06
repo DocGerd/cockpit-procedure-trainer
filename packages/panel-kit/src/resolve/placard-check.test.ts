@@ -32,10 +32,8 @@ const subject = (
 ): PlacardSubject => ({ controls, views: { panel: { controls: placements } } });
 
 describe('checkPlacards', () => {
-  it('accepts a generic control with a placard in both languages', () => {
-    expect(checkPlacards(subject({ bat: toggle({ placard: { de: 'BAT', en: 'BAT' } }) }))).toEqual(
-      [],
-    );
+  it('accepts a generic control with a placard', () => {
+    expect(checkPlacards(subject({ bat: toggle({ placard: 'BAT' }) }))).toEqual([]);
   });
 
   it('reports a generic control without a placard', () => {
@@ -44,9 +42,39 @@ describe('checkPlacards', () => {
     ]);
   });
 
-  it('reports a generic control whose placard is blank in one language', () => {
-    const findings = checkPlacards(subject({ bat: toggle({ placard: { de: ' ', en: 'BAT' } }) }));
+  it('reports a generic control whose placard is blank', () => {
+    const findings = checkPlacards(subject({ bat: toggle({ placard: ' ' }) }));
     expect(findings.map(({ id }) => id)).toEqual(['bat']);
+  });
+
+  it('reports a placard that only names a position', () => {
+    expect(checkPlacards(subject({ bat: toggle({ placard: 'On' }) }))).toEqual([
+      {
+        view: 'panel',
+        id: 'bat',
+        message: 'names no function: its placard shows only position legends',
+      },
+    ]);
+  });
+
+  it('reports artwork lettering that only names positions', () => {
+    const control = toggle({ appearance: artwork(['ON', 'OFF']) });
+    expect(checkPlacards(subject({ beacon: control })).map(({ message }) => message)).toEqual([
+      'names no function: lettered on its artwork shows only position legends',
+    ]);
+  });
+
+  it('reports a blank printed entry as no label, so the widget placard is still required', () => {
+    const blank: Placement = { ...at, printed: [' '] };
+    expect(checkPlacards(subject({ elt: toggle() }, { elt: blank }))).toEqual([
+      { view: 'panel', id: 'elt', message: 'prints no label: declare a placard' },
+    ]);
+    expect(checkPlacards(subject({ elt: toggle({ placard: 'ELT' }) }, { elt: blank }))).toEqual([]);
+  });
+
+  it('reports view lettering that only names positions', () => {
+    const printed: Placement = { ...at, printed: ['OPEN', 'CLOSED'] };
+    expect(checkPlacards(subject({ elt: toggle() }, { elt: printed }))).toHaveLength(1);
   });
 
   it('accepts artwork that declares its lettering', () => {

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { Aircraft, ControlDefinition, Placement, Rect } from '@cpt/core';
-import { checkPlacards } from '@cpt/panel-kit';
+import { checkPlacards, printsText } from '@cpt/panel-kit';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -58,7 +58,7 @@ const artworkOf = (control: ControlDefinition) =>
   control.appearance && 'artwork' in control.appearance ? control.appearance.artwork : undefined;
 
 const printsOwnLabel = (control: ControlDefinition, placement: Placement) =>
-  (placement.printed?.length ?? 0) > 0 || artworkOf(control) !== undefined;
+  printsText(placement.printed) || artworkOf(control) !== undefined;
 
 const registered = aircraftRegistry.map((aircraft) => [aircraft.id, aircraft] as const);
 
@@ -103,32 +103,35 @@ const languages = ['en', 'de'] as const;
 describe('printed placards on the rendered panel', () => {
   it.each(
     registered.flatMap(([id, aircraft]) => languages.map((lang) => [id, lang, aircraft] as const)),
-  )('%s in %s prints every generic control placard', async (_id, language, aircraft) => {
-    renderWithLanguage(
-      <TrainerProvider>
-        <Probe />
-        <PanelArea />
-      </TrainerProvider>,
-      { language },
-    );
-    act(() => trainer.selectAircraft(aircraft.id));
-    const wrong: string[] = [];
-    for (const [viewId, view] of Object.entries(aircraft.views)) {
-      await userEvent.click(screen.getByRole('tab', { name: view.name[language] }));
-      for (const { id, control, placement } of placed(aircraft).filter(
-        (entry) => entry.viewId === viewId,
-      )) {
-        if (printsOwnLabel(control, placement)) continue;
-        const expected = control.placard?.[language].toUpperCase();
-        const shown = document.querySelector(
-          `[data-placement="${id}"] [data-placard]`,
-        )?.textContent;
-        if (expected === undefined || shown !== expected)
-          wrong.push(`${viewId}/${id}: ${String(shown)} != ${String(expected)}`);
+  )(
+    '%s in %s prints every generic control placard in the panel wording',
+    async (_id, language, aircraft) => {
+      renderWithLanguage(
+        <TrainerProvider>
+          <Probe />
+          <PanelArea />
+        </TrainerProvider>,
+        { language },
+      );
+      act(() => trainer.selectAircraft(aircraft.id));
+      const wrong: string[] = [];
+      for (const [viewId, view] of Object.entries(aircraft.views)) {
+        await userEvent.click(screen.getByRole('tab', { name: view.name[language] }));
+        for (const { id, control, placement } of placed(aircraft).filter(
+          (entry) => entry.viewId === viewId,
+        )) {
+          if (printsOwnLabel(control, placement)) continue;
+          const expected = control.placard?.toUpperCase();
+          const shown = document.querySelector(
+            `[data-placement="${id}"] [data-placard]`,
+          )?.textContent;
+          if (expected === undefined || shown !== expected)
+            wrong.push(`${viewId}/${id}: ${String(shown)} != ${String(expected)}`);
+        }
       }
-    }
-    expect(wrong).toEqual([]);
-  });
+      expect(wrong).toEqual([]);
+    },
+  );
 });
 
 describe('device keys', () => {

@@ -106,12 +106,13 @@ describe('rotary legends stay clear of the knob and inside the box', () => {
 });
 
 describe('circuit breaker', () => {
-  it('shows its label as a placard when there is room', () => {
+  it('prints its placard above the knob, not its name', () => {
     placeAt(208);
     const { container } = render(
       <CircuitBreaker {...widgetProps(breaker, { label: 'Master switch' })} placard="Master" />,
     );
-    expect(legends(container).map((legend) => legend.textContent)).toEqual(['MASTER']);
+    expect(container.querySelector('[data-placard]')?.textContent).toBe('MASTER');
+    expect(legends(container)).toEqual([]);
   });
 
   it('shows the pulled stem as a banded shaft, not a colour change', () => {

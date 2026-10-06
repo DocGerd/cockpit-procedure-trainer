@@ -20,6 +20,15 @@
   position: absolute;
   left: 0;
   width: 100%;
+  container-type: size;
+}
+
+/* A touch target that would reach up into the placard band moves down instead of shrinking. */
+.pk-body[data-band] .pk-hit {
+  margin-top: max(
+    0px,
+    calc(max(var(--size-target), var(--pk-hit-h) * 1cqh) / 2 - var(--pk-hit-y) * 1cqh)
+  );
 }
 
 .pk-svg,

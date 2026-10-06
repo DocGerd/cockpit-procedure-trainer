@@ -87,7 +87,7 @@ export function ControlPlacement({
         position={position}
         guardOpen={guardOpen}
         label={localize(control.name)}
-        placard={viewPrintsLabel ? undefined : localize(control.placard ?? control.name)}
+        placard={viewPrintsLabel ? undefined : (control.placard ?? localize(control.name))}
         positionLabels={positionLabels}
         {...(options ? { options } : {})}
         {...input}

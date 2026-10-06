@@ -147,7 +147,6 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   for (const [id, control] of controls) {
     checkText(id, 'name', control.name);
     checkText(id, 'description', control.description);
-    if (control.placard) checkText(id, 'placard', control.placard);
     if (control.kind === 'guarded') checkText(id, 'guard name', control.guard.name);
 
     if (control.kind === 'breaker' && JSON.stringify(control.positions) !== '["in","pulled"]') {

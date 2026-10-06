@@ -1,20 +1,17 @@
 import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { EDGE, placard, placeTitle } from './legibility';
-import type { Metrics } from './legibility';
-import { CurrentState, Legend, Stage, hitStyle, vars } from './Stage';
+import { CurrentState, Stage, hitStyle, vars } from './Stage';
 
 const WIDTH = 100;
-const HEIGHT = 120;
+const HEIGHT = 92;
 const FILL = { x: 50, y: 50, w: 100, h: 100 };
 const BODY_Y = 46;
 const LIFT = 16;
-const PLACARD_Y = 106;
 
 export function CircuitBreaker({
   position,
   label,
-  placard: printed,
+  placard,
   positionLabels,
   onSet,
 }: ControlWidgetProps) {
@@ -22,39 +19,23 @@ export function CircuitBreaker({
   const pulled = position === 'pulled';
   const text = positionLabels[String(position)] ?? String(position);
 
-  const art = (metrics: Metrics | undefined) => {
-    const lettering = printed ? placard(printed) : '';
-    const title = placeTitle(metrics, lettering, WIDTH - 2 * EDGE, 2 * (HEIGHT - PLACARD_Y - EDGE));
-    return (
-      <>
-        <circle cx={50} cy={BODY_Y} r={40} className="pk-bezel-dark" />
-        <g className="pk-move pk-stem" data-on={pulled}>
-          <rect x={38} y={BODY_Y + 6} width={24} height={26} className="pk-legend-fill" />
-          <rect x={38} y={BODY_Y + 14} width={24} height={4} className="pk-bezel-dark" />
-          <rect x={38} y={BODY_Y + 24} width={24} height={4} className="pk-bezel-dark" />
-        </g>
-        <g className="pk-move pk-slide" style={vars({ '--pk-y': pulled ? -LIFT : 0 })}>
-          <circle cx={50} cy={BODY_Y} r={25} className="pk-cap-light" />
-          <circle cx={50} cy={BODY_Y} r={25} className="pk-mark" />
-        </g>
-        {lettering && title.show && (
-          <Legend
-            x={WIDTH / 2}
-            y={PLACARD_Y}
-            text={lettering}
-            current={false}
-            font={title.fontSize}
-            length={title.length}
-            anchor="middle"
-            placard
-          />
-        )}
-      </>
-    );
-  };
+  const art = (
+    <>
+      <circle cx={50} cy={BODY_Y} r={40} className="pk-bezel-dark" />
+      <g className="pk-move pk-stem" data-on={pulled}>
+        <rect x={38} y={BODY_Y + 6} width={24} height={26} className="pk-legend-fill" />
+        <rect x={38} y={BODY_Y + 14} width={24} height={4} className="pk-bezel-dark" />
+        <rect x={38} y={BODY_Y + 24} width={24} height={4} className="pk-bezel-dark" />
+      </g>
+      <g className="pk-move pk-slide" style={vars({ '--pk-y': pulled ? -LIFT : 0 })}>
+        <circle cx={50} cy={BODY_Y} r={25} className="pk-cap-light" />
+        <circle cx={50} cy={BODY_Y} r={25} className="pk-mark" />
+      </g>
+    </>
+  );
 
   return (
-    <Stage width={WIDTH} height={HEIGHT} art={art}>
+    <Stage placard={placard} width={WIDTH} height={HEIGHT} art={art}>
       <button
         type="button"
         role="switch"

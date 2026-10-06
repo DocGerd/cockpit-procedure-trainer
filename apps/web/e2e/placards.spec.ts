@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import type { Aircraft } from '@cpt/core';
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
@@ -10,16 +11,22 @@ const viewports = [
   { width: 1440, height: 900 },
 ];
 
-const MIN_TEXT_PX = 11;
+const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
+const MIN_TEXT_PX = Number(/--text-2xs:\s*(\d+)px/.exec(tokens)?.[1]);
+const TOUCH_TARGET_PX = Number(/--size-target:\s*(\d+)px/.exec(tokens)?.[1]);
+if (!Number.isFinite(MIN_TEXT_PX) || !Number.isFinite(TOUCH_TARGET_PX)) {
+  throw new Error('tokens.css has no --text-2xs or --size-target');
+}
 
-type Language = 'en' | 'de';
+const printsText = (lines: readonly string[] | undefined) =>
+  lines?.some((line) => line.trim() !== '') ?? false;
 
-const widgetPlacards = (aircraft: Aircraft, viewId: string, language: Language) =>
+const widgetPlacards = (aircraft: Aircraft, viewId: string) =>
   Object.entries(aircraft.views[viewId]?.controls ?? {}).flatMap(([id, placement]) => {
     const control = aircraft.controls[id];
-    if (!control || !placement || (placement.printed?.length ?? 0) > 0) return [];
+    if (!control || !placement || printsText(placement.printed)) return [];
     if (control.appearance && 'artwork' in control.appearance) return [];
-    return [{ id, text: (control.placard ?? control.name)[language].toUpperCase() }];
+    return [{ id, text: (control.placard ?? control.name.en).toUpperCase() }];
   });
 
 async function openAircraft(page: Page, aircraft: Aircraft) {
@@ -39,22 +46,23 @@ const runs = aircraftRegistry.flatMap((aircraft) =>
 );
 
 for (const { aircraft, viewport, language } of runs) {
-  test(`${aircraft.id} prints a legible ${language} placard on every widget control at ${viewport.width}x${viewport.height}`, async ({
+  test(`${aircraft.id} in ${language} prints a legible placard on every widget control at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await openAircraft(page, aircraft);
     if (language === 'de') await page.getByRole('button', { name: copy.language.german }).click();
     for (const [viewId, view] of Object.entries(aircraft.views)) {
-      const expected = widgetPlacards(aircraft, viewId, language);
+      const expected = widgetPlacards(aircraft, viewId);
       if (expected.length === 0) continue;
       const tab = page.getByRole('tab', { name: view.name[language] });
       await tab.click();
       await expect(tab).toHaveAttribute('aria-selected', 'true');
       for (const { id, text } of expected) {
+        const where = `${viewId}/${id}`;
         const placement = page.locator(`[data-placement="${id}"]`);
         const placard = placement.locator('[data-placard]');
-        await expect(placard, `${viewId}/${id}`).toHaveText(text);
+        await expect(placard, where).toHaveText(text);
         const geometry = await placement.evaluate((element) => {
           const box = (target: Element | null) => {
             const rect = target?.getBoundingClientRect();
@@ -63,10 +71,25 @@ for (const { aircraft, viewport, language } of runs) {
             );
           };
           const label = element.querySelector('[data-placard]');
+          const labelBox = label?.getBoundingClientRect();
+          const hit = labelBox
+            ? document.elementFromPoint(
+                (labelBox.left + labelBox.right) / 2,
+                (labelBox.top + labelBox.bottom) / 2,
+              )
+            : null;
           return {
             placement: box(element),
             label: box(label),
+            overfull: label?.hasAttribute('data-overfull') ?? false,
+            underPlacard: hit?.closest('button, [role="slider"], [role="radio"]')
+              ? 'a control'
+              : '',
             moving: [...element.querySelectorAll('.pk-move')].map(box),
+            targets: [...element.querySelectorAll('button, [role="slider"]')].map((target) => {
+              const { width, height } = target.getBoundingClientRect();
+              return Math.min(width, height);
+            }),
             fontPx: label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0,
             scale: (() => {
               const svg = element.querySelector('svg');
@@ -76,15 +99,17 @@ for (const { aircraft, viewport, language } of runs) {
           };
         });
         const { placement: outer, label, moving, fontPx, scale } = geometry;
-        if (!outer || !label) throw new Error(`${viewId}/${id} has no placard box`);
-        expect(fontPx * scale, `${viewId}/${id} text size`).toBeGreaterThanOrEqual(
-          MIN_TEXT_PX - 0.5,
-        );
-        expect(label.left, `${viewId}/${id} inside its placement`).toBeGreaterThanOrEqual(
-          outer.left - 1,
-        );
+        if (!outer || !label) throw new Error(`${where} has no placard box`);
+        expect(geometry.overfull, `${where} placard fits; shorten it`).toBe(false);
+        expect(fontPx * scale, `${where} text size`).toBeGreaterThanOrEqual(MIN_TEXT_PX - 0.5);
+        expect(label.left, `${where} inside its placement`).toBeGreaterThanOrEqual(outer.left - 1);
         expect(label.right).toBeLessThanOrEqual(outer.right + 1);
         expect(label.top).toBeGreaterThanOrEqual(outer.top - 1);
+        expect(geometry.underPlacard, `${where} placard is not a touch target`).toBe('');
+        expect(
+          geometry.targets.filter((size) => size < TOUCH_TARGET_PX - 0.5),
+          `${where} touch targets`,
+        ).toEqual([]);
         const overlapping = moving.filter(
           (part) =>
             part !== undefined &&
@@ -93,7 +118,7 @@ for (const { aircraft, viewport, language } of runs) {
             part.top < label.bottom - 1 &&
             part.bottom > label.top + 1,
         );
-        expect(overlapping, `${viewId}/${id} clear of the moving parts`).toEqual([]);
+        expect(overlapping, `${where} clear of the moving parts`).toEqual([]);
       }
     }
   });

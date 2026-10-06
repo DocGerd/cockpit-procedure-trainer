@@ -71,7 +71,7 @@ describe('printed placard', () => {
     expect(placards(container)).toEqual([]);
   });
 
-  it.each(samples.filter(([id]) => id !== 'circuit-breaker'))(
+  it.each(samples)(
     '%s prints the placard above the control, outside its moving parts',
     (id, control) => {
       const Widget = widget(id);
@@ -99,6 +99,25 @@ describe('printed placard', () => {
     expect(Number(text.style.getPropertyValue('--pk-font')) * scale).toBeGreaterThanOrEqual(
       11 - 1e-9,
     );
+  });
+
+  it.each(samples)('%s marks a placard too long to fit instead of dropping it', (id, control) => {
+    placeAt(64);
+    const Widget = widget(id);
+    const { container } = render(
+      <Widget {...widgetProps(control)} placard="Avionics master switch" />,
+    );
+    const text = container.querySelector('[data-placard]');
+    expect(text?.textContent).toBe('AVIONICS MASTER SWITCH');
+    expect(text?.hasAttribute('data-overfull')).toBe(true);
+    expect(Number(text?.getAttribute('textLength'))).toBeGreaterThan(0);
+  });
+
+  it('marks the body of a placarded widget so its touch targets stay below the band', () => {
+    const { container } = render(<Toggle {...widgetProps(toggle2)} placard="Bat" />);
+    expect(container.querySelector('.pk-body')?.hasAttribute('data-band')).toBe(true);
+    const hit = container.querySelector<HTMLElement>('.pk-hit');
+    expect(hit?.style.getPropertyValue('--pk-hit-y')).not.toBe('');
   });
 
   it('keeps the hit targets clear of the placard band', () => {

@@ -11,7 +11,7 @@ export const controls = {
       'Schaltet die Batterie auf die Bordspannung.',
       'Connects the battery to the electrical bus.',
     ),
-    placard: text('BAT', 'BAT'),
+    placard: 'BAT',
     appearance: { widget: 'toggle' },
   },
   alternator: {
@@ -23,7 +23,7 @@ export const controls = {
       'Schaltet den Generator ein. Er lädt nur bei laufendem Triebwerk.',
       'Switches the alternator on. It charges only with the engine running.',
     ),
-    placard: text('GEN', 'ALT'),
+    placard: 'ALT',
     appearance: { widget: 'toggle' },
   },
   avionics: {
@@ -35,7 +35,7 @@ export const controls = {
       'Schaltet die Funk- und Navigationsgeräte ein.',
       'Powers the radio and navigation equipment.',
     ),
-    placard: text('AVIONIK', 'AVIONICS'),
+    placard: 'AVIONICS',
     appearance: { widget: 'rocker' },
   },
   magnetos: {
@@ -47,7 +47,7 @@ export const controls = {
       'Schaltet die Zündmagnete. Zum Anlassen auf BOTH, der Anlasser ist ein eigener Taster.',
       'Selects the magnetos. Set BOTH to start; the starter is a separate button.',
     ),
-    placard: text('ZÜNDUNG', 'MAGNETOS'),
+    placard: 'MAGNETOS',
     appearance: { widget: 'key-switch' },
   },
   starter: {
@@ -59,7 +59,7 @@ export const controls = {
       'Dreht das Triebwerk, solange er gedrückt wird. Braucht Bordspannung.',
       'Cranks the engine while held. Needs bus power.',
     ),
-    placard: text('ANLASSER', 'STARTER'),
+    placard: 'STARTER',
     appearance: { widget: 'push-button' },
   },
   annunciator: {
@@ -72,7 +72,7 @@ export const controls = {
       'Stellt die Helligkeit der Warnlampen ein. TEST prüft die Lampen und springt zurück.',
       'Sets the lamp brightness. TEST checks the lamps and springs back.',
     ),
-    placard: text('LAMPEN', 'ANNUN'),
+    placard: 'ANNUN',
     appearance: { widget: 'rotary-knob' },
   },
   fuelSelector: {
@@ -84,7 +84,7 @@ export const controls = {
       'Wählt den Tank, aus dem das Triebwerk Kraftstoff bekommt.',
       'Chooses the tank that feeds the engine.',
     ),
-    placard: text('TANK', 'FUEL'),
+    placard: 'FUEL',
     appearance: { widget: 'rotary-knob' },
   },
   throttle: {
@@ -96,7 +96,7 @@ export const controls = {
       'Stellt die Triebwerksleistung ein. Hinten ist Leerlauf, vorn Vollgas.',
       'Sets engine power. Back is idle, forward is full.',
     ),
-    placard: text('GAS', 'THROTTLE'),
+    placard: 'THROTTLE',
     appearance: { widget: 'lever' },
   },
   mixture: {
@@ -108,7 +108,7 @@ export const controls = {
       'Stellt das Kraftstoff-Luft-Gemisch ein. Hinten ist die Leerlaufabschaltung, die Kraftstoffzufuhr ist dann unterbrochen.',
       'Sets the fuel-air mixture. Fully back is idle cut-off and stops the fuel.',
     ),
-    placard: text('GEMISCH', 'MIXTURE'),
+    placard: 'MIXTURE',
     appearance: { widget: 'lever' },
   },
   flaps: {
@@ -120,7 +120,7 @@ export const controls = {
       'Stellt die Wölbklappen auf eine der Rasten.',
       'Sets the flaps to one of the notches.',
     ),
-    placard: text('KLAPPEN', 'FLAPS'),
+    placard: 'FLAPS',
     appearance: { widget: 'lever' },
   },
   fuelShutoff: {
@@ -133,7 +133,7 @@ export const controls = {
       'Sperrt die Kraftstoffleitung ab. Nur für den Notfall; die Schutzkappe muss zuerst geöffnet werden.',
       'Closes the fuel line. For emergencies only; the guard cover has to be opened first.',
     ),
-    placard: text('BRANDHAHN', 'FUEL SHUTOFF'),
+    placard: 'FUEL SHUTOFF',
     appearance: { widget: 'guarded-handle' },
   },
   alternatorBreaker: {
@@ -145,7 +145,7 @@ export const controls = {
       'Schützt den Generatorkreis. Sie fällt bei einem Generatorausfall.',
       'Protects the alternator circuit. It trips on an alternator failure.',
     ),
-    placard: text('GEN', 'ALT'),
+    placard: 'ALT',
     appearance: { widget: 'circuit-breaker' },
   },
   avionicsBreaker: {
@@ -154,7 +154,7 @@ export const controls = {
     initial: 'in',
     name: text('Sicherung Avionik', 'Avionics breaker'),
     description: text('Schützt den Stromkreis der Avionik.', 'Protects the avionics circuit.'),
-    placard: text('AVIONIK', 'AVIONICS'),
+    placard: 'AVIONICS',
     appearance: { widget: 'circuit-breaker' },
   },
 } as const satisfies ControlRecord;

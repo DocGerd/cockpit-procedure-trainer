@@ -51,8 +51,8 @@ export type GuardPosition = 'closed' | 'open';
 type ControlBase = {
   readonly name: Text;
   readonly description: Text;
-  /** The short function legend printed on the panel beside the control, such as BAT or FUEL. */
-  readonly placard?: Text;
+  /** The panel's own short function legend beside the control, such as BAT or FUEL; it does not follow the UI language. */
+  readonly placard?: string;
   readonly appearance?: Appearance;
 };
 
