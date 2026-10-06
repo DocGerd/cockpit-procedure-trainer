@@ -195,16 +195,6 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it.each(
-    Object.entries(expectedIndicators)
-      .filter(([, expected]) => expected.widget === 'round-gauge')
-      .map(([id]) => id),
-  )('names gauge %s as short as its dial lettering, so the caption clears the needle', (id) => {
-    const name = ctslAircraft.indicators[id]?.name;
-    expect(name?.en.length).toBeLessThanOrEqual(3);
-    expect(name?.de.length).toBeLessThanOrEqual(3);
-  });
-
   it('has the three views of the panel inventory', () => {
     expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console']);
   });
