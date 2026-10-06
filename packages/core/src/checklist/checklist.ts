@@ -74,7 +74,7 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
   const last = checklist.deviations.at(-1);
   const repeat =
     checklist.repeating &&
-    last?.kind === deviation.kind &&
+    last !== undefined &&
     last.itemIndex === deviation.itemIndex &&
     last.controlId === deviation.controlId;
   return {

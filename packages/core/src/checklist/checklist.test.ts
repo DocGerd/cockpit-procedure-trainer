@@ -364,6 +364,18 @@ describe('one drag of a continuous control', () => {
     ]);
   });
 
+  it('clears the repeating flag when the item completes', () => {
+    const checklist = checkOff(drag(atConfirm(), 0, 0.5, 5), pumpOn);
+    expect(checklist.repeating).toBe(false);
+  });
+
+  it('does not coalesce into a deviation recorded for another item', () => {
+    const first = drag(atConfirm(), 0, 0.5, 5);
+    const moved = { ...first, current: first.current + 1 };
+    const next = observeControl(moved, position('throttle', 0.5, 1), stateOf({ throttle: 1 }));
+    expect(next.deviations).toHaveLength(2);
+  });
+
   it('records again after a check-off between two drags', () => {
     let checklist = drag(atConfirm(), 0, 0.5, 5);
     checklist = checkOff(checklist, pumpOn);
