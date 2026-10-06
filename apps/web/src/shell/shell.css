@@ -78,6 +78,74 @@
   color: var(--color-text-secondary);
 }
 
+@media (min-width: 1024px) {
+  .shell-header {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .shell-header > * {
+    flex-shrink: 0;
+  }
+
+  .shell-header .shell-choice {
+    flex-shrink: 1;
+    min-width: var(--size-target);
+    max-width: calc(var(--space-12) * 4);
+  }
+
+  .shell-choice-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shell-header .modes-control {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .shell-header .phase-control {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header {
+    padding-inline: var(--space-4);
+  }
+
+  .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name,
+  .shell[data-layout='tablet'] .shell-header .shell-eyebrow,
+  .shell[data-layout='tablet'] .shell-header .phase-control-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .chrome-button {
+    padding-inline: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header .modes-segment {
+    padding-inline: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice {
+    align-items: stretch;
+  }
+
+  .shell[data-layout='tablet'] .shell-body {
+    padding-block-start: var(--space-4);
+  }
+}
+
 .shell-body {
   position: relative;
   display: flex;
@@ -111,12 +179,22 @@
 
 .shell-checklist {
   display: flex;
-  flex: 1 1 340px;
+  flex: 1 1 calc(var(--space-12) * 6);
   flex-direction: column;
   min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+
+.shell[data-layout='desktop'][data-screen='trainer'] {
+  height: 100dvh;
+}
+
+.shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] {
+  align-self: stretch;
+  overflow-y: auto;
+  contain: size;
 }
 
 .shell-checklist[data-overlay='true'] {
@@ -355,4 +433,37 @@
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
   border-color: var(--color-accent);
+}
+
+@media (max-height: 800px) {
+  .picker {
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+  }
+
+  .picker-procedures {
+    gap: var(--space-2);
+  }
+
+  .picker-mode {
+    padding-block: var(--space-1);
+  }
+
+  .picker-row {
+    min-height: var(--size-target);
+  }
+
+  .picker-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+  }
+
+  .picker-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .picker-modes > legend {
+    grid-column: 1 / -1;
+  }
 }

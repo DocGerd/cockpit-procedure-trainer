@@ -26,7 +26,7 @@ function HeaderChoice({
   onClick(): void;
 }) {
   return (
-    <button type="button" className="chrome-button shell-choice" onClick={onClick}>
+    <button type="button" className="chrome-button shell-choice" title={value} onClick={onClick}>
       <span className="shell-eyebrow">{eyebrow}</span>{' '}
       <span className="shell-choice-value">{value}</span>
     </button>
@@ -66,7 +66,7 @@ export function Header({
   const text = useMessages(messages);
   const isUat = deployEnv(import.meta.env.VITE_DEPLOY_ENV) === 'uat';
   return (
-    <header className="shell-header">
+    <header className="shell-header" data-variant={variant}>
       <div className="shell-brand">
         <BrandMark />
         <span className="shell-brand-name">{text.brandName}</span>

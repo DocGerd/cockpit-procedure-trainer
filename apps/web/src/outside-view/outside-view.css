@@ -6,7 +6,7 @@
   display: block;
   box-sizing: border-box;
   width: 100%;
-  height: calc(var(--space-12) * 3);
+  height: clamp(calc(var(--space-12) * 2), 12dvh, calc(var(--space-12) * 3));
   object-fit: cover;
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ChecklistPane } from '../checklist/ChecklistPane';
 import { useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
@@ -45,12 +45,24 @@ export function TrainerLayout() {
   const paneId = useId();
   const overlay = layout === 'tablet';
   const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
+  const current = useSessionState((snapshot) => snapshot.checklist()?.current);
+  const pane = useRef<HTMLElement>(null);
   const hasChecklist = mode !== 'explore' && procedureId !== undefined;
   const showPane = hasChecklist && (!overlay || expanded);
 
   useEffect(() => {
     if (done) setExpanded(true);
   }, [done]);
+
+  useEffect(() => {
+    const aside = pane.current;
+    const item = aside?.querySelector('[aria-current="step"]');
+    if (!aside || !item) return;
+    const box = aside.getBoundingClientRect();
+    const rect = item.getBoundingClientRect();
+    if (rect.top < box.top) aside.scrollTop -= box.top - rect.top;
+    else if (rect.bottom > box.bottom) aside.scrollTop += rect.bottom - box.bottom;
+  }, [current, showPane]);
 
   useEffect(() => {
     if (!overlay || !expanded) return;
@@ -62,7 +74,7 @@ export function TrainerLayout() {
   }, [overlay, expanded]);
 
   return (
-    <div className="shell" data-layout={layout}>
+    <div className="shell" data-layout={layout} data-screen="trainer">
       <Header
         variant="trainer"
         checklistToggle={
@@ -96,6 +108,7 @@ export function TrainerLayout() {
         {showPane && (
           <aside
             id={paneId}
+            ref={pane}
             className="shell-checklist"
             aria-label={text.checklist}
             data-overlay={overlay}

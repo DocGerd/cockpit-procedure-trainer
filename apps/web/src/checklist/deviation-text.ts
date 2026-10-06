@@ -1,6 +1,5 @@
 import type { ChecklistState, Deviation } from '@cpt/core';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
 import { messages } from './messages';
 
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
@@ -8,11 +7,10 @@ const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 export function useDeviationText(checklist: ChecklistState<unknown>) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft } = useTrainer();
 
   const control = (deviation: Deviation) => {
     const id = deviation.controlId ?? '';
-    const definition = aircraft.controls[id];
+    const definition = Object.hasOwn(checklist.controls, id) ? checklist.controls[id] : undefined;
     return definition ? localize(definition.name) : id;
   };
   const item = (deviation: Deviation) => {
