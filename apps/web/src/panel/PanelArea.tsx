@@ -89,7 +89,7 @@ function PanelView({ viewId }: { viewId: string }) {
   const localize = useLocalize();
   const view = aircraft.views[viewId];
   const placements = useMemo(() => viewPlacements(aircraft, viewId), [aircraft, viewId]);
-  const background = useBackgroundSize(view?.image ?? '');
+  const background = useBackgroundSize(view?.image ?? '', view?.size);
   const extent = useMemo(() => placementExtent(placements), [placements]);
   const size = background.size ?? extent;
   const rects = useMemo(() => panelRects(placements, size), [placements, size]);
