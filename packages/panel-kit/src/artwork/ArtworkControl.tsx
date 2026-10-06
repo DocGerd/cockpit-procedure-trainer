@@ -12,6 +12,7 @@ export type ArtworkControlProps = ControlWidgetProps & {
 };
 
 const LEVER_STEP = 0.1;
+const DEAD_ZONE = 0.2;
 const inputClass = 'cpt-artwork-input';
 
 const noop = () => {};
@@ -193,6 +194,7 @@ function NotchInput({
   notches,
   position,
   className,
+  rotary,
   onSet,
 }: Pick<ControlWidgetProps, 'onSet'> & {
   steps: readonly string[];
@@ -204,6 +206,7 @@ function NotchInput({
   notches: readonly string[] | undefined;
   position: ControlPosition;
   className?: string;
+  rotary: boolean;
 }) {
   const goTo = (target: number) => {
     const id = steps[Math.min(steps.length - 1, Math.max(0, target))];
@@ -222,11 +225,15 @@ function NotchInput({
         x: (x / rect.width) * size.width,
         y: (y / rect.height) * size.height,
       });
-      direction = Math.sign(near - current);
-    } else if (rect.width > rect.height) {
-      direction = x >= rect.width / 2 ? 1 : -1;
+      const delta = near - current;
+      const zone = DEAD_ZONE / Math.max(1, notches ? notches.length - 1 : 1);
+      direction = Math.abs(delta) < zone ? 0 : Math.sign(delta);
+    } else if (rotary || rect.width >= rect.height * 0.8) {
+      const off = x - rect.width / 2;
+      direction = Math.abs(off) < rect.width * DEAD_ZONE ? 0 : Math.sign(off);
     } else {
-      direction = y < rect.height / 2 ? 1 : -1;
+      const off = rect.height / 2 - y;
+      direction = Math.abs(off) < rect.height * DEAD_ZONE ? 0 : Math.sign(off);
     }
     if (direction !== 0) goTo(index + direction);
   };
@@ -387,6 +394,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
           size={size}
           notches={notches}
           position={position}
+          rotary={control.kind === 'rotary'}
           {...(springClass === undefined ? {} : { className: springClass })}
           onSet={props.onSet}
         />
@@ -403,18 +411,20 @@ export function ArtworkControl(props: ArtworkControlProps) {
           onRelease={props.onRelease}
         />
       );
-    if (spring === undefined) return cycleInput;
+    if (!control.positions.some(isSpring)) return cycleInput;
     return (
       <>
         {cycleInput}
-        <ButtonInput
-          name={`${label}: ${props.positionLabels[spring] ?? spring}`}
-          hold={{ position: spring }}
-          className={`${inputClass} cpt-artwork-spring`}
-          onActivate={noop}
-          onPress={props.onPress}
-          onRelease={props.onRelease}
-        />
+        {spring !== undefined && (
+          <ButtonInput
+            name={`${label}: ${props.positionLabels[spring] ?? spring}`}
+            hold={{ position: spring }}
+            className={`${inputClass} cpt-artwork-spring`}
+            onActivate={noop}
+            onPress={props.onPress}
+            onRelease={props.onRelease}
+          />
+        )}
       </>
     );
   };

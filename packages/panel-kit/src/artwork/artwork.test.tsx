@@ -633,7 +633,7 @@ describe('ArtworkControl stepping a notched control both ways', () => {
   });
 
   it('leaves Enter and Space without effect', () => {
-    const view = renderControl(flaps, flapImages, 'land');
+    const view = renderControl(flaps, flapImages, 'to');
     key('Enter');
     key(' ');
     fireEvent.click(slider());
@@ -707,6 +707,87 @@ describe('ArtworkControl stepping a notched control both ways', () => {
     const view = renderControl(ignition, ignitionImages, 'start');
     key('ArrowDown');
     expect(view.onSet).toHaveBeenLastCalledWith('r');
+  });
+
+  const downhill: MovingPart = {
+    type: 'travel',
+    image: 'knob.png',
+    path: [
+      { x: 20, y: 2 },
+      { x: 20, y: 18 },
+    ],
+  };
+
+  it('steps along a travel path that runs downwards, against the halves rule', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 18);
+    tap(20, 2);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does nothing for a tap on the current notch along a path', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 10);
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('does nothing for a tap at the centre of a halved control', () => {
+    rectOf(44, 100);
+    const tall = renderControl(flaps, flapImages, 'to');
+    tap(20, 50);
+    expect(tall.onSet).not.toHaveBeenCalled();
+    tall.unmount();
+    rectOf(100, 44);
+    const wide = renderControl(flaps, flapImages, 'to');
+    tap(50, 20);
+    expect(wide.onSet).not.toHaveBeenCalled();
+  });
+
+  it('turns a rotary by its left and right halves, even when square or tall', () => {
+    for (const [w, h] of [
+      [100, 100],
+      [60, 100],
+    ] as const) {
+      rectOf(w, h);
+      const view = renderControl(ignition, ignitionImages, 'l');
+      tap(w * 0.9, h * 0.1);
+      tap(w * 0.1, h * 0.9);
+      expect(view.onSet.mock.calls).toEqual([['r'], ['off']]);
+      view.unmount();
+    }
+  });
+
+  it('keeps focus on the ignition slider across stepping onto and off BOTH', () => {
+    function Harness() {
+      const [position, setPosition] = useState<ControlPosition>('off');
+      return (
+        <ArtworkControl
+          control={ignition}
+          position={position}
+          guardOpen={false}
+          label="Control"
+          positionLabels={{}}
+          artwork={artworkOf(ignitionImages)}
+          fallback={fallback}
+          onSet={setPosition}
+          onPress={vi.fn()}
+          onRelease={vi.fn()}
+          onOpenGuard={vi.fn()}
+          onCloseGuard={vi.fn()}
+        />
+      );
+    }
+    render(<Harness />);
+    loadFace();
+    act(() => slider().focus());
+    key('End');
+    expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('both');
+    expect(document.activeElement).toBe(slider());
+    key('Home');
+    expect(screen.getByRole('slider').getAttribute('aria-valuetext')).toBe('off');
+    expect(document.activeElement).toBe(slider());
   });
 
   it('keeps a two-position toggle as tap to toggle', () => {
