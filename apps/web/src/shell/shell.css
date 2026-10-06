@@ -187,6 +187,16 @@
   border-radius: var(--radius-lg);
 }
 
+.shell[data-layout='desktop'][data-screen='trainer'] {
+  height: 100dvh;
+}
+
+.shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] {
+  align-self: stretch;
+  overflow-y: auto;
+  contain: size;
+}
+
 .shell-checklist[data-overlay='true'] {
   position: absolute;
   inset-block: 0;
