@@ -858,6 +858,101 @@ describe('ArtworkControl stepping a notched control both ways', () => {
     fireEvent.click(screen.getByRole('button'));
     expect(view.onSet).toHaveBeenCalledWith('b');
   });
+
+  describe('after a START hold', () => {
+    const start = () => screen.getByRole('button', { name: 'Control: start' });
+
+    it('returns focus to the slider when the pointer hold ends', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      start().focus();
+      fireEvent.pointerDown(start());
+      fireEvent.pointerUp(start());
+      expect(document.activeElement).toBe(slider());
+    });
+
+    it('returns focus to the slider when the key hold ends', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      start().focus();
+      fireEvent.keyDown(start(), { key: ' ' });
+      fireEvent.keyUp(start(), { key: ' ' });
+      expect(document.activeElement).toBe(slider());
+    });
+
+    it('does not pull focus back when the hold ends by focus leaving', () => {
+      renderControl(ignition, ignitionImages, 'both');
+      fireEvent.pointerDown(start());
+      start().focus();
+      start().blur();
+      expect(document.activeElement).not.toBe(slider());
+    });
+  });
+
+  it('reads aria-valuenow in the drawn direction on a reversed path', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(flaps, reversed, 'to');
+    expect(slider().getAttribute('aria-valuenow')).toBe('1');
+    expect(slider().getAttribute('aria-valuetext')).toBe('to');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    key('End');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    view.rerender(
+      <ArtworkControl
+        control={flaps}
+        position="up"
+        guardOpen={false}
+        label="Control"
+        positionLabels={{}}
+        artwork={artworkOf(reversed)}
+        fallback={fallback}
+        {...{ onSet: view.onSet, onPress: view.onPress, onRelease: view.onRelease }}
+        onOpenGuard={view.onOpenGuard}
+        onCloseGuard={view.onCloseGuard}
+      />,
+    );
+    expect(slider().getAttribute('aria-valuenow')).toBe('2');
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('reads a continuous lever on a reversed path in the drawn direction', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(lever, reversed, 0.25);
+    expect(slider().getAttribute('aria-valuenow')).toBe('0.75');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith(0.15);
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith(1);
+  });
+
+  it('takes ArrowUp toward the end of the path drawn higher up', () => {
+    const down: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(flaps, down, 'to');
+    key('ArrowUp');
+    key('ArrowDown');
+    expect(view.onSet.mock.calls).toEqual([['up'], ['land']]);
+  });
 });
 
 describe('ArtworkControl for assistive technology', () => {
