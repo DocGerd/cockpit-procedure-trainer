@@ -1,0 +1,162 @@
+import { describe, expect, it } from 'vitest';
+import {
+  KEY_PAN_FRACTION,
+  KEY_ZOOM_STEP,
+  MAX_SCALE,
+  MIN_SCALE,
+  NO_ZOOM,
+  clampZoom,
+  keyZoom,
+  panned,
+  pinchSample,
+  pinched,
+  revealed,
+} from './zoom';
+import type { ZoomState } from './zoom';
+
+const viewport = { width: 400, height: 200 };
+
+describe('clampZoom', () => {
+  it('bounds the scale', () => {
+    expect(clampZoom({ scale: 9, offset: { x: 0, y: 0 } }, viewport).scale).toBe(MAX_SCALE);
+    expect(clampZoom({ scale: 0.2, offset: { x: 0, y: 0 } }, viewport).scale).toBe(MIN_SCALE);
+  });
+
+  it('keeps the content covering the viewport', () => {
+    const zoom = clampZoom({ scale: 2, offset: { x: 50, y: -999 } }, viewport);
+    expect(zoom.offset).toEqual({ x: 0, y: -200 });
+  });
+
+  it('leaves no room to pan at scale 1', () => {
+    expect(clampZoom({ scale: 1, offset: { x: -30, y: 40 } }, viewport)).toEqual(NO_ZOOM);
+  });
+});
+
+describe('pinched', () => {
+  const start: ZoomState = { scale: 2, offset: { x: -100, y: -40 } };
+
+  it('keeps the content point under the fingers where it was', () => {
+    const from = pinchSample({ x: 150, y: 80 }, { x: 250, y: 80 });
+    const to = pinchSample({ x: 150, y: 80 }, { x: 350, y: 80 });
+    const next = pinched(start, from, to, viewport);
+    const content = (zoom: ZoomState, at: { x: number; y: number }) => ({
+      x: (at.x - zoom.offset.x) / zoom.scale,
+      y: (at.y - zoom.offset.y) / zoom.scale,
+    });
+    expect(next.scale).toBe(4);
+    expect(content(next, to.center)).toEqual(content(start, from.center));
+  });
+
+  it('keeps the point under the fingers while the scale is held at the maximum', () => {
+    const from = pinchSample({ x: 150, y: 100 }, { x: 250, y: 100 });
+    const to = pinchSample({ x: 100, y: 100 }, { x: 300, y: 100 });
+    const next = pinched(NO_ZOOM, from, { ...to, distance: from.distance * 10 }, viewport);
+    expect(next.scale).toBe(MAX_SCALE);
+    expect((to.center.x - next.offset.x) / next.scale).toBe(from.center.x);
+  });
+
+  it('scales by the ratio of the finger distances', () => {
+    const from = pinchSample({ x: 100, y: 100 }, { x: 200, y: 100 });
+    const next = pinched(
+      NO_ZOOM,
+      from,
+      pinchSample({ x: 100, y: 100 }, { x: 250, y: 100 }),
+      viewport,
+    );
+    expect(next.scale).toBe(1.5);
+  });
+
+  it('ignores a gesture that started with both fingers in one place', () => {
+    const from = pinchSample({ x: 10, y: 10 }, { x: 10, y: 10 });
+    expect(pinched(start, from, pinchSample({ x: 0, y: 0 }, { x: 90, y: 0 }), viewport)).toBe(
+      start,
+    );
+  });
+});
+
+describe('panned', () => {
+  it('moves with the finger and stops at the panel edge', () => {
+    const start: ZoomState = { scale: 2, offset: { x: -100, y: -50 } };
+    expect(panned(start, { x: -30, y: 20 }, viewport).offset).toEqual({ x: -130, y: -30 });
+    expect(panned(start, { x: 500, y: -500 }, viewport).offset).toEqual({ x: 0, y: -200 });
+    expect(panned(start, { x: -500, y: 500 }, viewport).offset).toEqual({ x: -400, y: 0 });
+  });
+});
+
+describe('revealed', () => {
+  const zoomed: ZoomState = { scale: 2, offset: { x: -200, y: -100 } };
+  const box = (left: number, top: number, right: number, bottom: number) => ({
+    left,
+    top,
+    right,
+    bottom,
+  });
+
+  it('leaves a box that is in view', () => {
+    expect(revealed(zoomed, box(10, 10, 60, 60), viewport)).toEqual(zoomed);
+  });
+
+  it('moves a box past the top-left edge in, by just enough', () => {
+    expect(revealed(zoomed, box(-30, -10, 20, 40), viewport).offset).toEqual({ x: -170, y: -90 });
+  });
+
+  it('moves a box past the bottom-right edge in, by just enough', () => {
+    expect(revealed(zoomed, box(380, 180, 430, 230), viewport).offset).toEqual({
+      x: -230,
+      y: -130,
+    });
+  });
+
+  it('aligns a box that cannot fit to its top-left', () => {
+    expect(revealed(zoomed, box(-20, 10, 520, 60), viewport).offset.x).toBe(-180);
+  });
+
+  it('aligns a box too wide to fit to its left edge when it starts inside the view', () => {
+    expect(revealed(zoomed, box(10, 10, 520, 60), viewport).offset.x).toBe(-210);
+  });
+
+  it('stays inside the panel', () => {
+    expect(revealed(zoomed, box(-500, 10, -450, 60), viewport).offset.x).toBe(0);
+  });
+});
+
+describe('keyZoom', () => {
+  const zoomed: ZoomState = { scale: 2, offset: { x: -100, y: -50 } };
+
+  it('zooms in about the centre of the viewport', () => {
+    const next = keyZoom(NO_ZOOM, '+', viewport);
+    expect(next?.scale).toBeCloseTo(KEY_ZOOM_STEP);
+    expect(next?.offset.x).toBeCloseTo(200 - 200 * KEY_ZOOM_STEP);
+    expect(next?.offset.y).toBeCloseTo(100 - 100 * KEY_ZOOM_STEP);
+    expect(keyZoom(NO_ZOOM, '=', viewport)).toEqual(next);
+  });
+
+  it('zooms out, never past the fitted size', () => {
+    expect(keyZoom(zoomed, '-', viewport)?.scale).toBeCloseTo(2 / KEY_ZOOM_STEP);
+    expect(keyZoom(NO_ZOOM, '-', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('stops at the maximum scale', () => {
+    const top: ZoomState = { scale: MAX_SCALE, offset: { x: 0, y: 0 } };
+    expect(keyZoom(top, '+', viewport)?.scale).toBe(MAX_SCALE);
+  });
+
+  it('resets on 0', () => {
+    expect(keyZoom(zoomed, '0', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('pans a step of the viewport with the arrow keys, clamped to the panel', () => {
+    const stepX = viewport.width * KEY_PAN_FRACTION;
+    const stepY = viewport.height * KEY_PAN_FRACTION;
+    expect(keyZoom(zoomed, 'ArrowRight', viewport)?.offset).toEqual({ x: -100 - stepX, y: -50 });
+    expect(keyZoom(zoomed, 'ArrowLeft', viewport)?.offset).toEqual({ x: -100 + stepX, y: -50 });
+    expect(keyZoom(zoomed, 'ArrowDown', viewport)?.offset).toEqual({ x: -100, y: -50 - stepY });
+    expect(keyZoom(zoomed, 'ArrowUp', viewport)?.offset).toEqual({ x: -100, y: -50 + stepY });
+    expect(keyZoom(NO_ZOOM, 'ArrowRight', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('ignores other keys', () => {
+    expect(keyZoom(zoomed, 'a', viewport)).toBeUndefined();
+    expect(keyZoom(zoomed, 'Enter', viewport)).toBeUndefined();
+  });
+});

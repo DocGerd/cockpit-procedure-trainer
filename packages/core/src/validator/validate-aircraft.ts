@@ -1,5 +1,5 @@
 import { isPosition } from '../contract';
-import type { Aircraft, Device, Text } from '../contract';
+import type { Aircraft, ControlDefinition, Device, Rect, Text, ViewSize } from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -10,11 +10,14 @@ export type FindingCode =
   | 'phase-without-snapshot'
   | 'undeclared-failure'
   | 'unknown-position'
+  | 'inexact-lever-target'
   | 'unknown-device'
   | 'unknown-device-control'
   | 'unplaced-device'
   | 'invalid-install-id'
-  | 'control-in-device-namespace';
+  | 'control-in-device-namespace'
+  | 'invalid-view-size'
+  | 'placement-outside-view';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -68,7 +71,27 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
-  const checkDeviceTarget = (id: string, where: string, position?: unknown) => {
+  const checkActionStop = (
+    id: string,
+    where: string,
+    control: ControlDefinition,
+    position: unknown,
+  ) => {
+    if (
+      control.positions === 'continuous' &&
+      isPosition(control, position) &&
+      position !== 0 &&
+      position !== 1
+    ) {
+      add(
+        'inexact-lever-target',
+        id,
+        `${where} targets ${String(position)} on a continuous lever; target 0 or 1, or use a check item with a condition, or give the lever named notches`,
+      );
+    }
+  };
+
+  const checkDeviceTarget = (id: string, where: string, position?: unknown, action = false) => {
     const install = installs.find(
       ([installId]) => !installId.includes('.') && id.startsWith(`${installId}.`),
     );
@@ -80,7 +103,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     const device = deviceById(deviceId);
     if (!device) return;
     const controlId = id.slice(installId.length + 1);
-    checkDeviceControl(id, device, controlId, where, position);
+    checkDeviceControl(id, device, controlId, where, position, action);
   };
 
   const checkDeviceControl = (
@@ -89,6 +112,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     controlId: string,
     where: string,
     position?: unknown,
+    action = false,
   ) => {
     const control = Object.hasOwn(device.controls, controlId)
       ? device.controls[controlId]
@@ -101,14 +125,18 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         id,
         `${where} position: ${JSON.stringify(position)} is not a position of ${id}`,
       );
+    } else if (action) {
+      checkActionStop(id, where, control, position);
     }
   };
 
-  const checkControlTarget = (id: string, where: string, position?: unknown) => {
+  const checkControlTarget = (id: string, where: string, position?: unknown, action = false) => {
     if (hasControl(id)) {
       if (position !== undefined) checkPosition(id, `${where} position`, position);
+      const control = aircraft.controls[id];
+      if (action && control) checkActionStop(id, where, control, position);
     } else if (id.includes('.')) {
-      checkDeviceTarget(id, where, position);
+      checkDeviceTarget(id, where, position, action);
     } else {
       add('unknown-target', id, `${where} targets an unknown control`);
     }
@@ -162,8 +190,39 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     if (!placed) add('unplaced-indicator', id, 'is not placed in any view');
   }
 
+  const isLength = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const sizes = new Map<string, ViewSize | undefined>();
+  const declaredSize = (viewId: string, size: unknown) => {
+    if (size === undefined) return undefined;
+    const { width, height } = (size ?? {}) as { width?: unknown; height?: unknown };
+    if (isLength(width) && isLength(height)) return { width, height } as ViewSize;
+    add('invalid-view-size', viewId, 'size must be a positive, finite width and height');
+    return undefined;
+  };
+  const checkInside = (viewId: string, size: ViewSize | undefined, id: string, rect: Rect) => {
+    if (
+      size &&
+      (rect.x < 0 || rect.y < 0 || rect.x + rect.w > size.width || rect.y + rect.h > size.height)
+    ) {
+      add(
+        'placement-outside-view',
+        id,
+        `view ${viewId} places it outside its ${size.width}x${size.height} size`,
+      );
+    }
+  };
+
   for (const [viewId, view] of views) {
     checkText(viewId, 'name', view.name);
+    const size = declaredSize(viewId, view.size);
+    sizes.set(viewId, size);
+    for (const [id, placement] of Object.entries(view.controls ?? {})) {
+      if (placement) checkInside(viewId, size, id, placement.rect);
+    }
+    for (const [id, placement] of Object.entries(view.indicators ?? {})) {
+      if (placement) checkInside(viewId, size, id, placement.rect);
+    }
     for (const id of Object.keys(view.controls ?? {})) {
       if (!hasControl(id)) add('unknown-target', id, `view ${viewId} places an unknown control`);
     }
@@ -198,6 +257,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
     if (!Object.hasOwn(aircraft.views, install.view)) {
       add('unplaced-device', installId, `is placed in ${install.view}, which is not a view`);
+    } else {
+      checkInside(install.view, sizes.get(install.view), installId, install.placement.rect);
     }
   }
 
@@ -279,7 +340,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       const where = `procedure ${procedureId} item ${index}`;
       checkText(procedureId, `item ${index} text`, item.text);
       if (item.type === 'action') {
-        checkControlTarget(item.control, where, item.position);
+        checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
         if ('indicator' in item.target) {
           if (!hasIndicator(item.target.indicator)) {

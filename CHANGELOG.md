@@ -8,6 +8,53 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.6.0] - 2026-10-06
+
+### Added
+
+- App shell: header, layout for tablet and desktop, aircraft and procedure picker, and a theme switch.
+- German and English interface with a language switch; the choice is remembered.
+- Panel renderer: view tabs, background and placements scaled with the panel.
+- Generic GA control widgets: toggle, rocker, key switch, push button, circuit breaker, rotary knob, lever and guarded handle.
+- Generic GA indicators: round gauge with needle, ticks and arcs, annunciator lamp, digital readout.
+- Layer renderer for aircraft artwork: needles, per-position images and lever travel, with a fallback to the generic widget.
+- Checklist pane with item states and check-off, and the end-of-procedure deviation summary.
+- Guided, Practice and Free explore modes.
+- Outside-view strip and the phase control in the header.
+- Device screens in the panel, with input routing and a dark screen when unpowered.
+- Generic COM radio and transponder devices, and a guide to adding a device.
+- A fictional demo aircraft for a whole flight: three panel views (panel, console and radio stack); eight phases (parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing), each with an outside view from the pilot's seat; six normal procedures (engine start, before take-off, radio and transponder, before landing, after landing, engine shutdown and securing); and an alternator-failure procedure.
+- Error boundary with reset, labelled placeholder for missing images, training-aid notice; the app works without localStorage.
+- The trainer installs as an app, works offline after one visit, and asks before switching to a new version.
+- Touch polish: larger hit areas, reliable press-and-hold, pinch zoom and pan on the panel.
+- Keyboard operation of every control, names and positions for assistive technology, and reduced motion throughout.
+- Views can declare their coordinate size, so the panel no longer waits for the background image to place controls; the validator rejects placements outside it.
+- The validator rejects an action item that targets a continuous lever anywhere but its end stops.
+- The panel kit can check an aircraft's widget ids, widget fit and widget options, and CI runs it over every registered aircraft.
+- A walk-through test performs every normal procedure of every registered aircraft and fails naming the item that does not complete.
+- Browser tests run in CI: the picker, language and theme switches, a Guided procedure with a deviation in the summary, a Practice run, the phase-change confirmation, and reloading the trainer offline.
+- Panel-kit gallery page for development builds.
+- An authoring guide for adding an aircraft, with the demo aircraft as the worked example.
+
+### Changed
+
+- Brand tokens now match the DocGerdSoft brand bundle: the dark neutral surfaces, the full font stacks and the smallest radius.
+- The design lint now also rejects type and spacing literals in TS/TSX, and covers panel-kit and device screens.
+- Control position typos in a contract (`initial`, `springBack`, artwork image keys) now report an error naming the offending value and the control's valid positions.
+
+### Fixed
+
+- Panel widgets no longer render text below the smallest type size: a widget placed too small drops its numerals, then units, then legends. Position legends are upper-case placards, text and moving parts stay inside the widget box, the guarded handle opens by keyboard with the guard first and returns focus on Escape, and the circuit breaker and continuous lever show their label.
+- Device screens now scale with their place on the panel instead of being clipped: the screen keeps its natural layout and is scaled to fit its install box, so every key stays visible and operable on narrow viewports. The COM volume slider is drawn from panel tokens instead of the browser accent.
+- The demo's radio stack now stacks the COM radio above the transponder, and the transponder puts IDENT next to its mode keys, so on a 1024 by 768 tablet both screens render at their full size: every key is at least 44 px tall and no text is smaller than 11 px.
+- Tablet landscape: the header fits one row at 1024 and 1280 wide, the outside view shrinks on short windows so the panel keeps its placards, the deviation summary names device controls by their name, and the picker fits 1024 by 768 without scrolling.
+- In Guided on a tablet, a deviation now shows on the closed Checklist button as a count badge, the button's accessible name gains the deviation count, and the live region announces it. The procedure picker now fits 1440 by 900 and 768 by 1024 without page scroll.
+- A pinch that starts with a finger on a control no longer operates it or records a false deviation in Practice and Guided, the Free explore confirmation now says it resets the cockpit to the start of the current phase, and a Guided target outside the zoomed view is panned into sight.
+- Checklist actions on a spring-back or momentary control now each need their own press, so two consecutive identical presses no longer complete on one.
+- Dragging an unrelated control in Practice or Guided now records one deviation instead of one per pointer move, so the count no longer depends on the event rate.
+- Installing the production app no longer wipes the offline copy of the UAT app on a device that has both.
+- Session no longer steps the systems while it is failed; a snapshot load resumes stepping.
+
 ## [0.3.0] - 2026-10-05
 
 ### Added
@@ -71,7 +118,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.3.0...v0.6.0
 [0.3.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DocGerd/cockpit-procedure-trainer/releases/tag/v0.1.0

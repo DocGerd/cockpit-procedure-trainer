@@ -1,0 +1,33 @@
+.update-prompt {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-6);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border-bottom: 1px solid var(--color-accent);
+}
+
+.update-prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.update-prompt-title {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.update-prompt-body {
+  color: var(--color-text-secondary);
+}
+
+.update-prompt-actions {
+  display: flex;
+  gap: var(--space-3);
+}

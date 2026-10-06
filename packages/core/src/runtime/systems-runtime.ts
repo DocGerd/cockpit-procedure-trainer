@@ -2,6 +2,12 @@ import type { Environment, Positions, SystemsDefinition } from '../contract';
 
 export const STEP_MS = 50;
 
+export function assertDtMs(dtMs: number): void {
+  if (!Number.isFinite(dtMs) || dtMs < 0) {
+    throw new RangeError(`dtMs must be a finite number >= 0, got ${dtMs}`);
+  }
+}
+
 export type RuntimeStatus =
   { readonly kind: 'running' } | { readonly kind: 'failed'; readonly error: unknown };
 
@@ -60,9 +66,7 @@ export function createSystemsRuntime<S, F extends string = string>(
       stepBy(0);
     },
     advance(dtMs) {
-      if (!Number.isFinite(dtMs) || dtMs < 0) {
-        throw new RangeError(`dtMs must be a finite number >= 0, got ${dtMs}`);
-      }
+      assertDtMs(dtMs);
       stepBy(dtMs);
     },
     setEnvironment(next) {

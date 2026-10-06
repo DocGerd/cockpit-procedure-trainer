@@ -30,6 +30,10 @@ a{color:#3B4046}a:hover{color:#14161A}
 <span style="font-weight: 500">Before engine start</span>
 </button>
 <div style="flex-grow: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="phase" style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Phase</label>
+<select id="phase" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #14161A; font: inherit; cursor: pointer"><option selected="selected">Parking</option><option>Holding point</option><option>Departure</option><option>Cruise</option><option>Approach</option></select>
+</div>
 <div role="group" aria-label="Mode" style="display: flex; border: 1px solid #DCE0E4; border-radius: 6px; overflow: hidden">
 <button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 16px; border: 0; background: {{accent}}; color: #FFFFFF; font: inherit; font-weight: 500; cursor: pointer">Guided</button>
 <button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #DCE0E4; background: #FFFFFF; color: #3B4046; font: inherit; font-weight: 500; cursor: pointer">Practice</button>
@@ -44,19 +48,12 @@ a{color:#3B4046}a:hover{color:#14161A}
 <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
 
 <section aria-label="Outside view" style="border: 1px solid #DCE0E4; border-radius: 10px; overflow: hidden; background: #FFFFFF">
-<div style="height: 132px; display: flex; flex-direction: column">
+<div style="height: 144px; display: flex; flex-direction: column">
 <div style="flex: 3 1 0; background: #C9D6E2; padding: 12px 16px; box-sizing: border-box">
 <div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #3B4046">Outside view · placeholder image</div>
 <div style="font-weight: 600; font-size: 20px; line-height: 26px; letter-spacing: -0.02em; color: #14161A">Parking position</div>
 </div>
 <div style="flex: 2 1 0; background: #7F8A78"></div>
-</div>
-<div role="group" aria-label="Flight phase" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-top: 1px solid #DCE0E4">
-<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 14px; border: 1px solid {{accent}}; border-radius: 100px; background: color-mix(in srgb, {{accent}} 12%, transparent); color: {{accent}}; font: inherit; font-weight: 500; cursor: pointer">Parking</button>
-<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #DCE0E4; border-radius: 100px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Holding point</button>
-<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #DCE0E4; border-radius: 100px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Departure</button>
-<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #DCE0E4; border-radius: 100px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Cruise</button>
-<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 1px solid #DCE0E4; border-radius: 100px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Approach</button>
 </div>
 </section>
 
@@ -67,7 +64,7 @@ a{color:#3B4046}a:hover{color:#14161A}
 <button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 16px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #5E646B; font: inherit; font-weight: 500; cursor: pointer">Floor</button>
 </div>
 
-<div style="background: #26282C; border: 3px solid #3B4046; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 28px; color: #ECEEF1">
+<div style="background: #26282C; border: 3px solid #3B4046; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 32px; color: #ECEEF1">
 <div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #969CA4">Generic GA panel · placeholder until aircraft artwork</div>
 
 <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
@@ -92,17 +89,17 @@ a{color:#3B4046}a:hover{color:#14161A}
 </div>
 
 <div style="flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
-<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 6px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 4px">
-<div style="padding: 8px 2px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">GEN</div>
-<div style="padding: 8px 2px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">OIL</div>
-<div style="padding: 8px 2px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">FUEL</div>
-<div style="padding: 8px 2px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">FLAPS</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 4px">
+<div style="padding: 8px 4px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">GEN</div>
+<div style="padding: 8px 4px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">OIL</div>
+<div style="padding: 8px 4px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">FUEL</div>
+<div style="padding: 8px 4px; border-radius: 2px; background: #1B1E22; color: #5E646B; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; text-align: center">FLAPS</div>
 </div>
-<div style="padding: 10px 12px; background: #0B0C0E; border: 2px solid #3B4046; border-radius: 6px; display: flex; flex-direction: column; gap: 6px">
+<div style="padding: 12px; background: #0B0C0E; border: 2px solid #3B4046; border-radius: 6px; display: flex; flex-direction: column; gap: 4px">
 <div style="display: flex; align-items: center; gap: 8px"><span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; color: #C2C7CD">COM</span><span style="flex-grow: 1"></span><span style="width: 18px; height: 18px; border-radius: 50%; background: #2A2E33; border: 1px solid #5E646B"></span></div>
 <div style="height: 40px; border-radius: 3px; background: #050607; border: 1px solid #2A2E33"></div>
 </div>
-<div style="padding: 10px 12px; background: #0B0C0E; border: 2px solid #3B4046; border-radius: 6px; display: flex; flex-direction: column; gap: 6px">
+<div style="padding: 12px; background: #0B0C0E; border: 2px solid #3B4046; border-radius: 6px; display: flex; flex-direction: column; gap: 4px">
 <div style="display: flex; align-items: center; gap: 8px"><span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; color: #C2C7CD">XPDR</span><span style="flex-grow: 1"></span><span style="width: 18px; height: 18px; border-radius: 50%; background: #2A2E33; border: 1px solid #5E646B"></span></div>
 <div style="height: 40px; border-radius: 3px; background: #050607; border: 1px solid #2A2E33"></div>
 </div>
@@ -124,17 +121,17 @@ a{color:#3B4046}a:hover{color:#14161A}
 <rect x="53" y="46" width="6" height="36" rx="2" transform="rotate(-72 56 64)" style="fill: #0B0C0E"></rect>
 </svg>
 </button>
-<div style="padding: 2px 8px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Ignition</div>
+<div style="padding: 4px 8px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Ignition</div>
 </div>
 
 <sc-for list="{{switches}}" as="s" hint-placeholder-count="6">
 <div style="width: 76px; display: flex; flex-direction: column; align-items: center; gap: 8px">
-<div style="height: 24px; padding: 0 10px; border-radius: 100px; background: {{s.tagBg}}; color: #FFFFFF; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; line-height: 24px; white-space: nowrap">{{s.tag}}</div>
-<button type="button" aria-label="{{s.aria}}" style="width: 48px; height: 76px; padding: 5px; box-sizing: border-box; border: 2px solid #5E646B; border-radius: 5px; background: #0B0C0E; display: flex; flex-direction: column; outline: {{s.outline}}; outline-offset: 5px; cursor: pointer">
+<div style="height: 24px; padding: 0 12px; border-radius: 100px; background: {{s.tagBg}}; color: #FFFFFF; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; line-height: 24px; white-space: nowrap">{{s.tag}}</div>
+<button type="button" aria-label="{{s.aria}}" style="width: 48px; height: 76px; padding: 4px; box-sizing: border-box; border: 2px solid #5E646B; border-radius: 5px; background: #0B0C0E; display: flex; flex-direction: column; outline: {{s.outline}}; outline-offset: 4px; cursor: pointer">
 <span style="display: block; flex: 1 1 0; border-radius: 3px 3px 0 0; background: {{s.topBg}}; border-bottom: 1px solid #0B0C0E"></span>
 <span style="display: block; flex: 1 1 0; border-radius: 0 0 3px 3px; background: {{s.bottomBg}}"></span>
 </button>
-<div style="padding: 2px 6px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; text-align: center; white-space: nowrap">{{s.label}}</div>
+<div style="padding: 4px 8px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; text-align: center; white-space: nowrap">{{s.label}}</div>
 </div>
 </sc-for>
 
@@ -142,7 +139,7 @@ a{color:#3B4046}a:hover{color:#14161A}
 <button type="button" aria-label="Throttle, idle" style="width: 76px; height: 76px; padding: 0; border: 3px solid #5E646B; border-radius: 50%; background: #0B0C0E; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 44px; height: 44px; border-radius: 50%; background: #1B1E22; border: 1px solid #3B4046"></span>
 </button>
-<div style="padding: 2px 8px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Throttle</div>
+<div style="padding: 4px 8px; background: #0B0C0E; border: 1px solid #5E646B; border-radius: 2px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Throttle</div>
 </div>
 </div>
 
@@ -171,22 +168,22 @@ a{color:#3B4046}a:hover{color:#14161A}
 </div>
 
 <ol style="list-style: none; margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 4px">
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; color: #5E646B">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px; color: #5E646B">
 <span aria-label="Done" style="width: 20px; color: #2E7D46; font-weight: 600">✓</span>
 <span style="flex-grow: 1">Preflight inspection</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Complete</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; color: #5E646B">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px; color: #5E646B">
 <span aria-label="Done" style="width: 20px; color: #2E7D46; font-weight: 600">✓</span>
 <span style="flex-grow: 1">Parking brake</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Set</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; color: #5E646B">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px; color: #5E646B">
 <span aria-label="Done" style="width: 20px; color: #2E7D46; font-weight: 600">✓</span>
 <span style="flex-grow: 1">Fuel valve</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Open</span>
 </li>
-<li aria-current="step" style="display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 6px; border: 1px solid {{accent}}; background: color-mix(in srgb, {{accent}} 10%, transparent)">
+<li aria-current="step" style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 6px; border: 1px solid {{accent}}; background: color-mix(in srgb, {{accent}} 10%, transparent)">
 <div style="display: flex; align-items: center; gap: 12px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: {{accent}}">4</span>
 <span style="flex-grow: 1; font-weight: 600; font-size: 16px">Master switch</span>
@@ -194,27 +191,27 @@ a{color:#3B4046}a:hover{color:#14161A}
 </div>
 <div style="padding-left: 32px; color: #3B4046">Highlighted on the main panel. Flip the switch to continue.</div>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">5</span>
 <span style="flex-grow: 1">Avionics</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Off</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">6</span>
 <span style="flex-grow: 1">Circuit breakers</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">All in</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">7</span>
 <span style="flex-grow: 1">Throttle</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Idle</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">8</span>
 <span style="flex-grow: 1">Ignition</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Both</span>
 </li>
-<li style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
 <span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">9</span>
 <span style="flex-grow: 1">Propeller area</span>
 <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Clear</span>

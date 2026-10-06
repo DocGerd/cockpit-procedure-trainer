@@ -14,7 +14,7 @@ import { deviceControls, stepDevices } from '../devices';
 import type { DeviceStates } from '../devices';
 import { createFailureSet } from '../failures';
 import { entrySnapshot, procedureOf } from '../phases';
-import { createSystemsRuntime } from '../runtime';
+import { assertDtMs, createSystemsRuntime } from '../runtime';
 import type { RuntimeStatus } from '../runtime';
 
 export type SessionOptions = {
@@ -54,7 +54,8 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   if (initialPhase === undefined) throw new Error(`Aircraft "${aircraft.id}" has no phases`);
   const initial = entrySnapshot(aircraft, registry, initialPhase);
 
-  const store = createControlStore({ ...aircraft.controls, ...deviceControls(aircraft, registry) });
+  const controls = { ...aircraft.controls, ...deviceControls(aircraft, registry) };
+  const store = createControlStore(controls);
   const runtime = createSystemsRuntime(aircraft.systems, {
     environment: initial.environment,
     controls: store.positions(),
@@ -207,14 +208,16 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
           settleDevices(0);
         }
         procedureId = id;
-        track(startChecklist(procedure, buildState()));
+        track(startChecklist(procedure, buildState(), controls));
       });
     },
 
     advance(dtMs) {
-      const wasFailed = failed();
+      if (failed()) {
+        assertDtMs(dtMs);
+        return;
+      }
       runtime.advance(dtMs);
-      if (wasFailed) return;
       dirty = true;
       try {
         if (runtime.status().kind === 'running') settleDevices(dtMs);

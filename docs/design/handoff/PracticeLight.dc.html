@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trainer, Practice mode, emergency, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B4046}a:hover{color:#14161A}
+</style>
+</helmet>
+<div style="min-height: 840px; box-sizing: border-box; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 8px 24px; border-bottom: 1px solid #DCE0E4; background: #FFFFFF">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg viewBox="0 0 100 100" width="26" height="26" aria-hidden="true" style="color: {{accent}}"><path fill="currentColor" d="M50 17.09 L69.87 51.5 L30.13 51.5 Z"></path><path fill="currentColor" d="M26.96 57 L73.04 57 L88 82.91 L12 82.91 Z"></path></svg>
+<div style="font-weight: 600; font-size: 16px; letter-spacing: -0.02em">Procedure Trainer</div>
+</div>
+<button type="button" style="min-height: 44px; padding: 4px 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #14161A; font: inherit; text-align: left; display: flex; flex-direction: column; justify-content: center; cursor: pointer">
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Aircraft</span>
+<span style="font-weight: 500">Demo aircraft</span>
+</button>
+<button type="button" style="min-height: 44px; padding: 4px 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #14161A; font: inherit; text-align: left; display: flex; flex-direction: column; justify-content: center; cursor: pointer">
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Procedure</span>
+<span style="font-weight: 500">Engine fire in flight</span>
+</button>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="phase" style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 11px; line-height: 14px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Phase</label>
+<select id="phase" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #14161A; font: inherit; cursor: pointer"><option>Parking</option><option>Holding point</option><option>Departure</option><option selected="selected">Cruise</option><option>Approach</option></select>
+</div>
+<div role="group" aria-label="Mode" style="display: flex; border: 1px solid #DCE0E4; border-radius: 6px; overflow: hidden">
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; border: 0; background: #FFFFFF; color: #3B4046; font: inherit; font-weight: 500; cursor: pointer">Guided</button>
+<button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #DCE0E4; background: {{accent}}; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Practice</button>
+<button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #DCE0E4; background: #FFFFFF; color: #3B4046; font: inherit; font-weight: 500; cursor: pointer">Explore</button>
+</div>
+<button type="button" aria-label="Language: English. Switch to German" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer">EN</button>
+<button type="button" aria-label="Switch to dark theme" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Dark</button>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; align-items: flex-start">
+
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-label="Outside view" style="border: 1px solid #DCE0E4; border-radius: 10px; overflow: hidden; background: #FFFFFF">
+<div style="height: 144px; display: flex; flex-direction: column">
+<div style="flex: 4 1 0; background: #9FB4C8; padding: 12px 16px; box-sizing: border-box">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #3B4046">Outside view · placeholder image</div>
+<div style="font-weight: 600; font-size: 20px; line-height: 26px; letter-spacing: -0.02em; color: #14161A">Cruise</div>
+</div>
+<div style="flex: 1 1 0; background: #5F6B5A"></div>
+</div>
+</section>
+
+<section aria-label="Cockpit panel" style="display: flex; flex-direction: column; gap: 8px">
+<div role="tablist" aria-label="Panel view" style="display: flex; flex-wrap: wrap; gap: 4px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 44px; padding: 0 16px; border: 0; border-bottom: 2px solid #14161A; background: transparent; color: #14161A; font: inherit; font-weight: 600; cursor: pointer">Main panel</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 16px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #5E646B; font: inherit; font-weight: 500; cursor: pointer">Centre console</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 44px; padding: 0 16px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #5E646B; font: inherit; font-weight: 500; cursor: pointer">Floor</button>
+</div>
+
+<div style="background: #26282C; border: 3px solid #3B4046; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 32px; color: #C2C7CD">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #969CA4">Schematic placeholder · aircraft photo goes here</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+<sc-for list="{{gauges}}" as="g" hint-placeholder-count="6">
+<div style="width: 104px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+<div style="width: 92px; height: 92px; border-radius: 50%; border: 2px solid #5E646B; background: #0B0C0E; display: flex; align-items: center; justify-content: center; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 14px; color: #ECEEF1">{{g.value}}</div>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; text-align: center">{{g.label}}</div>
+</div>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end">
+<sc-for list="{{switches}}" as="s" hint-placeholder-count="6">
+<div style="width: 76px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+<button type="button" aria-label="{{s.aria}}" style="width: 48px; height: 72px; padding: 4px; box-sizing: border-box; border: 1px solid #5E646B; border-radius: 6px; background: #0B0C0E; display: flex; flex-direction: column; justify-content: {{s.knobAlign}}; cursor: pointer">
+<span style="display: block; height: 30px; border-radius: 4px; background: #C2C7CD"></span>
+</button>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; text-align: center">{{s.label}}</div>
+</div>
+</sc-for>
+
+<div style="width: 88px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+<button type="button" aria-label="Ignition key, position BOTH" style="width: 72px; height: 72px; border: 2px solid #5E646B; border-radius: 50%; background: #0B0C0E; color: #ECEEF1; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer">BOTH</button>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Ignition</div>
+</div>
+
+<div style="width: 88px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+<button type="button" aria-label="Throttle lever, cruise setting" style="width: 48px; height: 96px; padding: 4px; box-sizing: border-box; border: 1px solid #5E646B; border-radius: 100px; background: #0B0C0E; display: flex; flex-direction: column; justify-content: center; cursor: pointer">
+<span style="display: block; height: 38px; border-radius: 100px; background: #C2C7CD"></span>
+</button>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase">Throttle</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<aside aria-label="Checklist" style="flex: 1 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 10px; display: flex; flex-direction: column">
+<div style="padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #E6E9EC">
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="padding: 4px 12px; border-radius: 100px; background: color-mix(in srgb, #BC4438 16%, transparent); color: #BC4438; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase">Emergency</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E646B">Failure injected</span>
+</div>
+<h1 style="margin: 0; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.02em">Engine fire in flight</h1>
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="flex-grow: 1; height: 6px; border-radius: 100px; background: #EEF0F2; overflow: hidden"><div style="width: 17%; height: 6px; background: {{accent}}"></div></div>
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #3B4046">1 / 6</div>
+</div>
+</div>
+
+<ol style="list-style: none; margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 4px">
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px; color: #5E646B">
+<span aria-label="Done" style="width: 20px; color: #2E7D46; font-weight: 600">✓</span>
+<span style="flex-grow: 1">Fuel valve</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Closed</span>
+</li>
+<li aria-current="step" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px; border: 1px solid {{accent}}; background: color-mix(in srgb, {{accent}} 14%, transparent)">
+<span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: {{accent}}">2</span>
+<span style="flex-grow: 1; font-weight: 600; font-size: 16px">Throttle</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 14px; font-weight: 500; text-transform: uppercase">Full</span>
+</li>
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
+<span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">3</span>
+<span style="flex-grow: 1">Ignition</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Off</span>
+</li>
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
+<span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">4</span>
+<span style="flex-grow: 1">Master switch</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Off</span>
+</li>
+<li style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
+<span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">5</span>
+<span style="flex-grow: 1">Cabin heat</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Closed</span>
+</li>
+<li style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; border-radius: 6px">
+<span style="width: 20px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #5E646B">6</span>
+<span style="flex-grow: 1">Emergency landing</span>
+<span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; text-transform: uppercase">Execute</span>
+</li>
+</ol>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px; border-top: 1px solid #E6E9EC">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: {{accent}}; font: inherit; font-weight: 500; cursor: pointer">Restart</button>
+</div>
+</aside>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#6A57C4","options":["#6A57C4","#0F7C72","#2C6CB0"]},"$preview":{"width":1280,"height":840}}'>
+class Component extends DCLogic {
+renderVals() {
+const accent = this.props.accent ?? '#6A57C4';
+const sw = (label, on) => ({
+label,
+aria: label + ', ' + (on ? 'on' : 'off'),
+knobAlign: on ? 'flex-start' : 'flex-end'
+});
+return {
+accent,
+gauges: [
+{ label: 'Airspeed', value: '— kt' },
+{ label: 'Altitude', value: '— ft' },
+{ label: 'RPM', value: '0' },
+{ label: 'Oil press', value: '0 bar' },
+{ label: 'Oil temp', value: '— °C' },
+{ label: 'Fuel', value: '— l' }
+],
+switches: [
+sw('Master', true),
+sw('Avionics', false),
+sw('Fuel pump', false),
+sw('Nav', true),
+sw('Strobe', true),
+sw('Landing', false)
+]
+};
+}
+}
+</script>
+</body>
+</html>

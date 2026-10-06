@@ -24,19 +24,19 @@ const brand = (() => {
 const css = read('./tokens.css');
 
 function block(selector: RegExp): Tokens {
-  const found = selector.exec(css);
-  if (!found) return new Map();
-  const open = found.index + found[0].length;
-  const body = css.slice(open, css.indexOf('}', open));
   const tokens: Tokens = new Map();
-  for (const match of body.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) {
-    if (match[1] && match[2]) tokens.set(match[1], normalise(match[2].trim()));
+  for (const found of css.matchAll(selector)) {
+    const open = found.index + found[0].length;
+    const body = css.slice(open, css.indexOf('}', open));
+    for (const match of body.matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) {
+      if (match[1] && match[2]) tokens.set(match[1], normalise(match[2].trim()));
+    }
   }
   return tokens;
 }
 
-const root = block(/:root\s*\{/);
-const darkBlock = block(/\[data-theme=["']dark["']\]\s*\{/);
+const root = block(/:root\s*\{/g);
+const darkBlock = block(/\[data-theme=["']dark["']\]\s*\{/g);
 
 const themes: Record<string, Tokens> = {
   light: root,
@@ -61,6 +61,15 @@ describe('tokens.css matches BRAND.md', () => {
       } else {
         expect(darkBlock.get(name), name).toBe(value);
       }
+    }
+  });
+
+  it('keeps the panel hardware tokens the same in both themes', () => {
+    const panel = [...brand.light.keys()].filter((name) => name.startsWith('--panel-'));
+    expect(panel.length).toBeGreaterThan(0);
+    for (const name of panel) {
+      expect(brand.dark.get(name), name).toBe(brand.light.get(name));
+      expect(darkBlock.has(name), name).toBe(false);
     }
   });
 
@@ -113,5 +122,67 @@ describe('WCAG AA contrast', () => {
         expect(contrast(fg ?? '', bg ?? '')).toBeGreaterThanOrEqual(4.5);
       });
     }
+  }
+});
+
+// Bare hex: the colour-literal lint rule is for UI code, and this is the reference data.
+const bundle: Record<string, [light: string, dark?: string | false]> = {
+  '--color-bg': ['fbfbfc', '0d0e10'],
+  '--color-surface': ['ffffff', '15171a'],
+  '--color-surface-subtle': ['f4f5f7', '141619'],
+  '--color-surface-muted': ['eef0f2', '1b1e22'],
+  '--color-divider': ['e6e9ec', '202428'],
+  '--color-border': ['dce0e4', '2a2e33'],
+  '--color-text': ['14161a', 'eceef1'],
+  '--color-text-secondary': ['3b4046', 'c2c7cd'],
+  '--color-text-muted': ['5e646b', '969ca4'],
+  '--color-accent': ['6a57c4', false],
+  '--color-success': ['2e7d46', '5fbe7c'],
+  '--color-warning': ['9a6b1a', 'd6a23e'],
+  '--color-danger': ['bc4438', 'e0726a'],
+  '--font-sans': ["'Geist', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"],
+  '--font-mono': ["'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace"],
+  '--text-2xs': ['11px'],
+  '--text-sm': ['13px'],
+  '--leading-sm': ['19px'],
+  '--text-md': ['14px'],
+  '--leading-md': ['22px'],
+  '--text-lg': ['16px'],
+  '--leading-lg': ['26px'],
+  '--text-xl': ['20px'],
+  '--leading-xl': ['26px'],
+  '--text-2xl': ['24px'],
+  '--leading-2xl': ['30px'],
+  '--text-3xl': ['36px'],
+  '--leading-3xl': ['40px'],
+  '--weight-regular': ['400'],
+  '--weight-medium': ['500'],
+  '--weight-semibold': ['600'],
+  '--tracking-tight': ['-0.02em'],
+  '--space-1': ['4px'],
+  '--space-2': ['8px'],
+  '--space-3': ['12px'],
+  '--space-4': ['16px'],
+  '--space-6': ['24px'],
+  '--space-8': ['32px'],
+  '--space-12': ['48px'],
+  '--radius-sm': ['3px'],
+  '--radius-md': ['6px'],
+  '--radius-lg': ['10px'],
+  '--radius-xl': ['16px'],
+  '--radius-pill': ['100px'],
+};
+
+const resolve = (value: string) => (/^[0-9a-f]{6}$/.test(value) ? `#${value}` : value);
+
+describe('tokens.css matches the DocGerdSoft brand bundle', () => {
+  for (const [name, [light, dark]] of Object.entries(bundle)) {
+    it(`${name} light`, () => {
+      expect(themes.light?.get(name)).toBe(resolve(light));
+    });
+    if (dark === false) continue;
+    it(`${name} dark`, () => {
+      expect(themes.dark?.get(name)).toBe(resolve(dark || light));
+    });
   }
 });

@@ -349,6 +349,34 @@ describe('the before-start walk-through', () => {
   });
 });
 
+describe('consecutive presses of a spring-back control', () => {
+  it('need a fresh press for each item', () => {
+    const procedure = fixtureAircraft.procedures.beforeStart;
+    if (!procedure) throw new Error('fixture has no beforeStart');
+    const press = {
+      type: 'action',
+      control: 'lampTest',
+      position: 'pressed',
+      text: { de: 'Drücken', en: 'Press' },
+    } as const;
+    const twice = {
+      ...fixtureAircraft,
+      procedures: { twice: { ...procedure, items: [press, press] } },
+    };
+    const session = createSession(twice as unknown as Aircraft);
+    session.startProcedure('twice');
+
+    session.press('lampTest');
+    expect(session.checklist()?.current).toBe(1);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.current).toBe(1);
+
+    session.release('lampTest');
+    session.press('lampTest');
+    expect(session.checklist()?.done).toBe(true);
+  });
+});
+
 describe('procedure end phase', () => {
   const emergencyWithEnd = {
     ...fixtureAircraft,
@@ -462,6 +490,37 @@ describe('a failing device step', () => {
     expect(session.state()).toBe(before);
     expect(calls).toBe(0);
     expect(() => session.advance(-1)).toThrow(RangeError);
+  });
+
+  describe('with the systems mid-start', () => {
+    const failWhileCranking = () => {
+      const session = start();
+      session.set('master', 'on');
+      session.set('ignition', 'start');
+      session.set('mon.page', 'electrical');
+      return session;
+    };
+
+    it('does not step the systems while failed', () => {
+      const session = failWhileCranking();
+      for (let elapsed = 0; elapsed < STARTER_MS_TO_START * 2; elapsed += STEP_MS) {
+        session.advance(STEP_MS);
+      }
+      expect(session.status()).toMatchObject({ kind: 'failed' });
+      expect(fixtureSystems(session).starterMs).toBe(0);
+      expect(fixtureSystems(session).engineRunning).toBe(false);
+    });
+
+    it('resumes stepping after a snapshot load', () => {
+      const session = failWhileCranking();
+      session.advance(STEP_MS);
+      session.jumpToPhase('parking');
+      session.set('master', 'on');
+      session.set('ignition', 'start');
+      session.advance(STEP_MS);
+      expect(session.status()).toEqual({ kind: 'running' });
+      expect(fixtureSystems(session).starterMs).toBe(STEP_MS);
+    });
   });
 
   it('recovers on a phase jump or a procedure start', () => {

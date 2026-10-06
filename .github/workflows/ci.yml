@@ -29,3 +29,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - id: e2e
+        run: pnpm test:e2e
+      - if: failure() && steps.e2e.conclusion == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: apps/web/node_modules/e2e/report
+          retention-days: 7

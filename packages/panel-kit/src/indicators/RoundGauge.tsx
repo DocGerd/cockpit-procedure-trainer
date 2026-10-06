@@ -1,0 +1,197 @@
+import type { IndicatorWidgetProps } from '../types';
+import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
+import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze } from './geometry';
+import { readGaugeOptions } from './options';
+import { IndicatorPlaceholder } from './Placeholder';
+
+const ARC_RADIUS = 42;
+const TICK_OUTER = 38;
+const TICK_INNER = 33;
+const NUMERAL_RADIUS = 26;
+const NEEDLE_LENGTH = 34;
+const VIEWBOX = { width: 100, height: 100 };
+const LABEL_WIDTH = 66;
+const NUMERAL_DESIGN = 5;
+const UNITS_DESIGN = 5;
+const LABEL_DESIGN = 5.5;
+const UNITS_Y = 66;
+const LABEL_Y = 78;
+const FACE_RADIUS = 46;
+
+function chordRoom(bottom: number): number {
+  const drop = bottom - CENTRE;
+  return drop >= FACE_RADIUS ? 0 : 2 * Math.sqrt(FACE_RADIUS ** 2 - drop ** 2) - 4;
+}
+
+export function tickSpacing(angles: readonly number[]): number {
+  const sorted = [...angles].sort((a, b) => a - b);
+  let gap = Infinity;
+  for (let index = 1; index < sorted.length; index += 1) {
+    gap = Math.min(gap, (sorted[index] ?? 0) - (sorted[index - 1] ?? 0));
+  }
+  return gap === Infinity ? Infinity : 2 * NUMERAL_RADIUS * Math.sin((gap * Math.PI) / 360);
+}
+
+const sans = 'var(--font-sans)';
+const mono = 'var(--font-mono)';
+
+export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
+  const [ref, metrics] = useRenderedMetrics(VIEWBOX);
+  const config = readGaugeOptions(options);
+  if (config === null || typeof value !== 'number' || !Number.isFinite(value)) {
+    return <IndicatorPlaceholder label={label} />;
+  }
+  const { min, max, units, ticks, arcs } = config;
+  const reading = units === '' ? formatNumber(value) : `${formatNumber(value)} ${units}`;
+
+  const caption = placeText(metrics, {
+    design: LABEL_DESIGN,
+    room: LABEL_WIDTH,
+    chars: label.length,
+    advance: SANS_ADVANCE,
+    squeezable: true,
+  });
+  const captionFits = (size: number) => size / 2 + LABEL_Y <= CENTRE + FACE_RADIUS;
+  const showCaption = caption.show && captionFits(caption.fontSize);
+  const unit = placeText(metrics, {
+    design: UNITS_DESIGN,
+    room: chordRoom(UNITS_Y + (metrics === undefined ? UNITS_DESIGN : 11 / metrics.scale) / 2),
+    chars: units.length,
+    advance: SANS_ADVANCE,
+    squeezable: true,
+  });
+  const labelTop = LABEL_Y - caption.fontSize / 2;
+  const showUnits =
+    units !== '' && showCaption && unit.show && UNITS_Y + unit.fontSize / 2 <= labelTop;
+  const tickLabels = ticks.map(formatNumber);
+  const numeral = placeText(metrics, {
+    design: NUMERAL_DESIGN,
+    room: tickSpacing(ticks.map((tick) => angleAt(tick, min, max))) * 0.9,
+    chars: Math.max(0, ...tickLabels.map((tickLabel) => tickLabel.length)),
+    advance: MONO_ADVANCE,
+  });
+  const lowestNumeral = Math.max(
+    ...ticks.map((tick) => polar(angleAt(tick, min, max), NUMERAL_RADIUS).y),
+  );
+  const showNumerals =
+    (units === '' || showUnits) &&
+    showCaption &&
+    numeral.show &&
+    lowestNumeral + numeral.fontSize / 2 <= labelTop;
+
+  return (
+    <svg
+      ref={ref}
+      data-widget="round-gauge"
+      width="100%"
+      height="100%"
+      viewBox="0 0 100 100"
+      role="meter"
+      aria-label={label}
+      aria-valuenow={value}
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuetext={reading}
+    >
+      <circle
+        cx={CENTRE}
+        cy={CENTRE}
+        r={49}
+        style={{ fill: 'var(--panel-bezel-dark)', stroke: 'var(--panel-bezel)' }}
+        strokeWidth={2}
+      />
+      <circle cx={CENTRE} cy={CENTRE} r={46} style={{ fill: 'var(--panel-dial)' }} />
+      {arcs.map((arc, i) => (
+        <path
+          key={i}
+          data-arc=""
+          d={arcPath(angleAt(arc.from, min, max), angleAt(arc.to, min, max), ARC_RADIUS)}
+          fill="none"
+          strokeWidth={3}
+          style={{ stroke: `var(--panel-arc-${arc.colour})` }}
+        />
+      ))}
+      {ticks.map((tick, i) => {
+        const angle = angleAt(tick, min, max);
+        const outer = polar(angle, TICK_OUTER);
+        const inner = polar(angle, TICK_INNER);
+        const position = polar(angle, NUMERAL_RADIUS);
+        return (
+          <g key={i}>
+            <line
+              data-tick=""
+              x1={outer.x}
+              y1={outer.y}
+              x2={inner.x}
+              y2={inner.y}
+              strokeWidth={1}
+              style={{ stroke: 'var(--panel-legend)' }}
+            />
+            {showNumerals && (
+              <text
+                data-tick-label=""
+                x={position.x}
+                y={position.y}
+                fontSize={numeral.fontSize}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={{ fill: 'var(--panel-legend)', fontFamily: mono }}
+              >
+                {formatNumber(tick)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      {showUnits && (
+        <text
+          data-units=""
+          x={CENTRE}
+          y={UNITS_Y}
+          fontSize={unit.fontSize}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ fill: 'var(--panel-legend-muted)', fontFamily: sans }}
+        >
+          {units}
+        </text>
+      )}
+      {showCaption && (
+        <text
+          data-label=""
+          x={CENTRE}
+          y={LABEL_Y}
+          fontSize={caption.fontSize}
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ fill: 'var(--panel-legend)', fontFamily: sans }}
+          {...squeeze(
+            label,
+            Math.floor(LABEL_WIDTH / (SANS_ADVANCE * caption.fontSize)),
+            LABEL_WIDTH,
+          )}
+        >
+          {label}
+        </text>
+      )}
+      <g data-needle="" transform={`rotate(${angleAt(value, min, max)} ${CENTRE} ${CENTRE})`}>
+        <line
+          x1={CENTRE}
+          y1={CENTRE}
+          x2={CENTRE}
+          y2={CENTRE - NEEDLE_LENGTH}
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          style={{ stroke: 'var(--panel-needle)' }}
+        />
+      </g>
+      <circle
+        cx={CENTRE}
+        cy={CENTRE}
+        r={3.5}
+        style={{ fill: 'var(--panel-cap)', stroke: 'var(--panel-bezel-dark)' }}
+        strokeWidth={1}
+      />
+    </svg>
+  );
+}

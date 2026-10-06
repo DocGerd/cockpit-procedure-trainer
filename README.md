@@ -22,6 +22,9 @@ Requires Node 24 and pnpm.
     pnpm dev          # run the web app
     pnpm test         # unit tests
     pnpm lint && pnpm format:check && pnpm typecheck
+    pnpm test:e2e     # browser tests; first run: pnpm exec playwright install chromium
+
+To add an aircraft, see [Adding an aircraft](docs/adding-an-aircraft.md).
 
 ## Licence
 

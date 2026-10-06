@@ -1,0 +1,113 @@
+.gallery {
+  max-width: 1200px;
+  padding: var(--space-6);
+  margin: 0 auto;
+}
+
+.gallery h1,
+.gallery h2,
+.gallery h3,
+.gallery h4 {
+  margin: var(--space-6) 0 var(--space-2);
+  line-height: var(--leading-xl);
+}
+
+.gallery h1 {
+  margin-top: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+}
+
+.gallery h2 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+}
+
+.gallery h3 {
+  font-size: var(--text-xl);
+}
+
+.gallery h4 {
+  margin-top: 0;
+  font-size: var(--text-lg);
+}
+
+.gallery-note,
+.gallery-label {
+  margin: var(--space-2) 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.gallery-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.gallery-choice,
+.gallery-input {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--size-target);
+}
+
+.gallery-input {
+  margin-bottom: var(--space-2);
+}
+
+.gallery-group {
+  padding-top: var(--space-2);
+  margin-bottom: var(--space-6);
+  border-top: 1px solid var(--color-divider);
+}
+
+.gallery-card {
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.gallery-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding-top: var(--space-10);
+}
+
+.gallery-cell {
+  margin: 0;
+}
+
+.gallery-cell figcaption {
+  max-width: 14em;
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-secondary);
+}
+
+.gallery-box {
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-frame);
+  border-radius: var(--radius-md);
+}
+
+.gallery-text[data-small='true'] {
+  font-weight: var(--weight-semibold);
+  color: var(--color-danger);
+}
+
+.gallery-fallback {
+  width: 100%;
+  aspect-ratio: 1;
+}

@@ -1,56 +1,624 @@
 import { defineAircraft } from '@cpt/core';
-import type { Environment, Text } from '@cpt/core';
+import type { Environment } from '@cpt/core';
+import { images } from './assets';
+import { controls } from './controls';
+import { indicators } from './indicators';
+import { initial, lowVoltageLit, oilPressureLit, runningFrom, step } from './systems';
+import type { DemoFailure, DemoTrainerState } from './systems';
+import { text } from './text';
 
-type DemoState = Record<string, never>;
+const parked = {
+  battery: 'off',
+  alternator: 'off',
+  avionics: 'off',
+  magnetos: 'off',
+  starter: 'released',
+  annunciator: 'bright',
+  fuelSelector: 'off',
+  throttle: 0,
+  mixture: 0,
+  flaps: 'up',
+  fuelShutoff: 'open',
+  alternatorBreaker: 'in',
+  avionicsBreaker: 'in',
+} as const;
 
-const text = (de: string, en: string): Text => ({ de, en });
+const idling = {
+  ...parked,
+  battery: 'on',
+  alternator: 'on',
+  avionics: 'on',
+  magnetos: 'both',
+  fuelSelector: 'both',
+  mixture: 1,
+} as const;
 
-const environment: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
+const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
+const cruising = { ...idling, throttle: 0.7 } as const;
+const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
+const flaring = { ...idling, flaps: 'landing' } as const;
+const taxiingIn = { ...idling, throttle: 0.15, flaps: 'landing' } as const;
 
-const initial: DemoState = {};
+const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
+const departureEnvironment: Environment = { airspeedKt: 75, altitudeFt: 800, onGround: false };
+const cruiseEnvironment: Environment = { airspeedKt: 105, altitudeFt: 4500, onGround: false };
+const approachEnvironment: Environment = { airspeedKt: 85, altitudeFt: 1000, onGround: false };
+const landingEnvironment: Environment = { airspeedKt: 60, altitudeFt: 10, onGround: false };
+
+type ComReading = { readonly active: number; readonly standby: number };
+type TransponderReading = {
+  readonly mode: string;
+  readonly squawk: string;
+  readonly altitude: number | null;
+};
+
+const radio = (state: DemoTrainerState) => state.devices.radio?.state as ComReading | undefined;
+const transponder = (state: DemoTrainerState) =>
+  state.devices.xpdr?.state as TransponderReading | undefined;
+
+const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
+const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
 export const demoAircraft = defineAircraft({
   id: 'demo',
   name: text('Demo-Flugzeug', 'Demo aircraft'),
-  handbookRevision: 'none, placeholder content',
-  controls: {
-    breaker: {
-      kind: 'breaker',
-      positions: ['in', 'pulled'],
-      initial: 'pulled',
-      name: text('Sicherung', 'Breaker'),
-      description: text('Eine Platzhalter-Sicherung.', 'A placeholder breaker.'),
-    },
-  },
-  indicators: {},
+  handbookRevision: 'fictional aircraft; no handbook',
+  controls,
+  indicators,
   views: {
     panel: {
       name: text('Instrumententafel', 'Panel'),
-      image: new URL('./panel.svg', import.meta.url).href,
-      controls: { breaker: { rect: { x: 60, y: 30, w: 40, h: 30 } } },
+      image: images.panel,
+      size: { width: 1406, height: 660 },
+      controls: {
+        battery: { rect: { x: 40, y: 375, w: 118, h: 210 } },
+        alternator: { rect: { x: 163, y: 375, w: 118, h: 210 } },
+        avionics: { rect: { x: 286, y: 375, w: 118, h: 210 } },
+        annunciator: { rect: { x: 409, y: 375, w: 118, h: 210 } },
+        starter: { rect: { x: 532, y: 375, w: 118, h: 210 } },
+        magnetos: { rect: { x: 688, y: 345, w: 270, h: 270 } },
+        alternatorBreaker: { rect: { x: 978, y: 363, w: 196, h: 235 } },
+        avionicsBreaker: { rect: { x: 1174, y: 363, w: 196, h: 235 } },
+      },
+      indicators: {
+        tachometer: { rect: { x: 45, y: 50, w: 260, h: 260 } },
+        oilPressure: { rect: { x: 330, y: 50, w: 260, h: 260 } },
+        ammeter: { rect: { x: 615, y: 50, w: 260, h: 260 } },
+        hourMeter: { rect: { x: 950, y: 50, w: 380, h: 126 } },
+        lowVoltageLamp: { rect: { x: 915, y: 200, w: 210, h: 90 } },
+        oilPressureLamp: { rect: { x: 1150, y: 200, w: 210, h: 90 } },
+      },
+    },
+    console: {
+      name: text('Mittelkonsole', 'Centre console'),
+      image: images.console,
+      size: { width: 800, height: 560 },
+      controls: {
+        throttle: { rect: { x: 60, y: 60, w: 150, h: 440 } },
+        mixture: { rect: { x: 230, y: 60, w: 150, h: 440 } },
+        flaps: { rect: { x: 400, y: 60, w: 160, h: 440 } },
+        fuelSelector: { rect: { x: 625, y: 60, w: 130, h: 200 } },
+        fuelShutoff: { rect: { x: 625, y: 300, w: 130, h: 200 } },
+      },
+    },
+    avionics: {
+      name: text('Funkgeräte', 'Radio stack'),
+      image: images.avionics,
+      size: { width: 640, height: 432 },
     },
   },
-  systems: { initial, step: (state: DemoState) => state },
-  failures: {},
+  devices: {
+    radio: {
+      device: 'com',
+      view: 'avionics',
+      placement: { rect: { x: 16, y: 16, w: 608, h: 192 } },
+      powered: avionicsPowered,
+      inputs: {},
+    },
+    xpdr: {
+      device: 'transponder',
+      view: 'avionics',
+      placement: { rect: { x: 16, y: 232, w: 608, h: 184 } },
+      powered: avionicsPowered,
+      inputs: { pressureAltitude },
+    },
+  },
+  systems: { initial, step },
+  failures: {
+    alternatorFailure: {
+      name: text('Generatorausfall', 'Alternator failure'),
+      trips: ['alternatorBreaker'],
+    },
+  },
   phases: {
     parking: {
       name: text('Parkposition', 'Parking'),
-      image: new URL('./parking.svg', import.meta.url).href,
-      environment,
-      entry: { controls: { breaker: 'pulled' }, state: initial },
+      image: images.parking,
+      environment: ground(),
+      entry: { controls: parked, state: initial },
+    },
+    holding: {
+      name: text('Rollhalt', 'Holding point'),
+      image: images.holding,
+      environment: ground(),
+      entry: { controls: idling, state: runningFrom(idling) },
+    },
+    departure: {
+      name: text('Abflug', 'Departure'),
+      image: images.departure,
+      environment: departureEnvironment,
+      entry: { controls: departing, state: runningFrom(departing, departureEnvironment) },
+    },
+    cruise: {
+      name: text('Reiseflug', 'Cruise'),
+      image: images.cruise,
+      environment: cruiseEnvironment,
+      entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment) },
+    },
+    approach: {
+      name: text('Anflug', 'Approach'),
+      image: images.approach,
+      environment: approachEnvironment,
+      entry: { controls: approaching, state: runningFrom(approaching, approachEnvironment) },
+    },
+    landing: {
+      name: text('Landung', 'Landing'),
+      image: images.landing,
+      environment: landingEnvironment,
+      entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment) },
+    },
+    taxiIn: {
+      name: text('Rollen zum Vorfeld', 'Taxi in'),
+      image: images.taxiIn,
+      environment: ground(),
+      entry: { controls: taxiingIn, state: runningFrom(taxiingIn) },
+    },
+    parkingSecuring: {
+      name: text('Parken und Sichern', 'Parking and securing'),
+      image: images.parkingSecuring,
+      environment: ground(),
+      entry: { controls: idling, state: runningFrom(idling) },
     },
   },
   procedures: {
-    resetBreaker: {
-      title: text('Sicherung eindrücken', 'Reset the breaker'),
+    engineStart: {
+      title: text('Triebwerk anlassen', 'Engine start'),
       type: 'normal',
       startPhase: 'parking',
       items: [
         {
+          type: 'confirm',
+          text: text(
+            'Außenkontrolle beendet, Propellerbereich frei',
+            'Walk-around done, propeller area clear',
+          ),
+        },
+        {
+          type: 'check',
+          target: { control: 'fuelShutoff' },
+          condition: (state) => state.controls.fuelShutoff === 'open',
+          text: text('Kraftstoff-Absperrhahn offen', 'Fuel shut-off open'),
+        },
+        {
           type: 'action',
-          control: 'breaker',
+          control: 'fuelSelector',
+          position: 'both',
+          text: text('Tankwahlschalter auf BOTH', 'Fuel selector BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'mixture',
+          position: 1,
+          text: text('Gemisch fett', 'Mixture rich'),
+        },
+        {
+          type: 'action',
+          control: 'battery',
+          position: 'on',
+          text: text('Batterie EIN', 'Battery master ON'),
+        },
+        {
+          type: 'action',
+          control: 'alternator',
+          position: 'on',
+          text: text('Generator EIN', 'Alternator ON'),
+        },
+        {
+          type: 'action',
+          control: 'annunciator',
+          position: 'test',
+          holdUntil: (state) => lowVoltageLit(state) && oilPressureLit(state),
+          text: text(
+            'Warnlampen auf TEST halten, bis beide leuchten',
+            'Hold the annunciator switch at TEST until both lamps light',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'both',
+          text: text('Zündschalter auf BOTH', 'Magneto key BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'starter',
+          position: 'held',
+          holdUntil: (state) => state.systems.engine.running,
+          text: text(
+            'Anlasser halten, bis das Triebwerk läuft',
+            'Hold the starter until the engine runs',
+          ),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'oilPressure' },
+          condition: (state) => state.systems.oilPsi >= 40,
+          text: text('Öldruck im grünen Bereich', 'Oil pressure in the green'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'ammeter' },
+          condition: (state) => state.systems.amps > 0,
+          text: text('Amperemeter zeigt Ladung', 'Ammeter shows charge'),
+        },
+        {
+          type: 'action',
+          control: 'avionics',
+          position: 'on',
+          text: text('Avionik EIN', 'Avionics master ON'),
+        },
+      ],
+    },
+    beforeTakeoff: {
+      title: text('Vor dem Start', 'Before take-off'),
+      type: 'normal',
+      startPhase: 'holding',
+      items: [
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm >= 600 && state.systems.rpm <= 900,
+          text: text('Leerlauf ruhig, 600 bis 900 U/min', 'Idle is steady, 600 to 900 rpm'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'lowVoltageLamp' },
+          condition: (state) => !lowVoltageLit(state),
+          text: text('Spannungslampe aus', 'Low-voltage lamp is out'),
+        },
+        {
+          type: 'action',
+          control: 'throttle',
+          position: 1,
+          text: text('Leistungshebel auf Vollgas', 'Throttle full'),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'right',
+          text: text('Zündschalter auf RIGHT', 'Magneto key RIGHT'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm >= 2350,
+          text: text('Drehzahlabfall höchstens 150 U/min', 'Rpm drop is no more than 150'),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'left',
+          text: text('Zündschalter auf LEFT', 'Magneto key LEFT'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm >= 2350,
+          text: text('Drehzahlabfall höchstens 150 U/min', 'Rpm drop is no more than 150'),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'both',
+          text: text('Zündschalter auf BOTH', 'Magneto key BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'throttle',
+          position: 0,
+          text: text('Leistungshebel auf Leerlauf', 'Throttle idle'),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'takeoff',
+          text: text('Klappen auf TAKEOFF', 'Flaps TAKEOFF'),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            'Türen verriegelt, Gurte fest, Steuerung frei',
+            'Doors latched, harnesses tight, controls free',
+          ),
+        },
+      ],
+    },
+    radioAndTransponder: {
+      title: text('Funk und Transponder', 'Radio and transponder'),
+      type: 'normal',
+      startPhase: 'holding',
+      items: [
+        {
+          type: 'check',
+          target: { control: 'avionics' },
+          condition: (state) => state.devices.radio?.on === true && state.devices.xpdr?.on === true,
+          text: text(
+            'Funkgerät und Transponder sind eingeschaltet',
+            'Radio and transponder are on',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'radio.coarse',
+          position: 'up',
+          text: text(
+            'Bereitschaftsfrequenz um 1 MHz erhöhen',
+            'Raise the standby frequency by 1 MHz',
+          ),
+        },
+        {
+          type: 'check',
+          target: { control: 'radio.coarse' },
+          condition: (state) => radio(state)?.standby === 120000,
+          text: text('Bereitschaftsfrequenz 120,000 MHz', 'Standby frequency is 120.000 MHz'),
+        },
+        {
+          type: 'action',
+          control: 'radio.swap',
+          position: 'pressed',
+          text: text('Frequenzen tauschen', 'Swap the frequencies'),
+        },
+        {
+          type: 'check',
+          target: { control: 'radio.swap' },
+          condition: (state) => radio(state)?.active === 120000,
+          text: text('Aktive Frequenz 120,000 MHz', 'Active frequency is 120.000 MHz'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.code1',
+          position: '1',
+          text: text('Transpondercode, erste Ziffer 1', 'Transponder code, first digit 1'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.code2',
+          position: '2',
+          text: text('Transpondercode, zweite Ziffer 2', 'Transponder code, second digit 2'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.mode',
+          position: 'alt',
+          text: text('Transponder auf ALT', 'Transponder mode ALT'),
+        },
+        {
+          type: 'check',
+          target: { control: 'xpdr.mode' },
+          condition: (state) => {
+            const reading = transponder(state);
+            return reading?.squawk === '1200' && reading.altitude !== null;
+          },
+          text: text(
+            'Code 1200, die Höhe wird gemeldet',
+            'Code 1200 is set and the altitude is reported',
+          ),
+        },
+      ],
+    },
+    beforeLanding: {
+      title: text('Vor der Landung', 'Before landing'),
+      type: 'normal',
+      startPhase: 'approach',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            'Sitze verriegelt, Gurte fest, Türen verriegelt',
+            'Seats locked, harnesses tight, doors latched',
+          ),
+        },
+        {
+          type: 'check',
+          target: { control: 'fuelSelector' },
+          condition: (state) => state.controls.fuelSelector === 'both',
+          text: text('Tankwahlschalter auf BOTH', 'Fuel selector is on BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'mixture',
+          position: 1,
+          text: text('Gemisch fett', 'Mixture rich'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'oilPressure' },
+          condition: (state) => state.systems.oilPsi >= 40 && state.systems.oilPsi <= 85,
+          text: text('Öldruck im grünen Bereich', 'Oil pressure in the green'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landescheinwerfer EIN', 'Landing light ON'),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'takeoff',
+          text: text('Klappen auf TAKEOFF, erste Stufe', 'Flaps TAKEOFF, first stage'),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'landing',
+          text: text('Klappen im Endanflug auf LANDING', 'Flaps LANDING on final'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landefreigabe erhalten, Piste frei', 'Cleared to land, runway clear'),
+        },
+      ],
+    },
+    afterLanding: {
+      title: text('Nach der Landung', 'After landing'),
+      type: 'normal',
+      startPhase: 'taxiIn',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            'Piste verlassen, hinter der Haltelinie',
+            'Runway vacated, clear of the holding line',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'up',
+          text: text('Klappen auf UP', 'Flaps UP'),
+        },
+        {
+          type: 'confirm',
+          text: text('Landescheinwerfer AUS', 'Landing light OFF'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm > 0 && state.systems.rpm <= 1200,
+          text: text('Rollleistung, höchstens 1200 U/min', 'Taxi power, no more than 1200 rpm'),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            'Rollfreigabe zum Abstellplatz erhalten',
+            'Taxi clearance to the parking position received',
+          ),
+        },
+      ],
+    },
+    shutdownSecuring: {
+      title: text('Triebwerk abstellen und sichern', 'Engine shutdown and securing'),
+      type: 'normal',
+      startPhase: 'parkingSecuring',
+      items: [
+        {
+          type: 'check',
+          target: { control: 'throttle' },
+          condition: (state) => state.controls.throttle === 0,
+          text: text('Leistungshebel auf Leerlauf', 'Throttle is at idle'),
+        },
+        {
+          type: 'action',
+          control: 'avionics',
+          position: 'off',
+          text: text('Avionik AUS', 'Avionics master OFF'),
+        },
+        {
+          type: 'action',
+          control: 'mixture',
+          position: 0,
+          text: text('Gemisch auf Leerlaufabschaltung', 'Mixture idle cut-off'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => !state.systems.engine.running && state.systems.rpm === 0,
+          text: text('Triebwerk steht', 'Engine has stopped'),
+        },
+        {
+          type: 'action',
+          control: 'magnetos',
+          position: 'off',
+          text: text('Zündschalter AUS, Schlüssel abziehen', 'Magneto key OFF, key removed'),
+        },
+        {
+          type: 'confirm',
+          text: text('Beleuchtung AUS', 'Lights OFF'),
+        },
+        {
+          type: 'action',
+          control: 'alternator',
+          position: 'off',
+          text: text('Generator AUS', 'Alternator OFF'),
+        },
+        {
+          type: 'action',
+          control: 'battery',
+          position: 'off',
+          text: text('Batterie AUS', 'Battery master OFF'),
+        },
+        {
+          type: 'action',
+          control: 'fuelSelector',
+          position: 'off',
+          text: text('Tankwahlschalter auf OFF', 'Fuel selector OFF'),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            'Steuersperre gesteckt, Bremsklötze vorgelegt, Flugzeug gesichert',
+            'Control lock fitted, chocks in place, aircraft secured',
+          ),
+        },
+      ],
+    },
+    alternatorFailure: {
+      title: text('Generatorausfall', 'Alternator failure'),
+      type: 'emergency',
+      failure: 'alternatorFailure' satisfies DemoFailure,
+      startPhase: 'cruise',
+      items: [
+        {
+          type: 'check',
+          target: { indicator: 'lowVoltageLamp' },
+          condition: lowVoltageLit,
+          text: text('Spannungslampe leuchtet', 'Low-voltage lamp is lit'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'ammeter' },
+          condition: (state) => state.systems.amps < 0,
+          text: text('Amperemeter zeigt Entladung', 'Ammeter shows discharge'),
+        },
+        {
+          type: 'action',
+          control: 'alternatorBreaker',
           position: 'in',
-          text: text('Sicherung eindrücken', 'Push the breaker in'),
+          text: text('Generatorsicherung einmal eindrücken', 'Push the alternator breaker in once'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'lowVoltageLamp' },
+          condition: lowVoltageLit,
+          text: text(
+            'Lampe leuchtet weiter: Generator bleibt ausgefallen',
+            'Lamp stays lit: the alternator stays failed',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'alternator',
+          position: 'off',
+          text: text('Generator AUS', 'Alternator OFF'),
+        },
+        {
+          type: 'action',
+          control: 'avionics',
+          position: 'off',
+          text: text('Avionik AUS, um die Batterie zu schonen', 'Avionics OFF to save the battery'),
+        },
+        {
+          type: 'confirm',
+          text: text('Baldmöglichst landen', 'Land as soon as practical'),
         },
       ],
     },

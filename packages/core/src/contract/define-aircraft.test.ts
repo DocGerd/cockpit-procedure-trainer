@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { CONTRACT_VERSION, defineAircraft } from './index';
-import type { Aircraft, ControlChange, ControlPosition, GuardPosition } from './index';
+import type {
+  Aircraft,
+  ControlChange,
+  ControlDefinition,
+  ControlPosition,
+  ControlRules,
+  GuardPosition,
+} from './index';
 import type { Text, TrainerState } from './index';
 import { fixtureAircraft } from './fixtures';
 
@@ -411,5 +418,76 @@ describe('compile-time position checks', () => {
         cb: breaker,
       },
     });
+  });
+
+  it('rejects an artwork image set that misses a position', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      controls: {
+        master: {
+          ...toggle,
+          appearance: {
+            artwork: {
+              face: 'face.png',
+              // @ts-expect-error 'on' has no image
+              moving: { type: 'positions', images: { off: 'off.png' } },
+            },
+          },
+        },
+        cb: breaker,
+      },
+    });
+  });
+});
+
+describe('position typo errors', () => {
+  type Override<A, B> = Omit<A, keyof B> & B;
+  type TypoInitial = Override<typeof toggle, { readonly initial: 'of' }>;
+  type TypoDetent = Override<typeof rotary, { readonly springBack: { readonly strat: 'both' } }>;
+  type TypoTarget = Override<typeof rotary, { readonly springBack: { readonly start: 'bothh' } }>;
+  type TypoImage = Override<
+    typeof toggle,
+    {
+      readonly appearance: {
+        readonly artwork: {
+          readonly face: 'face.png';
+          readonly moving: {
+            readonly type: 'positions';
+            readonly images: { readonly off: 'off.png'; readonly onn: 'on.png' };
+          };
+        };
+      };
+    }
+  >;
+  type RulesOf<C extends ControlDefinition> = ControlRules<{ c: C }>['c'];
+
+  it('names the offending initial and the valid positions', () => {
+    type Rule = RulesOf<TypoInitial>['initial'];
+    expectTypeOf<Rule['invalidPosition']>().toEqualTypeOf<'of'>();
+    expectTypeOf<Rule['validPositions']>().toEqualTypeOf<'off' | 'on'>();
+  });
+
+  it('names the offending spring-back detent and the valid positions', () => {
+    type Rule = RulesOf<TypoDetent>['springBack']['strat'];
+    expectTypeOf<Rule['invalidPosition']>().toEqualTypeOf<'strat'>();
+    expectTypeOf<Rule['validPositions']>().toEqualTypeOf<'off' | 'both' | 'start'>();
+  });
+
+  it('names the offending spring-back target and the valid positions', () => {
+    type Rule = RulesOf<TypoTarget>['springBack']['start'];
+    expectTypeOf<Rule['invalidPosition']>().toEqualTypeOf<'bothh'>();
+    expectTypeOf<Rule['validPositions']>().toEqualTypeOf<'off' | 'both' | 'start'>();
+  });
+
+  it('names the offending artwork image key and the valid positions', () => {
+    type Rule = RulesOf<TypoImage>['appearance']['artwork']['moving']['images']['onn'];
+    expectTypeOf<Rule['invalidPosition']>().toEqualTypeOf<'onn'>();
+    expectTypeOf<Rule['validPositions']>().toEqualTypeOf<'off' | 'on'>();
+  });
+
+  it('leaves valid positions unconstrained', () => {
+    expectTypeOf<RulesOf<typeof toggle>['initial']>().toEqualTypeOf<unknown>();
+    expectTypeOf<RulesOf<typeof rotary>['springBack']['start']>().toEqualTypeOf<unknown>();
   });
 });
