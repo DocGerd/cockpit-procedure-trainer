@@ -43,6 +43,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 
 ## Rules
 
+- Quality trade-offs follow `docs/adr/0002-quality-priorities.md`: gates
+  (legal, security/privacy) are never traded; otherwise the higher rank wins
+  and the PR names any sacrificed quality.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
@@ -63,3 +66,4 @@ develop` on its own. A global force-push guard also refuses `--noEmit` and
   `+0`-like text in commands.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
+  `doc-writer` cannot run git/gh: pair it with an agent that commits and opens the PR.
