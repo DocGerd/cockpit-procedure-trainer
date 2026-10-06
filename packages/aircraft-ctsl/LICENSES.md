@@ -5,6 +5,8 @@ Every image below was drawn for this project and is released under the MIT licen
 | File                                           | Use                                       |
 | ---------------------------------------------- | ----------------------------------------- |
 | `src/assets/view-panel.svg`                    | Panel view background (both upper fields) |
+| `src/assets/view-radios.svg`                   | Radio stack view background               |
+| `src/assets/view-gps.svg`                      | GPS view background                       |
 | `src/assets/view-centre.svg`                   | Lower centre field view background        |
 | `src/assets/view-console.svg`                  | Centre console view background            |
 | `src/assets/phase-parking.svg`                 | Outside view, parking                     |
