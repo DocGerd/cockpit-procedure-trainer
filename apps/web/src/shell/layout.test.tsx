@@ -58,6 +58,64 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+describe('the cockpit layout', () => {
+  const layoutOf = () => document.querySelector('.shell')?.getAttribute('data-cockpit-layout');
+
+  // jsdom lays nothing out: give the cockpit section a width and the window a height.
+  function stubRegion(width: number, height: number) {
+    vi.stubGlobal('innerHeight', height);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+  }
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each([
+    ['desktop', DESKTOP_MIN_WIDTH],
+    ['tablet', DESKTOP_MIN_WIDTH - 1],
+  ])('is tabs until the region holds every view at its floor, on a %s shell', async (_, width) => {
+    setWidth(width);
+    renderShell();
+    await startProcedure();
+    expect(layoutOf()).toBe('tabs');
+    expect(screen.getByRole('tablist')).toBeTruthy();
+  });
+
+  it.each([
+    ['desktop', DESKTOP_MIN_WIDTH],
+    ['tablet', DESKTOP_MIN_WIDTH - 1],
+  ])('is combined once the region reaches the floors, on a %s shell', async (_, width) => {
+    setWidth(width);
+    stubRegion(400, 400);
+    renderShell();
+    await startProcedure();
+    expect(layoutOf()).toBe('combined');
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Main' })).toBeTruthy();
+  });
+
+  it('falls back to tabs when the region shrinks below a floor', async () => {
+    setWidth(DESKTOP_MIN_WIDTH);
+    stubRegion(400, 400);
+    renderShell();
+    await startProcedure();
+    expect(layoutOf()).toBe('combined');
+    stubRegion(399, 400);
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(layoutOf()).toBe('tabs');
+  });
+
+  it('keeps the checklist beside the cockpit in both', async () => {
+    setWidth(DESKTOP_MIN_WIDTH);
+    stubRegion(400, 400);
+    renderShell();
+    await startProcedure();
+    expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Outside view' })).toBeTruthy();
+  });
+});
+
 describe('trainer layout on desktop', () => {
   beforeEach(() => setWidth(DESKTOP_MIN_WIDTH));
 

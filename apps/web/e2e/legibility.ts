@@ -1,10 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
-import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
-import { copy, openPicker } from './trainer';
+import { copy, openPicker, showView as showViewTab } from './trainer';
 
 export type Language = 'en' | 'de';
 
@@ -18,9 +17,13 @@ if (!Number.isFinite(MIN_TEXT_PX) || !Number.isFinite(TOUCH_TARGET_PX)) {
 // Sub-pixel rounding of rendered text and boxes.
 const TOLERANCE_PX = 0.5;
 
-export async function openAircraft(page: Page, aircraft: Aircraft) {
-  const first = Object.values(aircraft.procedures).find(({ type }) => type === 'normal');
-  if (!first) throw new Error(`${aircraft.id} has no normal procedure`);
+/** Start a Guided procedure of the aircraft: the named one, else its first normal one. */
+export async function openAircraft(page: Page, aircraft: Aircraft, procedureId?: string) {
+  const first =
+    procedureId === undefined
+      ? Object.values(aircraft.procedures).find(({ type }) => type === 'normal')
+      : aircraft.procedures[procedureId];
+  if (!first) throw new Error(`${aircraft.id} has no procedure to start`);
   await openPicker(page);
   await page.getByRole('button', { name: aircraft.name.en }).click();
   await page.getByRole('button', { name: first.title.en }).click();
@@ -38,16 +41,14 @@ export async function viewRoot(page: Page, viewId: string): Promise<Locator> {
   return (await marked.count()) > 0 ? marked : page.getByRole('tabpanel');
 }
 
-/** Bring a view on screen and return the region that holds it. */
+/** Bring a view on screen, by tab only when there are tabs, and return the region that holds it. */
 export async function showView(
   page: Page,
   aircraft: Aircraft,
   viewId: string,
   language: Language,
 ): Promise<Locator> {
-  const tab = page.getByRole('tab', { name: aircraft.views[viewId]?.name[language] ?? viewId });
-  await tab.click();
-  await expect(tab).toHaveAttribute('aria-selected', 'true');
+  await showViewTab(page, aircraft.views[viewId]?.name[language] ?? viewId);
   return viewRoot(page, viewId);
 }
 

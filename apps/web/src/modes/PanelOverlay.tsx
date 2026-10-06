@@ -46,7 +46,7 @@ function useReducedMotion(): boolean {
   );
 }
 
-function GuidedOverlay({ rects }: { rects: PanelRects }) {
+function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
   const { aircraft } = useTrainer();
   const target = useCurrentTarget();
   const item = useSessionState((session) => session.checklist()?.current);
@@ -63,11 +63,17 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
 
   const key = target && targetKey(target);
   const view = target && targetView(aircraft, target);
+  const previousView = useRef(view);
+  const own = useRef(viewId);
+  own.current = viewId;
   useEffect(() => {
-    if (view !== undefined && view !== latest.current.viewId) {
+    if (view !== undefined && !latest.current.visible(view)) {
       focusPending.current = true;
       latest.current.setView(view);
+    } else if (latest.current.combined && view === own.current && previousView.current !== view) {
+      focusPending.current = true;
     }
+    previousView.current = view;
   }, [key, item, view]);
 
   const box = target && targetBox(rects, target);
@@ -78,13 +84,13 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
 
   const focusControl = target && 'control' in target ? target.control : undefined;
   useEffect(() => {
-    if (!focusPending.current || active.viewId !== view) return;
+    if (!focusPending.current || viewId !== view) return;
     focusPending.current = false;
     if (focusControl === undefined) return;
     (
       widgetAt(layer.current, focusControl) ?? widgetAt(layer.current, installOf(focusControl))
     )?.focus();
-  }, [active.viewId, view, focusControl]);
+  }, [viewId, view, focusControl, key, item]);
 
   return (
     <div ref={layer} className="modes-overlay" data-modes-overlay="">
@@ -155,7 +161,7 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
 }
 
 /** Draws the mode's accent on the panel: the Guided target, or the control selected in Free explore. */
-export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ rects }) => {
+export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => {
   const { mode } = useTrainer();
   const store = useExploreStore();
 
@@ -163,7 +169,7 @@ export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ rects })
     if (mode !== 'explore') store.select(undefined);
   }, [mode, store]);
 
-  if (mode === 'guided') return <GuidedOverlay rects={rects} />;
+  if (mode === 'guided') return <GuidedOverlay viewId={viewId} rects={rects} />;
   if (mode === 'explore') return <ExploreOverlay rects={rects} />;
   return null;
 };

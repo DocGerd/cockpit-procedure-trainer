@@ -38,6 +38,17 @@ describe('panel stylesheet', () => {
     expect(body).not.toMatch(/overflow:\s*(hidden|auto|scroll)/);
   });
 
+  it('contain-fits a stage inside its cockpit cell without letting the cell grow', () => {
+    const body = rule(".panel-stage[data-fit='cell']")?.body;
+    expect(body).toMatch(/width:\s*min\(100%,\s*calc\(var\(--cell-height\)/);
+    expect(body).toMatch(/flex:\s*none/);
+  });
+
+  it('keeps the cells of the combined layout absolutely placed inside the arrangement', () => {
+    expect(rule('.panel-cockpit')?.body).toMatch(/position:\s*relative/);
+    expect(rule('.panel-cell')?.body).toMatch(/position:\s*absolute/);
+  });
+
   it('only draws the zoom transform while zoomed', () => {
     expect(rule('.panel-zoom')?.body).not.toMatch(/transform:/);
     expect(rule('.panel-zoom[data-zoomed]')?.body).toMatch(/transform:/);
