@@ -155,6 +155,37 @@ export async function deviceTargets(root: Locator): Promise<string[]> {
     .map(({ label, size }) => `device button ${label} ${size.toFixed(1)}px`);
 }
 
+/** The finding for overlapping targets of one placement (`a`) or of two (`a and b`, sorted). */
+export const overlapProblem = (viewId: string, placements: string) =>
+  `${viewId}: touch targets of ${placements} overlap`;
+
+/**
+ * Placements whose operable targets, position targets and device buttons alike, overlap once
+ * each is given a touch-target square centred on it: a tap there can land on the neighbour.
+ */
+export async function targetOverlaps(root: Locator, viewId: string): Promise<string[]> {
+  const targets = await root
+    .locator(':is([data-kind="control"], [data-kind="device"]) :is(button, [role="slider"])')
+    .evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const { left, right, top, bottom, width } = element.getBoundingClientRect();
+        if (width === 0) return [];
+        const placement = element.closest('[data-placement]')?.getAttribute('data-placement');
+        return [{ placement: placement ?? '', x: (left + right) / 2, y: (top + bottom) / 2 }];
+      }),
+    );
+  const reach = TOUCH_TARGET_PX - TOLERANCE_PX;
+  const found = new Set<string>();
+  targets.forEach((a, index) => {
+    for (const b of targets.slice(index + 1)) {
+      if (Math.abs(a.x - b.x) >= reach || Math.abs(a.y - b.y) >= reach) continue;
+      const pair = [...new Set([a.placement, b.placement])].sort();
+      found.add(overlapProblem(viewId, pair.join(' and ')));
+    }
+  });
+  return [...found];
+}
+
 const source = (url: string) => readFileSync(fileURLToPath(url), 'utf8');
 
 const viewBoxWidth = (svg: string) => Number(/viewBox="[\d.]+ [\d.]+ ([\d.]+)/.exec(svg)?.[1]);
@@ -281,5 +312,6 @@ export async function legibilityProblems(
     ...(await placardProblems(root, aircraft, viewId)),
     ...(await letteringProblems(root, aircraft, viewId)),
     ...(await deviceTargets(root)),
+    ...(await targetOverlaps(root, viewId)),
   ];
 }

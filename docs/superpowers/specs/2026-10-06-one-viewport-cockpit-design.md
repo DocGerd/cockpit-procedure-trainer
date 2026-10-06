@@ -21,7 +21,7 @@ Target sizes, in this order (ADR-0002, owner comment on #253):
 3. Tablet and smaller: stay usable through tabs. No layout work targets them.
 
 Out of scope: a 3D renderer, the airfield definition of #254, target overlap
-between neighbouring controls (Decision 7).
+between neighbouring controls (Decision 7; checked since #271).
 
 ## 2. The switch rule
 
@@ -312,11 +312,16 @@ and dark, each mode; one tablet size to confirm tabs still work.
    rule already yields tabs there.
 6. **Zoom stays per view in combined.** Reason: least change; a pinch on one
    unit is what a pilot means.
-7. **Target overlap is not part of the rule.** The sweep shows neighbouring
-   44 px targets overlapping when a placement is narrower than the target
-   (CTSL breakers, the demo's three-position annunciator rocker), in the tabs
-   layout today. The owner's rule does not include it and adding it would
-   raise the floors past any HD fit. Recorded for a separate issue.
+7. **Target overlap is checked at the floors but does not set them.** The floor
+   test fails when the 44 px squares centred on two operable targets of a view
+   overlap, whether positions of one control or two controls (#271). Overlaps
+   that spacing can remove are fixed. The rest, the positions of small
+   multi-position controls and the CTSL breaker rows as fitted, would need
+   higher floors and so the loss of the HD fit; `apps/web/e2e/floors.spec.ts`
+   accepts each by name with its reason and fails once an accepted overlap is
+   gone. Quality sacrificed: touch precision on those controls (accessibility,
+   rank 2) for the whole cockpit in view (Training UX, rank 2) and the fitted
+   breaker rows (realism, rank 2).
 8. **4K means 3840x2160 CSS px at DPR 1.** Reason: that is the case with the
    most room; DPR 2 is the HD case.
 
@@ -326,5 +331,6 @@ and dark, each mode; one tablet size to confirm tabs still work.
    look wrong, which chrome yields first: the checklist as a collapsible
    column at HD, or the outside view folded into the checklist column? (Either
    alone gains less than the floor work; the plan does not assume one.)
-2. Target overlap (Decision 7): its own issue, and should the floor test
-   gain a no-overlap check once the art allows it?
+2. ~~Target overlap (Decision 7): its own issue, and should the floor test
+   gain a no-overlap check once the art allows it?~~ Superseded: the floor
+   test checks it, with the remaining overlaps accepted by name (Decision 7).
