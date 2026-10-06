@@ -160,6 +160,12 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
     expect(output().worker).toContain(`setCacheNameDetails({prefix:"${env}"})`);
   });
 
+  it('claims the page, falls back to the app shell and drops outdated caches', () => {
+    expect(output().worker).toContain('clientsClaim()');
+    expect(output().worker).toContain('createHandlerBoundToURL("index.html")');
+    expect(output().worker).toContain('cleanupOutdatedCaches()');
+  });
+
   it('waits for consent before taking over', () => {
     expect(output().worker.match(/skipWaiting\(\)/g)).toHaveLength(1);
     expect(output().worker).toMatch(/SKIP_WAITING.{0,20}skipWaiting\(\)/);

@@ -1,16 +1,23 @@
 // @vitest-environment jsdom
-import { cleanup, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { UpdatePrompt } from './UpdatePrompt';
 
-const register = vi.hoisted(() => ({ waiting: false, update: vi.fn() }));
+type Options = { onRegisteredSW?: (url: string, registration?: { waiting: unknown }) => void };
+
+const register = vi.hoisted(() => ({
+  waiting: false,
+  update: vi.fn(),
+  options: {} as Options,
+}));
 
 vi.mock('./register', async () => {
   const { useState } = await import('react');
   return {
-    useRegisterSW: () => {
+    useRegisterSW: (options: Options) => {
+      register.options = options;
       const [needRefresh, setNeedRefresh] = useState(register.waiting);
       return {
         needRefresh: [needRefresh, setNeedRefresh],
@@ -67,6 +74,32 @@ describe('UpdatePrompt', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Later' }));
     first.unmount();
     renderWithLanguage(<UpdatePrompt />);
+    expect(screen.getByRole('status')).toBeTruthy();
+  });
+
+  it('shows the prompt when registration finds a worker already waiting', () => {
+    renderWithLanguage(<UpdatePrompt />);
+    expect(screen.queryByRole('status')).toBeNull();
+    act(() => register.options.onRegisteredSW?.('sw.js', { waiting: {} }));
+    expect(screen.getByRole('status')).toBeTruthy();
+    expect(register.update).not.toHaveBeenCalled();
+  });
+
+  it('stays hidden when registration finds nothing waiting', () => {
+    renderWithLanguage(<UpdatePrompt />);
+    act(() => register.options.onRegisteredSW?.('sw.js', { waiting: null }));
+    act(() => register.options.onRegisteredSW?.('sw.js', undefined));
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('hides a prompt raised by a waiting worker on Later, and raises it again on the next load', async () => {
+    const first = renderWithLanguage(<UpdatePrompt />);
+    act(() => register.options.onRegisteredSW?.('sw.js', { waiting: {} }));
+    await userEvent.click(screen.getByRole('button', { name: 'Later' }));
+    expect(screen.queryByRole('status')).toBeNull();
+    first.unmount();
+    renderWithLanguage(<UpdatePrompt />);
+    act(() => register.options.onRegisteredSW?.('sw.js', { waiting: {} }));
     expect(screen.getByRole('status')).toBeTruthy();
   });
 

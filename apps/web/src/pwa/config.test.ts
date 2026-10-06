@@ -33,6 +33,14 @@ describe('pwaOptions', () => {
     expect(prod.workbox?.skipWaiting).toBe(false);
   });
 
+  it('controls the page after the first visit and answers navigations with the app shell', () => {
+    for (const options of [prod, uat]) {
+      expect(options.workbox?.clientsClaim).toBe(true);
+      expect(options.workbox?.navigateFallback).toBe('index.html');
+      expect(options.workbox?.cleanupOutdatedCaches).toBe(true);
+    }
+  });
+
   it('scopes each environment to its own base path', () => {
     expect(prod.scope).toBe('/app/');
     expect(prod.manifest).toMatchObject({ scope: '/app/', start_url: '/app/', id: '/app/' });

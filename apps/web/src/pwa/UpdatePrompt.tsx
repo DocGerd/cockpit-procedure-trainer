@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useRegisterSW } from './register';
 import { useMessages } from '../i18n';
 import { messages } from './messages';
@@ -5,12 +6,22 @@ import './pwa.css';
 
 export function UpdatePrompt() {
   const text = useMessages(messages);
+  const [waitingAtStart, setWaitingAtStart] = useState(false);
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
-  } = useRegisterSW();
+  } = useRegisterSW({
+    onRegisteredSW(_url, registration) {
+      if (registration?.waiting) setWaitingAtStart(true);
+    },
+  });
 
-  if (!needRefresh) return null;
+  if (!needRefresh && !waitingAtStart) return null;
+
+  const later = () => {
+    setNeedRefresh(false);
+    setWaitingAtStart(false);
+  };
 
   return (
     <div role="status" className="update-prompt">
@@ -19,7 +30,7 @@ export function UpdatePrompt() {
         <div className="update-prompt-body">{text.updateBody}</div>
       </div>
       <div className="update-prompt-actions">
-        <button type="button" className="button-secondary" onClick={() => setNeedRefresh(false)}>
+        <button type="button" className="button-secondary" onClick={later}>
           {text.later}
         </button>
         <button
