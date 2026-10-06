@@ -149,6 +149,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   };
 
   checkText(aircraft.id, 'name', aircraft.name);
+  checkText(aircraft.id, 'handbookRevision', aircraft.handbookRevision);
 
   for (const [id, control] of controls) {
     checkText(id, 'name', control.name);

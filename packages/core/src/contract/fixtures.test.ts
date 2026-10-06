@@ -71,7 +71,7 @@ describe('cockpit arrangement types', () => {
   const aircraft = {
     id: 'mini',
     name,
-    handbookRevision: 'rev 1',
+    handbookRevision: name,
     controls: {},
     indicators: {},
     views: {
