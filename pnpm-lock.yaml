@@ -50,6 +50,12 @@ importers:
       '@cpt/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@cpt/device-com':
+        specifier: workspace:*
+        version: link:../../packages/device-com
+      '@cpt/device-transponder':
+        specifier: workspace:*
+        version: link:../../packages/device-transponder
       '@cpt/panel-kit':
         specifier: workspace:*
         version: link:../../packages/panel-kit
