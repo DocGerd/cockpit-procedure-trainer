@@ -108,10 +108,10 @@ describe('ComScreen styling', () => {
   it('styles the volume slider in both engines', () => {
     const text = css();
     expect(text).toMatch(/input\[type="range"\] \{[^}]*accent-color: var\(--panel-/);
-    expect(text).toContain('::-webkit-slider-thumb');
-    expect(text).toContain('::-moz-range-thumb');
-    expect(text).toContain('::-webkit-slider-runnable-track');
-    expect(text).toContain('::-moz-range-track');
+    expect(text).toContain('::-webkit-slider-thumb {');
+    expect(text).toContain('::-moz-range-thumb {');
+    expect(text).toContain('::-webkit-slider-runnable-track {');
+    expect(text).toContain('::-moz-range-track {');
   });
 
   it('takes every colour from a panel token and uses no brand or status token', () => {

@@ -5,7 +5,7 @@ import { formatFrequency } from '../logic';
 import type { ComState } from '../logic';
 
 const track =
-  'height: var(--space-2); border-radius: var(--radius-pill); background: var(--panel-bezel-dark); border: 0;';
+  'height: var(--space-2); border-radius: var(--radius-pill); background: var(--panel-bezel); border: 0;';
 const thumb =
   'width: var(--space-4); height: var(--space-4); border-radius: var(--radius-pill); background: var(--panel-cap-light); border: 0;';
 
