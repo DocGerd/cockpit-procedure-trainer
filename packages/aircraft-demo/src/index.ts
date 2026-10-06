@@ -48,6 +48,7 @@ export const demoAircraft = defineAircraft({
     panel: {
       name: text('Instrumententafel', 'Panel'),
       image: images.panel,
+      size: { width: 1200, height: 640 },
       controls: {
         battery: { rect: { x: 50, y: 370, w: 110, h: 190 } },
         alternator: { rect: { x: 170, y: 370, w: 110, h: 190 } },
@@ -70,6 +71,7 @@ export const demoAircraft = defineAircraft({
     console: {
       name: text('Mittelkonsole', 'Centre console'),
       image: images.console,
+      size: { width: 800, height: 560 },
       controls: {
         throttle: { rect: { x: 60, y: 60, w: 150, h: 440 } },
         mixture: { rect: { x: 230, y: 60, w: 150, h: 440 } },

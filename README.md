@@ -23,6 +23,8 @@ Requires Node 24 and pnpm.
     pnpm test         # unit tests
     pnpm lint && pnpm format:check && pnpm typecheck
 
+To add an aircraft, see [Adding an aircraft](docs/adding-an-aircraft.md).
+
 ## Licence
 
 MIT. © 2026 Patrick Kuhn
