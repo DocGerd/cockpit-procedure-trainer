@@ -73,12 +73,14 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
-- Rocker-switch row, left to right: **Avionics Master** (larger), Beacon Light,
+- Rocker-switch row, left to right: **Avionics Master** (larger; checklist label
+  Avionik), Beacon Light,
   Position Light, Intercom, Cockpit Light, Landing Light. A placard under the row
   says to switch the avionics off before engine start and stop.
 - Below the row: 12 V socket (left), intercom panel (centre), an audio-source
   selector and audio jack (right). Background drawing only.
-- ELT remote switch (ELT Fernschalter) with its lamp, left of centre.
+- ELT remote switch (ELT Fernschalter; checklist label Notsender) with its lamp,
+  left of centre.
 - Flap position indicator (Klappenstellungsanzeige): a red seven-segment readout
   labelled "Flaps", centre. To its right the flap breaker (Klappensicherung, 8 A,
   thermal), then two headset emergency jacks (background).
@@ -277,7 +279,7 @@ checklist names. Steps marked _(confirm)_ have no control in the trainer.
 
 **N1 Pre-flight, cabin part (HB 4-1, 4-2).** Documents on board _(confirm)_;
 controls connected and free _(confirm)_; wing bolts secured _(confirm)_; ignition
-off and key out; electrical consumers off; Avionics Master off; BAT in; flaps run
+off; key out _(confirm)_; electrical consumers off; Avionics Master off; BAT in; flaps run
 out and back to check them; BAT out; fuel valve (Brandhahn) open; doors and
 glazing checked _(confirm)_. Walk-around zones as confirm items, one each: left
 fuselage and tail; right fuselage; right wing incl. fuel quantity (sight tube or
@@ -303,11 +305,11 @@ if the aircraft rolls during start, ignition off.
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-transponder on, standby; choke off; carb heat off; throttle to 4000 rpm; engine
+transponder on, standby _(confirm)_; choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
-lamp out; throttle idle; flaps 15°; trim neutral; radio set; rescue system armed,
-pin removed (Rettungsgerät entsichert); ELT armed; passenger briefed _(confirm)_;
+lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
+pin removed (Rettungsgerät entsichert) _(confirm)_; ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
 **N7 Normal take-off (HB 4-3, 4-10, 4-11).** Flaps 15° (0° on pavement); carb heat
@@ -344,8 +346,8 @@ off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
 accidental ELT activation _(confirm)_.
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
-off; electrical consumers off; GEN out; ignition off; BAT out; key out; rescue
-system secured, pin in (gesichert); ELT checked and left armed (§9); chocks
+off; electrical consumers off; GEN out; ignition off; BAT out; key out _(confirm)_; rescue
+system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
 _(confirm)_.
 
 ## 7. Emergency procedures (our wording)
@@ -376,7 +378,7 @@ touchdown stick fully back and brake; ELT on if it has not triggered. Too high:
 S-turns.
 
 **E6 Engine fire (HB 3-2, 3-6).** Fuel valve closed at once; throttle full until
-the engine stops; ignition off; key out (the closed valve covers the key slot, so
+the engine stops; ignition off; key out _(confirm)_ (the closed valve covers the key slot, so
 this also proves the valve is fully closed); slip away from the flames while
 descending; emergency landing (E5). **Never deploy the rescue system with fire on
 board** (§8).
@@ -385,7 +387,7 @@ board** (§8).
 (**120 °C**, §8), using flaps 0–15° if speed gets low; land at the nearest
 airfield.
 
-**E8 Oil loss (HB 3-2, 3-7).** Ignition off; key out; fuel valve closed;
+**E8 Oil loss (HB 3-2, 3-7).** Ignition off; key out _(confirm)_; fuel valve closed;
 emergency landing (E5) at once: fire risk.
 
 **E9 Flap control failure (HB 3-2, 3-7, 3-8, 7-13).** GEN out; BAT out; wait 3 s;
@@ -420,7 +422,7 @@ get out, fire risk).
 | Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                         | 105 km/h (more margin over the stall)                         |
 | Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)     | 125 km/h flaps 0° (the emergency chapter)                     |
 | Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)         | gauge arcs as marked; speeds as listed                        |
-| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)     | 184 km/h for any setting of 0° or more                        |
+| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)     | 184 km/h at 0°; 15°, 30° and 35° per §4.1                     |
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)   | never deploy; the fire procedure ends in an emergency landing |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off         | left armed                                                    |
 | VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                              | 260 km/h                                                      |
