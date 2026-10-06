@@ -1,6 +1,6 @@
 import type { DeviceInstall } from '@cpt/core';
 import type { CtslState, CtslTrainerState } from './systems';
-import { stackSlots } from './views';
+import { gpsSlot, stackSlots } from './views';
 import type { ViewId } from './views';
 
 const avionicsOn =
@@ -22,5 +22,12 @@ export const devices = {
     placement: stackSlots.xpdr,
     powered: avionicsOn('xpdrBreaker'),
     inputs: { pressureAltitude: (state) => state.systems.altitudeFt },
+  },
+  gps: {
+    device: 'gpsmap496',
+    view: 'gps',
+    placement: gpsSlot,
+    powered: avionicsOn('gpsBreaker'),
+    inputs: {},
   },
 } as const satisfies Record<string, DeviceInstall<CtslState, ViewId>>;

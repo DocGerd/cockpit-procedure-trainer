@@ -13,6 +13,7 @@
     "@cpt/aircraft-demo": "workspace:*",
     "@cpt/core": "workspace:*",
     "@cpt/device-com": "workspace:*",
+    "@cpt/device-gpsmap496": "workspace:*",
     "@cpt/device-gtx327": "workspace:*",
     "@cpt/device-sl40": "workspace:*",
     "@cpt/device-transponder": "workspace:*",

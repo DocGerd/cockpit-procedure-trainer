@@ -21,6 +21,8 @@ export const stackSlots = {
   xpdr: at(16, 244, 608, 224),
 } as const satisfies Record<string, Placement>;
 
+export const gpsSlot = at(16, 12, 608, 216);
+
 export const views = {
   panel: {
     name: text('Instrumententafel', 'Panel'),
@@ -51,6 +53,11 @@ export const views = {
     name: text('Funkgeräte', 'Radio stack'),
     image: images.radios,
     size: { width: 640, height: 480 },
+  },
+  gps: {
+    name: text('GPS', 'GPS'),
+    image: images.gps,
+    size: { width: 640, height: 240 },
   },
   centre: {
     name: text('Mittelfeld', 'Centre field'),

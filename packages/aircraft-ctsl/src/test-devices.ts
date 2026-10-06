@@ -78,6 +78,24 @@ const gtx327StandIn = defineDevice({
   step: (state) => state,
 });
 
+const gpsmap496StandIn = defineDevice({
+  id: 'gpsmap496',
+  manual: text('Platzhalter für Tests', 'Test stand-in'),
+  notModelled: [text('alles', 'everything')],
+  controls: {
+    power: momentary(text('Ein/Aus', 'Power')),
+    backlight: momentary(text('Beleuchtung', 'Backlight')),
+    page: momentary(text('Seite', 'Page')),
+    quit: momentary(text('Zurück', 'Quit')),
+  },
+  initial: {},
+  step: (state) => state,
+});
+
 // An aircraft depends on core only, so its tests install stand-ins that share the control ids of
 // the real devices. Each device task adds its stand-in here.
-export const testDevices: readonly Device[] = [sl40StandIn as Device, gtx327StandIn as Device];
+export const testDevices: readonly Device[] = [
+  sl40StandIn as Device,
+  gtx327StandIn as Device,
+  gpsmap496StandIn as Device,
+];
