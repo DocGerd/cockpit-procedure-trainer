@@ -180,6 +180,26 @@ describe('walkProcedure', () => {
     expect(walk([press, released])).toEqual({ ok: true });
   });
 
+  it('presses once per consecutive item on a momentary control', () => {
+    const press = {
+      type: 'action',
+      control: 'button',
+      position: 'held',
+      text: text('Drücken', 'Press'),
+    } as const;
+    expect(walk([press, press, press])).toEqual({ ok: true });
+  });
+
+  it('presses once per consecutive item on a spring-back detent', () => {
+    const start = {
+      type: 'action',
+      control: 'key',
+      position: 'start',
+      text: text('Starten', 'Key to START'),
+    } as const;
+    expect(walk([start, start])).toEqual({ ok: true });
+  });
+
   it('advances time for a hold condition on a control that is not momentary', () => {
     expect(walk([{ ...masterOn, holdUntil: ms(500) }])).toEqual({ ok: true });
   });
