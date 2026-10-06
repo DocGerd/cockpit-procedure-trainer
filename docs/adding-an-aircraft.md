@@ -330,8 +330,10 @@ Then run the project checks from the repository root:
 ## Package documents
 
 - `README.md` with a `## Source revision` section naming the handbook revision the
-  content follows, or stating that the aircraft is fictional. Set the same words
-  in `handbookRevision`, in German and English, which the aircraft picker shows.
+  content follows, or stating that the aircraft is fictional. `handbookRevision`,
+  which the aircraft picker shows, is a `Text`: its `en` value carries the source
+  wording of the README section, its `de` value is a translation of it. The README
+  stays English.
 - `LICENSES.md` with one entry per image file path, naming its author and licence,
   as `packages/aircraft-demo/LICENSES.md` does. State plainly that none is based on
   a manufacturer's artwork or a handbook scan.

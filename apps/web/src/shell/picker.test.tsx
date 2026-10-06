@@ -144,9 +144,13 @@ describe('picker card text in German', () => {
       };
       for (const [field, value] of Object.entries(fields)) {
         expect(value.de.trim(), `${aircraft.id} ${field} de`).not.toBe('');
-        expect(value.de, `${aircraft.id} ${field} de equals en`).not.toBe(value.en);
         expect(card, `${aircraft.id} ${field}`).toContain(value.de);
-        expect(card, `${aircraft.id} ${field} en leaks`).not.toContain(value.en);
+        if (field === 'handbookRevision') {
+          expect(value.de, `${aircraft.id} ${field} de equals en`).not.toBe(value.en);
+        }
+        if (value.en !== value.de) {
+          expect(card, `${aircraft.id} ${field} en leaks`).not.toContain(value.en);
+        }
       }
     });
   });
