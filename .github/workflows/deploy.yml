@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ matrix.ref }}
+          ref: ${{ github.ref_name == matrix.ref && github.sha || matrix.ref }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -48,6 +48,8 @@ jobs:
           elif grep -q 'name="robots"' apps/web/dist/index.html; then
             exit 1
           fi
+      - name: Record the built commit
+        run: printf '{"commit":"%s"}\n' "$(git rev-parse HEAD)" > apps/web/dist/version.json
       - uses: actions/upload-artifact@v7
         with:
           name: dist-${{ matrix.env }}
@@ -56,12 +58,13 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       pages: write
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outcome == 'success' && steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -87,5 +90,69 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
+      # actions/deploy-pages#406: a deploy can wedge in a non-terminal status.
       - id: deployment
+        continue-on-error: true
         uses: actions/deploy-pages@v5
+      - name: Wait before retrying the deploy
+        if: steps.deployment.outcome == 'failure'
+        run: |
+          echo "::warning::deploy-pages attempt 1 failed, retrying once"
+          sleep 60
+      - id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+
+  uat-environment:
+    needs: deploy
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: uat
+      url: https://docgerd.github.io/cockpit-procedure-trainer/uat/
+    steps:
+      - name: Served build must be the pushed commit
+        env:
+          VERSION_URL: https://docgerd.github.io/cockpit-procedure-trainer/uat/version.json
+          EXPECTED: ${{ github.sha }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if body=$(wget -qO- --timeout=20 --tries=1 "$VERSION_URL?cb=$EXPECTED-$attempt"); then
+              served=$(printf '%s' "$body" | jq -r '.commit // empty' 2>/dev/null) || served=
+              [ "$served" = "$EXPECTED" ] && exit 0
+              echo "attempt $attempt: stale build, served '$served', expected $EXPECTED"
+            else
+              echo "attempt $attempt: could not fetch $VERSION_URL (HTTP error, 404 or timeout)"
+            fi
+            [ "$attempt" -lt 10 ] && sleep 30
+          done
+          echo "::error::$VERSION_URL did not serve commit $EXPECTED after 10 attempts"
+          exit 1
+
+  prod-environment:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: prod
+      url: https://docgerd.github.io/cockpit-procedure-trainer/
+    steps:
+      - name: Served build must be the pushed commit
+        env:
+          VERSION_URL: https://docgerd.github.io/cockpit-procedure-trainer/version.json
+          EXPECTED: ${{ github.sha }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if body=$(wget -qO- --timeout=20 --tries=1 "$VERSION_URL?cb=$EXPECTED-$attempt"); then
+              served=$(printf '%s' "$body" | jq -r '.commit // empty' 2>/dev/null) || served=
+              [ "$served" = "$EXPECTED" ] && exit 0
+              echo "attempt $attempt: stale build, served '$served', expected $EXPECTED"
+            else
+              echo "attempt $attempt: could not fetch $VERSION_URL (HTTP error, 404 or timeout)"
+            fi
+            [ "$attempt" -lt 10 ] && sleep 30
+          done
+          echo "::error::$VERSION_URL did not serve commit $EXPECTED after 10 attempts"
+          exit 1

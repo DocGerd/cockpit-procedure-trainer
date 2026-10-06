@@ -2,6 +2,7 @@ import type {
   Aircraft,
   Device,
   Environment,
+  GuardPosition,
   PhaseDefinition,
   Positions,
   ProcedureDefinition,
@@ -11,6 +12,7 @@ import type { DeviceStates } from '../devices';
 
 export type EntrySnapshot = {
   readonly positions: Positions;
+  readonly guards: Readonly<Partial<Record<string, GuardPosition>>>;
   readonly systems: unknown;
   readonly environment: Environment;
   readonly devices: DeviceStates;
@@ -28,6 +30,7 @@ export function entrySnapshot(
       ...phase.entry.controls,
       ...deviceEntryPositions(aircraft, registry, phaseId),
     },
+    guards: phase.entry.guards ?? {},
     systems: phase.entry.state,
     environment: phase.environment,
     devices: initialDeviceStates(aircraft, registry),

@@ -196,6 +196,12 @@ export type ControlRecord = { readonly [id: string]: ControlDefinition };
 
 export type ControlId<CT extends ControlRecord> = keyof NoInfer<CT> & string;
 
+export type GuardedId<CT extends ControlRecord> = string extends keyof CT
+  ? string
+  : {
+      [K in ControlId<CT>]: NoInfer<CT>[K] extends { readonly kind: 'guarded' } ? K : never;
+    }[ControlId<CT>];
+
 export type PositionOf<D extends ControlDefinition> = D extends { readonly kind: 'breaker' }
   ? BreakerPosition
   : D extends { readonly positions: 'continuous' }
@@ -262,6 +268,8 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   readonly entry: {
     readonly controls: { readonly [K in ControlId<CT>]: PositionOf<NoInfer<CT>[K]> };
     readonly state: S;
+    /** Guards not named here are closed on entry. */
+    readonly guards?: { readonly [K in GuardedId<CT>]?: GuardPosition };
     readonly devices?: {
       readonly [installId: string]: { readonly [controlId: string]: ControlPosition };
     };

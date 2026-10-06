@@ -24,7 +24,7 @@ export type ControlStore<C extends string = string> = {
   openGuard(id: C): ControlResult;
   closeGuard(id: C): ControlResult;
   systemSet(id: C, position: ControlPosition): ControlResult;
-  load(positions: Positions): void;
+  load(positions: Positions, guards?: Readonly<Partial<Record<string, GuardPosition>>>): void;
   subscribe(listener: ControlListener<C>): () => void;
 };
 
@@ -159,9 +159,16 @@ export function createControlStore<CT extends ControlRecord>(
       return apply(id, position, 'system');
     },
 
-    load(positions) {
+    load(positions, guardPositions = {}) {
       for (const [id, position] of Object.entries(positions)) {
         validate(id, definitionOf(id), position);
+      }
+      for (const [id, to] of Object.entries(guardPositions)) {
+        definitionOf(id);
+        if (!guards.has(id)) throw new Error(`Control "${id}" has no guard`);
+        if (to !== 'open' && to !== 'closed') {
+          throw new Error(`Guard of "${id}" has no position ${JSON.stringify(to)}`);
+        }
       }
       const changes: ControlChange<C>[] = [];
       for (const [id, position] of Object.entries(positions)) {
@@ -169,9 +176,10 @@ export function createControlStore<CT extends ControlRecord>(
         if (change) changes.push(change);
       }
       for (const [id, from] of guards) {
-        if (from === 'open') {
-          guards.set(id, 'closed');
-          changes.push({ id: id as C, source: 'system', kind: 'guard', from, to: 'closed' });
+        const to = guardPositions[id] ?? 'closed';
+        if (from !== to) {
+          guards.set(id, to);
+          changes.push({ id: id as C, source: 'system', kind: 'guard', from, to });
         }
       }
       emit(changes);
