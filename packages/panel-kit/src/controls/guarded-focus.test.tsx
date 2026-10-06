@@ -59,4 +59,37 @@ describe('guarded handle keyboard', () => {
     await user.click(guardButton());
     expect(document.activeElement).toBe(guardButton());
   });
+
+  it('does not take focus when the guard opens while focus is elsewhere', async () => {
+    const user = userEvent.setup();
+    function Outside() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            outside
+          </button>
+          <GuardedHandle
+            {...widgetProps(guarded, { guardOpen: open })}
+            onCloseGuard={() => setOpen(false)}
+          />
+        </>
+      );
+    }
+    render(<Outside />);
+    const outside = screen.getByRole('button', { name: 'outside' });
+    await user.click(outside);
+    expect(screen.getByRole('radiogroup')).toBeTruthy();
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('does not pull focus back to the positions on a later re-render', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<GuardedHandle {...widgetProps(guarded, { guardOpen: true })} />);
+    guardButton().focus();
+    rerender(<GuardedHandle {...widgetProps(guarded, { guardOpen: true, position: 'pulled' })} />);
+    expect(document.activeElement).toBe(guardButton());
+    await user.tab();
+    expect(document.activeElement?.getAttribute('role')).toBe('radio');
+  });
 });

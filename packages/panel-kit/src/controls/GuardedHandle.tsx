@@ -28,7 +28,6 @@ export function GuardedHandle({
   const groupId = useId();
   const guard = useRef<HTMLButtonElement>(null);
   const group = useRef<HTMLDivElement>(null);
-  const wasOpen = useRef(false);
   const positions = namedPositions(control);
   const current = positions.indexOf(position as string);
   const ys = positions.map(
@@ -37,10 +36,9 @@ export function GuardedHandle({
   const offset = ys[Math.max(current, 0)] ?? HANDLE.top;
 
   useEffect(() => {
-    if (guardOpen && !wasOpen.current && document.activeElement === guard.current) {
+    if (guardOpen && document.activeElement === guard.current) {
       group.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus();
     }
-    wasOpen.current = guardOpen;
   }, [guardOpen]);
 
   const art = (metrics: Metrics | undefined) => {

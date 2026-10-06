@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 
 export type Metrics = { scale: number; minPx: number };
@@ -108,28 +108,28 @@ export function useRenderedMetrics(
   viewBox: ViewBox,
 ): [RefObject<SVGSVGElement | null>, Metrics | undefined] {
   const ref = useRef<SVGSVGElement>(null);
-  const measure = useRef<() => void>(() => {});
   const [metrics, setMetrics] = useState<Metrics | undefined>(undefined);
   const { width, height } = viewBox;
 
-  useLayoutEffect(() => {
-    measure.current = () => {
-      const element = ref.current;
-      if (element === null) return;
-      const scale = scaleOf(element.getBoundingClientRect(), { width, height });
-      const next = scale === undefined ? undefined : { scale, minPx: readMinPx() };
-      setMetrics((previous) => (same(previous, next) ? previous : next));
-    };
-    measure.current();
-  });
+  const measure = useCallback(() => {
+    const element = ref.current;
+    if (element === null) return;
+    const scale = scaleOf(element.getBoundingClientRect(), { width, height });
+    const next = scale === undefined ? undefined : { scale, minPx: readMinPx() };
+    setMetrics((previous) => (same(previous, next) ? previous : next));
+  }, [width, height]);
+
+  // Every commit: a parent that resizes this widget through React must be seen before
+  // the ResizeObserver callback, which arrives after the page has read the stale text.
+  useLayoutEffect(measure);
 
   useLayoutEffect(() => {
     const element = ref.current;
     if (element === null || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => measure.current());
+    const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [measure]);
 
   return [ref, metrics];
 }
