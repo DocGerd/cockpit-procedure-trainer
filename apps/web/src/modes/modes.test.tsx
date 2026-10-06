@@ -372,6 +372,120 @@ describe('Free explore', () => {
   });
 });
 
+describe('the guard in Free explore', () => {
+  const guard = () => screen.getByRole('button', { name: 'Fuel cutoff' });
+
+  it('selects the control instead of opening its guard', () => {
+    renderTrainer();
+    enterExplore();
+    fireEvent.click(guard());
+    expect(trainer.session.guards().cutoff).toBe('closed');
+    expect(screen.getByRole('dialog', { name: 'Fuel cutoff' })).toBeDefined();
+  });
+
+  it('selects the control instead of closing its guard', async () => {
+    renderTrainer();
+    enterExplore();
+    const operate = screen.getByRole('checkbox', { name: /Operate controls/ });
+    await userEvent.click(operate);
+    fireEvent.click(guard());
+    expect(trainer.session.guards().cutoff).toBe('open');
+    await userEvent.click(operate);
+    fireEvent.click(guard());
+    expect(trainer.session.guards().cutoff).toBe('open');
+    expect(screen.getByRole('dialog', { name: 'Fuel cutoff' })).toBeDefined();
+  });
+});
+
+describe('the details popover', () => {
+  const popoverSize = { width: 300, height: 200 };
+
+  // Outline boxes in pixels: ten times their percentages, each fifty pixels tall.
+  function stubLayout(viewportHeight: number) {
+    vi.stubGlobal('innerWidth', 1200);
+    vi.stubGlobal('innerHeight', viewportHeight);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      let box = { left: 0, top: 0, width: 0, height: 0 };
+      if (this.dataset.outline !== undefined) {
+        box = {
+          left: parseFloat(this.style.left) * 10,
+          top: parseFloat(this.style.top) * 10,
+          width: 50,
+          height: 50,
+        };
+      } else if (this.getAttribute('role') === 'dialog') {
+        box = { left: 0, top: 0, ...popoverSize };
+      }
+      return {
+        ...box,
+        x: box.left,
+        y: box.top,
+        right: box.left + box.width,
+        bottom: box.top + box.height,
+        toJSON: () => box,
+      };
+    });
+  }
+
+  const dialogPlace = (name: string) => {
+    const style = screen.getByRole('dialog', { name }).style;
+    return { top: parseFloat(style.top), left: parseFloat(style.left) };
+  };
+  const outlineTop = () => parseFloat(outline()?.style.top ?? '') * 10;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('opens below the control when it fits', async () => {
+    stubLayout(1000);
+    renderTrainer();
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    expect(dialogPlace('Master').top).toBeCloseTo(outlineTop() + 50);
+  });
+
+  it('flips above the control when there is no room below', async () => {
+    stubLayout(500);
+    renderTrainer();
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    expect(dialogPlace('Master').top).toBeCloseTo(outlineTop() - popoverSize.height);
+  });
+
+  it('moves focus into the details and back to the opener on Escape', async () => {
+    renderTrainer();
+    enterExplore();
+    const opener = screen.getByRole('button', { name: 'Show details: Master' });
+    await userEvent.click(opener);
+    expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Master' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('follows a selection made from the keyboard while open', async () => {
+    stubLayout(1000);
+    renderTrainer();
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    const before = dialogPlace('Master');
+
+    const cutoff = screen.getByRole('button', { name: 'Fuel cutoff' });
+    act(() => cutoff.focus());
+    fireEvent.click(cutoff);
+
+    const after = dialogPlace('Fuel cutoff');
+    expect(after).not.toEqual(before);
+    expect(after.left).toBeCloseTo(parseFloat(outline()?.style.left ?? '') * 10);
+    expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Fuel cutoff' }));
+    await userEvent.keyboard('{Escape}');
+    expect(document.activeElement).toBe(cutoff);
+  });
+});
+
 describe('a held control', () => {
   it('is still released after operating is turned off', async () => {
     renderTrainer();

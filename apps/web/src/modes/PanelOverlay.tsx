@@ -101,6 +101,7 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
             style={boxStyle(selectedBox)}
           />
           <ControlDetails
+            key={selected}
             controlId={selected}
             anchor={anchor}
             onClose={() => store.select(undefined)}

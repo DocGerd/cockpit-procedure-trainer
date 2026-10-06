@@ -180,12 +180,17 @@ export function ControlDetails({
 
   useEffect(() => {
     const opener = document.activeElement;
-    popover.current?.focus({ preventScroll: true });
+    const element = popover.current;
+    element?.focus({ preventScroll: true });
     return () => {
-      if (opener instanceof HTMLElement && opener.isConnected)
+      // Focus that already moved on, e.g. to the next selected widget, stays there.
+      const active = document.activeElement;
+      const lost = active === null || active === document.body || element?.contains(active);
+      if (lost && opener instanceof HTMLElement && opener.isConnected) {
         opener.focus({ preventScroll: true });
+      }
     };
-  }, [controlId]);
+  }, []);
 
   if (!control || current === undefined) return null;
   const shown = uses.slice(0, USED_IN_SHOWN);
