@@ -165,7 +165,8 @@ cell widths in proportion to the floors so the arrangement wastes no width.
 
 The validator reports a `size` that is not a positive, finite width and height as
 `invalid-cockpit-size`, a view without a cell as `missing-cockpit-view`, a cell for
-a non-view as `unknown-cockpit-view`, a cell outside `size` as `cockpit-cell-outside`,
+a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
+`h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
 finite number as `invalid-cockpit-min-width`.
 

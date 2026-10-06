@@ -41,10 +41,14 @@ export function chooseLayout(
   if (!positive(cockpit.size.width) || !positive(cockpit.size.height)) return TABS;
 
   const scale = Math.min(region.width / cockpit.size.width, region.height / cockpit.size.height);
+  if (Object.keys(aircraft.views).some((viewId) => !Object.hasOwn(cockpit.views, viewId))) {
+    return TABS;
+  }
+
   const cells: CombinedCell[] = [];
   for (const [viewId, cell] of Object.entries<CockpitCell>(cockpit.views)) {
     const view = aircraft.views[viewId];
-    if (!view) return TABS;
+    if (!view || !cell?.rect || !positive(cell.rect.w) || !positive(cell.rect.h)) return TABS;
     const width = cell.rect.w * scale;
     const height = cell.rect.h * scale;
     const own = view.size ?? { width: cell.rect.w, height: cell.rect.h };

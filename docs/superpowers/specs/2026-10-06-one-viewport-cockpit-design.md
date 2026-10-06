@@ -106,6 +106,7 @@ finding codes, each with a test:
 | `invalid-cockpit-size` | `size` not a positive, finite width and height |
 | `missing-cockpit-view` | a view of the aircraft has no cell (runtime check of what the type enforces, for untyped callers) |
 | `unknown-cockpit-view` | a cell names no view |
+| `invalid-cockpit-cell-rect` | a cell's `rect` missing, or `x`/`y` not finite, or `w`/`h` not positive and finite |
 | `cockpit-cell-outside` | a cell leaves `size` |
 | `cockpit-cells-overlap` | two cells overlap |
 | `invalid-cockpit-min-width` | `minWidth` not a positive, finite number |
