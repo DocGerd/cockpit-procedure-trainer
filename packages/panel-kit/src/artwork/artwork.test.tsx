@@ -887,6 +887,58 @@ describe('ArtworkControl stepping a notched control both ways', () => {
     });
   });
 
+  it('reads aria-valuenow in the drawn direction on a reversed path', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(flaps, reversed, 'to');
+    expect(slider().getAttribute('aria-valuenow')).toBe('1');
+    expect(slider().getAttribute('aria-valuetext')).toBe('to');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    key('End');
+    expect(view.onSet).toHaveBeenLastCalledWith('up');
+    view.rerender(
+      <ArtworkControl
+        control={flaps}
+        position="up"
+        guardOpen={false}
+        label="Control"
+        positionLabels={{}}
+        artwork={artworkOf(reversed)}
+        fallback={fallback}
+        {...{ onSet: view.onSet, onPress: view.onPress, onRelease: view.onRelease }}
+        onOpenGuard={view.onOpenGuard}
+        onCloseGuard={view.onCloseGuard}
+      />,
+    );
+    expect(slider().getAttribute('aria-valuenow')).toBe('2');
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('reads a continuous lever on a reversed path in the drawn direction', () => {
+    const reversed: MovingPart = {
+      type: 'travel',
+      image: 'knob.png',
+      path: [
+        { x: 4, y: 4 },
+        { x: 4, y: 16 },
+      ],
+    };
+    const view = renderControl(lever, reversed, 0.25);
+    expect(slider().getAttribute('aria-valuenow')).toBe('0.75');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenLastCalledWith(0.15);
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith(1);
+  });
+
   it('takes ArrowUp toward the end of the path drawn higher up', () => {
     const down: MovingPart = {
       type: 'travel',

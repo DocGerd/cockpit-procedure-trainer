@@ -153,6 +153,7 @@ function LeverInput({
     );
   };
   const forward = forwardSign(path);
+  const drawn = forward === 1 ? value : 1 - value;
   const step = (delta: number) => onSet(clamp01(Math.round((value + delta) * 1000) / 1000));
   return (
     <div
@@ -163,8 +164,8 @@ function LeverInput({
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={1}
-      aria-valuenow={value}
-      aria-valuetext={`${Math.round(value * 100)}%`}
+      aria-valuenow={drawn}
+      aria-valuetext={`${Math.round(drawn * 100)}%`}
       onPointerDown={(event) => {
         if (!path) return;
         dragging.current = true;
@@ -186,8 +187,8 @@ function LeverInput({
           ArrowRight: () => step(forward * LEVER_STEP),
           ArrowDown: () => step(-forward * LEVER_STEP),
           ArrowLeft: () => step(-forward * LEVER_STEP),
-          Home: () => onSet(0),
-          End: () => onSet(1),
+          Home: () => onSet(forward === 1 ? 0 : 1),
+          End: () => onSet(forward === 1 ? 1 : 0),
         };
         const handler = keys[event.key];
         if (!handler) return;
@@ -263,7 +264,7 @@ function NotchInput({
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={steps.length - 1}
-      aria-valuenow={index}
+      aria-valuenow={forward === 1 ? index : steps.length - 1 - index}
       aria-valuetext={valueText}
       onClick={tap}
       onKeyDown={(event) => {
@@ -272,8 +273,8 @@ function NotchInput({
           ArrowRight: () => goTo(index + forward),
           ArrowDown: () => goTo(index - forward),
           ArrowLeft: () => goTo(index - forward),
-          Home: () => goTo(0),
-          End: () => goTo(steps.length - 1),
+          Home: () => goTo(forward === 1 ? 0 : steps.length - 1),
+          End: () => goTo(forward === 1 ? steps.length - 1 : 0),
           Enter: noop,
           ' ': noop,
         };

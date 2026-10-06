@@ -156,6 +156,15 @@ describe('CTSL notched artwork controls', () => {
       expect(down, 'ArrowDown').toBeDefined();
       expect([left, tapBackward]).toEqual([down, down]);
 
+      const now = (position: string) => {
+        mount(entry, position);
+        const value = Number(slider().getAttribute('aria-valuenow'));
+        cleanup();
+        return value;
+      };
+      expect(now(up ?? '')).toBeGreaterThan(now(here));
+      expect(now(down ?? '')).toBeLessThan(now(here));
+
       const [from, next, previous] = [printed(here), printed(up ?? ''), printed(down ?? '')];
       if (path) {
         expect(next.y).toBeLessThan(from.y);
