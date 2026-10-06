@@ -3,9 +3,20 @@ import type { KeyboardEvent, PointerEvent } from 'react';
 
 const isActivation = (event: KeyboardEvent) => event.key === 'Enter' || event.key === ' ';
 
+/** With the pointer captured, a drifting finger or mouse keeps the press until it is lifted or cancelled. */
+function capture(element: Element, pointerId: number): boolean {
+  try {
+    element.setPointerCapture(pointerId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function useHold(onRelease: () => void) {
   const held = useRef(false);
   const clickPending = useRef(false);
+  const captured = useRef(false);
   const release = useRef(onRelease);
   useEffect(() => {
     release.current = onRelease;
@@ -27,6 +38,12 @@ export function useHold(onRelease: () => void) {
 
   const abandon = () => {
     clickPending.current = false;
+    captured.current = false;
+    end();
+  };
+
+  const onPointerEnd = () => {
+    captured.current = false;
     end();
   };
 
@@ -34,11 +51,15 @@ export function useHold(onRelease: () => void) {
     onPointerDown: (event: PointerEvent) => {
       if (event.button !== 0) return;
       clickPending.current = true;
+      captured.current = capture(event.currentTarget, event.pointerId);
       begin(press);
     },
-    onPointerUp: end,
+    onPointerUp: onPointerEnd,
     onPointerCancel: abandon,
-    onPointerLeave: abandon,
+    onLostPointerCapture: onPointerEnd,
+    onPointerLeave: () => {
+      if (!captured.current) abandon();
+    },
     onBlur: abandon,
     onClick: () => {
       if (clickPending.current) {

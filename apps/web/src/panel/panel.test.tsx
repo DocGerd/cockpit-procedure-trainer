@@ -187,14 +187,14 @@ describe('placements', () => {
   it('keep the background aspect ratio so they scale with the panel', () => {
     renderPanel();
     loadBackground('Main panel');
-    const stage = placement('master')?.parentElement;
+    const stage = placement('master')?.closest<HTMLElement>('.panel-stage');
     expect(stage?.style.aspectRatio).toBe(`${IMAGE.width} / ${IMAGE.height}`);
     expect(stage?.style.getPropertyValue('--panel-ratio')).toBe(String(IMAGE.width / IMAGE.height));
   });
 
   it('give the stage its page offset, so it fits the viewport below it', () => {
     renderPanel();
-    const stage = placement('master')?.parentElement as HTMLElement;
+    const stage = placement('master')?.closest<HTMLElement>('.panel-stage') as HTMLElement;
     expect(stage.style.getPropertyValue('--panel-top')).toBe('0');
 
     vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 300, 800, 400));

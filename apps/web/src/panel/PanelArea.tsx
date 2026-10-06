@@ -11,8 +11,12 @@ import type { ActiveView } from './active-view';
 import { fitStyle, usePageTop } from './fit';
 import { useBackgroundSize } from './image-size';
 import { messages } from './messages';
+import { PanelZoomContext, useZoomState, zoomStyle } from './panel-zoom';
 import { ControlPlacement, IndicatorPlacement } from './placements';
 import { panelRects, placementExtent, viewPlacements } from './rects';
+import { useZoomGestures } from './use-zoom-gestures';
+import type { ZoomTarget } from './use-zoom-gestures';
+import { isZoomed } from './zoom';
 import './panel.css';
 
 function useViewState(aircraft: Aircraft): ActiveView {
@@ -84,7 +88,7 @@ function ViewTabs({ active, panelId }: { active: ActiveView; panelId: string }) 
   );
 }
 
-function PanelView({ viewId }: { viewId: string }) {
+function PanelView({ viewId, zoom }: { viewId: string; zoom: ZoomTarget }) {
   const { aircraft } = useTrainer();
   const localize = useLocalize();
   const view = aircraft.views[viewId];
@@ -95,35 +99,48 @@ function PanelView({ viewId }: { viewId: string }) {
   const rects = useMemo(() => panelRects(placements, size), [placements, size]);
   const stage = useRef<HTMLDivElement>(null);
   const top = usePageTop(stage);
+  const gestures = useZoomGestures(stage, zoom);
   if (!view) return null;
   const name = localize(view.name);
 
   return (
-    <div ref={stage} className="panel-stage" style={fitStyle(size, top)}>
-      <Fragment key={`${aircraft.id}/${viewId}`}>
-        <ImageWithFallback
-          src={view.image}
-          label={name}
-          className="panel-image"
-          draggable={false}
-          onLoad={(event) => {
-            const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
-            background.onNaturalSize({ width, height });
-          }}
-        />
-        {Object.entries(rects.controls).map(([id, box]) => {
-          const control = aircraft.controls[id];
-          return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
-        })}
-        {Object.entries(rects.indicators).map(([id, box]) => {
-          const indicator = aircraft.indicators[id];
-          return (
-            indicator && <IndicatorPlacement key={id} id={id} indicator={indicator} box={box} />
-          );
-        })}
-      </Fragment>
-      <DeviceLayer viewId={viewId} rects={rects} />
-      <PanelOverlay viewId={viewId} rects={rects} />
+    <div
+      ref={stage}
+      className="panel-stage"
+      style={fitStyle(size, top)}
+      data-zoomed={isZoomed(zoom.zoom) ? '' : undefined}
+      {...gestures}
+    >
+      <div
+        className="panel-zoom"
+        style={zoomStyle(zoom.zoom)}
+        data-zoomed={isZoomed(zoom.zoom) ? '' : undefined}
+      >
+        <Fragment key={`${aircraft.id}/${viewId}`}>
+          <ImageWithFallback
+            src={view.image}
+            label={name}
+            className="panel-image"
+            draggable={false}
+            onLoad={(event) => {
+              const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
+              background.onNaturalSize({ width, height });
+            }}
+          />
+          {Object.entries(rects.controls).map(([id, box]) => {
+            const control = aircraft.controls[id];
+            return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
+          })}
+          {Object.entries(rects.indicators).map(([id, box]) => {
+            const indicator = aircraft.indicators[id];
+            return (
+              indicator && <IndicatorPlacement key={id} id={id} indicator={indicator} box={box} />
+            );
+          })}
+        </Fragment>
+        <DeviceLayer viewId={viewId} rects={rects} />
+        <PanelOverlay viewId={viewId} rects={rects} />
+      </div>
     </div>
   );
 }
@@ -132,19 +149,35 @@ export function PanelArea() {
   const { aircraft } = useTrainer();
   const active = useViewState(aircraft);
   const panelId = useId();
+  const text = useMessages(messages);
+  const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
+
+  const resetZoom = () => {
+    zoom.reset();
+    document.getElementById(`${panelId}-${active.viewId}`)?.focus();
+  };
 
   return (
     <ActiveViewContext.Provider value={active}>
-      <ViewTabs active={active} panelId={panelId} />
-      <div
-        role="tabpanel"
-        id={panelId}
-        aria-labelledby={`${panelId}-${active.viewId}`}
-        className="panel-surface"
-        data-panel-surface=""
-      >
-        <PanelView viewId={active.viewId} />
-      </div>
+      <PanelZoomContext.Provider value={zoom.value}>
+        <div className="panel-bar">
+          <ViewTabs active={active} panelId={panelId} />
+          {isZoomed(zoom.zoom) && (
+            <button type="button" className="chrome-button panel-zoom-reset" onClick={resetZoom}>
+              {text.resetZoom}
+            </button>
+          )}
+        </div>
+        <div
+          role="tabpanel"
+          id={panelId}
+          aria-labelledby={`${panelId}-${active.viewId}`}
+          className="panel-surface"
+          data-panel-surface=""
+        >
+          <PanelView viewId={active.viewId} zoom={zoom} />
+        </div>
+      </PanelZoomContext.Provider>
     </ActiveViewContext.Provider>
   );
 }
