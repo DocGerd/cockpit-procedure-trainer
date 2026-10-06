@@ -48,6 +48,7 @@ describe('chooseLayout', () => {
     ['a missing rect', {}],
     ['a zero width', { rect: { x: 0, y: 0, w: 0, h: 100 } }],
     ['a NaN height', { rect: { x: 0, y: 0, w: 200, h: NaN } }],
+    ['a NaN x', { rect: { x: NaN, y: 0, w: 200, h: 100 } }],
   ])('is tabs, without throwing, for a cell with %s', (_, broken) => {
     const malformed = {
       views: aircraft.views,
