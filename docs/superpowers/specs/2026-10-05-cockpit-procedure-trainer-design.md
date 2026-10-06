@@ -21,7 +21,8 @@ architecture that lets aircraft be added.
   magnetos off does not start the engine.
 - A developer adds an aircraft by writing one package and registering it. No
   engine or app code changes.
-- The app installs on a tablet and works without a network at the airfield.
+- The app installs on a desktop or tablet and works without a network at the
+  airfield.
 
 ### Out of scope
 
@@ -42,7 +43,8 @@ architecture that lets aircraft be added.
 | Step order | Never block input. Record actions outside the current item as deviations. |
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
-| Devices | HD desktop (1920x1080) first, 4K second, tablet later; mouse and touch both supported. See ADR-0002. |
+| Devices | HD desktop (1920x1080) first, 4K (3840x2160) second, tablet later; mouse and touch both supported. See ADR-0002. |
+| Cockpit layout | On desktop the whole cockpit shows in one viewport, arranged as from the left seat; tabs only where the combined cockpit would fall below the touch-target or lettering minimum. Designed for 1920x1080, verified at 1920x1080 and 3840x2160. See `2026-10-06-one-viewport-cockpit-design.md`. |
 | Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). Production at the site root, UAT under `/uat/`. |
 | Branching | Gitflow: `develop` is the default branch and the base of every PR; `main` holds released state only. Agents merge PRs into `develop` and never merge into `main`. |
 | Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex meta tag and a "UAT" badge in the app frame. |
@@ -110,6 +112,11 @@ One or more views (main panel, centre console, floor, overhead). Each has a
 background image and one placement per control and indicator: a 2D rectangle in
 image coordinates, plus an optional 3D position and orientation that the 2D
 renderer ignores.
+
+An optional cockpit arrangement places every view in one left-seat layout and
+states, per view, the narrowest rendered width at which it stays legible and
+operable. The web app shows the arrangement when every view reaches that width
+and tabs otherwise (`2026-10-06-one-viewport-cockpit-design.md`).
 
 ### 4.4 Systems model
 
@@ -236,9 +243,11 @@ keeps it independent of the systems model and testable alone.
 
 ### Screen
 
-Outside-view strip on top, panel below with view tabs, checklist pane at the
-side (collapsible on tablets). Header: aircraft, procedure, mode, phase,
-language, theme.
+Outside-view strip on top, the cockpit below, checklist pane at the side
+(collapsible on narrow screens). On desktop the cockpit shows every view at
+once in the aircraft's left-seat arrangement; where that would make any view
+too small to read and operate, it falls back to one view at a time with view
+tabs. Header: aircraft, procedure, mode, phase, language, theme.
 
 ### Persistence
 
@@ -308,6 +317,7 @@ parallel.
 
 - **Validator** (`core`, run in CI for every registered aircraft): every
   procedure target exists; every control and indicator is placed in a view;
+  a cockpit arrangement, when given, places every view once without overlap;
   every text has both languages; every phase has an image and an entry
   snapshot; every injected failure is declared.
 - **Runtime**: an error boundary around the trainer shows a readable message and
@@ -321,8 +331,8 @@ parallel.
 | Unit (Vitest) | `core`: control store, runtime tick, checklist engine, validator |
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
 | Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations |
-| Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload |
-| Manual | real-browser pass at tablet and desktop size for every UI ticket |
+| Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout, placards and lettering at 1920x1080 and 3840x2160 |
+| Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 
 ## 10. Project setup
 
