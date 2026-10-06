@@ -279,6 +279,12 @@ export const fixtureAircraft = defineAircraft({
         {
           type: 'action',
           control: 'ignition',
+          position: 'both',
+          text: text('Zündung BEIDE', 'Ignition BOTH'),
+        },
+        {
+          type: 'action',
+          control: 'ignition',
           position: 'start',
           holdUntil: engineRunning,
           text: text('Anlasser betätigen bis der Motor läuft', 'Crank until the engine runs'),

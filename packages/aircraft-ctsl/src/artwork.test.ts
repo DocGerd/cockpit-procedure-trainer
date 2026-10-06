@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { images } from './artwork';
 import { controls } from './controls';
 import { indicators } from './indicators';
+import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
 
@@ -107,6 +108,44 @@ describe('CTSL compass', () => {
     const card = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
     const svg = card?.type === 'needle' ? read(card.image) : '';
     for (const point of ['N', 'E', 'S', 'W']) expect(svg).toContain(`>${point}</text>`);
+  });
+
+  it('sits clear of every other placement on the panel', () => {
+    const { rect } = views.panel.indicators.compass;
+    const others = [
+      ...Object.entries(views.panel.indicators),
+      ...Object.entries(views.panel.controls),
+      ['gps', deviceSlots.gps] as const,
+    ].filter(([id]) => id !== 'compass');
+    const clashes = others.filter(
+      ([, other]) =>
+        rect.x < other.rect.x + other.rect.w &&
+        rect.x + rect.w > other.rect.x &&
+        rect.y < other.rect.y + other.rect.h &&
+        rect.y + rect.h > other.rect.y,
+    );
+    expect(clashes.map(([id]) => id)).toEqual([]);
+  });
+
+  it('stays between the plate seam and the GPS bay frame drawn on the panel backdrop', () => {
+    const backdrop = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const rects = [...backdrop.matchAll(/<rect\b([^>]*)\/>/g)].map(([, attributes = '']) => ({
+      rx: /\brx="([\d.]+)"/.exec(attributes)?.[1],
+      x: Number(/\bx="([\d.]+)"/.exec(attributes)?.[1]),
+      width: Number(/\bwidth="([\d.]+)"/.exec(attributes)?.[1]),
+    }));
+    const plates = rects.filter(({ rx }) => rx === '14');
+    const bays = rects.filter(({ rx }) => rx === '16');
+    expect(plates, 'the left and right instrument plates').toHaveLength(2);
+    expect(bays, 'the GPS bay frame').toHaveLength(1);
+    const seam = Math.max(...plates.map(({ x }) => x));
+    const bayLeft = bays[0]?.x ?? 0;
+    const { rect } = views.panel.indicators.compass;
+    expect(rect.x).toBeGreaterThan(seam);
+    expect(rect.x + rect.w).toBeLessThan(bayLeft);
   });
 });
 

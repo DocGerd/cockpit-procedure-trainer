@@ -2,6 +2,7 @@ import type { Aircraft } from '@cpt/core';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
 import { chooseLayout } from './cockpit-layout';
+import { footerHeight } from './fit';
 import type { CockpitLayoutChoice, CockpitRegion } from './cockpit-layout';
 
 const NO_REGION: CockpitRegion = { width: 0, height: 0 };
@@ -25,7 +26,7 @@ export function useCockpitRegion(
     if (!root || !element) return;
     const measure = () => {
       const top = element.getBoundingClientRect().top + window.scrollY;
-      const footer = root.querySelector('footer')?.getBoundingClientRect().height ?? 0;
+      const footer = footerHeight(root);
       const body = root.querySelector('.shell-body');
       const padding = body ? pixels(getComputedStyle(body).paddingBottom) : 0;
       const next = {

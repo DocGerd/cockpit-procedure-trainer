@@ -33,6 +33,19 @@ function isPressed(definition: ControlDefinition | undefined, position: string |
   );
 }
 
+// A spring detent is offered only while the control rests at the position it springs back to.
+function restMismatch(
+  session: Session,
+  definition: ControlDefinition | undefined,
+  item: Action,
+): string | undefined {
+  if (definition?.kind !== 'rotary' || typeof item.position !== 'string') return undefined;
+  const rest = definition.springBack?.[item.position];
+  const at = session.state().controls[item.control];
+  if (rest === undefined || at === rest) return undefined;
+  return `${item.control} is at ${String(at)}, a press to ${item.position} needs it at ${rest}`;
+}
+
 function rejection(result: SessionControlResult): string | undefined {
   if (result.applied || result.reason === 'unchanged') return undefined;
   return `control ${result.reason}`;
@@ -64,6 +77,8 @@ function performAction(
   }
 
   const pressed = isPressed(definition, position);
+  const stranded = pressed ? restMismatch(session, definition, item) : undefined;
+  if (stranded) return stranded;
   const released = definition?.kind === 'momentary' && !pressed;
   const result = released
     ? session.release(control)
