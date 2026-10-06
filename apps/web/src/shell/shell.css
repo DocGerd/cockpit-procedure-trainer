@@ -179,7 +179,7 @@
 
 .shell-checklist {
   display: flex;
-  flex: 1 1 340px;
+  flex: 1 1 calc(var(--space-12) * 6);
   flex-direction: column;
   min-width: 0;
   background: var(--color-surface);
