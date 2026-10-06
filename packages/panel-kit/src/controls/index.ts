@@ -8,6 +8,7 @@ import { Rocker } from './Rocker';
 import { KeySwitch, RotaryKnob } from './Rotary';
 import { Toggle } from './Toggle';
 
+export { useHold } from './use-hold';
 export { CircuitBreaker, GuardedHandle, KeySwitch, Lever, PushButton, Rocker, RotaryKnob, Toggle };
 
 export const controlWidgets: Readonly<Record<string, ControlWidget>> = {
