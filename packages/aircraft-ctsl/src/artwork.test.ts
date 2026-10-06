@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { images } from './artwork';
 import { controls } from './controls';
 import { indicators } from './indicators';
+import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
 
@@ -107,6 +108,23 @@ describe('CTSL compass', () => {
     const card = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
     const svg = card?.type === 'needle' ? read(card.image) : '';
     for (const point of ['N', 'E', 'S', 'W']) expect(svg).toContain(`>${point}</text>`);
+  });
+
+  it('sits clear of every other placement on the panel', () => {
+    const { rect } = views.panel.indicators.compass;
+    const others = [
+      ...Object.entries(views.panel.indicators),
+      ...Object.entries(views.panel.controls),
+      ['gps', deviceSlots.gps] as const,
+    ].filter(([id]) => id !== 'compass');
+    const clashes = others.filter(
+      ([, other]) =>
+        rect.x < other.rect.x + other.rect.w &&
+        rect.x + rect.w > other.rect.x &&
+        rect.y < other.rect.y + other.rect.h &&
+        rect.y + rect.h > other.rect.y,
+    );
+    expect(clashes.map(([id]) => id)).toEqual([]);
   });
 });
 
