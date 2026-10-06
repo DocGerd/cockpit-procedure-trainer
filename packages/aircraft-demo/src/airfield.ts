@@ -11,7 +11,7 @@ export const runway: Runway = { designator: '27', headingDeg: 270 };
 /** Straight down the runway, so the take-off and landing are into wind. */
 export const windFromDeg = runway.headingDeg;
 
-// The holding point is left of the take-off heading, so a pilot there has the wind on the left.
+// Holding short, the take-off direction is to the pilot's left, and so is the wind.
 const holdingDeg = turn(runway.headingDeg, 90);
 
 // The taxiway the aircraft vacates onto, to the apron it also leaves from.

@@ -34,7 +34,7 @@ const controlArtwork = Object.entries(controls as Record<string, ControlDefiniti
     return artwork ? [{ id, control, artwork }] : [];
   },
 );
-const gaugeArtwork = Object.entries(
+const indicatorArtwork = Object.entries(
   indicators as Record<string, IndicatorDefinition<unknown>>,
 ).flatMap(([id, indicator]) => {
   const artwork = artworkOf(indicator.appearance);
@@ -46,7 +46,7 @@ const urlsOf = ({ face, moving }: Artwork): string[] => [
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
 ];
 const used = new Set(
-  [...controlArtwork, ...gaugeArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
+  [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
 );
 
 describe('CTSL artwork files', () => {
@@ -66,7 +66,7 @@ describe('CTSL artwork files', () => {
   });
 
   it('keeps a moving image the size of its face, with explicit pixel dimensions', () => {
-    for (const { id, artwork } of [...controlArtwork, ...gaugeArtwork]) {
+    for (const { id, artwork } of [...controlArtwork, ...indicatorArtwork]) {
       const face = sizeOf(artwork.face);
       expect(face.width, id).toBeDefined();
       expect([face.width, face.height], id).toEqual(face.box);
@@ -77,7 +77,26 @@ describe('CTSL artwork files', () => {
   });
 });
 
+describe('CTSL compass', () => {
+  it('turns a full card under the lubber line, so the heading reads at the top', () => {
+    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    expect(moving?.type).toBe('needle');
+    if (moving?.type !== 'needle') return;
+    expect(moving.valueRange).toEqual({ min: 0, max: 360 });
+    expect(moving.angleRange).toEqual({ min: 0, max: -360 });
+    expect(moving.pivot).toEqual({ x: 100, y: 100 });
+  });
+
+  it('letters the card with the cardinal points', () => {
+    const card = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    const svg = card?.type === 'needle' ? read(card.image) : '';
+    for (const point of ['N', 'E', 'S', 'W']) expect(svg).toContain(`>${point}</text>`);
+  });
+});
+
 describe('CTSL gauges', () => {
+  const gaugeArtwork = indicatorArtwork.filter(({ id }) => id !== 'compass');
+
   const scales: Record<string, { min: number; max: number }> = {
     airspeed: { min: 40, max: 300 },
     tachometer: { min: 0, max: 7000 },

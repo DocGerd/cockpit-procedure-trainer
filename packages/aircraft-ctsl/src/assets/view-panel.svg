@@ -31,12 +31,6 @@
 <rect x="1150" y="28" width="436" height="330" rx="16" fill="#1A1B1D" stroke="#44494F" stroke-width="3"/>
 <rect x="1160" y="340" width="416" height="14" rx="6" fill="#33363A"/>
 <rect x="1168" y="40" width="400" height="300" rx="10" fill="#141517"/>
-<rect x="874" y="36" width="96" height="80" rx="12" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
-<rect x="888" y="58" width="68" height="34" rx="6" fill="#E3E5E8"/>
-<text data-decor="knee card" x="904" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">33</text>
-<text data-decor="knee card" x="922" y="82" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#2B3138" text-anchor="middle">N</text>
-<text data-decor="knee card" x="940" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">3</text>
-<path d="M922 56 V62 M922 88 V94" stroke="#2B3138" stroke-width="2"/>
 <circle cx="982" cy="470" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="1182" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="1347" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>

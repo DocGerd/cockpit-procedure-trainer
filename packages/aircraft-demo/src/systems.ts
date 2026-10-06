@@ -1,4 +1,5 @@
 import { electricalBus, pistonEngineStart } from '@cpt/core';
+import { phaseHeadings } from './airfield';
 import type {
   ElectricalBusState,
   Environment,
@@ -20,6 +21,8 @@ export type DemoState = {
   oilPsi: number;
   amps: number;
   engineHours: number;
+  /** Set by the phase entry; nothing turns the aircraft within a phase. */
+  headingDeg: number;
 };
 
 export type DemoTrainerState = TrainerState<DemoState>;
@@ -49,6 +52,7 @@ export const initial: DemoState = {
   oilPsi: 0,
   amps: 0,
   engineHours: 1204.3,
+  headingDeg: phaseHeadings.parking,
 };
 
 export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
@@ -98,6 +102,7 @@ export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
     rpm,
     oilPsi: nextEngine.running ? RUNNING_OIL_PSI + throttle * OIL_PSI_PER_THROTTLE : 0,
     amps: !nextBus.busPowered ? 0 : nextBus.charging ? CHARGE_AMPS : -load,
+    headingDeg: state.headingDeg,
     engineHours: state.engineHours + (nextEngine.running ? dtMs / MS_PER_HOUR : 0),
   };
 };

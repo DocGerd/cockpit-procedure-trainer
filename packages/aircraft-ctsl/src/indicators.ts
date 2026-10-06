@@ -7,6 +7,11 @@ export const chargeLampLit = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && !state.systems.bus.charging;
 
 export const indicators = {
+  compass: {
+    name: text('Magnetkompass', 'Magnetic compass'),
+    select: (state: CtslTrainerState) => state.systems.headingDeg,
+    appearance: gaugeArtwork.compass,
+  },
   airspeed: {
     name: text('Fahrtmesser', 'Airspeed indicator'),
     select: (state: CtslTrainerState) => state.systems.airspeedKmh,

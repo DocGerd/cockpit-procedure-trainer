@@ -99,6 +99,7 @@ const expectedControls: Record<string, Expected> = {
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {
+  compass: { widget: 'artwork', view: 'panel' },
   airspeed: { widget: 'artwork', view: 'panel' },
   altimeter: { widget: 'artwork', view: 'panel' },
   verticalSpeed: { widget: 'artwork', view: 'panel' },

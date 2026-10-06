@@ -1,3 +1,5 @@
+import { createSession, STEP_MS } from '@cpt/core';
+import type { TrainerState } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import approach from './assets/phase-approach.svg?raw';
 import cruise from './assets/phase-cruise.svg?raw';
@@ -10,6 +12,9 @@ import parking from './assets/phase-parking.svg?raw';
 import taxiIn from './assets/phase-taxi-in.svg?raw';
 import { headingLabel, phaseHeadings, runway, turn, windFromDeg } from './airfield';
 import { demoAircraft } from './index';
+import { indicators } from './indicators';
+import type { DemoState } from './systems';
+import { testDevices as devices } from './test-devices';
 
 const views = {
   parking,
@@ -36,7 +41,8 @@ const files: Record<keyof typeof views, string> = {
 };
 
 const angle = (degrees: number) => ((degrees % 360) + 360) % 360;
-const heading = (id: string) => phaseHeadings[id as keyof typeof phaseHeadings];
+const heading = (id: string) =>
+  (demoAircraft.phases[id]?.entry.state as DemoState | undefined)?.headingDeg ?? Number.NaN;
 
 const markings = (svg: string) =>
   [...svg.matchAll(/<g data-runway-designator="([^"]*)"[^>]*>(.*?)<\/g>/gs)].map(
@@ -53,23 +59,27 @@ describe('the airfield of one flight', () => {
     expect(runway.designator).toBe(String(angle(runway.headingDeg) / 10 || 36).padStart(2, '0'));
   });
 
-  it('gives every phase exactly one heading', () => {
+  it('enters every phase facing its heading on the compass', () => {
     expect(Object.keys(phaseHeadings).sort()).toEqual(Object.keys(demoAircraft.phases).sort());
-    for (const id of Object.keys(phaseHeadings)) expect(heading(id), id).toBeGreaterThan(0);
-  });
-
-  it('keeps every heading on the compass', () => {
-    for (const [id, value] of Object.entries(phaseHeadings)) {
-      expect(value, id).toBeGreaterThanOrEqual(1);
-      expect(value, id).toBeLessThanOrEqual(360);
+    for (const [id, value] of Object.entries(phaseHeadings)) expect(heading(id), id).toBe(value);
+    for (const id of Object.keys(demoAircraft.phases)) {
+      expect(heading(id), id).toBeGreaterThanOrEqual(1);
+      expect(heading(id), id).toBeLessThanOrEqual(360);
     }
     expect(turn(360, 90)).toBe(90);
     expect(turn(90, -90)).toBe(360);
   });
 
+  it.each(Object.keys(demoAircraft.phases))('shows the %s heading on the compass', (id) => {
+    const session = createSession(demoAircraft, { devices, phase: id });
+    session.advance(STEP_MS);
+    const state = session.state() as TrainerState<DemoState>;
+    expect(indicators.compass.select(state)).toBe(heading(id));
+  });
+
   it('holds short at a right angle to the runway, with the wind on the left', () => {
-    expect(angle(phaseHeadings.holding - 90)).toBe(angle(runway.headingDeg));
-    expect(angle(phaseHeadings.holding - windFromDeg)).toBe(90);
+    expect(angle(heading('holding') - runway.headingDeg)).toBe(90);
+    expect(angle(windFromDeg - heading('holding'))).toBe(270);
   });
 
   it.each(['linedUp', 'departure', 'approach', 'landing'])(
@@ -79,14 +89,14 @@ describe('the airfield of one flight', () => {
     },
   );
 
-  it('flies the circuit legs at right angles to the runway', () => {
-    expect(angle(phaseHeadings.cruise - runway.headingDeg) % 90).toBe(0);
+  it('flies the downwind leg of a left-hand circuit in cruise', () => {
+    expect(angle(heading('cruise') - runway.headingDeg)).toBe(180);
   });
 
   it('vacates the runway to a taxiway at a right angle and parks on it', () => {
-    expect([90, 270]).toContain(angle(phaseHeadings.taxiIn - runway.headingDeg));
-    expect(phaseHeadings.parking).toBe(phaseHeadings.taxiIn);
-    expect(phaseHeadings.parkingSecuring).toBe(phaseHeadings.taxiIn);
+    expect([90, 270]).toContain(angle(heading('taxiIn') - runway.headingDeg));
+    expect(heading('parking')).toBe(heading('taxiIn'));
+    expect(heading('parkingSecuring')).toBe(heading('taxiIn'));
   });
 });
 

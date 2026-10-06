@@ -10,7 +10,6 @@
 <path d="M799 162.1 L801 162.1 L3800 462 L-2200 462 Z" fill="#7C838A"/>
 <path d="M799 162.1 L799 162.1 L-2060 462 L-2180 462 Z" fill="#F2F4F6"/>
 <path d="M801 162.1 L801 162.1 L3780 462 L3660 462 Z" fill="#F2F4F6"/>
-<path d="M797.9 176.4 L802.1 176.4 L805.8 201.7 L794.2 201.7 Z" fill="#F2F4F6"/>
 <path d="M799 169 L801 169 L801.5 172.1 L798.5 172.1 Z" fill="#F2F4F6"/>
 <path d="M799.3 166.6 L800.7 166.6 L800.8 167.8 L799.2 167.8 Z" fill="#F2F4F6"/>
 <path d="M799.5 165.4 L800.5 165.4 L800.6 166 L799.4 166 Z" fill="#F2F4F6"/>
@@ -43,7 +42,7 @@
 <path d="M799.9 162.4 L800.1 162.4 L800.1 162.4 L799.9 162.4 Z" fill="#F2F4F6"/>
 <path d="M799.9 162.4 L800.1 162.4 L800.1 162.4 L799.9 162.4 Z" fill="#F2F4F6"/>
 <path d="M799.9 162.4 L800.1 162.4 L800.1 162.4 L799.9 162.4 Z" fill="#F2F4F6"/>
-<g data-runway-designator="36" fill="#F2F4F6" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="bold" text-anchor="middle"><text transform="translate(752 204) scale(1 .62)">3</text><text transform="translate(848 204) scale(1 .62)">6</text></g>
+<g data-runway-designator="36" fill="#F2F4F6" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="bold" text-anchor="middle"><text transform="translate(780 204) scale(1 .62)">3</text><text transform="translate(820 204) scale(1 .62)">6</text></g>
 <g><rect x="1240" y="136" width="3" height="34" fill="#4B535C"/><path d="M1242 136 L1254 138 L1254 143 L1242 146 Z" fill="#E98A3A"/><path d="M1247 137 V145" stroke="#F2F4F6" stroke-width="3"/></g>
 </g>
 <path d="M390 300 C550 244 770 210 930 210 C1090 210 1310 244 1470 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>

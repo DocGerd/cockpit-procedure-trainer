@@ -9,6 +9,8 @@ export const images = {
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
+  compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
+  compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   rockerBeacon: new URL('./assets/artwork/rocker-beacon.svg', import.meta.url).href,
   rockerPosition: new URL('./assets/artwork/rocker-position.svg', import.meta.url).href,
   rockerIntercom: new URL('./assets/artwork/rocker-intercom.svg', import.meta.url).href,
@@ -96,7 +98,23 @@ const travel = (face: string, image: string, path: readonly Point[]): ArtworkApp
   artwork: { face, moving: { type: 'travel', image, path } },
 });
 
+// The card turns under a fixed lubber line, so the heading reads at the top.
+const compassCard: ArtworkAppearance = {
+  options: { min: 0, max: 360, units: '°', decimals: 0 },
+  artwork: {
+    face: images.compassFace,
+    moving: {
+      type: 'needle',
+      image: images.compassCard,
+      pivot: { x: 100, y: 100 },
+      angleRange: { min: 0, max: -360 },
+      valueRange: { min: 0, max: 360 },
+    },
+  },
+};
+
 export const gaugeArtwork = {
+  compass: compassCard,
   airspeed: needle(
     images.gaugeAirspeed,
     { min: 40, max: 300 },

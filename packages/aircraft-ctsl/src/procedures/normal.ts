@@ -32,7 +32,7 @@ const circuitDropWithinLimit = (state: State) =>
 
 const confirm = (de: string, en: string) => ({ type: 'confirm', text: text(de, en) }) as const;
 
-// Intake §6 N7 and N8 have no compass item and the compass is background art, so a confirm.
+// Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
 const confirmRunwayHeading = confirm(
   `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
   `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
