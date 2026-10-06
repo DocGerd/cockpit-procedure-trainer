@@ -1,14 +1,12 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCurrentTarget } from '../checklist';
-import { format, useLocalize, useMessages } from '../i18n';
 import { useActiveView } from '../panel/active-view';
 import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
-import { messages } from './messages';
-import { targetBox, targetKey, targetView } from './target';
+import { installOf, targetBox, targetKey, targetView } from './target';
 import './modes.css';
 
 export type PanelOverlayProps = { viewId: string; rects: PanelRects };
@@ -19,6 +17,18 @@ const boxStyle = (box: PanelBox): CSSProperties => ({
   width: `${box.width}%`,
   height: `${box.height}%`,
 });
+
+const FOCUSABLE = 'button:not([tabindex="-1"]), [tabindex="0"], input, select, textarea';
+
+/** The focusable widget at a placement in the same zoom layer as `layer`. */
+function widgetAt(layer: HTMLElement | null, placementId: string | undefined) {
+  if (placementId === undefined) return undefined;
+  const placements = layer?.parentElement?.querySelectorAll<HTMLElement>('[data-placement]');
+  const placement = [...(placements ?? [])].find(
+    (element) => element.dataset.placement === placementId,
+  );
+  return placement?.querySelector<HTMLElement>(FOCUSABLE) ?? undefined;
+}
 
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
 const motionQuery = () =>
@@ -43,51 +53,72 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
   const active = useActiveView();
   const latest = useRef(active);
   latest.current = active;
+  const layer = useRef<HTMLDivElement>(null);
+  const focusPending = useRef(false);
 
   const key = target && targetKey(target);
   const view = target && targetView(aircraft, target);
   useEffect(() => {
-    if (view !== undefined && view !== latest.current.viewId) latest.current.setView(view);
+    if (view !== undefined && view !== latest.current.viewId) {
+      focusPending.current = true;
+      latest.current.setView(view);
+    }
   }, [key, item, view]);
 
   const box = target && targetBox(rects, target);
-  if (!box) return null;
+  const focusControl = target && 'control' in target ? target.control : undefined;
+  useEffect(() => {
+    if (!focusPending.current || active.viewId !== view) return;
+    focusPending.current = false;
+    if (focusControl === undefined) return;
+    (
+      widgetAt(layer.current, focusControl) ?? widgetAt(layer.current, installOf(focusControl))
+    )?.focus();
+  }, [active.viewId, view, focusControl]);
+
   return (
-    <div className="modes-overlay" data-modes-overlay="">
-      <div
-        className="modes-outline"
-        data-outline="target"
-        data-pulse={reducedMotion ? undefined : 'true'}
-        style={boxStyle(box)}
-      />
+    <div ref={layer} className="modes-overlay" data-modes-overlay="">
+      {box && (
+        <div
+          className="modes-outline"
+          data-outline="target"
+          data-pulse={reducedMotion ? undefined : 'true'}
+          style={boxStyle(box)}
+        />
+      )}
     </div>
   );
 }
 
 function ExploreOverlay({ rects }: { rects: PanelRects }) {
-  const text = useMessages(messages);
-  const localize = useLocalize();
   const { aircraft } = useTrainer();
   const store = useExploreStore();
   const { operate, selected } = useExploreState();
   const anchor = useRef<HTMLDivElement>(null);
-  const selectedBox = selected === undefined ? undefined : rects.controls[selected];
+  const layer = useRef<HTMLDivElement>(null);
+  const selectedBox = selected === undefined ? undefined : targetBox(rects, { control: selected });
 
   return (
-    <div className="modes-overlay" data-modes-overlay="">
+    <div ref={layer} className="modes-overlay" data-modes-overlay="">
       {!operate &&
         Object.entries(rects.controls).map(([id, box]) => {
           const control = aircraft.controls[id];
           return (
             control && (
+              // The widget underneath is the one assistive technology sees, so it takes the focus.
               <button
                 key={id}
                 type="button"
                 tabIndex={-1}
+                aria-hidden="true"
                 className="modes-hit"
-                aria-label={format(text.showDetails, { control: localize(control.name) })}
+                data-hit={id}
+                data-pan-through=""
                 style={boxStyle(box)}
-                onClick={() => store.select(id)}
+                onClick={() => {
+                  widgetAt(layer.current, id)?.focus({ preventScroll: true });
+                  store.select(id);
+                }}
               />
             )
           );

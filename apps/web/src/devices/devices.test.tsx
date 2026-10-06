@@ -173,3 +173,51 @@ describe('device layer', () => {
     expect(within(frame('radio')).getByText('b')).toBeTruthy();
   });
 });
+
+describe('device controls in Free explore', () => {
+  const enterExplore = () => act(() => trainer.setMode('explore'));
+
+  it('selects the device control instead of operating it while operating is off', async () => {
+    renderPanel();
+    enterExplore();
+    const set = vi.spyOn(trainer.session, 'set');
+    await userEvent.click(screen.getByRole('button', { name: 'Page B' }));
+    expect(set).not.toHaveBeenCalled();
+    expect(controls()['radio.page']).toBe('a');
+    const details = screen.getByRole('dialog', { name: 'Page' });
+    expect(within(details).getByText('Rotary')).toBeTruthy();
+    expect(within(details).getByText('Main')).toBeTruthy();
+    expect(
+      within(within(details).getByRole('list', { name: 'Positions' }))
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['a · current', 'b']);
+  });
+
+  it("outlines the selected device control's install", async () => {
+    renderPanel();
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Knob right' }));
+    expect(screen.getByRole('dialog', { name: 'Knob' })).toBeTruthy();
+    const outline = document.querySelector<HTMLElement>('[data-outline="selected"]');
+    expect(outline?.style.left).toBe(placement('radio')?.style.left);
+    expect(outline?.style.width).toBe(placement('radio')?.style.width);
+  });
+
+  it('localizes the device control details', async () => {
+    renderPanel('de');
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Page B' }));
+    expect(screen.getByRole('dialog', { name: 'Page (de)' })).toBeTruthy();
+  });
+
+  it('operates the device control with operating on', async () => {
+    renderPanel();
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'Page B' }));
+    await userEvent.click(screen.getByRole('checkbox', { name: /Operate controls/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Page B' }));
+    expect(controls()['radio.page']).toBe('b');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});

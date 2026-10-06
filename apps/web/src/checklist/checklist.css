@@ -51,6 +51,7 @@
 
 .checklist-title {
   margin: 0;
+  scroll-margin: var(--space-4);
   font-size: var(--text-2xl);
   line-height: var(--leading-2xl);
   font-weight: var(--weight-semibold);
@@ -104,7 +105,7 @@
 }
 
 .checklist-banner .checklist-eyebrow {
-  color: var(--color-warning);
+  color: var(--color-text);
 }
 
 .checklist-items {
@@ -315,4 +316,15 @@
   gap: var(--space-3);
   margin-top: auto;
   padding: var(--space-5);
+}
+
+.checklist-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
 }

@@ -2,7 +2,7 @@ import type { Aircraft } from '@cpt/core';
 import type { CurrentTarget } from '../checklist';
 import type { PanelBox, PanelRects } from '../panel/rects';
 
-const installOf = (controlId: string) => {
+export const installOf = (controlId: string) => {
   const dot = controlId.indexOf('.');
   return dot > 0 ? controlId.slice(0, dot) : undefined;
 };

@@ -17,6 +17,7 @@ vi.mock('../aircraft-registry', async () => ({
 vi.mock('../device-registry', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   deviceRegistry: [(await import('./test-aircraft')).radio],
+  deviceScreens: { 'modes-radio': (await import('./test-aircraft')).RadioScreen },
 }));
 
 let trainer: Trainer;
@@ -80,6 +81,11 @@ const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 const selectedTab = () => screen.getByRole('tab', { selected: true }).textContent;
 const modeButton = (name: string) =>
   within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
+const hit = (id: string) => {
+  const found = document.querySelector<HTMLElement>(`[data-hit="${id}"]`);
+  if (!found) throw new Error(`no hit area for ${id}`);
+  return found;
+};
 const radio = (control: string, position: string) =>
   within(screen.getByRole('radiogroup', { name: control })).getByRole('radio', { name: position });
 
@@ -261,7 +267,7 @@ describe('Free explore', () => {
       (method) => vi.spyOn(session, method),
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
 
     for (const operation of operations) expect(operation).not.toHaveBeenCalled();
     expect({ controls: session.state().controls, guards: session.guards() }).toEqual(before);
@@ -286,7 +292,7 @@ describe('Free explore', () => {
   it('outlines the selected control without a pulse', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     expect(outline()?.dataset.outline).toBe('selected');
     expect(outline()?.dataset.pulse).toBeUndefined();
     expect(boxOf(outline())).toEqual(boxOf(placement('master')));
@@ -305,7 +311,7 @@ describe('Free explore', () => {
     act(() => trainer.session.set('pump', 'on'));
     enterExplore();
     await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Pump' }));
+    await userEvent.click(hit('pump'));
     const details = screen.getByRole('dialog', { name: 'Pump' });
     const current = within(within(details).getByRole('list', { name: 'Positions' })).getAllByRole(
       'listitem',
@@ -316,7 +322,7 @@ describe('Free explore', () => {
   it('says when a control is used in no procedure', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Starter' }));
+    await userEvent.click(hit('starter'));
     const details = screen.getByRole('dialog', { name: 'Starter' });
     expect(within(details).getByText('Not used in any procedure')).toBeDefined();
     expect(within(details).queryByRole('list', { name: 'Used in' })).toBeNull();
@@ -325,12 +331,12 @@ describe('Free explore', () => {
   it('closes the details on Escape and on a tap outside', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(outline()).toBeNull();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     await userEvent.click(screen.getByRole('tablist'));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
@@ -338,8 +344,8 @@ describe('Free explore', () => {
   it('opens one popover at a time', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Starter' }));
+    await userEvent.click(hit('master'));
+    await userEvent.click(hit('starter'));
     expect(screen.getAllByRole('dialog')).toHaveLength(1);
     expect(screen.getByRole('dialog', { name: 'Starter' })).toBeDefined();
     expect(screen.queryByRole('dialog', { name: 'Master' })).toBeNull();
@@ -349,7 +355,7 @@ describe('Free explore', () => {
     renderTrainer();
     enterExplore();
     await userEvent.click(screen.getByRole('checkbox', { name: /Operate controls/ }));
-    expect(screen.queryByRole('button', { name: 'Show details: Master' })).toBeNull();
+    expect(document.querySelector('[data-hit]')).toBeNull();
     await userEvent.click(radio('Master', 'on'));
     expect(trainer.session.state().controls.master).toBe('on');
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -358,7 +364,7 @@ describe('Free explore', () => {
   it('turns operating on from the details', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     const details = screen.getByRole('dialog', { name: 'Master' });
     await userEvent.click(within(details).getByRole('checkbox', { name: /Operate controls/ }));
     expect(screen.queryByRole('dialog')).toBeNull();
@@ -369,7 +375,7 @@ describe('Free explore', () => {
   it('drops the selection when leaving Free explore', async () => {
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     act(() => trainer.setMode('practice'));
     expect(screen.queryByRole('dialog')).toBeNull();
     enterExplore();
@@ -414,9 +420,15 @@ describe('the details popover', () => {
     ) {
       let box = { left: 0, top: 0, width: 0, height: 0 };
       if (this.dataset.outline !== undefined) {
+        const zoom = Number(
+          document
+            .querySelector<HTMLElement>('.panel-zoom')
+            ?.style.getPropertyValue('--panel-scale'),
+        );
+        const scale = zoom > 0 ? zoom : 1;
         box = {
-          left: parseFloat(this.style.left) * 10,
-          top: parseFloat(this.style.top) * 10,
+          left: parseFloat(this.style.left) * 10 * scale,
+          top: parseFloat(this.style.top) * 10 * scale,
           width: 50,
           height: 50,
         };
@@ -448,7 +460,7 @@ describe('the details popover', () => {
     stubLayout(1000);
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     expect(dialogPlace('Master').top).toBeCloseTo(outlineTop() + 50);
   });
 
@@ -456,26 +468,39 @@ describe('the details popover', () => {
     stubLayout(500);
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     expect(dialogPlace('Master').top).toBeCloseTo(outlineTop() - popoverSize.height);
   });
 
-  it('moves focus into the details and back to the opener on Escape', async () => {
+  it('follows its control when the panel zooms', async () => {
+    stubLayout(1000);
     renderTrainer();
     enterExplore();
-    const opener = screen.getByRole('button', { name: 'Show details: Master' });
-    await userEvent.click(opener);
+    await userEvent.click(hit('starter'));
+    const before = dialogPlace('Starter');
+    const surface = screen.getByRole('tabpanel');
+    act(() => surface.focus());
+    fireEvent.keyDown(surface, { key: '+' });
+    const after = dialogPlace('Starter');
+    expect(after.left).toBeGreaterThan(before.left);
+    expect(screen.getByRole('dialog', { name: 'Starter' })).toBeDefined();
+  });
+
+  it('moves focus into the details and back to the tapped widget on Escape', async () => {
+    renderTrainer();
+    enterExplore();
+    await userEvent.click(hit('master'));
     expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Master' }));
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(document.activeElement).toBe(opener);
+    expect(document.activeElement).toBe(radio('Master', 'off'));
   });
 
   it('follows a selection made from the keyboard while open', async () => {
     stubLayout(1000);
     renderTrainer();
     enterExplore();
-    await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
+    await userEvent.click(hit('master'));
     const before = dialogPlace('Master');
 
     const cutoff = screen.getByRole('button', { name: 'Fuel cutoff' });
@@ -488,6 +513,99 @@ describe('the details popover', () => {
     expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Fuel cutoff' }));
     await userEvent.keyboard('{Escape}');
     expect(document.activeElement).toBe(cutoff);
+  });
+});
+
+describe('Free explore for assistive technology', () => {
+  it('keeps the hit layer out of the accessibility tree and lets drags on it pan', () => {
+    renderTrainer();
+    enterExplore();
+    const hits = [...document.querySelectorAll<HTMLElement>('.modes-hit')];
+    expect(hits.length).toBeGreaterThan(0);
+    for (const area of hits) {
+      expect(area.getAttribute('aria-hidden')).toBe('true');
+      expect(area.hasAttribute('data-pan-through')).toBe(true);
+    }
+    expect(screen.queryAllByRole('button', { name: /Master/ })).toHaveLength(0);
+    expect(screen.getAllByRole('radiogroup', { name: 'Master' })).toHaveLength(1);
+  });
+
+  it('opens the details on Enter from a widget and returns focus on Escape', async () => {
+    renderTrainer();
+    enterExplore();
+    const off = radio('Master', 'off');
+    act(() => off.focus());
+    await userEvent.keyboard('{Enter}');
+    expect(trainer.session.state().controls.master).toBe('off');
+    expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Master' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(off);
+  });
+
+  it('opens the details of a continuous lever on Enter without moving it', async () => {
+    renderTrainer();
+    enterExplore();
+    act(() => screen.getByRole('slider', { name: 'Throttle' }).focus());
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('dialog', { name: 'Throttle' })).toBeDefined();
+    expect(trainer.session.state().controls.throttle).toBe(0);
+  });
+
+  it('leaves Enter on a lever alone outside Free explore', async () => {
+    renderTrainer();
+    act(() => screen.getByRole('slider', { name: 'Throttle' }).focus());
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByRole('dialog')).toBeNull();
+    enterExplore();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('Guided focus', () => {
+  it('moves focus to the target when its view comes up', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => radio('Master', 'off').focus());
+    act(() => trainer.session.set('master', 'on'));
+    expect(selectedTab()).toBe('Centre console');
+    expect(placement('pump')?.contains(document.activeElement)).toBe(true);
+  });
+
+  it('moves focus into the install of a device control target when its view comes up', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+    expect(selectedTab()).toBe('Main panel');
+    act(() => screen.getByRole('tab', { name: 'Main panel' }).focus());
+    act(() => trainer.session.checkOff());
+    expect(selectedTab()).toBe('Centre console');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Radio page B' }));
+  });
+
+  it('leaves focus alone when another target comes up in the shown view', () => {
+    renderTrainer();
+    start('inview', 'guided');
+    const tab = screen.getByRole('tab', { name: 'Main panel' });
+    act(() => tab.focus());
+    act(() => {
+      trainer.session.openGuard('cutoff');
+      trainer.session.set('cutoff', 'cut');
+    });
+    expect(trainer.session.checklist()?.current).toBe(1);
+    expect(document.activeElement).toBe(tab);
+  });
+
+  it('leaves focus alone when the next target is in the shown view', () => {
+    renderTrainer();
+    start('cycle', 'guided');
+    const tab = screen.getByRole('tab', { name: 'Main panel' });
+    act(() => tab.focus());
+    act(() => trainer.session.set('master', 'on'));
+    expect(document.activeElement).toBe(tab);
   });
 });
 

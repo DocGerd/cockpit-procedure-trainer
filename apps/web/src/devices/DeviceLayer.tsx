@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { deviceScreens } from '../device-registry';
 import { format, useMessages } from '../i18n';
+import { usePanelInputs } from '../modes/panel-input';
 import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { messages } from './messages';
@@ -19,7 +20,8 @@ const boxStyle = (box: PanelBox): CSSProperties => ({
 });
 
 function InstalledDevice({ installId, box }: { installId: string; box: PanelBox }) {
-  const { aircraft, session } = useTrainer();
+  const { aircraft } = useTrainer();
+  const inputs = usePanelInputs();
   const text = useMessages(messages);
   const deviceId = aircraft.devices?.[installId]?.device;
   const device = useSessionState((s) => s.state().devices[installId]);
@@ -27,22 +29,22 @@ function InstalledDevice({ installId, box }: { installId: string; box: PanelBox 
   const send = useCallback<DeviceScreenProps['send']>(
     (controlId, action, position?: ControlPosition) => {
       const id = `${installId}.${controlId}`;
+      const input = inputs(id);
       if (action === 'set') {
         if (position !== undefined) {
-          session.set(id, position);
+          input.onSet(position);
         } else {
           const error = new Error(`Device screen sent a set for "${id}" without a position`);
           if (import.meta.env.DEV) throw error;
           console.error(error);
         }
       } else if (action === 'press') {
-        if (position === undefined) session.press(id);
-        else session.press(id, position);
+        input.onPress(position);
       } else {
-        session.release(id);
+        input.onRelease();
       }
     },
-    [session, installId],
+    [inputs, installId],
   );
 
   if (deviceId === undefined || device === undefined) return null;

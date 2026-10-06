@@ -2,6 +2,10 @@
 export const MIN_SCALE = 1;
 export const MAX_SCALE = 4;
 
+/** One key press zooms by this factor, and pans by this share of the viewport. */
+export const KEY_ZOOM_STEP = 1.25;
+export const KEY_PAN_FRACTION = 0.1;
+
 export type Point = { readonly x: number; readonly y: number };
 export type Size = { readonly width: number; readonly height: number };
 
@@ -86,4 +90,34 @@ export function revealed(zoom: ZoomState, box: Box, viewport: Size): ZoomState {
     },
     viewport,
   );
+}
+
+function zoomedAboutCentre(start: ZoomState, factor: number, viewport: Size): ZoomState {
+  const center = { x: viewport.width / 2, y: viewport.height / 2 };
+  return pinched(start, { center, distance: 1 }, { center, distance: factor }, viewport);
+}
+
+/** The zoom after a key press on the panel surface, or undefined for a key that does not zoom or pan. */
+export function keyZoom(zoom: ZoomState, key: string, viewport: Size): ZoomState | undefined {
+  const x = viewport.width * KEY_PAN_FRACTION;
+  const y = viewport.height * KEY_PAN_FRACTION;
+  switch (key) {
+    case '+':
+    case '=':
+      return zoomedAboutCentre(zoom, KEY_ZOOM_STEP, viewport);
+    case '-':
+      return zoomedAboutCentre(zoom, 1 / KEY_ZOOM_STEP, viewport);
+    case '0':
+      return NO_ZOOM;
+    case 'ArrowRight':
+      return panned(zoom, { x: -x, y: 0 }, viewport);
+    case 'ArrowLeft':
+      return panned(zoom, { x, y: 0 }, viewport);
+    case 'ArrowDown':
+      return panned(zoom, { x: 0, y: -y }, viewport);
+    case 'ArrowUp':
+      return panned(zoom, { x: 0, y }, viewport);
+    default:
+      return undefined;
+  }
 }

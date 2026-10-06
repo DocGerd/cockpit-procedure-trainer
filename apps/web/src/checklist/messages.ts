@@ -39,6 +39,8 @@ export const messages = defineMessages({
     nextProcedure: 'Next: {title}',
     repeatProcedure: 'Repeat this procedure',
     backToSelection: 'Back to selection',
+    announceItem: 'Item {n} of {total}: {text}',
+    announceDone: 'Procedure complete: {title}',
   },
   de: {
     normalProcedure: 'Normalverfahren',
@@ -78,5 +80,7 @@ export const messages = defineMessages({
     nextProcedure: 'Weiter: {title}',
     repeatProcedure: 'Verfahren wiederholen',
     backToSelection: 'Zurück zur Auswahl',
+    announceItem: 'Punkt {n} von {total}: {text}',
+    announceDone: 'Verfahren abgeschlossen: {title}',
   },
 });

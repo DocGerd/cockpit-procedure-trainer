@@ -1,11 +1,15 @@
+import { deviceControls } from '@cpt/core';
 import type { Aircraft, ControlDefinition, ControlKind, ControlPosition, Text } from '@cpt/core';
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { createPortal } from 'react-dom';
+import { deviceRegistry } from '../device-registry';
 import { format, useLocalize, useMessages } from '../i18n';
+import { usePanelZoom } from '../panel/panel-zoom';
 import { useSessionState, useTrainer } from '../trainer';
 import { messages } from './messages';
 import { OperateToggle } from './OperateToggle';
+import { targetView } from './target';
 
 type Messages = (typeof messages)['en'];
 
@@ -92,6 +96,8 @@ function usePlacement(
   popover: RefObject<HTMLElement | null>,
 ): Place | undefined {
   const [place, setPlace] = useState<Place>();
+  // A zoom or pan moves the anchor by a transform, which no resize or scroll event reports.
+  const { scale, offset } = usePanelZoom();
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -125,7 +131,7 @@ function usePlacement(
       window.removeEventListener('scroll', measure, true);
       observer?.disconnect();
     };
-  }, [anchor, popover]);
+  }, [anchor, popover, scale, offset.x, offset.y]);
 
   return place;
 }
@@ -143,7 +149,10 @@ export function ControlDetails({
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft } = useTrainer();
-  const control = aircraft.controls[controlId];
+  const control = useMemo(
+    () => aircraft.controls[controlId] ?? deviceControls(aircraft, deviceRegistry)[controlId],
+    [aircraft, controlId],
+  );
   const current = useSessionState(
     (session) => session.state().controls[controlId] ?? control?.initial,
   );
@@ -155,10 +164,15 @@ export function ControlDetails({
   const close = useRef(onClose);
   close.current = onClose;
 
-  const views = useMemo(
-    () => Object.values(aircraft.views).filter((view) => view.controls?.[controlId] !== undefined),
-    [aircraft, controlId],
-  );
+  const views = useMemo(() => {
+    const own = Object.values(aircraft.views).filter(
+      (view) => view.controls?.[controlId] !== undefined,
+    );
+    if (own.length > 0) return own;
+    const installView = targetView(aircraft, { control: controlId });
+    const view = installView === undefined ? undefined : aircraft.views[installView];
+    return view ? [view] : [];
+  }, [aircraft, controlId]);
   const uses = useMemo(() => usesOf(aircraft, controlId), [aircraft, controlId]);
 
   useEffect(() => {

@@ -16,3 +16,21 @@
   outline: 2px solid var(--panel-focus);
   outline-offset: -2px;
 }
+
+.cpt-artwork-guard[aria-expanded='true'] {
+  height: 40%;
+}
+
+.cpt-artwork-handle {
+  top: 40%;
+  height: 60%;
+}
+
+.cpt-artwork-cycle {
+  width: 60%;
+}
+
+.cpt-artwork-spring {
+  left: 60%;
+  width: 40%;
+}

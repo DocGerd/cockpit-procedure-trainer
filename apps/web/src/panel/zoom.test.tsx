@@ -352,6 +352,65 @@ describe('what the zoom carries', () => {
   });
 });
 
+describe('keyboard zoom', () => {
+  const surface = () => screen.getByRole('tabpanel');
+
+  it('makes the panel surface reachable with Tab after the view tabs', async () => {
+    act(() => screen.getByRole('tab', { name: 'Main panel' }).focus());
+    await userEvent.tab();
+    expect(document.activeElement).toBe(surface());
+  });
+
+  it('zooms in and out with plus and minus and resets with 0 on the focused surface', async () => {
+    act(() => surface().focus());
+    await userEvent.keyboard('+');
+    expect(scale()).toBeGreaterThan(1);
+    const zoomedIn = scale();
+    await userEvent.keyboard('-');
+    expect(scale()).toBeLessThan(zoomedIn);
+    await userEvent.keyboard('++');
+    await userEvent.keyboard('0');
+    expect(scale()).toBe(1);
+    expect(offset()).toEqual({ x: 0, y: 0 });
+    expect(document.activeElement).toBe(surface());
+  });
+
+  it('pans with the arrow keys while zoomed', async () => {
+    act(() => surface().focus());
+    await userEvent.keyboard('++');
+    const before = offset();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(offset().x).toBeLessThan(before.x);
+    await userEvent.keyboard('{ArrowDown}');
+    expect(offset().y).toBeLessThan(before.y);
+  });
+
+  it('keeps the page from scrolling on a key that pans, and only then', async () => {
+    const arrowDown = () => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+      });
+      surface().dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(arrowDown()).toBe(false);
+    act(() => surface().focus());
+    await userEvent.keyboard('++');
+    expect(arrowDown()).toBe(true);
+  });
+
+  it('leaves the keys of a control on the panel to that control', () => {
+    const control = placement('master')?.querySelector<HTMLElement>('[tabindex="0"]');
+    if (!control) throw new Error('no focusable control');
+    act(() => control.focus());
+    fireEvent.keyDown(control, { key: '+' });
+    fireEvent.keyDown(control, { key: 'ArrowRight' });
+    expect(scale()).toBe(1);
+  });
+});
+
 describe('reset', () => {
   const reset = () => screen.queryByRole('button', { name: 'Reset zoom' });
 

@@ -1,5 +1,7 @@
 import { defineAircraft, defineDevice } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
+import type { DeviceScreenProps } from '@cpt/panel-kit';
+import { createElement } from 'react';
 
 // Test-only fixtures, so mode tests do not depend on the registered aircraft's content.
 
@@ -34,6 +36,14 @@ export const radio = defineDevice({
   step: (state) => state,
 });
 
+export function RadioScreen({ send }: DeviceScreenProps) {
+  return createElement(
+    'button',
+    { type: 'button', onClick: () => send('page', 'set', 'b') },
+    'Radio page B',
+  );
+}
+
 export const fixture: Aircraft = defineAircraft({
   id: 'modes-fixture',
   name: text('Modes fixture'),
@@ -49,6 +59,13 @@ export const fixture: Aircraft = defineAircraft({
       description: text('Cranks the engine while held.'),
     },
     unplaced: toggle('Unplaced'),
+    throttle: {
+      kind: 'lever',
+      positions: 'continuous',
+      initial: 0,
+      name: text('Throttle'),
+      description: text('Sets the power.'),
+    },
     cutoff: {
       kind: 'guarded',
       positions: ['normal', 'cut'],
@@ -73,6 +90,7 @@ export const fixture: Aircraft = defineAircraft({
         master: { rect: { x: 100, y: 100, w: 100, h: 100 } },
         starter: { rect: { x: 300, y: 100, w: 100, h: 100 } },
         cutoff: { rect: { x: 450, y: 150, w: 100, h: 50 } },
+        throttle: { rect: { x: 850, y: 100, w: 50, h: 150 } },
       },
       indicators: { volts: { rect: { x: 600, y: 100, w: 200, h: 200 } } },
     },
@@ -99,7 +117,14 @@ export const fixture: Aircraft = defineAircraft({
       image: 'ground.png',
       environment,
       entry: {
-        controls: { master: 'off', pump: 'off', starter: 'off', unplaced: 'off', cutoff: 'normal' },
+        controls: {
+          master: 'off',
+          pump: 'off',
+          starter: 'off',
+          unplaced: 'off',
+          cutoff: 'normal',
+          throttle: 0,
+        },
         state: initial,
       },
     },
@@ -129,6 +154,15 @@ export const fixture: Aircraft = defineAircraft({
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         { type: 'action', control: 'master', position: 'off', text: text('Master off') },
+      ],
+    },
+    inview: {
+      title: text('In view'),
+      type: 'normal',
+      startPhase: 'ground',
+      items: [
+        { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff cut') },
+        { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
       ],
     },
     shutdown: {

@@ -16,7 +16,7 @@ import { ControlPlacement, IndicatorPlacement } from './placements';
 import { panelRects, placementExtent, viewPlacements } from './rects';
 import { useZoomGestures } from './use-zoom-gestures';
 import type { ZoomTarget } from './use-zoom-gestures';
-import { isZoomed } from './zoom';
+import { isZoomed, keyZoom, sameZoom } from './zoom';
 import './panel.css';
 
 function useViewState(aircraft: Aircraft): ActiveView {
@@ -152,6 +152,19 @@ export function PanelArea() {
   const text = useMessages(messages);
   const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
 
+  // Keys reach the surface only while it has focus itself; a focused control keeps its own keys.
+  const onSurfaceKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    const viewport = event.currentTarget.firstElementChild?.getBoundingClientRect();
+    if (!viewport) return;
+    const next = keyZoom(zoom.zoom, event.key, viewport);
+    if (next === undefined || sameZoom(next, zoom.zoom)) return;
+    event.preventDefault();
+    zoom.apply(next);
+  };
+
   const resetZoom = () => {
     zoom.reset();
     document.getElementById(`${panelId}-${active.viewId}`)?.focus();
@@ -172,10 +185,16 @@ export function PanelArea() {
           role="tabpanel"
           id={panelId}
           aria-labelledby={`${panelId}-${active.viewId}`}
+          aria-describedby={`${panelId}-keys`}
+          tabIndex={0}
           className="panel-surface"
           data-panel-surface=""
+          onKeyDown={onSurfaceKeyDown}
         >
           <PanelView viewId={active.viewId} zoom={zoom} />
+          <span id={`${panelId}-keys`} hidden>
+            {text.zoomKeys}
+          </span>
         </div>
       </PanelZoomContext.Provider>
     </ActiveViewContext.Provider>

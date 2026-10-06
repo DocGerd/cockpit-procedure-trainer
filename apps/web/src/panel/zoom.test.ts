@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  KEY_PAN_FRACTION,
+  KEY_ZOOM_STEP,
   MAX_SCALE,
   MIN_SCALE,
   NO_ZOOM,
   clampZoom,
+  keyZoom,
   panned,
   pinchSample,
   pinched,
@@ -114,5 +117,46 @@ describe('revealed', () => {
 
   it('stays inside the panel', () => {
     expect(revealed(zoomed, box(-500, 10, -450, 60), viewport).offset.x).toBe(0);
+  });
+});
+
+describe('keyZoom', () => {
+  const zoomed: ZoomState = { scale: 2, offset: { x: -100, y: -50 } };
+
+  it('zooms in about the centre of the viewport', () => {
+    const next = keyZoom(NO_ZOOM, '+', viewport);
+    expect(next?.scale).toBeCloseTo(KEY_ZOOM_STEP);
+    expect(next?.offset.x).toBeCloseTo(200 - 200 * KEY_ZOOM_STEP);
+    expect(next?.offset.y).toBeCloseTo(100 - 100 * KEY_ZOOM_STEP);
+    expect(keyZoom(NO_ZOOM, '=', viewport)).toEqual(next);
+  });
+
+  it('zooms out, never past the fitted size', () => {
+    expect(keyZoom(zoomed, '-', viewport)?.scale).toBeCloseTo(2 / KEY_ZOOM_STEP);
+    expect(keyZoom(NO_ZOOM, '-', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('stops at the maximum scale', () => {
+    const top: ZoomState = { scale: MAX_SCALE, offset: { x: 0, y: 0 } };
+    expect(keyZoom(top, '+', viewport)?.scale).toBe(MAX_SCALE);
+  });
+
+  it('resets on 0', () => {
+    expect(keyZoom(zoomed, '0', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('pans a step of the viewport with the arrow keys, clamped to the panel', () => {
+    const stepX = viewport.width * KEY_PAN_FRACTION;
+    const stepY = viewport.height * KEY_PAN_FRACTION;
+    expect(keyZoom(zoomed, 'ArrowRight', viewport)?.offset).toEqual({ x: -100 - stepX, y: -50 });
+    expect(keyZoom(zoomed, 'ArrowLeft', viewport)?.offset).toEqual({ x: -100 + stepX, y: -50 });
+    expect(keyZoom(zoomed, 'ArrowDown', viewport)?.offset).toEqual({ x: -100, y: -50 - stepY });
+    expect(keyZoom(zoomed, 'ArrowUp', viewport)?.offset).toEqual({ x: -100, y: -50 + stepY });
+    expect(keyZoom(NO_ZOOM, 'ArrowRight', viewport)).toEqual(NO_ZOOM);
+  });
+
+  it('ignores other keys', () => {
+    expect(keyZoom(zoomed, 'a', viewport)).toBeUndefined();
+    expect(keyZoom(zoomed, 'Enter', viewport)).toBeUndefined();
   });
 });
