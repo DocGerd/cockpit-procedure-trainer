@@ -12,8 +12,9 @@ this app in flight.
 **Live app:** https://docgerd.github.io/cockpit-procedure-trainer/
 
 **UAT preview:** https://docgerd.github.io/cockpit-procedure-trainer/uat/ — the
-unreleased `develop` state. Unstable and not the productive version; use the
-live app link above for training.
+unreleased `develop` state, auto-deployed on every push to `develop`. It may be
+unstable, is not indexed by search engines, and is not the productive version;
+use the live app link above for training.
 
 ## Status
 
