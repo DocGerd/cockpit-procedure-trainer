@@ -5,23 +5,23 @@
 <rect x="852" y="16" width="1032" height="668" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
 <g fill="#5E646B"><circle cx="866" cy="30" r="4"/><circle cx="1870" cy="30" r="4"/><circle cx="866" cy="670" r="4"/><circle cx="1870" cy="670" r="4"/></g>
 <rect x="26" y="40" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
-<text x="90" y="62" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#2B3138" text-anchor="middle">TAKE-OFF</text>
+<text data-decor="knee card" x="90" y="62" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#2B3138" text-anchor="middle">TAKE-OFF</text>
 <path d="M34 70 H146" stroke="#2B3138" stroke-width="1.5"/>
-<text x="36" y="90" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Fuel valve open</text>
-<text x="36" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Choke off</text>
-<text x="36" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Carb heat off</text>
-<text x="36" y="156" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Flaps 15°</text>
-<text x="36" y="178" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Trim neutral</text>
-<text x="36" y="200" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Doors locked</text>
+<text data-decor="knee card" x="36" y="90" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Fuel valve open</text>
+<text data-decor="knee card" x="36" y="112" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Choke off</text>
+<text data-decor="knee card" x="36" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Carb heat off</text>
+<text data-decor="knee card" x="36" y="156" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Flaps 15°</text>
+<text data-decor="knee card" x="36" y="178" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Trim neutral</text>
+<text data-decor="knee card" x="36" y="200" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Doors locked</text>
 <rect x="26" y="240" width="128" height="166" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
-<text x="90" y="262" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#2B3138" text-anchor="middle">LIMITS</text>
+<text data-decor="knee card" x="90" y="262" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#2B3138" text-anchor="middle">LIMITS</text>
 <path d="M34 270 H146" stroke="#2B3138" stroke-width="1.5"/>
-<text x="36" y="290" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VNE 260 km/h</text>
-<text x="36" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VA 194 km/h</text>
-<text x="36" y="334" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VFE 15° 148</text>
-<text x="36" y="356" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VFE 30/35° 115</text>
-<text x="36" y="378" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Day VFR only</text>
-<text x="36" y="400" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">No aerobatics</text>
+<text data-decor="knee card" x="36" y="290" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VNE 260 km/h</text>
+<text data-decor="knee card" x="36" y="312" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VA 194 km/h</text>
+<text data-decor="knee card" x="36" y="334" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VFE 15° 148</text>
+<text data-decor="knee card" x="36" y="356" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">VFE 30/35° 115</text>
+<text data-decor="knee card" x="36" y="378" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">Day VFR only</text>
+<text data-decor="knee card" x="36" y="400" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="normal" fill="#2B3138" text-anchor="start">No aerobatics</text>
 <circle cx="270" cy="200" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="475" cy="112" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="685" cy="225" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
@@ -44,16 +44,16 @@
 <rect x="1168" y="40" width="400" height="300" rx="10" fill="#141517"/>
 <rect x="874" y="36" width="96" height="80" rx="12" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <rect x="888" y="58" width="68" height="34" rx="6" fill="#E3E5E8"/>
-<text x="904" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">33</text>
-<text x="922" y="82" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#2B3138" text-anchor="middle">N</text>
-<text x="940" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">3</text>
+<text data-decor="knee card" x="904" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">33</text>
+<text data-decor="knee card" x="922" y="82" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#2B3138" text-anchor="middle">N</text>
+<text data-decor="knee card" x="940" y="82" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">3</text>
 <path d="M922 56 V62 M922 88 V94" stroke="#2B3138" stroke-width="2"/>
 <circle cx="982" cy="470" r="118" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="1182" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="1347" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <circle cx="1512" cy="470" r="86" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
 <rect x="1598" y="28" width="276" height="636" rx="10" fill="#232528" stroke="#44494F" stroke-width="2"/>
-<text x="1736" y="54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">BREAKERS · PUSH TO RESET</text>
+<text x="1736" y="54" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#B9BEC4" text-anchor="middle">BREAKERS</text>
 <circle cx="1736" cy="135" r="20" fill="#1A1B1D" stroke="#3B4046" stroke-width="2"/><path d="M1727 135 H1745" stroke="#3B4046" stroke-width="3"/>
 <circle cx="1824" cy="135" r="20" fill="#1A1B1D" stroke="#3B4046" stroke-width="2"/><path d="M1815 135 H1833" stroke="#3B4046" stroke-width="3"/>
 </svg>

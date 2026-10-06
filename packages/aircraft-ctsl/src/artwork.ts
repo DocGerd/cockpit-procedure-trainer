@@ -205,7 +205,7 @@ export const controlArtwork = {
   xpdrBreaker: breaker(images.breakerXpdr, 'XPDR'),
   gpsBreaker: breaker(images.breakerGps, 'GPS'),
   positionBreaker: breaker(images.breakerPosition, 'POS'),
-  strobeBreaker: breaker(images.breakerStrobe, 'STROBE'),
+  strobeBreaker: breaker(images.breakerStrobe, 'STRB'),
   landingBreaker: breaker(images.breakerLanding, 'LDG'),
   intercomBreaker: breaker(images.breakerIntercom, 'INT'),
   outletBreaker: breaker(images.breakerOutlet, '12 V'),
