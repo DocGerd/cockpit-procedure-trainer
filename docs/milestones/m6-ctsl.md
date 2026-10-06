@@ -19,6 +19,9 @@ The club's Flight Design CT Supralight is the trainer's second aircraft. It is a
 - CTSL lettering legible at tablet width (#242, closes #241).
 - The README links the live app and the UAT preview (#218, closes #217).
 - The PWA build test recognises base64-inlined SVGs (#216, closes #215).
+- From the release review: the rescue-system safety pin is out from departure until parking and securing, the departure starts with flaps 0° as the take-off checklist leaves them, and the climb selects −12° only after confirming a safe height; a phase entry may now set guard positions (`entry.guards`) (#248, closes #247).
+- A long-open app checks for a new version every hour and when it becomes visible again (#252, closes #250).
+- The Pages deploy has a timeout and one retry, records `uat` and `prod` deployments, and checks after each deploy that the site serves the pushed commit (`version.json`) (#251, closes #249).
 
 ## Decisions made
 
@@ -52,21 +55,22 @@ The spec's decisions table is unchanged.
 - Notched artwork controls with three or more positions are sliders; two-position ones stay toggle buttons (#227, #239).
 - For legibility, STROBE is lettered STRB and the avionics plate reads "AVIONICS OFF TO START AND STOP"; the knee-board cards keep only their titles (#242).
 - The PWA build test was fixed, not the build: inlined SVGs stay inlined (#216).
+- The pin is out from departure through parking and securing, because "Before take-off" removes it and only "Shutdown and securing" puts it back; the safe-height confirm names no height, because the intake gives none (#248).
+- **The Pages deploy uses `cancel-in-progress: true`**: the observed stall sat at the environment gate, where a timeout and retry cannot help. Trade-off: a cancelled `main` run loses its prod deployment record and freshness check until the next run redeploys prod from `main` (#251).
+- The comment policy in code is unchanged by this milestone.
 - Branch `feat/41-ctsl-failure-procedures` avoids a word the project's tripwire hook refuses (#230).
 
 ## Open questions for the owner
 
 1. **Club and instructor list** (`docs/aircraft/ctsl-intake.md` §9, 18 items, each with the value in use): engine 912 UL or ULS; rescue system type and with it VNE; whether D-MPGO has a carb-heat control and where; how the engine-fire procedure ends; every contradiction in §8; the club-authored generator failure; ELT at shutdown; ignition key labels; the second warning lamp; the large knob right of the parking-brake valve; the propeller type; the trim wheel position; the cockpit-light switch; the installed avionics and their guide revisions; a club checklist card; the handbook copy on board; climb speeds; the parking brake before take-off.
-2. **Guard state for checks**: a core change would let "rescue system armed" be a check instead of a confirm item. Worth an issue?
+2. **Guard state for checks**: checks still cannot see guard state, an accepted limitation for this release; #247 only lets a phase entry set guards. A core change would let "rescue system armed" be a check instead of a confirm item. Worth an issue?
 3. **Club checklist card**: none was supplied; the procedures follow the handbook in our words. A club card would replace them (spec §7).
 4. **Device manual revisions**: the SL40, GTX 327 and GPSMAP 496 logic follows general knowledge; each package README lists its assumptions. The club's installed versions are unknown.
 5. **Keep #212 (GPS)?** Resolved by shipping it as an operable unit (#235).
 6. **Placards in English** regardless of UI language (#240): confirm, or ask for translated placards.
-7. **Release review: rescue-system safety pin.** Entering a phase closes every guard, and the CTSL handle's guard is its safety pin, so in flight the pin is back in and `rescueDeployment` has the pilot pull it mid-emergency, although `beforeTakeoff` removed it. Fix through a core change (a phase entry declares guard positions, related to question 2), or accept as a trainer simplification?
-8. **Release review: take-off and climb flaps.** `takeoff` ends with flaps 0, the `departure` snapshot (intake §5) has flaps 15, and `climbCruise` sets −12° from 15° at 200 ft, which conflicts with N7 (retract to 0 above 50 m) and the §4.4 caution. The intake's contradiction is not yet in §8; fix the snapshot and `climbCruise` together?
-9. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
+7. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
 
-Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #243, #244; older #157–#162 and #178–#186.
+Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #243, #244; older #157–#162 and #178–#186. Filed for M7: #246 (app version, copyright notice and the UAT build's commit in the UI).
 
 ## How to verify
 
@@ -77,6 +81,10 @@ Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #2
   1. Engine start and taxi.
   2. Before take-off (run-up with the ignition-circuit checks).
   3. Engine fire.
-  4. Rescue system: engine failure with no field within reach (the guarded handle).
+  4. Rescue system: engine failure with no field within reach (the safety pin is already out; the handle pulls directly).
   5. Set the radio and the transponder (radio stack view).
 - After the owner merges this release PR: `gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.7.0 --jq .tag_name` prints `v0.7.0`.
+
+### When you merge the release PR
+
+Watch the Deploy run of the push to `main`. It should now record a `prod` deployment and pass the freshness check (the site serves the pushed commit). If the deploy job sits in "waiting" for minutes, cancel the run by hand and re-run it.

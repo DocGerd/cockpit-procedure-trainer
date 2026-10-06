@@ -30,6 +30,9 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 - Artwork indicators take optional `options` (units, decimals, arcs) like the generic gauge, so their accessible name and fallback gauge keep units and rounding.
 - Trim, throttle and the other notched controls now step the same way from a tap, the arrow keys and the printed legend, and focus returns to the ignition switch after holding START.
 - The CT Supralight's printed labels, such as STRB, PUSH, FLAPS, INTERCOM, HEADSET, OPEN and SHUT, are lettered large enough to read at tablet width.
+- In the CT Supralight, the rescue system's safety pin is out from departure until parking and securing, so the rescue deployment checklist only confirms it; the departure starts with flaps 0° as the take-off checklist leaves them, and the climb selects −12° only after confirming a safe height.
+- The Pages deploy retries once when a deploy wedges, and the Deployments box now lists the `uat` and `prod` environments with their links.
+- A long-open app now checks for a new version every hour and when it becomes visible again, so the update prompt appears without a navigation.
 
 ## [0.6.0] - 2026-10-06
 
