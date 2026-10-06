@@ -17,7 +17,6 @@ function ErrorDialog({ onReset }: { onReset(): void }) {
       <div className="error-backdrop">
         <div
           role="alertdialog"
-          aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={bodyId}
           className="error-dialog"

@@ -96,6 +96,7 @@ describe('error boundary', () => {
     broken = true;
     renderBoundary();
     expect(screen.getByRole('contentinfo').textContent).toContain('Version');
+    expect(screen.getByRole('alertdialog').getAttribute('aria-modal')).toBeNull();
   });
 
   it('puts keyboard focus on the reset button', () => {
