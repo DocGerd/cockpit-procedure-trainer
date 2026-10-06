@@ -29,6 +29,10 @@ async function expectFooterClear(page: Page) {
       box.y,
     );
   expect(covered, 'controls reaching into the footer').toBe(0);
+  const asideBottoms = await page
+    .locator('aside')
+    .evaluateAll((asides) => asides.map((aside) => aside.getBoundingClientRect().bottom));
+  for (const bottom of asideBottoms) expect(bottom).toBeLessThanOrEqual(box.y);
 }
 
 test('the build derives the version and copyright shown', () => {
