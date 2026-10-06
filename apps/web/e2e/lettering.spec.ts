@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
-import { MIN_TEXT_PX, letteringProblems, openAircraft, showView } from './legibility';
+import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';
 
 const viewports = [
   { width: 768, height: 1024 },
@@ -114,4 +115,50 @@ for (const aircraft of aircraftRegistry) {
       }
     });
   }
+}
+
+const cardSizes = (svg: string) =>
+  [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(([, attributes = '', text = '']) => ({
+    text,
+    size: Number(/font-size="([\d.]+)"/.exec(attributes)?.[1]),
+  }));
+
+for (const aircraft of aircraftRegistry) {
+  const compass = aircraft.indicators.compass?.appearance;
+  if (!compass || !('artwork' in compass) || compass.artwork.moving.type !== 'needle') continue;
+  const card = source(compass.artwork.moving.image);
+  const cardWidth = Number(/viewBox="[\d.]+ [\d.]+ ([\d.]+)/.exec(card)?.[1]);
+  const floor = aircraft.cockpit?.views.panel?.minWidth;
+
+  const cardProblems = async (page: Page) => {
+    const rendered = await page
+      .locator('[data-view="panel"] [data-placement="compass"] img')
+      .first()
+      .evaluate((image) => image.getBoundingClientRect().width);
+    return cardSizes(card)
+      .filter(({ size }) => (size * rendered) / cardWidth < MIN_TEXT_PX - 0.5)
+      .map(({ text, size }) => `${text} ${((size * rendered) / cardWidth).toFixed(1)}px`);
+  };
+
+  test(`${aircraft.id} prints every compass card glyph at the minimum size at the panel floor`, async ({
+    page,
+  }) => {
+    if (floor === undefined) throw new Error(`${aircraft.id} declares no panel floor`);
+    await openAircraft(page, aircraft);
+    await showView(page, aircraft, 'panel', 'en');
+    await fitViewAt(page, 'panel', floor);
+    expect(await cardProblems(page), `compass card lettering below ${MIN_TEXT_PX - 0.5}px`).toEqual(
+      [],
+    );
+  });
+
+  test(`${aircraft.id} prints every compass card glyph at the minimum size at 1920x1080`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openAircraft(page, aircraft);
+    expect(await cardProblems(page), `compass card lettering below ${MIN_TEXT_PX - 0.5}px`).toEqual(
+      [],
+    );
+  });
 }

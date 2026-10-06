@@ -1,0 +1,3 @@
+.cpt-device-gpsmap496 button:focus-visible {
+  outline: var(--space-1) solid var(--panel-focus);
+}

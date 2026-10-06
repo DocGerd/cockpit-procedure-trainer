@@ -10,7 +10,7 @@ import { useTrainer } from '../trainer';
 import { ActiveViewContext } from './active-view';
 import type { CockpitLayoutChoice, CombinedCell } from './cockpit-layout';
 import type { ActiveView } from './active-view';
-import { cellFitStyle, fitStyle, usePageTop } from './fit';
+import { cellFitStyle, fitStyle, usePageFit } from './fit';
 import { useBackgroundSize } from './image-size';
 import { messages } from './messages';
 import {
@@ -124,7 +124,7 @@ function PanelView({
   const size = background.size ?? extent;
   const rects = useMemo(() => panelRects(placements, size), [placements, size]);
   const stage = useRef<HTMLDivElement>(null);
-  const top = usePageTop(stage);
+  const pageFit = usePageFit(stage);
   const { reveal, ...gestures } = useZoomGestures(stage, zoom, gate);
   if (!view) return null;
   const name = localize(view.name);
@@ -133,7 +133,7 @@ function PanelView({
     <div
       ref={stage}
       className="panel-stage"
-      style={cellHeight === undefined ? fitStyle(size, top) : cellFitStyle(size, cellHeight)}
+      style={cellHeight === undefined ? fitStyle(size, pageFit) : cellFitStyle(size, cellHeight)}
       data-fit={cellHeight === undefined ? undefined : 'cell'}
       data-zoomed={isZoomed(zoom.zoom) ? '' : undefined}
       {...gestures}

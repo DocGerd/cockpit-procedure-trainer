@@ -3,9 +3,7 @@ import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import { BACKLIGHT_LEVELS } from '../logic';
 import type { Gpsmap496Page, Gpsmap496State } from '../logic';
-
-const focusRule =
-  '.cpt-device-gpsmap496 button:focus-visible { outline: var(--space-1) solid var(--panel-focus); }';
+import './Gpsmap496Screen.css';
 
 const PAGE_NAMES: Readonly<Record<Gpsmap496Page, string>> = {
   map: 'MAP',
@@ -80,7 +78,6 @@ export function Gpsmap496Screen({ on, state, send }: DeviceScreenProps) {
 
   return (
     <div className="cpt-device-gpsmap496" style={screenStyle}>
-      <style>{focusRule}</style>
       <div
         data-display
         data-backlight={unit.backlight}

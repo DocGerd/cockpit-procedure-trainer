@@ -15,6 +15,20 @@ const tablets = [
 
 const cockpitLayout = (page: Page) => page.locator('.shell');
 
+const themes = ['light', 'dark'] as const;
+
+// A short desktop window falls back to the tabs.
+const shortDesktop = { width: 1920, height: 980 };
+
+async function expectNoPageScroll(page: Page) {
+  const overflow = await page.evaluate(() => ({
+    x: document.documentElement.scrollWidth - window.innerWidth,
+    y: document.documentElement.scrollHeight - window.innerHeight,
+  }));
+  expect(overflow, 'page scroll').toEqual({ x: 0, y: 0 });
+  await expect(page.getByRole('contentinfo')).toBeInViewport({ ratio: 1 });
+}
+
 for (const aircraft of aircraftRegistry) {
   for (const viewport of desktops) {
     test(`${aircraft.id} shows every view at once at ${viewport.width}x${viewport.height}`, async ({
@@ -78,7 +92,31 @@ for (const aircraft of aircraftRegistry) {
       await expect(page.getByRole('tablist')).toBeVisible();
       await expect(page.getByRole('tab')).toHaveCount(Object.keys(aircraft.views).length);
     });
+
+    for (const theme of themes) {
+      test(`${aircraft.id} does not scroll the page in the tabs at ${viewport.width}x${viewport.height} in ${theme}`, async ({
+        page,
+      }) => {
+        await page.emulateMedia({ colorScheme: theme });
+        await page.setViewportSize(viewport);
+        await openAircraft(page, aircraft);
+        await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'tabs');
+        await expectNoPageScroll(page);
+      });
+    }
   }
+
+  test(`${aircraft.id} does not scroll the page at ${shortDesktop.width}x${shortDesktop.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(shortDesktop);
+    await openAircraft(page, aircraft);
+    await expect(cockpitLayout(page)).toHaveAttribute(
+      'data-cockpit-layout',
+      aircraft.id === 'ctsl' ? 'combined' : 'tabs',
+    );
+    await expectNoPageScroll(page);
+  });
 }
 
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
