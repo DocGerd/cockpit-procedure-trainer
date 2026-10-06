@@ -172,23 +172,26 @@ the floors into the arrangements of §4:
   five floors without left-seat constraints reaches only ≈ 0.86 with today's
   chrome. At 4K the CTSL fits (≈ 1.8).
 
-So combined CTSL at HD needs its floors lowered by about a quarter. Both
-binding kinds are in self-drawn or own-package art, so this is content work,
-not a chrome compromise:
+Only the bottom row binds. At the floors, centre field, console and radio
+stack side by side are ≈ 1894 wide, while the panel and GPS above them need
+only ≈ 1244, and the height has slack (≈ 721 of 787). So combined CTSL at HD
+needs the floors of those three views lowered by about a quarter; the panel
+and GPS keep theirs, since lowering them gains nothing at HD. Both binding
+kinds are in self-drawn or own-package art, so this is content work, not a
+chrome compromise:
 
-- **Lettering-bound views** (CTSL panel, centre field, console): raise the
-  smallest lettering in the CTSL backdrops and control faces so those floors
-  drop to ≤ 0.75 of today. Lettering is self-drawn (G1 safe); the panel still
-  looks like the aircraft, with slightly larger legends.
-- **Device-bound views** (CTSL radio stack and GPS, demo radio stack): make
-  the device screen buttons of `device-sl40`, `device-gtx327` and
-  `device-gpsmap496` keep `--size-target` at a smaller rendered device width,
-  by laying the buttons out larger in the device's own space (not by a CSS
-  minimum, which would make neighbouring buttons overlap). Target: those
-  floors ≤ 0.75 of today.
+- **Lettering-bound views** (CTSL centre field, console): raise the smallest
+  lettering in their backdrops and control faces so those floors drop to
+  ≤ 0.75 of today. Lettering is self-drawn (G1 safe); the cockpit still looks
+  like the aircraft, with slightly larger legends.
+- **Device-bound view** (CTSL radio stack): make the device screen buttons of
+  `device-sl40` and `device-gtx327` keep `--size-target` at a smaller rendered
+  device width, by laying the buttons out larger in the device's own space
+  (not by a CSS minimum, which would make neighbouring buttons overlap).
+  Target: that floor ≤ 0.75 of today.
 
 With both, the CTSL arrangement reaches a uniform scale of about 1.05 at HD.
-The floor test is the judge; the HD layout test (§8) fails until it holds.
+The floor test is the judge; the HD layout test (§9) fails until it holds.
 
 The chrome stays as it is (Decision 3). If the floor work falls short, the
 fallback is an owner question (Open question 1), not a silent compromise.
@@ -297,9 +300,11 @@ and dark, each mode; one tablet size to confirm tabs still work.
 3. **Chrome unchanged at desktop: outside strip on top, checklist column at
    the side.** Reason: Guided needs the checklist in sight (Training UX, rank
    2); the strip is the windscreen of the left-seat picture.
-4. **CTSL fits HD by lowering its floors (larger self-drawn lettering, larger
-   device buttons), not by shrinking chrome.** Reason: the measured budget
-   shows the CTSL ≈ 20 % short; both binding kinds are our own art. Quality
+4. **CTSL fits HD by lowering the floors that bind its arrangement (centre
+   field, console, radio stack: larger self-drawn lettering, larger device
+   buttons), not by shrinking chrome.** Reason: the measured budget shows the
+   CTSL ≈ 20 % short, all of it in the bottom row; both binding kinds are our
+   own art. Quality
    sacrificed: a little panel realism (legend size, rank 2 realism) for
    operability (rank 2 accessibility); named in that PR.
 5. **Tablets keep tabs; no tablet arrangement.** Reason: owner priority; the

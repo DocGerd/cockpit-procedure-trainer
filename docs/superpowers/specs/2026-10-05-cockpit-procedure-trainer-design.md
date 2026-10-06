@@ -331,7 +331,7 @@ parallel.
 | Unit (Vitest) | `core`: control store, runtime tick, checklist engine, validator |
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
 | Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations |
-| Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout, placards and lettering at 1920x1080 and 3840x2160 |
+| Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout at 1920x1080 and 3840x2160; placards and lettering at the existing tablet and desktop sizes and also at 1920x1080 and 3840x2160 |
 | Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 
 ## 10. Project setup
@@ -429,7 +429,10 @@ parallel.
 
 Ticket numbers are spec ids, not GitHub issue numbers.
 
-**M7 3D** (later)
+**M7 One-viewport cockpit**
+48. Whole cockpit in one desktop viewport, as from the left seat; view tabs only on small screens
+
+**Later: 3D**
 43. 3D renderer on the same aircraft data
 
 ## 12. Open questions

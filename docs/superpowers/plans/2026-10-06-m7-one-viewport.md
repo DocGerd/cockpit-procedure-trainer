@@ -32,25 +32,25 @@
 
 ```
 Task 1 (contract, arrangements, floors, legibility helpers)
-  ├── Task 2 (CTSL and device floors)      ─┐
-  └── Task 3 (web combined layout, #253)  ──┴── merge after Task 2
+  └── Task 2 (CTSL bottom-row floors)
+        └── Task 3 (web combined layout, #253)
 ```
 
-Tasks 2 and 3 share no file and can run in parallel after Task 1.
+Strictly sequential. Tasks 2 and 3 share no file, but Task 3's gate runs `layout.spec.ts`, which needs the CTSL to fit HD, so Task 3 branches from `develop` after Task 2 has landed.
 
 ---
 
 ### Task 1: Cockpit arrangement in the contract, floors and their test — wave 1
 
 **Files:**
-`packages/core/src/contract/types.ts`, `packages/core/src/contract/index.ts`, `packages/core/src/index.ts` (exports only), `packages/core/src/contract/fixtures.ts`, `packages/core/src/validator/validate-aircraft.ts`, `packages/core/src/validator/validate-cockpit.test.ts` (create), `packages/aircraft-demo/src/index.ts`, `packages/aircraft-demo/src/index.test.ts`, `packages/aircraft-ctsl/src/cockpit.ts` (create), `packages/aircraft-ctsl/src/index.ts` (one key), `packages/aircraft-ctsl/src/index.test.ts`, `apps/web/e2e/legibility.ts` (create), `apps/web/e2e/floors.spec.ts` (create), `apps/web/e2e/placards.spec.ts`, `apps/web/e2e/lettering.spec.ts`, `docs/adding-an-aircraft.md`, `changelog.d/<issue>.added.md`
+`packages/core/src/contract/types.ts`, `packages/core/src/contract/index.ts`, `packages/core/src/index.ts` (exports only), `packages/core/src/contract/fixtures.ts`, `packages/core/src/contract/fixtures.test.ts`, `packages/core/src/validator/validate-aircraft.ts`, `packages/core/src/validator/validate-cockpit.test.ts` (create), `packages/aircraft-demo/src/index.ts`, `packages/aircraft-demo/src/index.test.ts`, `packages/aircraft-ctsl/src/cockpit.ts` (create), `packages/aircraft-ctsl/src/index.ts` (one key), `packages/aircraft-ctsl/src/index.test.ts`, `apps/web/e2e/legibility.ts` (create), `apps/web/e2e/floors.spec.ts` (create), `apps/web/e2e/placards.spec.ts`, `apps/web/e2e/lettering.spec.ts`, `docs/adding-an-aircraft.md`, `changelog.d/<issue>.added.md`
 
 **Goal:** the `cockpit` key exists, is validated, both aircraft declare an arrangement with honest floors, and a test proves each floor. Rendering does not change.
 
 - [ ] **Step 1: Failing validator tests** in `validate-cockpit.test.ts`, one per finding code of design §3 (`invalid-cockpit-size`, `missing-cockpit-view`, `unknown-cockpit-view`, `cockpit-cell-outside`, `cockpit-cells-overlap`, `invalid-cockpit-min-width`), plus: an aircraft without `cockpit` has no cockpit finding; cells that touch at an edge do not overlap.
 - [ ] **Step 2: Contract types** `CockpitCell`, `CockpitLayout<V>` and `cockpit?: CockpitLayout<NoInfer<V>>` on `AircraftDefinition` exactly as design §3; export them. A type test (`@ts-expect-error`) in the fixture tests: a cell for an unknown view, and a missing view, fail to compile. `CONTRACT_VERSION` unchanged.
 - [ ] **Step 3: Validator** until Step 1 is green.
-- [ ] **Step 4: Shared legibility helpers.** Move the in-page geometry of `placards.spec.ts` (placard text, overfull, inside placement, not under a control, touch targets, clear of moving parts) and of `lettering.spec.ts` (backdrop and face lettering scale, face aspect) into `e2e/legibility.ts`, scoped to a view root (`[data-view="<id>"]` when present, else the tabpanel). Add `deviceTargets(root)`: every button inside `[data-kind="device"]` at least `--size-target`. Both specs keep their viewports and pass unchanged.
+- [ ] **Step 4: Shared legibility helpers.** Move the in-page geometry of `placards.spec.ts` (placard text, overfull, inside placement, not under a control, touch targets, clear of moving parts) and of `lettering.spec.ts` (backdrop and face lettering scale, face aspect) into `e2e/legibility.ts`, scoped to a view root (`[data-view="<id>"]` when present, else the tabpanel; `data-view` arrives with Task 3, so in this task the tabpanel branch is the one that runs). Add `deviceTargets(root)`: every button inside `[data-kind="device"]` at least `--size-target`. Both specs keep their viewports and pass unchanged.
 - [ ] **Step 5: Failing floor test** `floors.spec.ts`: for each registered aircraft with `cockpit` and each view, find the viewport width (fixed tall height, tabs layout) at which `.panel-image` renders at `minWidth` (binary search, rendered width within one CSS px at or above `minWidth`), then run every helper of Step 4 on that view in English and German. Fails until Step 6.
 - [ ] **Step 6: Arrangements.** Demo in `index.ts`, CTSL in `src/cockpit.ts`, cells per design §4, rects sized to each view's aspect. Set each `minWidth` per pre-flight (c). Aircraft tests: `validateAircraft` stays empty; every view has a cell.
 - [ ] **Step 7: Authoring guide.** A section in `docs/adding-an-aircraft.md`: what the arrangement is, that cells are spatial not to scale, and how to find a floor with `floors.spec.ts`.
@@ -60,21 +60,21 @@ Tasks 2 and 3 share no file and can run in parallel after Task 1.
 
 ---
 
-### Task 2: Lower the CTSL legibility floors — wave 2
+### Task 2: Lower the CTSL bottom-row legibility floors — wave 2
 
-**Files:** `packages/aircraft-ctsl/src/assets/view-panel.svg`, `view-centre.svg`, `view-console.svg`, the CTSL control face SVGs under `packages/aircraft-ctsl/src/assets/artwork/` whose lettering binds a floor, `packages/aircraft-ctsl/src/cockpit.ts` (`minWidth` values only), `packages/aircraft-ctsl/LICENSES.md` (if an entry's wording changes), the screen layout and screen tests of `packages/device-sl40`, `packages/device-gtx327`, `packages/device-gpsmap496`, `changelog.d/<issue>.changed.md`
+**Files:** `packages/aircraft-ctsl/src/assets/view-centre.svg`, `packages/aircraft-ctsl/src/assets/view-console.svg`, face SVGs in `packages/aircraft-ctsl/src/assets/artwork/` (only those `lettering.spec` reports as binding the centre-field or console floor; the PR names each), `packages/aircraft-ctsl/src/cockpit.ts` (`minWidth` values only), `packages/aircraft-ctsl/LICENSES.md` (if an entry's wording changes), the screen layout and screen tests of `packages/device-sl40` and `packages/device-gtx327`, `changelog.d/<issue>.changed.md`
 
 **Dependencies:** Task 1.
 
-**Goal:** every CTSL view's floor at or below three quarters of its Task 1 value, so the CTSL arrangement fits the HD cockpit region with the chrome unchanged (design §5).
+**Goal:** the floors of the CTSL views that bind the arrangement's HD width (centre field, console, radio stack) at or below three quarters of their Task 1 values, so the CTSL arrangement fits the HD cockpit region with the chrome unchanged (design §5). Panel and GPS floors stay as Task 1 set them.
 
-- [ ] **Step 1: Failing test.** Lower each CTSL `minWidth` to three quarters of its Task 1 value; `floors.spec.ts` fails, naming the binding check per view.
-- [ ] **Step 2: Lettering.** Raise the smallest legends of the binding backdrops and faces (`lettering.spec` names them) until the panel, centre-field and console floors pass. Keep each legend inside its plate and clear of moving parts (the face-legend clearance test); keep the panel looking like the aircraft.
-- [ ] **Step 3: Device buttons.** In each device's own coordinate space, enlarge the screen buttons of the SL40, GTX 327 and GPSMAP 496 until the radio-stack and GPS floors pass. No CSS minimum size on device buttons (neighbours would overlap). Device screen tests updated for the new geometry.
-- [ ] **Step 4: Re-measure** each `minWidth` downward per pre-flight (c); keep the lowest passing value.
+- [ ] **Step 1: Failing test.** Lower the centre-field, console and radio-stack `minWidth` to three quarters of their Task 1 values; `floors.spec.ts` fails, naming the binding check per view.
+- [ ] **Step 2: Lettering.** Raise the smallest legends of the binding backdrops and faces (`lettering.spec` names them) until the centre-field and console floors pass. Keep each legend inside its plate and clear of moving parts (the face-legend clearance test); keep the cockpit looking like the aircraft.
+- [ ] **Step 3: Device buttons.** In each device's own coordinate space, enlarge the screen buttons of the SL40 and GTX 327 until the radio-stack floor passes. No CSS minimum size on device buttons (neighbours would overlap). Device screen tests updated for the new geometry.
+- [ ] **Step 4: Re-measure** those three `minWidth` values downward per pre-flight (c); keep the lowest passing value.
 - [ ] **Step 5: Fragment:** `Larger CT Supralight legends and avionics buttons, so the whole cockpit fits one HD screen.`
 
-**Definition of done:** `floors.spec.ts` green at the new floors; `placards.spec.ts`, `lettering.spec.ts`, device specs green; `ui-verifier` confirms the panel still reads as the CTSL. The PR names the realism trade-off (design Decision 4).
+**Definition of done:** `floors.spec.ts` green at the new floors; `placards.spec.ts`, `lettering.spec.ts`, device specs green; `ui-verifier` confirms the centre field and console still read as the CTSL. The PR names the realism trade-off (design Decision 4).
 
 ---
 
