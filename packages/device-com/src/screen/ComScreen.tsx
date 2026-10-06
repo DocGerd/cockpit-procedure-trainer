@@ -4,8 +4,19 @@ import type { CSSProperties } from 'react';
 import { formatFrequency } from '../logic';
 import type { ComState } from '../logic';
 
-const focusRule =
-  '.cpt-device-com button:focus-visible, .cpt-device-com input:focus-visible { outline: var(--space-1) solid var(--panel-focus); }';
+const track =
+  'height: var(--space-2); border-radius: var(--radius-pill); background: var(--panel-bezel-dark); border: 0;';
+const thumb =
+  'width: var(--space-4); height: var(--space-4); border-radius: var(--radius-pill); background: var(--panel-cap-light); border: 0;';
+
+const comScreenCss = [
+  '.cpt-device-com button:focus-visible, .cpt-device-com input:focus-visible { outline: var(--space-1) solid var(--panel-focus); }',
+  '.cpt-device-com input[type="range"] { accent-color: var(--panel-cap-light); appearance: none; background: transparent; }',
+  `.cpt-device-com input[type="range"]::-webkit-slider-runnable-track { ${track} }`,
+  `.cpt-device-com input[type="range"]::-moz-range-track { ${track} }`,
+  `.cpt-device-com input[type="range"]::-webkit-slider-thumb { appearance: none; margin-top: calc((var(--space-2) - var(--space-4)) / 2); ${thumb} }`,
+  `.cpt-device-com input[type="range"]::-moz-range-thumb { ${thumb} }`,
+].join('\n');
 
 const screenStyle: CSSProperties = {
   display: 'grid',
@@ -68,7 +79,7 @@ export function ComScreen({ on, state, send }: DeviceScreenProps) {
 
   return (
     <div className="cpt-device-com" style={screenStyle}>
-      <style>{focusRule}</style>
+      <style>{comScreenCss}</style>
       <div style={readoutStyle}>
         <span style={legendStyle}>ACT</span>
         <span style={valueStyle}>{on ? formatFrequency(active) : ''}</span>
