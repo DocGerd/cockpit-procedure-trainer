@@ -1,6 +1,6 @@
 import type { ControlPosition } from '@cpt/core';
+import { useHold } from '@cpt/panel-kit';
 import type { DeviceScreenProps } from '@cpt/panel-kit';
-import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { formatFrequency } from '../logic';
 import type { Sl40State } from '../logic';
@@ -72,66 +72,9 @@ const volumeStyle: CSSProperties = { flex: 1, minHeight: 'var(--size-target)' };
 type HoldButtonProps = { name: string; control: string; send: DeviceScreenProps['send'] };
 
 function HoldButton({ name, control, send }: HoldButtonProps) {
-  const held = useRef(false);
-  const clickPending = useRef(false);
-  const sendRef = useRef(send);
-  useEffect(() => {
-    sendRef.current = send;
-  }, [send]);
-
-  const begin = () => {
-    if (held.current) return;
-    held.current = true;
-    send(control, 'press');
-  };
-  const end = () => {
-    if (!held.current) return;
-    held.current = false;
-    sendRef.current(control, 'release');
-  };
-  useEffect(() => end, []);
-
-  const isActivation = (key: string) => key === 'Enter' || key === ' ';
-
+  const hold = useHold(() => send(control, 'release'));
   return (
-    <button
-      type="button"
-      style={buttonStyle}
-      onPointerDown={(event) => {
-        if (event.button !== 0) return;
-        clickPending.current = true;
-        begin();
-      }}
-      onPointerUp={end}
-      onPointerCancel={() => {
-        clickPending.current = false;
-        end();
-      }}
-      onPointerLeave={end}
-      onBlur={() => {
-        clickPending.current = false;
-        end();
-      }}
-      onClick={() => {
-        if (held.current) return;
-        if (clickPending.current) {
-          clickPending.current = false;
-          return;
-        }
-        begin();
-        end();
-      }}
-      onKeyDown={(event) => {
-        if (!isActivation(event.key)) return;
-        event.preventDefault();
-        if (!event.repeat) begin();
-      }}
-      onKeyUp={(event) => {
-        if (!isActivation(event.key)) return;
-        event.preventDefault();
-        end();
-      }}
-    >
+    <button type="button" style={buttonStyle} {...hold.handlers(() => send(control, 'press'))}>
       {name}
     </button>
   );

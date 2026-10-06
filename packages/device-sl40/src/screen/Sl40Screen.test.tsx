@@ -116,6 +116,30 @@ describe('Sl40Screen controls', () => {
     ]);
   });
 
+  it('keeps monitor held while the pointer drifts off the button, until it is lifted', () => {
+    const capture = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', {
+      configurable: true,
+      value: capture,
+    });
+    try {
+      const send = show();
+      const mon = screen.getByRole('button', { name: 'MON' });
+      fireEvent.pointerDown(mon, { button: 0, pointerId: 3 });
+      expect(capture).toHaveBeenCalledWith(3);
+      fireEvent.pointerLeave(mon, { pointerId: 3 });
+      expect(send.mock.calls).toEqual([['monitor', 'press']]);
+      fireEvent.pointerUp(mon, { pointerId: 3 });
+      fireEvent.lostPointerCapture(mon, { pointerId: 3 });
+      expect(send.mock.calls).toEqual([
+        ['monitor', 'press'],
+        ['monitor', 'release'],
+      ]);
+    } finally {
+      delete (HTMLElement.prototype as { setPointerCapture?: unknown }).setPointerCapture;
+    }
+  });
+
   it('releases monitor when the pointer is cancelled or the button loses focus', () => {
     const send = show();
     const mon = screen.getByRole('button', { name: 'MON' });
