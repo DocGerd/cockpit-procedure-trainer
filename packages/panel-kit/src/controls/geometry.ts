@@ -27,3 +27,12 @@ export function polar(angle: number, radius: number): { x: number; y: number } {
   const radians = (angle * Math.PI) / 180;
   return { x: radius * Math.sin(radians), y: -radius * Math.cos(radians) };
 }
+
+export function minGap(values: readonly number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  let gap = Infinity;
+  for (let index = 1; index < sorted.length; index += 1) {
+    gap = Math.min(gap, (sorted[index] ?? 0) - (sorted[index - 1] ?? 0));
+  }
+  return gap;
+}
