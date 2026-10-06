@@ -40,6 +40,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   what shipped, decisions made, open questions, how to verify.
 - Stop and ask only for: publishing content of unclear copyright, anything
   that changes the spec's decisions table, or destructive repo operations.
+- After the owner merges a release PR, let the `main` Deploy run's
+  `prod-environment` job finish before any push to `develop` (backmerge):
+  Pages deploys cancel in-progress runs.
 
 ## Rules
 
@@ -55,6 +58,14 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - The brand styles the app frame, never the cockpit panel. Status colours do
   not appear on the panel.
 - No handbook scans or manufacturer artwork in the repo.
+- Every operable control shows a printed label on the panel (`placard`,
+  artwork `lettering` or view `printed`), in the panel's own fixed wording; the
+  contract test in `apps/web/src/panel/printed-labels.test.tsx` enforces it.
+- Avionics devices get their own view (like `radios`/`gps`); a device in a
+  scaled panel slot misses the 44 px touch targets.
+- Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
+  `reference/` is local-only — never read it in implementation agents, never
+  commit or quote it.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
   commands that contain it, and `$` in gh endpoints: write such text with
