@@ -37,16 +37,23 @@ const noindexForUat: Plugin = {
       : [],
 };
 
+const charsetMeta = '<meta charset="utf-8" />';
+
+// The policy only covers what follows it, and the charset must stay in the first bytes of the file.
 const strictCsp: Plugin = {
   name: 'strict-csp',
   apply: 'build',
-  transformIndexHtml: () => [
-    {
-      tag: 'meta',
-      attrs: { 'http-equiv': 'Content-Security-Policy', content: contentSecurityPolicy() },
-      injectTo: 'head-prepend',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (html) => {
+      if (!html.includes(charsetMeta)) throw new Error('index.html has no charset meta to follow');
+      const policy = contentSecurityPolicy().replaceAll('"', '&quot;');
+      return html.replace(
+        charsetMeta,
+        `${charsetMeta}\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`,
+      );
     },
-  ],
+  },
 };
 
 const themeColorMeta: Plugin = {

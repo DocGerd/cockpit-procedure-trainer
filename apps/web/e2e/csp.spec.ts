@@ -28,6 +28,11 @@ async function watchViolations(page: Page): Promise<string[]> {
 
 async function expectPolicyEnforced(page: Page, violations: string[]) {
   await expect(page.locator(POLICY_META)).toHaveAttribute('content', contentSecurityPolicy());
+  const [first, second] = await page.evaluate(() =>
+    [...document.head.children].map((element) => element.outerHTML.slice(0, 60)),
+  );
+  expect(first).toMatch(/^<meta charset=/);
+  expect(second).toMatch(/^<meta http-equiv="Content-Security-Policy"/);
   await page.evaluate(() => {
     const script = document.createElement('script');
     script.textContent = 'window.__cspProbe = true;';
