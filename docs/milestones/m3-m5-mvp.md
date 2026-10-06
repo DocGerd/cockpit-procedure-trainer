@@ -78,7 +78,7 @@ Each was made in the PR named. The spec's decisions table is unchanged.
 - One operation of a held control records one deviation: held-Enter key repeats no longer re-operate it (#165, guarded by the tests of #167).
 - The release review found that #164 had dropped the Practice and offline browser flows without a tracked decision; #177 added both, with the offline flow in its own project that allows the service worker.
 - The views can declare their size; `invalid-view-size` and `placement-outside-view` are new validator findings (#143).
-- The aircraft guide tells authors to add the aircraft's workspace dependency to `apps/web/package.json` besides the registry entry (#145; see open question 9).
+- The aircraft guide tells authors to add the aircraft's workspace dependency to `apps/web/package.json` besides the registry entry (#145; see open question 8).
 
 ### M5 Offline and tablet
 
@@ -118,6 +118,6 @@ Follow-ups filed for later: #157, #158, #159, #160, #161, #162, #178, #179, #180
   1. Pick the demo aircraft, choose Engine start in Guided.
   2. Operate a control the current item does not ask for; the banner names the deviation. Finish the procedure and read the summary.
   3. Switch to Free explore and confirm the reset; tap a control to read its details.
-  4. Open the Radio stack view, swap the COM frequencies and set a squawk.
+  4. Still in Free explore, turn on Operate controls, open the Radio stack view, swap the COM frequencies and set a squawk.
   5. Install or load the app once, go offline and reload; the picker and a procedure still load.
 - After the owner merges this release PR: `gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.6.0 --jq .tag_name` prints `v0.6.0`.
