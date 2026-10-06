@@ -110,3 +110,31 @@ describe('TransponderScreen controls', () => {
     ]);
   });
 });
+
+describe('TransponderScreen natural size', () => {
+  it('gives every button the touch-target minimum', () => {
+    const buttons = [...show().view.container.querySelectorAll<HTMLElement>('button')];
+    expect(buttons).toHaveLength(13);
+    for (const button of buttons) {
+      expect(button.style.minHeight).toBe('var(--size-target)');
+      expect(button.style.minWidth).toBe('var(--size-target)');
+    }
+  });
+
+  it('sets no text below the legibility floor', () => {
+    const { container } = show().view;
+    const sizes = [...container.querySelectorAll<HTMLElement>('*')]
+      .map((element) => element.style.fontSize)
+      .filter((size) => size !== '' && size !== 'inherit');
+    for (const size of sizes) expect(size).toMatch(/^var\(--text-(2xs|xs|sm|md|lg|xl|2xl|3xl)\)$/);
+    expect(container.querySelector<HTMLElement>('.cpt-device-transponder')?.style.fontSize).toMatch(
+      /^var\(--text-(2xs|xs|sm|md|lg|xl|2xl|3xl)\)$/,
+    );
+  });
+
+  it('keeps the mode buttons and IDENT in one row so the screen stays short', () => {
+    show();
+    const row = screen.getByRole('button', { name: 'IDENT' }).parentElement;
+    expect(row?.querySelector('button[aria-pressed]')).not.toBeNull();
+  });
+});

@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 440" preserveAspectRatio="xMidYMid slice">
-<rect width="1040" height="440" fill="#26282C"/>
-<rect x="8" y="8" width="1024" height="424" rx="18" fill="none" stroke="#3B4046" stroke-width="4"/>
-<rect x="24" y="24" width="488" height="392" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
-<g fill="#5E646B"><circle cx="38" cy="38" r="4"/><circle cx="498" cy="38" r="4"/><circle cx="38" cy="402" r="4"/><circle cx="498" cy="402" r="4"/></g>
-<rect x="528" y="24" width="488" height="392" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
-<g fill="#5E646B"><circle cx="542" cy="38" r="4"/><circle cx="1002" cy="38" r="4"/><circle cx="542" cy="402" r="4"/><circle cx="1002" cy="402" r="4"/></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 432" preserveAspectRatio="xMidYMid slice">
+<rect width="640" height="432" fill="#26282C"/>
+<rect x="4" y="4" width="632" height="424" rx="12" fill="none" stroke="#3B4046" stroke-width="3"/>
+<rect x="8" y="8" width="624" height="208" rx="10" fill="#2D3035" stroke="#3B4046" stroke-width="2"/>
+<g fill="#5E646B"><circle cx="13" cy="13" r="2.5"/><circle cx="627" cy="13" r="2.5"/><circle cx="13" cy="211" r="2.5"/><circle cx="627" cy="211" r="2.5"/></g>
+<rect x="8" y="224" width="624" height="200" rx="10" fill="#2D3035" stroke="#3B4046" stroke-width="2"/>
+<g fill="#5E646B"><circle cx="13" cy="229" r="2.5"/><circle cx="627" cy="229" r="2.5"/><circle cx="13" cy="419" r="2.5"/><circle cx="627" cy="419" r="2.5"/></g>
 </svg>
