@@ -20,6 +20,16 @@ const boxStyle = (box: PanelBox): CSSProperties => ({
 
 const FOCUSABLE = 'button:not([tabindex="-1"]), [tabindex="0"], input, select, textarea';
 
+/** The focusable widget at a placement in the same zoom layer as `layer`. */
+function widgetAt(layer: HTMLElement | null, placementId: string | undefined) {
+  if (placementId === undefined) return undefined;
+  const placements = layer?.parentElement?.querySelectorAll<HTMLElement>('[data-placement]');
+  const placement = [...(placements ?? [])].find(
+    (element) => element.dataset.placement === placementId,
+  );
+  return placement?.querySelector<HTMLElement>(FOCUSABLE) ?? undefined;
+}
+
 const reducedMotionQuery = '(prefers-reduced-motion: reduce)';
 const motionQuery = () =>
   typeof window.matchMedia === 'function' ? window.matchMedia(reducedMotionQuery) : undefined;
@@ -61,12 +71,9 @@ function GuidedOverlay({ rects }: { rects: PanelRects }) {
     if (!focusPending.current || active.viewId !== view) return;
     focusPending.current = false;
     if (focusControl === undefined) return;
-    const placements =
-      layer.current?.parentElement?.querySelectorAll<HTMLElement>('[data-placement]');
-    const at = (id: string | undefined) =>
-      [...(placements ?? [])].find((element) => element.dataset.placement === id);
-    const placement = at(focusControl) ?? at(installOf(focusControl));
-    placement?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    (
+      widgetAt(layer.current, focusControl) ?? widgetAt(layer.current, installOf(focusControl))
+    )?.focus();
   }, [active.viewId, view, focusControl]);
 
   return (
@@ -88,16 +95,17 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
   const store = useExploreStore();
   const { operate, selected } = useExploreState();
   const anchor = useRef<HTMLDivElement>(null);
+  const layer = useRef<HTMLDivElement>(null);
   const selectedBox = selected === undefined ? undefined : targetBox(rects, { control: selected });
 
   return (
-    <div className="modes-overlay" data-modes-overlay="">
+    <div ref={layer} className="modes-overlay" data-modes-overlay="">
       {!operate &&
         Object.entries(rects.controls).map(([id, box]) => {
           const control = aircraft.controls[id];
           return (
             control && (
-              // The widget underneath is the one assistive technology sees; it selects too.
+              // The widget underneath is the one assistive technology sees, so it takes the focus.
               <button
                 key={id}
                 type="button"
@@ -107,7 +115,10 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
                 data-hit={id}
                 data-pan-through=""
                 style={boxStyle(box)}
-                onClick={() => store.select(id)}
+                onClick={() => {
+                  widgetAt(layer.current, id)?.focus({ preventScroll: true });
+                  store.select(id);
+                }}
               />
             )
           );

@@ -16,7 +16,7 @@ import { ControlPlacement, IndicatorPlacement } from './placements';
 import { panelRects, placementExtent, viewPlacements } from './rects';
 import { useZoomGestures } from './use-zoom-gestures';
 import type { ZoomTarget } from './use-zoom-gestures';
-import { isZoomed, keyZoom } from './zoom';
+import { isZoomed, keyZoom, sameZoom } from './zoom';
 import './panel.css';
 
 function useViewState(aircraft: Aircraft): ActiveView {
@@ -160,7 +160,7 @@ export function PanelArea() {
     const viewport = event.currentTarget.firstElementChild?.getBoundingClientRect();
     if (!viewport) return;
     const next = keyZoom(zoom.zoom, event.key, viewport);
-    if (next === undefined) return;
+    if (next === undefined || sameZoom(next, zoom.zoom)) return;
     event.preventDefault();
     zoom.apply(next);
   };

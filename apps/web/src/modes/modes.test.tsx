@@ -485,15 +485,14 @@ describe('the details popover', () => {
     expect(screen.getByRole('dialog', { name: 'Starter' })).toBeDefined();
   });
 
-  it('moves focus into the details and back to the opener on Escape', async () => {
+  it('moves focus into the details and back to the tapped widget on Escape', async () => {
     renderTrainer();
     enterExplore();
-    const opener = hit('master');
-    await userEvent.click(opener);
+    await userEvent.click(hit('master'));
     expect(document.activeElement).toBe(screen.getByRole('dialog', { name: 'Master' }));
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(document.activeElement).toBe(opener);
+    expect(document.activeElement).toBe(radio('Master', 'off'));
   });
 
   it('follows a selection made from the keyboard while open', async () => {

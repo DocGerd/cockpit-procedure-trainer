@@ -385,14 +385,20 @@ describe('keyboard zoom', () => {
     expect(offset().y).toBeLessThan(before.y);
   });
 
-  it('keeps the page from scrolling on a handled key', () => {
-    const event = new KeyboardEvent('keydown', {
-      key: 'ArrowDown',
-      bubbles: true,
-      cancelable: true,
-    });
-    surface().dispatchEvent(event);
-    expect(event.defaultPrevented).toBe(true);
+  it('keeps the page from scrolling on a key that pans, and only then', async () => {
+    const arrowDown = () => {
+      const event = new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+      });
+      surface().dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(arrowDown()).toBe(false);
+    act(() => surface().focus());
+    await userEvent.keyboard('++');
+    expect(arrowDown()).toBe(true);
   });
 
   it('leaves the keys of a control on the panel to that control', () => {
