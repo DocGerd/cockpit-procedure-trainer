@@ -1,4 +1,7 @@
+import { deviceControls } from '@cpt/core';
 import type { ChecklistState, Deviation } from '@cpt/core';
+import { useMemo } from 'react';
+import { deviceRegistry } from '../device-registry';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
 import { messages } from './messages';
@@ -10,9 +13,14 @@ export function useDeviationText(checklist: ChecklistState<unknown>) {
   const localize = useLocalize();
   const { aircraft } = useTrainer();
 
+  const controls = useMemo(
+    () => ({ ...aircraft.controls, ...deviceControls(aircraft, deviceRegistry) }),
+    [aircraft],
+  );
+
   const control = (deviation: Deviation) => {
     const id = deviation.controlId ?? '';
-    const definition = aircraft.controls[id];
+    const definition = Object.hasOwn(controls, id) ? controls[id] : undefined;
     return definition ? localize(definition.name) : id;
   };
   const item = (deviation: Deviation) => {
