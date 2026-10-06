@@ -271,6 +271,12 @@ export const normalProcedures = {
       {
         type: 'action',
         control: 'ignition',
+        position: 'both',
+        text: text('Zündschalter BOTH', 'Ignition BOTH'),
+      },
+      {
+        type: 'action',
+        control: 'ignition',
         position: 'start',
         holdUntil: (state: State) => state.systems.engine.running,
         text: text(
