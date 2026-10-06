@@ -20,6 +20,7 @@ export type ChecklistState<S> = {
   readonly done: boolean;
   readonly controls: Readonly<Record<string, ControlDefinition>>;
   readonly pressed: boolean;
+  readonly repeating: boolean;
 };
 
 function springsBack(definition: ControlDefinition | undefined, position: string | number) {
@@ -53,6 +54,7 @@ function complete<S>(checklist: ChecklistState<S>): ChecklistState<S> {
     current: next,
     completed: [...checklist.completed, checklist.current],
     pressed: false,
+    repeating: false,
     done: next >= checklist.procedure.items.length,
   };
 }
@@ -69,7 +71,17 @@ function targets<S>(item: ProcedureItem<S>, id: string): boolean {
 }
 
 function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): ChecklistState<S> {
-  return { ...checklist, deviations: [...checklist.deviations, deviation] };
+  const last = checklist.deviations.at(-1);
+  const repeat =
+    checklist.repeating &&
+    last?.kind === deviation.kind &&
+    last.itemIndex === deviation.itemIndex &&
+    last.controlId === deviation.controlId;
+  return {
+    ...checklist,
+    repeating: true,
+    deviations: repeat ? checklist.deviations : [...checklist.deviations, deviation],
+  };
 }
 
 export function startChecklist<S>(
@@ -86,6 +98,7 @@ export function startChecklist<S>(
       done: procedure.items.length === 0,
       controls,
       pressed: false,
+      repeating: false,
     },
     state,
   );
@@ -106,7 +119,12 @@ export function observeControl<S>(
     item.type === 'action' &&
     item.control === change.id &&
     item.position === change.to;
-  const noted = pressing && !checklist.pressed ? { ...checklist, pressed: true } : checklist;
+  const pressed = checklist.pressed || pressing;
+  const repeating = checklist.repeating && deviating;
+  const noted =
+    pressed === checklist.pressed && repeating === checklist.repeating
+      ? checklist
+      : { ...checklist, pressed, repeating };
   return settle(
     deviating
       ? deviate(noted, {
