@@ -40,14 +40,26 @@ test('the build derives the version and copyright shown', () => {
   expect(copyright).toBeDefined();
 });
 
-for (const width of widths) {
-  test(`version and copyright are visible on the picker at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 1080 });
+const pickerViewports = [
+  ...widths.map((width) => ({ width, height: 1080 })),
+  { width: 1024, height: 768 },
+];
+
+for (const { width, height } of pickerViewports) {
+  test(`version and copyright are in view on the picker at ${width}x${height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
     await openPicker(page);
-    await page.getByRole('contentinfo').scrollIntoViewIfNeeded();
+    const footer = page.getByRole('contentinfo');
+    await expect(footer).toBeInViewport();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(footer).toBeInViewport();
     await expectFooterClear(page);
   });
+}
 
+for (const width of widths) {
   test(`version and copyright stay visible in a procedure at ${width}px`, async ({ page }) => {
     await startProcedure(page, 'engineStart', 'guided');
     await page.setViewportSize({ width, height: 1080 });

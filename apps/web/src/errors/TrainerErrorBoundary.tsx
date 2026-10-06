@@ -1,6 +1,7 @@
 import { Component, Fragment, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useMessages } from '../i18n';
+import { AppFooter } from '../shell/AppFooter';
 import { useSessionState, useTrainer } from '../trainer';
 import { messages } from './messages';
 import './errors.css';
@@ -12,24 +13,27 @@ function ErrorDialog({ onReset }: { onReset(): void }) {
   const reset = useRef<HTMLButtonElement>(null);
   useEffect(() => reset.current?.focus(), []);
   return (
-    <div className="error-backdrop">
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={bodyId}
-        className="error-dialog"
-      >
-        <h1 id={titleId} className="error-title">
-          {text.errorTitle}
-        </h1>
-        <p id={bodyId} className="error-body">
-          {text.errorBody}
-        </p>
-        <button ref={reset} type="button" className="button-primary" onClick={onReset}>
-          {text.reset}
-        </button>
+    <div className="shell" data-screen="error">
+      <div className="error-backdrop">
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-describedby={bodyId}
+          className="error-dialog"
+        >
+          <h1 id={titleId} className="error-title">
+            {text.errorTitle}
+          </h1>
+          <p id={bodyId} className="error-body">
+            {text.errorBody}
+          </p>
+          <button ref={reset} type="button" className="button-primary" onClick={onReset}>
+            {text.reset}
+          </button>
+        </div>
       </div>
+      <AppFooter />
     </div>
   );
 }

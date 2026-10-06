@@ -425,6 +425,17 @@
   gap: var(--space-3);
 }
 
+.shell > .error-backdrop {
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.shell:not([data-screen='trainer']) .app-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+}
+
 .app-footer {
   display: flex;
   flex-shrink: 0;
