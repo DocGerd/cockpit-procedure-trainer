@@ -9,6 +9,12 @@ It is not a flight simulator. There is no flight physics.
 **Training aid only.** The aircraft's handbook is authoritative. Do not use
 this app in flight.
 
+**Live app:** https://docgerd.github.io/cockpit-procedure-trainer/
+
+**UAT preview:** https://docgerd.github.io/cockpit-procedure-trainer/uat/ — the
+unreleased `develop` state. Unstable and not the productive version; use the
+live app link above for training.
+
 ## Status
 
 Early development. See the [design spec](docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md)
