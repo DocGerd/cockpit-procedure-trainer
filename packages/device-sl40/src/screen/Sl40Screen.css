@@ -1,0 +1,43 @@
+.cpt-device-sl40 button:focus-visible,
+.cpt-device-sl40 input:focus-visible {
+  outline: var(--space-1) solid var(--panel-focus);
+  outline-offset: calc(var(--space-1) * -1);
+}
+
+.cpt-device-sl40 input[type='range'] {
+  accent-color: var(--panel-cap-light);
+  appearance: none;
+  background: transparent;
+}
+
+.cpt-device-sl40 input[type='range']::-webkit-slider-runnable-track {
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--panel-bezel);
+  border: 0;
+}
+
+.cpt-device-sl40 input[type='range']::-moz-range-track {
+  height: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--panel-bezel);
+  border: 0;
+}
+
+.cpt-device-sl40 input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: calc((var(--space-2) - var(--space-4)) / 2);
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--panel-cap-light);
+  border: 0;
+}
+
+.cpt-device-sl40 input[type='range']::-moz-range-thumb {
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--panel-cap-light);
+  border: 0;
+}

@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { contentSecurityPolicy } from './src/csp';
 import { deployEnv } from './src/deploy-env';
 import { pwaColors, pwaOptions } from './src/pwa/config';
 import { copyrightNotice, latestRelease } from './src/version';
@@ -36,6 +37,18 @@ const noindexForUat: Plugin = {
       : [],
 };
 
+const strictCsp: Plugin = {
+  name: 'strict-csp',
+  apply: 'build',
+  transformIndexHtml: () => [
+    {
+      tag: 'meta',
+      attrs: { 'http-equiv': 'Content-Security-Policy', content: contentSecurityPolicy() },
+      injectTo: 'head-prepend',
+    },
+  ],
+};
+
 const themeColorMeta: Plugin = {
   name: 'theme-color-from-tokens',
   transformIndexHtml: () =>
@@ -60,6 +73,7 @@ export default defineConfig({
   plugins: [
     react(),
     noindexForUat,
+    strictCsp,
     themeColorMeta,
     VitePWA(pwaOptions(base, env, pwaColors(tokens))),
   ],
