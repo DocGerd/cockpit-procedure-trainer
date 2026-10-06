@@ -10,10 +10,10 @@ import { pwaColors } from './config';
 const webRoot = resolve(import.meta.dirname, '../..');
 const BUILD_TIMEOUT = 120_000;
 
-type Environment = { env: 'prod' | 'uat'; base: string };
+type Environment = { env: 'prod' | 'uat'; base: string; assetsInlineLimit?: number };
 const environments: Environment[] = [
   { env: 'prod', base: '/cockpit-procedure-trainer/' },
-  { env: 'uat', base: '/cockpit-procedure-trainer/uat/' },
+  { env: 'uat', base: '/cockpit-procedure-trainer/uat/', assetsInlineLimit: 0 },
 ];
 
 type Output = {
@@ -31,12 +31,20 @@ async function listFiles(directory: string): Promise<string[]> {
     .map((entry) => relative(directory, join(entry.parentPath, entry.name)));
 }
 
-async function buildFor({ env, base }: Environment): Promise<Output> {
+async function buildFor({ env, base, assetsInlineLimit }: Environment): Promise<Output> {
   vi.stubEnv('BASE_PATH', base);
   vi.stubEnv('VITE_DEPLOY_ENV', env);
   const dir = await mkdtemp(join(tmpdir(), `cpt-pwa-${env}-`));
   try {
-    await build({ root: webRoot, logLevel: 'silent', build: { outDir: dir, emptyOutDir: true } });
+    await build({
+      root: webRoot,
+      logLevel: 'silent',
+      build: {
+        outDir: dir,
+        emptyOutDir: true,
+        ...(assetsInlineLimit === undefined ? {} : { assetsInlineLimit }),
+      },
+    });
   } finally {
     vi.unstubAllEnvs();
   }
@@ -106,6 +114,8 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
     ]);
     for (const icon of icons) expect(output().precache).toContain(icon.src);
     expect(output().precache).toContain('apple-touch-icon.png');
+    expect(output().precache).toContain('favicon.svg');
+    expect(output().precache).toContain('manifest.webmanifest');
   });
 
   it('precaches the page, scripts, styles and every bundled font file', () => {

@@ -23,7 +23,7 @@ export function pwaColors(css: string, theme: TokenTheme = 'light'): PwaColors {
   };
 }
 
-export const precacheExtensions = ['html', 'js', 'css', 'svg', 'png', 'woff2', 'webmanifest'];
+export const precacheExtensions = ['html', 'js', 'css', 'svg', 'png', 'woff2'];
 
 const icons = [
   { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
