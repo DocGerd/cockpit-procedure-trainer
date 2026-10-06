@@ -160,10 +160,9 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
     expect(output().worker).toContain(`setCacheNameDetails({prefix:"${env}"})`);
   });
 
-  it('claims the page, falls back to the app shell and drops outdated caches', () => {
+  it('claims the page and falls back to the app shell', () => {
     expect(output().worker).toContain('clientsClaim()');
     expect(output().worker).toContain('createHandlerBoundToURL("index.html")');
-    expect(output().worker).toContain('cleanupOutdatedCaches()');
   });
 
   it('waits for consent before taking over', () => {
@@ -177,6 +176,13 @@ describe('the two builds together', () => {
     const [prod, uat] = [outputs.get('prod') as Output, outputs.get('uat') as Output];
     expect(prod.worker).not.toBe(uat.worker);
     expect(prod.manifest.scope).not.toBe(uat.manifest.scope);
+  });
+
+  it('keep the production worker from deleting UAT caches', () => {
+    const prod = outputs.get('prod') as Output;
+    const uat = outputs.get('uat') as Output;
+    expect(prod.worker).not.toContain('cleanupOutdatedCaches');
+    expect(uat.worker).toContain('cleanupOutdatedCaches()');
   });
 
   it('keep the production worker from answering UAT page loads', () => {

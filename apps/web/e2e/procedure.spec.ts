@@ -36,6 +36,25 @@ test('a Guided procedure completes and the summary lists the deviation', async (
   ).toContainText(deviation.title(unrelatedControl));
 });
 
+test('a Practice run shows no deviation information until the summary', async ({ page }) => {
+  await startProcedure(page, engineStart, 'practice');
+  const pane = checklistPane(page);
+
+  await operateUnrelatedControl(page, unrelatedControl);
+
+  await expect(page.getByRole('status')).toHaveCount(0);
+  await expect(page.getByText(deviation.banner(unrelatedControl, 1))).toHaveCount(0);
+  await expect(page.getByText(copy.checklist.noDeviations)).toHaveCount(0);
+  await expect(page.getByText(/\d+ deviations?/)).toHaveCount(0);
+  await expect(pane.getByRole('img', { name: copy.checklist.stateDeviated })).toHaveCount(0);
+
+  await completeProcedure(page, engineStart);
+
+  await expect(
+    pane.getByRole('region', { name: copy.checklist.deviationsHeading }).getByRole('listitem'),
+  ).toContainText(deviation.title(unrelatedControl));
+});
+
 test.describe('changing the phase during a procedure', () => {
   const startPhase = procedure(engineStart).startPhase;
   const target = Object.entries(aircraft.phases).find(([id]) => id !== startPhase);
