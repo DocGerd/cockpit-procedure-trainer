@@ -201,6 +201,13 @@ describe('validateAircraft', () => {
         expect.arrayContaining(['fixture', 'rpm', 'panel', 'alternatorFailure', 'fuelPump']),
       );
     });
+
+    it('reports an empty handbook revision', () => {
+      const aircraft = broken({ handbookRevision: { de: '', en: 'rev 1' } });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.id)).toEqual(['fixture']);
+      expect(found[0]?.message).toContain('handbookRevision');
+    });
   });
 
   it('reports a phase without an image', () => {

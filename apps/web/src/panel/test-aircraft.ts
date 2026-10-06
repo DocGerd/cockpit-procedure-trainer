@@ -23,7 +23,7 @@ export const IMAGE = { width: 1000, height: 500 };
 export const fixture: Aircraft = defineAircraft({
   id: 'panel-fixture',
   name: text('Panel fixture'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: {
     master: toggle('Master'),
     pump: { ...toggle('Pump'), appearance: { widget: 'not-a-widget', options: { cap: 'red' } } },
@@ -144,7 +144,7 @@ export const fixture: Aircraft = defineAircraft({
 export const other: Aircraft = defineAircraft({
   id: 'panel-other',
   name: text('Other'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: { light: toggle('Light') },
   indicators: {},
   views: {
@@ -171,7 +171,7 @@ export const other: Aircraft = defineAircraft({
 export const vector: Aircraft = defineAircraft({
   id: 'panel-vector',
   name: text('Vector'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: { light: toggle('Light') },
   indicators: {},
   views: {
