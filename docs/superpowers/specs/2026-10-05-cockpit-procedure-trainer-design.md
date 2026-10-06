@@ -42,7 +42,7 @@ architecture that lets aircraft be added.
 | Step order | Never block input. Record actions outside the current item as deviations. |
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
-| Devices | Tablet and desktop; touch and mouse both first-class. |
+| Devices | HD desktop (1920x1080) first, 4K second, tablet later; mouse and touch both supported. See ADR-0002. |
 | Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). Production at the site root, UAT under `/uat/`. |
 | Branching | Gitflow: `develop` is the default branch and the base of every PR; `main` holds released state only. Agents merge PRs into `develop` and never merge into `main`. |
 | Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex meta tag and a "UAT" badge in the app frame. |
