@@ -298,8 +298,9 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. `apps/web` runs it for every `normal` procedure of every
-registered aircraft.
+points at its item. It also fails a spring-back press unless the control rests at the
+position it springs back to, so a procedure must set that position first. `apps/web`
+runs it for every `normal` procedure of every registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 

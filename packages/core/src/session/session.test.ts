@@ -330,11 +330,14 @@ describe('the before-start walk-through', () => {
     session.checkOff();
     expect(session.checklist()?.current).toBe(4);
 
+    session.set('ignition', 'both');
+    expect(session.checklist()?.current).toBe(5);
+
     session.press('ignition', 'start');
     session.advance(STEP_MS);
-    expect(session.checklist()?.current).toBe(4);
-    crankUntilRunning(session);
     expect(session.checklist()?.current).toBe(5);
+    crankUntilRunning(session);
+    expect(session.checklist()?.current).toBe(6);
 
     session.release('ignition');
     expect(session.state().controls.ignition).toBe('both');
@@ -345,7 +348,7 @@ describe('the before-start walk-through', () => {
     session.checkOff();
     const checklist = session.checklist();
     expect(checklist?.done).toBe(true);
-    expect(checklist?.completed).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(checklist?.completed).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(checklist?.deviations).toEqual([]);
 
     expect(session.phase()).toBe('runup');
