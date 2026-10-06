@@ -122,10 +122,16 @@ describe('the combined layout', () => {
 
   it('reaches each cell with Tab, as a region', async () => {
     renderCockpit();
-    act(() => cell('Centre console').focus());
-    await userEvent.tab();
-    const focused = document.activeElement;
-    expect(cell('Centre console').contains(focused)).toBe(true);
+    const cells = screen.getAllByRole('region');
+    const reached: string[] = [];
+    const focusable = document.querySelectorAll('[tabindex], button, input').length;
+    for (let step = 0; step <= focusable; step += 1) {
+      await userEvent.tab();
+      const region = cells.find((candidate) => candidate === document.activeElement);
+      if (region) reached.push(region.getAttribute('aria-label') ?? '');
+    }
+    // One full Tab cycle, wherever it starts: both cells, in arrangement order.
+    expect(reached.join(' > ')).toContain('Main panel > Centre console');
   });
 
   it('zooms one cell and leaves the others, and resets them all', async () => {

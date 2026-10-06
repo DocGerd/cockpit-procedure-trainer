@@ -86,14 +86,27 @@ if (!ctsl) throw new Error('The aircraft registry has no CTSL');
 
 // #226: holding the key on START while watching the tachometer.
 for (const viewport of desktops) {
-  test(`the CTSL key is held on START with the tachometer in sight at ${viewport.width}x${viewport.height}`, async ({
+  test(`the CTSL starts while the key is held on START with the tachometer in sight at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     await openAircraft(page, ctsl, 'engineStart');
     await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
 
-    const ignition = ctsl.controls.ignition?.name.en ?? 'Ignition';
+    const nameOf = (id: string) => {
+      const name = ctsl.controls[id]?.name.en;
+      if (!name) throw new Error(`The CTSL has no control ${id}`);
+      return name;
+    };
+    for (const id of ['battery', 'fuelValve', 'choke']) {
+      await page.locator(`button[aria-label^="${nameOf(id)}:"]`).click();
+    }
+    const tachometer = page.locator('[data-placement="tachometer"]');
+    const rpm = tachometer.getByRole('img').first();
+    const stopped = `${ctsl.indicators.tachometer?.name.en ?? 'Tachometer'}: 0 rpm`;
+    await expect(rpm).toHaveAccessibleName(stopped);
+
+    const ignition = nameOf('ignition');
     const key = page.getByRole('slider', { name: ignition, exact: true });
     await key.focus();
     await key.press('End');
@@ -106,7 +119,9 @@ for (const viewport of desktops) {
     try {
       await expect(key).toHaveAttribute('aria-valuetext', 'start');
       await expect(start).toBeInViewport({ ratio: 1 });
-      await expect(page.locator('[data-placement="tachometer"]')).toBeInViewport({ ratio: 1 });
+      await expect(tachometer).toBeInViewport({ ratio: 1 });
+      await expect(rpm).not.toHaveAccessibleName(stopped);
+      await expect(key).toHaveAttribute('aria-valuetext', 'start');
     } finally {
       await page.keyboard.up('Enter');
     }
