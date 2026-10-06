@@ -121,24 +121,9 @@ const keyStart = {
   text: text('Starten', 'Key to START'),
 } as const;
 
-// The fixture's engine start cranks the ignition from OFF, where the panel offers no START detent.
-const withIgnitionBoth = (aircraft: Aircraft): Aircraft => {
-  const procedure = aircraft.procedures.beforeStart;
-  if (!procedure) throw new Error('fixture has no beforeStart procedure');
-  const crank = procedure.items.findIndex(
-    (item) => item.type === 'action' && item.control === 'ignition',
-  );
-  const both = { ...keyBoth, control: 'ignition' };
-  const items = [...procedure.items.slice(0, crank), both, ...procedure.items.slice(crank)];
-  return {
-    ...aircraft,
-    procedures: { ...aircraft.procedures, beforeStart: { ...procedure, items } },
-  } as Aircraft;
-};
-
 describe('walkProcedure', () => {
   it('completes the fixture aircraft procedures from the entry snapshot', () => {
-    expect(walkProcedure(withIgnitionBoth(fixtureAircraft), 'beforeStart')).toEqual({ ok: true });
+    expect(walkProcedure(fixtureAircraft, 'beforeStart')).toEqual({ ok: true });
     expect(walkProcedure(fixtureAircraft, 'alternatorFailure')).toEqual({ ok: true });
   });
 
