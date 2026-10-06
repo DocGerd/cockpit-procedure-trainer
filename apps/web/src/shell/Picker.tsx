@@ -26,7 +26,7 @@ function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: 
     >
       <span className="picker-card-title">{localize(aircraft.name)}</span>{' '}
       <span className="picker-card-text">
-        {text.handbookRevision}: {aircraft.handbookRevision}
+        {text.handbookRevision}: {localize(aircraft.handbookRevision)}
       </span>{' '}
       <span className="picker-meta">
         {count(Object.keys(aircraft.views).length, text.viewOne, text.viewOther)} ·{' '}

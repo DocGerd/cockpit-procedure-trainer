@@ -67,9 +67,9 @@ so their literal positions survive the move, as `src/controls.ts` in the demo do
       systems, failures, phases, procedures,
     })
 
-Names, descriptions, guard names, failure names, titles and item texts are a
-`Text`, `{ de, en }`, and both languages must be non-empty. The demo wraps it as
-`text(de, en)` in `src/text.ts`. `handbookRevision` is a plain string.
+The handbook revision, names, descriptions, guard names, failure names, titles and
+item texts are a `Text`, `{ de, en }`, and both languages must be non-empty. The
+demo wraps it as `text(de, en)` in `src/text.ts`.
 
 ### Controls
 
@@ -330,8 +330,10 @@ Then run the project checks from the repository root:
 ## Package documents
 
 - `README.md` with a `## Source revision` section naming the handbook revision the
-  content follows, or stating that the aircraft is fictional. Set the same words
-  in `handbookRevision`, which the aircraft picker shows.
+  content follows, or stating that the aircraft is fictional. `handbookRevision`,
+  which the aircraft picker shows, is a `Text`: its `en` value carries the source
+  wording of the README section, its `de` value is a translation of it. The README
+  stays English.
 - `LICENSES.md` with one entry per image file path, naming its author and licence,
   as `packages/aircraft-demo/LICENSES.md` does. State plainly that none is based on
   a manufacturer's artwork or a handbook scan.

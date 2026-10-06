@@ -89,7 +89,8 @@ describe('CTSL normal procedures', () => {
   });
 
   it('states the handbook revision the procedures follow', () => {
-    expect(ctslAircraft.handbookRevision).toContain('AE04300003, revision 01');
+    expect(ctslAircraft.handbookRevision.en).toContain('AE04300003, revision 01');
+    expect(ctslAircraft.handbookRevision.de).toContain('AE04300003, Revision 01');
   });
 
   it.each(expected.map(([id]) => id))('%s completes with no deviations', (id) => {

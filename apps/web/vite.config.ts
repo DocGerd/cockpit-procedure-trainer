@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { contentSecurityPolicy } from './src/csp';
 import { deployEnv } from './src/deploy-env';
 import { pwaColors, pwaOptions } from './src/pwa/config';
 import { copyrightNotice, latestRelease } from './src/version';
@@ -36,6 +37,25 @@ const noindexForUat: Plugin = {
       : [],
 };
 
+const charsetMeta = '<meta charset="utf-8" />';
+
+// The policy only covers what follows it, and the charset must stay in the first bytes of the file.
+const strictCsp: Plugin = {
+  name: 'strict-csp',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (html) => {
+      if (!html.includes(charsetMeta)) throw new Error('index.html has no charset meta to follow');
+      const policy = contentSecurityPolicy().replaceAll('"', '&quot;');
+      return html.replace(
+        charsetMeta,
+        `${charsetMeta}\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`,
+      );
+    },
+  },
+};
+
 const themeColorMeta: Plugin = {
   name: 'theme-color-from-tokens',
   transformIndexHtml: () =>
@@ -60,6 +80,7 @@ export default defineConfig({
   plugins: [
     react(),
     noindexForUat,
+    strictCsp,
     themeColorMeta,
     VitePWA(pwaOptions(base, env, pwaColors(tokens))),
   ],

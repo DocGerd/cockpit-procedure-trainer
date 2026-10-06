@@ -21,7 +21,7 @@ const comState = (state: TrainerState<unknown>) => state.devices.radio?.state as
 const testAircraft = defineAircraft({
   id: 'com-test',
   name: text('Testflugzeug', 'Test aircraft'),
-  handbookRevision: 'none, test fixture',
+  handbookRevision: text('keine, Testaufbau', 'none, test fixture'),
   controls: {
     bus: {
       kind: 'toggle',

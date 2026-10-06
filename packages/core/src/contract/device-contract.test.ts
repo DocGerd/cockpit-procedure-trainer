@@ -20,7 +20,7 @@ const toggle = {
 const body = {
   id: 'mini',
   name: text,
-  handbookRevision: 'rev 1',
+  handbookRevision: text,
   controls: { master: toggle },
   indicators: {},
   views: { main: { name: text, image: 'panel.png' }, side: { name: text, image: 'side.png' } },

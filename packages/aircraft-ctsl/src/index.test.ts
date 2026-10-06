@@ -151,9 +151,10 @@ describe('CTSL aircraft', () => {
       de: 'CT Supralight (repräsentatives Panel)',
       en: 'CT Supralight (representative panel)',
     });
-    expect(ctslAircraft.handbookRevision).toBe(
-      'Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)',
-    );
+    expect(ctslAircraft.handbookRevision).toEqual({
+      de: 'Flight Design CT Supralight Flug- und Wartungshandbuch AE04300003, Revision 01 (14. Jan. 2010)',
+      en: 'Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)',
+    });
   });
 
   it('declares exactly the controls of the analog panel', () => {
