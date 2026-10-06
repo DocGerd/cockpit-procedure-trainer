@@ -745,6 +745,43 @@ describe('ArtworkControl stepping a notched control both ways', () => {
     expect(wide.onSet).not.toHaveBeenCalled();
   });
 
+  it('ignores taps just inside the dead zone and steps just outside it', () => {
+    rectOf(44, 100);
+    const tall = renderControl(flaps, flapImages, 'to');
+    tap(20, 40);
+    tap(20, 60);
+    expect(tall.onSet).not.toHaveBeenCalled();
+    tap(20, 25);
+    expect(tall.onSet).toHaveBeenLastCalledWith('land');
+    tall.unmount();
+    rectOf(100, 44);
+    const wide = renderControl(flaps, flapImages, 'to');
+    tap(60, 20);
+    tap(40, 20);
+    expect(wide.onSet).not.toHaveBeenCalled();
+    tap(75, 20);
+    expect(wide.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('ignores taps just beside the notch along a path and steps just beyond', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, downhill, 'to');
+    tap(20, 11);
+    tap(20, 9);
+    expect(view.onSet).not.toHaveBeenCalled();
+    tap(20, 14);
+    expect(view.onSet).toHaveBeenLastCalledWith('land');
+  });
+
+  it('turns a tall rotary by left and right, not upper and lower', () => {
+    rectOf(60, 100);
+    const view = renderControl(ignition, ignitionImages, 'l');
+    tap(6, 10);
+    expect(view.onSet).toHaveBeenLastCalledWith('off');
+    tap(54, 90);
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+  });
+
   it('turns a rotary by its left and right halves, even when square or tall', () => {
     for (const [w, h] of [
       [100, 100],
