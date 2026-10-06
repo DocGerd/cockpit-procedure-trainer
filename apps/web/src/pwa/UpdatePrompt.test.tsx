@@ -4,8 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { UpdatePrompt } from './UpdatePrompt';
+import { UPDATE_CHECK_INTERVAL_MS } from './update-check';
 
-type Options = { onRegisteredSW?: (url: string, registration?: { waiting: unknown }) => void };
+type Registration = { waiting: unknown; update?: () => Promise<unknown> };
+type Options = { onRegisteredSW?: (url: string, registration?: Registration) => void };
 
 const register = vi.hoisted(() => ({
   waiting: false,
@@ -101,6 +103,22 @@ describe('UpdatePrompt', () => {
     renderWithLanguage(<UpdatePrompt />);
     act(() => register.options.onRegisteredSW?.('sw.js', { waiting: {} }));
     expect(screen.getByRole('status')).toBeTruthy();
+  });
+
+  it('checks for updates after registration and stops on unmount', () => {
+    vi.useFakeTimers();
+    try {
+      const update = vi.fn().mockResolvedValue(undefined);
+      const view = renderWithLanguage(<UpdatePrompt />);
+      act(() => register.options.onRegisteredSW?.('sw.js', { waiting: null, update }));
+      vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS);
+      expect(update).toHaveBeenCalledTimes(1);
+      view.unmount();
+      vi.advanceTimersByTime(UPDATE_CHECK_INTERVAL_MS);
+      expect(update).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('speaks German', () => {
