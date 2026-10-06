@@ -14,8 +14,10 @@ This proposal predates the one-viewport combined cockpit (#253,
 since shipped. Before any work starts it must be reconciled with that design:
 
 - **Shared stage:** the combined layout renders each view as a `PanelView`
-  cell; the 3D view must reuse that per-view stage rather than extract a second
-  one (§10 point 1 below is superseded by whatever #253 shipped).
+  cell inside `PanelArea.tsx`; #253 did not extract a separate `ViewStage`.
+  The 3D view still needs the stage without the per-view zoom, so §10 point 1
+  stands, but its extraction now starts from the shipped `PanelView` (with its
+  `cellHeight` prop) and must keep the combined layout's tests green.
 - **Presentation switch:** `tabs`, `combined` and `3d` become one choice in
   `PanelArea`, with the 3D switch overriding the viewport rule.
 - **`cockpit` arrangement vs `frame3d`:** #253 added a top-level `cockpit`
@@ -54,7 +56,7 @@ right-seat or free camera, VR, the outside view drawn in the windshield, and
   (`panel.test.tsx`, "ignore 3D position and orientation").
 - Views have a name, an image and an optional coordinate `size`. Nothing
   places a view in space.
-- `apps/web/src/panel/PanelArea.tsx` renders one view at a time: a stage with
+- `apps/web/src/panel/PanelArea.tsx` renders one view at a time in `tabs` and every view in `combined` (#253): a stage with
   the view image, one `ControlPlacement` or `IndicatorPlacement` per placed id
   (percent boxes from `rects.ts`), the `DeviceLayer` and the `PanelOverlay`
   (Guided ring, Free explore details), wrapped in a per-view zoom.
@@ -291,8 +293,11 @@ Nothing in the control store, systems runtime or checklist engine changes.
 
 ## 10. Coexistence with #253 (one-viewport desktop layout)
 
-#253 is designed at the same time. The two designs must agree on three points
-before either implementation merges; whichever design lands second adapts:
+#253 has shipped; this section was written while it was still a design and is
+kept as the checklist for the reconciliation above. The presentation switch of
+point 2 gains `3d` next to `tabs` and `combined`. #253 added its own `cockpit`
+arrangement field, so the second branch of point 3 applies and the open choice
+is the one named above.
 
 1. **One view stage.** Both need a view's image, placements, devices and
    overlay as a component without the per-view zoom. The first implementation

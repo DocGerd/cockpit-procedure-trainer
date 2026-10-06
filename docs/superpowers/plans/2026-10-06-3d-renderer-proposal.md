@@ -16,11 +16,11 @@ Status: Proposed — deferred by the owner on 2026-10-06, not approved; see #43.
 
 ## Pre-flight checks
 
-**(a) What exists?** `Placement.position3d` and `orientation` exist with no defined meaning and no aircraft data (design §2). `PanelArea.tsx` renders one view at a time inside a per-view zoom. `usePanelInput` is the only path from a widget to the session. The Guided overlay finds targets by `[data-placement]`.
+**(a) What exists?** `Placement.position3d` and `orientation` exist with no defined meaning and no aircraft data (design §2). `PanelArea.tsx` renders one view at a time (`tabs`) or all views side by side (`combined`, #253), each `PanelView` inside a per-view zoom. `usePanelInput` is the only path from a widget to the session. The Guided overlay finds targets by `[data-placement]`.
 
 **(b) Who owns the lockfile?** CI runs `pnpm install --frozen-lockfile`. Task 2 (new workspace package) and Task 4 (new `apps/web` dependency on it) change `pnpm-lock.yaml`; they are in different waves.
 
-**(c) Is #253 merged?** Before Task 4 starts, the orchestrator checks whether #253's implementation has extracted a view stage component from `PanelView`. If yes, Task 4 reuses it and skips Step 4.1. If #253's design added a view-arrangement field, Task 4 checks that design §10 point 3 still holds and reports any conflict before writing code.
+**(c) #253 has shipped.** Before Task 4 starts, the orchestrator reconciles the design with it (design section "Reconcile with the one-viewport cockpit first"): `PanelView` was not split into a stage component, so Step 4.1 still extracts one, and #253's `cockpit` arrangement is checked against `frame3d` before any code is written.
 
 **(d) Headless hit-testing.** Playwright's Chromium hit-tests 3D-transformed DOM without WebGL, so the e2e tests need no GPU flags. If a click through a transformed plane misses in CI, that is a finding for Task 5, not a reason to add `force: true`.
 
