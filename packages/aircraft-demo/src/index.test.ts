@@ -246,6 +246,15 @@ describe('installed devices', () => {
     for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(false);
   });
 
+  it.each(['departure', 'cruise'])(
+    'carries the altitude of the %s environment in its entry snapshot',
+    (id) => {
+      const phase = demoAircraft.phases[id];
+      expect((phase?.entry.state as DemoState).altitudeFt).toBe(phase?.environment.altitudeFt);
+      expect(phase?.environment.altitudeFt).toBeGreaterThan(0);
+    },
+  );
+
   it('feeds the pressure altitude of the phase to the transponder', () => {
     const session = createSession(demoAircraft, { devices, phase: 'cruise' });
     session.set('xpdr.mode', 'alt');
