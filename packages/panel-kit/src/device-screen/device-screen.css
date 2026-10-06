@@ -1,0 +1,44 @@
+/* Panel hardware only: every colour is a --panel-* token, never a brand or status colour. */
+
+.pk-device {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2);
+  background: var(--panel-bezel-dark);
+  border: var(--space-1) solid var(--panel-bezel);
+  border-radius: var(--radius-sm);
+}
+
+.pk-device-screen {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--panel-screen);
+}
+
+.pk-device-off {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--panel-screen);
+  opacity: 0.7;
+}
+
+.pk-device-placeholder {
+  align-items: center;
+  justify-content: center;
+}
+
+.pk-device-placeholder-label {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--panel-legend-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
