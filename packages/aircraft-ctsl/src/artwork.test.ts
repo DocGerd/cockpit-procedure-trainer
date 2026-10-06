@@ -87,6 +87,10 @@ describe('CTSL gauges', () => {
     verticalSpeed: { min: -5, max: 5 },
     altimeter: { min: 0, max: 5000 },
   };
+  const sweeps: Record<string, { min: number; max: number }> = {
+    verticalSpeed: { min: -225, max: 45 },
+  };
+  const standardSweep = { min: -135, max: 135 };
 
   it.each(Object.entries(scales))('draws %s as a needle over its intake scale', (id, scale) => {
     const entry = gaugeArtwork.find((gauge) => gauge.id === id);
@@ -95,7 +99,37 @@ describe('CTSL gauges', () => {
     expect(moving?.type).toBe('needle');
     if (moving?.type !== 'needle') return;
     expect(moving.valueRange).toEqual(scale);
+    expect(moving.angleRange).toEqual(sweeps[id] ?? standardSweep);
     expect(moving.pivot).toEqual({ x: 100, y: 100 });
+  });
+
+  it('letters each face only where the needle never sweeps', () => {
+    const textTag =
+      /<text x="([\d.]+)" y="([\d.]+)" font-size="(\d+)"[^>]*text-anchor="(\w+)"[^>]*>([^<]*)<\/text>/g;
+    for (const { id, artwork } of gaugeArtwork) {
+      const { moving } = artwork;
+      if (moving.type !== 'needle') continue;
+      let lettering = 0;
+      for (const [, x, y, size, anchor, content] of read(artwork.face).matchAll(textTag)) {
+        const [cx, cy, fontSize] = [Number(x) - 100, Number(y) - 100, Number(size)];
+        if (/^\d+$/.test(content ?? '') && Math.abs(Math.hypot(cx, cy) - 46) < 3) continue;
+        lettering += 1;
+        const width = (content?.length ?? 0) * 0.72 * fontSize;
+        const left = anchor === 'start' ? cx : cx - width / 2;
+        for (const dx of [left, left + width]) {
+          for (const dy of [cy - fontSize / 2, cy + fontSize / 2]) {
+            const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+            const swept = [-360, 0, 360].some(
+              (turn) =>
+                angle + turn >= moving.angleRange.min - 3 &&
+                angle + turn <= moving.angleRange.max + 3,
+            );
+            expect(swept, `${id}: "${content}" at ${dx.toFixed(0)},${dy.toFixed(0)}`).toBe(false);
+          }
+        }
+      }
+      expect(lettering, id).toBeGreaterThan(0);
+    }
   });
 
   it('keeps every round gauge on drawn artwork and its full name', () => {
