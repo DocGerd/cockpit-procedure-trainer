@@ -7,10 +7,12 @@ import {
 } from '@cpt/core';
 import type { ControlKind, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import viewAvionics from './assets/view-avionics.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
 import { demoAircraft } from './index';
 import type { DemoState } from './systems';
+import { testDevices as devices } from './test-devices';
 
 const CONTROL_KINDS: readonly ControlKind[] = [
   'toggle',
@@ -29,7 +31,7 @@ const run = (session: Session, ms: number) => {
 };
 
 function readyToStart(overrides: Record<string, string | number> = {}): Session {
-  const session = createSession(demoAircraft, { phase: 'parking' });
+  const session = createSession(demoAircraft, { devices, phase: 'parking' });
   const settings = {
     fuelSelector: 'both',
     mixture: 1,
@@ -47,7 +49,7 @@ describe('demo aircraft', () => {
   });
 
   it('passes the validator', () => {
-    expect(validateAircraft(demoAircraft)).toEqual([]);
+    expect(validateAircraft(demoAircraft, { devices })).toEqual([]);
   });
 
   it('uses every control kind and springs one rotary detent back', () => {
@@ -67,8 +69,8 @@ describe('demo aircraft', () => {
     }
   });
 
-  it('has two views and phases for the parked, taxiing and flying situations', () => {
-    expect(Object.keys(demoAircraft.views)).toHaveLength(2);
+  it('has three views and phases for the parked, taxiing and flying situations', () => {
+    expect(Object.keys(demoAircraft.views)).toHaveLength(3);
     expect(Object.keys(demoAircraft.phases).length).toBeGreaterThanOrEqual(3);
     for (const phase of Object.values(demoAircraft.phases)) expect(phase.image).not.toBe('');
   });
@@ -113,7 +115,7 @@ describe('demo aircraft', () => {
   });
 
   it('stops a running engine when the mixture is pulled to idle cut-off', () => {
-    const session = createSession(demoAircraft, { phase: 'holding' });
+    const session = createSession(demoAircraft, { devices, phase: 'holding' });
     run(session, STEP_MS);
     expect(systems(session).engine.running).toBe(true);
     session.set('mixture', 0);
@@ -121,7 +123,7 @@ describe('demo aircraft', () => {
   });
 
   describe('with the engine running', () => {
-    const running = (): Session => createSession(demoAircraft, { phase: 'holding' });
+    const running = (): Session => createSession(demoAircraft, { devices, phase: 'holding' });
 
     it('lights the lamps only while the annunciator switch is held at test', () => {
       const session = running();
@@ -181,7 +183,7 @@ describe('demo aircraft', () => {
 
   describe('alternator failure', () => {
     it('trips its breaker and lights the low-voltage lamp', () => {
-      const session = createSession(demoAircraft, { phase: 'cruise' });
+      const session = createSession(demoAircraft, { devices, phase: 'cruise' });
       expect(reading(session, 'lowVoltageLamp')).toBe(false);
       expect(session.state().controls.alternatorBreaker).toBe('in');
 
@@ -193,7 +195,7 @@ describe('demo aircraft', () => {
     });
 
     it('stays failed after the breaker is reset', () => {
-      const session = createSession(demoAircraft, { phase: 'cruise' });
+      const session = createSession(demoAircraft, { devices, phase: 'cruise' });
       session.startProcedure('alternatorFailure');
       session.set('alternatorBreaker', 'in');
       run(session, STEP_MS);
@@ -202,20 +204,61 @@ describe('demo aircraft', () => {
   });
 
   it.each(Object.keys(demoAircraft.procedures))('walks %s with no deviations', (id) => {
-    expect(walkProcedure(demoAircraft, id)).toEqual({ ok: true });
+    expect(walkProcedure(demoAircraft, id, { devices })).toEqual({ ok: true });
   });
 
-  it('has two normal procedures and an emergency naming its failure', () => {
+  it('has three normal procedures and an emergency naming its failure', () => {
     const procedures = Object.values(demoAircraft.procedures);
-    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(2);
+    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(3);
     const emergencies = procedures.filter((procedure) => procedure.type === 'emergency');
     expect(emergencies).toHaveLength(1);
     expect(emergencies[0]?.failure).toBe('alternatorFailure');
   });
 });
 
+describe('installed devices', () => {
+  const holding = () => createSession(demoAircraft, { devices, phase: 'holding' });
+  const installed = Object.entries(demoAircraft.devices ?? {});
+
+  it('installs the COM radio and the transponder', () => {
+    expect(installed.map(([, install]) => install.device).sort()).toEqual(['com', 'transponder']);
+  });
+
+  it('places every install on a view of the aircraft', () => {
+    for (const [, install] of installed) expect(demoAircraft.views[install.view]).toBeDefined();
+  });
+
+  it('powers both devices from the avionics bus', () => {
+    const session = holding();
+    for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(true);
+
+    session.set('avionics', 'off');
+    for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(false);
+
+    session.set('avionics', 'on');
+    session.set('avionicsBreaker', 'pulled');
+    for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(false);
+  });
+
+  it('powers neither device with the battery off', () => {
+    const session = createSession(demoAircraft, { devices, phase: 'parking' });
+    session.set('avionics', 'on');
+    for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(false);
+  });
+
+  it('feeds the pressure altitude of the phase to the transponder', () => {
+    const session = createSession(demoAircraft, { devices, phase: 'cruise' });
+    session.set('xpdr.mode', 'alt');
+    expect(session.state().devices.xpdr?.state).toMatchObject({ altitude: 4500 });
+  });
+});
+
 describe('declared view sizes', () => {
-  const sources: Record<string, string> = { panel: viewPanel, console: viewConsole };
+  const sources: Record<string, string> = {
+    panel: viewPanel,
+    console: viewConsole,
+    avionics: viewAvionics,
+  };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {
     const match = /viewBox="([^"]+)"/.exec(sources[id] ?? '');
