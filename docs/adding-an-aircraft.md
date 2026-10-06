@@ -141,7 +141,8 @@ placement that is not inside it as `placement-outside-view`.
 ### Phases
 
 `phases` maps a phase id to `{ name, image, environment, entry }`. `image` is the
-outside view. `entry` is the snapshot a pilot gets when jumping to the phase:
+outside view. Draw it as the first-person view out of the windshield from the
+pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
 state. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
 steps the systems once from a running engine. A procedure starts from its
