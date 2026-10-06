@@ -99,7 +99,6 @@ function ButtonInput({
           // A held key steps or presses once; a hold also takes the key's own click.
           if (event.repeat || hold) event.preventDefault();
           if (event.repeat || !hold) return;
-          swallowClick.current = true;
           press();
         } else if (event.key === 'Escape') {
           onEscape?.();
@@ -107,9 +106,9 @@ function ButtonInput({
       }}
       onKeyUp={(event) => {
         if (!isActivation(event) || !hold) return;
+        // Cancels Space's click on key up; Enter's on key down is cancelled above.
         event.preventDefault();
-        // Space clicks after key up, Enter on key down; only Space's click is still to come.
-        if (event.key === 'Enter') swallowClick.current = false;
+        swallowClick.current = false;
         release();
       }}
       onBlur={release}

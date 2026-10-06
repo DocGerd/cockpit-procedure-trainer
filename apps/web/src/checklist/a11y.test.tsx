@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useLanguage } from '../i18n';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerLayout } from '../shell/TrainerLayout';
 import { ThemeProvider } from '../theme';
@@ -15,8 +16,10 @@ vi.mock('../aircraft-registry', async () => ({
 }));
 
 let trainer: Trainer;
+let setLanguage: (language: 'de' | 'en') => void;
 function Probe() {
   trainer = useTrainer();
+  setLanguage = useLanguage().setLanguage;
   return null;
 }
 
@@ -161,6 +164,17 @@ describe('checklist announcements', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     await userEvent.click(screen.getByRole('button', { name: 'Next: Follow-up' }));
     expect(announcer()?.textContent).toBe('');
+  });
+
+  it('announces a step only when it changes, not again on a language switch', () => {
+    renderLayout();
+    start('flow');
+    operate('master', 'on');
+    expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
+    act(() => setLanguage('de'));
+    expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
+    operate('avionics', 'on');
+    expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
   });
 
   it('falls silent in Free explore', () => {

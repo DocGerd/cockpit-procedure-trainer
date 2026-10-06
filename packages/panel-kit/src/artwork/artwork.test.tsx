@@ -472,10 +472,31 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
     const button = hold();
     fireEvent.keyDown(button, { key: ' ' });
     expect(view.onPress).toHaveBeenCalledWith('start');
-    fireEvent.keyUp(button, { key: ' ' });
-    fireEvent.click(button);
+    expect(fireEvent.keyUp(button, { key: ' ' })).toBe(false);
     expect(view.onRelease).toHaveBeenCalledTimes(1);
     expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('forgets a pointer click that never came once a key has pressed and released', () => {
+    const view = renderControl(key, keyImages, 'both');
+    const button = hold();
+    fireEvent.pointerDown(button);
+    fireEvent.pointerCancel(button);
+    fireEvent.keyDown(button, { key: ' ' });
+    fireEvent.keyUp(button, { key: ' ' });
+    fireEvent.click(button, { detail: 0 });
+    expect(view.onPress).toHaveBeenCalledTimes(3);
+    expect(view.onRelease).toHaveBeenCalledTimes(3);
+  });
+
+  it('treats a click without a pointer after a Space press as a new activation', () => {
+    const view = renderControl(key, keyImages, 'both');
+    const button = hold();
+    fireEvent.keyDown(button, { key: ' ' });
+    fireEvent.keyUp(button, { key: ' ' });
+    fireEvent.click(button, { detail: 0 });
+    expect(view.onPress).toHaveBeenCalledTimes(2);
+    expect(view.onRelease).toHaveBeenCalledTimes(2);
   });
 
   it('still releases when the held detent has become the current position', () => {

@@ -320,6 +320,17 @@ describe('the tablet drawer from the keyboard', () => {
     expect(document.activeElement).toBe(checklistToggle());
   });
 
+  it('leaves focus that moved outside the drawer where it is when the drawer closes', async () => {
+    renderShell();
+    await startProcedure();
+    await userEvent.click(checklistToggle());
+    const tab = screen.getAllByRole('tab')[0] as HTMLElement;
+    act(() => tab.focus());
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    expect(document.activeElement).toBe(tab);
+  });
+
   it('keeps Tab between the drawer and its toggle, not the panel behind it', async () => {
     renderShell();
     await startProcedure();
