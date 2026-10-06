@@ -4,7 +4,7 @@ import { images } from './assets';
 import { controls } from './controls';
 import { indicators } from './indicators';
 import { initial, lowVoltageLit, oilPressureLit, runningFrom, step } from './systems';
-import type { DemoFailure } from './systems';
+import type { DemoFailure, DemoTrainerState } from './systems';
 import { text } from './text';
 
 const parked = {
@@ -37,6 +37,22 @@ const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
+const departureEnvironment: Environment = { airspeedKt: 75, altitudeFt: 800, onGround: false };
+const cruiseEnvironment: Environment = { airspeedKt: 105, altitudeFt: 4500, onGround: false };
+
+type ComReading = { readonly active: number; readonly standby: number };
+type TransponderReading = {
+  readonly mode: string;
+  readonly squawk: string;
+  readonly altitude: number | null;
+};
+
+const radio = (state: DemoTrainerState) => state.devices.radio?.state as ComReading | undefined;
+const transponder = (state: DemoTrainerState) =>
+  state.devices.xpdr?.state as TransponderReading | undefined;
+
+const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
+const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
 export const demoAircraft = defineAircraft({
   id: 'demo',
@@ -48,24 +64,24 @@ export const demoAircraft = defineAircraft({
     panel: {
       name: text('Instrumententafel', 'Panel'),
       image: images.panel,
-      size: { width: 1200, height: 640 },
+      size: { width: 1406, height: 660 },
       controls: {
-        battery: { rect: { x: 50, y: 370, w: 110, h: 190 } },
-        alternator: { rect: { x: 170, y: 370, w: 110, h: 190 } },
-        avionics: { rect: { x: 290, y: 370, w: 110, h: 190 } },
-        annunciator: { rect: { x: 410, y: 370, w: 110, h: 190 } },
-        magnetos: { rect: { x: 530, y: 370, w: 130, h: 190 } },
-        starter: { rect: { x: 680, y: 370, w: 120, h: 190 } },
-        alternatorBreaker: { rect: { x: 890, y: 380, w: 100, h: 170 } },
-        avionicsBreaker: { rect: { x: 1030, y: 380, w: 100, h: 170 } },
+        battery: { rect: { x: 40, y: 375, w: 118, h: 210 } },
+        alternator: { rect: { x: 163, y: 375, w: 118, h: 210 } },
+        avionics: { rect: { x: 286, y: 375, w: 118, h: 210 } },
+        annunciator: { rect: { x: 409, y: 375, w: 118, h: 210 } },
+        starter: { rect: { x: 532, y: 375, w: 118, h: 210 } },
+        magnetos: { rect: { x: 688, y: 345, w: 270, h: 270 } },
+        alternatorBreaker: { rect: { x: 978, y: 363, w: 196, h: 235 } },
+        avionicsBreaker: { rect: { x: 1174, y: 363, w: 196, h: 235 } },
       },
       indicators: {
-        tachometer: { rect: { x: 50, y: 50, w: 240, h: 240 } },
-        oilPressure: { rect: { x: 310, y: 50, w: 240, h: 240 } },
-        ammeter: { rect: { x: 570, y: 50, w: 240, h: 240 } },
-        hourMeter: { rect: { x: 870, y: 50, w: 280, h: 112 } },
-        lowVoltageLamp: { rect: { x: 870, y: 190, w: 135, h: 68 } },
-        oilPressureLamp: { rect: { x: 1015, y: 190, w: 135, h: 68 } },
+        tachometer: { rect: { x: 45, y: 50, w: 260, h: 260 } },
+        oilPressure: { rect: { x: 330, y: 50, w: 260, h: 260 } },
+        ammeter: { rect: { x: 615, y: 50, w: 260, h: 260 } },
+        hourMeter: { rect: { x: 950, y: 50, w: 380, h: 126 } },
+        lowVoltageLamp: { rect: { x: 915, y: 200, w: 210, h: 90 } },
+        oilPressureLamp: { rect: { x: 1150, y: 200, w: 210, h: 90 } },
       },
     },
     console: {
@@ -79,6 +95,27 @@ export const demoAircraft = defineAircraft({
         fuelSelector: { rect: { x: 625, y: 60, w: 130, h: 200 } },
         fuelShutoff: { rect: { x: 625, y: 300, w: 130, h: 200 } },
       },
+    },
+    avionics: {
+      name: text('Funkgeräte', 'Radio stack'),
+      image: images.avionics,
+      size: { width: 1040, height: 440 },
+    },
+  },
+  devices: {
+    radio: {
+      device: 'com',
+      view: 'avionics',
+      placement: { rect: { x: 40, y: 40, w: 456, h: 360 } },
+      powered: avionicsPowered,
+      inputs: {},
+    },
+    xpdr: {
+      device: 'transponder',
+      view: 'avionics',
+      placement: { rect: { x: 544, y: 40, w: 456, h: 360 } },
+      powered: avionicsPowered,
+      inputs: { pressureAltitude },
     },
   },
   systems: { initial, step },
@@ -104,14 +141,14 @@ export const demoAircraft = defineAircraft({
     departure: {
       name: text('Abflug', 'Departure'),
       image: images.departure,
-      environment: { airspeedKt: 75, altitudeFt: 800, onGround: false },
-      entry: { controls: departing, state: runningFrom(departing) },
+      environment: departureEnvironment,
+      entry: { controls: departing, state: runningFrom(departing, departureEnvironment) },
     },
     cruise: {
       name: text('Reiseflug', 'Cruise'),
       image: images.cruise,
-      environment: { airspeedKt: 105, altitudeFt: 4500, onGround: false },
-      entry: { controls: cruising, state: runningFrom(cruising) },
+      environment: cruiseEnvironment,
+      entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment) },
     },
   },
   procedures: {
@@ -273,6 +310,79 @@ export const demoAircraft = defineAircraft({
           text: text(
             'Türen verriegelt, Gurte fest, Steuerung frei',
             'Doors latched, harnesses tight, controls free',
+          ),
+        },
+      ],
+    },
+    radioAndTransponder: {
+      title: text('Funk und Transponder', 'Radio and transponder'),
+      type: 'normal',
+      startPhase: 'holding',
+      items: [
+        {
+          type: 'check',
+          target: { control: 'avionics' },
+          condition: (state) => state.devices.radio?.on === true && state.devices.xpdr?.on === true,
+          text: text(
+            'Funkgerät und Transponder sind eingeschaltet',
+            'Radio and transponder are on',
+          ),
+        },
+        {
+          type: 'action',
+          control: 'radio.coarse',
+          position: 'up',
+          text: text(
+            'Bereitschaftsfrequenz um 1 MHz erhöhen',
+            'Raise the standby frequency by 1 MHz',
+          ),
+        },
+        {
+          type: 'check',
+          target: { control: 'radio.coarse' },
+          condition: (state) => radio(state)?.standby === 120000,
+          text: text('Bereitschaftsfrequenz 120,000 MHz', 'Standby frequency is 120.000 MHz'),
+        },
+        {
+          type: 'action',
+          control: 'radio.swap',
+          position: 'pressed',
+          text: text('Frequenzen tauschen', 'Swap the frequencies'),
+        },
+        {
+          type: 'check',
+          target: { control: 'radio.swap' },
+          condition: (state) => radio(state)?.active === 120000,
+          text: text('Aktive Frequenz 120,000 MHz', 'Active frequency is 120.000 MHz'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.code1',
+          position: '1',
+          text: text('Transpondercode, erste Ziffer 1', 'Transponder code, first digit 1'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.code2',
+          position: '2',
+          text: text('Transpondercode, zweite Ziffer 2', 'Transponder code, second digit 2'),
+        },
+        {
+          type: 'action',
+          control: 'xpdr.mode',
+          position: 'alt',
+          text: text('Transponder auf ALT', 'Transponder mode ALT'),
+        },
+        {
+          type: 'check',
+          target: { control: 'xpdr.mode' },
+          condition: (state) => {
+            const reading = transponder(state);
+            return reading?.squawk === '1200' && reading.altitude !== null;
+          },
+          text: text(
+            'Code 1200, die Höhe wird gemeldet',
+            'Code 1200 is set and the altitude is reported',
           ),
         },
       ],

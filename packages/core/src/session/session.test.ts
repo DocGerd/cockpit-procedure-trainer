@@ -349,6 +349,34 @@ describe('the before-start walk-through', () => {
   });
 });
 
+describe('consecutive presses of a spring-back control', () => {
+  it('need a fresh press for each item', () => {
+    const procedure = fixtureAircraft.procedures.beforeStart;
+    if (!procedure) throw new Error('fixture has no beforeStart');
+    const press = {
+      type: 'action',
+      control: 'lampTest',
+      position: 'pressed',
+      text: { de: 'Drücken', en: 'Press' },
+    } as const;
+    const twice = {
+      ...fixtureAircraft,
+      procedures: { twice: { ...procedure, items: [press, press] } },
+    };
+    const session = createSession(twice as unknown as Aircraft);
+    session.startProcedure('twice');
+
+    session.press('lampTest');
+    expect(session.checklist()?.current).toBe(1);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.current).toBe(1);
+
+    session.release('lampTest');
+    session.press('lampTest');
+    expect(session.checklist()?.done).toBe(true);
+  });
+});
+
 describe('procedure end phase', () => {
   const emergencyWithEnd = {
     ...fixtureAircraft,

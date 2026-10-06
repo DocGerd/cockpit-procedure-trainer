@@ -11,6 +11,8 @@
   "dependencies": {
     "@cpt/aircraft-demo": "workspace:*",
     "@cpt/core": "workspace:*",
+    "@cpt/device-com": "workspace:*",
+    "@cpt/device-transponder": "workspace:*",
     "@cpt/panel-kit": "workspace:*",
     "@fontsource/geist": "^5.3.0",
     "@fontsource/geist-mono": "^5.3.0",
