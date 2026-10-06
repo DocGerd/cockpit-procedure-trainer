@@ -1,6 +1,6 @@
 # @cpt/aircraft-demo
 
-An invented single-engine piston aircraft that exercises every control kind and every generic widget, with three views, eight phases covering a whole flight, six normal procedures, one emergency and two installed devices.
+An invented single-engine piston aircraft that exercises every control kind and every generic widget, with three views, nine phases covering a whole flight, seven normal procedures, one emergency and two installed devices.
 
 ## Source revision
 
@@ -14,8 +14,8 @@ Fictional aircraft; no handbook.
 - Devices: a generic COM radio (`radio`) and a transponder (`xpdr`), both on the radio stack and powered by the avionics bus. The transponder reads the pressure altitude of the phase.
 - Systems: core's `electricalBus` and `pistonEngineStart`, plus the gauge values derived from them.
 - Failure: `alternatorFailure`, which trips the alternator breaker.
-- Phases, in flight order: parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing. Each outside view is drawn from the pilot's seat. The engine runs on entry to every phase but the first parking; approach and landing are airborne, landing in the flare.
-- Procedures: `engineStart` (parking), `beforeTakeoff` and `radioAndTransponder` (holding point), `beforeLanding` (approach), `afterLanding` (taxi in), `shutdownSecuring` (parking and securing) and the emergency `alternatorFailure` (cruise).
+- Phases, in flight order: parking, holding point, lined up on the runway, departure, cruise, approach, landing, taxi in, parking and securing. Each outside view is drawn from the pilot's seat. All phases share the airfield of `src/airfield.ts` (runway 27) as described for the CTSL, and the `takeoff` procedure starts lined up with a compass-versus-runway confirm item. The engine runs on entry to every phase but the first parking; approach and landing are airborne, landing in the flare.
+- Procedures: `engineStart` (parking), `beforeTakeoff` and `radioAndTransponder` (holding point), `takeoff` (lined up), `beforeLanding` (approach), `afterLanding` (taxi in), `shutdownSecuring` (parking and securing) and the emergency `alternatorFailure` (cruise).
 
 Throttle and mixture action targets are only 0 or 1; run-up readings are check items on the tachometer. The rpm ranges, the magneto drop and the oil pressure limits are invented for this aircraft and belong to no real one. Because levers take only the stops 0 and 1 as action targets, the magneto check runs with the throttle at its full stop rather than at a partial-power setting. The approach snapshot has the mixture leaned and the taxi-in snapshot a little taxi power, so `beforeLanding` sets the mixture rich and `afterLanding` checks the taxi rpm on the tachometer.
 

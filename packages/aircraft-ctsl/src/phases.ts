@@ -80,6 +80,12 @@ export const phases = {
     environment: ground(),
     entry: { controls: holdingShort, state: runningFrom(holdingShort) },
   },
+  linedUp: {
+    name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
+    image: images.linedUp,
+    environment: ground(),
+    entry: { controls: holdingShort, state: runningFrom(holdingShort) },
+  },
   departure: {
     name: text('Abflug', 'Departure'),
     image: images.departure,

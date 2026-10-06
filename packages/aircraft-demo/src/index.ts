@@ -2,6 +2,7 @@ import { defineAircraft } from '@cpt/core';
 import type { Environment } from '@cpt/core';
 import { images } from './assets';
 import { controls } from './controls';
+import { headingLabel, runway } from './airfield';
 import { indicators } from './indicators';
 import { initial, lowVoltageLit, oilPressureLit, runningFrom, step } from './systems';
 import type { DemoFailure, DemoTrainerState } from './systems';
@@ -33,6 +34,7 @@ const idling = {
   mixture: 1,
 } as const;
 
+const linedUpControls = { ...idling, flaps: 'takeoff' } as const;
 const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
 const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
@@ -142,6 +144,12 @@ export const demoAircraft = defineAircraft({
       image: images.holding,
       environment: ground(),
       entry: { controls: idling, state: runningFrom(idling) },
+    },
+    linedUp: {
+      name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
+      image: images.linedUp,
+      environment: ground(),
+      entry: { controls: linedUpControls, state: runningFrom(linedUpControls) },
     },
     departure: {
       name: text('Abflug', 'Departure'),
@@ -340,6 +348,40 @@ export const demoAircraft = defineAircraft({
             'Türen verriegelt, Gurte fest, Steuerung frei',
             'Doors latched, harnesses tight, controls free',
           ),
+        },
+      ],
+    },
+    takeoff: {
+      title: text('Startlauf', 'Take-off roll'),
+      type: 'normal',
+      startPhase: 'linedUp',
+      endPhase: 'departure',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            `Auf der Mittellinie der Piste ${runway.designator} ausgerichtet`,
+            `Lined up on the centreline of runway ${runway.designator}`,
+          ),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator}`,
+            `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`,
+          ),
+        },
+        {
+          type: 'action',
+          control: 'throttle',
+          position: 1,
+          text: text('Leistungshebel auf Vollgas', 'Throttle full'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm >= 2350,
+          text: text('Volle Drehzahl erreicht', 'Full rpm reached'),
         },
       ],
     },
