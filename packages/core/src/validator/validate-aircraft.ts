@@ -21,6 +21,7 @@ export type FindingCode =
   | 'invalid-cockpit-size'
   | 'missing-cockpit-view'
   | 'unknown-cockpit-view'
+  | 'invalid-cockpit-cell-rect'
   | 'cockpit-cell-outside'
   | 'cockpit-cells-overlap'
   | 'invalid-cockpit-min-width';
@@ -44,6 +45,13 @@ export function formatFinding(finding: Finding): string {
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
 // The context carries registries the aircraft cannot see.
+/** A rect with finite x and y and a positive, finite w and h. */
+export function isUsableRect(rect: unknown): rect is Rect {
+  const { x, y, w, h } = (rect ?? {}) as Record<string, unknown>;
+  const finite = (value: unknown) => typeof value === 'number' && Number.isFinite(value);
+  return finite(x) && finite(y) && finite(w) && finite(h) && (w as number) > 0 && (h as number) > 0;
+}
+
 export function validateAircraft(aircraft: Aircraft, context: ValidationContext = {}): Finding[] {
   const findings: Finding[] = [];
   const add = (code: FindingCode, id: string, message: string) =>
@@ -264,8 +272,14 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       if (!isLength(cell?.minWidth)) {
         add('invalid-cockpit-min-width', viewId, 'minWidth must be a positive, finite number');
       }
-      const rect = cell?.rect;
-      if (bounds && rect) {
+      const rect = isUsableRect(cell?.rect) ? cell?.rect : undefined;
+      if (!rect) {
+        add(
+          'invalid-cockpit-cell-rect',
+          viewId,
+          'rect needs a finite x and y and a positive, finite w and h',
+        );
+      } else if (bounds) {
         if (
           rect.x < 0 ||
           rect.y < 0 ||
@@ -282,8 +296,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
     placed.forEach(([firstId, first], index) => {
       for (const [secondId, second] of placed.slice(index + 1)) {
-        const a = first?.rect;
-        const b = second?.rect;
+        const a = isUsableRect(first?.rect) ? first?.rect : undefined;
+        const b = isUsableRect(second?.rect) ? second?.rect : undefined;
         if (a && b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) {
           add(
             'cockpit-cells-overlap',

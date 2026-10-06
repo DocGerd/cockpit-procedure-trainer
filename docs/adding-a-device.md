@@ -144,5 +144,7 @@ Both are added in the app's registry file and nothing else in `apps/web` changes
 Tests that every device package should have: logic tests for each behaviour in
 `step`, including power off; a session test that installs the device in a small
 test-local aircraft, runs the aircraft validator and walks a procedure with
-`walkProcedure`; screen tests for the display, the accessible names and the
+`walkProcedure` (it fails a spring-back press unless the control rests at the
+position it springs back to, so a procedure must set that position first);
+screen tests for the display, the accessible names and the
 `send` calls.

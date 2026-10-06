@@ -205,6 +205,73 @@ describe('placements', () => {
     expect(stage.style.getPropertyValue('--panel-top')).toBe('300');
   });
 
+  describe('footer reserve', () => {
+    const inShell = (run: (footer: HTMLElement) => void) => {
+      document.body.classList.add('shell');
+      const footer = document.body.appendChild(document.createElement('footer'));
+      try {
+        run(footer);
+      } finally {
+        footer.remove();
+        document.body.classList.remove('shell');
+      }
+    };
+    const stageOf = () => placement('master')?.closest<HTMLElement>('.panel-stage') as HTMLElement;
+    const heightOf = (footer: HTMLElement, height: number) =>
+      vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 743, 1024, height));
+
+    it("leave room for the footer's height when they fit the viewport", () => {
+      inShell((footer) => {
+        heightOf(footer, 24.5);
+        renderPanel();
+        expect(stageOf().style.getPropertyValue('--panel-footer')).toBe('25');
+      });
+    });
+
+    it('reserve nothing when the page has no footer', () => {
+      renderPanel();
+      expect(stageOf().style.getPropertyValue('--panel-footer')).toBe('0');
+    });
+
+    it('follow the footer as it resizes or is replaced', () => {
+      const callbacks: (() => void)[] = [];
+      const watching = new Set<Element>();
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(callback: () => void) {
+            callbacks.push(callback);
+          }
+          observe = (element: Element) => watching.add(element);
+          unobserve = (element: Element) => watching.delete(element);
+          disconnect = () => watching.clear();
+        },
+      );
+      try {
+        inShell((footer) => {
+          const spy = heightOf(footer, 25);
+          renderPanel();
+          expect(watching.has(footer)).toBe(true);
+
+          spy.mockReturnValue(new DOMRect(0, 700, 1024, 49));
+          act(() => callbacks.forEach((callback) => callback()));
+          expect(stageOf().style.getPropertyValue('--panel-footer')).toBe('49');
+
+          const replacement = document.body.appendChild(document.createElement('footer'));
+          footer.remove();
+          heightOf(replacement, 30);
+          act(() => callbacks.forEach((callback) => callback()));
+          expect(stageOf().style.getPropertyValue('--panel-footer')).toBe('30');
+          expect(watching.has(footer)).toBe(false);
+          expect(watching.has(replacement)).toBe(true);
+          replacement.remove();
+        });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+  });
+
   it('ignore 3D position and orientation', () => {
     renderPanel();
     loadBackground('Main panel');

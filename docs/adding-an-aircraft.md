@@ -165,7 +165,8 @@ cell widths in proportion to the floors so the arrangement wastes no width.
 
 The validator reports a `size` that is not a positive, finite width and height as
 `invalid-cockpit-size`, a view without a cell as `missing-cockpit-view`, a cell for
-a non-view as `unknown-cockpit-view`, a cell outside `size` as `cockpit-cell-outside`,
+a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
+`h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
 finite number as `invalid-cockpit-min-width`.
 
@@ -298,8 +299,9 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. `apps/web` runs it for every `normal` procedure of every
-registered aircraft.
+points at its item. It also fails a spring-back press unless the control rests at the
+position it springs back to, so a procedure must set that position first. `apps/web`
+runs it for every `normal` procedure of every registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 

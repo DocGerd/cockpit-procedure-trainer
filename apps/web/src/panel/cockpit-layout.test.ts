@@ -4,7 +4,8 @@ import { chooseLayout } from './cockpit-layout';
 
 const text = { de: 'x', en: 'x' };
 
-// Two views side by side in a 400 x 100 arrangement; both cells match their view's aspect.
+// Two views side by side in a 400 x 100 arrangement. The left cell matches its view's aspect; the
+// right view is square, so it is contain-fit inside its wider cell.
 const aircraft = {
   views: {
     left: { name: text, image: 'left.png', size: { width: 200, height: 100 } },
@@ -33,6 +34,30 @@ describe('chooseLayout', () => {
     expect(chooseLayout({ views: aircraft.views }, { width: 4000, height: 4000 })).toEqual({
       kind: 'tabs',
     });
+  });
+
+  it('is tabs when the arrangement has no cell for one of the views', () => {
+    const uncovered = {
+      views: { ...aircraft.views, extra: aircraft.views.left },
+      cockpit: aircraft.cockpit,
+    } as unknown as Pick<Aircraft, 'cockpit' | 'views'>;
+    expect(chooseLayout(uncovered, { width: 400, height: 100 }).kind).toBe('tabs');
+  });
+
+  it.each([
+    ['a missing rect', {}],
+    ['a zero width', { rect: { x: 0, y: 0, w: 0, h: 100 } }],
+    ['a NaN height', { rect: { x: 0, y: 0, w: 200, h: NaN } }],
+    ['a NaN x', { rect: { x: NaN, y: 0, w: 200, h: 100 } }],
+  ])('is tabs, without throwing, for a cell with %s', (_, broken) => {
+    const malformed = {
+      views: aircraft.views,
+      cockpit: {
+        size: { width: 400, height: 100 },
+        views: { right: aircraft.cockpit?.views.right, left: { ...broken, minWidth: 200 } },
+      },
+    } as unknown as Pick<Aircraft, 'cockpit' | 'views'>;
+    expect(chooseLayout(malformed, { width: 400, height: 100 }).kind).toBe('tabs');
   });
 
   it('is tabs for a region without size', () => {
