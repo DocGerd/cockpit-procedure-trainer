@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Device screens, powered and powered off</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B4046}a:hover{color:#14161A}
+</style>
+</helmet>
+<div style="min-height: 560px; box-sizing: border-box; padding: 48px 24px; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px">
+<div style="width: 100%; max-width: 1080px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 32px">
+<sc-for list="{{devices}}" as="d" hint-placeholder-count="2">
+<section aria-label="{{d.caption}}" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; line-height: 16px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">{{d.caption}}</div>
+<div style="padding: 16px; background: #26282C; border: 3px solid #3B4046; border-radius: 16px">
+<div role="group" aria-label="com" style="max-width: 400px; box-sizing: border-box; padding: 8px; background: #2A2E33; border: 4px solid #5E646B; border-radius: 3px; display: flex">
+<div style="position: relative; flex: 1 1 auto; min-width: 0; overflow: hidden; background: #050607">
+<div style="display: grid; gap: 8px; padding: 8px; color: #ECEEF1; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 14px; line-height: 22px">
+<div style="display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: baseline; min-height: 40px">
+<span style="color: #969CA4">ACT</span>
+<span style="font-size: 36px; line-height: 40px; text-align: right">{{d.active}}</span>
+<span style="color: #969CA4">STBY</span>
+<span style="font-size: 36px; line-height: 40px; text-align: right">{{d.standby}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: #2A2E33; color: #ECEEF1; font: inherit; cursor: pointer">STBY MHz −</button>
+<button type="button" style="min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: #2A2E33; color: #ECEEF1; font: inherit; cursor: pointer">STBY MHz +</button>
+<button type="button" style="min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: #2A2E33; color: #ECEEF1; font: inherit; cursor: pointer">STBY kHz −</button>
+<button type="button" style="min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: #2A2E33; color: #ECEEF1; font: inherit; cursor: pointer">STBY kHz +</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 3px; background: #2A2E33; color: #ECEEF1; font: inherit; cursor: pointer">SWAP</button>
+<input type="range" aria-label="VOL" min="0" max="1" step="0.05" value="0.5" style="flex: 1; min-height: 44px">
+</div>
+</div>
+<sc-if value="{{d.off}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; background: #050607; opacity: 0.7"></div>
+</sc-if>
+</div>
+</div>
+</div>
+</section>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":560}}'>
+class Component extends DCLogic {
+renderVals() {
+return {
+devices: [
+{ caption: 'COM radio · powered', active: '122.800', standby: '121.500', off: false },
+{ caption: 'COM radio · powered off', active: '', standby: '', off: true }
+]
+};
+}
+}
+</script>
+</body>
+</html>
