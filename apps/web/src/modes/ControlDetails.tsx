@@ -51,7 +51,11 @@ function Positions({
   labelledBy: string;
 }) {
   const text = useMessages(messages);
-  const marked = (label: string) => `${label} · ${text.current}`;
+  const marked = (label: string) => (
+    <>
+      <span className="modes-position-id">{label}</span> · {text.current}
+    </>
+  );
   if (control.positions === 'continuous') {
     const value = typeof current === 'number' ? Math.round(current * 100) : 0;
     return (
@@ -73,7 +77,7 @@ function Positions({
             aria-current={isCurrent ? 'true' : undefined}
             className="modes-position"
           >
-            {isCurrent ? marked(label) : label}
+            {isCurrent ? marked(label) : <span className="modes-position-id">{label}</span>}
           </li>
         );
       })}

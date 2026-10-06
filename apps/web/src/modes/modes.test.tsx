@@ -302,7 +302,10 @@ describe('Free explore', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
     await userEvent.click(screen.getByRole('button', { name: 'Show details: Pump' }));
     const details = screen.getByRole('dialog', { name: 'Pump' });
-    expect(within(details).getByText('on · current')).toBeDefined();
+    const current = within(within(details).getByRole('list', { name: 'Positions' })).getAllByRole(
+      'listitem',
+    );
+    expect(current.map((item) => item.textContent)).toEqual(['off', 'on · current']);
   });
 
   it('says when a control is used in no procedure', async () => {
