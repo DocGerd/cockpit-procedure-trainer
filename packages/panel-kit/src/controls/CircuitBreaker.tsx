@@ -40,7 +40,7 @@ export function CircuitBreaker({ position, label, positionLabels, onSet }: Contr
             x={WIDTH / 2}
             y={PLACARD_Y}
             text={placard(label)}
-            current
+            current={false}
             font={title.fontSize}
             length={title.length}
             anchor="middle"

@@ -8,6 +8,8 @@ const VIEWBOX = { width: 100, height: 40 };
 const TEXT_RIGHT = 94;
 const TEXT_LEFT = 6;
 const BASELINE = 36;
+const FLOOR = 38;
+const DESCENT = 0.3;
 const LABEL_TOP = 4;
 const CAP_HEIGHT = 0.72;
 const VALUE_DESIGN = 16;
@@ -66,6 +68,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
     height: BASELINE - LABEL_TOP,
     squeezable: true,
   });
+  const baseline = Math.min(BASELINE, FLOOR - DESCENT * bare.fontSize);
   const showCaption = bare.show && caption.show;
   const showUnits = units !== '' && showCaption && unit.show && withUnits.show;
   const valueRight = showUnits ? TEXT_RIGHT - reserve : TEXT_RIGHT;
@@ -107,7 +110,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
         <text
           data-value=""
           x={valueRight}
-          y={BASELINE}
+          y={baseline}
           fontSize={bare.fontSize}
           textAnchor="end"
           style={{ fill: 'var(--panel-legend)', fontFamily: mono }}
@@ -120,7 +123,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
         <text
           data-units=""
           x={TEXT_RIGHT}
-          y={BASELINE}
+          y={baseline}
           fontSize={unit.fontSize}
           textAnchor="end"
           style={{ fill: 'var(--panel-legend-muted)', fontFamily: mono }}
