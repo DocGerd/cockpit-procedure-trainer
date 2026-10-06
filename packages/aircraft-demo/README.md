@@ -1,6 +1,6 @@
 # @cpt/aircraft-demo
 
-An invented single-engine piston aircraft that exercises the whole aircraft contract: every control kind, every generic widget, three views, four phases, three normal procedures, one emergency and two installed devices.
+An invented single-engine piston aircraft that exercises every control kind and every generic widget, with three views, four phases, three normal procedures, one emergency and two installed devices.
 
 ## Source revision
 
