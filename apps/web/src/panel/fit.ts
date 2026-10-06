@@ -10,6 +10,10 @@ export interface PageFit {
 
 const NO_FIT: PageFit = { top: 0, footer: 0 };
 
+/** The height of the footer within `root`, or 0 when it has none. */
+export const footerHeight = (root: ParentNode | null | undefined) =>
+  root?.querySelector('footer')?.getBoundingClientRect().height ?? 0;
+
 /** The element's distance from the top of the page and the footer's height, kept current as the page changes. */
 export function usePageFit(ref: RefObject<HTMLElement | null>): PageFit {
   const [fit, setFit] = useState(NO_FIT);
@@ -17,22 +21,28 @@ export function usePageFit(ref: RefObject<HTMLElement | null>): PageFit {
   useLayoutEffect(() => {
     const element = ref.current;
     if (!element) return;
-    const footer = document.querySelector('footer');
+    const shell = element.closest('.shell');
     const measure = () => {
       const next = {
         top: Math.round(element.getBoundingClientRect().top + window.scrollY),
-        footer: Math.ceil(footer?.getBoundingClientRect().height ?? 0),
+        footer: Math.ceil(footerHeight(shell)),
       };
       setFit((previous) =>
         previous.top === next.top && previous.footer === next.footer ? previous : next,
       );
+      const footer = shell?.querySelector('footer') ?? undefined;
+      if (footer !== watched) {
+        if (watched) observer?.unobserve(watched);
+        if (footer) observer?.observe(footer);
+        watched = footer;
+      }
     };
-    measure();
-    window.addEventListener('resize', measure);
+    let watched: Element | undefined;
     const observer =
       typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
     observer?.observe(document.body);
-    if (footer) observer?.observe(footer);
+    measure();
+    window.addEventListener('resize', measure);
     return () => {
       window.removeEventListener('resize', measure);
       observer?.disconnect();

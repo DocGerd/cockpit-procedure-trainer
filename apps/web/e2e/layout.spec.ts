@@ -111,6 +111,10 @@ for (const aircraft of aircraftRegistry) {
   }) => {
     await page.setViewportSize(shortDesktop);
     await openAircraft(page, aircraft);
+    await expect(cockpitLayout(page)).toHaveAttribute(
+      'data-cockpit-layout',
+      aircraft.id === 'ctsl' ? 'combined' : 'tabs',
+    );
     await expectNoPageScroll(page);
   });
 }
