@@ -130,3 +130,34 @@ describe('resolveIndicatorWidget', () => {
     expect(container.querySelector('[data-widget="round-gauge"]')).not.toBeNull();
   });
 });
+
+describe('artwork indicator options', () => {
+  const artwork = {
+    face: 'dial.png',
+    moving: {
+      type: 'needle',
+      image: 'needle.png',
+      pivot: { x: 1, y: 1 },
+      angleRange: { min: 0, max: 90 },
+      valueRange: { min: 0, max: 10 },
+    },
+  } as const;
+  const options = { min: 0, max: 10, units: 'bar', arcs: [{ from: 0, to: 5, colour: 'green' }] };
+
+  it('hands the declared options to the widget', () => {
+    expect(resolveIndicator({ appearance: { artwork, options } }, 4).options).toEqual(options);
+    expect(resolveIndicator({ appearance: { artwork } }, 4).options).toBeUndefined();
+  });
+
+  it('draws the fallback gauge with the resolved arcs and units', () => {
+    const resolved = resolveIndicator({ appearance: { artwork, options } }, 4);
+    const Widget = resolved.widget;
+    const { container } = render(
+      <Widget value={4} label="Oil" {...(resolved.options ? { options: resolved.options } : {})} />,
+    );
+    fireEvent.error(container.querySelector('img[src="dial.png"]') as Element);
+    const gauge = container.querySelector('[data-widget="round-gauge"]');
+    expect(gauge?.querySelectorAll('[data-arc]')).toHaveLength(1);
+    expect(gauge?.textContent).toContain('bar');
+  });
+});

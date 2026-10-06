@@ -16,4 +16,11 @@ export const devices = {
     powered: avionicsOn('comBreaker'),
     inputs: {},
   },
+  xpdr: {
+    device: 'gtx327',
+    view: 'radios',
+    placement: stackSlots.xpdr,
+    powered: avionicsOn('xpdrBreaker'),
+    inputs: { pressureAltitude: (state) => state.systems.altitudeFt },
+  },
 } as const satisfies Record<string, DeviceInstall<CtslState, ViewId>>;
