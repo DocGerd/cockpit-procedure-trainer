@@ -322,6 +322,71 @@ describe('deviations', () => {
   });
 });
 
+describe('one drag of a continuous control', () => {
+  const drag = (checklist: ReturnType<typeof begin>, from: number, to: number, steps: number) => {
+    let next = checklist;
+    let previous = from;
+    for (let step = 1; step <= steps; step += 1) {
+      const value = from + ((to - from) * step) / steps;
+      next = observeControl(
+        next,
+        position('throttle', previous, value),
+        stateOf({ throttle: value }),
+      );
+      previous = value;
+    }
+    return next;
+  };
+  const throttleDeviation = { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle' };
+
+  it('records one deviation for twenty successive sets', () => {
+    expect(drag(begin(), 0, 1, 20).deviations).toEqual([throttleDeviation]);
+  });
+
+  it('records again once another control changed in between', () => {
+    let checklist = drag(begin(), 0, 0.5, 5);
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), stateOf());
+    checklist = drag(checklist, 0.5, 1, 5);
+    expect(checklist.deviations).toEqual([
+      throttleDeviation,
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'flaps' },
+      throttleDeviation,
+    ]);
+  });
+
+  it('records again once the current item changed in between', () => {
+    let checklist = drag(begin(), 0, 0.5, 5);
+    checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
+    checklist = drag(checklist, 0.5, 1, 5);
+    expect(checklist.deviations).toEqual([
+      throttleDeviation,
+      { ...throttleDeviation, itemIndex: 1 },
+    ]);
+  });
+
+  it('clears the repeating flag when the item completes', () => {
+    const checklist = checkOff(drag(atConfirm(), 0, 0.5, 5), pumpOn);
+    expect(checklist.repeating).toBe(false);
+  });
+
+  it('does not coalesce into a deviation recorded for another item', () => {
+    const first = drag(atConfirm(), 0, 0.5, 5);
+    const moved = { ...first, current: first.current + 1 };
+    const next = observeControl(moved, position('throttle', 0.5, 1), stateOf({ throttle: 1 }));
+    expect(next.deviations).toHaveLength(2);
+  });
+
+  it('records again after a check-off between two drags', () => {
+    let checklist = drag(atConfirm(), 0, 0.5, 5);
+    checklist = checkOff(checklist, pumpOn);
+    checklist = drag(checklist, 0.5, 1, 5);
+    expect(checklist.deviations).toEqual([
+      { ...throttleDeviation, itemIndex: 3 },
+      { ...throttleDeviation, itemIndex: 4 },
+    ]);
+  });
+});
+
 describe('one operation of a held control', () => {
   const cases = [
     ['a momentary control', 'lampTest', 'released', 'pressed', 'released'],

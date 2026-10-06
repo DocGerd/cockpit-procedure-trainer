@@ -59,7 +59,7 @@ export function pwaOptions(
       globPatterns: [`**/*.{${precacheExtensions.join(',')}}`],
       navigateFallback: 'index.html',
       navigateFallbackDenylist: env === 'prod' ? [new RegExp(`^${escapeRegExp(base)}uat/`)] : [],
-      cleanupOutdatedCaches: true,
+      cleanupOutdatedCaches: env !== 'prod',
       clientsClaim: true,
       skipWaiting: false,
     },

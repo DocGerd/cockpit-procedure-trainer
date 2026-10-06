@@ -247,18 +247,29 @@ registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 
-- `expect(validateAircraft(aircraft)).toEqual([])`
-- `expect(walkProcedure(aircraft, id)).toEqual({ ok: true })` for each procedure,
-  emergencies included, since the app's walk-through skips them.
-- Wrong-operation scenarios on a session from `createSession(aircraft, { phase })`:
-  press the starter with the magnetos off and expect the engine not to run. Use
-  `session.set`, `press`, `release` and `advance(STEP_MS)`.
+- `expect(validateAircraft(aircraft, { devices })).toEqual([])`
+- `expect(walkProcedure(aircraft, id, { devices })).toEqual({ ok: true })` for each
+  procedure, emergencies included, since the app's walk-through skips them.
+- Wrong-operation scenarios on a session from
+  `createSession(aircraft, { devices, phase })`: press the starter with the magnetos
+  off and expect the engine not to run. Use `session.set`, `press`, `release` and
+  `advance(STEP_MS)`.
+
+`devices` is the list of device definitions the aircraft installs. Without it the
+validator reports `unknown-device` and the session and the walk-through throw for
+any aircraft with installs. An aircraft cannot import a device package, so a test
+installs stand-ins that share the real control ids; see
+`packages/aircraft-demo/src/test-devices.ts`. An aircraft with no `devices` field
+can omit the option.
 
 Do not hard-code another aircraft's content in a test.
 
 Then run the project checks from the repository root:
 
-    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
+    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+
+`pnpm test:e2e` needs a Playwright browser, installed once with
+`pnpm exec playwright install chromium`.
 
 ## Package documents
 
