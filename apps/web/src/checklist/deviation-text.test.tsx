@@ -1,28 +1,32 @@
 // @vitest-environment jsdom
-import type { ChecklistState, Deviation } from '@cpt/core';
+import { createSession } from '@cpt/core';
+import type { Aircraft, ChecklistState, Deviation } from '@cpt/core';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { aircraft as deviceAircraft, devices } from '../devices/test-fixtures';
 import { LanguageProvider } from '../i18n';
-import { TrainerProvider } from '../trainer';
 import { useDeviationText } from './deviation-text';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: [(await import('../devices/test-fixtures')).aircraft],
-}));
-
-vi.mock('../device-registry', async () => ({
-  deviceRegistry: (await import('../devices/test-fixtures')).devices,
-  deviceScreens: {},
-}));
-
-const checklist: ChecklistState<unknown> = {
-  procedure: { title: { de: 'x', en: 'x' }, type: 'normal', startPhase: 'ground', items: [] },
-  current: 0,
-  completed: [],
-  deviations: [],
-  done: false,
+const aircraft: Aircraft = {
+  ...deviceAircraft,
+  procedures: {
+    flow: {
+      title: { de: 'Ablauf', en: 'Flow' },
+      type: 'normal',
+      startPhase: 'ground',
+      items: [{ type: 'confirm', text: { de: 'Bestätigen', en: 'Confirm' } }],
+    },
+  },
 };
+
+function checklistState(): ChecklistState<unknown> {
+  const session = createSession(aircraft, { devices });
+  session.startProcedure('flow');
+  const checklist = session.checklist();
+  if (!checklist) throw new Error('the procedure did not start');
+  return checklist;
+}
 
 const unexpected = (controlId: string): Deviation => ({
   kind: 'unexpected-control',
@@ -32,14 +36,10 @@ const unexpected = (controlId: string): Deviation => ({
 
 function describeIn(language: 'de' | 'en') {
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <LanguageProvider initial={language}>
-      <TrainerProvider>{children}</TrainerProvider>
-    </LanguageProvider>
+    <LanguageProvider initial={language}>{children}</LanguageProvider>
   );
-  return renderHook(() => useDeviationText(checklist), { wrapper }).result.current;
+  return renderHook(() => useDeviationText(checklistState()), { wrapper }).result.current;
 }
-
-afterEach(() => localStorage.clear());
 
 describe('deviation text for device controls', () => {
   it('names an aircraft control by its name', () => {
