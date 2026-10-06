@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Trainer, Guided mode</title>
+<title>Trainer, tablet, checklist expanded</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -14,7 +14,7 @@ body{margin:0}
 a{color:#3B4046}a:hover{color:#14161A}
 </style>
 </helmet>
-<div style="min-height: 1080px; box-sizing: border-box; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px; display: flex; flex-direction: column">
+<div style="min-height: 1100px; box-sizing: border-box; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px; display: flex; flex-direction: column">
 
 <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 8px 24px; border-bottom: 1px solid #DCE0E4; background: #FFFFFF">
 <div style="display: flex; align-items: center; gap: 12px">
@@ -39,11 +39,12 @@ a{color:#3B4046}a:hover{color:#14161A}
 <button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #DCE0E4; background: #FFFFFF; color: #3B4046; font: inherit; font-weight: 500; cursor: pointer">Practice</button>
 <button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #DCE0E4; background: #FFFFFF; color: #3B4046; font: inherit; font-weight: 500; cursor: pointer">Explore</button>
 </div>
+<button type="button" aria-expanded="true" aria-controls="checklist" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #14161A; font: inherit; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer">Checklist <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; line-height: 19px; font-weight: 400; color: #3B4046">3 / 9</span></button>
 <button type="button" aria-label="Language: English. Switch to German" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; cursor: pointer">EN</button>
 <button type="button" aria-label="Switch to dark theme" style="min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid #DCE0E4; border-radius: 6px; background: #FFFFFF; color: #3B4046; font: inherit; cursor: pointer">Dark</button>
 </header>
 
-<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; align-items: flex-start">
+<div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; align-items: flex-start; position: relative; flex-grow: 1">
 
 <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
 
@@ -157,7 +158,8 @@ a{color:#3B4046}a:hover{color:#14161A}
 </section>
 </main>
 
-<aside aria-label="Checklist" style="flex: 1 1 340px; min-width: 0; background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 10px; display: flex; flex-direction: column">
+<div aria-hidden="true" style="position: absolute; inset: 0; z-index: 1; background: color-mix(in srgb, #FBFBFC 60%, transparent)"></div>
+<aside id="checklist" aria-label="Checklist" style="position: absolute; top: 0; bottom: 0; right: 0; z-index: 2; width: 384px; max-width: 100%; overflow-y: auto; box-sizing: border-box; background: #FFFFFF; border-left: 1px solid #DCE0E4; display: flex; flex-direction: column">
 <div style="padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid #E6E9EC">
 <div style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5E646B">Normal procedure</div>
 <h1 style="margin: 0; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.02em">Before engine start</h1>
@@ -227,7 +229,7 @@ a{color:#3B4046}a:hover{color:#14161A}
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#6A57C4","options":["#6A57C4","#0F7C72","#2C6CB0"]},"$preview":{"width":1280,"height":1080}}'>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#6A57C4","options":["#6A57C4","#0F7C72","#2C6CB0"]},"$preview":{"width":1024,"height":1100}}'>
 class Component extends DCLogic {
 renderVals() {
 const accent = this.props.accent ?? '#6A57C4';
