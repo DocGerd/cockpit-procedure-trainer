@@ -189,7 +189,9 @@ A control or indicator names its `appearance`; it never contains rendering code.
 Two forms:
 
 **Generic widget**, `{ widget: '<id>', options? }`, for the panel-kit widget of
-that id. An unknown id fails `aircraft-widgets.test.ts`.
+that id. `aircraft-widgets.test.ts` runs `checkAppearance` from `@cpt/panel-kit` over
+every registered aircraft and fails on an unknown id, a widget that does not fit the
+control kind or the indicator's value type, and invalid indicator options.
 
 | For        | Widget ids                                                                                                   |
 | ---------- | ------------------------------------------------------------------------------------------------------------ |
