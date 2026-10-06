@@ -40,6 +40,16 @@ describe('Gpsmap496Screen display', () => {
     expect(show({ ...lit, backlight: 2 }).display()).toContain('LIGHT 3/3');
   });
 
+  it('dims and brightens the display with the backlight level', () => {
+    const colours = [0, 1, 2].map((backlight) => {
+      const { view } = show({ ...lit, backlight });
+      const colour = view.container.querySelector<HTMLElement>('[data-display]')?.style.color;
+      cleanup();
+      return colour;
+    });
+    expect(new Set(colours).size).toBe(3);
+  });
+
   it('is blank while the unit is switched off or unpowered', () => {
     expect(show({ ...lit, on: false }).display()).toBe('');
     cleanup();

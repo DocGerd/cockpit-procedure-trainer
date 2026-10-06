@@ -14,9 +14,14 @@ const PAGE_NAMES: Readonly<Record<Gpsmap496Page, string>> = {
   info: 'INFORMATION',
 };
 
+const LEVEL_MIX = ['40%', '70%', '100%'] as const;
+
+const glow = (level: number): string =>
+  `color-mix(in srgb, var(--panel-legend) ${LEVEL_MIX[level] ?? '100%'}, var(--panel-screen))`;
+
 const screenStyle: CSSProperties = {
   display: 'grid',
-  gap: 'var(--space-2)',
+  gap: 'var(--space-3)',
   padding: 'var(--space-2)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
@@ -76,7 +81,11 @@ export function Gpsmap496Screen({ on, state, send }: DeviceScreenProps) {
   return (
     <div className="cpt-device-gpsmap496" style={screenStyle}>
       <style>{focusRule}</style>
-      <div data-display style={displayStyle}>
+      <div
+        data-display
+        data-backlight={unit.backlight}
+        style={{ ...displayStyle, color: glow(unit.backlight) }}
+      >
         {lit && (
           <>
             <span style={pageStyle}>{PAGE_NAMES[unit.page]}</span>

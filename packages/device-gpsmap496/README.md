@@ -19,6 +19,7 @@ Assumptions to confirm against it:
 - PAGE steps forward through the pages and QUIT steps backward; both wrap.
 - The backlight has three levels, stepped by its own key. The real unit puts the backlight
   on a short press of the power key.
+- The backlight level survives a power loss; the page does not.
 - Page and backlight keys do nothing while the unit is off.
 
 ## Controls
