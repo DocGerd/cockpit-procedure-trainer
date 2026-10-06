@@ -186,7 +186,10 @@ describe('procedures over device controls', () => {
     });
     states = stepDevices(fixtureDeviceAircraft, devices, read(), 0);
 
-    let checklist = startChecklist(procedure, read());
+    let checklist = startChecklist(procedure, read(), {
+      ...fixtureAircraft.controls,
+      ...deviceControls(fixtureDeviceAircraft, devices),
+    });
     expect(checklist.current).toBe(0);
 
     const changes: ControlChange[] = [];

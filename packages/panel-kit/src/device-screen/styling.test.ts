@@ -21,6 +21,13 @@ describe('panel styling', () => {
     expect(css).toMatch(/\.pk-device-off\s*\{[^}]*pointer-events:\s*none/);
   });
 
+  it('centres the screen at its natural size and scales it from the custom property', () => {
+    expect(css).toMatch(/\.pk-device-content\s*\{[^}]*width:\s*max-content/);
+    expect(css).toMatch(
+      /\.pk-device-content\s*\{[^}]*transform:\s*translate\(-50%,\s*-50%\)\s*scale\(var\(--pk-device-scale/,
+    );
+  });
+
   it('keeps the off scrim visible', () => {
     const opacity = /\.pk-device-off\s*\{[^}]*opacity:\s*([\d.]+)/.exec(css)?.[1];
     expect(Number(opacity)).toBeGreaterThan(0);

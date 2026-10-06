@@ -129,7 +129,7 @@ ids pulled when the failure is injected; the validator rejects an id that is not
 is `{ rect: { x, y, w, h } }` in the coordinate space of the view's background: an
 SVG's `viewBox`, or a raster image's natural size. `position3d` and `orientation`
 are optional and the 2D renderer ignores them. Every control and every indicator
-must be placed in at least one view. The demo has a `panel` and a `console` view.
+must be placed in at least one view. The demo has a `panel`, a `console` and an `avionics` view.
 
 A view may also declare `size: { width, height }`, the coordinate space of its
 placements with the origin at 0,0. The panel uses it in preference to the image's
@@ -181,7 +181,7 @@ in-between setting, either write a `check` item with a condition on an indicator
 
 An aircraft installs an avionics unit through the optional `devices` field; see
 `docs/adding-a-device.md` for the install shape, the `<installId>.<controlId>`
-targets and device entry positions. The demo installs none.
+targets and device entry positions. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
 
 ## Appearance and artwork
 

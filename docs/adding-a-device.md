@@ -132,8 +132,6 @@ the package as a dependency of `apps/web` and register both halves:
 - `deviceScreens`: the screen, keyed by device id.
 
 Both are added in the app's registry file and nothing else in `apps/web` changes.
-The `deviceScreens` map is introduced by the device-screen work in the web shell;
-until it lands, only `deviceRegistry` exists.
 
 ## Checks
 

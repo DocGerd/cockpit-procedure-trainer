@@ -1,4 +1,10 @@
-import type { ControlChange, ProcedureDefinition, ProcedureItem, TrainerState } from '../contract';
+import type {
+  ControlChange,
+  ControlDefinition,
+  ProcedureDefinition,
+  ProcedureItem,
+  TrainerState,
+} from '../contract';
 
 export type Deviation = {
   readonly kind: 'unexpected-control' | 'unmet-check';
@@ -12,16 +18,30 @@ export type ChecklistState<S> = {
   readonly completed: readonly number[];
   readonly deviations: readonly Deviation[];
   readonly done: boolean;
+  readonly controls: Readonly<Record<string, ControlDefinition>>;
+  readonly pressed: boolean;
 };
+
+function springsBack(definition: ControlDefinition | undefined, position: string | number) {
+  if (definition?.kind === 'momentary') return position === definition.positions[1];
+  return (
+    definition?.kind === 'rotary' &&
+    typeof position === 'string' &&
+    definition.springBack !== undefined &&
+    Object.hasOwn(definition.springBack, position)
+  );
+}
 
 function currentItem<S>(checklist: ChecklistState<S>): ProcedureItem<S> | undefined {
   return checklist.done ? undefined : checklist.procedure.items[checklist.current];
 }
 
-function actionSatisfied<S>(item: ProcedureItem<S>, state: TrainerState<S>): boolean {
+function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>): boolean {
+  const item = currentItem(checklist);
   return (
-    item.type === 'action' &&
+    item?.type === 'action' &&
     state.controls[item.control] === item.position &&
+    (checklist.pressed || !springsBack(checklist.controls[item.control], item.position)) &&
     (item.holdUntil?.(state) ?? true)
   );
 }
@@ -32,16 +52,14 @@ function complete<S>(checklist: ChecklistState<S>): ChecklistState<S> {
     ...checklist,
     current: next,
     completed: [...checklist.completed, checklist.current],
+    pressed: false,
     done: next >= checklist.procedure.items.length,
   };
 }
 
 function settle<S>(checklist: ChecklistState<S>, state: TrainerState<S>): ChecklistState<S> {
   let settled = checklist;
-  for (let item = currentItem(settled); item && actionSatisfied(item, state);) {
-    settled = complete(settled);
-    item = currentItem(settled);
-  }
+  while (actionSatisfied(settled, state)) settled = complete(settled);
   return settled;
 }
 
@@ -57,6 +75,7 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
 export function startChecklist<S>(
   procedure: ProcedureDefinition<S>,
   state: TrainerState<S>,
+  controls: Readonly<Record<string, ControlDefinition>>,
 ): ChecklistState<S> {
   return settle(
     {
@@ -65,6 +84,8 @@ export function startChecklist<S>(
       completed: [],
       deviations: [],
       done: procedure.items.length === 0,
+      controls,
+      pressed: false,
     },
     state,
   );
@@ -79,14 +100,21 @@ export function observeControl<S>(
   if (!item) return checklist;
   const deviating =
     change.source === 'pilot' && change.kind === 'position' && !targets(item, change.id);
+  const pressing =
+    change.source === 'pilot' &&
+    change.kind === 'position' &&
+    item.type === 'action' &&
+    item.control === change.id &&
+    item.position === change.to;
+  const noted = pressing && !checklist.pressed ? { ...checklist, pressed: true } : checklist;
   return settle(
     deviating
-      ? deviate(checklist, {
+      ? deviate(noted, {
           kind: 'unexpected-control',
           itemIndex: checklist.current,
           controlId: change.id,
         })
-      : checklist,
+      : noted,
     state,
   );
 }
