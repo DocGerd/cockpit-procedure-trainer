@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -113,5 +115,18 @@ describe('aircraft and procedure picker', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('explore');
     expect(trainer.procedureId).toBeUndefined();
+  });
+});
+
+describe('picker compact layout', () => {
+  const css = readFileSync(
+    fileURLToPath(import.meta.url).replace(/picker\.test\.tsx$/, 'shell.css'),
+    'utf8',
+  );
+
+  it('applies from 1440 x 900 and from the portrait tablet height, so the picker needs no page scroll', () => {
+    const compact = [...css.matchAll(/@media \(max-height: (\d+)px\)\s*\{\s*\.picker\s*\{/g)];
+    expect(compact).toHaveLength(1);
+    expect(Number(compact[0]?.[1])).toBeGreaterThanOrEqual(1024);
   });
 });

@@ -41,6 +41,7 @@ export const messages = defineMessages({
     backToSelection: 'Back to selection',
     announceItem: 'Item {n} of {total}: {text}',
     announceDone: 'Procedure complete: {title}',
+    announceDeviation: 'Deviation: {text}',
   },
   de: {
     normalProcedure: 'Normalverfahren',
@@ -82,5 +83,6 @@ export const messages = defineMessages({
     backToSelection: 'Zurück zur Auswahl',
     announceItem: 'Punkt {n} von {total}: {text}',
     announceDone: 'Verfahren abgeschlossen: {title}',
+    announceDeviation: 'Abweichung: {text}',
   },
 });
