@@ -94,7 +94,39 @@ describe('CTSL emergency procedures', () => {
     );
   });
 
+  const flareShutdown = [
+    ['ignition', 'off'],
+    ['fuelValve', 'closed'],
+    ['brake', 'on'],
+    ['elt', 'on'],
+  ] as const;
+
   it.each([
+    [
+      'engineFire',
+      [
+        ['fuelValve', 'closed'],
+        ['throttle', 'full'],
+        ['ignition', 'off'],
+      ],
+    ],
+    [
+      'oilLoss',
+      [
+        ['ignition', 'off'],
+        ['fuelValve', 'closed'],
+      ],
+    ],
+    ['engineFailureLow', flareShutdown],
+    ['engineFailureRestart', flareShutdown],
+  ] as const)('%s has its shutdown actions in order', (id, steps) => {
+    const indices = steps.map(([control, position]) => actionOn(id, control, position));
+    expect(indices).toEqual([...indices].sort((a, b) => a - b));
+    expect(new Set(indices).size).toBe(indices.length);
+  });
+
+  it.each([
+    ['generatorFailure', 'generator', 'in'],
     ['engineFailureLow', 'elt', 'on'],
     ['engineFailureRestart', 'elt', 'on'],
     ['engineFire', 'fuelValve', 'closed'],

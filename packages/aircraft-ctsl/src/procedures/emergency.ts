@@ -9,12 +9,12 @@ type Item = CtslProcedures[string]['items'][number];
 const IDLE_RPM = 1400;
 const CHT_RED_LINE_C = 120;
 const OIL_PRESSURE_MIN_BAR = 0.8;
-const FULL_NEGATIVE_FLAPS_DEG = -12;
+const LAST_UP_DETENT_DEG = -12;
 
 const engineStopped = (state: CtslTrainerState) => state.systems.rpm < IDLE_RPM;
 
-const flapsStoppedPastFullNegative = (state: CtslTrainerState) =>
-  !state.systems.flaps.moving && state.systems.flaps.angle < FULL_NEGATIVE_FLAPS_DEG;
+const flapsStoppedBeyondLastUpDetent = (state: CtslTrainerState) =>
+  !state.systems.flaps.moving && state.systems.flaps.angle < LAST_UP_DETENT_DEG;
 
 const engineStoppedCheck: Item = {
   type: 'check',
@@ -398,7 +398,7 @@ export const emergencyProcedures = {
         type: 'action',
         control: 'flapSelector',
         position: 'override-up',
-        holdUntil: flapsStoppedPastFullNegative,
+        holdUntil: flapsStoppedBeyondLastUpDetent,
         text: text(
           'Klappenwahlschalter über −12° hinaus (UP), bis die Klappen voll negativ stehen',
           'Flap selector past −12° (UP) until the flaps reach full negative',
@@ -413,7 +413,7 @@ export const emergencyProcedures = {
       {
         type: 'check',
         target: { indicator: 'flapReadout' },
-        condition: flapsStoppedPastFullNegative,
+        condition: flapsStoppedBeyondLastUpDetent,
         text: text('Klappen stehen voll negativ', 'Flaps stay at full negative'),
       },
       confirm(
@@ -459,7 +459,7 @@ export const emergencyProcedures = {
       {
         type: 'check',
         target: { indicator: 'chargeLamp' },
-        condition: chargeLampLit,
+        condition: (state) => chargeLampLit(state) && state.controls.generator === 'in',
         text: text(
           'Lampe leuchtet weiter: nur noch die Batterie versorgt den Bus',
           'Lamp stays lit: the battery is the only source',
