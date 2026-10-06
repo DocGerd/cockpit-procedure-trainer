@@ -116,6 +116,25 @@ describe('cockpit arrangement', () => {
     ]);
   });
 
+  it.each([
+    ['a missing rect', { minWidth: 300 }],
+    ['a null rect', { rect: null, minWidth: 300 }],
+    ['a zero width', cell(0, 0, 0, 100)],
+    ['a negative height', cell(0, 0, 400, -100)],
+    ['an infinite width', cell(0, 0, Infinity, 100)],
+    ['a NaN height', cell(0, 0, 400, NaN)],
+    ['a string width', { rect: { x: 0, y: 0, w: '400', h: 100 }, minWidth: 300 }],
+    ['a NaN origin', cell(NaN, 0, 400, 100)],
+  ])('reports %s as exactly one invalid cell rect', (_, broken) => {
+    const aircraft = withCockpit({
+      ...arrangement,
+      views: { panel: broken, console: cell(0, 100, 400, 100) },
+    });
+    expect(cockpitFindings(aircraft)).toMatchObject([
+      { code: 'invalid-cockpit-cell-rect', id: 'panel' },
+    ]);
+  });
+
   it('does not throw on a malformed cell', () => {
     const aircraft = withCockpit({ ...arrangement, views: { panel: null, console: {} } });
     expect(() => validateAircraft(aircraft)).not.toThrow();
