@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
+<rect width="1200" height="900" fill="#26282C"/>
+<rect x="16" y="16" width="1168" height="868" rx="14" fill="#2D3035" stroke="#3B4046" stroke-width="3"/>
+<g fill="#5E646B"><circle cx="30" cy="30" r="4"/><circle cx="1170" cy="30" r="4"/><circle cx="30" cy="870" r="4"/><circle cx="1170" cy="870" r="4"/></g>
+<rect x="30" y="22" width="1030" height="216" rx="10" fill="#26292D"/>
+<rect x="300" y="246" width="540" height="30" rx="4" fill="#C9CDD2" stroke="#8E949B" stroke-width="2"/>
+<text x="570" y="266" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2B3138" text-anchor="middle">AVIONICS OFF TO START AND STOP THE ENGINE</text>
+<circle cx="120" cy="325" r="26" fill="#1C1E21" stroke="#44494F" stroke-width="3"/><circle cx="120" cy="325" r="12" fill="#0E0F10"/>
+<text x="120" y="372" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">12 V</text>
+<rect x="400" y="292" width="380" height="66" rx="8" fill="#1C1E21" stroke="#44494F" stroke-width="2"/>
+<circle cx="460" cy="325" r="15" fill="#3A3D41" stroke="#55595E" stroke-width="2"/>
+<circle cx="540" cy="325" r="15" fill="#3A3D41" stroke="#55595E" stroke-width="2"/>
+<circle cx="620" cy="325" r="15" fill="#3A3D41" stroke="#55595E" stroke-width="2"/>
+<circle cx="700" cy="325" r="15" fill="#3A3D41" stroke="#55595E" stroke-width="2"/>
+<text x="590" y="372" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">INTERCOM</text>
+<circle cx="900" cy="325" r="20" fill="#3A3D41" stroke="#55595E" stroke-width="2"/><path d="M900 325 L912 313" stroke="#B9BEC4" stroke-width="3"/>
+<circle cx="990" cy="325" r="11" fill="#0E0F10" stroke="#55595E" stroke-width="3"/>
+<text x="945" y="372" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">AUDIO</text>
+<rect x="50" y="384" width="292" height="170" rx="8" fill="none" stroke="#44494F" stroke-width="2"/>
+<rect x="410" y="390" width="260" height="130" rx="10" fill="#1C1E21" stroke="#44494F" stroke-width="3"/>
+<text x="540" y="540" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#B9BEC4" text-anchor="middle">FLAPS</text>
+<circle cx="870" cy="440" r="13" fill="#0E0F10" stroke="#55595E" stroke-width="3"/>
+<circle cx="950" cy="440" r="13" fill="#0E0F10" stroke="#55595E" stroke-width="3"/>
+<text x="910" y="490" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">HEADSET</text>
+<rect x="98" y="580" width="44" height="280" rx="20" fill="#141517" stroke="#44494F" stroke-width="2"/>
+<circle cx="340" cy="740" r="128" fill="#26292D" stroke="#44494F" stroke-width="2"/>
+<text x="340" y="884" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#B9BEC4" text-anchor="middle">IGNITION</text>
+<circle cx="665" cy="715" r="148" fill="#26292D" stroke="#44494F" stroke-width="2"/>
+<rect x="846" y="626" width="328" height="248" rx="10" fill="#33363A" stroke="#4B5056" stroke-width="2"/>
+<text x="930" y="652" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#B9BEC4" text-anchor="middle">BAT</text>
+<text x="1090" y="652" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="bold" fill="#B9BEC4" text-anchor="middle">GEN</text>
+<text x="196" y="408" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#B9BEC4" text-anchor="start">ELT</text>
+<text x="120" y="574" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#B9BEC4" text-anchor="middle">OPEN</text>
+<text x="120" y="878" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#B9BEC4" text-anchor="middle">CLOSED</text>
+<path d="M595 836.2 L585 853.6" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M527.1 739.3 L507.4 742.8" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M557.8 625 L542.4 612.2" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M665 575 L665 555" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M772.2 625 L787.6 612.2" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M802.9 739.3 L822.6 742.8" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M735 836.2 L745 853.6" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M243 684 L230.9 677" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M284 643 L277 630.9" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M340 628 L340 614" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M396 643 L403 630.9" stroke="#B9BEC4" stroke-width="3"/>
+<path d="M437 684 L449.1 677" stroke="#B9BEC4" stroke-width="3"/>
+</svg>

@@ -1,0 +1,235 @@
+import type { ControlRecord, Text } from '@cpt/core';
+import { text } from './text';
+
+const breakerOf = (name: Text, description: Text) =>
+  ({
+    kind: 'breaker',
+    positions: ['in', 'pulled'],
+    initial: 'in',
+    name,
+    description,
+    appearance: { widget: 'circuit-breaker' },
+  }) as const;
+
+const rockerOf = (name: Text, description: Text) =>
+  ({
+    kind: 'toggle',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name,
+    description,
+    appearance: { widget: 'rocker' },
+  }) as const;
+
+const pushPullOf = (name: Text, description: Text) =>
+  ({
+    kind: 'lever',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name,
+    description,
+    appearance: { widget: 'lever' },
+  }) as const;
+
+export const controls = {
+  comBreaker: breakerOf(
+    text('Sicherung COM', 'COM breaker'),
+    text('Schützt das Funkgerät am Avionikbus.', 'Protects the COM radio on the avionics bus.'),
+  ),
+  xpdrBreaker: breakerOf(
+    text('Sicherung Transponder', 'Transponder breaker'),
+    text('Schützt den Transponder am Avionikbus.', 'Protects the transponder on the avionics bus.'),
+  ),
+  gpsBreaker: breakerOf(
+    text('Sicherung GPS', 'GPS breaker'),
+    text(
+      'Schützt die GPS-Halterung am Avionikbus.',
+      'Protects the GPS cradle on the avionics bus.',
+    ),
+  ),
+  positionBreaker: breakerOf(
+    text('Sicherung Positionslichter', 'Position lights breaker'),
+    text('Schützt die Positionslichter.', 'Protects the position lights.'),
+  ),
+  strobeBreaker: breakerOf(
+    text('Sicherung Blitzlicht', 'Strobe breaker'),
+    text('Schützt das Blitzlicht (Beacon).', 'Protects the beacon strobe.'),
+  ),
+  landingBreaker: breakerOf(
+    text('Sicherung Landescheinwerfer', 'Landing light breaker'),
+    text('Schützt den Landescheinwerfer.', 'Protects the landing light.'),
+  ),
+  intercomBreaker: breakerOf(
+    text('Sicherung Bordsprechanlage', 'Intercom breaker'),
+    text('Schützt die Bordsprechanlage.', 'Protects the intercom.'),
+  ),
+  outletBreaker: breakerOf(
+    text('Sicherung 12-V-Steckdose', '12 V outlet breaker'),
+    text('Schützt die 12-V-Steckdose.', 'Protects the 12 V outlet.'),
+  ),
+  avionicsMaster: rockerOf(
+    text('Avionik', 'Avionics Master'),
+    text(
+      'Schaltet den Avionikbus mit Funkgerät, Transponder und GPS. Beim Anlassen und Abstellen aus.',
+      'Switches the avionics bus with the radio, transponder and GPS. Off for engine start and stop.',
+    ),
+  ),
+  beacon: rockerOf(
+    text('Blitzlicht', 'Beacon light'),
+    text('Schaltet das Blitzlicht (Beacon).', 'Switches the beacon strobe.'),
+  ),
+  positionLights: rockerOf(
+    text('Positionslichter', 'Position lights'),
+    text('Schaltet die Positionslichter.', 'Switches the position lights.'),
+  ),
+  intercom: rockerOf(
+    text('Bordsprechanlage', 'Intercom'),
+    text('Schaltet die Bordsprechanlage.', 'Switches the intercom.'),
+  ),
+  cockpitLight: rockerOf(
+    text('Cockpitbeleuchtung', 'Cockpit light'),
+    text('Schaltet die Cockpitbeleuchtung.', 'Switches the cockpit light.'),
+  ),
+  landingLight: rockerOf(
+    text('Landescheinwerfer', 'Landing light'),
+    text('Schaltet den Landescheinwerfer.', 'Switches the landing light.'),
+  ),
+  elt: {
+    kind: 'toggle',
+    positions: ['armed', 'on'],
+    initial: 'armed',
+    name: text('Notsender', 'ELT remote switch'),
+    description: text(
+      'Fernschalter des Notsenders. ARMED löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
+      'Remote switch of the emergency locator transmitter. ARMED triggers on impact, ON transmits at once; the lamp shows it transmitting.',
+    ),
+    appearance: { widget: 'toggle' },
+  },
+  flapBreaker: breakerOf(
+    text('Klappensicherung', 'Flap breaker'),
+    text(
+      'Thermische Sicherung des Klappenantriebs. Sie kann nach einer Überlastung auslösen.',
+      'Thermal breaker of the flap drive. It can trip after an overload.',
+    ),
+  ),
+  fuelValve: {
+    kind: 'toggle',
+    positions: ['open', 'closed'],
+    initial: 'closed',
+    name: text('Brandhahn', 'Fuel valve'),
+    description: text(
+      'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt er den Zündschlüssel.',
+      'Slide lever for the fuel supply, up open, down closed. Closed, it covers the ignition key.',
+    ),
+    appearance: { widget: 'toggle' },
+  },
+  flapSelector: {
+    kind: 'rotary',
+    positions: ['override-up', '-12', '0', '15', '30', '35', 'override-down'],
+    initial: '0',
+    name: text('Klappenwahlschalter', 'Flap selector'),
+    description: text(
+      'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
+      'Preselects the flap setting in degrees. Past each end detent is a manual override: the motor runs while the knob stays there.',
+    ),
+    appearance: { widget: 'rotary-knob' },
+  },
+  ignition: {
+    kind: 'rotary',
+    positions: ['off', 'left', 'right', 'both', 'start'],
+    initial: 'off',
+    springBack: { start: 'both' },
+    name: text('Zündschalter', 'Ignition'),
+    description: text(
+      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. START dreht das Triebwerk und springt auf BOTH zurück.',
+      'Ignition key with starter: OFF, L, R, BOTH, START. START cranks the engine and springs back to BOTH.',
+    ),
+    appearance: { widget: 'key-switch' },
+  },
+  battery: {
+    ...breakerOf(
+      text('Hauptschalter (BAT)', 'Master switch (BAT)'),
+      text(
+        'Zieh-Druck-Schalter der Batterie. Eingedrückt ist die Batterie auf dem Hauptbus.',
+        'Push-pull switch of the battery. Pushed in, the battery feeds the main bus.',
+      ),
+    ),
+    initial: 'pulled',
+  },
+  generator: {
+    ...breakerOf(
+      text('Generatorschalter (GEN)', 'Generator switch (GEN)'),
+      text(
+        'Zieh-Druck-Schalter des Generators. Eingedrückt lädt der Generator bei laufendem Triebwerk.',
+        'Push-pull switch of the generator. Pushed in, the generator charges while the engine runs.',
+      ),
+    ),
+    initial: 'pulled',
+  },
+  brake: pushPullOf(
+    text('Bremshebel', 'Brake lever'),
+    text(
+      'Hydraulische Bremse beider Haupträder. Mit geschlossenem Rückflusshahn wird sie zur Parkbremse.',
+      'Hydraulic brake on both main wheels. With the parking-brake valve closed it sets the parking brake.',
+    ),
+  ),
+  throttle: {
+    kind: 'lever',
+    positions: ['idle', 'low', 'runup', 'cruise', 'full'],
+    initial: 'idle',
+    name: text('Gashebel', 'Throttle'),
+    description: text(
+      'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',
+      'Sets engine power: idle, low power, run-up, cruise and full.',
+    ),
+    appearance: { widget: 'lever' },
+  },
+  choke: pushPullOf(
+    text('Choke', 'Choke'),
+    text(
+      'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
+      'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
+    ),
+  ),
+  carbHeat: pushPullOf(
+    text('Vergaservorwärmung', 'Carb heat'),
+    text(
+      'Vorläufiges Bedienelement: das Handbuch nennt die Vergaservorwärmung in den Checklisten, zeigt aber keinen Zug. Ort und Ausführung muss der Verein bestätigen.',
+      'Provisional control: the handbook names carb heat in its checklists but shows no knob. Its place and form await the club.',
+    ),
+  ),
+  trim: {
+    kind: 'lever',
+    positions: ['nose-down', 'neutral', 'nose-up'],
+    initial: 'neutral',
+    name: text('Trimmrad', 'Trim wheel'),
+    description: text(
+      'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
+      'Trims the stabilator. Forward is nose down; neutral for take-off.',
+    ),
+    appearance: { widget: 'lever' },
+  },
+  parkingBrakeValve: {
+    kind: 'toggle',
+    positions: ['open', 'closed'],
+    initial: 'open',
+    name: text('Rückflusshahn', 'Parking-brake valve'),
+    description: text(
+      'Parkbremse: Hahn schließen, dann den Bremshebel ziehen. Der Druck hält, bis der Hahn wieder öffnet.',
+      'Parking brake: close the valve, then apply the brake lever. The pressure holds until the valve opens again.',
+    ),
+    appearance: { widget: 'toggle' },
+  },
+  rescueHandle: {
+    kind: 'guarded',
+    positions: ['stowed', 'pulled'],
+    initial: 'stowed',
+    guard: { name: text('Sicherungsstift', 'Safety pin') },
+    name: text('Rettungsgerät', 'Rescue system'),
+    description: text(
+      'Griff des ballistischen Rettungssystems. Am Boden mit dem Sicherungsstift gesichert; zum Auslösen kräftig und weit ziehen.',
+      'Handle of the ballistic rescue system. Secured by the safety pin on the ground; pull hard and far to deploy.',
+    ),
+    appearance: { widget: 'guarded-handle' },
+  },
+} as const satisfies ControlRecord;
