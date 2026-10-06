@@ -1,5 +1,5 @@
 import { isPosition } from '../contract';
-import type { Aircraft, ControlDefinition, Device, Text } from '../contract';
+import type { Aircraft, ControlDefinition, Device, Rect, Text, ViewSize } from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -15,7 +15,9 @@ export type FindingCode =
   | 'unknown-device-control'
   | 'unplaced-device'
   | 'invalid-install-id'
-  | 'control-in-device-namespace';
+  | 'control-in-device-namespace'
+  | 'invalid-view-size'
+  | 'placement-outside-view';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -188,8 +190,39 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     if (!placed) add('unplaced-indicator', id, 'is not placed in any view');
   }
 
+  const isLength = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const sizes = new Map<string, ViewSize | undefined>();
+  const declaredSize = (viewId: string, size: unknown) => {
+    if (size === undefined) return undefined;
+    const { width, height } = (size ?? {}) as { width?: unknown; height?: unknown };
+    if (isLength(width) && isLength(height)) return { width, height } as ViewSize;
+    add('invalid-view-size', viewId, 'size must be a positive, finite width and height');
+    return undefined;
+  };
+  const checkInside = (viewId: string, size: ViewSize | undefined, id: string, rect: Rect) => {
+    if (
+      size &&
+      (rect.x < 0 || rect.y < 0 || rect.x + rect.w > size.width || rect.y + rect.h > size.height)
+    ) {
+      add(
+        'placement-outside-view',
+        id,
+        `view ${viewId} places it outside its ${size.width}x${size.height} size`,
+      );
+    }
+  };
+
   for (const [viewId, view] of views) {
     checkText(viewId, 'name', view.name);
+    const size = declaredSize(viewId, view.size);
+    sizes.set(viewId, size);
+    for (const [id, placement] of Object.entries(view.controls ?? {})) {
+      if (placement) checkInside(viewId, size, id, placement.rect);
+    }
+    for (const [id, placement] of Object.entries(view.indicators ?? {})) {
+      if (placement) checkInside(viewId, size, id, placement.rect);
+    }
     for (const id of Object.keys(view.controls ?? {})) {
       if (!hasControl(id)) add('unknown-target', id, `view ${viewId} places an unknown control`);
     }
@@ -224,6 +257,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
     if (!Object.hasOwn(aircraft.views, install.view)) {
       add('unplaced-device', installId, `is placed in ${install.view}, which is not a view`);
+    } else {
+      checkInside(install.view, sizes.get(install.view), installId, install.placement.rect);
     }
   }
 

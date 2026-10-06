@@ -7,6 +7,8 @@ import {
 } from '@cpt/core';
 import type { ControlKind, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import viewConsole from './assets/view-console.svg?raw';
+import viewPanel from './assets/view-panel.svg?raw';
 import { demoAircraft } from './index';
 import type { DemoState } from './systems';
 
@@ -209,5 +211,16 @@ describe('demo aircraft', () => {
     const emergencies = procedures.filter((procedure) => procedure.type === 'emergency');
     expect(emergencies).toHaveLength(1);
     expect(emergencies[0]?.failure).toBe('alternatorFailure');
+  });
+});
+
+describe('declared view sizes', () => {
+  const sources: Record<string, string> = { panel: viewPanel, console: viewConsole };
+
+  it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {
+    const match = /viewBox="([^"]+)"/.exec(sources[id] ?? '');
+    const [x, y, width, height] = (match?.[1] ?? '').split(/[\s,]+/).map(Number);
+    expect([x, y]).toEqual([0, 0]);
+    expect(demoAircraft.views[id]?.size).toEqual({ width, height });
   });
 });

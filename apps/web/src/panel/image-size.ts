@@ -24,16 +24,25 @@ const sizeFor = (known: Known | undefined, src: string) =>
   known?.src === src ? known.size : undefined;
 
 /**
- * The coordinate space of a view background: an SVG's viewBox, a raster image's natural size.
- * A viewBox-only SVG has no natural size in viewBox units, so the browser's is never used for one.
+ * The coordinate space of a view background: the declared size, else an SVG's viewBox or a raster
+ * image's natural size. A viewBox-only SVG has no natural size in viewBox units, so the browser's
+ * is never used for one.
  */
-export function useBackgroundSize(src: string) {
+const isUsable = (size: ImageSize | undefined): size is ImageSize =>
+  size !== undefined &&
+  Number.isFinite(size.width) &&
+  Number.isFinite(size.height) &&
+  size.width > 0 &&
+  size.height > 0;
+
+export function useBackgroundSize(src: string, declaredSize?: ImageSize) {
+  const declared = isUsable(declaredSize) ? declaredSize : undefined;
   const svg = isSvgSource(src);
   const [viewBox, setViewBox] = useState<Known>();
   const [natural, setNatural] = useState<Known>();
 
   useEffect(() => {
-    if (!svg) return;
+    if (!svg || declared) return;
     let current = true;
     fetch(src)
       .then((response) => (response.ok ? response.text() : Promise.reject(new Error(src))))
@@ -44,10 +53,10 @@ export function useBackgroundSize(src: string) {
     return () => {
       current = false;
     };
-  }, [src, svg]);
+  }, [src, svg, declared]);
 
   return {
-    size: sizeFor(svg ? viewBox : natural, src),
+    size: declared ?? sizeFor(svg ? viewBox : natural, src),
     onNaturalSize: (size: ImageSize) => {
       if (size.width > 0 && size.height > 0) setNatural({ src, size });
     },
