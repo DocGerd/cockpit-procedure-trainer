@@ -28,7 +28,15 @@ const sizeFor = (known: Known | undefined, src: string) =>
  * image's natural size. A viewBox-only SVG has no natural size in viewBox units, so the browser's
  * is never used for one.
  */
-export function useBackgroundSize(src: string, declared?: ImageSize) {
+const isUsable = (size: ImageSize | undefined): size is ImageSize =>
+  size !== undefined &&
+  Number.isFinite(size.width) &&
+  Number.isFinite(size.height) &&
+  size.width > 0 &&
+  size.height > 0;
+
+export function useBackgroundSize(src: string, declaredSize?: ImageSize) {
+  const declared = isUsable(declaredSize) ? declaredSize : undefined;
   const svg = isSvgSource(src);
   const [viewBox, setViewBox] = useState<Known>();
   const [natural, setNatural] = useState<Known>();

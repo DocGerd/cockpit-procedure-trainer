@@ -89,6 +89,24 @@ describe('useBackgroundSize', () => {
     expect(result.current.size).toEqual({ width: 30, height: 20 });
   });
 
+  it.each([
+    ['zero', { width: 0, height: 20 }],
+    ['negative', { width: 30, height: -1 }],
+    ['NaN', { width: Number.NaN, height: 20 }],
+    ['infinite', { width: 30, height: Infinity }],
+  ])('ignores a declared size that is %s and reads the viewBox', async (_, declared) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({ ok: true, text: () => Promise.resolve('<svg viewBox="0 0 20 10"/>') }),
+      ),
+    );
+    const { result } = renderHook(() => useBackgroundSize('a.svg', declared));
+    await act(async () => {});
+
+    expect(result.current.size).toEqual({ x: 0, y: 0, width: 20, height: 10 });
+  });
+
   it('falls back to the fetched viewBox when the size is not declared', async () => {
     vi.stubGlobal(
       'fetch',

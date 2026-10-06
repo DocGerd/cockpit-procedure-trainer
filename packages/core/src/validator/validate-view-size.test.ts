@@ -40,7 +40,10 @@ describe('view size', () => {
     ]);
   });
 
-  it('reports a placement with a negative origin', () => {
+  it.each([
+    ['x', { x: -1, y: 10 }],
+    ['y', { x: 10, y: -1 }],
+  ])('reports a placement with a negative %s origin', (_, origin) => {
     const aircraft = {
       ...fixtureAircraft,
       views: {
@@ -48,7 +51,7 @@ describe('view size', () => {
         panel: {
           ...fixtureAircraft.views.panel,
           size: { width: 400, height: 200 },
-          controls: { master: { rect: { x: -1, y: 10, w: 40, h: 40 } } },
+          controls: { master: { rect: { ...origin, w: 40, h: 40 } } },
         },
       },
     } as Aircraft;
