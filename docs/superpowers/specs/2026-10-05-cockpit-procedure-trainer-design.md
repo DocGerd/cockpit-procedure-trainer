@@ -143,6 +143,9 @@ defines. A phase supplies:
 - an entry snapshot: control positions and systems state that make sense when a
   pilot jumps straight to that phase.
 
+The outside-view image is the first-person view out of the windshield from the
+pilot's seat, not a third-person picture of the aircraft.
+
 ### 4.7 Procedures
 
 A procedure has an id, a title, a type (`normal` or `emergency`), the phase it
