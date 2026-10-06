@@ -1,10 +1,10 @@
 import type { ControlPosition, Point } from '@cpt/core';
 import { useEffect, useId, useRef } from 'react';
-import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from 'react';
+import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } from 'react';
 import type { ControlWidgetProps } from '../types';
 import { ArtworkStage } from './ArtworkStage';
 import type { Artwork, Size } from './ArtworkStage';
-import { fractionNear } from './geometry';
+import { fractionNear, layerFraction } from './geometry';
 
 export type ArtworkControlProps = ControlWidgetProps & {
   artwork: Artwork;
@@ -12,6 +12,7 @@ export type ArtworkControlProps = ControlWidgetProps & {
 };
 
 const LEVER_STEP = 0.1;
+const DEAD_ZONE = 0.2;
 const inputClass = 'cpt-artwork-input';
 
 const noop = () => {};
@@ -183,6 +184,90 @@ function LeverInput({
   );
 }
 
+function NotchInput({
+  steps,
+  index,
+  label,
+  valueText,
+  path,
+  size,
+  notches,
+  position,
+  className,
+  rotary,
+  onSet,
+}: Pick<ControlWidgetProps, 'onSet'> & {
+  steps: readonly string[];
+  index: number;
+  label: string;
+  valueText: string;
+  path: readonly Point[] | undefined;
+  size: Size | null;
+  notches: readonly string[] | undefined;
+  position: ControlPosition;
+  className?: string;
+  rotary: boolean;
+}) {
+  const goTo = (target: number) => {
+    const id = steps[Math.min(steps.length - 1, Math.max(0, target))];
+    if (id !== undefined && id !== String(position)) onSet(id);
+  };
+  const tap = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.detail === 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const current = layerFraction(position, notches);
+    let direction: number;
+    if (path && size && !Number.isNaN(current)) {
+      const near = fractionNear(path, {
+        x: (x / rect.width) * size.width,
+        y: (y / rect.height) * size.height,
+      });
+      const delta = near - current;
+      const zone = DEAD_ZONE / Math.max(1, notches ? notches.length - 1 : 1);
+      direction = Math.abs(delta) < zone ? 0 : Math.sign(delta);
+    } else if (rotary || rect.width >= rect.height * 0.8) {
+      const off = x - rect.width / 2;
+      direction = Math.abs(off) < rect.width * DEAD_ZONE ? 0 : Math.sign(off);
+    } else {
+      const off = rect.height / 2 - y;
+      direction = Math.abs(off) < rect.height * DEAD_ZONE ? 0 : Math.sign(off);
+    }
+    if (direction !== 0) goTo(index + direction);
+  };
+  return (
+    <div
+      role="slider"
+      tabIndex={0}
+      className={className ?? inputClass}
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={steps.length - 1}
+      aria-valuenow={index}
+      aria-valuetext={valueText}
+      onClick={tap}
+      onKeyDown={(event) => {
+        const keys: Record<string, () => void> = {
+          ArrowUp: () => goTo(index + 1),
+          ArrowRight: () => goTo(index + 1),
+          ArrowDown: () => goTo(index - 1),
+          ArrowLeft: () => goTo(index - 1),
+          Home: () => goTo(0),
+          End: () => goTo(steps.length - 1),
+          Enter: noop,
+          ' ': noop,
+        };
+        const handler = keys[event.key];
+        if (!handler) return;
+        event.preventDefault();
+        handler();
+      }}
+    />
+  );
+}
+
 function GuardedInputs({
   label,
   handleName,
@@ -290,38 +375,56 @@ export function ArtworkControl(props: ArtworkControlProps) {
     const springBack = control.kind === 'rotary' ? control.springBack : undefined;
     const isSpring = (id: string) => springBack !== undefined && Object.hasOwn(springBack, id);
     const current = String(position);
-    // Spring detents are held, never stepped onto, so the cycle runs past them to every other position.
-    const cycle = nextPosition(
-      control.positions.filter((id) => !isSpring(id)),
-      position,
-    );
+    // Spring detents are held, never stepped onto, so stepping runs over the other positions only.
+    const steps = control.positions.filter((id) => !isSpring(id));
     const spring = isSpring(current)
       ? current
       : control.positions.find((id) => isSpring(id) && springBack?.[id] === current);
-    const cycleInput = (
-      <ButtonInput
-        name={`${label}: ${shown}`}
-        hold={undefined}
-        {...(spring === undefined ? {} : { className: `${inputClass} cpt-artwork-cycle` })}
-        onActivate={() => {
-          if (cycle !== undefined && cycle !== current) props.onSet(cycle);
-        }}
-        onPress={props.onPress}
-        onRelease={props.onRelease}
-      />
-    );
-    if (spring === undefined) return cycleInput;
-    return (
-      <>
-        {cycleInput}
+    const resting = isSpring(current) ? (springBack?.[current] ?? current) : current;
+    const stepIndex = Math.max(0, steps.indexOf(resting));
+    const springClass = spring === undefined ? undefined : `${inputClass} cpt-artwork-cycle`;
+    const cycleInput =
+      steps.length > 2 ? (
+        <NotchInput
+          steps={steps}
+          index={stepIndex}
+          label={label}
+          valueText={shown}
+          path={travelPath}
+          size={size}
+          notches={notches}
+          position={position}
+          rotary={control.kind === 'rotary'}
+          {...(springClass === undefined ? {} : { className: springClass })}
+          onSet={props.onSet}
+        />
+      ) : (
         <ButtonInput
-          name={`${label}: ${props.positionLabels[spring] ?? spring}`}
-          hold={{ position: spring }}
-          className={`${inputClass} cpt-artwork-spring`}
-          onActivate={noop}
+          name={`${label}: ${shown}`}
+          hold={undefined}
+          {...(springClass === undefined ? {} : { className: springClass })}
+          onActivate={() => {
+            const cycle = nextPosition(steps, resting);
+            if (cycle !== undefined && cycle !== current) props.onSet(cycle);
+          }}
           onPress={props.onPress}
           onRelease={props.onRelease}
         />
+      );
+    if (!control.positions.some(isSpring)) return cycleInput;
+    return (
+      <>
+        {cycleInput}
+        {spring !== undefined && (
+          <ButtonInput
+            name={`${label}: ${props.positionLabels[spring] ?? spring}`}
+            hold={{ position: spring }}
+            className={`${inputClass} cpt-artwork-spring`}
+            onActivate={noop}
+            onPress={props.onPress}
+            onRelease={props.onRelease}
+          />
+        )}
       </>
     );
   };
