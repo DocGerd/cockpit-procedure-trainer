@@ -255,11 +255,16 @@ describe('Free explore', () => {
   it('shows the details of a tapped control and leaves the session alone', async () => {
     renderTrainer();
     enterExplore();
-    const before = trainer.session.state();
+    const { session } = trainer;
+    const before = { controls: session.state().controls, guards: session.guards() };
+    const operations = (['set', 'press', 'release', 'openGuard', 'closeGuard'] as const).map(
+      (method) => vi.spyOn(session, method),
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Show details: Master' }));
 
-    expect(trainer.session.state()).toBe(before);
+    for (const operation of operations) expect(operation).not.toHaveBeenCalled();
+    expect({ controls: session.state().controls, guards: session.guards() }).toEqual(before);
     const details = screen.getByRole('dialog', { name: 'Master' });
     expect(within(details).getByText('Turns the master on or off.')).toBeDefined();
     expect(within(details).getByText('Toggle')).toBeDefined();
