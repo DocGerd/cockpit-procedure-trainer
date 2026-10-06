@@ -6,9 +6,16 @@ import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { deployEnv } from './src/deploy-env';
 import { pwaColors, pwaOptions } from './src/pwa/config';
+import { copyrightNotice, latestRelease } from './src/version';
 
 const base = process.env.BASE_PATH ?? '/';
 const env = deployEnv(process.env.VITE_DEPLOY_ENV);
+const repoFile = (name: string) =>
+  readFileSync(resolve(import.meta.dirname, '../..', name), 'utf8');
+const release = latestRelease(repoFile('CHANGELOG.md'));
+const copyright = copyrightNotice(repoFile('LICENSE'));
+if (release === undefined) throw new Error('CHANGELOG.md has no released version heading');
+if (copyright === undefined) throw new Error('LICENSE has no copyright line');
 const tokens = readFileSync(resolve(import.meta.dirname, 'src/styles/tokens.css'), 'utf8');
 
 // The plugin's register module imports workbox-window, which only the plugin's own install can see.
@@ -45,6 +52,10 @@ const themeColorMeta: Plugin = {
 
 export default defineConfig({
   base,
+  define: {
+    'import.meta.env.VITE_APP_RELEASE': JSON.stringify(release),
+    'import.meta.env.VITE_COPYRIGHT': JSON.stringify(copyright),
+  },
   resolve: { alias: { 'workbox-window': workboxWindow } },
   plugins: [
     react(),
