@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error boundary</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3B4046}a:hover{color:#14161A}
+</style>
+</helmet>
+<div style="min-height: 720px; box-sizing: border-box; padding: 24px; background: #FBFBFC; color: #14161A; font-family: Geist, system-ui, sans-serif; font-size: 14px; line-height: 22px; display: flex; align-items: center; justify-content: center">
+<div role="alertdialog" aria-modal="true" aria-labelledby="error-title" aria-describedby="error-body" style="width: 100%; max-width: 480px; box-sizing: border-box; padding: 32px; background: #FFFFFF; border: 1px solid #DCE0E4; border-radius: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px">
+<h1 id="error-title" style="margin: 0; font-size: 24px; line-height: 30px; font-weight: 600">Something went wrong</h1>
+<p id="error-body" style="margin: 0; color: #3B4046">The trainer hit an unexpected error. Resetting starts the session again.</p>
+<button type="button" style="min-height: 48px; padding: 0 24px; border: 0; border-radius: 6px; background: {{accent}}; color: #FFFFFF; font: inherit; font-size: 16px; font-weight: 500; cursor: pointer">Reset</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#6A57C4","options":["#6A57C4","#0F7C72","#2C6CB0"]},"$preview":{"width":1280,"height":720}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent ?? '#6A57C4' };
+}
+}
+</script>
+</body>
+</html>

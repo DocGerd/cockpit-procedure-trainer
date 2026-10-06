@@ -41,6 +41,94 @@
       "w": 1280,
       "x": 1360,
       "y": 1560
+    },
+    "GuidedDark.dc.html": {
+      "expand": "fill",
+      "h": 1080,
+      "title": "Trainer · Guided · dark",
+      "w": 1280,
+      "x": 4080,
+      "y": 0
+    },
+    "PracticeLight.dc.html": {
+      "expand": "fill",
+      "h": 840,
+      "title": "Trainer · Practice · emergency · light",
+      "w": 1280,
+      "x": 5440,
+      "y": 0
+    },
+    "ExploreDark.dc.html": {
+      "expand": "fill",
+      "h": 840,
+      "title": "Trainer · Free explore · dark",
+      "w": 1280,
+      "x": 6800,
+      "y": 0
+    },
+    "PickerDark.dc.html": {
+      "expand": "fill",
+      "h": 860,
+      "title": "Aircraft and procedure picker · dark",
+      "w": 1280,
+      "x": 2720,
+      "y": 1560
+    },
+    "SummaryDark.dc.html": {
+      "expand": "fill",
+      "h": 860,
+      "title": "Procedure summary · dark",
+      "w": 1280,
+      "x": 4080,
+      "y": 1560
+    },
+    "TabletCollapsed.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Tablet · checklist collapsed",
+      "w": 1024,
+      "x": 0,
+      "y": 2900
+    },
+    "TabletExpanded.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Tablet · checklist expanded over the panel",
+      "w": 1024,
+      "x": 1104,
+      "y": 2900
+    },
+    "ExplorePopover.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Free explore · control details popover",
+      "w": 1280,
+      "x": 2208,
+      "y": 2900
+    },
+    "DeviceScreens.dc.html": {
+      "expand": "fill",
+      "h": 560,
+      "title": "Device screens · powered and powered off",
+      "w": 1280,
+      "x": 3568,
+      "y": 2900
+    },
+    "ErrorBoundary.dc.html": {
+      "expand": "fill",
+      "h": 720,
+      "title": "Error boundary",
+      "w": 1280,
+      "x": 4928,
+      "y": 2900
+    },
+    "MissingPanelImage.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Missing panel image · dark",
+      "w": 1280,
+      "x": 6288,
+      "y": 2900
     }
   },
   "createdOnFiles": {
@@ -67,6 +155,14 @@
       "w": 240,
       "x": 0,
       "y": -300
+    },
+    "t-states": {
+      "kind": "title1",
+      "maxW": 7568,
+      "text": "Tablet, details and errors",
+      "w": 240,
+      "x": 0,
+      "y": 2600
     }
   },
   "order": [
@@ -74,7 +170,18 @@
     "Practice.dc.html",
     "Explore.dc.html",
     "Picker.dc.html",
-    "Summary.dc.html"
+    "Summary.dc.html",
+    "GuidedDark.dc.html",
+    "PracticeLight.dc.html",
+    "ExploreDark.dc.html",
+    "PickerDark.dc.html",
+    "SummaryDark.dc.html",
+    "TabletCollapsed.dc.html",
+    "TabletExpanded.dc.html",
+    "ExplorePopover.dc.html",
+    "DeviceScreens.dc.html",
+    "ErrorBoundary.dc.html",
+    "MissingPanelImage.dc.html"
   ],
   "pages": [],
   "title": "Cockpit Procedure Trainer"

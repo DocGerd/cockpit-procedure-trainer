@@ -1,6 +1,7 @@
 import { electricalBus, pistonEngineStart } from '@cpt/core';
 import type {
   ElectricalBusState,
+  Environment,
   Magnetos,
   PistonEngineState,
   StepInput,
@@ -14,6 +15,7 @@ export type DemoState = {
   bus: ElectricalBusState;
   engine: PistonEngineState;
   avionicsPowered: boolean;
+  altitudeFt: number;
   rpm: number;
   oilPsi: number;
   amps: number;
@@ -42,6 +44,7 @@ export const initial: DemoState = {
   bus: bus.initial,
   engine: engine.initial,
   avionicsPowered: false,
+  altitudeFt: 0,
   rpm: 0,
   oilPsi: 0,
   amps: 0,
@@ -50,7 +53,7 @@ export const initial: DemoState = {
 
 export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
   state,
-  { controls, failures, dtMs }: StepInput<DemoFailure>,
+  { controls, failures, environment, dtMs }: StepInput<DemoFailure>,
 ) => {
   const magnetos = controls.magnetos as Magnetos;
   const throttle = Number(controls.throttle);
@@ -91,6 +94,7 @@ export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
     bus: nextBus,
     engine: nextEngine,
     avionicsPowered,
+    altitudeFt: environment.altitudeFt,
     rpm,
     oilPsi: nextEngine.running ? RUNNING_OIL_PSI + throttle * OIL_PSI_PER_THROTTLE : 0,
     amps: !nextBus.busPowered ? 0 : nextBus.charging ? CHARGE_AMPS : -load,
@@ -106,13 +110,18 @@ export const lowVoltageLit = (state: DemoTrainerState) =>
 export const oilPressureLit = (state: DemoTrainerState) =>
   state.systems.bus.busPowered && (state.systems.oilPsi < LOW_OIL_PSI || lampTest(state));
 
-export const runningFrom = (controls: StepInput<DemoFailure>['controls']): DemoState =>
+const GROUND: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
+
+export const runningFrom = (
+  controls: StepInput<DemoFailure>['controls'],
+  environment: Environment = GROUND,
+): DemoState =>
   step(
     { ...initial, engine: { running: true, crankMs: 0 } },
     {
       controls,
       failures: new Set(),
-      environment: { airspeedKt: 0, altitudeFt: 0, onGround: true },
+      environment,
       dtMs: 0,
     },
   );
