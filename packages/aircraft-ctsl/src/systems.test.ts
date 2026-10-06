@@ -18,6 +18,7 @@ const OIL_TEMP_RED_LINE_C = 130;
 const STARTER_LIMIT_S = 10;
 const STARTER_COOLING_S = 120;
 const KMH_PER_KT = 1.852;
+const END_SWITCH_OVERTRAVEL_MAX_DEG = 5;
 
 const sessionAt = (phase: PhaseId) => createSession(ctslAircraft, { devices, phase });
 
@@ -164,10 +165,36 @@ describe('engine start', () => {
     session.release('ignition');
 
     session.set('choke', 'on');
-    crank(session, 3);
+    advanceSeconds(session, STARTER_COOLING_S - 3);
+    session.press('ignition', 'start');
+    advanceSeconds(session, 1);
+    expect(systems(session).starter.cranking).toBe(false);
+    session.release('ignition');
     expect(systems(session).engine.running).toBe(false);
 
-    advanceSeconds(session, STARTER_COOLING_S);
+    advanceSeconds(session, 2);
+    crank(session, 3);
+    expect(systems(session).engine.running).toBe(true);
+  });
+
+  it('counts cranking across back-to-back attempts against the starter limit', () => {
+    const session = sessionAt('parking');
+    readyToStart(session);
+    crank(session, STARTER_LIMIT_S / 2 + 1);
+    session.advance(STEP_MS);
+    session.press('ignition', 'start');
+    advanceSeconds(session, STARTER_LIMIT_S / 2);
+    expect(systems(session).starter.cranking).toBe(false);
+  });
+
+  it('restarts a hot engine without the choke after a short stop', () => {
+    const session = sessionAt('holding');
+    session.set('throttle', 'cruise');
+    advanceSeconds(session, 60);
+    session.set('throttle', 'idle');
+    session.set('ignition', 'off');
+    advanceSeconds(session, 60);
+    expect(systems(session).engine.running).toBe(false);
     crank(session, 3);
     expect(systems(session).engine.running).toBe(true);
   });
@@ -188,6 +215,15 @@ describe('engine start', () => {
     advanceSeconds(session, 30);
     expect(systems(session).oilTempC).toBeGreaterThan(cold.oilTempC);
     expect(systems(session).chtC).toBeGreaterThan(cold.chtC);
+  });
+
+  it('runs oil and CHT hotter with more power', () => {
+    const session = sessionAt('holding');
+    const idle = systems(session);
+    session.set('throttle', 'cruise');
+    advanceSeconds(session, 60);
+    expect(systems(session).oilTempC).toBeGreaterThan(idle.oilTempC + 10);
+    expect(systems(session).chtC).toBeGreaterThan(idle.chtC + 10);
   });
 
   it('runs at idle rpm after start', () => {
@@ -363,6 +399,8 @@ describe('electrical system', () => {
     session.set('outletBreaker', 'pulled');
     expect(systems(session).consumers.cockpitLight).toBe(true);
     expect(systems(session).consumers.outlet).toBe(false);
+    session.set('battery', 'pulled');
+    expect(systems(session).consumers.cockpitLight).toBe(false);
   });
 });
 
@@ -425,10 +463,12 @@ describe('flaps', () => {
     session.set('flapSelector', 'override-up');
     advanceSeconds(session, 30);
     expect(systems(session).flaps.angle).toBeLessThan(-12);
+    expect(systems(session).flaps.angle).toBeGreaterThan(-12 - END_SWITCH_OVERTRAVEL_MAX_DEG);
     expect(systems(session).flaps.moving).toBe(false);
     session.set('flapSelector', 'override-down');
     advanceSeconds(session, 60);
     expect(systems(session).flaps.angle).toBeGreaterThan(35);
+    expect(systems(session).flaps.angle).toBeLessThan(35 + END_SWITCH_OVERTRAVEL_MAX_DEG);
     expect(systems(session).flaps.moving).toBe(false);
   });
 });

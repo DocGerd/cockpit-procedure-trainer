@@ -1,5 +1,6 @@
 import { electricalBus, pistonEngineStart } from '@cpt/core';
 import type {
+  ControlId,
   ControlPosition,
   Environment,
   Magnetos,
@@ -9,6 +10,7 @@ import type {
   SystemsDefinition,
   TrainerState,
 } from '@cpt/core';
+import type { controls } from './controls';
 import type { CtslFailure } from './failures';
 
 export type CtslState = {
@@ -45,16 +47,11 @@ export type CtslTrainerState = TrainerState<CtslState>;
 
 type Throttle = 'idle' | 'low' | 'runup' | 'cruise' | 'full';
 
-// Limits from docs/aircraft/ctsl-intake.md §4. The other values are trainer assumptions, with time
-// constants compressed to fit the walk-through bound (M6 plan, pre-flight check f).
+// Intake values: docs/aircraft/ctsl-intake.md §4 and §5.
 const KMH_PER_KT = 1.852;
-const AMBIENT_TEMP_C = 15;
-
 const STARTER_LIMIT_MS = 10_000;
 const STARTER_COOLING_MS = 120_000;
-const CRANK_MS_TO_START = 1500;
 const WARM_OIL_C = 50;
-
 const IDLE_RPM = 1400;
 const MAX_CONTINUOUS_RPM = 5500;
 const GROUND_RPM: Record<Throttle, number> = {
@@ -67,15 +64,29 @@ const GROUND_RPM: Record<Throttle, number> = {
 const CLIMB_FULL_RPM = 4800;
 const BEST_CLIMB_KMH = 105;
 const LEVEL_FLIGHT_MAX_KMH = 240;
+const RELIGHT_MIN_RPM = 200;
+const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
+type FlapDetent = (typeof FLAP_DETENTS)[number];
+const LAST_FLAP_DETENT: FlapDetent = 35;
+const MAX_FLAP_SPEED_KMH: Record<FlapDetent, number> = {
+  [-12]: Infinity,
+  0: 184,
+  15: 148,
+  30: 115,
+  35: 115,
+};
+
+// Trainer assumptions. Warm-up time constants are compressed so that what a procedure waits for
+// settles inside the walk-through bound; cool-down is slow so a hot engine restarts without choke.
+const AMBIENT_TEMP_C = 15;
+const CRANK_MS_TO_START = 1500;
 const LEFT_CIRCUIT_DROP_RPM = 150;
 const RIGHT_CIRCUIT_DROP_RPM = 200;
 const WINDMILL_RPM_PER_KMH = 2;
-const RELIGHT_MIN_RPM = 200;
-
 const FUEL_IN_LINES_MS = 5000;
 const FUEL_FLOW_REFERENCE_RPM = GROUND_RPM.full;
-
-const TEMP_TIME_CONSTANT_MS = 20_000;
+const WARM_UP_TIME_CONSTANT_MS = 20_000;
+const COOL_DOWN_TIME_CONSTANT_MS = 1_200_000;
 const OIL_PRESSURE_TIME_CONSTANT_MS = 1000;
 const OIL_TEMP_IDLE_C = 60;
 const OIL_TEMP_MAX_POWER_C = 100;
@@ -87,14 +98,13 @@ const OIL_PRESSURE_COLD_EXTRA_BAR = 2;
 const COOLANT_LOSS_CHT_RISE_C = 80;
 const OIL_LOSS_TEMP_RISE_C = 50;
 const OIL_LOSS_SEIZURE_MS = 60_000;
-
-const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
 const FLAP_END_SWITCH_UP_DEG = -14;
 const FLAP_END_SWITCH_DOWN_DEG = 37;
 const FLAP_DEG_PER_MS = 5 / 1000;
-const MAX_FLAP_SPEED_KMH: Record<number, number> = { 0: 184, 15: 148, 30: 115, 35: 115 };
+const BATTERY_VOLTS = 12;
+const CHARGING_VOLTS = 14;
 
-const bus = electricalBus({ batteryVolts: 12, chargingVolts: 14 });
+const bus = electricalBus({ batteryVolts: BATTERY_VOLTS, chargingVolts: CHARGING_VOLTS });
 const engineBlock = pistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });
 
 export const initial: CtslState = {
@@ -208,8 +218,8 @@ const flapTarget = (
 };
 
 const maxFlapSpeedBeyond = (angle: number) => {
-  const next = FLAP_DETENTS.find((detent) => detent > angle) ?? FLAP_DETENTS.at(-1);
-  return next === undefined ? Infinity : (MAX_FLAP_SPEED_KMH[next] ?? Infinity);
+  const next = FLAP_DETENTS.find((detent) => detent > angle) ?? LAST_FLAP_DETENT;
+  return MAX_FLAP_SPEED_KMH[next];
 };
 
 const stepFlaps = (
@@ -233,7 +243,12 @@ const stepFlaps = (
   return { angle, moving: angle !== target };
 };
 
-const on = (controls: Positions, id: string, position = 'on') => controls[id] === position;
+type CtslControlId = ControlId<typeof controls>;
+
+const at = (controls: Positions, id: CtslControlId) => controls[id];
+
+const on = (controls: Positions, id: CtslControlId, position: ControlPosition = 'on') =>
+  at(controls, id) === position;
 
 export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
   state,
@@ -242,8 +257,8 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
   const airspeedKmh = environment.airspeedKt * KMH_PER_KT;
   const { onGround } = environment;
   const valveOpen = on(controls, 'fuelValve', 'open');
-  const throttle = throttleOf(controls.throttle);
-  const magnetos = magnetosOf(controls.ignition);
+  const throttle = throttleOf(at(controls, 'throttle'));
+  const magnetos = magnetosOf(at(controls, 'ignition'));
   const masterOn = on(controls, 'battery', 'in');
 
   const fuelInLinesMs = valveOpen
@@ -255,10 +270,12 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       );
   const seized = state.oilStarvedMs >= OIL_LOSS_SEIZURE_MS;
 
-  const keyAtStart = controls.ignition === 'start' && valveOpen;
+  const keyAtStart = on(controls, 'ignition', 'start') && valveOpen;
   const cooling = Math.max(0, state.starter.coolingMs - dtMs);
   const crankable = keyAtStart && masterOn && cooling === 0 && !state.engine.running;
-  const crankMs = crankable ? state.starter.crankMs + dtMs : 0;
+  const crankMs = crankable
+    ? state.starter.crankMs + dtMs
+    : Math.max(0, state.starter.crankMs - (dtMs * STARTER_LIMIT_MS) / STARTER_COOLING_MS);
   const overheated = crankMs >= STARTER_LIMIT_MS;
   const starter = overheated
     ? { cranking: false, crankMs: 0, coolingMs: STARTER_COOLING_MS }
@@ -297,6 +314,9 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       : windmillRpm(airspeedKmh, onGround);
 
   const settled = settledGauges(engine.running, rpm, state.oilTempC, failures);
+  const temperatureTimeConstant = engine.running
+    ? WARM_UP_TIME_CONSTANT_MS
+    : COOL_DOWN_TIME_CONSTANT_MS;
   const oilStarvedMs =
     engine.running && failures.has('oilLoss') ? state.oilStarvedMs + dtMs : state.oilStarvedMs;
 
@@ -305,7 +325,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     ? false
     : state.parkingBrakeSet || (brakeApplied && !state.brakeApplied);
 
-  const consumer = (rocker: string, breaker: string) =>
+  const consumer = (rocker: CtslControlId, breaker: CtslControlId) =>
     mainPowered && on(controls, rocker) && on(controls, breaker, 'in');
 
   return {
@@ -322,12 +342,12 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       dtMs,
       OIL_PRESSURE_TIME_CONSTANT_MS,
     ),
-    oilTempC: approach(state.oilTempC, settled.oilTempC, dtMs, TEMP_TIME_CONSTANT_MS),
-    chtC: approach(state.chtC, settled.chtC, dtMs, TEMP_TIME_CONSTANT_MS),
+    oilTempC: approach(state.oilTempC, settled.oilTempC, dtMs, temperatureTimeConstant),
+    chtC: approach(state.chtC, settled.chtC, dtMs, temperatureTimeConstant),
     flaps: stepFlaps(
       state.flaps,
       mainPowered && on(controls, 'flapBreaker', 'in'),
-      flapTarget(controls.flapSelector, failures),
+      flapTarget(at(controls, 'flapSelector'), failures),
       airspeedKmh,
       dtMs,
     ),
@@ -369,12 +389,12 @@ export const runningFrom = (
   const running = step(
     {
       ...initial,
-      engine: { running: true, crankMs: 0 },
+      engine: { ...engineBlock.initial, running: true },
       oilTempC: OIL_TEMP_MAX_POWER_C,
       fuelInLinesMs: FUEL_IN_LINES_MS,
-      flaps: { angle: detentAngle(controls.flapSelector), moving: false },
-      parkingBrakeSet: controls.parkingBrakeValve === 'closed',
-      brakeApplied: controls.brake === 'on',
+      flaps: { angle: detentAngle(at(controls, 'flapSelector')), moving: false },
+      parkingBrakeSet: on(controls, 'parkingBrakeValve', 'closed'),
+      brakeApplied: on(controls, 'brake'),
     },
     input,
   );
