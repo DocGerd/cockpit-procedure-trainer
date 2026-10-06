@@ -136,6 +136,21 @@ describe('Gtx327Screen natural size', () => {
     }
   });
 
+  it('lays the keys out as three rows of seven target-sized cells with no gap between targets', () => {
+    const { container } = show().view;
+    const grid = container.querySelector<HTMLElement>('button')?.parentElement;
+    expect(grid?.style.gridTemplateColumns).toBe('repeat(7, var(--size-target))');
+    expect(grid?.style.gridAutoRows).toBe('var(--size-target)');
+    expect(grid?.style.gap).toBe('0px');
+    expect(screen.getByRole('button', { name: 'START/STOP' }).style.gridColumn).toBe('span 2');
+  });
+
+  it('draws the space between keys inside each target', () => {
+    for (const button of show().view.container.querySelectorAll<HTMLElement>('button')) {
+      expect(button.style.boxShadow).toMatch(/^inset /);
+    }
+  });
+
   it('sets no text below the legibility floor', () => {
     const { container } = show().view;
     const sizes = [...container.querySelectorAll<HTMLElement>('*')]
