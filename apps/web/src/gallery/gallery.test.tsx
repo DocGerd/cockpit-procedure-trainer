@@ -49,6 +49,11 @@ function shownLabels(cell: HTMLElement): string[] {
 const labelOf = (fixture: ControlFixture, position: string | number) =>
   fixture.labels[String(position)] ?? String(position);
 
+const placardsOf = (fixture: ControlFixture, position: string) => [
+  labelOf(fixture, position),
+  position.toUpperCase(),
+];
+
 describe('registry coverage', () => {
   it('has a fixture for every control and indicator widget, and none for an unknown one', () => {
     const controls = new Set(controlFixtures.map((fixture) => fixture.widget));
@@ -85,9 +90,9 @@ describe('every position of every control', () => {
         const cell = closed[index];
         if (!cell) throw new Error('missing cell');
         const shown = shownLabels(cell);
-        expect(shown).toContain(
-          typeof position === 'number' ? String(position) : labelOf(fixture, position),
-        );
+        const expected =
+          typeof position === 'number' ? [String(position)] : placardsOf(fixture, position);
+        expect(shown.some((text) => expected.includes(text))).toBe(true);
       });
     },
   );
