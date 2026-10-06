@@ -21,7 +21,7 @@ const xpdr = (state: TrainerState<unknown>) => state.devices.xpdr?.state as Tran
 const testAircraft = defineAircraft({
   id: 'transponder-test',
   name: text('Testflugzeug', 'Test aircraft'),
-  handbookRevision: 'none, test fixture',
+  handbookRevision: text('keine, Testaufbau', 'none, test fixture'),
   controls: {
     bus: {
       kind: 'toggle',

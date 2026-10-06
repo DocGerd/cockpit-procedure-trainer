@@ -89,11 +89,22 @@ describe('CTSL normal procedures', () => {
   });
 
   it('states the handbook revision the procedures follow', () => {
-    expect(ctslAircraft.handbookRevision).toContain('AE04300003, revision 01');
+    expect(ctslAircraft.handbookRevision.en).toContain('AE04300003, revision 01');
+    expect(ctslAircraft.handbookRevision.de).toContain('AE04300003, Revision 01');
   });
 
   it.each(expected.map(([id]) => id))('%s completes with no deviations', (id) => {
     expect(walkProcedure(ctslAircraft, id, { devices })).toEqual({ ok: true });
+  });
+
+  it('engineStart needs its ignition BOTH step because the engine starts with the key off', () => {
+    const items = normalProcedures.engineStart.items as readonly Item[];
+    const toBoth = items.findIndex(
+      (item) => item.type === 'action' && item.control === 'ignition' && item.position === 'both',
+    );
+    expect(toBoth).toBeGreaterThanOrEqual(0);
+    const result = walkProcedure(without('engineStart', toBoth), 'engineStart', { devices });
+    expect(result).toMatchObject({ ok: false, reason: expect.stringMatching(/needs it at both/) });
   });
 
   it.each(['takeoff', 'shortTakeoff'] as const)(

@@ -67,9 +67,9 @@ so their literal positions survive the move, as `src/controls.ts` in the demo do
       systems, failures, phases, procedures,
     })
 
-Names, descriptions, guard names, failure names, titles and item texts are a
-`Text`, `{ de, en }`, and both languages must be non-empty. The demo wraps it as
-`text(de, en)` in `src/text.ts`. `handbookRevision` is a plain string.
+The handbook revision, names, descriptions, guard names, failure names, titles and
+item texts are a `Text`, `{ de, en }`, and both languages must be non-empty. The
+demo wraps it as `text(de, en)` in `src/text.ts`.
 
 ### Controls
 
@@ -156,8 +156,12 @@ definition with one line.
 
 `minWidth` is the narrowest rendered width, in CSS px, at which the view stays
 legible and operable: every touch target and installed-device button at least
-`--size-target`, no placard overfull, and all placards and lettering at least
-`--text-2xs`. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
+`--size-target`, no placard overfull, all placards and lettering at least
+`--text-2xs`, and no two operable targets (positions of one control included)
+overlapping, each taken as its rendered box grown to at least `--size-target`
+around its centre. Space placements apart to clear an overlap; one that only a
+higher floor could clear is accepted by name in the test's `acceptedOverlaps`,
+with what a tap loses there. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
 of every registered aircraft at exactly its `minWidth`, in English and German,
 and runs those checks. To find a floor, lower `minWidth` until the test fails and
 keep the last passing value; to confirm one, run `pnpm test:e2e floors`. Size the
@@ -165,7 +169,8 @@ cell widths in proportion to the floors so the arrangement wastes no width.
 
 The validator reports a `size` that is not a positive, finite width and height as
 `invalid-cockpit-size`, a view without a cell as `missing-cockpit-view`, a cell for
-a non-view as `unknown-cockpit-view`, a cell outside `size` as `cockpit-cell-outside`,
+a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
+`h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
 finite number as `invalid-cockpit-min-width`.
 
@@ -298,8 +303,9 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. `apps/web` runs it for every `normal` procedure of every
-registered aircraft.
+points at its item. It also fails a spring-back press unless the control rests at the
+position it springs back to, so a procedure must set that position first. `apps/web`
+runs it for every `normal` procedure of every registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 
@@ -330,8 +336,10 @@ Then run the project checks from the repository root:
 ## Package documents
 
 - `README.md` with a `## Source revision` section naming the handbook revision the
-  content follows, or stating that the aircraft is fictional. Set the same words
-  in `handbookRevision`, which the aircraft picker shows.
+  content follows, or stating that the aircraft is fictional. `handbookRevision`,
+  which the aircraft picker shows, is a `Text`: its `en` value carries the source
+  wording of the README section, its `de` value is a translation of it. The README
+  stays English.
 - `LICENSES.md` with one entry per image file path, naming its author and licence,
   as `packages/aircraft-demo/LICENSES.md` does. State plainly that none is based on
   a manufacturer's artwork or a handbook scan.

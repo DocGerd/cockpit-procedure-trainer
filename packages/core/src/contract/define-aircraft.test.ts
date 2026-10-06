@@ -55,7 +55,7 @@ const phase = {
 const view = { name: text, image: 'panel.png' } as const;
 const condition = (state: TrainerState<State>) => state.systems.on;
 
-const identity = { id: 'mini', name: text, handbookRevision: 'rev 1' } as const;
+const identity = { id: 'mini', name: text, handbookRevision: text } as const;
 
 const body = {
   controls: { master: toggle, cb: breaker },
@@ -263,9 +263,14 @@ describe('compile-time reference checks', () => {
 
   it('rejects an aircraft without name or handbookRevision', () => {
     // @ts-expect-error name is missing
-    defineAircraft({ id: 'mini', handbookRevision: 'rev 1', ...body });
+    defineAircraft({ id: 'mini', handbookRevision: text, ...body });
     // @ts-expect-error handbookRevision is missing
     defineAircraft({ id: 'mini', name: text, ...body });
+  });
+
+  it('rejects a handbookRevision that is a plain string', () => {
+    // @ts-expect-error handbookRevision must be a Text
+    defineAircraft({ id: 'mini', name: text, handbookRevision: 'rev 1', ...body });
   });
 
   it('rejects an appearance that holds a function', () => {

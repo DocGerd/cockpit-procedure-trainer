@@ -10,7 +10,7 @@ const initial = {};
 export const fixture: Aircraft = defineAircraft({
   id: 'fixture',
   name: text('Fixture'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: {
     master: {
       kind: 'toggle',

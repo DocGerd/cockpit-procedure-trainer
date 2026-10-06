@@ -155,6 +155,55 @@ export async function deviceTargets(root: Locator): Promise<string[]> {
     .map(({ label, size }) => `device button ${label} ${size.toFixed(1)}px`);
 }
 
+/** The finding for overlapping targets of one placement (`a`) or of two (`a and b`, sorted). */
+export const overlapProblem = (viewId: string, placements: string) =>
+  `${viewId}: touch targets of ${placements} overlap`;
+
+type Span = { from: number; to: number };
+
+/** At least the touch target long, centred on the rendered span, and never shorter than it. */
+const hitSpan = (from: number, to: number): Span => {
+  const middle = (from + to) / 2;
+  return {
+    from: Math.min(from, middle - TOUCH_TARGET_PX / 2),
+    to: Math.max(to, middle + TOUCH_TARGET_PX / 2),
+  };
+};
+
+const shared = (a: Span, b: Span) => Math.min(a.to, b.to) - Math.max(a.from, b.from);
+
+/**
+ * Placements whose operable targets, position targets and device buttons alike, overlap: each
+ * target covers its rendered box, grown to at least the touch target around its centre, since a
+ * tap anywhere in it can land on the neighbour.
+ */
+export async function targetOverlaps(root: Locator, viewId: string): Promise<string[]> {
+  const boxes = await root
+    .locator(':is([data-kind="control"], [data-kind="device"]) :is(button, [role="slider"])')
+    .evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const { left, right, top, bottom, width } = element.getBoundingClientRect();
+        if (width === 0) return [];
+        const placement = element.closest('[data-placement]')?.getAttribute('data-placement');
+        return [{ placement: placement ?? '', left, right, top, bottom }];
+      }),
+    );
+  const targets = boxes.map(({ placement, left, right, top, bottom }) => ({
+    placement,
+    x: hitSpan(left, right),
+    y: hitSpan(top, bottom),
+  }));
+  const found = new Set<string>();
+  targets.forEach((a, index) => {
+    for (const b of targets.slice(index + 1)) {
+      if (shared(a.x, b.x) <= TOLERANCE_PX || shared(a.y, b.y) <= TOLERANCE_PX) continue;
+      const pair = [...new Set([a.placement, b.placement])].sort();
+      found.add(overlapProblem(viewId, pair.join(' and ')));
+    }
+  });
+  return [...found];
+}
+
 const source = (url: string) => readFileSync(fileURLToPath(url), 'utf8');
 
 const viewBoxWidth = (svg: string) => Number(/viewBox="[\d.]+ [\d.]+ ([\d.]+)/.exec(svg)?.[1]);
@@ -281,5 +330,6 @@ export async function legibilityProblems(
     ...(await placardProblems(root, aircraft, viewId)),
     ...(await letteringProblems(root, aircraft, viewId)),
     ...(await deviceTargets(root)),
+    ...(await targetOverlaps(root, viewId)),
   ];
 }

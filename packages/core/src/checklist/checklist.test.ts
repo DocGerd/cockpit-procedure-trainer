@@ -80,8 +80,14 @@ function atConfirm() {
   return checkOff(checklist, pumpOn);
 }
 
+const magnetosOn = stateOf(
+  { master: 'on', fuelPump: 'on', ignition: 'both' },
+  { busPowered: true },
+);
+
 function atStarter() {
-  return checkOff(atConfirm(), pumpOn);
+  const confirmed = checkOff(atConfirm(), pumpOn);
+  return observeControl(confirmed, position('ignition', 'off', 'both'), magnetosOn);
 }
 
 describe('startChecklist', () => {
@@ -114,10 +120,10 @@ describe('action items', () => {
   });
 
   it('stay current while the target is at another position', () => {
-    const detent = stateOf({ master: 'on', fuelPump: 'on', ignition: 'both' });
-    const checklist = observeControl(atStarter(), position('ignition', 'off', 'both'), detent);
-    expect(checklist.current).toBe(4);
-    expect(checklist.completed).not.toContain(4);
+    const detent = stateOf({ master: 'on', fuelPump: 'on', ignition: 'off' });
+    const checklist = observeControl(atStarter(), position('ignition', 'both', 'off'), detent);
+    expect(checklist.current).toBe(5);
+    expect(checklist.completed).not.toContain(5);
     expect(checklist.deviations).toEqual([]);
   });
 
@@ -127,26 +133,26 @@ describe('action items', () => {
 
   it('with holdUntil complete only once the condition also holds', () => {
     let checklist = atStarter();
-    expect(checklist.current).toBe(4);
+    expect(checklist.current).toBe(5);
 
-    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
-    expect(checklist.current).toBe(4);
+    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
+    expect(checklist.current).toBe(5);
 
     checklist = observeState(checklist, cranking);
-    expect(checklist.current).toBe(4);
+    expect(checklist.current).toBe(5);
 
     checklist = observeState(checklist, running);
-    expect(checklist.completed).toContain(4);
-    expect(checklist.current).toBe(5);
+    expect(checklist.completed).toContain(5);
+    expect(checklist.current).toBe(6);
   });
 
   it('with holdUntil do not complete when the target was released first', () => {
     let checklist = atStarter();
-    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
+    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
     const letGo = stateOf({ master: 'on', fuelPump: 'on', ignition: 'both' });
     checklist = observeControl(checklist, position('ignition', 'start', 'both', 'spring'), letGo);
     checklist = observeState(checklist, released);
-    expect(checklist.current).toBe(4);
+    expect(checklist.current).toBe(5);
   });
 
   it('complete at once when already satisfied as they become current', () => {
@@ -206,11 +212,11 @@ describe('check and confirm items', () => {
   });
 
   it('finish the procedure when the last item completes', () => {
-    let checklist = observeControl(atStarter(), position('ignition', 'off', 'start'), running);
-    expect(checklist.current).toBe(5);
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
+    expect(checklist.current).toBe(6);
     checklist = checkOff(checklist, running);
     expect(checklist.done).toBe(true);
-    expect(checklist.completed).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(checklist.completed).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(checklist.deviations).toEqual([]);
   });
 });
@@ -252,12 +258,12 @@ describe('deviations', () => {
       { master: 'on', fuelPump: 'on', ignition: 'start', throttle: 0.5 },
       { busPowered: true, engineRunning: true, rpm: 1500 },
     );
-    const cranked = observeControl(atStarter(), position('ignition', 'off', 'start'), cranking);
+    const cranked = observeControl(atStarter(), position('ignition', 'both', 'start'), cranking);
     const checklist = observeControl(cranked, position('throttle', 0, 0.5), throttled);
-    expect(checklist.completed).toContain(4);
-    expect(checklist.current).toBe(5);
+    expect(checklist.completed).toContain(5);
+    expect(checklist.current).toBe(6);
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 4, controlId: 'throttle' },
+      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle' },
     ]);
   });
 
@@ -288,8 +294,8 @@ describe('deviations', () => {
   });
 
   it('never record spring changes, such as a released starter', () => {
-    let checklist = observeControl(atStarter(), position('ignition', 'off', 'start'), running);
-    expect(checklist.current).toBe(5);
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
+    expect(checklist.current).toBe(6);
     checklist = observeControl(
       checklist,
       position('ignition', 'start', 'both', 'spring'),
@@ -507,7 +513,7 @@ describe('consecutive spring-back actions', () => {
       ],
     };
     let checklist = startChecklist(procedure, stateOf(), controls);
-    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
+    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
     expect(checklist.current).toBe(0);
     checklist = observeState(checklist, running);
     expect(checklist.done).toBe(true);

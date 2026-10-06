@@ -70,7 +70,7 @@ const facing = (phase: keyof typeof phaseHeadings, state: DemoState): DemoState 
 export const demoAircraft = defineAircraft({
   id: 'demo',
   name: text('Demo-Flugzeug', 'Demo aircraft'),
-  handbookRevision: 'fictional aircraft; no handbook',
+  handbookRevision: text('Fiktives Flugzeug; kein Handbuch', 'fictional aircraft; no handbook'),
   controls,
   indicators,
   views: {
@@ -79,11 +79,11 @@ export const demoAircraft = defineAircraft({
       image: images.panel,
       size: { width: 1406, height: 660 },
       controls: {
-        battery: { rect: { x: 40, y: 375, w: 118, h: 210 } },
-        alternator: { rect: { x: 163, y: 375, w: 118, h: 210 } },
-        avionics: { rect: { x: 286, y: 375, w: 118, h: 210 } },
-        annunciator: { rect: { x: 409, y: 375, w: 118, h: 210 } },
-        starter: { rect: { x: 532, y: 375, w: 118, h: 210 } },
+        battery: { rect: { x: 34, y: 371, w: 110, h: 210 } },
+        alternator: { rect: { x: 146, y: 371, w: 110, h: 210 } },
+        avionics: { rect: { x: 258, y: 375, w: 118, h: 210 } },
+        annunciator: { rect: { x: 410, y: 366, w: 100, h: 210 } },
+        starter: { rect: { x: 544, y: 375, w: 118, h: 210 } },
         magnetos: { rect: { x: 688, y: 345, w: 270, h: 270 } },
         alternatorBreaker: { rect: { x: 978, y: 363, w: 196, h: 235 } },
         avionicsBreaker: { rect: { x: 1174, y: 363, w: 196, h: 235 } },

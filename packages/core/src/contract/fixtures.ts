@@ -67,7 +67,7 @@ const rect = (x: number, y: number) => ({ rect: { x, y, w: 40, h: 40 } });
 export const fixtureAircraft = defineAircraft({
   id: 'fixture',
   name: text('Testflugzeug', 'Test aircraft'),
-  handbookRevision: 'fixture rev 1',
+  handbookRevision: text('Teststand 1', 'fixture rev 1'),
   controls: {
     master: {
       kind: 'toggle',
@@ -275,6 +275,12 @@ export const fixtureAircraft = defineAircraft({
         {
           type: 'confirm',
           text: text('Propellerbereich frei', 'Propeller area clear'),
+        },
+        {
+          type: 'action',
+          control: 'ignition',
+          position: 'both',
+          text: text('Zündung BEIDE', 'Ignition BOTH'),
         },
         {
           type: 'action',

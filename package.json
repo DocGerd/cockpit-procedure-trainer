@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "pnpm --filter @cpt/web dev",
     "build": "pnpm --filter @cpt/web build",
-    "lint": "eslint . && stylelint \"apps/**/*.css\" --allow-empty-input",
+    "lint": "eslint . && stylelint \"{apps,packages}/**/*.css\" --allow-empty-input",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r exec tsc --noEmit",

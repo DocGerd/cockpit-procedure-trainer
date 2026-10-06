@@ -97,6 +97,13 @@ describe('Gpsmap496Screen controls', () => {
   });
 });
 
+describe('Gpsmap496Screen styling', () => {
+  it('renders no style element, which a strict content security policy would block', () => {
+    const { view } = show();
+    expect(view.container.querySelector('style')).toBeNull();
+  });
+});
+
 describe('Gpsmap496Screen natural size', () => {
   it('gives every button the touch-target minimum', () => {
     const buttons = [...show().view.container.querySelectorAll<HTMLElement>('button')];

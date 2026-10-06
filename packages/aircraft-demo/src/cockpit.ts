@@ -11,7 +11,7 @@ export const cockpit = {
   size: { width: 1300, height: 673 },
   views: {
     panel: cell(0, 0, 649, 305, 649),
-    console: cell(73, 321, 503, 352, 503),
     avionics: cell(665, 122, 635, 429, 635),
+    console: cell(73, 321, 503, 352, 503),
   },
 } as const satisfies CockpitLayout<'panel' | 'console' | 'avionics'>;

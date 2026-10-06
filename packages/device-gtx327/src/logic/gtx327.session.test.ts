@@ -24,7 +24,7 @@ const action = (control: `${string}.${string}`, position: string, label: string)
 const testAircraft = defineAircraft({
   id: 'gtx327-test',
   name: text('Testflugzeug', 'Test aircraft'),
-  handbookRevision: 'none, test fixture',
+  handbookRevision: text('keine, Testaufbau', 'none, test fixture'),
   controls: {
     bus: {
       kind: 'toggle',

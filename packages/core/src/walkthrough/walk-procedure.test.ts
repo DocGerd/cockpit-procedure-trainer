@@ -31,7 +31,7 @@ const clockAircraft = (items: Items, step?: SystemsDefinition<ClockState>['step'
   defineAircraft({
     id: 'clock',
     name: text('Uhr', 'Clock'),
-    handbookRevision: 'fixture',
+    handbookRevision: text('Testaufbau', 'fixture'),
     controls: {
       master: {
         kind: 'toggle',
@@ -105,6 +105,20 @@ const masterOn = {
   control: 'master',
   position: 'on',
   text: text('Haupt EIN', 'Master ON'),
+} as const;
+
+const keyBoth = {
+  type: 'action',
+  control: 'key',
+  position: 'both',
+  text: text('Schlüssel BEIDE', 'Key to BOTH'),
+} as const;
+
+const keyStart = {
+  type: 'action',
+  control: 'key',
+  position: 'start',
+  text: text('Starten', 'Key to START'),
 } as const;
 
 describe('walkProcedure', () => {
@@ -191,13 +205,18 @@ describe('walkProcedure', () => {
   });
 
   it('presses once per consecutive item on a spring-back detent', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      text: text('Starten', 'Key to START'),
-    } as const;
-    expect(walk([start, start])).toEqual({ ok: true });
+    expect(walk([keyBoth, keyStart, keyStart])).toEqual({ ok: true });
+  });
+
+  it('fails a spring-back press while the control is not at its resting position', () => {
+    expect(walk([keyStart])).toEqual({
+      ok: false,
+      aircraft: 'clock',
+      procedure: 'run',
+      itemIndex: 0,
+      item: 'Key to START',
+      reason: 'key is at off, a press to start needs it at both',
+    });
   });
 
   it('advances time for a hold condition on a control that is not momentary', () => {
@@ -272,36 +291,24 @@ describe('walkProcedure', () => {
   });
 
   it('presses a spring-back detent and releases it', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      text: text('Starten', 'Key to START'),
-    } as const;
     const released = {
       type: 'check',
       target: { control: 'key' },
       condition: keyReleased,
       text: text('Zurückgefedert', 'Key sprang back'),
     } as const;
-    expect(walk([start, released])).toEqual({ ok: true });
+    expect(walk([keyBoth, keyStart, released])).toEqual({ ok: true });
   });
 
   it('holds a spring-back detent until the hold condition is met', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      holdUntil: keyMs(500),
-      text: text('Starten', 'Key to START'),
-    } as const;
+    const start = { ...keyStart, holdUntil: keyMs(500) } as const;
     const released = {
       type: 'check',
       target: { control: 'key' },
       condition: keyReleased,
       text: text('Zurückgefedert', 'Key sprang back'),
     } as const;
-    expect(walk([start, released])).toEqual({ ok: true });
+    expect(walk([keyBoth, start, released])).toEqual({ ok: true });
   });
 
   it('fails an item once the systems model has failed', () => {

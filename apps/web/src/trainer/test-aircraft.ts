@@ -13,7 +13,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
   return defineAircraft({
     id,
     name: text(name),
-    handbookRevision: 'test',
+    handbookRevision: text('test'),
     controls: {
       master: {
         kind: 'toggle',
