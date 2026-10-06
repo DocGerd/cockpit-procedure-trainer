@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 const base = process.env.BASE_PATH ?? '/';
 const port = Number(process.env.E2E_PORT ?? 4399);
+const offlineSpec = /offline\.spec\.ts$/;
 const origin = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
@@ -23,7 +24,10 @@ export default defineConfig({
     serviceWorkers: 'block',
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium' }],
+  projects: [
+    { name: 'chromium', testIgnore: offlineSpec },
+    { name: 'offline', testMatch: offlineSpec, use: { serviceWorkers: 'allow' } },
+  ],
   webServer: {
     command: `pnpm run build && pnpm exec vite preview --host 127.0.0.1 --port ${port} --strictPort`,
     url: `${origin}${base}`,
