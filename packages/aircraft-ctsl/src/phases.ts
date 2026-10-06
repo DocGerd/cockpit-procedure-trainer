@@ -1,4 +1,5 @@
 import type { ControlId, Environment, PhaseDefinition, PositionOf } from '@cpt/core';
+import { phaseHeadings } from './airfield';
 import { images } from './assets';
 import type { controls } from './controls';
 import { initial, runningFrom } from './systems';
@@ -67,18 +68,29 @@ const cruiseEnvironment: Environment = { airspeedKt: 108, altitudeFt: 2500, onGr
 const approachEnvironment: Environment = { airspeedKt: 59, altitudeFt: 500, onGround: false };
 const landingEnvironment: Environment = { airspeedKt: 54, altitudeFt: 3, onGround: false };
 
+const facing = (phase: keyof typeof phaseHeadings, state: CtslState): CtslState => ({
+  ...state,
+  headingDeg: phaseHeadings[phase],
+});
+
 export const phases = {
   parking: {
     name: text('Parkposition', 'Parking'),
     image: images.parking,
     environment: ground(),
-    entry: { controls: parked, state: initial },
+    entry: { controls: parked, state: facing('parking', initial) },
   },
   holding: {
     name: text('Rollhalt', 'Holding point'),
     image: images.holding,
     environment: ground(),
-    entry: { controls: holdingShort, state: runningFrom(holdingShort) },
+    entry: { controls: holdingShort, state: facing('holding', runningFrom(holdingShort)) },
+  },
+  linedUp: {
+    name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
+    image: images.linedUp,
+    environment: ground(),
+    entry: { controls: holdingShort, state: facing('linedUp', runningFrom(holdingShort)) },
   },
   departure: {
     name: text('Abflug', 'Departure'),
@@ -86,7 +98,7 @@ export const phases = {
     environment: departureEnvironment,
     entry: {
       controls: departing,
-      state: runningFrom(departing, departureEnvironment),
+      state: facing('departure', runningFrom(departing, departureEnvironment)),
       guards: pinOut,
     },
   },
@@ -94,7 +106,11 @@ export const phases = {
     name: text('Reiseflug', 'Cruise'),
     image: images.cruise,
     environment: cruiseEnvironment,
-    entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment), guards: pinOut },
+    entry: {
+      controls: cruising,
+      state: facing('cruise', runningFrom(cruising, cruiseEnvironment)),
+      guards: pinOut,
+    },
   },
   approach: {
     name: text('Anflug', 'Approach'),
@@ -102,7 +118,7 @@ export const phases = {
     environment: approachEnvironment,
     entry: {
       controls: approaching,
-      state: runningFrom(approaching, approachEnvironment),
+      state: facing('approach', runningFrom(approaching, approachEnvironment)),
       guards: pinOut,
     },
   },
@@ -110,20 +126,28 @@ export const phases = {
     name: text('Landung', 'Landing'),
     image: images.landing,
     environment: landingEnvironment,
-    entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment), guards: pinOut },
+    entry: {
+      controls: flaring,
+      state: facing('landing', runningFrom(flaring, landingEnvironment)),
+      guards: pinOut,
+    },
   },
   taxiIn: {
     name: text('Rollen zum Vorfeld', 'Taxi in'),
     image: images.taxiIn,
     environment: ground(),
-    entry: { controls: taxiingIn, state: runningFrom(taxiingIn), guards: pinOut },
+    entry: { controls: taxiingIn, state: facing('taxiIn', runningFrom(taxiingIn)), guards: pinOut },
   },
   parkingSecuring: {
     name: text('Parken und Sichern', 'Parking and securing'),
     image: images.parkingSecuring,
     environment: ground(),
-    entry: { controls: securing, state: runningFrom(securing), guards: pinOut },
+    entry: {
+      controls: securing,
+      state: facing('parkingSecuring', runningFrom(securing)),
+      guards: pinOut,
+    },
   },
-} as const satisfies Record<string, PhaseDefinition<CtslState, Controls>>;
+} as const satisfies Record<keyof typeof phaseHeadings, PhaseDefinition<CtslState, Controls>>;
 
 export type PhaseId = keyof typeof phases;

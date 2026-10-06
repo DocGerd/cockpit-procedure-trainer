@@ -34,7 +34,7 @@ const controlArtwork = Object.entries(controls as Record<string, ControlDefiniti
     return artwork ? [{ id, control, artwork }] : [];
   },
 );
-const gaugeArtwork = Object.entries(
+const indicatorArtwork = Object.entries(
   indicators as Record<string, IndicatorDefinition<unknown>>,
 ).flatMap(([id, indicator]) => {
   const artwork = artworkOf(indicator.appearance);
@@ -46,7 +46,7 @@ const urlsOf = ({ face, moving }: Artwork): string[] => [
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
 ];
 const used = new Set(
-  [...controlArtwork, ...gaugeArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
+  [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
 );
 
 describe('CTSL artwork files', () => {
@@ -66,7 +66,7 @@ describe('CTSL artwork files', () => {
   });
 
   it('keeps a moving image the size of its face, with explicit pixel dimensions', () => {
-    for (const { id, artwork } of [...controlArtwork, ...gaugeArtwork]) {
+    for (const { id, artwork } of [...controlArtwork, ...indicatorArtwork]) {
       const face = sizeOf(artwork.face);
       expect(face.width, id).toBeDefined();
       expect([face.width, face.height], id).toEqual(face.box);
@@ -77,7 +77,42 @@ describe('CTSL artwork files', () => {
   });
 });
 
+describe('CTSL compass', () => {
+  it('turns a full card under the lubber line, so the heading reads at the top', () => {
+    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    expect(moving?.type).toBe('needle');
+    if (moving?.type !== 'needle') return;
+    expect(moving.valueRange).toEqual({ min: 0, max: 360 });
+    expect(moving.angleRange).toEqual({ min: 0, max: -360 });
+    expect(moving.pivot).toEqual({ x: 100, y: 100 });
+  });
+
+  it('turns the card so heading 090 shows E at the top', () => {
+    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    if (moving?.type !== 'needle') throw new Error('the compass card turns as a needle');
+    const svg = read(moving.image);
+    const placed = (point: string) =>
+      Number(new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(svg)?.[1]);
+    const cardTurn = (headingDeg: number) =>
+      (headingDeg / moving.valueRange.max) * moving.angleRange.max;
+    const atTop = (point: string, headingDeg: number) =>
+      (((placed(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
+    expect(atTop('N', 360)).toBe(true);
+    expect(atTop('E', 90)).toBe(true);
+    expect(atTop('S', 180)).toBe(true);
+    expect(atTop('W', 270)).toBe(true);
+  });
+
+  it('letters the card with the cardinal points', () => {
+    const card = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    const svg = card?.type === 'needle' ? read(card.image) : '';
+    for (const point of ['N', 'E', 'S', 'W']) expect(svg).toContain(`>${point}</text>`);
+  });
+});
+
 describe('CTSL gauges', () => {
+  const gaugeArtwork = indicatorArtwork.filter(({ id }) => id !== 'compass');
+
   const scales: Record<string, { min: number; max: number }> = {
     airspeed: { min: 40, max: 300 },
     tachometer: { min: 0, max: 7000 },

@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
+import { headingLabel, runway } from '../airfield';
 import { normalProcedures } from './normal';
 
 const devices = testDevices;
@@ -12,8 +13,8 @@ const expected = [
   ['preflight', 'parking', undefined],
   ['engineStart', 'parking', undefined],
   ['beforeTakeoff', 'holding', undefined],
-  ['takeoff', 'holding', 'departure'],
-  ['shortTakeoff', 'holding', 'departure'],
+  ['takeoff', 'linedUp', 'departure'],
+  ['shortTakeoff', 'linedUp', 'departure'],
   ['climbCruise', 'departure', 'cruise'],
   ['descent', 'cruise', 'approach'],
   ['beforeLanding', 'approach', undefined],
@@ -94,6 +95,18 @@ describe('CTSL normal procedures', () => {
   it.each(expected.map(([id]) => id))('%s completes with no deviations', (id) => {
     expect(walkProcedure(ctslAircraft, id, { devices })).toEqual({ ok: true });
   });
+
+  it.each(['takeoff', 'shortTakeoff'] as const)(
+    'starts %s lined up with a compass check against the runway heading',
+    (id) => {
+      const first = normalProcedures[id].items[0] as Item;
+      expect(first.type).toBe('confirm');
+      expect(first.text.en).toContain(headingLabel(runway.headingDeg));
+      expect(first.text.en).toContain(`runway ${runway.designator}`);
+      expect(first.text.de).toContain(headingLabel(runway.headingDeg));
+      expect(first.text.de).toContain(`Piste ${runway.designator}`);
+    },
+  );
 
   it('enters departure with the flaps where the take-off leaves them', () => {
     const flapActions = (normalProcedures.takeoff.items as readonly Item[]).filter(

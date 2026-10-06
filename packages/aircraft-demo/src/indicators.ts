@@ -66,6 +66,11 @@ export const indicators = {
     select: oilPressureLit,
     appearance: { widget: 'annunciator', options: { lamp: 'red' } },
   },
+  compass: {
+    name: text('Kompass', 'Compass'),
+    select: (state: DemoTrainerState) => state.systems.headingDeg,
+    appearance: { widget: 'digital-readout', options: { units: '°', decimals: 0 } },
+  },
   hourMeter: {
     name: text('Betriebsstunden', 'Hour meter'),
     select: (state: DemoTrainerState) => state.systems.engineHours,

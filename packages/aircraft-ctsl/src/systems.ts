@@ -10,6 +10,7 @@ import type {
   SystemsDefinition,
   TrainerState,
 } from '@cpt/core';
+import { phaseHeadings } from './airfield';
 import type { controls } from './controls';
 import type { CtslFailure } from './failures';
 
@@ -33,6 +34,8 @@ export type CtslState = {
   fuelInLinesMs: number;
   oilStarvedMs: number;
   brakeApplied: boolean;
+  /** Set by the phase entry; nothing turns the aircraft within a phase. */
+  headingDeg: number;
   consumers: {
     beacon: boolean;
     positionLights: boolean;
@@ -127,6 +130,7 @@ export const initial: CtslState = {
   fuelInLinesMs: 0,
   oilStarvedMs: 0,
   brakeApplied: false,
+  headingDeg: phaseHeadings.parking,
   consumers: {
     beacon: false,
     positionLights: false,
@@ -363,6 +367,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     fuelInLinesMs,
     oilStarvedMs,
     brakeApplied,
+    headingDeg: state.headingDeg,
     consumers: {
       beacon: consumer('beacon', 'strobeBreaker'),
       positionLights: consumer('positionLights', 'positionBreaker'),

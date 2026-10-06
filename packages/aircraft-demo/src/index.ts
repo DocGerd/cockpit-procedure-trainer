@@ -2,9 +2,10 @@ import { defineAircraft } from '@cpt/core';
 import type { Environment } from '@cpt/core';
 import { images } from './assets';
 import { controls } from './controls';
+import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
 import { initial, lowVoltageLit, oilPressureLit, runningFrom, step } from './systems';
-import type { DemoFailure, DemoTrainerState } from './systems';
+import type { DemoFailure, DemoState, DemoTrainerState } from './systems';
 import { text } from './text';
 
 const parked = {
@@ -33,6 +34,7 @@ const idling = {
   mixture: 1,
 } as const;
 
+const linedUpControls = { ...idling, flaps: 'takeoff' } as const;
 const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
 const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
@@ -59,6 +61,11 @@ const transponder = (state: DemoTrainerState) =>
 const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
 const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
+const facing = (phase: keyof typeof phaseHeadings, state: DemoState): DemoState => ({
+  ...state,
+  headingDeg: phaseHeadings[phase],
+});
+
 export const demoAircraft = defineAircraft({
   id: 'demo',
   name: text('Demo-Flugzeug', 'Demo aircraft'),
@@ -84,7 +91,8 @@ export const demoAircraft = defineAircraft({
         tachometer: { rect: { x: 45, y: 50, w: 260, h: 260 } },
         oilPressure: { rect: { x: 330, y: 50, w: 260, h: 260 } },
         ammeter: { rect: { x: 615, y: 50, w: 260, h: 260 } },
-        hourMeter: { rect: { x: 950, y: 50, w: 380, h: 126 } },
+        hourMeter: { rect: { x: 910, y: 50, w: 220, h: 126 } },
+        compass: { rect: { x: 1140, y: 50, w: 220, h: 126 } },
         lowVoltageLamp: { rect: { x: 915, y: 200, w: 210, h: 90 } },
         oilPressureLamp: { rect: { x: 1150, y: 200, w: 210, h: 90 } },
       },
@@ -135,49 +143,67 @@ export const demoAircraft = defineAircraft({
       name: text('Parkposition', 'Parking'),
       image: images.parking,
       environment: ground(),
-      entry: { controls: parked, state: initial },
+      entry: { controls: parked, state: facing('parking', initial) },
     },
     holding: {
       name: text('Rollhalt', 'Holding point'),
       image: images.holding,
       environment: ground(),
-      entry: { controls: idling, state: runningFrom(idling) },
+      entry: { controls: idling, state: facing('holding', runningFrom(idling)) },
+    },
+    linedUp: {
+      name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
+      image: images.linedUp,
+      environment: ground(),
+      entry: { controls: linedUpControls, state: facing('linedUp', runningFrom(linedUpControls)) },
     },
     departure: {
       name: text('Abflug', 'Departure'),
       image: images.departure,
       environment: departureEnvironment,
-      entry: { controls: departing, state: runningFrom(departing, departureEnvironment) },
+      entry: {
+        controls: departing,
+        state: facing('departure', runningFrom(departing, departureEnvironment)),
+      },
     },
     cruise: {
       name: text('Reiseflug', 'Cruise'),
       image: images.cruise,
       environment: cruiseEnvironment,
-      entry: { controls: cruising, state: runningFrom(cruising, cruiseEnvironment) },
+      entry: {
+        controls: cruising,
+        state: facing('cruise', runningFrom(cruising, cruiseEnvironment)),
+      },
     },
     approach: {
       name: text('Anflug', 'Approach'),
       image: images.approach,
       environment: approachEnvironment,
-      entry: { controls: approaching, state: runningFrom(approaching, approachEnvironment) },
+      entry: {
+        controls: approaching,
+        state: facing('approach', runningFrom(approaching, approachEnvironment)),
+      },
     },
     landing: {
       name: text('Landung', 'Landing'),
       image: images.landing,
       environment: landingEnvironment,
-      entry: { controls: flaring, state: runningFrom(flaring, landingEnvironment) },
+      entry: {
+        controls: flaring,
+        state: facing('landing', runningFrom(flaring, landingEnvironment)),
+      },
     },
     taxiIn: {
       name: text('Rollen zum Vorfeld', 'Taxi in'),
       image: images.taxiIn,
       environment: ground(),
-      entry: { controls: taxiingIn, state: runningFrom(taxiingIn) },
+      entry: { controls: taxiingIn, state: facing('taxiIn', runningFrom(taxiingIn)) },
     },
     parkingSecuring: {
       name: text('Parken und Sichern', 'Parking and securing'),
       image: images.parkingSecuring,
       environment: ground(),
-      entry: { controls: idling, state: runningFrom(idling) },
+      entry: { controls: idling, state: facing('parkingSecuring', runningFrom(idling)) },
     },
   },
   procedures: {
@@ -340,6 +366,40 @@ export const demoAircraft = defineAircraft({
             'Türen verriegelt, Gurte fest, Steuerung frei',
             'Doors latched, harnesses tight, controls free',
           ),
+        },
+      ],
+    },
+    takeoff: {
+      title: text('Startlauf', 'Take-off roll'),
+      type: 'normal',
+      startPhase: 'linedUp',
+      endPhase: 'departure',
+      items: [
+        {
+          type: 'confirm',
+          text: text(
+            `Auf der Mittellinie der Piste ${runway.designator} ausgerichtet`,
+            `Lined up on the centreline of runway ${runway.designator}`,
+          ),
+        },
+        {
+          type: 'confirm',
+          text: text(
+            `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator}`,
+            `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`,
+          ),
+        },
+        {
+          type: 'action',
+          control: 'throttle',
+          position: 1,
+          text: text('Leistungshebel auf Vollgas', 'Throttle full'),
+        },
+        {
+          type: 'check',
+          target: { indicator: 'tachometer' },
+          condition: (state) => state.systems.rpm >= 2350,
+          text: text('Volle Drehzahl erreicht', 'Full rpm reached'),
         },
       ],
     },
