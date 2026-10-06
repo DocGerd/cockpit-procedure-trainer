@@ -20,8 +20,9 @@ Target sizes, in this order (ADR-0002, owner comment on #253):
    the HD case, rendered sharper.
 3. Tablet and smaller: stay usable through tabs. No layout work targets them.
 
-Out of scope: a 3D renderer, the airfield definition of #254, target overlap
-between neighbouring controls (Decision 7; checked since #271).
+Out of scope: a 3D renderer and the airfield definition of #254. Target overlap
+between neighbouring controls was left out of this design; #271 later added its
+check (Decision 7).
 
 ## 2. The switch rule
 
@@ -313,14 +314,16 @@ and dark, each mode; one tablet size to confirm tabs still work.
 6. **Zoom stays per view in combined.** Reason: least change; a pinch on one
    unit is what a pilot means.
 7. **Target overlap is checked at the floors but does not set them.** The floor
-   test fails when the 44 px squares centred on two operable targets of a view
-   overlap, whether positions of one control or two controls (#271). Overlaps
-   that spacing can remove are fixed. The rest, the positions of small
-   multi-position controls and the CTSL breaker rows as fitted, would need
-   higher floors and so the loss of the HD fit; `apps/web/e2e/floors.spec.ts`
-   accepts each by name with its reason and fails once an accepted overlap is
-   gone. Quality sacrificed: touch precision on those controls (accessibility,
-   rank 2) for the whole cockpit in view (Training UX, rank 2) and the fitted
+   test fails when two operable targets of a view overlap, each taken as its
+   rendered box grown to at least the touch target around its centre, whether
+   positions of one control or two controls (#271). Overlaps that spacing can
+   remove are fixed. The rest, the positions of small multi-position controls
+   and the CTSL breaker rows as fitted, would need higher floors and so the
+   loss of the HD fit; `apps/web/e2e/floors.spec.ts` accepts each by name with
+   what a tap loses there (a position only partly tappable, or its centre
+   landing on the next position) and fails once an accepted overlap is gone.
+   Quality sacrificed: touch precision on those controls (accessibility, rank
+   2) for the whole cockpit in view (Training UX, rank 2) and the fitted
    breaker rows (realism, rank 2).
 8. **4K means 3840x2160 CSS px at DPR 1.** Reason: that is the case with the
    most room; DPR 2 is the HD case.

@@ -9,30 +9,29 @@ import {
   showView,
 } from './legibility';
 
-const TOGGLE =
-  'two-position switch: its positions are closer than a touch target in this placement';
-const DETENTS = 'its detents are closer than a touch target at this control size';
+const COVERED = 'only partly tappable, its centre lands on the next position';
+const PARTLY = 'partly covered by the next position, its centre still its own';
 const BREAKER_ROW =
-  'breakers three abreast as fitted (ctsl-intake §3.2), closer than a touch target';
+  'rows as fitted (ctsl-intake §3.2): each left breaker partly covered by its right';
 
 /**
  * Overlapping touch targets accepted per aircraft and view, keyed by the placement or placement
- * pair the finding names. Spacing any of them out needs a higher floor, which loses the combined
- * layout at 1920x1080 (one-viewport design, Decision 7).
+ * pair the finding names, each with what a tap loses. Spacing any of them out needs a higher
+ * floor, which loses the combined layout at 1920x1080 (one-viewport design, Decision 7).
  */
 const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<string, string>>>>> =
   {
     demo: {
       panel: {
-        battery: TOGGLE,
-        alternator: TOGGLE,
-        avionics: TOGGLE,
-        annunciator: `three-position rotary knob: ${DETENTS}`,
-        magnetos: `four-position rotary knob: ${DETENTS}`,
+        battery: `two-position switch: OFF ${COVERED}`,
+        alternator: `two-position switch: OFF ${COVERED}`,
+        avionics: `two-position switch: OFF ${COVERED}`,
+        annunciator: `three-position rotary knob: DIM and BRIGHT each ${COVERED}`,
+        magnetos: `four-position rotary knob: OFF, RIGHT and LEFT each ${PARTLY}`,
       },
       console: {
-        flaps: `three-detent lever: ${DETENTS}`,
-        fuelSelector: `four-position selector: ${DETENTS}`,
+        flaps: `three-detent lever: UP and TAKEOFF each ${PARTLY}`,
+        fuelSelector: `four-position selector: OFF and RIGHT each ${COVERED}`,
       },
     },
     ctsl: {
@@ -43,7 +42,7 @@ const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<s
         'landingBreaker and strobeBreaker': BREAKER_ROW,
       },
       centre: {
-        elt: TOGGLE,
+        elt: `two-position switch: ARMED ${PARTLY}`,
       },
     },
   };
