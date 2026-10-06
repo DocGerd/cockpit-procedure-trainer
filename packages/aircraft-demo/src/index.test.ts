@@ -75,6 +75,44 @@ describe('demo aircraft', () => {
     for (const phase of Object.values(demoAircraft.phases)) expect(phase.image).not.toBe('');
   });
 
+  it('lists the phases of a whole flight in flight order', () => {
+    expect(Object.keys(demoAircraft.phases)).toEqual([
+      'parking',
+      'holding',
+      'departure',
+      'cruise',
+      'approach',
+      'landing',
+      'taxiIn',
+      'parkingSecuring',
+    ]);
+  });
+
+  it.each(Object.keys(demoAircraft.phases).filter((id) => id !== 'parking'))(
+    'enters the %s phase with the engine running',
+    (id) => {
+      const session = createSession(demoAircraft, { devices, phase: id });
+      expect(systems(session).engine.running).toBe(true);
+      run(session, STEP_MS);
+      expect(systems(session).engine.running).toBe(true);
+    },
+  );
+
+  it('ends the shutdown with the controls of the cold parked aircraft and a dead bus', () => {
+    const session = createSession(demoAircraft, { devices, phase: 'parkingSecuring' });
+    session.startProcedure('shutdownSecuring');
+    for (const item of demoAircraft.procedures.shutdownSecuring?.items ?? []) {
+      if (item.type === 'action') session.set(item.control, item.position);
+      else session.checkOff();
+    }
+    expect(session.checklist()).toMatchObject({ done: true, deviations: [] });
+    expect(session.state().controls).toMatchObject(
+      demoAircraft.phases.parking?.entry.controls ?? {},
+    );
+    expect(systems(session).engine.running).toBe(false);
+    expect(systems(session).bus.busPowered).toBe(false);
+  });
+
   it('keeps the magneto key and the starter on separate controls', () => {
     expect(demoAircraft.controls.magnetos?.kind).toBe('rotary');
     expect(demoAircraft.controls.starter?.kind).toBe('momentary');
@@ -207,9 +245,9 @@ describe('demo aircraft', () => {
     expect(walkProcedure(demoAircraft, id, { devices })).toEqual({ ok: true });
   });
 
-  it('has three normal procedures and an emergency naming its failure', () => {
+  it('has six normal procedures and an emergency naming its failure', () => {
     const procedures = Object.values(demoAircraft.procedures);
-    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(3);
+    expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(6);
     const emergencies = procedures.filter((procedure) => procedure.type === 'emergency');
     expect(emergencies).toHaveLength(1);
     expect(emergencies[0]?.failure).toBe('alternatorFailure');
@@ -246,14 +284,15 @@ describe('installed devices', () => {
     for (const [id] of installed) expect(session.state().devices[id]?.on).toBe(false);
   });
 
-  it.each(['departure', 'cruise'])(
-    'carries the altitude of the %s environment in its entry snapshot',
-    (id) => {
-      const phase = demoAircraft.phases[id];
-      expect((phase?.entry.state as DemoState).altitudeFt).toBe(phase?.environment.altitudeFt);
-      expect(phase?.environment.altitudeFt).toBeGreaterThan(0);
-    },
-  );
+  it.each(
+    Object.entries(demoAircraft.phases)
+      .filter(([, phase]) => !phase.environment.onGround)
+      .map(([id]) => id),
+  )('carries the altitude of the %s environment in its entry snapshot', (id) => {
+    const phase = demoAircraft.phases[id];
+    expect((phase?.entry.state as DemoState).altitudeFt).toBe(phase?.environment.altitudeFt);
+    expect(phase?.environment.altitudeFt).toBeGreaterThan(0);
+  });
 
   it('feeds the pressure altitude of the phase to the transponder', () => {
     const session = createSession(demoAircraft, { devices, phase: 'cruise' });

@@ -28,6 +28,7 @@ The trainer is now usable end to end in the browser: pick the demo aircraft and 
 ### M4 Demo aircraft
 
 - A fictional demo aircraft with three views (panel, console, radio stack), three normal procedures and an alternator-failure procedure (#138, closes #30).
+- The demo covers a whole flight: approach, landing, taxi in and parking and securing phases after cruise, with before-landing, after-landing and engine-shutdown-and-securing procedures, so it has eight phases and six normal procedures (closes #206).
 - Generic COM radio and transponder devices and the device authoring guide (#133, closes #46), installed in the demo with a radio procedure (#151, closes #123).
 - Optional declared size for panel views (#143, closes #142).
 - Procedure walk-through test over every normal procedure of every registered aircraft (#126, closes #31).
@@ -71,6 +72,7 @@ Each was made in the PR named. The spec's decisions table is unchanged.
 ### M4 Demo aircraft
 
 - The demo gained a fourth phase, `departure`, so the phase control has several entries (#138).
+- `afterLanding` starts in the taxi-in phase, because its items are done once clear of the runway and the landing snapshot is still airborne in the flare; the landing phase has no procedure, like departure. The final parking phase is its own phase with the engine running, and `shutdownSecuring` ends with the controls of the first, cold parking phase. The demo has no light switches, so its light items are confirm items (#206).
 - Device controls with relative knobs are rotaries with spring-back detents; volume is a continuous lever, so procedures target only its stops (#133).
 - The devices sit in a third view, the radio stack, because the screens need a wide, short view to keep a usable scale (#151).
 - Each spring-back action item needs its own press, so two consecutive identical presses no longer complete on one. The checklist receives the control definitions to know which positions spring back (#154).
