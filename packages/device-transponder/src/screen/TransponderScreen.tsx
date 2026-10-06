@@ -91,6 +91,16 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
             {candidate.toUpperCase()}
           </button>
         ))}
+        <button
+          type="button"
+          style={buttonStyle}
+          onClick={() => {
+            send('ident', 'press');
+            send('ident', 'release');
+          }}
+        >
+          IDENT
+        </button>
       </div>
       <div style={rowStyle}>
         {CODE_CONTROLS.map((control, index) => (
@@ -103,18 +113,6 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
             </button>
           </span>
         ))}
-      </div>
-      <div style={rowStyle}>
-        <button
-          type="button"
-          style={buttonStyle}
-          onClick={() => {
-            send('ident', 'press');
-            send('ident', 'release');
-          }}
-        >
-          IDENT
-        </button>
       </div>
     </div>
   );
