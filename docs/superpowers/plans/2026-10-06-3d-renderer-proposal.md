@@ -1,8 +1,10 @@
-# M7 3D Implementation Plan
+# 3D Renderer Implementation Plan (proposal)
+
+Status: Proposed — deferred by the owner on 2026-10-06, not approved; see #43. Reconcile with the one-viewport cockpit (#253, `docs/superpowers/specs/2026-10-06-one-viewport-cockpit-design.md`) before work starts; see the design's "Reconcile with the one-viewport cockpit first" section.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** The demo aircraft is operable in a 3D cockpit seen from the left seat, switchable with the 2D panel, with unchanged aircraft logic. Released as v0.8.0.
+**Goal:** The demo aircraft is operable in a 3D cockpit seen from the left seat, switchable with the 2D panel, with unchanged aircraft logic. Released as the next minor version once scheduled.
 
 **Architecture:** CSS 3D transforms on the existing DOM panel (design §3). Optional `frame3d` per view and a defined `position3d`/`orientation` convention in `@cpt/core`'s contract (design §5). A new pure package `packages/cockpit-3d` for pose, camera and projection math (design §4). A 3D presentation in `apps/web/src/cockpit3d/` that renders the existing view stages as planes under one camera (design §6–§9).
 
@@ -43,7 +45,7 @@
 | 4 3D presentation and switch (D)         | sonnet, high            | opus, xhigh, plus `ui-verifier`                        |
 | 5 Camera, follow focus, pointer (E)      | sonnet, high            | sonnet, high, plus `ui-verifier`                       |
 | 6 Browser tests (F)                      | sonnet, medium          | sonnet, high                                           |
-| 7 Release v0.8.0                         | per `milestone-release` | owner                                                  |
+| 7 Release                                | per `milestone-release` | owner                                                  |
 
 ## Dependency Graph
 
@@ -172,13 +174,13 @@ Tasks 1–6 → Task 7 (release)
   - offline reload (as `offline.spec.ts`) with 3D chosen: the app reloads, 3D is offered, the procedure still runs.
 - [ ] **Step 6.2:** Run the full e2e suite three times locally to show no flakiness. Gate, commit, PR `Closes #<F>`, `No changelog: tests only`.
 
-## Task 7: Release v0.8.0
+## Task 7: Release
 
 Per the `milestone-release` skill. The owner summary carries: the renderer choice and the sacrificed volumetric realism (ADR-0002 rank 2), the decisions-table proposal from the design PR, the outcome of Step 5.5, and design §12's open questions.
 
 ## Proposed sub-issues
 
-Not created by this plan; the orchestrator creates them in milestone M7 3D and links them from #43.
+Not created by this plan; the orchestrator creates them in the 3D milestone once scheduled and links them from #43.
 
 | Id | Title                                                                    | Depends on |
 | -- | ------------------------------------------------------------------------ | ---------- |
@@ -189,4 +191,4 @@ Not created by this plan; the orchestrator creates them in milestone M7 3D and l
 | E  | 3D camera: look around, zoom, follow focus, legibility, lever pointer    | D          |
 | F  | 3D browser tests                                                         | E          |
 
-Follow-ups outside M7 (design §12): CTSL 3D data after measurements; persisting the 2D/3D choice; outside view in the windshield; a strict CSP.
+Follow-ups outside the first 3D release (design §12): CTSL 3D data after measurements; outside view in the windshield; a strict CSP.

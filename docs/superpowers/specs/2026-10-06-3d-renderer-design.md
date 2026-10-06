@@ -1,9 +1,28 @@
 # 3D Cockpit View — Design
 
-Status: proposed 2026-10-06 · Issue #43 · Milestone M7 3D
+Status: Proposed — deferred by the owner on 2026-10-06, not approved; see #43.
+
+Issue #43. Written 2026-10-06 as a design for a later 3D milestone.
 
 Parent spec: `2026-10-05-cockpit-procedure-trainer-design.md` (§2 Cockpit view,
 §4.3 Views). Quality order: `docs/adr/0002-quality-priorities.md`.
+
+## Reconcile with the one-viewport cockpit first
+
+This proposal predates the one-viewport combined cockpit (#253,
+`docs/superpowers/specs/2026-10-06-one-viewport-cockpit-design.md`), which has
+since shipped. Before any work starts it must be reconciled with that design:
+
+- **Shared stage:** the combined layout renders each view as a `PanelView`
+  cell; the 3D view must reuse that per-view stage rather than extract a second
+  one (§10 point 1 below is superseded by whatever #253 shipped).
+- **Presentation switch:** `tabs`, `combined` and `3d` become one choice in
+  `PanelArea`, with the 3D switch overriding the viewport rule.
+- **`cockpit` arrangement vs `frame3d`:** #253 added a top-level `cockpit`
+  key with a 2D cell per view. Decide whether `frame3d` stays separate, is
+  derived from, or replaces part of it, so the two never disagree.
+
+Owner decision recorded 2026-10-06: the 2D/3D choice is not persisted.
 
 ## 1. Goal
 
@@ -265,8 +284,8 @@ Nothing in the control store, systems runtime or checklist engine changes.
 - It is shown only when the current aircraft is 3D-capable (every view has
   `frame3d`, §5). Picking an aircraft that is not shows 2D.
 - The choice lives in trainer state for the session and is not persisted:
-  spec §5 limits `localStorage` to language, theme and last aircraft. Persisting
-  it is an open question (§12).
+  spec §5 limits `localStorage` to language, theme and last aircraft. The owner
+  decided on 2026-10-06 not to persist it.
 - Switching keeps the session, mode, checklist and Free explore selection;
   only the presentation remounts. Focus moves to the switch.
 
@@ -300,7 +319,7 @@ also meets #253's goal on desktop for aircraft that have 3D data.
   (`frame3d`, `position3d`, `orientation`) and its own view images and
   artwork, which already follow `docs/content-policy.md`. No downloaded or
   purchased models, no manufacturer CAD, no photogrammetry of an aircraft.
-- No model files in M7. If a later milestone adds them, they are modelled by
+- No model files in the first 3D release. If a later milestone adds them, they are modelled by
   the project, carry a licence note in the aircraft's `LICENSES.md`, and their
   extension is added to `precacheExtensions` in the same PR.
 - The space around the planes is drawn with a new panel-hardware token in
@@ -311,10 +330,9 @@ also meets #253's goal on desktop for aircraft that have 3D data.
 
 1. **CTSL in 3D.** Its intake record carries no cockpit dimensions, and
    aircraft facts come only from the intake. Adding 3D data for the CTSL needs
-   measurements from the club's aircraft first; a follow-up issue, not M7.
-2. **Persist the 2D/3D choice?** It would add a fourth item to the
-   `localStorage` list in spec §5.
-3. **Outside view in the windshield.** M7 keeps the outside-view strip in the
+   measurements from the club's aircraft first; a follow-up issue, not part of the first 3D release.
+2. **Persist the 2D/3D choice?** Settled by the owner: not persisted.
+3. **Outside view in the windshield.** The first 3D release keeps the outside-view strip in the
    app frame. Drawing the phase image as a plane beyond the panel is possible
    with the same technique and is left for later.
 4. **CSP.** G2 asks for a strict CSP, and none is set (§2). This design needs
