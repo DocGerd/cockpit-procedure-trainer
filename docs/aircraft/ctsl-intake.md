@@ -100,7 +100,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 - **Stabilator trim wheel** (Trimmrad) with its indicator beside it; forward is
   nose down.
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
-  the throttle group. Parking brake: apply the brake lever, then close the valve.
+  the throttle group. Parking brake: close the valve, then apply the brake lever;
+  the pressure holds until the valve is opened.
 - **Carb heat** (Vergaservorwärmung): named in seven checklists and on the take-off
   placard, but the handbook shows no control. The trainer adds a provisional
   pull knob on the console (§9).
@@ -254,11 +255,14 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set  |
 | `departure`       | no        | 57  | 200            | full throttle, flaps 15°, climbing                                          |
-| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°                                   |
+| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate      |
 | `approach`        | no        | 59  | 500            | low power, flaps 15°                                                        |
 | `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare                                               |
 | `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°                                                        |
 | `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi                                     |
+
+The `cruise` speed is not a handbook figure: it lies between max range cruise
+(180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
 
 Circuit reference (HB 4-8, 4-9), for the outside views: crosswind turn at
 200–250 m (660–820 ft), downwind at 300 m (980 ft) and 4300 rpm, abeam the
