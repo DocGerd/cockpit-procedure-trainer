@@ -6,6 +6,7 @@ import { build } from 'vite';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import { pwaColors } from './config';
+import { inlinedSvgs } from './inlined-svg';
 
 const webRoot = resolve(import.meta.dirname, '../..');
 const BUILD_TIMEOUT = 120_000;
@@ -136,10 +137,7 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
         .precache.filter((entry) => entry.endsWith('.js'))
         .map((entry) => readFile(join(output().dir, entry), 'utf8')),
     );
-    const inlined = scripts
-      .join('\n')
-      .match(/data:image\/svg\+xml,[^"`]*/g)
-      ?.map((uri) => decodeURIComponent(uri.slice(uri.indexOf(',') + 1)).replaceAll("'", '"'));
+    const inlined = inlinedSvgs(scripts.join('\n'));
 
     for (const url of urls) {
       const path = fileURLToPath(url);
@@ -152,7 +150,7 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
         extension === '.svg'
           ? (await readFile(path, 'utf8')).replace(/>\s+</g, '><').trim().replaceAll("'", '"')
           : undefined;
-      expect(emitted || (source !== undefined && !!inlined?.includes(source)), path).toBe(true);
+      expect(emitted || (source !== undefined && inlined.includes(source)), path).toBe(true);
     }
   });
 
