@@ -161,9 +161,9 @@ The name beside the mark is "Procedure Trainer".
 - The generic panel widgets take their colours (gauge arcs, lamps, switch caps)
   only from the panel hardware tokens. Aircraft artwork is aircraft content and
   outside the literal rule.
-- The one brand colour allowed over the panel is the accent, as the Guided
-  highlight. It is paired with a shape cue (outline and pulse), so it does not
-  depend on hue alone.
+- The one brand colour allowed over the panel is the accent, in two places: the
+  Guided highlight (outline and pulse) and the selected control in Free explore
+  (outline). Each is paired with a shape cue, so it does not depend on hue alone.
 - Fonts are bundled with the app and never fetched from a font CDN, because the
   app must work offline.
 

@@ -3,7 +3,7 @@
 ## Flow
 
 1. Pick or open an issue.
-2. Branch from `develop`: `feat/<issue>-<slug>`, `fix/…`, `chore/…`, `docs/…` or `ci/…`.
+2. Branch from `develop`: `feat/<issue>-<slug>`, `fix/…`, `chore/…`, `docs/…`, `ci/…` or `release/…`.
 3. Add a changelog fragment `changelog.d/<issue>.<category>.md` (categories:
    `added`, `changed`, `deprecated`, `removed`, `fixed`, `security`). Without an
    issue, name it `+<slug>.<category>.md`. Dependabot pull requests are exempt:
@@ -28,7 +28,8 @@ holds released state and feeds the production site.
 2. A release pull request `develop` to `main` is opened and merged with a merge
    commit by the owner. Since the gitflow switch, no agent merges into `main`.
    A Claude Code hook (`.claude/hooks/block-main-merge.sh`) denies merge-like
-   commands except a plain `gh pr merge` of a PR based on `develop`. It is an
+   commands except a plain `gh pr merge` of a PR based on `develop` and a plain
+   `git merge` or `git merge-base`, which touch no pull request. It is an
    accident tripwire, not a security boundary: the base can change between its
    check and the merge, and anything with the owner's token can still merge
    into `main`. The `protect-main` ruleset blocks direct pushes to `main`, not
@@ -48,7 +49,10 @@ TypeScript language server plugin needs
 
 ## Checks
 
-    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
+    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+
+`pnpm test:e2e` builds the app and drives it in Chromium; install the browser once with
+`pnpm exec playwright install chromium`. The required `check` job runs all of these.
 
 UI changes also need a pass in a real browser at tablet and desktop width.
 
