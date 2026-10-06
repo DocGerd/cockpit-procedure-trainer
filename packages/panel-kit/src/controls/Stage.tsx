@@ -1,7 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference -- a script declaration file cannot be imported
 /// <reference path="../artwork/css.d.ts" />
-import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactNode } from 'react';
+import type { ComponentProps, CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import type { Box } from './geometry';
+import { useRenderedMetrics } from './legibility';
+import type { Metrics } from './legibility';
 import './controls.css';
 
 export const TARGET = 'var(--size-target)';
@@ -22,12 +24,13 @@ export function hitStyle(box: Box): CSSProperties {
 type StageProps = {
   width: number;
   height: number;
-  art: ReactNode;
+  art: ReactNode | ((metrics: Metrics | undefined) => ReactNode);
   children?: ReactNode;
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 };
 
 export function Stage({ width, height, art, children, onKeyDown }: StageProps) {
+  const [svgRef, metrics] = useRenderedMetrics({ width, height });
   return (
     <div className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
       <div
@@ -36,12 +39,13 @@ export function Stage({ width, height, art, children, onKeyDown }: StageProps) {
         {...(onKeyDown ? { onKeyDown } : {})}
       >
         <svg
+          ref={svgRef}
           className="pk-svg"
           viewBox={`0 0 ${width} ${height}`}
           aria-hidden="true"
           focusable="false"
         >
-          {art}
+          {typeof art === 'function' ? art(metrics) : art}
         </svg>
         {children}
       </div>
@@ -49,7 +53,7 @@ export function Stage({ width, height, art, children, onKeyDown }: StageProps) {
   );
 }
 
-export function Fill(props: HTMLAttributes<HTMLDivElement>) {
+export function Fill(props: ComponentProps<'div'>) {
   return <div className="pk-fill" {...props} />;
 }
 
@@ -61,21 +65,38 @@ export function CurrentState({ id, text }: { id: string; text: string }) {
   );
 }
 
+export type Anchor = 'start' | 'middle' | 'end';
+
 export function Legend({
   x,
   y,
   text,
   current,
-  centred = false,
+  font,
+  anchor = 'start',
+  turn,
+  length,
 }: {
   x: number;
   y: number;
   text: string;
   current: boolean;
-  centred?: boolean;
+  font: number;
+  anchor?: Anchor;
+  turn?: number;
+  length?: number | undefined;
 }) {
   return (
-    <text x={x} y={y} className="pk-legend" data-current={current} data-centred={centred}>
+    <text
+      x={x}
+      y={y}
+      className="pk-legend"
+      style={vars({ '--pk-font': font })}
+      data-current={current}
+      data-anchor={anchor}
+      {...(length === undefined ? {} : { textLength: length, lengthAdjust: 'spacingAndGlyphs' })}
+      {...(turn === undefined ? {} : { transform: `rotate(${turn} ${x} ${y})` })}
+    >
       {text}
     </text>
   );
