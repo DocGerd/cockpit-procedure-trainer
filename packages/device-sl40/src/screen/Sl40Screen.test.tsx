@@ -242,6 +242,14 @@ describe('Sl40Screen natural size', () => {
     }
   });
 
+  it('puts no gap between targets and draws the space inside each button', () => {
+    const container = natural();
+    for (const button of container.querySelectorAll<HTMLElement>('button')) {
+      expect(button.parentElement?.style.gap).toBe('0px');
+      expect(button.style.boxShadow).toMatch(/^inset /);
+    }
+  });
+
   it('sets no text below the legibility floor', () => {
     const container = natural();
     const sizes = [...container.querySelectorAll<HTMLElement>('*')]
