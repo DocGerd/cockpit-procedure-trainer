@@ -108,7 +108,9 @@ describe('rotary legends stay clear of the knob and inside the box', () => {
 describe('circuit breaker', () => {
   it('shows its label as a placard when there is room', () => {
     placeAt(208);
-    const { container } = render(<CircuitBreaker {...widgetProps(breaker, { label: 'Master' })} />);
+    const { container } = render(
+      <CircuitBreaker {...widgetProps(breaker, { label: 'Master switch' })} placard="Master" />,
+    );
     expect(legends(container).map((legend) => legend.textContent)).toEqual(['MASTER']);
   });
 
@@ -123,14 +125,15 @@ describe('circuit breaker', () => {
 });
 
 describe('continuous lever', () => {
-  it('shows its label along the stroke', () => {
+  it('prints its placard upright above the slot, not along the stroke', () => {
     placeAt(208);
     const { container } = render(
-      <Lever {...widgetProps(continuousLever, { label: 'Throttle' })} />,
+      <Lever {...widgetProps(continuousLever, { label: 'Throttle lever' })} placard="Throttle" />,
     );
-    const [title] = legends(container);
+    const title = container.querySelector('[data-placard]');
     expect(title?.textContent).toBe('THROTTLE');
-    expect(title?.getAttribute('transform')).toContain('rotate(-90');
+    expect(title?.hasAttribute('transform')).toBe(false);
+    expect(legends(container)).toEqual([]);
   });
 
   it('exposes its value as text', () => {

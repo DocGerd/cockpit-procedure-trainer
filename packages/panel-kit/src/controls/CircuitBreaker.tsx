@@ -11,18 +11,20 @@ const BODY_Y = 46;
 const LIFT = 16;
 const PLACARD_Y = 106;
 
-export function CircuitBreaker({ position, label, positionLabels, onSet }: ControlWidgetProps) {
+export function CircuitBreaker({
+  position,
+  label,
+  placard: printed,
+  positionLabels,
+  onSet,
+}: ControlWidgetProps) {
   const stateId = useId();
   const pulled = position === 'pulled';
   const text = positionLabels[String(position)] ?? String(position);
 
   const art = (metrics: Metrics | undefined) => {
-    const title = placeTitle(
-      metrics,
-      placard(label),
-      WIDTH - 2 * EDGE,
-      2 * (HEIGHT - PLACARD_Y - EDGE),
-    );
+    const lettering = printed ? placard(printed) : '';
+    const title = placeTitle(metrics, lettering, WIDTH - 2 * EDGE, 2 * (HEIGHT - PLACARD_Y - EDGE));
     return (
       <>
         <circle cx={50} cy={BODY_Y} r={40} className="pk-bezel-dark" />
@@ -35,15 +37,16 @@ export function CircuitBreaker({ position, label, positionLabels, onSet }: Contr
           <circle cx={50} cy={BODY_Y} r={25} className="pk-cap-light" />
           <circle cx={50} cy={BODY_Y} r={25} className="pk-mark" />
         </g>
-        {title.show && (
+        {lettering && title.show && (
           <Legend
             x={WIDTH / 2}
             y={PLACARD_Y}
-            text={placard(label)}
+            text={lettering}
             current={false}
             font={title.fontSize}
             length={title.length}
             anchor="middle"
+            placard
           />
         )}
       </>

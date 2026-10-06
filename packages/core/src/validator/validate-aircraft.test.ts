@@ -149,6 +149,11 @@ describe('validateAircraft', () => {
       expect(found[1]?.message).toContain('description');
     });
 
+    it('reports an empty placard', () => {
+      const aircraft = withControl('master', { placard: { de: 'HAUPT', en: '' } });
+      expect(only(aircraft, 'missing-translation', 'master').message).toContain('placard');
+    });
+
     it('reports a phase name', () => {
       const aircraft = withPhase('parking', { name: { de: 'Parkposition', en: '' } });
       only(aircraft, 'missing-translation', 'parking');

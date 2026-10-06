@@ -3,7 +3,7 @@ import type { ControlWidgetProps } from '../types';
 import { detentAngles, polar } from './geometry';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
-import { EDGE, placard, placeLegends } from './legibility';
+import { EDGE, placard as capitals, placeLegends } from './legibility';
 import type { Metrics } from './legibility';
 import type { Anchor } from './Stage';
 import { Legend, Stage, vars } from './Stage';
@@ -47,7 +47,8 @@ function sideGap(slots: readonly Slot[]): number {
 }
 
 function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
-  const { control, position, label, positionLabels, head, onSet, onPress, onRelease } = props;
+  const { control, position, label, placard, positionLabels, head, onSet, onPress, onRelease } =
+    props;
   const positions = namedPositions(control);
   const current = positions.indexOf(position as string);
   const angles = detentAngles(positions.length);
@@ -62,7 +63,7 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
     const legends = placeLegends(
       metrics,
       positions.map((id, index) => ({
-        text: placard(id),
+        text: capitals(id),
         room: slots[index]?.room ?? 0,
       })),
       sideGap(slots),
@@ -92,7 +93,7 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
                       ? slot.y + Math.sign(slot.y - CENTRE) * (legends.fontSize / 2)
                       : slot.y
                   }
-                  text={placard(id)}
+                  text={capitals(id)}
                   current={index === current}
                   font={legends.fontSize}
                   anchor={slot.anchor}
@@ -114,7 +115,7 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
   };
 
   return (
-    <Stage width={SIZE} height={SIZE} art={art}>
+    <Stage placard={placard} width={SIZE} height={SIZE} art={art}>
       <PositionGroup
         label={label}
         positions={positions}

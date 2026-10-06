@@ -69,6 +69,14 @@ const buttonStyle: CSSProperties = {
 
 const volumeStyle: CSSProperties = { flex: 1, minHeight: 'var(--size-target)' };
 
+const volumeLabelStyle: CSSProperties = {
+  ...legendStyle,
+  flex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 'var(--space-2)',
+};
+
 type HoldButtonProps = { name: string; control: string; send: DeviceScreenProps['send'] };
 
 function HoldButton({ name, control, send }: HoldButtonProps) {
@@ -116,16 +124,19 @@ export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
       <div style={rowStyle}>
         {button('SWAP', 'swap')}
         <HoldButton name="MON" control="monitor" send={send} />
-        <input
-          type="range"
-          aria-label="VOL"
-          min={0}
-          max={1}
-          step={0.05}
-          value={volume}
-          style={volumeStyle}
-          onChange={(event) => send('volume', 'set', Number(event.currentTarget.value))}
-        />
+        <label style={volumeLabelStyle}>
+          <span>VOL</span>
+          <input
+            type="range"
+            aria-label="VOL"
+            min={0}
+            max={1}
+            step={0.05}
+            value={volume}
+            style={volumeStyle}
+            onChange={(event) => send('volume', 'set', Number(event.currentTarget.value))}
+          />
+        </label>
       </div>
     </div>
   );

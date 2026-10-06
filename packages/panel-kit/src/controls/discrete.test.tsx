@@ -32,7 +32,8 @@ describe.each(cases)('%s', (_name, Widget, control) => {
     expect(screen.getByRole('radio', { checked: true }).getAttribute('aria-label')).toBe(
       `label ${second}`,
     );
-    for (const id of ids) expect(group.parentElement?.textContent).toContain(id.toUpperCase());
+    for (const id of ids)
+      expect(group.closest('.pk-stage')?.textContent).toContain(id.toUpperCase());
   });
 
   it('calls onSet with the position that was clicked', async () => {

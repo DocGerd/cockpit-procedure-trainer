@@ -74,7 +74,8 @@ Names, descriptions, guard names, failure names, titles and item texts are a
 ### Controls
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
-(both `Text`), an `initial` position and an optional `appearance`.
+(both `Text`), an `initial` position, an optional `appearance` and an optional
+`placard` (see [Printed labels](#printed-labels)).
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -227,6 +228,23 @@ the package. `face` is the static image URL and `moving` is one of:
 
 If an image fails to load, the control or indicator shows its generic widget
 instead. The demo declares generic widgets only.
+
+### Printed labels
+
+Every control a view places prints its function on the panel, as a real cockpit
+placard does: a short legend in capitals beside the control, such as `BAT`, `FUEL` or
+`AVIONICS`. Declare it in one of three places:
+
+- `placard: Text` on the control, for a generic widget. The widget prints it above
+  the control, in the language of the UI. Without one, the widget prints the name.
+- `lettering: string[]` on the `artwork`, the text the face image prints.
+- `printed: string[]` on the placement, the text the view background prints beside
+  the control; the widget then prints no placard of its own.
+
+`checkPlacards` from `@cpt/panel-kit` reports a placed control with none of them, and
+`apps/web/src/panel/printed-labels.test.tsx` runs it over every registered aircraft. That
+test also reads the SVG images and fails when declared `lettering` is not a `<text>` of
+the face, or `printed` text is not a `<text>` of the view near the placement.
 
 ## Validate and walk through
 

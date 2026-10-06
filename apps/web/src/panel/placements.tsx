@@ -49,10 +49,12 @@ export function ControlPlacement({
   id,
   control,
   box,
+  viewPrintsLabel = false,
 }: {
   id: string;
   control: ControlDefinition;
   box: PanelBox;
+  viewPrintsLabel?: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -85,6 +87,7 @@ export function ControlPlacement({
         position={position}
         guardOpen={guardOpen}
         label={localize(control.name)}
+        placard={viewPrintsLabel ? undefined : localize(control.placard ?? control.name)}
         positionLabels={positionLabels}
         {...(options ? { options } : {})}
         {...input}

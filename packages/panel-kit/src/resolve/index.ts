@@ -95,3 +95,5 @@ export const resolveIndicatorWidget = (
 
 export { checkAppearance } from './appearance-check';
 export type { AppearanceFinding, AppearanceSubject } from './appearance-check';
+export { checkPlacards } from './placard-check';
+export type { PlacardFinding, PlacardSubject } from './placard-check';

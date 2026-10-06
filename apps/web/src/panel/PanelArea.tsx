@@ -131,7 +131,17 @@ function PanelView({ viewId, zoom, gate }: { viewId: string; zoom: ZoomTarget; g
           />
           {Object.entries(rects.controls).map(([id, box]) => {
             const control = aircraft.controls[id];
-            return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
+            return (
+              control && (
+                <ControlPlacement
+                  key={id}
+                  id={id}
+                  control={control}
+                  box={box}
+                  viewPrintsLabel={(view.controls?.[id]?.printed?.length ?? 0) > 0}
+                />
+              )
+            );
           })}
           {Object.entries(rects.indicators).map(([id, box]) => {
             const indicator = aircraft.indicators[id];

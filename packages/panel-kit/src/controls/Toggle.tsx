@@ -1,6 +1,6 @@
 import type { ControlWidgetProps } from '../types';
 import { along, minGap, verticalBoxes } from './geometry';
-import { EDGE, placard, placeLegends } from './legibility';
+import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
 import type { Metrics } from './legibility';
@@ -16,6 +16,7 @@ export function Toggle({
   control,
   position,
   label,
+  placard,
   positionLabels,
   onSet,
   onPress,
@@ -31,7 +32,7 @@ export function Toggle({
   const art = (metrics: Metrics | undefined) => {
     const legends = placeLegends(
       metrics,
-      positions.map((id) => ({ text: placard(id), room: WIDTH - LEGEND_X - EDGE })),
+      positions.map((id) => ({ text: capitals(id), room: WIDTH - LEGEND_X - EDGE })),
       minGap(ys),
     );
     return (
@@ -50,7 +51,7 @@ export function Toggle({
               key={id}
               x={LEGEND_X}
               y={ys[index] ?? 0}
-              text={placard(id)}
+              text={capitals(id)}
               current={index === current}
               font={legends.fontSize}
             />
@@ -60,7 +61,7 @@ export function Toggle({
   };
 
   return (
-    <Stage width={WIDTH} height={HEIGHT} art={art}>
+    <Stage placard={placard} width={WIDTH} height={HEIGHT} art={art}>
       <PositionGroup
         label={label}
         positions={positions}

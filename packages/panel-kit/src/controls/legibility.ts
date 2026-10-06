@@ -133,3 +133,38 @@ export function useRenderedMetrics(
 
   return [ref, metrics];
 }
+
+export type Size = { width: number; height: number };
+
+export function useBoxSize(enabled: boolean): [RefObject<HTMLDivElement | null>, Size | undefined] {
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState<Size | undefined>(undefined);
+
+  const measure = useCallback(() => {
+    const element = ref.current;
+    if (element === null || !enabled) return;
+    const { width, height } = element.getBoundingClientRect();
+    const next = width > 0 && height > 0 ? { width, height } : undefined;
+    setSize((previous) =>
+      previous === next ||
+      (previous !== undefined &&
+        next !== undefined &&
+        previous.width === next.width &&
+        previous.height === next.height)
+        ? previous
+        : next,
+    );
+  }, [enabled]);
+
+  useLayoutEffect(measure);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (element === null || !enabled || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [measure, enabled]);
+
+  return [ref, enabled ? size : undefined];
+}
