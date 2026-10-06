@@ -100,30 +100,9 @@ describe('ComScreen controls', () => {
 });
 
 describe('ComScreen styling', () => {
-  const css = () => {
+  it('renders no style element, which a strict content security policy would block', () => {
     const { container } = render(<ComScreen on state={state} send={vi.fn()} />);
-    return container.querySelector('style')?.textContent ?? '';
-  };
-
-  it('styles the volume slider in both engines', () => {
-    const text = css();
-    expect(text).toMatch(/input\[type="range"\] \{[^}]*accent-color: var\(--panel-/);
-    expect(text).toContain('::-webkit-slider-thumb {');
-    expect(text).toContain('::-moz-range-thumb {');
-    expect(text).toContain('::-webkit-slider-runnable-track {');
-    expect(text).toContain('::-moz-range-track {');
-  });
-
-  it('takes every colour from a panel token and uses no brand or status token', () => {
-    const text = css();
-    expect(text).not.toMatch(/--color-/);
-    const colours = [
-      ...text.matchAll(/(?:^|[\s;{])(?:color|background|accent-color):\s*([^;}]+)/g),
-    ];
-    expect(colours.length).toBeGreaterThan(0);
-    for (const [, value = ''] of colours) {
-      expect(value).toMatch(/var\(--panel-|transparent/);
-    }
+    expect(container.querySelector('style')).toBeNull();
   });
 });
 

@@ -3,9 +3,7 @@ import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import { DIGIT_KEYS, MODES } from '../logic';
 import type { Gtx327State } from '../logic';
-
-const focusRule =
-  '.cpt-device-gtx327 button:focus-visible { outline: var(--space-1) solid var(--panel-focus); outline-offset: calc(var(--space-1) * -1); }';
+import './Gtx327Screen.css';
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -113,7 +111,6 @@ export function Gtx327Screen({ on, state, send }: DeviceScreenProps) {
 
   return (
     <div className="cpt-device-gtx327" style={screenStyle}>
-      <style>{focusRule}</style>
       <div data-display style={displayStyle}>
         {lit && (
           <>
