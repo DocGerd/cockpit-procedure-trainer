@@ -3,12 +3,13 @@ import { STEP_MS } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
 import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Profiler } from 'react';
+import { Profiler, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { PanelArea, useActiveView, viewPlacements } from './index';
+import { placementExtent } from './rects';
 import type { PanelRects } from './index';
 import { IMAGE, fixture } from './test-aircraft';
 
@@ -19,6 +20,7 @@ vi.mock('../aircraft-registry', async () => {
 
 const layers = vi.hoisted(() => ({
   overlay: [] as { viewId: string; rects: PanelRects }[],
+  mounts: 0,
   devices: [] as { viewId: string; rects: PanelRects }[],
   setView: undefined as ((viewId: string) => void) | undefined,
 }));
@@ -27,6 +29,9 @@ vi.mock('../modes/PanelOverlay', () => ({
   PanelOverlay(props: { viewId: string; rects: PanelRects }) {
     layers.overlay.push(props);
     layers.setView = useActiveView().setView;
+    useEffect(() => {
+      layers.mounts += 1;
+    }, []);
     return <div data-testid="overlay" />;
   },
 }));
@@ -76,6 +81,7 @@ function loadBackground(name: string) {
 beforeEach(() => {
   localStorage.clear();
   layers.overlay = [];
+  layers.mounts = 0;
   layers.devices = [];
   layers.setView = undefined;
 });
@@ -143,6 +149,14 @@ describe('view tabs', () => {
     expect(layers.overlay.at(-1)?.viewId).toBe('console');
   });
 
+  it('keeps the overlay mounted across view switches', async () => {
+    renderPanel();
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Main panel' }));
+    expect(layers.overlay.at(-1)?.viewId).toBe('main');
+    expect(layers.mounts).toBe(1);
+  });
+
   it('starts on the first view of a newly selected aircraft', () => {
     renderPanel();
     act(() => layers.setView?.('console'));
@@ -175,6 +189,19 @@ describe('placements', () => {
     loadBackground('Main panel');
     const stage = placement('master')?.parentElement;
     expect(stage?.style.aspectRatio).toBe(`${IMAGE.width} / ${IMAGE.height}`);
+    expect(stage?.style.getPropertyValue('--panel-ratio')).toBe(String(IMAGE.width / IMAGE.height));
+  });
+
+  it('give the stage its page offset, so it fits the viewport below it', () => {
+    renderPanel();
+    const stage = placement('master')?.parentElement as HTMLElement;
+    expect(stage.style.getPropertyValue('--panel-top')).toBe('0');
+
+    vi.spyOn(stage, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 300, 800, 400));
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(stage.style.getPropertyValue('--panel-top')).toBe('300');
   });
 
   it('ignore 3D position and orientation', () => {
@@ -212,34 +239,45 @@ describe('placements', () => {
 });
 
 describe('SVG backgrounds', () => {
-  const svg = (text: string) => vi.fn(() => Promise.resolve({ text: () => Promise.resolve(text) }));
+  const answer = (text: string, ok = true) =>
+    vi.fn(() => Promise.resolve({ ok, text: () => Promise.resolve(text) }));
+  const viewBox = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="50 25 2000 1000"/>';
+  // The light switch spans 100..200 by 50..150, so its extent is 200 by 150.
+  const byExtent = {
+    left: '50%',
+    top: `${(50 / 150) * 100}%`,
+    width: '50%',
+    height: `${(100 / 150) * 100}%`,
+  };
 
-  it('place by the viewBox, not by the natural size the browser reports', async () => {
-    const fetch = svg('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000"/>');
+  async function showVector(fetch: ReturnType<typeof vi.fn>) {
     vi.stubGlobal('fetch', fetch);
     renderPanel();
     act(() => trainer.selectAircraft('panel-vector'));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('assets/vector-panel.svg?v=1'));
+  }
 
-    await waitFor(() => expect(placement('light')?.style.left).toBe('5%'));
-    expect(fetch).toHaveBeenCalledWith('assets/vector-panel.svg?v=1');
-    loadBackground('Vector panel');
-    expect(box(placement('light'))).toEqual({ left: '5%', top: '5%', width: '5%', height: '10%' });
-  });
-
-  it('fall back to the natural size when the SVG cannot be read', async () => {
-    const fetch = vi.fn(() => Promise.reject(new Error('offline')));
-    vi.stubGlobal('fetch', fetch);
-    renderPanel();
-    act(() => trainer.selectAircraft('panel-vector'));
-    await waitFor(() => expect(fetch).toHaveBeenCalled());
-
+  it('place by the viewBox, its origin included, not by the natural size the browser reports', async () => {
+    await showVector(answer(viewBox));
+    await waitFor(() => expect(placement('light')?.style.left).toBe('2.5%'));
     loadBackground('Vector panel');
     expect(box(placement('light'))).toEqual({
-      left: '10%',
-      top: '10%',
-      width: '10%',
-      height: '20%',
+      left: '2.5%',
+      top: '2.5%',
+      width: '5%',
+      height: '10%',
     });
+  });
+
+  it.each([
+    ['cannot be fetched', vi.fn(() => Promise.reject(new Error('offline')))],
+    ['answers with an error', answer(viewBox, false)],
+    ['has no viewBox', answer('<svg xmlns="http://www.w3.org/2000/svg"/>')],
+  ])('use the placement extent, not the natural size, when the SVG %s', async (_, fetch) => {
+    await showVector(fetch);
+    await act(async () => {});
+    loadBackground('Vector panel');
+    expect(box(placement('light'))).toEqual(byExtent);
   });
 
   it('do not fetch a raster background', () => {
@@ -338,6 +376,24 @@ describe('widgets', () => {
     expect(trainer.session.state().controls.starter).toBe('off');
   });
 
+  it('press a spring-loaded detent with its position and spring back on release', async () => {
+    renderPanel();
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    const start = within(screen.getByRole('radiogroup', { name: 'Key' })).getByRole('radio', {
+      name: 'start',
+    });
+    fireEvent.pointerDown(start, { button: 0 });
+    expect(trainer.session.state().controls.key).toBe('start');
+    fireEvent.pointerUp(start);
+    expect(trainer.session.state().controls.key).toBe('on');
+  });
+
+  it("keep an indicator's own state labels", async () => {
+    renderPanel();
+    await userEvent.click(screen.getByRole('tab', { name: 'Centre console' }));
+    expect(screen.getByRole('img', { name: 'Door: OPEN' })).toBeDefined();
+  });
+
   it('follow a change made elsewhere', () => {
     renderPanel();
     act(() => {
@@ -394,5 +450,6 @@ describe('viewPlacements', () => {
     expect(Object.keys(main.controls)).toEqual(['master', 'pump', 'cb', 'cutoff']);
     expect(Object.keys(main.indicators)).toEqual(['lowVolts']);
     expect(main.devices).toEqual({ com1: { x: 0, y: 400, w: 200, h: 100 } });
+    expect(placementExtent(main)).toEqual({ width: 800, height: 500 });
   });
 });

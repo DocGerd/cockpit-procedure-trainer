@@ -50,6 +50,14 @@ export const fixture: Aircraft = defineAircraft({
       name: text('Starter'),
       description: text('Starter'),
     },
+    key: {
+      kind: 'rotary',
+      positions: ['off', 'on', 'start'],
+      initial: 'off',
+      springBack: { start: 'on' },
+      name: text('Key'),
+      description: text('Key'),
+    },
     cutoff: {
       kind: 'guarded',
       positions: ['normal', 'cut'],
@@ -69,6 +77,14 @@ export const fixture: Aircraft = defineAircraft({
       name: text('RPM'),
       select: (state) => (state.controls.beacon === 'on' ? 40 : 0),
       appearance: { widget: 'round-gauge', options: { min: 0, max: 100, units: 'rpm' } },
+    },
+    door: {
+      name: text('Door'),
+      select: () => true,
+      appearance: {
+        widget: 'annunciator',
+        options: { lamp: 'red', stateLabels: { lit: 'OPEN', dark: 'SHUT' } },
+      },
     },
   },
   views: {
@@ -93,8 +109,12 @@ export const fixture: Aircraft = defineAircraft({
       controls: {
         beacon: { rect: { x: 0, y: 0, w: 250, h: 250 } },
         starter: { rect: { x: 0, y: 300, w: 100, h: 100 } },
+        key: { rect: { x: 200, y: 300, w: 100, h: 100 } },
       },
-      indicators: { rpm: { rect: { x: 500, y: 0, w: 250, h: 250 } } },
+      indicators: {
+        rpm: { rect: { x: 500, y: 0, w: 250, h: 250 } },
+        door: { rect: { x: 500, y: 300, w: 100, h: 50 } },
+      },
     },
   },
   systems,
@@ -112,6 +132,7 @@ export const fixture: Aircraft = defineAircraft({
           cb: 'in',
           cutoff: 'normal',
           starter: 'off',
+          key: 'off',
         },
         state: initial,
       },

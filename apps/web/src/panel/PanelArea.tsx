@@ -1,5 +1,5 @@
 import type { Aircraft } from '@cpt/core';
-import { useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { DeviceLayer } from '../devices/DeviceLayer';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
@@ -8,6 +8,7 @@ import { PanelOverlay } from '../modes/PanelOverlay';
 import { useTrainer } from '../trainer';
 import { ActiveViewContext } from './active-view';
 import type { ActiveView } from './active-view';
+import { fitStyle, usePageTop } from './fit';
 import { useBackgroundSize } from './image-size';
 import { messages } from './messages';
 import { ControlPlacement, IndicatorPlacement } from './placements';
@@ -92,29 +93,35 @@ function PanelView({ viewId }: { viewId: string }) {
   const extent = useMemo(() => placementExtent(placements), [placements]);
   const size = background.size ?? extent;
   const rects = useMemo(() => panelRects(placements, size), [placements, size]);
+  const stage = useRef<HTMLDivElement>(null);
+  const top = usePageTop(stage);
   if (!view) return null;
   const name = localize(view.name);
 
   return (
-    <div className="panel-stage" style={{ aspectRatio: `${size.width} / ${size.height}` }}>
-      <ImageWithFallback
-        src={view.image}
-        label={name}
-        className="panel-image"
-        draggable={false}
-        onLoad={(event) => {
-          const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
-          background.onNaturalSize({ width, height });
-        }}
-      />
-      {Object.entries(rects.controls).map(([id, box]) => {
-        const control = aircraft.controls[id];
-        return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
-      })}
-      {Object.entries(rects.indicators).map(([id, box]) => {
-        const indicator = aircraft.indicators[id];
-        return indicator && <IndicatorPlacement key={id} id={id} indicator={indicator} box={box} />;
-      })}
+    <div ref={stage} className="panel-stage" style={fitStyle(size, top)}>
+      <Fragment key={`${aircraft.id}/${viewId}`}>
+        <ImageWithFallback
+          src={view.image}
+          label={name}
+          className="panel-image"
+          draggable={false}
+          onLoad={(event) => {
+            const { naturalWidth: width, naturalHeight: height } = event.currentTarget;
+            background.onNaturalSize({ width, height });
+          }}
+        />
+        {Object.entries(rects.controls).map(([id, box]) => {
+          const control = aircraft.controls[id];
+          return control && <ControlPlacement key={id} id={id} control={control} box={box} />;
+        })}
+        {Object.entries(rects.indicators).map(([id, box]) => {
+          const indicator = aircraft.indicators[id];
+          return (
+            indicator && <IndicatorPlacement key={id} id={id} indicator={indicator} box={box} />
+          );
+        })}
+      </Fragment>
       <DeviceLayer viewId={viewId} rects={rects} />
       <PanelOverlay viewId={viewId} rects={rects} />
     </div>
@@ -136,7 +143,7 @@ export function PanelArea() {
         className="panel-surface"
         data-panel-surface=""
       >
-        <PanelView key={`${aircraft.id}/${active.viewId}`} viewId={active.viewId} />
+        <PanelView viewId={active.viewId} />
       </div>
     </ActiveViewContext.Provider>
   );

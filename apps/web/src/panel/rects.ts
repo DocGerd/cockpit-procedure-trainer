@@ -21,7 +21,13 @@ export type ViewPlacements = {
   readonly devices: Readonly<Record<string, Rect>>;
 };
 
-export type ImageSize = { readonly width: number; readonly height: number };
+/** The coordinate space of a background; `x` and `y` are its origin, e.g. an SVG viewBox's min-x and min-y. */
+export type ImageSize = {
+  readonly x?: number;
+  readonly y?: number;
+  readonly width: number;
+  readonly height: number;
+};
 
 type Placed = { readonly rect: Rect } | undefined;
 
@@ -60,8 +66,8 @@ export function placementExtent(placements: ViewPlacements): ImageSize {
 }
 
 export const toBox = (rect: Rect, size: ImageSize): PanelBox => ({
-  left: (rect.x / size.width) * 100,
-  top: (rect.y / size.height) * 100,
+  left: ((rect.x - (size.x ?? 0)) / size.width) * 100,
+  top: ((rect.y - (size.y ?? 0)) / size.height) * 100,
   width: (rect.w / size.width) * 100,
   height: (rect.h / size.height) * 100,
 });

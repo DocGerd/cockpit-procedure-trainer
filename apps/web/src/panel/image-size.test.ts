@@ -21,8 +21,18 @@ describe('viewBoxSize', () => {
   const svg = (attributes: string) => `<svg xmlns="http://www.w3.org/2000/svg" ${attributes}/>`;
 
   it('reads the viewBox width and height', () => {
-    expect(viewBoxSize(svg('viewBox="0 0 1200 640"'))).toEqual({ width: 1200, height: 640 });
-    expect(viewBoxSize(svg('viewBox=" -10,-5, 160 , 90 "'))).toEqual({ width: 160, height: 90 });
+    expect(viewBoxSize(svg('viewBox="0 0 1200 640"'))).toEqual({
+      x: 0,
+      y: 0,
+      width: 1200,
+      height: 640,
+    });
+    expect(viewBoxSize(svg('viewBox=" -10,-5, 160 , 90 "'))).toEqual({
+      x: -10,
+      y: -5,
+      width: 160,
+      height: 90,
+    });
   });
 
   it.each([
@@ -48,7 +58,7 @@ describe('useBackgroundSize', () => {
       vi.fn(
         (src: string) =>
           new Promise((resolve) => {
-            answers.set(src, (text) => resolve({ text: () => Promise.resolve(text) }));
+            answers.set(src, (text) => resolve({ ok: true, text: () => Promise.resolve(text) }));
           }),
       ),
     );
@@ -60,6 +70,6 @@ describe('useBackgroundSize', () => {
     await act(async () => answers.get('b.svg')?.('<svg viewBox="0 0 20 10"/>'));
     await act(async () => answers.get('a.svg')?.('<svg viewBox="0 0 99 99"/>'));
 
-    expect(result.current.size).toEqual({ width: 20, height: 10 });
+    expect(result.current.size).toEqual({ x: 0, y: 0, width: 20, height: 10 });
   });
 });

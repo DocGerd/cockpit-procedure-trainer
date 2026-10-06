@@ -29,9 +29,19 @@
   border-radius: var(--radius-xl);
 }
 
+/*
+ * Contain-fit: as wide as the panel, but no taller than the viewport below the stage's top. The
+ * reserve is the surface's bottom padding and border plus the shell body's bottom padding. The
+ * floor keeps the panel usable in a very short window, which then scrolls.
+ */
 .panel-stage {
+  --panel-reserve: calc(var(--space-4) + 3px + var(--space-6));
+  --panel-fit-height: calc(100dvh - var(--panel-top) * 1px - var(--panel-reserve));
+  --panel-min-height: calc(var(--space-12) * 6);
+
   position: relative;
-  width: 100%;
+  width: min(100%, max(var(--panel-fit-height), var(--panel-min-height)) * var(--panel-ratio));
+  margin-inline: auto;
 }
 
 .panel-image {
