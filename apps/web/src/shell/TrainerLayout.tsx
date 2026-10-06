@@ -6,6 +6,7 @@ import { format, useMessages } from '../i18n';
 import { OutsideView } from '../outside-view/OutsideView';
 import { PanelArea } from '../panel/PanelArea';
 import { useSessionState, useTrainer } from '../trainer';
+import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
@@ -170,6 +171,7 @@ export function TrainerLayout() {
           </aside>
         )}
       </div>
+      <AppFooter />
       <ChecklistAnnouncer announceDeviations={overlay && !expanded} />
     </div>
   );

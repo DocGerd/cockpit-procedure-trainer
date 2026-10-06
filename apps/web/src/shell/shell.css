@@ -425,11 +425,19 @@
   gap: var(--space-3);
 }
 
-.picker-legal {
-  margin: 0;
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
+.app-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
   color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .language-switch {
