@@ -133,7 +133,7 @@ export const controls = {
       'Sperrt die Kraftstoffleitung ab. Nur für den Notfall; die Schutzkappe muss zuerst geöffnet werden.',
       'Closes the fuel line. For emergencies only; the guard cover has to be opened first.',
     ),
-    placard: text('BRANDHAHN', 'FUEL OFF'),
+    placard: text('BRANDHAHN', 'FUEL SHUTOFF'),
     appearance: { widget: 'guarded-handle' },
   },
   alternatorBreaker: {
