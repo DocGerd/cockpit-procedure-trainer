@@ -55,7 +55,13 @@ export function TrainerLayout() {
   }, [done]);
 
   useEffect(() => {
-    pane.current?.querySelector('[aria-current="step"]')?.scrollIntoView?.({ block: 'nearest' });
+    const aside = pane.current;
+    const item = aside?.querySelector('[aria-current="step"]');
+    if (!aside || !item) return;
+    const box = aside.getBoundingClientRect();
+    const rect = item.getBoundingClientRect();
+    if (rect.top < box.top) aside.scrollTop -= box.top - rect.top;
+    else if (rect.bottom > box.bottom) aside.scrollTop += rect.bottom - box.bottom;
   }, [current, showPane]);
 
   useEffect(() => {

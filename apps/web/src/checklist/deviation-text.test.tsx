@@ -56,6 +56,10 @@ describe('deviation text for device controls', () => {
     expect(describeIn('de').title(unexpected('radio.page'))).toContain('Page (de)');
   });
 
+  it('does not mistake an inherited property for a control', () => {
+    expect(describeIn('en').title(unexpected('constructor'))).toBe('constructor operated');
+  });
+
   it('falls back to the id for a control nothing defines', () => {
     expect(describeIn('en').title(unexpected('radio.nothing'))).toBe('radio.nothing operated');
   });
