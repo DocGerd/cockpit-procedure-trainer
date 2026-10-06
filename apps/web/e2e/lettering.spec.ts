@@ -40,7 +40,90 @@ const faces = (aircraft: Aircraft, viewId: string) =>
     return appearance && 'artwork' in appearance ? [{ id, face: appearance.artwork.face }] : [];
   });
 
+type Box = { left: number; top: number; right: number; bottom: number };
+
+const GLYPH_WIDTH_EM = 0.75;
+
+const legendBoxes = (svg: string): { text: string; box: Box }[] =>
+  [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(([, attributes = '', text = '']) => {
+    const number = (name: string) =>
+      Number(new RegExp(`\\b${name}="(-?[\\d.]+)"`).exec(attributes)?.[1]);
+    const size = number('font-size');
+    const width = text.length * GLYPH_WIDTH_EM * size;
+    const anchor = /text-anchor="(\w+)"/.exec(attributes)?.[1];
+    const x = number('x');
+    const left = anchor === 'middle' ? x - width / 2 : anchor === 'end' ? x - width : x;
+    const y = number('y');
+    return {
+      text,
+      box: { left, right: left + width, top: y - size * 0.4, bottom: y + size * 0.4 },
+    };
+  });
+
+const rectBoxes = (svg: string): Box[] =>
+  [...svg.matchAll(/<rect\b([^>]*)\/>/g)].map(([, attributes = '']) => {
+    const number = (name: string) =>
+      Number(new RegExp(`\\b${name}="(-?[\\d.]+)"`).exec(attributes)?.[1]);
+    return {
+      left: number('x'),
+      top: number('y'),
+      right: number('x') + number('width'),
+      bottom: number('y') + number('height'),
+    };
+  });
+
+const overlaps = (a: Box, b: Box) =>
+  a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+// Boxes of the moving part at every position, swept along its travel.
+function movingBoxes(aircraft: Aircraft, id: string): Box[] {
+  const appearance = aircraft.controls[id]?.appearance;
+  if (!appearance || !('artwork' in appearance)) return [];
+  const { moving } = appearance.artwork;
+  if (moving.type === 'positions') {
+    return Object.values(moving.images).flatMap((url) => rectBoxes(source(url)));
+  }
+  if (moving.type !== 'travel') return [];
+  const first = moving.path[0];
+  const last = moving.path[moving.path.length - 1];
+  if (!first || !last) return [];
+  return rectBoxes(source(moving.image)).flatMap((box) => [
+    box,
+    {
+      left: box.left + last.x - first.x,
+      right: box.right + last.x - first.x,
+      top: box.top + last.y - first.y,
+      bottom: box.bottom + last.y - first.y,
+    },
+    {
+      left: Math.min(box.left, box.left + last.x - first.x),
+      right: Math.max(box.right, box.right + last.x - first.x),
+      top: Math.min(box.top, box.top + last.y - first.y),
+      bottom: Math.max(box.bottom, box.bottom + last.y - first.y),
+    },
+  ]);
+}
+
 for (const aircraft of aircraftRegistry) {
+  test(`${aircraft.id} keeps face legends clear of the moving part at every position`, () => {
+    const clashes = Object.keys(aircraft.controls).flatMap((id) => {
+      const appearance = aircraft.controls[id]?.appearance;
+      if (!appearance || !('artwork' in appearance)) return [];
+      const moving = movingBoxes(aircraft, id);
+      return legendBoxes(source(appearance.artwork.face))
+        .filter(({ box }) =>
+          moving.some((part) =>
+            overlaps(
+              { left: box.left - 2, right: box.right + 2, top: box.top, bottom: box.bottom },
+              part,
+            ),
+          ),
+        )
+        .map(({ text }) => `${id}: ${text}`);
+    });
+    expect(clashes).toEqual([]);
+  });
+
   for (const viewport of viewports) {
     test(`${aircraft.id} prints control lettering at the minimum size at ${viewport.width}x${viewport.height}`, async ({
       page,
@@ -69,10 +152,21 @@ for (const aircraft of aircraftRegistry) {
         );
         for (const { id, face } of faces(aircraft, viewId)) {
           const svg = source(face);
-          const rendered = await page
+          const { width: rendered, height } = await page
             .locator(`[data-placement="${id}"] img`)
             .first()
-            .evaluate((image) => image.getBoundingClientRect().width);
+            .evaluate((image) => {
+              const { width, height } = image.getBoundingClientRect();
+              return { width, height };
+            });
+          const [, , boxWidth, boxHeight] = /viewBox="([\d.\s]+)"/
+            .exec(svg)?.[1]
+            ?.split(/\s+/)
+            .map(Number) ?? [0, 0, 0, 0];
+          expect(
+            rendered / (height * ((boxWidth ?? 1) / (boxHeight ?? 1))),
+            `${viewId}/${id} face aspect`,
+          ).toBeCloseTo(1, 1);
           small.push(
             ...tooSmall(svg, rendered / viewBoxWidth(svg)).map(
               (label) => `${viewId}/${id}: ${label}`,
