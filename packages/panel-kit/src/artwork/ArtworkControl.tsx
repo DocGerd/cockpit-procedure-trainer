@@ -23,6 +23,16 @@ function nextPosition(positions: readonly string[], current: ControlPosition): s
   return positions[(index + 1) % positions.length];
 }
 
+// Up and Right step toward the end of the path drawn higher or further right.
+function forwardSign(path: readonly Point[] | undefined): 1 | -1 {
+  const first = path?.[0];
+  const last = path?.[path.length - 1];
+  if (!first || !last) return 1;
+  const dx = last.x - first.x;
+  const dy = last.y - first.y;
+  return (Math.abs(dy) >= Math.abs(dx) ? dy < 0 : dx > 0) ? 1 : -1;
+}
+
 type Hold = { position?: string };
 
 function ButtonInput({
@@ -36,6 +46,7 @@ function ButtonInput({
   onEscape,
   onPress,
   onRelease,
+  onReleased,
 }: Pick<ControlWidgetProps, 'onPress' | 'onRelease'> & {
   name: string;
   hold: Hold | undefined;
@@ -45,6 +56,7 @@ function ButtonInput({
   inputRef?: RefObject<HTMLButtonElement | null>;
   onActivate: () => void;
   onEscape?: () => void;
+  onReleased?: () => void;
 }) {
   const pressed = useRef(false);
   const swallowClick = useRef(false);
@@ -54,10 +66,11 @@ function ButtonInput({
     if (hold.position === undefined) onPress();
     else onPress(hold.position);
   };
-  const release = () => {
+  const release = (ended = false) => {
     if (!pressed.current) return;
     pressed.current = false;
     onRelease();
+    if (ended) onReleased?.();
   };
   const isActivation = (event: KeyboardEvent) => event.key === ' ' || event.key === 'Enter';
   const latestRelease = useRef(onRelease);
@@ -81,8 +94,8 @@ function ButtonInput({
         swallowClick.current = hold !== undefined;
         press();
       }}
-      onPointerUp={release}
-      onPointerCancel={release}
+      onPointerUp={() => release(true)}
+      onPointerCancel={() => release(true)}
       onClick={() => {
         // A click while held is a key repeat; the hold ends on key up, not here.
         if (pressed.current) return;
@@ -90,7 +103,7 @@ function ButtonInput({
           swallowClick.current = false;
         } else if (hold) {
           press();
-          release();
+          release(true);
         } else {
           onActivate();
         }
@@ -110,9 +123,9 @@ function ButtonInput({
         // Cancels Space's click on key up; Enter's on key down is cancelled above.
         event.preventDefault();
         swallowClick.current = false;
-        release();
+        release(true);
       }}
-      onBlur={release}
+      onBlur={() => release()}
     />
   );
 }
@@ -139,6 +152,7 @@ function LeverInput({
       }),
     );
   };
+  const forward = forwardSign(path);
   const step = (delta: number) => onSet(clamp01(Math.round((value + delta) * 1000) / 1000));
   return (
     <div
@@ -168,10 +182,10 @@ function LeverInput({
       }}
       onKeyDown={(event) => {
         const keys: Record<string, () => void> = {
-          ArrowUp: () => step(LEVER_STEP),
-          ArrowRight: () => step(LEVER_STEP),
-          ArrowDown: () => step(-LEVER_STEP),
-          ArrowLeft: () => step(-LEVER_STEP),
+          ArrowUp: () => step(forward * LEVER_STEP),
+          ArrowRight: () => step(forward * LEVER_STEP),
+          ArrowDown: () => step(-forward * LEVER_STEP),
+          ArrowLeft: () => step(-forward * LEVER_STEP),
           Home: () => onSet(0),
           End: () => onSet(1),
         };
@@ -195,6 +209,7 @@ function NotchInput({
   position,
   className,
   rotary,
+  inputRef,
   onSet,
 }: Pick<ControlWidgetProps, 'onSet'> & {
   steps: readonly string[];
@@ -207,7 +222,9 @@ function NotchInput({
   position: ControlPosition;
   className?: string;
   rotary: boolean;
+  inputRef: RefObject<HTMLDivElement | null>;
 }) {
+  const forward = forwardSign(path);
   const goTo = (target: number) => {
     const id = steps[Math.min(steps.length - 1, Math.max(0, target))];
     if (id !== undefined && id !== String(position)) onSet(id);
@@ -239,6 +256,7 @@ function NotchInput({
   };
   return (
     <div
+      ref={inputRef}
       role="slider"
       tabIndex={0}
       className={className ?? inputClass}
@@ -250,10 +268,10 @@ function NotchInput({
       onClick={tap}
       onKeyDown={(event) => {
         const keys: Record<string, () => void> = {
-          ArrowUp: () => goTo(index + 1),
-          ArrowRight: () => goTo(index + 1),
-          ArrowDown: () => goTo(index - 1),
-          ArrowLeft: () => goTo(index - 1),
+          ArrowUp: () => goTo(index + forward),
+          ArrowRight: () => goTo(index + forward),
+          ArrowDown: () => goTo(index - forward),
+          ArrowLeft: () => goTo(index - forward),
           Home: () => goTo(0),
           End: () => goTo(steps.length - 1),
           Enter: noop,
@@ -329,6 +347,9 @@ export function ArtworkControl(props: ArtworkControlProps) {
   const { control, position, label, artwork, fallback } = props;
   const notches = typeof control.positions === 'string' ? undefined : control.positions;
   const travelPath = artwork.moving.type === 'travel' ? artwork.moving.path : undefined;
+  const slider = useRef<HTMLDivElement>(null);
+  const cycle = useRef<HTMLButtonElement>(null);
+  const refocus = () => (slider.current ?? cycle.current)?.focus();
 
   const input = (size: Size | null): ReactNode => {
     if (control.kind === 'momentary') {
@@ -395,6 +416,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
           notches={notches}
           position={position}
           rotary={control.kind === 'rotary'}
+          inputRef={slider}
           {...(springClass === undefined ? {} : { className: springClass })}
           onSet={props.onSet}
         />
@@ -402,6 +424,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
         <ButtonInput
           name={`${label}: ${shown}`}
           hold={undefined}
+          inputRef={cycle}
           {...(springClass === undefined ? {} : { className: springClass })}
           onActivate={() => {
             const cycle = nextPosition(steps, resting);
@@ -421,6 +444,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
             hold={{ position: spring }}
             className={`${inputClass} cpt-artwork-spring`}
             onActivate={noop}
+            onReleased={refocus}
             onPress={props.onPress}
             onRelease={props.onRelease}
           />
