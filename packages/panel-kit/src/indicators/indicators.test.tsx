@@ -2,7 +2,8 @@
 import type { IndicatorValue, JsonObject } from '@cpt/core';
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { DigitalReadout, UNITS_WIDTH } from './DigitalReadout';
+import { Annunciator } from './Annunciator';
+import { DigitalReadout, UNITS_ROOM, unitsReserve } from './DigitalReadout';
 import { angleAt, polar, squeeze, SWEEP_END, SWEEP_START } from './geometry';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
@@ -319,7 +320,7 @@ describe('digital readout', () => {
     const bareX = Number(bare?.getAttribute('x'));
     cleanup();
     const withUnits = draw(readout, 7, { units: 'V' }).container.querySelector('[data-value]');
-    expect(Number(withUnits?.getAttribute('x'))).toBe(bareX - UNITS_WIDTH);
+    expect(Number(withUnits?.getAttribute('x'))).toBe(bareX - unitsReserve('V', 7));
   });
 
   it('squeezes a value that would not fit and leaves a short one alone', () => {
@@ -329,10 +330,10 @@ describe('digital readout', () => {
     const long = draw(readout, 'ABCDEFGHIJKLMNOP').container.querySelector('[data-value]');
     expect(long?.getAttribute('textLength')).toBe(String(94 - 6));
     cleanup();
-    const crowded = draw(readout, 'ABCDEFGH', { units: 'V' }).container.querySelector(
+    const crowded = draw(readout, 'ABCDEFGHIJ', { units: 'V' }).container.querySelector(
       '[data-value]',
     );
-    expect(crowded?.getAttribute('textLength')).toBe(String(94 - UNITS_WIDTH - 6));
+    expect(crowded?.getAttribute('textLength')).toBe(String(94 - unitsReserve('V', 7) - 6));
   });
 
   it('squeezes a long label and leaves a short one alone', () => {
@@ -450,5 +451,131 @@ describe('defaults', () => {
       'digital-readout',
       'round-gauge',
     ]);
+  });
+});
+
+function placeAt(width: number, height: number) {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    width,
+    height,
+    right: width,
+    bottom: height,
+    toJSON: () => ({}),
+  });
+}
+
+const named = (Widget: IndicatorWidget, value: IndicatorValue, options?: JsonObject) =>
+  render(<Widget value={value} label="Airspeed" {...(options === undefined ? {} : { options })} />);
+
+const present = (container: HTMLElement) => ({
+  numerals: container.querySelectorAll('[data-tick-label]').length > 0,
+  units: container.querySelector('[data-units]') !== null,
+  label: container.querySelector('[data-label]') !== null,
+});
+
+const renderedPx = (element: Element | null, scale: number) =>
+  Number.parseFloat(element?.getAttribute('font-size') ?? '0') * scale;
+
+describe('legibility', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const gaugeOptions = { ...range, units: 'psi', ticks: [10, 15, 20, 25, 30] };
+
+  it.each([
+    [48, { numerals: false, units: false, label: false }],
+    [80, { numerals: false, units: false, label: true }],
+    [128, { numerals: true, units: true, label: true }],
+    [208, { numerals: true, units: true, label: true }],
+  ])(
+    'a gauge at %i px keeps what fits, dropping numerals, then units, then the label',
+    (px, expected) => {
+      placeAt(px, px);
+      expect(present(named(gauge, 17, gaugeOptions).container)).toEqual(expected);
+    },
+  );
+
+  it('never shows a gauge numeral without its units and label', () => {
+    for (const px of [48, 64, 80, 96, 112, 128, 160, 208, 320]) {
+      placeAt(px, px);
+      const shown = present(named(gauge, 17, gaugeOptions).container);
+      if (shown.numerals) expect(shown.units && shown.label).toBe(true);
+      if (shown.units) expect(shown.label).toBe(true);
+      cleanup();
+    }
+  });
+
+  it.each([48, 80, 128, 208])('renders every gauge text at 11 px or more at %i px', (px) => {
+    placeAt(px, px);
+    const { container } = named(gauge, 17, gaugeOptions);
+    for (const text of container.querySelectorAll('text')) {
+      expect(renderedPx(text, px / 100)).toBeGreaterThanOrEqual(11 - 1e-9);
+    }
+  });
+
+  it('keeps the accessible name and reading when the gauge drops all text', () => {
+    placeAt(48, 48);
+    const svg = named(gauge, 17, gaugeOptions).container.querySelector('svg');
+    expect(svg?.querySelectorAll('text')).toHaveLength(0);
+    expect(svg?.getAttribute('aria-label')).toBe('Airspeed');
+    expect(svg?.getAttribute('aria-valuetext')).toBe('17 psi');
+  });
+
+  it('keeps an annunciator label legible or drops it', () => {
+    placeAt(80, 40);
+    const label = draw(annunciator, true).container.querySelector('[data-label]');
+    expect(renderedPx(label, 0.8)).toBeGreaterThanOrEqual(11 - 1e-9);
+    cleanup();
+    placeAt(48, 24);
+    const long = render(<Annunciator label="Master caution" value />);
+    expect(long.container.querySelector('[data-label]')).toBeNull();
+    expect(long.container.querySelector('svg')?.getAttribute('aria-label')).toBe('Master caution');
+  });
+
+  it('drops readout label and units before the value as the readout shrinks', () => {
+    const shown = (px: number) => {
+      placeAt(px, px * 0.4);
+      const { container } = named(readout, 87, { units: 'kt' });
+      return { value: container.querySelector('[data-value]') !== null, ...present(container) };
+    };
+    expect(shown(48)).toMatchObject({ value: true, units: false, label: false });
+    cleanup();
+    expect(shown(80)).toMatchObject({ value: true, units: true, label: true });
+  });
+});
+
+describe('readout negative value layout', () => {
+  const edges = (value: IndicatorValue, units: string) => {
+    const { container } = draw(readout, value, { units });
+    const number = container.querySelector('[data-value]');
+    const valueRight = Number(number?.getAttribute('x'));
+    const unitsLeft = 94 - unitsReserve(units, 7) + 2;
+    return { valueRight, unitsLeft };
+  };
+
+  it.each([
+    [-450, 'ft/min'],
+    [-450, 'V'],
+    [450, 'ft/min'],
+    [-12345.67, 'kt'],
+  ])('keeps %s clear of its %s units by construction', (value, units) => {
+    const { valueRight, unitsLeft } = edges(value, units);
+    expect(valueRight).toBeLessThanOrEqual(unitsLeft);
+  });
+
+  it('reserves more room for longer units, never more than the units cap', () => {
+    expect(unitsReserve('ft/min', 7)).toBeGreaterThan(unitsReserve('V', 7));
+    expect(unitsReserve('x'.repeat(40), 7)).toBe(UNITS_ROOM + 2);
+  });
+
+  it('squeezes a long negative value into the room left of the units', () => {
+    const { container } = draw(readout, -123456789, { units: 'ft/min' });
+    const number = container.querySelector('[data-value]');
+    expect(Number(number?.getAttribute('textLength'))).toBeLessThanOrEqual(
+      94 - unitsReserve('ft/min', 7) - 6,
+    );
   });
 });

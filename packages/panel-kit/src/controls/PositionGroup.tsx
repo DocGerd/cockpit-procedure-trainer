@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import type { HTMLAttributes, KeyboardEvent, MouseEvent } from 'react';
+import type { ComponentProps, KeyboardEvent, MouseEvent } from 'react';
 import type { ControlPosition } from '@cpt/core';
 import type { Box } from './geometry';
 import { Fill, hitStyle } from './Stage';
@@ -16,7 +16,7 @@ type PositionGroupProps = {
   direction: Direction;
   springBack?: Readonly<Record<string, string>> | undefined;
   pointerHandled?: boolean;
-  groupProps?: HTMLAttributes<HTMLDivElement>;
+  groupProps?: ComponentProps<'div'>;
   onSet(position: ControlPosition): void;
   onPress(position?: ControlPosition): void;
   onRelease(): void;
