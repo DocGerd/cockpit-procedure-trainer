@@ -48,9 +48,7 @@ function ButtonInput({
   const pressed = useRef(false);
   const swallowClick = useRef(false);
   const press = () => {
-    if (pressed.current) return;
-    swallowClick.current = hold !== undefined;
-    if (!hold) return;
+    if (pressed.current || !hold) return;
     pressed.current = true;
     if (hold.position === undefined) onPress();
     else onPress(hold.position);
@@ -61,6 +59,14 @@ function ButtonInput({
     onRelease();
   };
   const isActivation = (event: KeyboardEvent) => event.key === ' ' || event.key === 'Enter';
+  const latestRelease = useRef(onRelease);
+  latestRelease.current = onRelease;
+  useEffect(
+    () => () => {
+      if (pressed.current) latestRelease.current();
+    },
+    [],
+  );
   return (
     <button
       ref={inputRef}
@@ -71,27 +77,40 @@ function ButtonInput({
       aria-pressed={pressedState}
       onPointerDown={(event) => {
         event.currentTarget.setPointerCapture?.(event.pointerId);
+        swallowClick.current = hold !== undefined;
         press();
       }}
       onPointerUp={release}
       onPointerCancel={release}
       onClick={() => {
+        // A click while held is a key repeat; the hold ends on key up, not here.
+        if (pressed.current) return;
         if (swallowClick.current) {
           swallowClick.current = false;
         } else if (hold) {
           press();
           release();
-          swallowClick.current = false;
         } else {
           onActivate();
         }
       }}
       onKeyDown={(event) => {
-        if (isActivation(event)) press();
-        else if (event.key === 'Escape') onEscape?.();
+        if (isActivation(event)) {
+          // A held key steps or presses once; a hold also takes the key's own click.
+          if (event.repeat || hold) event.preventDefault();
+          if (event.repeat || !hold) return;
+          swallowClick.current = true;
+          press();
+        } else if (event.key === 'Escape') {
+          onEscape?.();
+        }
       }}
       onKeyUp={(event) => {
-        if (isActivation(event)) release();
+        if (!isActivation(event) || !hold) return;
+        event.preventDefault();
+        // Space clicks after key up, Enter on key down; only Space's click is still to come.
+        if (event.key === 'Enter') swallowClick.current = false;
+        release();
       }}
       onBlur={release}
     />
@@ -269,21 +288,42 @@ export function ArtworkControl(props: ArtworkControlProps) {
         />
       );
     }
-    const springs =
-      control.kind === 'rotary' &&
-      next !== undefined &&
-      control.springBack !== undefined &&
-      Object.hasOwn(control.springBack, next);
-    return (
+    const springBack = control.kind === 'rotary' ? control.springBack : undefined;
+    const isSpring = (id: string) => springBack !== undefined && Object.hasOwn(springBack, id);
+    const current = String(position);
+    // Spring detents are held, never stepped onto, so the cycle runs past them to every other position.
+    const cycle = nextPosition(
+      control.positions.filter((id) => !isSpring(id)),
+      position,
+    );
+    const spring = isSpring(current)
+      ? current
+      : control.positions.find((id) => isSpring(id) && springBack?.[id] === current);
+    const cycleInput = (
       <ButtonInput
         name={`${label}: ${shown}`}
-        hold={springs ? { position: next } : undefined}
+        hold={undefined}
+        {...(spring === undefined ? {} : { className: `${inputClass} cpt-artwork-cycle` })}
         onActivate={() => {
-          if (next !== undefined) props.onSet(next);
+          if (cycle !== undefined && cycle !== current) props.onSet(cycle);
         }}
         onPress={props.onPress}
         onRelease={props.onRelease}
       />
+    );
+    if (spring === undefined) return cycleInput;
+    return (
+      <>
+        {cycleInput}
+        <ButtonInput
+          name={`${label}: ${props.positionLabels[spring] ?? spring}`}
+          hold={{ position: spring }}
+          className={`${inputClass} cpt-artwork-spring`}
+          onActivate={noop}
+          onPress={props.onPress}
+          onRelease={props.onRelease}
+        />
+      </>
     );
   };
 

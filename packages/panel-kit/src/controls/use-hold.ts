@@ -62,6 +62,8 @@ export function useHold(onRelease: () => void) {
     },
     onBlur: abandon,
     onClick: () => {
+      // A click while held is a key repeat; the hold ends on key up, not here.
+      if (held.current) return;
       if (clickPending.current) {
         clickPending.current = false;
         return;
@@ -73,7 +75,7 @@ export function useHold(onRelease: () => void) {
     onKeyDown: (event: KeyboardEvent) => {
       if (!isActivation(event)) return;
       event.preventDefault();
-      begin(press);
+      if (!event.repeat) begin(press);
     },
     onKeyUp: (event: KeyboardEvent) => {
       if (!isActivation(event)) return;

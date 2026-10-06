@@ -453,9 +453,11 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
     expect(view.onRelease).not.toHaveBeenCalled();
   });
 
+  const hold = () => screen.getByRole('button', { name: 'Control: start' });
+
   it('presses the spring detent while held and releases it on let go', () => {
     const view = renderControl(key, keyImages, 'both');
-    const button = screen.getByRole('button');
+    const button = hold();
     fireEvent.pointerDown(button);
     expect(view.onPress).toHaveBeenCalledWith('start');
     expect(view.onRelease).not.toHaveBeenCalled();
@@ -467,7 +469,7 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
 
   it('does the same from the keyboard', () => {
     const view = renderControl(key, keyImages, 'both');
-    const button = screen.getByRole('button');
+    const button = hold();
     fireEvent.keyDown(button, { key: ' ' });
     expect(view.onPress).toHaveBeenCalledWith('start');
     fireEvent.keyUp(button, { key: ' ' });
@@ -478,7 +480,7 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
 
   it('still releases when the held detent has become the current position', () => {
     const view = renderControl(key, keyImages, 'both');
-    fireEvent.pointerDown(screen.getByRole('button'));
+    fireEvent.pointerDown(hold());
     view.rerender(
       <ArtworkControl
         control={key}
@@ -493,7 +495,48 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
         onCloseGuard={view.onCloseGuard}
       />,
     );
-    fireEvent.pointerUp(screen.getByRole('button'));
+    fireEvent.pointerUp(document.querySelector('.cpt-artwork-spring') as Element);
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('cycles past the spring detent to the positions after it', () => {
+    const view = renderControl(key, keyImages, 'both');
+    fireEvent.click(screen.getByRole('button', { name: 'Control: both' }));
+    expect(view.onSet).toHaveBeenCalledWith('off');
+    expect(view.onPress).not.toHaveBeenCalled();
+  });
+
+  it('reaches a position that lies beyond a spring detent', () => {
+    const middle: ControlDefinition = {
+      ...base,
+      kind: 'rotary',
+      positions: ['off', 'start', 'run'],
+      initial: 'off',
+      springBack: { start: 'off' },
+    };
+    const images: MovingPart = {
+      type: 'positions',
+      images: { off: 'off.png', start: 'start.png', run: 'run.png' },
+    };
+    const view = renderControl(middle, images, 'off');
+    fireEvent.click(screen.getByRole('button', { name: 'Control: off' }));
+    expect(view.onSet).toHaveBeenCalledWith('run');
+    view.unmount();
+    const run = renderControl(middle, images, 'run');
+    expect(screen.queryByRole('button', { name: 'Control: start' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Control: run' }));
+    expect(run.onSet).toHaveBeenCalledWith('off');
+  });
+
+  it('offers the hold only from the detent it springs back to', () => {
+    renderControl(key, keyImages, 'off');
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('releases a held detent whose input goes away', () => {
+    const view = renderControl(key, keyImages, 'both');
+    fireEvent.pointerDown(hold());
+    view.unmount();
     expect(view.onRelease).toHaveBeenCalledTimes(1);
   });
 });
@@ -525,7 +568,7 @@ describe('ArtworkControl for assistive technology', () => {
       springBack: { start: 'off' },
     };
     const view = renderControl(key, { type: 'positions', images: { off: 'o.png' } }, 'off');
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: 'Control: start' }));
     expect(view.onPress).toHaveBeenCalledWith('start');
     expect(view.onRelease).toHaveBeenCalledTimes(1);
     expect(view.onSet).not.toHaveBeenCalled();
@@ -584,6 +627,90 @@ describe('ArtworkControl for assistive technology', () => {
     expect(screen.getByRole('button', { name: 'Control' }).getAttribute('aria-expanded')).toBe(
       'false',
     );
+  });
+});
+
+describe('ArtworkControl under a held key', () => {
+  /** A held key as a browser delivers it: each repeat keydown is followed by a click. */
+  function holdEnter(element: HTMLElement, repeats: number) {
+    fireEvent.keyDown(element, { key: 'Enter' });
+    fireEvent.click(element, { detail: 0 });
+    for (let index = 0; index < repeats; index += 1) {
+      fireEvent.keyDown(element, { key: 'Enter', repeat: true });
+      fireEvent.click(element, { detail: 0 });
+    }
+  }
+
+  it('keeps a momentary control pressed through a real held Enter', async () => {
+    const view = renderControl(momentary, switchImages, 'a');
+    act(() => screen.getByRole('button', { name: 'Control' }).focus());
+    const user = userEvent.setup();
+    await user.keyboard('{Enter>4}');
+    expect(view.onPress).toHaveBeenCalledTimes(1);
+    expect(view.onRelease).not.toHaveBeenCalled();
+    await user.keyboard('{/Enter}');
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a momentary control pressed through repeat clicks', () => {
+    const view = renderControl(momentary, switchImages, 'a');
+    const button = screen.getByRole('button', { name: 'Control' });
+    holdEnter(button, 3);
+    expect(view.onPress).toHaveBeenCalledTimes(1);
+    expect(view.onRelease).not.toHaveBeenCalled();
+    fireEvent.keyUp(button, { key: 'Enter' });
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('still treats a later click without a key as a new activation', () => {
+    const view = renderControl(momentary, switchImages, 'a');
+    const button = screen.getByRole('button', { name: 'Control' });
+    fireEvent.keyDown(button, { key: 'Enter' });
+    fireEvent.keyUp(button, { key: 'Enter' });
+    fireEvent.click(button, { detail: 0 });
+    expect(view.onPress).toHaveBeenCalledTimes(2);
+    expect(view.onRelease).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a spring detent pressed through repeat clicks', () => {
+    const key: ControlDefinition = {
+      ...base,
+      kind: 'rotary',
+      positions: ['off', 'start'],
+      initial: 'off',
+      springBack: { start: 'off' },
+    };
+    const view = renderControl(key, { type: 'positions', images: { off: 'o.png' } }, 'off');
+    const button = screen.getByRole('button', { name: 'Control: start' });
+    holdEnter(button, 3);
+    expect(view.onPress).toHaveBeenCalledTimes(1);
+    expect(view.onRelease).not.toHaveBeenCalled();
+    expect(view.onSet).not.toHaveBeenCalled();
+    fireEvent.keyUp(button, { key: 'Enter' });
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('steps a cycling control once for a held Enter', () => {
+    const view = renderControl(toggle, switchImages, 'a');
+    const button = screen.getByRole('button');
+    fireEvent.keyDown(button, { key: 'Enter' });
+    fireEvent.click(button, { detail: 0 });
+    const repeat = new KeyboardEvent('keydown', {
+      key: 'Enter',
+      repeat: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    button.dispatchEvent(repeat);
+    expect(repeat.defaultPrevented).toBe(true);
+    expect(view.onSet).toHaveBeenCalledTimes(1);
+  });
+
+  it('steps a cycling control once for a real held Enter', async () => {
+    const view = renderControl(toggle, switchImages, 'a');
+    act(() => screen.getByRole('button').focus());
+    await userEvent.setup().keyboard('{Enter>4}');
+    expect(view.onSet).toHaveBeenCalledTimes(1);
   });
 });
 
