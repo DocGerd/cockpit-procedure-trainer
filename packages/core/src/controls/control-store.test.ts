@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ControlChange, ControlRecord, Text } from '../contract';
+import type { ControlChange, ControlRecord, GuardPosition, Text } from '../contract';
 import { createControlStore } from './control-store';
 
 const text = (de: string, en: string): Text => ({ de, en });
@@ -386,6 +386,9 @@ describe('load', () => {
     const { store, changes } = setup();
     expect(() => store.load({ master: 'on' }, { master: 'open' })).toThrow(/master/);
     expect(() => store.load({ master: 'on' }, { ghost: 'open' })).toThrow(/ghost/);
+    expect(() => store.load({ master: 'on' }, { brs: 'ajar' as unknown as GuardPosition })).toThrow(
+      /ajar/,
+    );
     expect(store.positions()).toMatchObject({ master: 'off' });
     expect(changes).toEqual([]);
   });

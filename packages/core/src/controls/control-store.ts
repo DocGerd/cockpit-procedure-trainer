@@ -163,9 +163,12 @@ export function createControlStore<CT extends ControlRecord>(
       for (const [id, position] of Object.entries(positions)) {
         validate(id, definitionOf(id), position);
       }
-      for (const id of Object.keys(guardPositions)) {
+      for (const [id, to] of Object.entries(guardPositions)) {
         definitionOf(id);
         if (!guards.has(id)) throw new Error(`Control "${id}" has no guard`);
+        if (to !== 'open' && to !== 'closed') {
+          throw new Error(`Guard of "${id}" has no position ${JSON.stringify(to)}`);
+        }
       }
       const changes: ControlChange<C>[] = [];
       for (const [id, position] of Object.entries(positions)) {

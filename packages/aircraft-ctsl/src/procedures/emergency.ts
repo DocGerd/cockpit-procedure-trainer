@@ -195,8 +195,8 @@ export const emergencyProcedures = {
         ),
       },
       confirm(
-        'Sicherungsstift gezogen (vor dem Flug entfernt)',
-        'Safety pin out (removed before flight)',
+        'Sicherungsstift gezogen, vor dem Flug entfernt (Ergänzung des Trainers)',
+        'Safety pin out, removed before flight (trainer addition)',
       ),
       {
         type: 'action',
