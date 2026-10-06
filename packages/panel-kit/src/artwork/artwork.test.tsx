@@ -125,6 +125,11 @@ describe('ArtworkIndicator needle', () => {
     expect(screen.getByRole('img', { name: 'Gauge: 200 km/h' })).toBeTruthy();
   });
 
+  it('never names a negative zero', () => {
+    renderIndicator(needle, -0.4, { units: 'm/s', decimals: 0 });
+    expect(screen.getByRole('img', { name: 'Gauge: 0 m/s' })).toBeTruthy();
+  });
+
   it('keeps a bare name for invalid readout options', () => {
     renderIndicator(needle, 3, { units: 7, decimals: 1.5 });
     expect(screen.getByRole('img', { name: 'Gauge: 3' })).toBeTruthy();

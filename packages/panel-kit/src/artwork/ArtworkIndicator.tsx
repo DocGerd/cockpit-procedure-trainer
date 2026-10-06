@@ -18,7 +18,10 @@ function nameOf(label: string, value: IndicatorValue, options: JsonObject | unde
   }
   if (typeof value !== 'number') return `${label}: ${String(value)}`;
   const readout = readReadoutOptions(options);
-  const text = readout?.decimals == null ? formatNumber(value) : value.toFixed(readout.decimals);
+  const text =
+    readout?.decimals == null
+      ? formatNumber(value)
+      : value.toFixed(readout.decimals).replace(/^-(0(\.0+)?)$/, '$1');
   return readout?.units ? `${label}: ${text} ${readout.units}` : `${label}: ${text}`;
 }
 
