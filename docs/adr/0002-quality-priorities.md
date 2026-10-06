@@ -16,7 +16,7 @@ fixes the order once.
 **Gates.** Never traded off; a change that breaks one is not mergeable.
 
 - **G1 Legal and copyright.** No handbook scans, manufacturer artwork or
-  photos in the repo. Art is self-drawn. Each aircraft states the handbook
+  third-party photos in the repo. Art is self-drawn. Each aircraft states the handbook
   revision it follows (spec section 7).
 - **G2 Security and privacy baseline.** Static app, no backend, no accounts.
   No tracking or telemetry, no runtime calls to third-party origins, a strict
@@ -39,8 +39,8 @@ fixes the order once.
 6. **Visual polish and brand.** `tokens.css`; the brand styles the frame,
    never the panel.
 
-**Device priority.** HD desktop (1920x1080) first, 4K second, tablet later,
-mobile last. The whole cockpit fits one viewport (issue #253).
+**Device priority.** HD desktop (1920x1080) first, 4K second, tablet later;
+phones stay out of scope (ADR-0001). The whole cockpit fits one viewport (issue #253).
 
 **How to apply.** In a conflict pick the higher-ranked quality. A lower one is
 sacrificed only if the PR description names the trade-off and the reason, and
@@ -50,5 +50,5 @@ the milestone summary carries it. Gates are never traded.
 
 - Agents settle quality conflicts by this list without asking the owner.
 - Tablet and offline work follow desktop work; they are not dropped.
-- The spec's device decision now reads desktop first, superseding "tablet and
-  desktop equally first-class".
+- The spec's device decision now reads desktop first, superseding "Tablet and
+  desktop; touch and mouse both first-class".
