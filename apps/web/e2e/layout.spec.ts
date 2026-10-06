@@ -1,0 +1,114 @@
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { aircraftRegistry } from '../src/aircraft-registry';
+import { openAircraft } from './legibility';
+
+const desktops = [
+  { width: 1920, height: 1080 },
+  { width: 3840, height: 2160 },
+];
+
+const tablets = [
+  { width: 1024, height: 768 },
+  { width: 768, height: 1024 },
+];
+
+const cockpitLayout = (page: Page) => page.locator('.shell');
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of desktops) {
+    test(`${aircraft.id} shows every view at once at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+      await expect(page.getByRole('tablist')).toHaveCount(0);
+
+      for (const [viewId, cell] of Object.entries(aircraft.cockpit?.views ?? {})) {
+        const region = page.locator(`[data-view="${viewId}"]`);
+        const box = await region.boundingBox();
+        if (!box) throw new Error(`${viewId} has no region`);
+        expect(box.x, `${viewId} left`).toBeGreaterThanOrEqual(0);
+        expect(box.y, `${viewId} top`).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width, `${viewId} right`).toBeLessThanOrEqual(viewport.width);
+        expect(box.y + box.height, `${viewId} bottom`).toBeLessThanOrEqual(viewport.height);
+
+        const image = await region
+          .locator('.panel-image')
+          .first()
+          .evaluate((element) => element.getBoundingClientRect().width);
+        expect(image, `${viewId} rendered width`).toBeGreaterThanOrEqual(cell.minWidth);
+      }
+
+      const overflow = await page.evaluate(() => ({
+        x: document.documentElement.scrollWidth - window.innerWidth,
+        y: document.documentElement.scrollHeight - window.innerHeight,
+      }));
+      expect(overflow, 'page scroll').toEqual({ x: 0, y: 0 });
+    });
+
+    test(`${aircraft.id} keeps the version and copyright footer clear at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+      const footer = page.getByRole('contentinfo');
+      await expect(footer).toBeInViewport({ ratio: 1 });
+      const top = (await footer.boundingBox())?.y ?? 0;
+      const covered = await page
+        .locator('main button, main [role="radio"], main [role="slider"], header button')
+        .evaluateAll(
+          (controls, footerTop) =>
+            controls.filter((control) => control.getBoundingClientRect().bottom > footerTop).length,
+          top,
+        );
+      expect(covered, 'controls reaching into the footer').toBe(0);
+    });
+  }
+
+  for (const viewport of tablets) {
+    test(`${aircraft.id} keeps the view tabs at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'tabs');
+      await expect(page.getByRole('tablist')).toBeVisible();
+      await expect(page.getByRole('tab')).toHaveCount(Object.keys(aircraft.views).length);
+    });
+  }
+}
+
+const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+
+// #226: holding the key on START while watching the tachometer.
+for (const viewport of desktops) {
+  test(`the CTSL key is held on START with the tachometer in sight at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl, 'engineStart');
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+
+    const ignition = ctsl.controls.ignition?.name.en ?? 'Ignition';
+    const key = page.getByRole('slider', { name: ignition, exact: true });
+    await key.focus();
+    await key.press('End');
+    const start = page.getByRole('button', {
+      name: `${ignition}: start`,
+      exact: true,
+    });
+    await start.focus();
+    await page.keyboard.down('Enter');
+    try {
+      await expect(key).toHaveAttribute('aria-valuetext', 'start');
+      await expect(start).toBeInViewport({ ratio: 1 });
+      await expect(page.locator('[data-placement="tachometer"]')).toBeInViewport({ ratio: 1 });
+    } finally {
+      await page.keyboard.up('Enter');
+    }
+  });
+}

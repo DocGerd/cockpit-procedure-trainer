@@ -34,6 +34,10 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
     views: {
       main: { name: text('Main'), image: 'main.svg', controls: {} },
     },
+    cockpit: {
+      size: { width: 100, height: 100 },
+      views: { main: { rect: { x: 0, y: 0, w: 100, h: 100 }, minWidth: 400 } },
+    },
     systems: { initial, step: (state: State) => state },
     failures: { fire: { name: text('Fire') } },
     phases: {
