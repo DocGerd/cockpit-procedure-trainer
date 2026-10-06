@@ -322,6 +322,36 @@ describe('deviations', () => {
   });
 });
 
+describe('one operation of a held control', () => {
+  const cases = [
+    ['a momentary control', 'lampTest', 'released', 'pressed', 'released'],
+    ['a spring-back detent', 'ignition', 'off', 'start', 'both'],
+  ] as const;
+
+  for (const [name, control, initial, detent, rest] of cases) {
+    it(`records one deviation for the press and release of ${name}`, () => {
+      const held = stateOf({ [control]: detent });
+      const letGo = stateOf({ [control]: rest });
+      let checklist = observeControl(begin(), position(control, initial, detent), held);
+      checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
+      expect(checklist.deviations).toEqual([
+        { kind: 'unexpected-control', itemIndex: 0, controlId: control },
+      ]);
+    });
+
+    it(`records a second deviation for a separate press of ${name}`, () => {
+      const held = stateOf({ [control]: detent });
+      const letGo = stateOf({ [control]: rest });
+      let checklist = observeControl(begin(), position(control, initial, detent), held);
+      checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
+      checklist = observeControl(checklist, position(control, rest, detent), held);
+      checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
+      const deviation = { kind: 'unexpected-control', itemIndex: 0, controlId: control };
+      expect(checklist.deviations).toEqual([deviation, deviation]);
+    });
+  }
+});
+
 describe('consecutive spring-back actions', () => {
   const press = (control: string, position: string, extra = {}) =>
     ({
