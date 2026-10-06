@@ -1,10 +1,11 @@
 import type { ControlDefinition, IndicatorDefinition, JsonObject } from '@cpt/core';
 import { resolveControl, resolveIndicator } from '@cpt/panel-kit';
 import { useMemo } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { useLocalize, useMessages } from '../i18n';
+import { useExploreStore } from '../modes/explore-state';
 import { usePanelInput } from '../modes/panel-input';
-import { useSessionState } from '../trainer';
+import { useSessionState, useTrainer } from '../trainer';
 import { messages } from './messages';
 import type { PanelBox } from './rects';
 
@@ -20,14 +21,22 @@ function Placement({
   kind,
   box,
   children,
+  onKeyDown,
 }: {
   id: string;
   kind: 'control' | 'indicator';
   box: PanelBox;
   children: ReactNode;
+  onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }) {
   return (
-    <div className="panel-placement" data-placement={id} data-kind={kind} style={boxStyle(box)}>
+    <div
+      className="panel-placement"
+      data-placement={id}
+      data-kind={kind}
+      style={boxStyle(box)}
+      {...(onKeyDown ? { onKeyDown } : {})}
+    >
       {children}
     </div>
   );
@@ -49,6 +58,8 @@ export function ControlPlacement({
   const position = useSessionState((s) => s.state().controls[id] ?? control.initial);
   const guardOpen = useSessionState((s) => s.guards()[id] === 'open');
   const input = usePanelInput(id);
+  const { mode } = useTrainer();
+  const explore = useExploreStore();
   const { widget: Widget, options } = resolveControl(control);
   const positionLabels = useMemo(
     () =>
@@ -57,7 +68,17 @@ export function ControlPlacement({
   );
 
   return (
-    <Placement id={id} kind="control" box={box}>
+    <Placement
+      id={id}
+      kind="control"
+      box={box}
+      onKeyDown={(event) => {
+        // Every widget, a lever too, opens its details on Enter while Free explore only selects.
+        if (event.key === 'Enter' && mode === 'explore' && !explore.get().operate) {
+          explore.select(id);
+        }
+      }}
+    >
       <Widget
         control={control}
         position={position}

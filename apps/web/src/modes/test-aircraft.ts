@@ -49,6 +49,13 @@ export const fixture: Aircraft = defineAircraft({
       description: text('Cranks the engine while held.'),
     },
     unplaced: toggle('Unplaced'),
+    throttle: {
+      kind: 'lever',
+      positions: 'continuous',
+      initial: 0,
+      name: text('Throttle'),
+      description: text('Sets the power.'),
+    },
     cutoff: {
       kind: 'guarded',
       positions: ['normal', 'cut'],
@@ -73,6 +80,7 @@ export const fixture: Aircraft = defineAircraft({
         master: { rect: { x: 100, y: 100, w: 100, h: 100 } },
         starter: { rect: { x: 300, y: 100, w: 100, h: 100 } },
         cutoff: { rect: { x: 450, y: 150, w: 100, h: 50 } },
+        throttle: { rect: { x: 850, y: 100, w: 50, h: 150 } },
       },
       indicators: { volts: { rect: { x: 600, y: 100, w: 200, h: 200 } } },
     },
@@ -99,7 +107,14 @@ export const fixture: Aircraft = defineAircraft({
       image: 'ground.png',
       environment,
       entry: {
-        controls: { master: 'off', pump: 'off', starter: 'off', unplaced: 'off', cutoff: 'normal' },
+        controls: {
+          master: 'off',
+          pump: 'off',
+          starter: 'off',
+          unplaced: 'off',
+          cutoff: 'normal',
+          throttle: 0,
+        },
         state: initial,
       },
     },

@@ -1,6 +1,6 @@
 import type { ControlPosition, Point } from '@cpt/core';
-import { useRef } from 'react';
-import type { KeyboardEvent, PointerEvent, ReactNode } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from 'react';
 import type { ControlWidgetProps } from '../types';
 import { ArtworkStage } from './ArtworkStage';
 import type { Artwork, Size } from './ArtworkStage';
@@ -28,6 +28,9 @@ function ButtonInput({
   name,
   hold,
   pressedState,
+  id,
+  className = inputClass,
+  inputRef,
   onActivate,
   onEscape,
   onPress,
@@ -36,6 +39,9 @@ function ButtonInput({
   name: string;
   hold: Hold | undefined;
   pressedState?: boolean;
+  id?: string;
+  className?: string;
+  inputRef?: RefObject<HTMLButtonElement | null>;
   onActivate: () => void;
   onEscape?: () => void;
 }) {
@@ -57,8 +63,10 @@ function ButtonInput({
   const isActivation = (event: KeyboardEvent) => event.key === ' ' || event.key === 'Enter';
   return (
     <button
+      ref={inputRef}
+      id={id}
       type="button"
-      className={inputClass}
+      className={className}
       aria-label={name}
       aria-pressed={pressedState}
       onPointerDown={(event) => {
@@ -68,8 +76,15 @@ function ButtonInput({
       onPointerUp={release}
       onPointerCancel={release}
       onClick={() => {
-        if (swallowClick.current) swallowClick.current = false;
-        else onActivate();
+        if (swallowClick.current) {
+          swallowClick.current = false;
+        } else if (hold) {
+          press();
+          release();
+          swallowClick.current = false;
+        } else {
+          onActivate();
+        }
       }}
       onKeyDown={(event) => {
         if (isActivation(event)) press();
@@ -116,6 +131,7 @@ function LeverInput({
       aria-valuemin={0}
       aria-valuemax={1}
       aria-valuenow={value}
+      aria-valuetext={`${Math.round(value * 100)}%`}
       onPointerDown={(event) => {
         if (!path) return;
         dragging.current = true;
@@ -149,6 +165,63 @@ function LeverInput({
   );
 }
 
+function GuardedInputs({
+  label,
+  handleName,
+  guardOpen,
+  onSet,
+  onOpenGuard,
+  onCloseGuard,
+  onPress,
+  onRelease,
+}: Pick<
+  ControlWidgetProps,
+  'label' | 'guardOpen' | 'onOpenGuard' | 'onCloseGuard' | 'onPress' | 'onRelease'
+> & { handleName: string; onSet: () => void }) {
+  const guard = useRef<HTMLButtonElement>(null);
+  const handle = useRef<HTMLButtonElement>(null);
+  const handleId = useId();
+
+  useEffect(() => {
+    if (guardOpen && document.activeElement === guard.current) handle.current?.focus();
+  }, [guardOpen]);
+
+  const close = () => {
+    guard.current?.focus();
+    onCloseGuard();
+  };
+
+  return (
+    <>
+      <button
+        ref={guard}
+        type="button"
+        className={`${inputClass} cpt-artwork-guard`}
+        aria-label={label}
+        aria-expanded={guardOpen}
+        aria-controls={guardOpen ? handleId : undefined}
+        onClick={guardOpen ? onCloseGuard : onOpenGuard}
+        onKeyDown={(event) => {
+          if (guardOpen && event.key === 'Escape') close();
+        }}
+      />
+      {guardOpen && (
+        <ButtonInput
+          id={handleId}
+          name={handleName}
+          hold={undefined}
+          className={`${inputClass} cpt-artwork-handle`}
+          inputRef={handle}
+          onActivate={onSet}
+          onEscape={close}
+          onPress={onPress}
+          onRelease={onRelease}
+        />
+      )}
+    </>
+  );
+}
+
 export function ArtworkControl(props: ArtworkControlProps) {
   const { control, position, label, artwork, fallback } = props;
   const notches = typeof control.positions === 'string' ? undefined : control.positions;
@@ -178,24 +251,35 @@ export function ArtworkControl(props: ArtworkControlProps) {
         />
       );
     }
-    const guarded = control.kind === 'guarded';
     const next = nextPosition(control.positions, position);
+    const shown = props.positionLabels[String(position)] ?? String(position);
+    if (control.kind === 'guarded') {
+      return (
+        <GuardedInputs
+          label={label}
+          handleName={`${label}: ${shown}`}
+          guardOpen={props.guardOpen}
+          onSet={() => {
+            if (next !== undefined) props.onSet(next);
+          }}
+          onOpenGuard={props.onOpenGuard}
+          onCloseGuard={props.onCloseGuard}
+          onPress={props.onPress}
+          onRelease={props.onRelease}
+        />
+      );
+    }
     const springs =
       control.kind === 'rotary' &&
       next !== undefined &&
       control.springBack !== undefined &&
       Object.hasOwn(control.springBack, next);
-    const shown = props.positionLabels[String(position)] ?? String(position);
     return (
       <ButtonInput
         name={`${label}: ${shown}`}
         hold={springs ? { position: next } : undefined}
         onActivate={() => {
-          if (guarded && !props.guardOpen) props.onOpenGuard();
-          else if (next !== undefined) props.onSet(next);
-        }}
-        onEscape={() => {
-          if (guarded && props.guardOpen) props.onCloseGuard();
+          if (next !== undefined) props.onSet(next);
         }}
         onPress={props.onPress}
         onRelease={props.onRelease}

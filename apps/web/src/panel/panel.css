@@ -37,6 +37,11 @@
   border-radius: var(--radius-xl);
 }
 
+.panel-surface[data-panel-surface]:focus-visible {
+  outline: 2px solid var(--panel-focus);
+  outline-offset: 2px;
+}
+
 /*
  * Contain-fit: as wide as the panel, but no taller than the viewport below the stage's top. The
  * reserve is the surface's bottom padding and border plus the shell body's bottom padding. The
