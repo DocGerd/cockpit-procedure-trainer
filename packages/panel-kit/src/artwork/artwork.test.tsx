@@ -562,6 +562,161 @@ describe('ArtworkControl on a rotary with a spring-back detent', () => {
   });
 });
 
+describe('ArtworkControl stepping a notched control both ways', () => {
+  const flaps: ControlDefinition = {
+    ...base,
+    kind: 'lever',
+    positions: ['up', 'to', 'land'],
+    initial: 'up',
+  };
+  const flapImages: MovingPart = {
+    type: 'positions',
+    images: { up: 'up.png', to: 'to.png', land: 'land.png' },
+  };
+  const ignition: ControlDefinition = {
+    ...base,
+    kind: 'rotary',
+    positions: ['off', 'l', 'r', 'both', 'start'],
+    initial: 'off',
+    springBack: { start: 'both' },
+  };
+  const ignitionImages: MovingPart = {
+    type: 'positions',
+    images: { off: 'o.png', l: 'l.png', r: 'r.png', both: 'b.png', start: 's.png' },
+  };
+  const slider = () => screen.getByRole('slider');
+  const rectOf = (width: number, height: number) =>
+    vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ left: 0, top: 0, width, height } as DOMRect);
+  const tap = (x: number, y: number) =>
+    fireEvent.click(slider(), { detail: 1, clientX: x, clientY: y });
+  const key = (name: string) => fireEvent.keyDown(slider(), { key: name });
+
+  it('exposes the notch as a slider with the label as value text', () => {
+    renderControl(flaps, flapImages, 'to');
+    expect(slider().getAttribute('aria-valuenow')).toBe('1');
+    expect(slider().getAttribute('aria-valuemax')).toBe('2');
+    expect(slider().getAttribute('aria-valuetext')).toBe('to');
+    expect(slider().getAttribute('aria-label')).toBe('Control');
+  });
+
+  it('steps one notch each way from the keyboard', () => {
+    const view = renderControl(flaps, flapImages, 'to');
+    key('ArrowUp');
+    key('ArrowRight');
+    expect(view.onSet).toHaveBeenNthCalledWith(1, 'land');
+    expect(view.onSet).toHaveBeenNthCalledWith(2, 'land');
+    key('ArrowDown');
+    key('ArrowLeft');
+    expect(view.onSet).toHaveBeenNthCalledWith(3, 'up');
+    expect(view.onSet).toHaveBeenNthCalledWith(4, 'up');
+  });
+
+  it('jumps to the ends with Home and End', () => {
+    const view = renderControl(flaps, flapImages, 'to');
+    key('End');
+    key('Home');
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does not wrap past either end', () => {
+    const top = renderControl(flaps, flapImages, 'land');
+    key('ArrowUp');
+    key('End');
+    expect(top.onSet).not.toHaveBeenCalled();
+    top.unmount();
+    const bottom = renderControl(flaps, flapImages, 'up');
+    key('ArrowDown');
+    key('Home');
+    expect(bottom.onSet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Enter and Space without effect', () => {
+    const view = renderControl(flaps, flapImages, 'land');
+    key('Enter');
+    key(' ');
+    fireEvent.click(slider());
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps toward the tapped half on a tall control', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'to');
+    tap(20, 10);
+    tap(20, 90);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('steps toward the tapped half on a wide control', () => {
+    rectOf(100, 44);
+    const view = renderControl(flaps, flapImages, 'to');
+    tap(90, 20);
+    tap(10, 20);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('does not wrap on a tap past either end', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'land');
+    tap(20, 10);
+    expect(view.onSet).not.toHaveBeenCalled();
+    view.unmount();
+    const low = renderControl(flaps, flapImages, 'up');
+    tap(20, 90);
+    expect(low.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps toward the tap along a travel path', () => {
+    rectOf(40, 20);
+    const view = renderControl(flaps, travel, 'to');
+    tap(30, 8);
+    tap(4, 16);
+    expect(view.onSet.mock.calls).toEqual([['land'], ['up']]);
+  });
+
+  it('ignores a click that carries no pointer, as from assistive technology', () => {
+    rectOf(44, 100);
+    const view = renderControl(flaps, flapImages, 'to');
+    fireEvent.click(slider(), { detail: 0, clientX: 20, clientY: 10 });
+    expect(view.onSet).not.toHaveBeenCalled();
+  });
+
+  it('steps an ignition key one position each way and skips the spring detent', () => {
+    const view = renderControl(ignition, ignitionImages, 'both');
+    key('ArrowDown');
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+    key('ArrowUp');
+    expect(view.onSet).toHaveBeenCalledTimes(1);
+    key('End');
+    expect(view.onSet).toHaveBeenCalledTimes(1);
+    key('Home');
+    expect(view.onSet).toHaveBeenLastCalledWith('off');
+  });
+
+  it('names the ignition position and keeps START a momentary hold', () => {
+    const view = renderControl(ignition, ignitionImages, 'both');
+    expect(slider().getAttribute('aria-valuetext')).toBe('both');
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Control: start' }));
+    expect(view.onPress).toHaveBeenCalledWith('start');
+    fireEvent.pointerUp(screen.getByRole('button', { name: 'Control: start' }));
+    expect(view.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it('steps from the position a held spring detent returns to', () => {
+    const view = renderControl(ignition, ignitionImages, 'start');
+    key('ArrowDown');
+    expect(view.onSet).toHaveBeenLastCalledWith('r');
+  });
+
+  it('keeps a two-position toggle as tap to toggle', () => {
+    const view = renderControl(toggle, switchImages, 'a');
+    expect(screen.queryByRole('slider')).toBeNull();
+    fireEvent.click(screen.getByRole('button'));
+    expect(view.onSet).toHaveBeenCalledWith('b');
+  });
+});
+
 describe('ArtworkControl for assistive technology', () => {
   it('gives the lever slider a value text', () => {
     renderControl(lever, travel, 0.3);
