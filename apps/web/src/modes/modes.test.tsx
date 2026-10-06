@@ -557,6 +557,8 @@ describe('Free explore for assistive technology', () => {
     act(() => screen.getByRole('slider', { name: 'Throttle' }).focus());
     await userEvent.keyboard('{Enter}');
     expect(screen.queryByRole('dialog')).toBeNull();
+    enterExplore();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
 
@@ -568,6 +570,19 @@ describe('Guided focus', () => {
     act(() => trainer.session.set('master', 'on'));
     expect(selectedTab()).toBe('Centre console');
     expect(placement('pump')?.contains(document.activeElement)).toBe(true);
+  });
+
+  it('leaves focus alone when another target comes up in the shown view', () => {
+    renderTrainer();
+    start('inview', 'guided');
+    const tab = screen.getByRole('tab', { name: 'Main panel' });
+    act(() => tab.focus());
+    act(() => {
+      trainer.session.openGuard('cutoff');
+      trainer.session.set('cutoff', 'cut');
+    });
+    expect(trainer.session.checklist()?.current).toBe(1);
+    expect(document.activeElement).toBe(tab);
   });
 
   it('leaves focus alone when the next target is in the shown view', () => {

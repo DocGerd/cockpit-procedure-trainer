@@ -146,6 +146,15 @@ export const fixture: Aircraft = defineAircraft({
         { type: 'action', control: 'master', position: 'off', text: text('Master off') },
       ],
     },
+    inview: {
+      title: text('In view'),
+      type: 'normal',
+      startPhase: 'ground',
+      items: [
+        { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff cut') },
+        { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
+      ],
+    },
     shutdown: {
       title: text('Shutdown'),
       type: 'normal',
