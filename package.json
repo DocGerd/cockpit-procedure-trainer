@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "pnpm --filter @cpt/web exec playwright test"
   },
   "packageManager": "pnpm@11.22.0",
   "devDependencies": {
