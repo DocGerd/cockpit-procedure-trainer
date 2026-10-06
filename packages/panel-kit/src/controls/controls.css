@@ -25,10 +25,12 @@
 
 /* A touch target that would reach up into the placard band moves down instead of shrinking. */
 .pk-body[data-band] .pk-hit {
+  /* stylelint-disable declaration-property-unit-disallowed-list -- a length floor of zero, not a spacing value; max() cannot mix it with a unitless 0 */
   margin-top: max(
     0px,
     calc(max(var(--size-target), var(--pk-hit-h) * 1cqh) / 2 - var(--pk-hit-y) * 1cqh)
   );
+  /* stylelint-enable declaration-property-unit-disallowed-list */
 }
 
 .pk-svg,
@@ -165,6 +167,7 @@
 
 .pk-legend {
   font-family: var(--font-sans);
+  /* stylelint-disable-next-line declaration-property-unit-disallowed-list -- SVG user units from the stage geometry, not a type-scale size */
   font-size: calc(var(--pk-font) * 1px);
   fill: var(--panel-legend-muted);
   dominant-baseline: central;
@@ -189,6 +192,7 @@
 
 .pk-placard {
   font-family: var(--font-sans);
+  /* stylelint-disable-next-line declaration-property-unit-disallowed-list -- SVG user units from the stage geometry, not a type-scale size */
   font-size: calc(var(--pk-font) * 1px);
   font-weight: var(--weight-semibold);
   fill: var(--panel-legend);
