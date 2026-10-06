@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
+import viewGps from './assets/view-gps.svg?raw';
 import viewRadios from './assets/view-radios.svg?raw';
 import { devices as installs } from './devices';
 import { ctslAircraft } from './index';
@@ -197,7 +198,13 @@ describe('CTSL aircraft', () => {
   );
 
   it('has the views of the panel inventory and a radio stack', () => {
-    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'radios', 'centre', 'console']);
+    expect(Object.keys(ctslAircraft.views)).toEqual([
+      'panel',
+      'radios',
+      'gps',
+      'centre',
+      'console',
+    ]);
   });
 
   it.each(Object.entries(deviceSlots))(
@@ -392,6 +399,7 @@ describe('declared view sizes', () => {
     centre: viewCentre,
     console: viewConsole,
     radios: viewRadios,
+    gps: viewGps,
   };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {

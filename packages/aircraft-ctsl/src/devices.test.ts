@@ -5,7 +5,7 @@ import { devices } from './devices';
 import { initial } from './systems';
 import type { CtslTrainerState } from './systems';
 import { testDevices } from './test-devices';
-import { stackSlots, views } from './views';
+import { gpsSlot, stackSlots, views } from './views';
 
 const stateWith = (
   avionicsPowered: boolean,
@@ -105,19 +105,57 @@ describe('the GTX 327 install', () => {
   });
 });
 
+describe('the GPSMAP 496 install', () => {
+  const install = devices.gps;
+
+  it('installs the gpsmap496 device in its own GPS view', () => {
+    expect(install).toMatchObject({ device: 'gpsmap496', view: 'gps', placement: gpsSlot });
+    expect(install.inputs).toEqual({});
+  });
+
+  it('keeps the GPS slot inside the GPS view', () => {
+    const { width, height } = views.gps.size;
+    const { x, y, w, h } = gpsSlot.rect;
+    expect(x + w).toBeLessThanOrEqual(width);
+    expect(y + h).toBeLessThanOrEqual(height);
+  });
+
+  it.each([
+    [true, 'in', true],
+    [false, 'in', false],
+    [true, 'pulled', false],
+    [false, 'pulled', false],
+  ])('with the avionics bus %s and the breaker %s, powered is %s', (bus, breaker, expected) => {
+    expect(install.powered(stateWith(bus, { gpsBreaker: breaker }))).toBe(expected);
+  });
+
+  it('ignores the COM breaker', () => {
+    expect(install.powered(stateWith(true, { gpsBreaker: 'in', comBreaker: 'pulled' }))).toBe(true);
+  });
+
+  it('has a stand-in with the control ids of the device', () => {
+    const standIn = testDevices.find((device) => device.id === 'gpsmap496');
+    expect(Object.keys(standIn?.controls ?? {})).toEqual(['power', 'backlight', 'page', 'quit']);
+  });
+});
+
 describe('the avionics master', () => {
-  it('turns the radio and the transponder off together, and on again', () => {
+  it('turns the radio, the transponder and the GPS off together, and on again', () => {
     const session = createSession(ctslAircraft, { devices: testDevices, phase: 'holding' });
     session.advance(100);
-    const powered = () => [session.state().devices.com?.on, session.state().devices.xpdr?.on];
-    expect(powered()).toEqual([true, true]);
+    const powered = () => [
+      session.state().devices.com?.on,
+      session.state().devices.xpdr?.on,
+      session.state().devices.gps?.on,
+    ];
+    expect(powered()).toEqual([true, true, true]);
 
     session.set('avionicsMaster', 'off');
     session.advance(100);
-    expect(powered()).toEqual([false, false]);
+    expect(powered()).toEqual([false, false, false]);
 
     session.set('avionicsMaster', 'on');
     session.advance(100);
-    expect(powered()).toEqual([true, true]);
+    expect(powered()).toEqual([true, true, true]);
   });
 });
