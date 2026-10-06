@@ -94,6 +94,21 @@ describe('CTSL emergency procedures', () => {
     );
   });
 
+  it('finds the safety pin already out when the rescue deployment starts', () => {
+    const session = createSession(ctslAircraft, { devices });
+    session.startProcedure('rescueDeployment');
+    expect(session.guards().rescueHandle).toBe('open');
+    expect(session.set('rescueHandle', 'pulled')).toEqual({ applied: true });
+  });
+
+  it('only confirms the safety pin is out before the handle is pulled', () => {
+    const pin = itemIndex(
+      'rescueDeployment',
+      (item) => item.type === 'confirm' && /safety pin out/i.test(item.text.en),
+    );
+    expect(pin).toBeLessThan(actionOn('rescueDeployment', 'rescueHandle', 'pulled'));
+  });
+
   const flareShutdown = [
     ['ignition', 'off'],
     ['fuelValve', 'closed'],

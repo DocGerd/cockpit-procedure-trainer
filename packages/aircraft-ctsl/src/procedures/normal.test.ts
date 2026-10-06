@@ -95,6 +95,29 @@ describe('CTSL normal procedures', () => {
     expect(walkProcedure(ctslAircraft, id, { devices })).toEqual({ ok: true });
   });
 
+  it('enters departure with the flaps where the take-off leaves them', () => {
+    const flapActions = (normalProcedures.takeoff.items as readonly Item[]).filter(
+      (item) => item.type === 'action' && item.control === 'flapSelector',
+    );
+    const last = flapActions.at(-1);
+    expect(last?.type === 'action' && last.position).toBe(
+      ctslAircraft.phases.departure?.entry.controls.flapSelector,
+    );
+  });
+
+  it('selects negative flap in the climb only after confirming a safe height', () => {
+    const items = normalProcedures.climbCruise.items as readonly Item[];
+    const safeHeight = items.findIndex(
+      (item) => item.type === 'confirm' && /safe height/i.test(item.text.en),
+    );
+    const negative = items.findIndex(
+      (item) =>
+        item.type === 'action' && item.control === 'flapSelector' && item.position === '-12',
+    );
+    expect(safeHeight).toBeGreaterThanOrEqual(0);
+    expect(safeHeight).toBeLessThan(negative);
+  });
+
   it('never targets a continuous lever', () => {
     const definitions: Record<string, { readonly positions: unknown }> = controls;
     for (const [id, procedure] of procedures) {

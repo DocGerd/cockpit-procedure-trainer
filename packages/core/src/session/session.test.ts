@@ -207,6 +207,23 @@ describe('jumpToPhase', () => {
     expect(session.checklist()).toBeUndefined();
   });
 
+  it('enters a phase with the guards its entry declares open', () => {
+    const runup = fixturePhase('runup');
+    const aircraft = {
+      ...fixtureAircraft,
+      phases: {
+        ...fixtureAircraft.phases,
+        runup: { ...runup, entry: { ...runup.entry, guards: { fuelPump: 'open' } } },
+      },
+    } as Aircraft;
+    const session = createSession(aircraft, { phase: 'runup' });
+    expect(session.guards().fuelPump).toBe('open');
+    session.jumpToPhase('parking');
+    expect(session.guards().fuelPump).toBe('closed');
+    session.jumpToPhase('runup');
+    expect(session.guards().fuelPump).toBe('open');
+  });
+
   it('is reproducible: two runs from the same phase give the same state', () => {
     const first = createSession(fixtureAircraft);
     const second = createSession(fixtureAircraft);

@@ -109,6 +109,23 @@ describe('validateAircraft', () => {
       only(withEntry('parking', { ghost: 'on' }), 'unknown-target', 'ghost');
     });
 
+    it('reports an entry guard on an unknown control or a control without a guard', () => {
+      const parking = fixtureAircraft.phases.parking;
+      const aircraft = withPhase('parking', {
+        entry: { ...parking?.entry, guards: { ghost: 'open', master: 'open' } },
+      });
+      only(aircraft, 'unknown-target', 'ghost');
+      only(aircraft, 'unknown-target', 'master');
+    });
+
+    it('reports an entry guard position other than open or closed', () => {
+      const parking = fixtureAircraft.phases.parking;
+      const aircraft = withPhase('parking', {
+        entry: { ...parking?.entry, guards: { fuelPump: 'ajar' } },
+      });
+      only(aircraft, 'unknown-position', 'fuelPump');
+    });
+
     it('reports a failure that trips an unknown or non-breaker control', () => {
       const aircraft = broken({
         failures: {

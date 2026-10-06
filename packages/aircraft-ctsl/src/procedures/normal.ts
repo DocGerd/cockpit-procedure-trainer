@@ -588,14 +588,15 @@ export const normalProcedures = {
     startPhase: 'departure',
     endPhase: 'cruise',
     items: [
+      confirm(
+        'Sichere Höhe erreicht, Klappen nie negativ in Bodennähe',
+        'Safe height reached, never negative flaps near the ground',
+      ),
       {
         type: 'action',
         control: 'flapSelector',
         position: '-12',
-        text: text(
-          'Klappen −12°, erst in sicherer Höhe, nie negativ in Bodennähe',
-          'Flaps −12°, only at a safe height, never negative near the ground',
-        ),
+        text: text('Klappen −12°', 'Flaps −12°'),
       },
       {
         type: 'check',

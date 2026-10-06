@@ -294,6 +294,17 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         checkPosition(id, `phase ${phaseId} entry`, position);
       }
     }
+    for (const [id, position] of Object.entries(entry.guards ?? {})) {
+      if (!hasControl(id) || aircraft.controls[id]?.kind !== 'guarded') {
+        add('unknown-target', id, `phase ${phaseId} entry guards a control without a guard`);
+      } else if (position !== 'open' && position !== 'closed') {
+        add(
+          'unknown-position',
+          id,
+          `phase ${phaseId} entry has no guard position ${JSON.stringify(position)}`,
+        );
+      }
+    }
     for (const [installId, positions] of Object.entries(entry.devices ?? {})) {
       const install = Object.hasOwn(aircraft.devices ?? {}, installId)
         ? aircraft.devices?.[installId]
