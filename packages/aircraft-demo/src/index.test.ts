@@ -52,6 +52,12 @@ describe('demo aircraft', () => {
     expect(validateAircraft(demoAircraft, { devices })).toEqual([]);
   });
 
+  it('arranges every view in the cockpit', () => {
+    expect(Object.keys(demoAircraft.cockpit?.views ?? {}).sort()).toEqual(
+      Object.keys(demoAircraft.views).sort(),
+    );
+  });
+
   it('uses every control kind and springs one rotary detent back', () => {
     const controls = Object.values(demoAircraft.controls);
     expect(new Set(controls.map((control) => control.kind))).toEqual(new Set(CONTROL_KINDS));

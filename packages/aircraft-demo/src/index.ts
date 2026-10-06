@@ -1,6 +1,7 @@
 import { defineAircraft } from '@cpt/core';
 import type { Environment } from '@cpt/core';
 import { images } from './assets';
+import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
@@ -115,6 +116,7 @@ export const demoAircraft = defineAircraft({
       size: { width: 640, height: 432 },
     },
   },
+  cockpit,
   devices: {
     radio: {
       device: 'com',

@@ -1,4 +1,5 @@
 import { defineAircraft } from '@cpt/core';
+import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { devices } from './devices';
 import { failures } from './failures';
@@ -19,6 +20,7 @@ export const ctslAircraft = defineAircraft({
   controls,
   indicators,
   views,
+  cockpit,
   devices,
   systems: { initial, step },
   failures,

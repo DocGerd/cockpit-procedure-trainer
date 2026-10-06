@@ -139,6 +139,12 @@ describe('CTSL aircraft', () => {
     expect(validateAircraft(ctslAircraft, { devices })).toEqual([]);
   });
 
+  it('arranges every view in the cockpit', () => {
+    expect(Object.keys(ctslAircraft.cockpit?.views ?? {}).sort()).toEqual(
+      Object.keys(ctslAircraft.views).sort(),
+    );
+  });
+
   it('calls the panel representative in both languages', () => {
     expect(ctslAircraft.id).toBe('ctsl');
     expect(ctslAircraft.name).toEqual({
