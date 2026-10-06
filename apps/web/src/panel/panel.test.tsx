@@ -205,6 +205,18 @@ describe('placements', () => {
     expect(stage.style.getPropertyValue('--panel-top')).toBe('300');
   });
 
+  it("leave room for the footer's height when they fit the viewport", () => {
+    const footer = document.body.appendChild(document.createElement('footer'));
+    vi.spyOn(footer, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 743, 1024, 24.5));
+    try {
+      renderPanel();
+      const stage = placement('master')?.closest<HTMLElement>('.panel-stage') as HTMLElement;
+      expect(stage.style.getPropertyValue('--panel-footer')).toBe('25');
+    } finally {
+      footer.remove();
+    }
+  });
+
   it('ignore 3D position and orientation', () => {
     renderPanel();
     loadBackground('Main panel');
