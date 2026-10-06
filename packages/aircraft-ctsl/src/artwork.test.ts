@@ -87,6 +87,22 @@ describe('CTSL compass', () => {
     expect(moving.pivot).toEqual({ x: 100, y: 100 });
   });
 
+  it('turns the card so heading 090 shows E at the top', () => {
+    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
+    if (moving?.type !== 'needle') throw new Error('the compass card turns as a needle');
+    const svg = read(moving.image);
+    const placed = (point: string) =>
+      Number(new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(svg)?.[1]);
+    const cardTurn = (headingDeg: number) =>
+      (headingDeg / moving.valueRange.max) * moving.angleRange.max;
+    const atTop = (point: string, headingDeg: number) =>
+      (((placed(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
+    expect(atTop('N', 360)).toBe(true);
+    expect(atTop('E', 90)).toBe(true);
+    expect(atTop('S', 180)).toBe(true);
+    expect(atTop('W', 270)).toBe(true);
+  });
+
   it('letters the card with the cardinal points', () => {
     const card = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
     const svg = card?.type === 'needle' ? read(card.image) : '';
