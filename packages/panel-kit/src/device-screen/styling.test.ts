@@ -20,4 +20,9 @@ describe('panel styling', () => {
   it('keeps the off scrim from taking pointer input', () => {
     expect(css).toMatch(/\.pk-device-off\s*\{[^}]*pointer-events:\s*none/);
   });
+
+  it('keeps the off scrim visible', () => {
+    const opacity = /\.pk-device-off\s*\{[^}]*opacity:\s*([\d.]+)/.exec(css)?.[1];
+    expect(Number(opacity)).toBeGreaterThan(0);
+  });
 });

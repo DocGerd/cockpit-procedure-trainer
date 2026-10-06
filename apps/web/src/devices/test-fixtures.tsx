@@ -26,6 +26,14 @@ const fixtureControls = {
     name: text('Key'),
     description: text('Key'),
   },
+  knob: {
+    kind: 'rotary',
+    positions: ['rest', 'left', 'right'],
+    initial: 'rest',
+    springBack: { left: 'rest', right: 'rest' },
+    name: text('Knob'),
+    description: text('Knob'),
+  },
 } as const;
 
 const fixtureDevice = defineDevice({
@@ -51,8 +59,11 @@ const unscreenedDevice = defineDevice({
 
 export const devices: readonly Device[] = [fixtureDevice, unscreenedDevice];
 
+export const screenInput: { send?: DeviceScreenProps['send'] } = {};
+
 export function FixtureScreen({ on, state, send }: DeviceScreenProps) {
   const { page, keyDown } = state as FixtureDeviceState;
+  screenInput.send = send;
   return (
     <div>
       <output data-readout>{on ? `${page}${keyDown ? '!' : ''}` : ''}</output>
@@ -64,6 +75,12 @@ export function FixtureScreen({ on, state, send }: DeviceScreenProps) {
       </button>
       <button type="button" onClick={() => send('key', 'release')}>
         Key up
+      </button>
+      <button type="button" onClick={() => send('knob', 'press', 'right')}>
+        Knob right
+      </button>
+      <button type="button" onClick={() => send('knob', 'release')}>
+        Knob release
       </button>
     </div>
   );

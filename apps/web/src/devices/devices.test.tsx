@@ -6,7 +6,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { PanelArea } from '../panel';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
-import { aircraft, deviceScreens, devices } from './test-fixtures';
+import { aircraft, deviceScreens, devices, screenInput } from './test-fixtures';
 
 vi.mock('../aircraft-registry', async () => {
   const fixtures = await import('./test-fixtures');
@@ -47,7 +47,11 @@ beforeEach(() => {
   localStorage.clear();
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe('device layer', () => {
   it('has the fixture wired to the real contract', () => {
@@ -89,6 +93,29 @@ describe('device layer', () => {
     expect(controls()['radio.key']).toBe('down');
     await userEvent.click(screen.getByRole('button', { name: 'Key up' }));
     expect(controls()['radio.key']).toBe('up');
+  });
+
+  it('routes a press with a position to the install-scoped control', async () => {
+    renderPanel();
+    await userEvent.click(screen.getByRole('button', { name: 'Knob right' }));
+    expect(controls()['radio.knob']).toBe('right');
+    await userEvent.click(screen.getByRole('button', { name: 'Knob release' }));
+    expect(controls()['radio.knob']).toBe('rest');
+  });
+
+  it('throws in development when a screen sets a control without a position', () => {
+    renderPanel();
+    expect(() => screenInput.send?.('page', 'set')).toThrow(/radio\.page.*without a position/);
+    expect(controls()['radio.page']).toBe('a');
+  });
+
+  it('logs instead of throwing in production when a screen sets without a position', () => {
+    vi.stubEnv('DEV', false);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    renderPanel();
+    expect(() => screenInput.send?.('page', 'set')).not.toThrow();
+    expect(log).toHaveBeenCalledOnce();
+    expect(controls()['radio.page']).toBe('a');
   });
 
   it('draws the screen from the device state in the session', () => {

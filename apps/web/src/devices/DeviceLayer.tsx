@@ -28,7 +28,13 @@ function InstalledDevice({ installId, box }: { installId: string; box: PanelBox 
     (controlId, action, position?: ControlPosition) => {
       const id = `${installId}.${controlId}`;
       if (action === 'set') {
-        if (position !== undefined) session.set(id, position);
+        if (position !== undefined) {
+          session.set(id, position);
+        } else {
+          const error = new Error(`Device screen sent a set for "${id}" without a position`);
+          if (import.meta.env.DEV) throw error;
+          console.error(error);
+        }
       } else if (action === 'press') {
         if (position === undefined) session.press(id);
         else session.press(id, position);
