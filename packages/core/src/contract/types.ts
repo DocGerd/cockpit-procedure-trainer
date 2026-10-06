@@ -122,9 +122,13 @@ export type Placement = {
   readonly orientation?: Vec3;
 };
 
+export type ViewSize = { readonly width: number; readonly height: number };
+
 export type ViewDefinition<C extends string, I extends string> = {
   readonly name: Text;
   readonly image: string;
+  /** The coordinate space of the placements, with its origin at 0,0. Without it the renderer reads the image. */
+  readonly size?: ViewSize;
   readonly controls?: { readonly [K in C]?: Placement };
   readonly indicators?: { readonly [K in I]?: Placement };
 };

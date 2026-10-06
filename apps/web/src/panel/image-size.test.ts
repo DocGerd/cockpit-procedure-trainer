@@ -72,4 +72,51 @@ describe('useBackgroundSize', () => {
 
     expect(result.current.size).toEqual({ x: 0, y: 0, width: 20, height: 10 });
   });
+
+  it('uses the declared size without fetching the image', () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
+    const { result } = renderHook(() => useBackgroundSize('a.svg', { width: 30, height: 20 }));
+
+    expect(result.current.size).toEqual({ width: 30, height: 20 });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('prefers the declared size over a fetched viewBox and a natural size', async () => {
+    const { result } = renderHook(() => useBackgroundSize('a.png', { width: 30, height: 20 }));
+    act(() => result.current.onNaturalSize({ width: 99, height: 99 }));
+
+    expect(result.current.size).toEqual({ width: 30, height: 20 });
+  });
+
+  it.each([
+    ['zero', { width: 0, height: 20 }],
+    ['negative', { width: 30, height: -1 }],
+    ['NaN', { width: Number.NaN, height: 20 }],
+    ['infinite', { width: 30, height: Infinity }],
+  ])('ignores a declared size that is %s and reads the viewBox', async (_, declared) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({ ok: true, text: () => Promise.resolve('<svg viewBox="0 0 20 10"/>') }),
+      ),
+    );
+    const { result } = renderHook(() => useBackgroundSize('a.svg', declared));
+    await act(async () => {});
+
+    expect(result.current.size).toEqual({ x: 0, y: 0, width: 20, height: 10 });
+  });
+
+  it('falls back to the fetched viewBox when the size is not declared', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({ ok: true, text: () => Promise.resolve('<svg viewBox="0 0 20 10"/>') }),
+      ),
+    );
+    const { result } = renderHook(() => useBackgroundSize('a.svg', undefined));
+    await act(async () => {});
+
+    expect(result.current.size).toEqual({ x: 0, y: 0, width: 20, height: 10 });
+  });
 });
