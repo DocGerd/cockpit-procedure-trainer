@@ -104,13 +104,68 @@ describe('Sl40Screen controls', () => {
     ]);
   });
 
-  it('holds monitor from press to release', async () => {
+  it('holds monitor from pointer down to pointer up', () => {
     const send = show();
-    await userEvent.click(screen.getByRole('button', { name: 'MON' }));
+    const mon = screen.getByRole('button', { name: 'MON' });
+    fireEvent.pointerDown(mon, { button: 0 });
+    expect(send.mock.calls).toEqual([['monitor', 'press']]);
+    fireEvent.pointerUp(mon);
     expect(send.mock.calls).toEqual([
       ['monitor', 'press'],
       ['monitor', 'release'],
     ]);
+  });
+
+  it('releases monitor when the pointer is cancelled or the button loses focus', () => {
+    const send = show();
+    const mon = screen.getByRole('button', { name: 'MON' });
+    fireEvent.pointerDown(mon, { button: 0 });
+    fireEvent.pointerCancel(mon);
+    fireEvent.pointerDown(mon, { button: 0 });
+    fireEvent.blur(mon);
+    expect(send.mock.calls.map(([, action]) => action)).toEqual([
+      'press',
+      'release',
+      'press',
+      'release',
+    ]);
+  });
+
+  it.each(['Enter', ' '])('holds monitor from %j key down to key up', (key) => {
+    const send = show();
+    const mon = screen.getByRole('button', { name: 'MON' });
+    fireEvent.keyDown(mon, { key });
+    fireEvent.keyDown(mon, { key, repeat: true });
+    expect(send.mock.calls).toEqual([['monitor', 'press']]);
+    fireEvent.keyUp(mon, { key });
+    expect(send.mock.calls).toEqual([
+      ['monitor', 'press'],
+      ['monitor', 'release'],
+    ]);
+  });
+
+  it('presses and releases monitor on a click with no pointer or key', () => {
+    const send = show();
+    fireEvent.click(screen.getByRole('button', { name: 'MON' }));
+    expect(send.mock.calls).toEqual([
+      ['monitor', 'press'],
+      ['monitor', 'release'],
+    ]);
+  });
+
+  it('shows MONITOR while held and clears it after release', () => {
+    let current = { ...state };
+    const send = vi.fn();
+    const { rerender } = render(<Sl40Screen on state={current} send={send} />);
+    const mon = screen.getByRole('button', { name: 'MON' });
+    fireEvent.pointerDown(mon, { button: 0 });
+    current = { ...current, monitoring: true };
+    rerender(<Sl40Screen on state={current} send={send} />);
+    expect(screen.getByText('MONITOR')).toBeTruthy();
+    fireEvent.pointerUp(mon);
+    current = { ...current, monitoring: false };
+    rerender(<Sl40Screen on state={current} send={send} />);
+    expect(screen.queryByText('MONITOR')).toBeNull();
   });
 
   it('sets the volume from the slider', () => {

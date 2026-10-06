@@ -1,6 +1,6 @@
 import type { DeviceInstall } from '@cpt/core';
 import type { CtslState, CtslTrainerState } from './systems';
-import { deviceSlots } from './views';
+import { stackSlots } from './views';
 import type { ViewId } from './views';
 
 const avionicsOn =
@@ -11,8 +11,8 @@ const avionicsOn =
 export const devices = {
   com: {
     device: 'sl40',
-    view: 'panel',
-    placement: deviceSlots.com,
+    view: 'radios',
+    placement: stackSlots.com,
     powered: avionicsOn('comBreaker'),
     inputs: {},
   },

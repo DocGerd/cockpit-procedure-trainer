@@ -14,6 +14,13 @@ export const deviceSlots = {
   gps: at(1168, 40, 400, 300),
 } as const satisfies Record<string, Placement>;
 
+// The radio stack is its own view so each unit renders large enough to operate by touch; the
+// transponder (#211) takes the lower slot.
+export const stackSlots = {
+  com: at(16, 12, 608, 224),
+  xpdr: at(16, 244, 608, 224),
+} as const satisfies Record<string, Placement>;
+
 export const views = {
   panel: {
     name: text('Instrumententafel', 'Panel'),
@@ -39,6 +46,11 @@ export const views = {
       oilTemperature: at(1267, 390, 160, 160),
       cht: at(1432, 390, 160, 160),
     },
+  },
+  radios: {
+    name: text('Funkgeräte', 'Radio stack'),
+    image: images.radios,
+    size: { width: 640, height: 480 },
   },
   centre: {
     name: text('Mittelfeld', 'Centre field'),

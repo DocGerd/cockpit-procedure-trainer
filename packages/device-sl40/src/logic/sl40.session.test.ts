@@ -91,7 +91,7 @@ const testAircraft = defineAircraft({
   },
 });
 
-describe('com in an aircraft', () => {
+describe('sl40 in an aircraft', () => {
   it('validates without findings', () => {
     const findings = validateAircraft(testAircraft, { devices: [sl40Device] });
     expect(findings.map(formatFinding)).toEqual([]);

@@ -1,5 +1,6 @@
 import type { ControlPosition } from '@cpt/core';
 import type { DeviceScreenProps } from '@cpt/panel-kit';
+import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { formatFrequency } from '../logic';
 import type { Sl40State } from '../logic';
@@ -9,7 +10,7 @@ const track =
 const thumb =
   'width: var(--space-4); height: var(--space-4); border-radius: var(--radius-pill); background: var(--panel-cap-light); border: 0;';
 
-const comScreenCss = [
+const sl40ScreenCss = [
   '.cpt-device-sl40 button:focus-visible, .cpt-device-sl40 input:focus-visible { outline: var(--space-1) solid var(--panel-focus); }',
   '.cpt-device-sl40 input[type="range"] { accent-color: var(--panel-cap-light); appearance: none; background: transparent; }',
   `.cpt-device-sl40 input[type="range"]::-webkit-slider-runnable-track { ${track} }`,
@@ -31,10 +32,9 @@ const screenStyle: CSSProperties = {
 
 const readoutStyle: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'auto 1fr',
+  gridTemplateColumns: '1fr 1fr',
   columnGap: 'var(--space-3)',
   alignItems: 'baseline',
-  minHeight: 'var(--leading-3xl)',
 };
 
 const legendStyle: CSSProperties = { color: 'var(--panel-legend-muted)' };
@@ -45,7 +45,12 @@ const valueStyle: CSSProperties = {
   textAlign: 'right',
 };
 
-const flagStyle: CSSProperties = { textAlign: 'right', minHeight: 'var(--leading-md)' };
+const standbyLegendStyle: CSSProperties = {
+  ...legendStyle,
+  display: 'flex',
+  justifyContent: 'space-between',
+  minHeight: 'var(--leading-md)',
+};
 
 const rowStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' };
 
@@ -64,6 +69,74 @@ const buttonStyle: CSSProperties = {
 
 const volumeStyle: CSSProperties = { flex: 1, minHeight: 'var(--size-target)' };
 
+type HoldButtonProps = { name: string; control: string; send: DeviceScreenProps['send'] };
+
+function HoldButton({ name, control, send }: HoldButtonProps) {
+  const held = useRef(false);
+  const clickPending = useRef(false);
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
+
+  const begin = () => {
+    if (held.current) return;
+    held.current = true;
+    send(control, 'press');
+  };
+  const end = () => {
+    if (!held.current) return;
+    held.current = false;
+    sendRef.current(control, 'release');
+  };
+  useEffect(() => end, []);
+
+  const isActivation = (key: string) => key === 'Enter' || key === ' ';
+
+  return (
+    <button
+      type="button"
+      style={buttonStyle}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        clickPending.current = true;
+        begin();
+      }}
+      onPointerUp={end}
+      onPointerCancel={() => {
+        clickPending.current = false;
+        end();
+      }}
+      onPointerLeave={end}
+      onBlur={() => {
+        clickPending.current = false;
+        end();
+      }}
+      onClick={() => {
+        if (held.current) return;
+        if (clickPending.current) {
+          clickPending.current = false;
+          return;
+        }
+        begin();
+        end();
+      }}
+      onKeyDown={(event) => {
+        if (!isActivation(event.key)) return;
+        event.preventDefault();
+        if (!event.repeat) begin();
+      }}
+      onKeyUp={(event) => {
+        if (!isActivation(event.key)) return;
+        event.preventDefault();
+        end();
+      }}
+    >
+      {name}
+    </button>
+  );
+}
+
 export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
   const { active, standby, volume, monitoring } = state as Sl40State;
 
@@ -81,14 +154,15 @@ export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
 
   return (
     <div className="cpt-device-sl40" style={screenStyle}>
-      <style>{comScreenCss}</style>
+      <style>{sl40ScreenCss}</style>
       <div style={readoutStyle}>
         <span style={legendStyle}>ACT</span>
+        <span style={standbyLegendStyle}>
+          <span>STBY</span>
+          <span>{on && monitoring ? 'MONITOR' : ''}</span>
+        </span>
         <span style={valueStyle}>{on ? formatFrequency(active) : ''}</span>
-        <span style={legendStyle}>STBY</span>
         <span style={valueStyle}>{on ? formatFrequency(standby) : ''}</span>
-        <span style={legendStyle} />
-        <span style={flagStyle}>{on && monitoring ? 'MONITOR' : ''}</span>
       </div>
       <div style={rowStyle}>
         {button('STBY MHz −', 'coarse', 'down')}
@@ -98,7 +172,7 @@ export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
       </div>
       <div style={rowStyle}>
         {button('SWAP', 'swap')}
-        {button('MON', 'monitor')}
+        <HoldButton name="MON" control="monitor" send={send} />
         <input
           type="range"
           aria-label="VOL"
