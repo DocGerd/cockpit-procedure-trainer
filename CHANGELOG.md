@@ -25,7 +25,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 ### Fixed
 
-- Fix the PWA build test so it recognises small SVGs that Vite inlines as base64 data URIs.
+- The PWA build test now recognises small SVGs that Vite inlines as base64 data URIs.
 - Notched artwork controls, such as flap selectors and ignition keys, now step one position each way without wrapping, by tap on the side to move toward and by arrow keys, Home and End.
 - Artwork indicators take optional `options` (units, decimals, arcs) like the generic gauge, so their accessible name and fallback gauge keep units and rounding.
 - Trim, throttle and the other notched controls now step the same way from a tap, the arrow keys and the printed legend, and focus returns to the ignition switch after holding START.

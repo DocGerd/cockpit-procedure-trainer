@@ -36,6 +36,7 @@ The spec's decisions table is unchanged.
 - Handbook contradictions: the conservative value or step, each listed for the instructor in intake §8 (#213).
 - The README links the live app and the UAT preview (#218).
 - Every control on every aircraft panel carries a printed label (#236, #240).
+- For the next cycle: viewport priority from M7 on is desktop HD (1920×1080) first, 4K second; mobile and tablet are low priority, a late feature. The spec's tablet-first targets change with #253's design.
 
 ### Orchestrator and implementer decisions you may overrule
 
@@ -58,6 +59,7 @@ The spec's decisions table is unchanged.
 - The pin is out from departure through parking and securing, because "Before take-off" removes it and only "Shutdown and securing" puts it back; the safe-height confirm names no height, because the intake gives none (#248).
 - **The Pages deploy uses `cancel-in-progress: true`**: the observed stall sat at the environment gate, where a timeout and retry cannot help. Trade-off: a cancelled `main` run loses its prod deployment record and freshness check until the next run redeploys prod from `main` (#251).
 - The comment policy in code is unchanged by this milestone.
+- The GPSMAP 496 is kept as an operable unit (power, backlight, pages) rather than drawn as a static, unpowered unit; this resolves the planner's question whether to keep #212 (#235).
 - Branch `feat/41-ctsl-failure-procedures` avoids a word the project's tripwire hook refuses (#230).
 
 ## Open questions for the owner
@@ -66,11 +68,16 @@ The spec's decisions table is unchanged.
 2. **Guard state for checks**: checks still cannot see guard state, an accepted limitation for this release; #247 only lets a phase entry set guards. A core change would let "rescue system armed" be a check instead of a confirm item. Worth an issue?
 3. **Club checklist card**: none was supplied; the procedures follow the handbook in our words. A club card would replace them (spec §7).
 4. **Device manual revisions**: the SL40, GTX 327 and GPSMAP 496 logic follows general knowledge; each package README lists its assumptions. The club's installed versions are unknown.
-5. **Keep #212 (GPS)?** Resolved by shipping it as an operable unit (#235).
-6. **Placards in English** regardless of UI language (#240): confirm, or ask for translated placards.
-7. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
+5. **Placards in English** regardless of UI language (#240): confirm, or ask for translated placards.
+6. **Your ideas filed without milestone**: hover info for mouse users instead of the Operate controls toggle (#237); background sound spike (#234).
 
-Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #243, #244; older #157–#162 and #178–#186. Filed for M7: #246 (app version, copyright notice and the UAT build's commit in the UI).
+Other follow-ups filed without milestone: #224, #225, #226, #232, #233, #243, #244; older #157–#162 and #178–#186.
+
+Filed for M7:
+
+- #246: the app version, the copyright notice and the UAT build's commit in the UI.
+- #253: the whole cockpit in one viewport on desktop, with view tabs only on small screens; this also covers #226 on desktop.
+- #254 (bug): compass headings consistent with one runway and wind definition, plus a lined-up-on-runway phase. The windsock at the holding point shows wind from the left, so the take-off heading is the holding heading minus 90°.
 
 ## How to verify
 
@@ -88,3 +95,5 @@ Follow-ups filed without milestone: #224, #225, #226, #232, #233, #234, #237, #2
 ### When you merge the release PR
 
 Watch the Deploy run of the push to `main`. It should now record a `prod` deployment and pass the freshness check (the site serves the pushed commit). If the deploy job sits in "waiting" for minutes, cancel the run by hand and re-run it.
+
+The Pages deploy cancels a run in progress when a newer one starts. So wait until that run's `prod-environment` job (the prod deployment and its freshness check) has finished before the backmerge PR (`main` into `develop`) lands, because the develop push it causes would cancel it. If it was cancelled, re-run it.

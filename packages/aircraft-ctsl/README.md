@@ -18,7 +18,7 @@ Flight Design CT Supralight flight and maintenance manual AE04300003, revision 0
 - Phases, in flight order: parking, holding point, departure, cruise, approach, landing, taxi in, parking and securing, with the presets of intake §5. Each outside view is drawn first-person from the left seat.
 - Systems: the electrical system, engine, fuel valve, flaps, brakes and every failure above. Values the intake does not give are trainer assumptions, named as constants in `src/systems.ts`.
 
-The second warning lamp of the upper-left field, the compass, the slip ball, the placards, the intercom panel, the jacks, the 12 V socket and the blank D-180 and autopilot breaker positions are drawn in the background and not modelled.
+The second warning lamp of the upper-left field, the compass, the slip ball, the take-off and limits knee-board placards, the intercom panel, the jacks, the 12 V socket and the blank D-180 and autopilot breaker positions are drawn in the background and not modelled.
 
 ## Procedures
 
