@@ -20,7 +20,7 @@ const toggle = (name: string) => ({
 export const fixture: Aircraft = defineAircraft({
   id: 'checklist-fixture',
   name: text('Fixture'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: { master: toggle('Master'), pump: toggle('Pump'), avionics: toggle('Avionics') },
   indicators: {
     fuel: {

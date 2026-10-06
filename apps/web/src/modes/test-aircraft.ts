@@ -47,7 +47,7 @@ export function RadioScreen({ send }: DeviceScreenProps) {
 export const fixture: Aircraft = defineAircraft({
   id: 'modes-fixture',
   name: text('Modes fixture'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: {
     master: toggle('Master'),
     pump: toggle('Pump'),

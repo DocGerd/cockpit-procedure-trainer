@@ -96,7 +96,7 @@ const place = (x: number) => ({ rect: { x, y: 0, w: 100, h: 50 } });
 export const aircraft: Aircraft = defineAircraft({
   id: 'device-fixture',
   name: text('Device fixture'),
-  handbookRevision: 'test',
+  handbookRevision: text('test'),
   controls: {
     bus: {
       kind: 'toggle',

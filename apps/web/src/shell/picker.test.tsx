@@ -5,6 +5,7 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
+import type { Language } from '../i18n';
 import { LanguageProvider } from '../i18n';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
@@ -12,9 +13,18 @@ import type { Trainer } from '../trainer';
 import { testAircraft } from '../trainer/test-aircraft';
 import { Shell } from './Shell';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: (await import('../trainer/test-aircraft')).testAircraft,
-}));
+const real = vi.hoisted(() => ({ use: false }));
+
+vi.mock('../aircraft-registry', async () => {
+  const actual =
+    await vi.importActual<typeof import('../aircraft-registry')>('../aircraft-registry');
+  const { testAircraft: fixtures } = await import('../trainer/test-aircraft');
+  return {
+    get aircraftRegistry() {
+      return real.use ? actual.aircraftRegistry : fixtures;
+    },
+  };
+});
 
 const [first, second] = testAircraft;
 
@@ -24,9 +34,9 @@ function Probe() {
   return null;
 }
 
-function renderPicker() {
+function renderPicker(language?: Language) {
   return render(
-    <LanguageProvider>
+    <LanguageProvider initial={language}>
       <ThemeProvider>
         <TrainerProvider>
           <Probe />
@@ -50,6 +60,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  real.use = false;
 });
 
 describe('aircraft and procedure picker', () => {
@@ -115,6 +126,29 @@ describe('aircraft and procedure picker', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('explore');
     expect(trainer.procedureId).toBeUndefined();
+  });
+});
+
+describe('picker card text in German', () => {
+  it('shows every registry aircraft with its own German name and handbook revision', () => {
+    real.use = true;
+    expect(aircraftRegistry.length).toBeGreaterThan(0);
+    renderPicker('de');
+    const cards = within(screen.getByRole('region', { name: 'Flugzeug' })).getAllByRole('button');
+    expect(cards).toHaveLength(aircraftRegistry.length);
+    aircraftRegistry.forEach((aircraft, index) => {
+      const card = cards[index]?.textContent ?? '';
+      const fields = {
+        name: aircraft.name,
+        handbookRevision: aircraft.handbookRevision,
+      };
+      for (const [field, value] of Object.entries(fields)) {
+        expect(value.de.trim(), `${aircraft.id} ${field} de`).not.toBe('');
+        expect(value.de, `${aircraft.id} ${field} de equals en`).not.toBe(value.en);
+        expect(card, `${aircraft.id} ${field}`).toContain(value.de);
+        expect(card, `${aircraft.id} ${field} en leaks`).not.toContain(value.en);
+      }
+    });
   });
 });
 

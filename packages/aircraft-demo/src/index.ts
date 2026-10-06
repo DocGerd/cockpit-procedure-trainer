@@ -70,7 +70,7 @@ const facing = (phase: keyof typeof phaseHeadings, state: DemoState): DemoState 
 export const demoAircraft = defineAircraft({
   id: 'demo',
   name: text('Demo-Flugzeug', 'Demo aircraft'),
-  handbookRevision: 'fictional aircraft; no handbook',
+  handbookRevision: text('Fiktives Flugzeug; kein Handbuch', 'fictional aircraft; no handbook'),
   controls,
   indicators,
   views: {

@@ -67,7 +67,7 @@ const rect = (x: number, y: number) => ({ rect: { x, y, w: 40, h: 40 } });
 export const fixtureAircraft = defineAircraft({
   id: 'fixture',
   name: text('Testflugzeug', 'Test aircraft'),
-  handbookRevision: 'fixture rev 1',
+  handbookRevision: text('Teststand 1', 'fixture rev 1'),
   controls: {
     master: {
       kind: 'toggle',

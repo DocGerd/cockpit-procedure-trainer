@@ -48,6 +48,13 @@ describe('demo aircraft', () => {
     expect(demoAircraft.contractVersion).toBe(CONTRACT_VERSION);
   });
 
+  it('states its handbook revision in both languages', () => {
+    expect(demoAircraft.handbookRevision).toEqual({
+      de: 'Fiktives Flugzeug; kein Handbuch',
+      en: 'fictional aircraft; no handbook',
+    });
+  });
+
   it('passes the validator', () => {
     expect(validateAircraft(demoAircraft, { devices })).toEqual([]);
   });

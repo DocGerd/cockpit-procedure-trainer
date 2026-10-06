@@ -31,7 +31,7 @@ const clockAircraft = (items: Items, step?: SystemsDefinition<ClockState>['step'
   defineAircraft({
     id: 'clock',
     name: text('Uhr', 'Clock'),
-    handbookRevision: 'fixture',
+    handbookRevision: text('Testaufbau', 'fixture'),
     controls: {
       master: {
         kind: 'toggle',
