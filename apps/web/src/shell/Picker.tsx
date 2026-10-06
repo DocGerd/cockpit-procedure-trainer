@@ -104,7 +104,7 @@ export function Picker() {
   };
 
   return (
-    <div className="shell" data-layout={layout}>
+    <div className="shell" data-layout={layout} data-screen="picker">
       <Header variant="picker" />
       <main className="picker">
         <div className="picker-intro">
