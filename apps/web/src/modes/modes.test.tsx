@@ -17,6 +17,7 @@ vi.mock('../aircraft-registry', async () => ({
 vi.mock('../device-registry', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   deviceRegistry: [(await import('./test-aircraft')).radio],
+  deviceScreens: { 'modes-radio': (await import('./test-aircraft')).RadioScreen },
 }));
 
 let trainer: Trainer;
@@ -569,6 +570,20 @@ describe('Guided focus', () => {
     act(() => trainer.session.set('master', 'on'));
     expect(selectedTab()).toBe('Centre console');
     expect(placement('pump')?.contains(document.activeElement)).toBe(true);
+  });
+
+  it('moves focus into the install of a device control target when its view comes up', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+    expect(selectedTab()).toBe('Main panel');
+    act(() => screen.getByRole('tab', { name: 'Main panel' }).focus());
+    act(() => trainer.session.checkOff());
+    expect(selectedTab()).toBe('Centre console');
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Radio page B' }));
   });
 
   it('leaves focus alone when another target comes up in the shown view', () => {

@@ -1,5 +1,7 @@
 import { defineAircraft, defineDevice } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
+import type { DeviceScreenProps } from '@cpt/panel-kit';
+import { createElement } from 'react';
 
 // Test-only fixtures, so mode tests do not depend on the registered aircraft's content.
 
@@ -33,6 +35,14 @@ export const radio = defineDevice({
   initial: {},
   step: (state) => state,
 });
+
+export function RadioScreen({ send }: DeviceScreenProps) {
+  return createElement(
+    'button',
+    { type: 'button', onClick: () => send('page', 'set', 'b') },
+    'Radio page B',
+  );
+}
 
 export const fixture: Aircraft = defineAircraft({
   id: 'modes-fixture',
