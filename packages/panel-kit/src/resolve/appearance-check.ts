@@ -27,10 +27,10 @@ export type AppearanceSubject = {
 type ValueType = 'number' | 'boolean' | 'string';
 
 export const controlWidgetKinds: Readonly<Record<string, readonly ControlKind[]>> = {
-  toggle: ['toggle'],
-  rocker: ['toggle'],
+  toggle: ['toggle', 'rotary'],
+  rocker: ['toggle', 'rotary'],
   'key-switch': ['toggle', 'rotary'],
-  'rotary-knob': ['rotary'],
+  'rotary-knob': ['toggle', 'rotary'],
   lever: ['lever'],
   'push-button': ['momentary'],
   'guarded-handle': ['guarded'],

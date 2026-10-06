@@ -23,13 +23,22 @@ const entryStates = (aircraft: Aircraft): readonly TrainerState<unknown>[] => [
   })),
 ];
 
-const sampledValues = (aircraft: Aircraft): Record<string, readonly IndicatorValue[]> =>
-  Object.fromEntries(
-    Object.entries(aircraft.indicators).map(([id, indicator]) => [
-      id,
-      entryStates(aircraft).map((state) => indicator.select(state)),
-    ]),
-  );
+const sampleIndicators = (aircraft: Aircraft) => {
+  const values: Record<string, IndicatorValue[]> = {};
+  const failures: string[] = [];
+  for (const [id, indicator] of Object.entries(aircraft.indicators)) {
+    values[id] = [];
+    for (const state of entryStates(aircraft)) {
+      try {
+        values[id]?.push(indicator.select(state));
+      } catch (error) {
+        failures.push(`indicator ${id}: select threw on an entry state: ${String(error)}`);
+        break;
+      }
+    }
+  }
+  return { values, failures };
+};
 
 describe('aircraft widgets', () => {
   it.each(aircraftRegistry.map((aircraft) => [aircraft.id, aircraft] as const))(
@@ -45,10 +54,12 @@ describe('aircraft widgets', () => {
   it.each(aircraftRegistry.map((aircraft) => [aircraft.id, aircraft] as const))(
     '%s declares widgets that fit their control or indicator, with valid options',
     (_id, aircraft) => {
-      const findings = checkAppearance(aircraft, sampledValues(aircraft));
-      expect(findings.map(({ subject, id, message }) => `${subject} ${id}: ${message}`)).toEqual(
-        [],
-      );
+      const { values, failures } = sampleIndicators(aircraft);
+      const findings = checkAppearance(aircraft, values);
+      expect([
+        ...failures,
+        ...findings.map(({ subject, id, message }) => `${subject} ${id}: ${message}`),
+      ]).toEqual([]);
     },
   );
 

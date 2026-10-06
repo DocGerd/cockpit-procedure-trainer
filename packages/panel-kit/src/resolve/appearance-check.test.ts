@@ -43,6 +43,61 @@ const check = (
     values,
   );
 
+const controlOfKind = (kind: ControlDefinition['kind'], widget: string): ControlDefinition => {
+  const appearance = { widget };
+  switch (kind) {
+    case 'toggle':
+      return toggle(appearance);
+    case 'rotary':
+      return {
+        ...base,
+        kind,
+        positions: ['off', 'on', 'start'],
+        initial: 'off',
+        springBack: { start: 'on' },
+        appearance,
+      };
+    case 'lever':
+      return throttle(appearance);
+    case 'momentary':
+      return { ...base, kind, positions: ['released', 'held'], initial: 'released', appearance };
+    case 'guarded':
+      return {
+        ...base,
+        kind,
+        positions: ['stowed', 'fired'],
+        initial: 'stowed',
+        guard: { name: text },
+        appearance,
+      };
+    case 'breaker':
+      return { ...base, kind, positions: ['in', 'pulled'], initial: 'in', appearance };
+  }
+};
+
+const fits: Readonly<Record<string, readonly ControlDefinition['kind'][]>> = {
+  toggle: ['toggle', 'rotary'],
+  rocker: ['toggle', 'rotary'],
+  'key-switch': ['toggle', 'rotary'],
+  'rotary-knob': ['toggle', 'rotary'],
+  lever: ['lever'],
+  'push-button': ['momentary'],
+  'guarded-handle': ['guarded'],
+  'circuit-breaker': ['breaker'],
+};
+
+const kinds = ['toggle', 'rotary', 'lever', 'momentary', 'guarded', 'breaker'] as const;
+
+describe('checkAppearance control widget by kind', () => {
+  it.each(Object.keys(fits).flatMap((widget) => kinds.map((kind) => [widget, kind] as const)))(
+    'widget %s on a %s control',
+    (widget, kind) => {
+      const findings = check({ control: controlOfKind(kind, widget) });
+      expect(findings.length === 0).toBe(fits[widget]?.includes(kind));
+    },
+  );
+});
+
 describe('checkAppearance on controls', () => {
   it('accepts a missing appearance, artwork and a fitting widget', () => {
     expect(
@@ -134,6 +189,12 @@ describe('checkAppearance on indicators', () => {
 
   it('reports a gauge on a string value once', () => {
     expect(check({}, { mode: { widget: 'round-gauge' } }, { mode: ['a', 'b'] })).toHaveLength(1);
+  });
+
+  it('names each misfit value type once, however many samples have it', () => {
+    const [finding] = check({}, { amps: { widget: 'annunciator' } }, { amps: [1, 2, 3] });
+    expect(finding?.message).toContain('this indicator yields number');
+    expect(finding?.message).not.toContain('number and');
   });
 
   it('skips the value check for an indicator without samples', () => {
