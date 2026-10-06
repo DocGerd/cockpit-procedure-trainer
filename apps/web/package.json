@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cpt/aircraft-ctsl": "workspace:*",
     "@cpt/aircraft-demo": "workspace:*",
     "@cpt/core": "workspace:*",
     "@cpt/device-com": "workspace:*",
