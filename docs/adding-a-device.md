@@ -117,10 +117,14 @@ An action item targets `<installId>.<controlId>`, for example `radio.swap` at
 `pressed` or `xpdr.mode` at `alt`, and may carry `holdUntil`. A check item can
 target a device control and read the device state with a condition:
 
-    condition: (state) => (state.devices.xpdr?.state as TransponderState).squawk === '7000'
+    type TransponderReading = { readonly squawk: string };
 
-Aircraft cannot import a device, so read the state through a cast to a local type
-or compare against plain values. The validator reports an unknown install, an
+    condition: (state) =>
+      (state.devices.xpdr?.state as TransponderReading | undefined)?.squawk === '7000'
+
+Aircraft cannot import a device, so declare the shape you read as a local type, as
+above, or compare against plain values. Cast to `T | undefined` and read with `?.`:
+a bare cast throws while the install is absent. The validator reports an unknown install, an
 unknown device control and an impossible position.
 
 ## Registering the device
@@ -135,7 +139,7 @@ Both are added in the app's registry file and nothing else in `apps/web` changes
 
 ## Checks
 
-    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
+    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
 
 Tests that every device package should have: logic tests for each behaviour in
 `step`, including power off; a session test that installs the device in a small
