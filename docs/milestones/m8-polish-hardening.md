@@ -35,7 +35,7 @@ The spec's decisions table is unchanged. The one-viewport design's Decision 7 is
 - **Knee-board cards drawn smaller instead of filled** (#288): the intake's speeds are unlabelled numbers and a card line holds only a few characters at the placard minimum; VNE stays out while it is open in the intake (§9).
 - **Blanking plates with bare unit placards** (`COM RADIO`, `TRANSPONDER`, `GPS`) rather than drawn unit faces or a "see … view" pointer (#296): the units are operated in their own views, and a real panel plate never names a trainer view. The second warning lamp stays unlabelled because the intake lists it as unidentified.
 - **Compass: larger placement plus larger lettering** (#293). No floor or cell moved. The lettering check was not extended to all indicator artwork, because every CTSL gauge would fail it and fixing them would threaten the HD one-viewport fit (filed as #297).
-- **Header chips** lose their fixed maximum width and shrink only when the header runs out of room (#290), so the desktop sizes show full text and tablets still truncate.
+- **Header chips** lose their fixed maximum width and shrink only when the header runs out of room (#290), so 1920x1080 and 4K show the full text, and narrower windows truncate with an ellipsis.
 - **Tabs-layout fit measures the footer in script** (#292), shared with the combined layout's measurement, because the footer wraps to two lines on narrow widths.
 - **Demo cockpit cells reordered** (panel, radios, console) rather than rewording the design (#294); this changes the demo's keyboard and reading order, so it has a changelog entry. The validator and the layout choice share one usable-rectangle check.
 - **Core `walkProcedure` changed in place** (#295): a spring-back press from a non-rest position now fails the walk. The test fixture gained an "Ignition BOTH" step. The M7 summary is left untouched as a historical record.
@@ -43,9 +43,9 @@ The spec's decisions table is unchanged. The one-viewport design's Decision 7 is
 
 ## Open questions for the owner
 
-1. **Touch operability vs the HD fit** (#299): several stacked positions of small multi-position controls are only partly tappable at their floors, and for some a tap at their centre lands on the next position. The measured table is in the body of PR #299 (the worst cases are the demo BAT and ALT OFF positions). Accept, or raise those controls' floors or rework the position buttons, at the cost of the HD fit?
+1. **Touch operability vs the HD fit** (#299): several stacked positions of small multi-position controls are only partly tappable at their floors, and for some a tap at their centre lands on the next position. The measured table is in the body of PR #299 (the worst cases are the demo BAT and ALT OFF positions). Accept as is; or split each overlap evenly so every position keeps its own centre, which keeps the HD fit; or raise those controls' floors, at the cost of the HD fit?
 2. **CTSL gauge lettering** (#297): the gauge lettering renders well below the legibility minimum at the panel floor. Any fix touches the HD one-viewport decision. Schedule it?
-3. **Truncated header chips** (#298): touch users have no way to see the full text of a truncated chip.
+3. **Truncated header chips** (#298): touch users have no way to see the full text of a truncated chip. Schedule it?
 4. Should the app frame point users from the CTSL blanking plates to the Radio stack and GPS views (#296 kept any pointer off the panel)?
 5. **Clickjacking**: a meta CSP cannot set `frame-ancestors`. Protection needs a host that sends response headers, and hosting is a spec decision. Wanted?
 6. **Carried over from M7**: if the HD fit ever falls short, which chrome gives way first (a collapsible checklist column, or the outside view folded into it); and the club and instructor list in `docs/aircraft/ctsl-intake.md` §9 (VNE, the second warning lamp and the rest).
@@ -55,13 +55,13 @@ Follow-ups filed without milestone: #297 (CTSL gauge lettering), #298 (full text
 ## How to verify
 
 - Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build`
-- Browser tests: `pnpm exec playwright install chromium` once, then `pnpm test:e2e` (includes `csp.spec.ts`, `floors.spec.ts`, `kneeboard.spec.ts`, `lettering.spec.ts` and `layout.spec.ts`). CI runs them in the required `check` job.
+- Browser tests: `pnpm exec playwright install chromium` once, then `pnpm test:e2e` (includes `csp.spec.ts`, `floors.spec.ts`, `kneeboard.spec.ts`, `lettering.spec.ts`, `layout.spec.ts` and `shell.spec.ts`). CI runs them in the required `check` job.
 - UAT: https://docgerd.github.io/cockpit-procedure-trainer/uat/ and, after this release PR is merged, prod https://docgerd.github.io/cockpit-procedure-trainer/.
 - In a browser at 1920x1080 CSS px:
   1. View the page source: a `Content-Security-Policy` meta tag sits at the top of `<head>`. Open DevTools and use every view of both aircraft: the console shows no CSP violation.
   2. CTSL Panel view: the compass is larger and its card letters are readable; the empty radio, transponder and GPS bays are blanking plates with placards; the knee-board cards' rule line clears their titles.
   3. Start a long procedure such as the CTSL rescue-system procedure: the header shows the full title; narrow the window to 1440 px and it ends in an ellipsis inside its chip.
-  4. Switch the language to German: the picker cards show the handbook revision in German.
+  4. On the picker, choose German with the language switch in the header: the cards show the handbook revision in German.
   5. Demo at 1024x768 (DevTools device toolbar): the page does not scroll and the footer is fully in view.
 - After the owner merges this release PR: `gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.9.0 --jq .tag_name` prints `v0.9.0`, and the prod footer reads `Version v0.9.0`.
 
