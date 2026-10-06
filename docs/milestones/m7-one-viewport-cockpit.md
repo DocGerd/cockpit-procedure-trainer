@@ -39,7 +39,7 @@ The spec's decisions table gains the "Cockpit layout" row (#269, authorised by y
 - Some long CTSL legends are condensed (glyphs squeezed by up to about a quarter) to stay on their plates at the larger size (#277).
 - Target overlap is not part of the layout rule; follow-up #271 (#269).
 - **Sticky footer** on every screen except the trainer (picker and error screen), so it stays in view at any picker height; the trainer keeps its one-viewport layout (#282).
-- **Error-screen footer outside the dialog**: it sits outside the `aria-modal` alert dialog, so assistive technology may treat it as inert while the error shows; it carries visual version information only (#282).
+- **Error dialog no longer `aria-modal`**: the footer sits beside the error dialog, and a modal dialog would hide it from assistive technology; nothing else renders behind the error dialog, so it is not marked modal (#282).
 
 ## Open questions for the owner
 
