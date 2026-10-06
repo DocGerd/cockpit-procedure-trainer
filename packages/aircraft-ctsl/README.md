@@ -63,6 +63,10 @@ Avionics (#211): `radioAndTransponder` at the holding point.
 - Spin (E1), and the stall and rollover guidance: the trainer has no flight-dynamics model.
 - EMS failure (E10): the analog variant has no EMS.
 
+## Open questions
+
+- `takeoff` starts with releasing the parking brake (valve open, then a check that it is released). The handbook's take-off list has no such item; it is a trainer addition because the holding-point snapshot has the parking brake set (intake §9 item 18).
+
 ## Planned devices
 
 All three sit in the `panel` view, on the avionics bus, each behind its own breaker:
