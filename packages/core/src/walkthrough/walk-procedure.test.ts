@@ -107,9 +107,38 @@ const masterOn = {
   text: text('Haupt EIN', 'Master ON'),
 } as const;
 
+const keyBoth = {
+  type: 'action',
+  control: 'key',
+  position: 'both',
+  text: text('Schlüssel BEIDE', 'Key to BOTH'),
+} as const;
+
+const keyStart = {
+  type: 'action',
+  control: 'key',
+  position: 'start',
+  text: text('Starten', 'Key to START'),
+} as const;
+
+// The fixture's engine start cranks the ignition from OFF, where the panel offers no START detent.
+const withIgnitionBoth = (aircraft: Aircraft): Aircraft => {
+  const procedure = aircraft.procedures.beforeStart;
+  if (!procedure) throw new Error('fixture has no beforeStart procedure');
+  const crank = procedure.items.findIndex(
+    (item) => item.type === 'action' && item.control === 'ignition',
+  );
+  const both = { ...keyBoth, control: 'ignition' };
+  const items = [...procedure.items.slice(0, crank), both, ...procedure.items.slice(crank)];
+  return {
+    ...aircraft,
+    procedures: { ...aircraft.procedures, beforeStart: { ...procedure, items } },
+  } as Aircraft;
+};
+
 describe('walkProcedure', () => {
   it('completes the fixture aircraft procedures from the entry snapshot', () => {
-    expect(walkProcedure(fixtureAircraft, 'beforeStart')).toEqual({ ok: true });
+    expect(walkProcedure(withIgnitionBoth(fixtureAircraft), 'beforeStart')).toEqual({ ok: true });
     expect(walkProcedure(fixtureAircraft, 'alternatorFailure')).toEqual({ ok: true });
   });
 
@@ -191,13 +220,18 @@ describe('walkProcedure', () => {
   });
 
   it('presses once per consecutive item on a spring-back detent', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      text: text('Starten', 'Key to START'),
-    } as const;
-    expect(walk([start, start])).toEqual({ ok: true });
+    expect(walk([keyBoth, keyStart, keyStart])).toEqual({ ok: true });
+  });
+
+  it('fails a spring-back press while the control is not at its resting position', () => {
+    expect(walk([keyStart])).toEqual({
+      ok: false,
+      aircraft: 'clock',
+      procedure: 'run',
+      itemIndex: 0,
+      item: 'Key to START',
+      reason: 'key is at off, a press to start needs it at both',
+    });
   });
 
   it('advances time for a hold condition on a control that is not momentary', () => {
@@ -272,36 +306,24 @@ describe('walkProcedure', () => {
   });
 
   it('presses a spring-back detent and releases it', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      text: text('Starten', 'Key to START'),
-    } as const;
     const released = {
       type: 'check',
       target: { control: 'key' },
       condition: keyReleased,
       text: text('Zurückgefedert', 'Key sprang back'),
     } as const;
-    expect(walk([start, released])).toEqual({ ok: true });
+    expect(walk([keyBoth, keyStart, released])).toEqual({ ok: true });
   });
 
   it('holds a spring-back detent until the hold condition is met', () => {
-    const start = {
-      type: 'action',
-      control: 'key',
-      position: 'start',
-      holdUntil: keyMs(500),
-      text: text('Starten', 'Key to START'),
-    } as const;
+    const start = { ...keyStart, holdUntil: keyMs(500) } as const;
     const released = {
       type: 'check',
       target: { control: 'key' },
       condition: keyReleased,
       text: text('Zurückgefedert', 'Key sprang back'),
     } as const;
-    expect(walk([start, released])).toEqual({ ok: true });
+    expect(walk([keyBoth, start, released])).toEqual({ ok: true });
   });
 
   it('fails an item once the systems model has failed', () => {
