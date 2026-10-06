@@ -1,0 +1,258 @@
+.modes-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.modes-segments {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.modes-segment {
+  min-height: var(--size-target);
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 0;
+}
+
+.modes-segment + .modes-segment {
+  border-left: 1px solid var(--color-border);
+}
+
+.modes-segment[aria-pressed='true'] {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.modes-operate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-target);
+  cursor: pointer;
+}
+
+.modes-operate-text {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.modes-operate-label {
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.modes-operate-hint {
+  color: var(--color-text-muted);
+}
+
+.modes-operate-input {
+  width: var(--space-6);
+  height: var(--space-6);
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+/* The only accent on the panel; its shape is the cue, so it never depends on hue alone. */
+.modes-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.modes-hit {
+  position: absolute;
+  padding: 0;
+  cursor: help;
+  pointer-events: auto;
+  background: transparent;
+  border: 0;
+}
+
+.modes-outline {
+  position: absolute;
+  box-sizing: border-box;
+  outline: 3px solid var(--color-accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-md);
+}
+
+.modes-outline[data-pulse='true'] {
+  animation: modes-pulse 1.6s ease-out infinite;
+}
+
+@keyframes modes-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 70%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 var(--space-4) color-mix(in srgb, var(--color-accent) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modes-outline[data-pulse='true'] {
+    animation: none;
+  }
+}
+
+.modes-details {
+  position: fixed;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(calc(100vw - 2 * var(--space-2)), calc(var(--space-12) * 7));
+  max-height: calc(100dvh - 2 * var(--space-2));
+  margin: var(--space-2);
+  overflow-y: auto;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 var(--space-2) var(--space-6) color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+
+.modes-details:focus {
+  outline: none;
+}
+
+.modes-details-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.modes-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.modes-details-title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.modes-tags,
+.modes-positions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modes-tag {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+.modes-tag-kind {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.modes-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.modes-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modes-purpose {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+.modes-positions {
+  max-height: calc(var(--size-target) * 3);
+  overflow-y: auto;
+}
+
+.modes-position {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.modes-position[aria-current='true'] {
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.modes-uses {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modes-use {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.modes-use:last-child {
+  border-bottom: 0;
+}
+
+.modes-use-title {
+  flex-grow: 1;
+}
+
+.modes-use-item,
+.modes-muted {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.modes-details-foot {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-divider);
+}
