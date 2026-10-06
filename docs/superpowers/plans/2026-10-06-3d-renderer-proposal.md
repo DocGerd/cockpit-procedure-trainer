@@ -1,0 +1,194 @@
+# 3D Renderer Implementation Plan (proposal)
+
+Status: Proposed — deferred by the owner on 2026-10-06, not approved; see #43. Reconcile with the one-viewport cockpit (#253, `docs/superpowers/specs/2026-10-06-one-viewport-cockpit-design.md`) before work starts; see the design's "Reconcile with the one-viewport cockpit first" section.
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** The demo aircraft is operable in a 3D cockpit seen from the left seat, switchable with the 2D panel, with unchanged aircraft logic. Released as the next minor version once scheduled.
+
+**Architecture:** CSS 3D transforms on the existing DOM panel (design §3). Optional `frame3d` per view and a defined `position3d`/`orientation` convention in `@cpt/core`'s contract (design §5). A new pure package `packages/cockpit-3d` for pose, camera and projection math (design §4). A 3D presentation in `apps/web/src/cockpit3d/` that renders the existing view stages as planes under one camera (design §6–§9).
+
+**Tech Stack:** as M6. No new third-party dependency. One new workspace package.
+
+**Design:** `docs/superpowers/specs/2026-10-06-3d-renderer-design.md` (referred to below as "design §n"). Parent spec: `docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md` §2, §4.3, §8. Quality order: `docs/adr/0002-quality-priorities.md`.
+
+**Issues:** #43 (tracking), split into the sub-issues proposed at the end of this plan.
+
+## Pre-flight checks
+
+**(a) What exists?** `Placement.position3d` and `orientation` exist with no defined meaning and no aircraft data (design §2). `PanelArea.tsx` renders one view at a time (`tabs`) or all views side by side (`combined`, #253), each `PanelView` inside a per-view zoom. `usePanelInput` is the only path from a widget to the session. The Guided overlay finds targets by `[data-placement]`.
+
+**(b) Who owns the lockfile?** CI runs `pnpm install --frozen-lockfile`. Task 2 (new workspace package) and Task 4 (new `apps/web` dependency on it) change `pnpm-lock.yaml`; they are in different waves.
+
+**(c) #253 has shipped.** Before Task 4 starts, the orchestrator reconciles the design with it (design section "Reconcile with the one-viewport cockpit first"): `PanelView` was not split into a stage component, so Step 4.1 still extracts one, and #253's `cockpit` arrangement is checked against `frame3d` before any code is written.
+
+**(d) Headless hit-testing.** Playwright's Chromium hit-tests 3D-transformed DOM without WebGL, so the e2e tests need no GPU flags. If a click through a transformed plane misses in CI, that is a finding for Task 5, not a reason to add `force: true`.
+
+## Global Constraints
+
+- Everything in the M3, M4 and M6 plans' Global Constraints applies: base `develop`, one issue per PR with `Closes #<n>`, fragments, `pr-selfreview` by a separate agent with mutation checks, `merge-train`, tests first, minimal comments, the gh and hook rules, the gate before every push: `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`.
+- **Wave invariant:** no path appears under two tasks of the same wave. Each task's **Files** list is its complete allowlist; a task that needs another file stops and reports.
+- **Unchanged aircraft logic.** No task edits `packages/core/src` outside `contract/` and `validator/`, or any aircraft file other than adding 3D data (Task 3). Reviewers reject any diff to `blocks/`, `checklist/`, `controls/`, `devices/`, `failures/`, `phases/`, `runtime/`, `session/` or `walkthrough/`, and to an aircraft's systems, phases or procedures.
+- **One input path.** The 3D presentation never calls the session. It renders `ControlPlacement`, `IndicatorPlacement`, `DeviceLayer` and `PanelOverlay`; their handlers come from `usePanelInput`.
+- **Tokens.** Colours, type and spacing only from `apps/web/src/styles/tokens.css`. The 3D switch is app frame; the space around the planes uses a panel-hardware token. No status ink or accent on a plane except the existing Guided and Free explore outlines.
+- **Printed labels.** Every operable control keeps its printed label in 3D; `printed-labels.test.tsx` runs in both presentations from Task 4 on.
+- **Viewport priority.** Check at 1920x1080 first, then 3840x2160; tablet stays usable.
+- **Fragments:** A, C, D, E `added`. B and F have no user-visible effect and use `No changelog: <reason>`.
+
+## Execution Model
+
+| Task                                     | Worker                  | Reviewer                                               |
+| ---------------------------------------- | ----------------------- | ------------------------------------------------------ |
+| 1 Contract and validator (A)             | sonnet, high            | opus, xhigh (contract every later task builds on)      |
+| 2 Package `cockpit-3d` (B)               | sonnet, high            | opus, xhigh (geometry conventions, boundary rules)     |
+| 3 Demo aircraft 3D data (C)              | sonnet, medium          | sonnet, high                                           |
+| 4 3D presentation and switch (D)         | sonnet, high            | opus, xhigh, plus `ui-verifier`                        |
+| 5 Camera, follow focus, pointer (E)      | sonnet, high            | sonnet, high, plus `ui-verifier`                       |
+| 6 Browser tests (F)                      | sonnet, medium          | sonnet, high                                           |
+| 7 Release                                | per `milestone-release` | owner                                                  |
+
+## Dependency Graph
+
+```
+Task 1 (A) → Task 2 (B), Task 3 (C)
+Task 2 (B), Task 3 (C) → Task 4 (D)
+Task 4 (D) → Task 5 (E)
+Task 5 (E) → Task 6 (F)
+Tasks 1–6 → Task 7 (release)
+```
+
+## Waves
+
+| Wave | Tasks | Lockfile owner |
+| ---- | ----- | -------------- |
+| 1    | 1     | none           |
+| 2    | 2, 3  | Task 2         |
+| 3    | 4     | Task 4         |
+| 4    | 5     | none           |
+| 5    | 6     | none           |
+| 6    | 7     | none           |
+
+---
+
+## Task 1: Contract and validator (sub-issue A)
+
+**Files:**
+
+- Modify: `packages/core/src/contract/types.ts`, `packages/core/src/contract/index.ts`, `packages/core/src/contract/fixtures.ts`, `packages/core/src/contract/fixtures.test.ts`
+- Modify: `packages/core/src/validator/validate-aircraft.ts`, `packages/core/src/validator/index.ts`
+- Create: `packages/core/src/validator/validate-3d.test.ts`
+- Modify: `apps/web/src/panel/test-aircraft.ts` (fixture values only, to fit the convention)
+- Create: `changelog.d/<A>.added.md`
+
+- [ ] **Step 1.1: Failing type tests.** In `fixtures.test.ts`, assert with `expectTypeOf` that `ViewDefinition` accepts `frame3d: { origin, orientation, scale }` and rejects a `frame3d` missing `scale`; that `Orientation` is exported from `@cpt/core`.
+- [ ] **Step 1.2: Types.** Add `Orientation` and `ViewFrame` and `ViewDefinition.frame3d?` with the doc comments of design §5 (axes, units, rotation order). Point `Placement.orientation` at `Orientation`. Run `pnpm typecheck`; Step 1.1 passes.
+- [ ] **Step 1.3: Failing validator tests** in `validate-3d.test.ts`, one per rule with the fixture aircraft:
+  - no view has `frame3d` → no 3D error (today's aircraft stay valid);
+  - two views, one with `frame3d` → `partial-3d` naming the view without it;
+  - a control, an indicator and a device install with `position3d` on a view without `frame3d` → `position3d-without-frame` each;
+  - `orientation` alone on such a placement → `position3d-without-frame`;
+  - `scale` of 0, negative, `NaN`, `Infinity`; a `NaN` in `origin`, in `orientation`, in a placement's `position3d` → `invalid-frame`;
+  - every view framed, placements valid → no error.
+- [ ] **Step 1.4: Implement** the three rules in `validate-aircraft.ts`, reusing the existing error shape. `CONTRACT_VERSION` stays 1 (design §5).
+- [ ] **Step 1.5:** Update the fixtures that set `position3d`/`orientation` so they lie on a framed view; check `panel.test.tsx` "ignore 3D position and orientation" still passes unchanged.
+- [ ] **Step 1.6:** Run the gate; commit; PR `Closes #<A>`.
+
+## Task 2: Package `cockpit-3d` (sub-issue B)
+
+**Files:**
+
+- Create: `packages/cockpit-3d/package.json`, `packages/cockpit-3d/tsconfig.json` (`lib` without `DOM`), `packages/cockpit-3d/src/index.ts`, `packages/cockpit-3d/src/pose.ts`, `packages/cockpit-3d/src/pose.test.ts`, `packages/cockpit-3d/src/camera.ts`, `packages/cockpit-3d/src/camera.test.ts`, `packages/cockpit-3d/src/project.ts`, `packages/cockpit-3d/src/project.test.ts`, `packages/cockpit-3d/src/index.test.ts`
+- Modify: `eslint.config.js`, `tools/boundary.test.ts`, `CONTRIBUTING.md`, `pnpm-lock.yaml`
+
+- [ ] **Step 2.1: Failing boundary tests** in `tools/boundary.test.ts`: in `packages/cockpit-3d/src/x.ts`, `react`, `@cpt/panel-kit`, `@cpt/aircraft-demo`, `./x.png`, `./x.css?raw`, a dynamic `import('@cpt/panel-kit')` and a relative `../../core/src` import are each rejected; `@cpt/core` is allowed. In `packages/aircraft-demo/src/x.ts`, `packages/panel-kit/src/x.ts`, `packages/core/src/x.ts` and `packages/device-com/src/x.ts`, `@cpt/cockpit-3d` is rejected. In `apps/web/src/x.ts` it is allowed.
+- [ ] **Step 2.2:** Add the ESLint block mirroring core's (design §4) and add `@cpt/cockpit-3d` to the groups the other kinds reject. Step 2.1 passes. Add the CONTRIBUTING bullet.
+- [ ] **Step 2.3: Scaffold** the package with `@cpt/core` as its only dependency; `pnpm install` updates the lockfile. `index.test.ts` asserts the public exports.
+- [ ] **Step 2.4: Pose, test first** (`pose.test.ts`): identity orientation maps image `(0,0)` to `origin` and image `(w,0)` to `origin + (w·scale, 0, 0)`, image `(0,h)` to `origin + (0, −h·scale, 0)`; yaw 90° turns the normal from `+z` to `+x`; yaw then pitch is not pitch then yaw (order is fixed); an on-plane placement's centre equals the frame point at its rect centre; an off-plane placement uses its `position3d` and falls back to the view's orientation; `cssMatrix3d` round-trips a known matrix to the exact `matrix3d(...)` string, in column-major order with CSS's `y` down.
+- [ ] **Step 2.5: Camera, test first** (`camera.test.ts`): `lookAt(point)` gives yaw 0, pitch 0 for a point on `−z`; yaw and pitch clamp to the seated range; `fitAll(frames, viewport)` contains every frame corner and never exceeds the maximum field of view, and falls back to looking at the first view when the cap is hit; `focusOn(box, viewport, minPx)` narrows the field of view until the box's projected short side reaches `minPx`, or returns the narrowest allowed.
+- [ ] **Step 2.6: Projection, test first** (`project.test.ts`): a point straight ahead projects to the viewport centre; a point behind the eye reports not visible; `projectedBox(placement)` of a plane facing the eye at known distance has the size the pinhole formula gives.
+- [ ] **Step 2.7:** Name the field-of-view cap and the head-range clamps as exported constants; a comment states why each exists, not its value. Gate, commit, PR `Closes #<B>` with `No changelog: internal package`.
+
+## Task 3: Demo aircraft 3D data (sub-issue C)
+
+**Files:**
+
+- Modify: `packages/aircraft-demo/src/index.ts` (`frame3d` per view only), `packages/aircraft-demo/src/index.test.ts`, `packages/aircraft-demo/README.md`
+- Modify: `docs/adding-an-aircraft.md` (a "3D data" section: axes, units, rotation order, the no-intersecting-planes rule, self-made geometry only)
+- Create: `changelog.d/<C>.added.md`
+
+- [ ] **Step 3.1: Failing tests** in `index.test.ts`: every demo view has `frame3d`; `validateAircraft` reports no error; the panel faces the pilot ahead of the eye (`origin.z < 0`, orientation yaw 0); the console lies below the panel and pitched towards the eye; the radio stack sits beside or below the panel. The no-intersection check lives in Task 5's `legibility.test.ts`, which may import `@cpt/cockpit-3d`; the aircraft package may not.
+- [ ] **Step 3.2:** Add the frames. The demo is fictional, so the values are chosen for a plausible, legible left-seat cockpit; the README says so.
+- [ ] **Step 3.3:** Write the authoring guide section. Gate, commit, PR `Closes #<C>`.
+
+## Task 4: 3D presentation and switch (sub-issue D)
+
+**Files:**
+
+- Modify: `apps/web/package.json` (`@cpt/cockpit-3d`), `pnpm-lock.yaml`
+- Modify: `apps/web/src/panel/PanelArea.tsx`, `apps/web/src/panel/messages.ts`, `apps/web/src/panel/panel.css`
+- Create: `apps/web/src/panel/ViewStage.tsx` (skip if pre-flight (c) found one)
+- Create: `apps/web/src/cockpit3d/Cockpit3D.tsx`, `apps/web/src/cockpit3d/cockpit3d.css`, `apps/web/src/cockpit3d/presentation.ts`, `apps/web/src/cockpit3d/messages.ts`, `apps/web/src/cockpit3d/cockpit3d.test.tsx`, `apps/web/src/cockpit3d/parity.test.tsx`
+- Modify: `apps/web/src/panel/printed-labels.test.tsx`, `apps/web/src/panel/keyboard.test.tsx`, `apps/web/src/modes/modes.test.tsx` (parameterise over `2d` and `3d`)
+- Modify: `apps/web/src/panel/test-aircraft.ts` (a framed variant), `apps/web/src/styles/tokens.css` (one panel-hardware token for the space around the planes)
+- Create: `changelog.d/<D>.added.md`
+
+- [ ] **Step 4.1: Extract `ViewStage`** from `PanelView` with no behaviour change: the full existing panel suite passes before and after. Commit on its own.
+- [ ] **Step 4.2: Failing tests** in `cockpit3d.test.tsx`: the switch is absent for an aircraft without frames and present for the framed test aircraft; choosing 3D renders one plane per view with a `matrix3d` transform from `@cpt/cockpit-3d`; every placed control, indicator and device of every view is in the DOM at once; switching keeps the checklist position and the Free explore selection; focus lands on the switch; the plane container sets none of the flattening properties of design §3.
+- [ ] **Step 4.3: Failing parity test** (`parity.test.tsx`): for the framed test aircraft and the demo, the set of `(role, accessible name)` of operable elements is equal in 2D (all tabs visited) and 3D.
+- [ ] **Step 4.4: Parameterise** the printed-label, keyboard and modes tests over `2d` and `3d`; they fail in 3D until Step 4.5.
+- [ ] **Step 4.5: Implement** `Cockpit3D` (scene root with `perspective`, camera transform set through a ref, planes from `ViewStage`), the presentation switch in `PanelArea` (`tabs` now; `combined` slots in per design §10), and the "2D / 3D" switch in the panel bar with German and English labels. In 3D the view tabs call `setView`, which for now only marks the selected tab; Task 5 turns the camera.
+- [ ] **Step 4.6:** Gate. `ui-verifier` at 1920x1080 and 3840x2160 and a tablet width, in both presentations and both themes. Commit, PR `Closes #<D>`.
+
+## Task 5: Camera, follow focus and pointer (sub-issue E)
+
+**Files:**
+
+- Create: `apps/web/src/cockpit3d/use-camera.ts`, `apps/web/src/cockpit3d/camera.test.tsx`, `apps/web/src/cockpit3d/legibility.test.ts`
+- Modify: `apps/web/src/cockpit3d/Cockpit3D.tsx`, `apps/web/src/cockpit3d/messages.ts`
+- Modify: `apps/web/src/modes/PanelOverlay.tsx` (share the reduced-motion hook only)
+- Create: `apps/web/src/ui/use-reduced-motion.ts` (moved out of `PanelOverlay.tsx`)
+- Conditional (only if Step 5.5 fails): `packages/panel-kit/src/controls/pointer-space.ts`, `packages/panel-kit/src/controls/Lever.tsx`, `packages/panel-kit/src/controls/lever.test.tsx`, `packages/panel-kit/src/index.ts`
+- Create: `changelog.d/<E>.added.md`
+
+- [ ] **Step 5.1: Failing camera tests** (`camera.test.tsx`): arrow keys on the focused surface change yaw and pitch; `+`, `-`, `0` change and reset the field of view; a key with a modifier is ignored; a drag on empty space looks around and a drag starting on a widget does not; selecting a view tab turns the camera to that view; Guided view switching turns the camera to the target's view; with reduced motion every move is instant; the camera transform changes without re-rendering widgets (render count spy on a widget).
+- [ ] **Step 5.2: Failing follow-focus test:** focusing a control whose projected box is off-screen or under the minimum turns the camera until it is on-screen and meets the minimum.
+- [ ] **Step 5.3: Failing legibility test** (`legibility.test.ts`): for every registered aircraft with frames, at 1920x1080 and 3840x2160, after `focusOn` each operable control's projected short side meets the 44 px target and each placard meets the placard minimum used by panel-kit's `legibility.ts`; and no two frames of the aircraft intersect (design §3).
+- [ ] **Step 5.4: Implement** `use-camera` and wire it in. Move the reduced-motion hook to `apps/web/src/ui/` and use it from both places.
+- [ ] **Step 5.5: Lever on a tilted plane.** Write a Playwright check in a scratch spec (moved into Task 6's spec afterwards, not committed here): drag the demo throttle on the console plane from end to end and to each notch of the flaps. If every position is reached and the value is monotonic, record that in the PR and skip Step 5.6.
+- [ ] **Step 5.6 (conditional): `PointerSpace`.** Failing panel-kit test: `Lever` with a `PointerSpace` provider maps client points through it; without one it behaves exactly as today (existing `lever.test.tsx` unchanged). Implement; provide the plane mapping from `Cockpit3D` using `@cpt/cockpit-3d`'s inverse projection.
+- [ ] **Step 5.7:** Gate. `ui-verifier` as Task 4, plus touch: one-finger look-around, pinch zoom, press-and-hold the starter. Commit, PR `Closes #<E>`.
+
+## Task 6: Browser tests (sub-issue F)
+
+**Files:**
+
+- Create: `apps/web/e2e/cockpit3d.spec.ts`
+- Modify: `apps/web/e2e/trainer.ts` (helpers only)
+
+- [ ] **Step 6.1:** `cockpit3d.spec.ts`, Chromium at 1920x1080:
+  - switch to 3D on the demo; every view's planes are visible; the switch is absent on the CTSL;
+  - run the demo's engine-start normal procedure in Guided mode by pointer clicks through the 3D planes; it completes with no deviations;
+  - run the same procedure by keyboard only (Tab, the widget keys, Enter for ticks); it completes with no deviations;
+  - the lever drag from Step 5.5;
+  - Practice mode: one deliberate wrong action is recorded as a deviation, as in 2D;
+  - offline reload (as `offline.spec.ts`) with 3D chosen: the app reloads, 3D is offered, the procedure still runs.
+- [ ] **Step 6.2:** Run the full e2e suite three times locally to show no flakiness. Gate, commit, PR `Closes #<F>`, `No changelog: tests only`.
+
+## Task 7: Release
+
+Per the `milestone-release` skill. The owner summary carries: the renderer choice and the sacrificed volumetric realism (ADR-0002 rank 2), the decisions-table proposal from the design PR, the outcome of Step 5.5, and design §12's open questions.
+
+## Proposed sub-issues
+
+Not created by this plan; the orchestrator creates them in the 3D milestone once scheduled and links them from #43.
+
+| Id | Title                                                                    | Depends on |
+| -- | ------------------------------------------------------------------------ | ---------- |
+| A  | 3D contract: view frames, placement pose convention, validator rules     | —          |
+| B  | `packages/cockpit-3d`: pose, camera and projection math; boundary rules  | A          |
+| C  | Demo aircraft 3D data and authoring guide                                | A          |
+| D  | 3D presentation and 2D/3D switch                                         | B, C       |
+| E  | 3D camera: look around, zoom, follow focus, legibility, lever pointer    | D          |
+| F  | 3D browser tests                                                         | E          |
+
+Follow-ups outside the first 3D release (design §12): CTSL 3D data after measurements; outside view in the windshield; a strict CSP.
