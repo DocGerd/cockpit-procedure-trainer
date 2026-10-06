@@ -2,13 +2,14 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import { CONTRACT_VERSION, defineAircraft } from './index';
 import type {
   Aircraft,
+  ArtworkAppearance,
   ControlChange,
   ControlDefinition,
   ControlPosition,
   ControlRules,
   GuardPosition,
 } from './index';
-import type { Text, TrainerState } from './index';
+import type { JsonObject, Text, TrainerState } from './index';
 import { fixtureAircraft } from './fixtures';
 
 type State = { on: boolean };
@@ -489,5 +490,37 @@ describe('position typo errors', () => {
   it('leaves valid positions unconstrained', () => {
     expectTypeOf<RulesOf<typeof toggle>['initial']>().toEqualTypeOf<unknown>();
     expectTypeOf<RulesOf<typeof rotary>['springBack']['start']>().toEqualTypeOf<unknown>();
+  });
+});
+
+describe('artwork indicator appearance', () => {
+  const gauge: ArtworkAppearance = {
+    artwork: {
+      face: 'dial.png',
+      moving: {
+        type: 'needle',
+        image: 'needle.png',
+        pivot: { x: 1, y: 1 },
+        angleRange: { min: 0, max: 90 },
+        valueRange: { min: 0, max: 10 },
+      },
+    },
+    options: { units: 'km/h', decimals: 0, arcs: [{ from: 0, to: 5, colour: 'green' }] },
+  };
+
+  it('takes optional widget options beside the artwork', () => {
+    expectTypeOf<ArtworkAppearance['options']>().toEqualTypeOf<JsonObject | undefined>();
+    const { options, ...bare } = gauge;
+    expectTypeOf(bare).toMatchTypeOf<ArtworkAppearance>();
+    expect(options).toMatchObject({ units: 'km/h' });
+  });
+
+  it('is accepted on an indicator of a defined aircraft', () => {
+    const defined = defineAircraft({
+      ...identity,
+      ...body,
+      indicators: { lamp: { ...lamp, appearance: gauge } },
+    });
+    expect(defined.indicators.lamp?.appearance).toBe(gauge);
   });
 });
