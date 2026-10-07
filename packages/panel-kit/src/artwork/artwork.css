@@ -34,3 +34,8 @@
   left: 60%;
   width: 40%;
 }
+
+/* A turning needle repaints only its own layer, never the face beneath it. */
+.cpt-artwork-moving[data-moving='needle'] {
+  will-change: transform;
+}

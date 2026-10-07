@@ -9,6 +9,7 @@ export const images = {
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
+  needleAirspeed: new URL('./assets/artwork/needle-airspeed.svg', import.meta.url).href,
   compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
   compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   rockerBeacon: new URL('./assets/artwork/rocker-beacon.svg', import.meta.url).href,
@@ -76,13 +77,14 @@ const needle = (
   valueRange: { min: number; max: number },
   options: JsonObject,
   angleRange = { min: -135, max: 135 },
+  image: string = images.needle,
 ): ArtworkAppearance => ({
   options: { ...valueRange, ...options },
   artwork: {
     face,
     moving: {
       type: 'needle',
-      image: images.needle,
+      image,
       pivot: { x: 100, y: 100 },
       angleRange,
       valueRange,
@@ -129,6 +131,8 @@ export const gaugeArtwork = {
         { from: 260, to: 300, colour: 'red' },
       ],
     },
+    undefined,
+    images.needleAirspeed,
   ),
   altimeter: needle(
     images.gaugeAltimeter,
