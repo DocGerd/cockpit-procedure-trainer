@@ -55,42 +55,45 @@ test('the theme switches and is remembered', async ({ page }) => {
   await expect(page.getByRole('button', { name: copy.shell.switchToDark })).toBeVisible();
 });
 
-test('the browser chrome colour follows an explicit theme, not the system setting', async ({
-  page,
-}) => {
-  await page.emulateMedia({ colorScheme: 'light' });
-  await openPicker(page);
+// Asserts which theme-color tags the media queries leave active, not the colour the browser chrome
+// shows: headless Chromium has no chrome to inspect.
+for (const system of ['light', 'dark'] as const) {
+  test(`the theme-color tag follows an explicit theme, not a ${system} system setting`, async ({
+    page,
+  }) => {
+    const chosen = system === 'light' ? 'dark' : 'light';
+    await page.emulateMedia({ colorScheme: system });
+    await openPicker(page);
 
-  const themeColor = () =>
-    page.evaluate(() =>
-      Array.from(document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'))
-        .filter((tag) => window.matchMedia(tag.media).matches)
-        .map((tag) => tag.content),
-    );
-  const dark = await page.evaluate(
-    () =>
-      document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-scheme="dark"]')
-        ?.content,
-  );
-  const light = await page.evaluate(
-    () =>
-      document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-scheme="light"]')
-        ?.content,
-  );
-  expect(dark).toBeTruthy();
-  expect(light).toBeTruthy();
-  expect(dark).not.toBe(light);
-  expect(await themeColor()).toEqual([light]);
+    const colour = (scheme: string) =>
+      page.evaluate(
+        (value) =>
+          document.head.querySelector<HTMLMetaElement>(
+            `meta[name="theme-color"][data-scheme="${value}"]`,
+          )?.content,
+        scheme,
+      );
+    const activeColours = () =>
+      page.evaluate(() =>
+        Array.from(document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'))
+          .filter((tag) => window.matchMedia(tag.media).matches)
+          .map((tag) => tag.content),
+      );
+    const systemColour = await colour(system);
+    const chosenColour = await colour(chosen);
+    expect(systemColour).toBeTruthy();
+    expect(chosenColour).toBeTruthy();
+    expect(chosenColour).not.toBe(systemColour);
+    expect(await activeColours()).toEqual([systemColour]);
 
-  await page.getByRole('button', { name: copy.shell.switchToDark }).click();
-  await expect.poll(themeColor).toEqual([dark]);
+    const switchTo = chosen === 'dark' ? copy.shell.switchToDark : copy.shell.switchToLight;
+    await page.getByRole('button', { name: switchTo }).click();
+    await expect.poll(activeColours).toEqual([chosenColour]);
 
-  await page.reload();
-  await expect.poll(themeColor).toEqual([dark]);
-
-  await page.getByRole('button', { name: copy.shell.switchToLight }).click();
-  await expect.poll(themeColor).toEqual([light]);
-});
+    await page.reload();
+    await expect.poll(activeColours).toEqual([chosenColour]);
+  });
+}
 
 const headerViewports = [
   { width: 1024, height: 768 },
