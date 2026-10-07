@@ -1,24 +1,59 @@
-/* Panel hardware only: every colour is a --panel-* token, never a brand or status colour. */
+/* Panel hardware only: every colour is a --panel-* token, never a brand or status colour.
+   One key light from the upper left: lit edges face up-left, shadows fall down-right. */
 
 .pk-device {
+  --pk-hair: 1px;
+  --pk-screw: 9px;
+  --pk-screw-at: 1px;
+
   position: relative;
   display: flex;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   padding: var(--space-2);
-  background: var(--panel-bezel-dark);
+  background-color: var(--panel-bezel-dark);
+  background-image: var(--pk-faceplate);
   border: var(--space-1) solid var(--panel-bezel);
+  border-color: var(--panel-metal-light) var(--panel-bezel-dark) var(--panel-metal-shade)
+    var(--panel-bezel);
   border-radius: var(--radius-sm);
+  /* A bay of panel paint inside the dock's padding, so the unit's shadow falls on panel. */
+  box-shadow:
+    var(--pk-cast),
+    var(--pk-face-edge),
+    0 0 0 calc(var(--space-2) - 2px) var(--panel-surface),
+    -1px -1px 0 calc(var(--space-2) - 2px)
+      color-mix(in srgb, var(--panel-metal-light) 80%, var(--panel-surface)),
+    1px 1px 0 calc(var(--space-2) - 2px) var(--panel-metal-shade);
 }
 
+/* The unit's faceplate around its screen; the screen sits in it behind a seam and lip. */
 .pk-device-screen {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--panel-screen);
+  background-color: var(--panel-bezel-dark);
+  background-image: var(--pk-faceplate);
+}
+
+.pk-device-content > * {
+  box-shadow: var(--pk-lip);
+}
+
+/* The faceplate's recess: darkest on the edge nearest the light. */
+.pk-device-screen::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  box-shadow:
+    inset calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 4)
+      color-mix(in srgb, var(--panel-shadow) 70%, transparent),
+    inset calc(var(--pk-hair) * -1) calc(var(--pk-hair) * -1) calc(var(--pk-hair) * 2)
+      color-mix(in srgb, var(--panel-shadow) 30%, transparent);
 }
 
 /* The screen at its natural size, centred in the box and scaled to fit it. */
@@ -28,6 +63,89 @@
   left: 50%;
   width: max-content;
   transform: translate(-50%, -50%) scale(var(--pk-device-scale, 1));
+}
+
+/* A screen's first block is its display window: glass over it, never over the keys. */
+.pk-device-content > * > :first-child {
+  position: relative;
+}
+
+.pk-device-content > * > :first-child::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  /* A docked window is wide and large: a second, narrow canopy band keeps the glass legible. */
+  background-image:
+    var(--pk-glass),
+    linear-gradient(
+      105deg,
+      transparent 6%,
+      color-mix(in srgb, var(--panel-glare) 12%, transparent) 7%,
+      color-mix(in srgb, var(--panel-glare) 6%, transparent) 18%,
+      transparent 19%
+    );
+  box-shadow: var(--pk-lip), var(--pk-glass-edge);
+}
+
+/* Moulded keycaps in their housings. The pseudo-elements paint over the key's own face and under
+   its legend, so the face colour of every state shows through and the hit region never changes. */
+.pk-device-content button {
+  position: relative;
+  isolation: isolate;
+}
+
+.pk-device-content button::after {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(
+    135deg,
+    var(--panel-plastic-shade),
+    var(--panel-screen) 55%,
+    color-mix(in srgb, var(--panel-plastic) 70%, var(--panel-screen))
+  );
+  border-radius: inherit;
+}
+
+.pk-device-content button::before {
+  position: absolute;
+  inset: calc(var(--space-1) / 2);
+  z-index: -1;
+  pointer-events: none;
+  content: '';
+  background-color: inherit;
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--panel-glare) 18%, transparent),
+    transparent 40%,
+    transparent 62%,
+    color-mix(in srgb, var(--panel-shadow) 32%, transparent)
+  );
+  border-radius: inherit;
+  box-shadow:
+    inset 0 var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 75%, transparent),
+    inset var(--pk-hair) 0 0 color-mix(in srgb, var(--panel-glare) 30%, transparent),
+    inset calc(var(--pk-hair) * -1) calc(var(--pk-hair) * -2) var(--pk-hair)
+      color-mix(in srgb, var(--panel-shadow) 45%, transparent),
+    var(--pk-hair) calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 2)
+      color-mix(in srgb, var(--panel-shadow) 60%, transparent);
+}
+
+/* A pressed or latched key sits down in its housing: no cast shadow, shade on its lit edge. */
+.pk-device-content button:active::before,
+.pk-device-content button[aria-pressed='true']::before {
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--panel-shadow) 22%, transparent),
+    transparent 45%
+  );
+  box-shadow:
+    inset var(--pk-hair) calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 2)
+      color-mix(in srgb, var(--panel-shadow) 45%, transparent),
+    inset 0 calc(var(--pk-hair) * -1) 0 color-mix(in srgb, var(--panel-glare) 18%, transparent);
 }
 
 .pk-device-off {
@@ -58,7 +176,9 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: clip;
+  /* Room for the bezel's shadow at the largest scale a slot reaches (a 4K window). */
+  overflow-clip-margin: calc(var(--space-12) * 2);
 }
 
 .pk-mirror-content {
@@ -70,15 +190,25 @@
 }
 
 .pk-mirror-bezel {
+  /* Drawn at the slot's natural size and scaled down with it, so a hairline takes two units. */
+  --pk-hair: 2px;
+  --pk-screw: 10px;
+  --pk-screw-at: 1px;
+
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   column-gap: var(--space-2);
   box-sizing: border-box;
   padding: var(--space-2);
-  background: var(--panel-bezel-dark);
+  background-color: var(--panel-bezel-dark);
+  background-image: var(--pk-faceplate);
   border: var(--space-1) solid var(--panel-bezel);
+  border-color: var(--panel-metal-light) var(--panel-bezel-dark) var(--panel-metal-shade)
+    var(--panel-bezel);
   border-radius: var(--radius-sm);
+  box-shadow: var(--pk-cast), var(--pk-face-edge);
 }
 
 .pk-mirror-label {
@@ -95,4 +225,185 @@
   min-height: 0;
   overflow: hidden;
   background: var(--panel-screen);
+  box-shadow: var(--pk-lip);
+}
+
+.pk-mirror-screen::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background-image: var(--pk-glass);
+  box-shadow: var(--pk-glass-edge);
+}
+
+/* Satin black anodised faceplate, window lip and glass, shared by the slot and the dock frame. */
+.pk-device,
+.pk-mirror-bezel {
+  --pk-faceplate:
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--panel-glare) 3%, transparent) 0 1px,
+      transparent 1px 2px
+    ),
+    radial-gradient(
+      ellipse 70% 120% at 15% 0%,
+      color-mix(in srgb, var(--panel-glare) 10%, transparent),
+      transparent
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--panel-metal-light) 62%, var(--panel-metal-shade)),
+      color-mix(in srgb, var(--panel-metal-light) 42%, var(--panel-metal-shade)) 22%,
+      color-mix(in srgb, var(--panel-metal-light) 26%, var(--panel-metal-shade)) 68%,
+      color-mix(in srgb, var(--panel-metal-light) 12%, var(--panel-metal-shade))
+    );
+  --pk-face-edge:
+    inset var(--pk-hair) var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 50%, transparent),
+    inset calc(var(--pk-hair) * -1) calc(var(--pk-hair) * -1) 0
+      color-mix(in srgb, var(--panel-shadow) 65%, transparent),
+    inset calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 2) 0
+      color-mix(in srgb, var(--panel-metal-light) 75%, transparent),
+    inset calc(var(--pk-hair) * -2) calc(var(--pk-hair) * -2) 0
+      color-mix(in srgb, var(--panel-metal-shade) 75%, transparent);
+
+  /* A medium cast shadow down-right onto the panel, with a wider soft fall-off. */
+  --pk-cast:
+    var(--pk-hair) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 4)
+      color-mix(in srgb, var(--panel-shadow) 85%, transparent),
+    calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 8)
+      color-mix(in srgb, var(--panel-shadow) 62%, transparent),
+    calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 12) calc(var(--pk-hair) * 18)
+      color-mix(in srgb, var(--panel-shadow) 55%, transparent);
+
+  /* A dark seam, then the lip turned the other way: shaded up-left, lit down-right. */
+  --pk-lip:
+    0 0 0 var(--pk-hair) var(--panel-screen),
+    calc(var(--pk-hair) * -1) calc(var(--pk-hair) * -1) 0 var(--pk-hair) var(--panel-metal-shade),
+    var(--pk-hair) var(--pk-hair) 0 var(--pk-hair)
+      color-mix(in srgb, var(--panel-metal-light) 80%, var(--panel-metal-shade));
+
+  /* One soft canopy sweep up-left, a faint counter-reflection down-right, a little depth. */
+  --pk-glass:
+    radial-gradient(
+      ellipse 120% 160% at 0% -60%,
+      color-mix(in srgb, var(--panel-glare) 36%, transparent),
+      color-mix(in srgb, var(--panel-glare) 20%, transparent) 50%,
+      color-mix(in srgb, var(--panel-glare) 14%, transparent) 66%,
+      transparent 67%
+    ),
+    linear-gradient(
+      298deg,
+      color-mix(in srgb, var(--panel-glare) 7%, transparent),
+      transparent 16%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--panel-glare) 4%, transparent),
+      transparent 50%,
+      color-mix(in srgb, var(--panel-shadow) 18%, transparent)
+    );
+
+  /* The crisp rim reflection up-left and the recess shadow, strongest on the lit side. */
+  --pk-glass-edge:
+    inset var(--pk-hair) var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 70%, transparent),
+    inset calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 3)
+      color-mix(in srgb, var(--panel-shadow) 75%, transparent);
+}
+
+/* The dock clips at its padding, so the docked unit's shadow fades out inside that band. */
+.pk-device {
+  --pk-cast:
+    1px 2px 4px color-mix(in srgb, var(--panel-shadow) 85%, transparent),
+    2px 3px 7px color-mix(in srgb, var(--panel-shadow) 60%, transparent);
+}
+
+/* Black-oxide slotted screws in the four corners, slots at varied angles, each with its shadow. */
+.pk-device::before,
+.pk-mirror-bezel::before {
+  --pk-shine: radial-gradient(
+    circle closest-side at 36% 34%,
+    var(--panel-screw-light),
+    transparent 60%
+  );
+  --pk-head: radial-gradient(
+    circle closest-side,
+    var(--panel-screw) 50%,
+    var(--panel-screw-shade) 88%,
+    transparent 94%
+  );
+  --pk-shade: radial-gradient(
+    circle closest-side,
+    color-mix(in srgb, var(--panel-shadow) 45%, transparent) 86%,
+    transparent 96%
+  );
+  --pk-slot: linear-gradient(var(--panel-screw-shade), var(--panel-screw-shade));
+  --pk-slot-rising: linear-gradient(
+    45deg,
+    transparent 40%,
+    var(--panel-screw-shade) 40% 60%,
+    transparent 60%
+  );
+  --pk-slot-falling: linear-gradient(
+    -45deg,
+    transparent 40%,
+    var(--panel-screw-shade) 40% 60%,
+    transparent 60%
+  );
+  --pk-whole: var(--pk-screw) var(--pk-screw);
+  --pk-slot-long: calc(var(--pk-screw) * 0.7);
+  --pk-slot-wide: calc(var(--pk-screw) * 0.16);
+  --pk-slot-square: calc(var(--pk-screw) * 0.62);
+  --pk-at: var(--pk-screw-at);
+  --pk-long-at: calc(var(--pk-at) + var(--pk-screw) * 0.15);
+  --pk-wide-at: calc(var(--pk-at) + var(--pk-screw) * 0.42);
+  --pk-square-at: calc(var(--pk-at) + var(--pk-screw) * 0.19);
+  --pk-drop-top: calc(var(--pk-at) + var(--pk-screw) * 0.12);
+  --pk-drop-bottom: calc(var(--pk-at) - var(--pk-screw) * 0.12);
+
+  position: absolute;
+  inset: calc(var(--space-1) * -1);
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background-repeat: no-repeat;
+  background-image:
+    var(--pk-shine), var(--pk-slot-rising), var(--pk-head), var(--pk-shade), var(--pk-shine),
+    var(--pk-slot), var(--pk-head), var(--pk-shade), var(--pk-shine), var(--pk-slot),
+    var(--pk-head), var(--pk-shade), var(--pk-shine), var(--pk-slot-falling), var(--pk-head),
+    var(--pk-shade);
+  background-size:
+    var(--pk-whole),
+    var(--pk-slot-square) var(--pk-slot-square),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-slot-long) var(--pk-slot-wide),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-slot-wide) var(--pk-slot-long),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-whole),
+    var(--pk-slot-square) var(--pk-slot-square),
+    var(--pk-whole),
+    var(--pk-whole);
+  background-position:
+    left var(--pk-at) top var(--pk-at),
+    left var(--pk-square-at) top var(--pk-square-at),
+    left var(--pk-at) top var(--pk-at),
+    left var(--pk-at) top var(--pk-drop-top),
+    right var(--pk-at) top var(--pk-at),
+    right var(--pk-long-at) top var(--pk-wide-at),
+    right var(--pk-at) top var(--pk-at),
+    right var(--pk-at) top var(--pk-drop-top),
+    left var(--pk-at) bottom var(--pk-at),
+    left var(--pk-wide-at) bottom var(--pk-long-at),
+    left var(--pk-at) bottom var(--pk-at),
+    left var(--pk-at) bottom var(--pk-drop-bottom),
+    right var(--pk-at) bottom var(--pk-at),
+    right var(--pk-square-at) bottom var(--pk-square-at),
+    right var(--pk-at) bottom var(--pk-at),
+    right var(--pk-at) bottom var(--pk-drop-bottom);
 }

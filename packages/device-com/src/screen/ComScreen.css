@@ -12,14 +12,16 @@
 .cpt-device-com input[type='range']::-webkit-slider-runnable-track {
   height: var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--panel-bezel);
+  background: var(--panel-metal-light);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--panel-shadow) 60%, transparent);
   border: 0;
 }
 
 .cpt-device-com input[type='range']::-moz-range-track {
   height: var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--panel-bezel);
+  background: var(--panel-metal-light);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--panel-shadow) 60%, transparent);
   border: 0;
 }
 
