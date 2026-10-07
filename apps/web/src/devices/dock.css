@@ -1,3 +1,7 @@
+:root {
+  --dock-empty-height: calc(var(--size-target) + var(--space-4) + 2px);
+}
+
 .dock {
   position: relative;
   display: flex;
@@ -13,7 +17,7 @@
 
 /* Below the tab panel the dock sits in flow. */
 .dock:not([data-placed]) {
-  min-height: var(--space-12);
+  min-height: var(--dock-empty-height);
   margin-top: var(--space-4);
 }
 

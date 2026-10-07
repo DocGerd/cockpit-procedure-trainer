@@ -5,10 +5,8 @@ import type { Page } from '@playwright/test';
 import { copy, openPicker } from './trainer';
 
 const procedure = ctslAircraft.procedures.radioAndTransponder;
-const gps = ctslAircraft.views.gps;
-if (!procedure || !gps) throw new Error('The CTSL has no radioAndTransponder or GPS view');
+if (!procedure) throw new Error('The CTSL has no radioAndTransponder');
 const procedureTitle = procedure.title.en;
-const gpsTab = gps.name.en;
 
 const tokens = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
 const TOUCH_TARGET_PX = Number(/--size-target:\s*(\d+)px/.exec(tokens)?.[1]);
@@ -18,16 +16,15 @@ const viewports = [
   { width: 1024, height: 768 },
 ];
 
-async function openGps(page: Page) {
+async function openInDock(page: Page) {
   await openPicker(page);
   await page.getByRole('button', { name: ctslAircraft.name.en }).click();
   await page.getByRole('button', { name: procedureTitle }).click();
   await page.getByRole('radio', { name: copy.shell.guided }).check();
   await page.getByRole('button', { name: copy.shell.startProcedure, exact: true }).click();
-  const tab = page.getByRole('tab', { name: gpsTab });
-  await tab.click();
-  await expect(tab).toHaveAttribute('aria-selected', 'true');
-  return page.getByRole('group', { name: 'gpsmap496', exact: true });
+  await page.locator('[data-placement="gps"]').getByRole('button').click();
+  const dock = page.getByRole('region', { name: 'Device dock' });
+  return dock.getByRole('group', { name: 'gpsmap496', exact: true });
 }
 
 for (const viewport of viewports) {
@@ -35,7 +32,7 @@ for (const viewport of viewports) {
     page,
   }) => {
     await page.setViewportSize(viewport);
-    const unit = await openGps(page);
+    const unit = await openInDock(page);
     const buttons = unit.getByRole('button');
     expect(await buttons.count()).toBe(4);
 
@@ -57,8 +54,8 @@ for (const viewport of viewports) {
   });
 }
 
-test('the GPSMAP 496 is operated from the GPS view', async ({ page }) => {
-  const unit = await openGps(page);
+test('the GPSMAP 496 is operated from the device dock', async ({ page }) => {
+  const unit = await openInDock(page);
   const display = unit.locator('[data-display]');
   await expect(display).toHaveText('');
 

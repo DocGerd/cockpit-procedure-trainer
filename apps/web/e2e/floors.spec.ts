@@ -11,8 +11,6 @@ import {
 
 const COVERED = 'only partly tappable, its centre lands on the next position';
 const PARTLY = 'partly covered by the next position, its centre still its own';
-const BREAKER_ROW =
-  'rows as fitted (ctsl-intake §3.2): each left breaker partly covered by its right';
 
 /**
  * Overlapping touch targets accepted per aircraft and view, keyed by the placement or placement
@@ -35,12 +33,6 @@ const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<s
       },
     },
     ctsl: {
-      panel: {
-        'positionBreaker and xpdrBreaker': BREAKER_ROW,
-        'intercomBreaker and positionBreaker': BREAKER_ROW,
-        'gpsBreaker and strobeBreaker': BREAKER_ROW,
-        'landingBreaker and strobeBreaker': BREAKER_ROW,
-      },
       centre: {
         elt: `two-position switch: ARMED ${PARTLY}`,
       },

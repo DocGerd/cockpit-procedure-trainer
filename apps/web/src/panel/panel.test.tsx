@@ -228,28 +228,6 @@ describe('placements', () => {
       });
     });
 
-    it('leave room for the dock below the tab panel, and none for a placed one', () => {
-      inShell(() => {
-        const above = document.body.appendChild(document.createElement('div'));
-        vi.spyOn(above, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 500, 1024, 100));
-        const dock = document.body.appendChild(document.createElement('section'));
-        dock.className = 'dock';
-        vi.spyOn(dock, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 620, 1024, 56.4));
-        try {
-          renderPanel();
-          expect(stageOf().style.getPropertyValue('--panel-dock')).toBe('77');
-
-          cleanup();
-          dock.setAttribute('data-placed', '');
-          renderPanel();
-          expect(stageOf().style.getPropertyValue('--panel-dock')).toBe('0');
-        } finally {
-          above.remove();
-          dock.remove();
-        }
-      });
-    });
-
     it('reserve nothing when the page has no footer', () => {
       renderPanel();
       expect(stageOf().style.getPropertyValue('--panel-footer')).toBe('0');

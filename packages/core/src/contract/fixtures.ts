@@ -198,11 +198,12 @@ export const fixtureAircraft = defineAircraft({
     },
   },
   cockpit: {
-    size: { width: 400, height: 200 },
+    size: { width: 400, height: 300 },
     views: {
       panel: { rect: { x: 0, y: 0, w: 400, h: 100 }, minWidth: 300 },
       console: { rect: { x: 0, y: 100, w: 400, h: 100 }, minWidth: 300 },
     },
+    dock: { rect: { x: 0, y: 200, w: 400, h: 100 }, minWidth: 300 },
   },
   systems: { initial, step },
   failures: {

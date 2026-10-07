@@ -10,7 +10,11 @@ import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { useDock } from './dock-state';
 
-const state = vi.hoisted(() => ({ withDock: true, floor: undefined as object | undefined }));
+const state = vi.hoisted(() => ({
+  withDock: true,
+  floor: undefined as object | undefined,
+  api: undefined as { open(installId: string): void } | undefined,
+}));
 
 vi.mock('../aircraft-registry', async () => {
   const fixtures = await import('./test-fixtures');
@@ -50,6 +54,7 @@ vi.mock('./dock-floor', () => ({ deviceFloor: () => state.floor }));
 vi.mock('./DeviceLayer', () => ({
   DeviceLayer({ rects }: { rects: { devices: Record<string, unknown> } }) {
     const dock = useDock();
+    state.api = dock;
     return Object.keys(rects.devices).map((installId) => (
       <button key={installId} type="button" onClick={() => dock?.open(installId)}>
         {`Slot ${installId}`}
@@ -96,7 +101,6 @@ beforeEach(() => {
   localStorage.clear();
   state.withDock = true;
   state.floor = undefined;
-  delete window.__cptDock;
 });
 
 afterEach(cleanup);
@@ -183,21 +187,9 @@ describe('the device dock in the tabs layout', () => {
     expect(dock()).toBeNull();
   });
 
-  it('shows for any aircraft once a browser test asks for it, and hands it open and close', async () => {
-    state.withDock = false;
-    window.__cptDock = {};
-    render();
-    expect(dock()?.getAttribute('data-dock')).toBe('empty');
-    act(() => window.__cptDock?.open?.('radio'));
-    expect(dock()?.getAttribute('data-dock')).toBe('held');
-    act(() => window.__cptDock?.close?.());
-    expect(dock()?.getAttribute('data-dock')).toBe('empty');
-  });
-
   it('ignores an install the aircraft does not have', () => {
-    window.__cptDock = {};
     render();
-    act(() => window.__cptDock?.open?.('nope'));
+    act(() => state.api?.open('nope'));
     expect(dock()?.getAttribute('data-dock')).toBe('empty');
   });
 });

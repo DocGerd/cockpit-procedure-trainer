@@ -17,7 +17,7 @@ const cockpitLayout = (page: Page) => page.locator('.shell');
 
 const themes = ['light', 'dark'] as const;
 
-// A short desktop window that still fits the combined cockpit.
+// A short desktop window: the demo still fits the combined cockpit, the CTSL falls back to the tabs.
 const shortDesktop = { width: 1920, height: 980 };
 
 async function expectNoPageScroll(page: Page) {
@@ -111,7 +111,10 @@ for (const aircraft of aircraftRegistry) {
   }) => {
     await page.setViewportSize(shortDesktop);
     await openAircraft(page, aircraft);
-    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expect(cockpitLayout(page)).toHaveAttribute(
+      'data-cockpit-layout',
+      aircraft.id === 'demo' ? 'combined' : 'tabs',
+    );
     await expectNoPageScroll(page);
   });
 }
