@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inlinedSvgs, normalizeSvg } from './inlined-svg';
+import { inlinedSvgMatcher, inlinedSvgs } from './inlined-svg';
 
 const svg = '<svg xmlns="http://www.w3.org/2000/svg"><text x="1">Hi</text></svg>';
 
@@ -15,21 +15,26 @@ describe('inlinedSvgs', () => {
   });
 });
 
-describe('normalizeSvg', () => {
+describe('inlinedSvgMatcher', () => {
   const source = "<svg xmlns='http://www.w3.org/2000/svg'>\n  <text x='1'>Hi</text>\n</svg>\n";
 
-  it('makes a source and its inlined copy compare equal despite a trailing newline', () => {
+  it('matches a raw source with indentation and a trailing newline to its URL-encoded copy', () => {
     const script = `a="data:image/svg+xml,${encodeURIComponent(source)}";`;
-    const [inlined = ''] = inlinedSvgs(script);
-    expect(inlined).not.toBe(normalizeSvg(source));
-    expect(normalizeSvg(inlined)).toBe(normalizeSvg(source));
+    expect(inlinedSvgMatcher(script)(source)).toBe(true);
   });
 
-  it('drops whitespace between tags and around the document', () => {
-    expect(normalizeSvg(source)).toBe(svg);
+  it('matches it to a base64 copy', () => {
+    const script = `a="data:image/svg+xml;base64,${Buffer.from(source).toString('base64')}";`;
+    expect(inlinedSvgMatcher(script)(source)).toBe(true);
   });
 
-  it('keeps whitespace inside text content', () => {
-    expect(normalizeSvg('<svg><text> a  b </text></svg>')).toBe('<svg><text> a  b </text></svg>');
+  it('matches when only the source ends in a newline', () => {
+    const script = `a="data:image/svg+xml,${encodeURIComponent(source.trim())}";`;
+    expect(inlinedSvgMatcher(script)(source)).toBe(true);
+  });
+
+  it('does not match a different SVG', () => {
+    const script = `a="data:image/svg+xml,${encodeURIComponent(source)}";`;
+    expect(inlinedSvgMatcher(script)(source.replace('Hi', 'Ho'))).toBe(false);
   });
 });
