@@ -1,7 +1,5 @@
 export const images = {
   panel: new URL('./assets/view-panel.svg', import.meta.url).href,
-  radios: new URL('./assets/view-radios.svg', import.meta.url).href,
-  gps: new URL('./assets/view-gps.svg', import.meta.url).href,
   centre: new URL('./assets/view-centre.svg', import.meta.url).href,
   console: new URL('./assets/view-console.svg', import.meta.url).href,
   parking: new URL('./assets/phase-parking.svg', import.meta.url).href,

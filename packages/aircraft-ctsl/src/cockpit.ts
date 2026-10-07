@@ -6,15 +6,15 @@ const cell = (x: number, y: number, w: number, h: number, minWidth: number): Coc
   minWidth,
 });
 
-// Left seat: the panel ahead with the GPS to its right, the centre field and console below the
-// panel, the radio stack under the GPS. Cell sizes follow each view's legibility floor.
+// Left seat: the panel ahead with the device dock under it, the centre field and the console
+// stacked to its right. Cell sizes follow the HD cockpit region; each minWidth is the cell's
+// floor: legibility for a view, the installed device floors for the dock.
 export const cockpit = {
-  size: { width: 1396, height: 596 },
+  size: { width: 1519, height: 758 },
   views: {
-    panel: cell(130, 0, 677, 249, 677),
-    gps: cell(855, 0, 541, 203, 541),
-    centre: cell(0, 265, 436, 327, 436),
-    console: cell(452, 265, 486, 292, 486),
-    radios: cell(954, 265, 442, 331, 442),
+    panel: cell(0, 0, 983, 362, 950),
+    centre: cell(999, 0, 520, 390, 436),
+    console: cell(999, 406, 520, 312, 486),
   },
+  dock: cell(0, 378, 983, 380, 480),
 } as const satisfies CockpitLayout<ViewId>;

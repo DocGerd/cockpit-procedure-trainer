@@ -4,8 +4,6 @@ import { describe, expect, it } from 'vitest';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
-import viewGps from './assets/view-gps.svg?raw';
-import viewRadios from './assets/view-radios.svg?raw';
 import { devices as installs } from './devices';
 import { ctslAircraft } from './index';
 import { chargeLampLit } from './indicators';
@@ -208,14 +206,8 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it('has the views of the panel inventory and a radio stack', () => {
-    expect(Object.keys(ctslAircraft.views)).toEqual([
-      'panel',
-      'radios',
-      'gps',
-      'centre',
-      'console',
-    ]);
+  it('has the three views of the panel inventory', () => {
+    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console']);
   });
 
   it.each(Object.entries(deviceSlots))(
@@ -230,6 +222,17 @@ describe('CTSL aircraft', () => {
       expect(y + h).toBeLessThanOrEqual(size.height);
     },
   );
+
+  it('installs every device in the panel view', () => {
+    const views = Object.values(ctslAircraft.devices ?? {}).map(({ view }) => view);
+    expect(views).toEqual(['panel', 'panel', 'panel']);
+  });
+
+  it('arranges its three views and a dock, with the panel floor at 950', () => {
+    expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual(['panel', 'centre', 'console']);
+    expect(ctslAircraft.cockpit?.dock).toBeDefined();
+    expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBeGreaterThanOrEqual(950);
+  });
 
   it('stacks the radio above the transponder', () => {
     const { com, xpdr } = deviceSlots;
@@ -423,8 +426,6 @@ describe('declared view sizes', () => {
     panel: viewPanel,
     centre: viewCentre,
     console: viewConsole,
-    radios: viewRadios,
-    gps: viewGps,
   };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {

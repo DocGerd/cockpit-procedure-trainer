@@ -14,10 +14,7 @@ import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { PanelArea } from './PanelArea';
 
-afterEach(() => {
-  cleanup();
-  delete window.__cptDock;
-});
+afterEach(cleanup);
 
 type Lettering = { text: string; x: number; y: number };
 
@@ -140,11 +137,12 @@ describe('printed placards on the rendered panel', () => {
 
 describe('device slot mirrors', () => {
   it.each(
-    registered.flatMap(([id, aircraft]) => languages.map((lang) => [id, lang, aircraft] as const)),
+    registered
+      .filter(([, aircraft]) => aircraft.cockpit?.dock !== undefined)
+      .flatMap(([id, aircraft]) => languages.map((lang) => [id, lang, aircraft] as const)),
   )(
     '%s in %s prints the unit name and names one button for every slot',
     async (_id, language, aircraft) => {
-      window.__cptDock = {};
       renderWithLanguage(
         <TrainerProvider>
           <Probe />

@@ -3,26 +3,16 @@ import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { deviceTargets, fitViewAt, openAircraft, showView } from './legibility';
 
-// No aircraft declares a dock yet, so the page is asked for one before it loads; the hook it
-// gets back opens and closes the dock the way a slot mirror will.
-type DockHook = { open?: (installId: string) => void; close?: () => void };
-const withHook = (page: Page) =>
-  page.addInitScript(() => {
-    (window as unknown as { __cptDock: DockHook }).__cptDock = {};
-  });
-const open = (page: Page, installId: string) =>
-  page.evaluate(
-    (id) => (window as unknown as { __cptDock: DockHook }).__cptDock.open?.(id),
-    installId,
-  );
-
 const dock = (page: Page) => page.getByRole('region', { name: 'Device dock' });
 const tabs = (page: Page) => page.getByRole('tabpanel');
 
 const hint = 'Select a device on the panel to operate it here.';
 
+const slotButton = (page: Page, installId: string) =>
+  page.locator(`[data-placement="${installId}"]`).getByRole('button');
+const open = (page: Page, installId: string) => slotButton(page, installId).click();
+
 test.beforeEach(async ({ page }) => {
-  await withHook(page);
   await openAircraft(page, ctslAircraft);
   await expect(dock(page)).toBeVisible();
 });
@@ -88,9 +78,28 @@ test('each device slot mirrors its device with one button of the touch-target si
   }
 });
 
-test('activating a slot mirror docks its device', async ({ page }) => {
-  await showView(page, ctslAircraft, 'radios', 'en');
-  const slot = page.locator('[data-placement="xpdr"]');
-  await slot.getByRole('button').click();
-  await expect(dock(page).getByRole('group', { name: 'gtx327', exact: true })).toBeVisible();
+test('at 1920x1080 the dock sits under the panel and holds a device at its touch-target size', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await expect(page.locator('.shell')).toHaveAttribute('data-cockpit-layout', 'combined');
+  await expect(dock(page)).toHaveText(hint);
+
+  const panel = await page.locator('[data-view="panel"]').boundingBox();
+  const empty = await dock(page).boundingBox();
+  if (!panel || !empty) throw new Error('no boxes');
+  expect(empty.y).toBeGreaterThanOrEqual(panel.y + panel.height);
+  expect(Math.abs(empty.x - panel.x)).toBeLessThanOrEqual(1);
+
+  await open(page, 'xpdr');
+  const unit = dock(page).getByRole('group', { name: 'gtx327', exact: true });
+  await expect(unit).toBeVisible();
+  const held = await dock(page).boundingBox();
+  expect(held).toEqual(empty);
+  for (const button of await unit.getByRole('button').all()) {
+    const box = await button.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  await expect(page.getByRole('contentinfo')).toBeInViewport({ ratio: 1 });
 });

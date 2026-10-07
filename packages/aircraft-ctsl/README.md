@@ -10,7 +10,7 @@ Flight Design CT Supralight flight and maintenance manual AE04300003, revision 0
 
 ## Contents
 
-- Views: `panel` (both upper fields: flight gauges, charge lamp, the empty device bezels, engine gauges, breaker block), `radios` (the COM radio above the transponder), `gps` (the GPS in its cradle), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN) and `console` (brake, throttle, choke, parking-brake valve, carb heat, trim wheel, rescue-system handle).
+- Views: `panel` (both upper fields: flight gauges, charge lamp, the three device slots, engine gauges, breaker block), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN) and `console` (brake, throttle, choke, parking-brake valve, carb heat, trim wheel, rescue-system handle).
 - Controls: eight panel breakers (COM, transponder, GPS, position lights, strobe, landing light, intercom, 12 V outlet), six rockers (Avionics Master, beacon, position lights, intercom, cockpit light, landing light), the ELT remote switch, the flap breaker, the fuel valve (Brandhahn), the flap selector with its two override positions, the ignition key with START springing back to BOTH, the BAT and GEN push-pull switches, the console levers with named notches, the parking-brake valve and the rescue handle guarded by its safety pin.
 - Carb heat is a provisional console control: the handbook names it in its checklists but shows no knob (intake §9).
 - Indicators: airspeed (km/h), altimeter (ft), vertical speed (m/s), tachometer, oil pressure (bar), oil temperature and CHT (°C), the charge warning lamp, the flap position readout and the ELT lamp. Arcs and red lines follow intake §4.3.
@@ -69,10 +69,10 @@ Avionics: `radioAndTransponder` at the holding point.
 
 ## Devices
 
-All three are on the avionics bus, each behind its own breaker, and shown in their own views, where the keys are large enough to touch; the `panel` view keeps their empty bezels in the background.
+All three are on the avionics bus, each behind its own breaker, and installed in the `panel` view, where each slot mirrors its unit; activating a slot opens the operable unit in the device dock.
 
-- `com`: Garmin SL40 COM radio, in `radios`
-- `xpdr`: Garmin GTX 327 transponder, fed by the altitude encoder, in `radios`
-- `gps`: Garmin GPSMAP 496, in `gps`
+- `com`: Garmin SL40 COM radio, in `panel`
+- `xpdr`: Garmin GTX 327 transponder, fed by the altitude encoder, in `panel`
+- `gps`: Garmin GPSMAP 496, in `panel`
 
 The intercom and the ELT remote are aircraft controls, not devices.
