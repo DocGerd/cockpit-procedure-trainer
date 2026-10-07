@@ -172,7 +172,11 @@ The validator reports a `size` that is not a positive, finite width and height a
 a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
 `h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
-finite number as `invalid-cockpit-min-width`.
+finite number as `invalid-cockpit-min-width`. An optional `dock` cell (same shape as a
+view cell, held beside `views`, not in it) reports a malformed `rect` or `minWidth`, a cell
+outside `size` and an overlap with a view cell as `invalid-cockpit-dock`. A cockpit
+without a `dock` stays valid; one that declares it must be at least as wide and as tall
+as the floor of every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 

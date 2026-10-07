@@ -1,7 +1,8 @@
-export type DeviceFloor = { readonly width: number; readonly height: number };
+import type { DeviceFloor } from '@cpt/panel-kit';
+import { deviceEntries } from '../device-registry';
 
-const floors: Readonly<Record<string, DeviceFloor>> = {};
+export type { DeviceFloor };
 
 /** The smallest size at which the device's Screen keeps every button at the touch-target size. */
 export const deviceFloor = (deviceId: string): DeviceFloor | undefined =>
-  Object.hasOwn(floors, deviceId) ? floors[deviceId] : undefined;
+  Object.hasOwn(deviceEntries, deviceId) ? deviceEntries[deviceId]?.floor : undefined;

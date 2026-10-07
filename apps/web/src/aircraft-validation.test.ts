@@ -3,6 +3,7 @@ import type { Aircraft, CockpitCell } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { aircraftRegistry } from './aircraft-registry';
 import { deviceRegistry } from './device-registry';
+import { deviceFloor } from './devices/dock-floor';
 
 it('has no validation findings in any registered aircraft', () => {
   const findings = aircraftRegistry.flatMap((aircraft) =>
@@ -30,16 +31,10 @@ function dockProblems(dock: CockpitCell, floor: Floor): string[] {
   ];
 }
 
-// Until the device registry exports floors this finds none, so the check below fails on any
-// aircraft that declares a dock; switch it to `deviceEntries` once the floors exist.
-const registeredFloors: Readonly<Record<string, Floor>> = {};
-const registeredFloor = (deviceId: string): Floor | undefined =>
-  Object.hasOwn(registeredFloors, deviceId) ? registeredFloors[deviceId] : undefined;
-
 const installedFloors = (aircraft: Aircraft): [string, Floor | undefined][] =>
   [...new Set(Object.values(aircraft.devices ?? {}).map(({ device }) => device))].map((id) => [
     id,
-    registeredFloor(id),
+    deviceFloor(id),
   ]);
 
 describe('the device dock reaches every installed device floor', () => {
