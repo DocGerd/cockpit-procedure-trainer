@@ -25,11 +25,16 @@ export async function openPicker(page: Page) {
   await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
 }
 
-export async function startProcedure(page: Page, procedureId: string, mode: PickerMode) {
+/** Start from the picker without waiting for the checklist, which a tablet keeps behind its toggle. */
+export async function pickProcedure(page: Page, procedureId: string, mode: PickerMode) {
   await openPicker(page);
   await page.getByRole('button', { name: procedure(procedureId).title.en }).click();
   await page.getByRole('radio', { name: copy.shell[mode] }).check();
   await page.getByRole('button', { name: copy.shell.startProcedure, exact: true }).click();
+}
+
+export async function startProcedure(page: Page, procedureId: string, mode: PickerMode) {
+  await pickProcedure(page, procedureId, mode);
   await expect(
     page.getByRole('heading', { level: 1, name: procedure(procedureId).title.en }),
   ).toBeVisible();
@@ -61,7 +66,7 @@ export async function showView(page: Page, viewName: string) {
 
 const selectView = (page: Page, controlId: string) => showView(page, viewOf(controlId).name.en);
 
-async function setControl(page: Page, controlId: string, position: string | number) {
+export async function setControl(page: Page, controlId: string, position: string | number) {
   const definition = control(controlId);
   await selectView(page, controlId);
   const name = definition.name.en;
