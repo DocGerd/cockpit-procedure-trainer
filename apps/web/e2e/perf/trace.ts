@@ -30,7 +30,9 @@ export function paintMs(events: readonly TraceEvent[]): number {
   for (const event of events) {
     if (event.ph !== 'X' || !PAINT_EVENTS.has(event.name ?? '')) continue;
     const key = `${event.pid}:${event.tid}`;
-    threads.set(key, [...(threads.get(key) ?? []), event]);
+    const thread = threads.get(key);
+    if (thread) thread.push(event);
+    else threads.set(key, [event]);
   }
   let micros = 0;
   for (const thread of threads.values()) {

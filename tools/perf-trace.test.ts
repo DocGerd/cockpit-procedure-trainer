@@ -20,6 +20,22 @@ describe('paintMs', () => {
     expect(paintMs([event('PaintImage', 1_000, 4_000), event('Paint', 0, 10_000)])).toBe(10);
   });
 
+  it('counts the outer event once when both start together, whichever is listed first', () => {
+    expect(paintMs([event('PaintImage', 0, 4_000), event('Paint', 0, 10_000)])).toBe(10);
+    expect(paintMs([event('Paint', 0, 10_000), event('PaintImage', 0, 4_000)])).toBe(10);
+  });
+
+  it('does not let an event on one thread shadow an overlapping one on another', () => {
+    const onTwoThreads = [event('Paint', 0, 10_000, 1), event('PaintImage', 1_000, 4_000, 2)];
+    expect(paintMs(onTwoThreads)).toBe(14);
+    const onTwoProcesses = [event('Paint', 0, 10_000), { ...event('Paint', 1_000, 4_000), pid: 2 }];
+    expect(paintMs(onTwoProcesses)).toBe(14);
+  });
+
+  it('counts a decode inside a raster task as part of the raster task', () => {
+    expect(paintMs([event('RasterTask', 0, 6_000), event('Decode Image', 1_000, 2_000)])).toBe(6);
+  });
+
   it('sums events that follow one another and events on other threads', () => {
     const events = [
       event('Paint', 0, 2_000),
