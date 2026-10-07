@@ -86,8 +86,10 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `send` takes the device's local control id (`coarse`, not `radio.coarse`); the
   panel routes it to the session as `<installId>.<controlId>`. Use `'set'` for a
   position, and `'press'` then `'release'` for a momentary or spring-back control.
-- The screen draws display contents only. The bezel and the dark powered-off
-  screen come from the panel's device frame. Blank the display when `on` is false.
+- The screen draws display contents only. The bezel, the glass, the keycaps and
+  the dark powered-off screen come from the panel's device frame: it lays glass
+  over the screen's first block, so put the display window first, and moulds every
+  `<button>` as a keycap. Blank the display when `on` is false.
 - Every operable element is a native `<button>` or a native range input with an
   accessible name, so keyboard operation needs no device code. Screens have no
   language prop, so use unit-neutral aviation labels (`SWAP`, `STBY MHz +`).
