@@ -106,9 +106,11 @@ Gauges, lamps and readouts. Each binds to a value in the aircraft state through
 a selector function and declares how it shows it (needle range, lamp colour,
 digits). Indicators never hold state of their own.
 
-A lamp (annunciator) may also give `stateLabels`, one text for lit and one for
-dark. The lamp's accessible name then reads the label followed by the current
-state; without them the web app supplies its own lit and dark wording.
+A lamp (annunciator) may also give `stateLabels`: plain strings for lit and
+dark, not bilingual text and not checked per language by the validator. The
+lamp's accessible name then reads the label followed by the current state.
+Without them the web app supplies its own lit and dark wording, which is
+localized.
 
 ### 4.3 Views
 
@@ -118,8 +120,8 @@ image coordinates, plus an optional 3D position and orientation that the 2D
 renderer ignores.
 
 A view may declare a `size`, a positive width and height with its origin at 0,0,
-as the coordinate space of its placements. Without one the renderer reads the
-image's own size. When a size is declared, every placement must lie inside it.
+as the coordinate space of its placements. Without one the renderer uses an SVG's `viewBox` or a raster image's natural
+size, and the extent of the placements while neither is known yet. When a size is declared, every placement must lie inside it.
 
 An optional cockpit arrangement places every view in one left-seat layout and
 states, per view, the narrowest rendered width at which it stays legible and
@@ -177,13 +179,14 @@ Each item has text in both languages and one of:
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
-The checklist starts from the procedure, the current state and the aircraft's
-control definitions, because it needs to know which controls spring back. An
-action on a spring-back position (a momentary button's pressed position, or a
-rotary detent with a rest position) is satisfied only by a pilot press of its
-own: the control resting at that position is not enough, and each such action
-needs its own press. Any other action whose target already holds completes
-without one.
+The checklist starts from the procedure, the current state and the control
+definitions (the aircraft's plus those of its installed devices), because it
+needs to know which controls spring back. An action on a spring-back position
+(a momentary button's pressed position, or a rotary detent with a rest
+position) is satisfied only by a pilot press of its own: the control resting at
+that position is not enough, and each such action needs its own press. Any
+other action whose target already holds completes without one. An action with
+`holdUntil` still waits for its condition.
 
 ### 4.8 Appearance
 
