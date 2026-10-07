@@ -86,6 +86,12 @@
   border-radius: var(--radius-md);
 }
 
+.dock-device[data-target='true'] {
+  outline: 3px solid var(--color-accent);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-md);
+}
+
 .modes-outline[data-pulse='true'] {
   animation: modes-pulse 1.6s ease-out infinite;
 }

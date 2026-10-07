@@ -7,6 +7,7 @@ import { Dock } from '../devices/Dock';
 import { DockProvider, useDock } from '../devices/dock-state';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
 import { useLocalize, useMessages } from '../i18n';
+import { GuidedDock } from '../modes/GuidedDock';
 import { PanelOverlay } from '../modes/PanelOverlay';
 import { useTrainer } from '../trainer';
 import { ActiveViewContext } from './active-view';
@@ -372,6 +373,7 @@ export function PanelArea({ layout = TABS, frame }: PanelAreaProps) {
   return (
     <ActiveViewContext.Provider value={active}>
       <DockProvider available={dockAvailable}>
+        <GuidedDock />
         {layout.kind === 'combined' ? (
           <CombinedCockpit layout={layout} frame={ref} gate={gate} />
         ) : (
