@@ -79,7 +79,7 @@ Both themes for S1 to S9, S11 and S12.
 One non-modal dock under the panel (spec §4.9), holding one avionics unit at a time with its operable screen and bezel.
 
 - Empty: a hint in chrome text; nothing on the panel changes.
-- Holding a unit: the unit's operable screen at its floor size or larger, and a close button that empties the dock. Activating another slot swaps the unit; Escape returns focus to the slot that opened it.
+- Holding a unit: the unit's operable screen at its floor size or larger, and a close button that empties the dock. Activating another slot swaps the unit.
 - Guided: the dock opens the unit the current step targets and the slot is ringed (S9); no view switches.
 
 ## Covered and missing

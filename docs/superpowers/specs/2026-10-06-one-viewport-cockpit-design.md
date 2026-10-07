@@ -47,12 +47,14 @@ least as wide as its legibility floor. Tabs otherwise.**
 - At runtime the decision is arithmetic, never a DOM probe: from the size of
   the cockpit region, compute the uniform scale of the arrangement, the
   contain-fit width of each view inside its cell, and compare with the floors.
+  The dock's `minWidth` is compared the same way. The dock must meet the
+  widest device floor in both width and height; the floor test checks both.
   This is a pure function, `chooseLayout`, unit-tested on its own.
 
 Why declared floors and not a computed rule: what makes a view illegible lives
-in four places the web app cannot see without rendering (widget hit geometry
-in panel-kit, placard fitting, lettering inside self-drawn SVGs, device screen
-buttons). A probe would have to render the combined layout to decide whether
+in places the web app cannot see without rendering (widget hit geometry
+in panel-kit, placard fitting, lettering inside self-drawn SVGs, and the device
+screen buttons that the dock's floor covers). A probe would have to render the combined layout to decide whether
 to render it, and would flicker on resize. The floors are the same facts,
 measured once per change by a test, so the rule stays measured and the runtime
 stays a comparison.
@@ -128,9 +130,8 @@ validator test of every registered aircraft covers it.
 
 ## 4. Arrangements
 
-Panel at the upper left, the device dock directly under it, the centre field
-and the console stacked on the right. The panel and the dock share a width so
-the dock reads as part of the panel column.
+The panel with the device dock under it; the centre field and the console
+stacked on the right.
 
 **CTSL**, three views and the dock:
 
@@ -143,10 +144,10 @@ the dock reads as part of the panel column.
 +--------------------+-----------+
 ```
 
-**Demo**, three views and the dock, in the same arrangement: panel, dock under
-it, centre field and console stacked on the right. The demo's radios are an
-original, self-drawn radio section on its panel artwork, with its own printed
-labels; it has no `avionics` view.
+**Demo**, two views (panel, console) and the dock: the panel with the dock
+under it, the console to the right. It has no centre field. The demo's radios
+are an original, self-drawn radio section on its panel artwork, with its own
+printed labels; it has no `avionics` view.
 
 DOM order of the cells is the reading order above (left to right, top to
 bottom).
@@ -159,12 +160,12 @@ bottom).
   `--size-target`. Its accessible name is the unit name and the device readout.
 - **Dock.** One non-modal region, under the panel, holding one device at a
   time. Activating a slot opens its operable Screen there; activating another
-  swaps; Escape returns focus to the slot that opened it; a close button
+  swaps; a close button
   empties it. It starts empty, with a hint that is chrome text, never on the
   panel. The Screen renders at its floor size or larger.
 - **Guided.** The device the current step targets opens in the dock and its
-  slot is ringed; no view switches. Practice opens and rings nothing; Explore
-  docks a device when its slot is activated.
+  slot is ringed; no view switches. Practice opens and rings nothing; Explore and Free explore
+  dock a device when its slot is activated.
 - **Device exports.** Each device exports its Screen, a read-only Display sized
   for the slot's aspect, a `readout` text and a `floor` (the smallest size at
   which its Screen meets `--size-target`). The mirror frame scales with the
@@ -180,16 +181,13 @@ bottom).
 
 The floor test owns the numbers. Constraints this design sets:
 
-- The CTSL panel floor is 950 px rendered width. Earlier floors were lower
-  only because breaker-row target overlaps were accepted; that acceptance is
-  dropped, so the panel is laid out and sized to have none.
-- The cockpit region at 1920x1080, with the header, the outside-view strip and
-  the checklist column as they are today, is about 1520 x 787 CSS px. The
-  panel and the dock share the left column, the centre field and the console
-  stack in the right column, and all four cells must reach their floors at
-  that size. The dock cell must also reach the widest device floor.
-- The centre field and console floors are lettering-bound: raise their
-  smallest lettering in the self-drawn art instead of shrinking the chrome.
+- The CTSL panel floor is 950 px rendered width. The four breaker-row
+  target-overlap acceptances of the CTSL are dropped; the panel is laid out
+  and sized to have none.
+- The panel and the dock share the left column, the centre field and the
+  console stack in the right column, and all cells must reach their floors in
+  the cockpit region at HD. The dock cell must also reach the widest device
+  floor, in width and height.
 - The radio stack and GPS views no longer exist, so their device-button floors
   apply only to the dock, where the Screen renders at its own floor size.
 
@@ -200,9 +198,7 @@ The HD layout test (§9) fails until it holds. The chrome stays as it is
 ## 6. Outside view and checklist
 
 - **Outside view:** stays a strip above the cockpit, full width of the main
-  column, as today. From the left seat the windscreen is above the glareshield,
-  so the strip completes the left-seat picture rather than competing with it.
-  Its height rule is unchanged.
+  column, as today. Its height rule is unchanged.
 - **Checklist:** stays the side column at desktop widths (≥ the existing
   `DESKTOP_MIN_WIDTH`), always visible, as today. Guided mode depends on the
   current item being in sight while the pilot looks for the control, and the
@@ -260,8 +256,8 @@ records only.
 
 **Unit (Vitest)**
 
-- `chooseLayout`: picks combined exactly when every view's fitted width
-  reaches its floor; tabs one CSS px below; no arrangement → tabs; scale and
+- `chooseLayout`: picks combined exactly when every view's and the dock's
+  fitted width reaches its floor; tabs one CSS px below; no arrangement → tabs; scale and
   cells for a known arrangement.
 - Validator: one test per finding code; both registered aircraft pass. Every
   installed device's floor fits the aircraft's dock cell.
@@ -284,7 +280,7 @@ records only.
   and 768x1024: tabs.
 - `floors.spec.ts` (new): for every aircraft and view, a viewport at which the
   tabs layout renders the view at its declared `minWidth`, then the shared
-  legibility checks, including device buttons.
+  legibility checks.
 - `placards.spec.ts` and `lettering.spec.ts`: add 1920x1080 and 3840x2160 to
   their viewports; locate views by `data-view` and click a tab only when a
   tablist exists, so the same assertions run in both layouts. Their geometry
@@ -308,10 +304,10 @@ and dark, each mode; one tablet size to confirm tabs still work.
    contract changes independent, and old aircraft valid.
 3. **Chrome unchanged at desktop: outside strip on top, checklist column at
    the side.** Reason: Guided needs the checklist in sight (Training UX, rank
-   2); the strip is the windscreen of the left-seat picture.
+   2); the strip is the outside view above the cockpit.
 4. **Devices live in one dock under the panel; the panel slots mirror them
    (#339).** The CTSL has three views (panel, centre field, console) plus the
-   dock; the `radios` and `gps` views are removed, and the demo gets a
+   dock, the demo two (panel, console); the `radios` and `gps` views are removed, and the demo gets a
    self-drawn radio section in place of its `avionics` view. Reason: five
    views side by side could not reach their floors at HD; one device at a time
    needs far less area. Quality sacrificed: operating a device in place on the
@@ -321,13 +317,18 @@ and dark, each mode; one tablet size to confirm tabs still work.
    rule already yields tabs there.
 6. **Zoom stays per view in combined.** Reason: least change; a pinch on one
    unit is what a pilot means.
-7. **Target overlap is checked at the floors and sets them.** The floor test
-   fails when two operable targets of a view overlap, each taken as its
+7. **Target overlap is checked at the floors but does not set them.** The floor
+   test fails when two operable targets of a view overlap, each taken as its
    rendered box grown to at least the touch target around its centre, whether
-   positions of one control or two controls (#271). The CTSL panel floor is
-   950 px so the breaker rows fit without overlap; no overlap is accepted for
-   the CTSL panel. Quality sacrificed: some combined-layout reach on small
-   desktops.
+   positions of one control or two controls (#271). Overlaps that spacing can
+   remove are fixed. The rest, the positions of small multi-position controls,
+   would need higher floors and so the
+   loss of the HD fit; `apps/web/e2e/floors.spec.ts` accepts each by name with
+   what a tap loses there (a position only partly tappable, or its centre
+   landing on the next position) and fails once an accepted overlap is gone.
+   The four CTSL breaker-row acceptances are dropped (#339): the CTSL panel
+   floor is raised to 950 px instead. Quality sacrificed: none ranked beyond
+   the existing acceptances.
 8. **4K means 3840x2160 CSS px at DPR 1.** Reason: that is the case with the
    most room; DPR 2 is the HD case.
 
@@ -339,4 +340,4 @@ and dark, each mode; one tablet size to confirm tabs still work.
    alone gains less than the floor work; the plan does not assume one.)
 2. ~~Target overlap (Decision 7): its own issue, and should the floor test
    gain a no-overlap check once the art allows it?~~ Superseded: the floor
-   test checks it, and the CTSL panel accepts none (Decision 7).
+   test checks it, with the remaining overlaps accepted by name (Decision 7).

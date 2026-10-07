@@ -95,7 +95,7 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 
 - `Display` is a `ComponentType<{ on: boolean; state: unknown }>`: the same
   display contents as the screen, with no buttons and no `send`. Size it for the
-  slot's aspect (the radios and transponder 520x150 units, the GPS 400x300). The
+  slot's aspect. The
   mirror frame comes from `@cpt/panel-kit` and scales with the slot; its printed
   label is the unit name (for example `COM`, `XPDR`, `GPS`), never "open". Keep
   the display lettering readable at the panel floor.
