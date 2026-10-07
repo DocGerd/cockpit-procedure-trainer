@@ -162,3 +162,39 @@ for (const aircraft of aircraftRegistry) {
     );
   });
 }
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of viewports) {
+    test(`${aircraft.id} keeps gauge captions clear of the needle at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const crossings: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        crossings.push(
+          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
+            (gauges, where) =>
+              gauges.flatMap((gauge) => {
+                const label = gauge.querySelector('[data-label]');
+                const needle = gauge.querySelector('[data-needle] line');
+                if (!label || !needle) return [];
+                const number = (element: Element, name: string) =>
+                  Number(element.getAttribute(name));
+                const length = number(needle, 'y1') - number(needle, 'y2');
+                // The sweep ends 135 degrees either side of the top, so the tip is lowest there.
+                const tip = number(needle, 'y1') + (length * Math.SQRT2) / 2;
+                const top = number(label, 'y') - number(label, 'font-size') / 2;
+                return top < tip + number(needle, 'stroke-width') / 2
+                  ? [`${where}/${gauge.getAttribute('aria-label')}`]
+                  : [];
+              }),
+            viewId,
+          )),
+        );
+      }
+      expect(crossings, 'gauge captions reaching the needle at the end of its sweep').toEqual([]);
+    });
+  }
+}

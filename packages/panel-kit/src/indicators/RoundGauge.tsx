@@ -1,6 +1,6 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
-import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze } from './geometry';
+import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze, SWEEP_END } from './geometry';
 import { readGaugeOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
@@ -9,6 +9,7 @@ const TICK_OUTER = 38;
 const TICK_INNER = 33;
 const NUMERAL_RADIUS = 26;
 const NEEDLE_LENGTH = 34;
+const NEEDLE_STROKE = 1.6;
 const VIEWBOX = { width: 100, height: 100 };
 const LABEL_WIDTH = 66;
 const NUMERAL_DESIGN = 5;
@@ -17,6 +18,7 @@ const LABEL_DESIGN = 5.5;
 const UNITS_Y = 66;
 const LABEL_Y = 78;
 const FACE_RADIUS = 46;
+const NEEDLE_LOW = polar(SWEEP_END, NEEDLE_LENGTH).y + NEEDLE_STROKE / 2;
 
 function chordRoom(bottom: number): number {
   const drop = bottom - CENTRE;
@@ -51,8 +53,9 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
     advance: SANS_ADVANCE,
     squeezable: true,
   });
-  const captionFits = (size: number) => size / 2 + LABEL_Y <= CENTRE + FACE_RADIUS;
-  const showCaption = caption.show && captionFits(caption.fontSize);
+  // The caption slides down off the needle's lowest tip; units and numerals keep their own room.
+  const labelY = Math.max(LABEL_Y, NEEDLE_LOW + caption.fontSize / 2);
+  const showCaption = caption.show && labelY + caption.fontSize / 2 <= CENTRE + FACE_RADIUS;
   const unit = placeText(metrics, {
     design: UNITS_DESIGN,
     room: chordRoom(UNITS_Y + (metrics === undefined ? UNITS_DESIGN : 11 / metrics.scale) / 2),
@@ -160,7 +163,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         <text
           data-label=""
           x={CENTRE}
-          y={LABEL_Y}
+          y={labelY}
           fontSize={caption.fontSize}
           textAnchor="middle"
           dominantBaseline="central"
@@ -180,7 +183,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           y1={CENTRE}
           x2={CENTRE}
           y2={CENTRE - NEEDLE_LENGTH}
-          strokeWidth={1.6}
+          strokeWidth={NEEDLE_STROKE}
           strokeLinecap="round"
           style={{ stroke: 'var(--panel-needle)' }}
         />
