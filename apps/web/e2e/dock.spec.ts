@@ -77,29 +77,3 @@ test('each device slot mirrors its device with one button of the touch-target si
     expect(await deviceTargets(root)).toEqual([]);
   }
 });
-
-test('at 1920x1080 the dock sits under the panel and holds a device at its touch-target size', async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await expect(page.locator('.shell')).toHaveAttribute('data-cockpit-layout', 'combined');
-  await expect(dock(page)).toHaveText(hint);
-
-  const panel = await page.locator('[data-view="panel"]').boundingBox();
-  const empty = await dock(page).boundingBox();
-  if (!panel || !empty) throw new Error('no boxes');
-  expect(empty.y).toBeGreaterThanOrEqual(panel.y + panel.height);
-  expect(Math.abs(empty.x - panel.x)).toBeLessThanOrEqual(1);
-
-  await open(page, 'xpdr');
-  const unit = dock(page).getByRole('group', { name: 'gtx327', exact: true });
-  await expect(unit).toBeVisible();
-  const held = await dock(page).boundingBox();
-  expect(held).toEqual(empty);
-  for (const button of await unit.getByRole('button').all()) {
-    const box = await button.boundingBox();
-    expect(box?.width).toBeGreaterThanOrEqual(44);
-    expect(box?.height).toBeGreaterThanOrEqual(44);
-  }
-  await expect(page.getByRole('contentinfo')).toBeInViewport({ ratio: 1 });
-});

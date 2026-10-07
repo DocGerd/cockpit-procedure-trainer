@@ -14,6 +14,9 @@ const viewports = [
   { width: 3840, height: 2160 },
 ];
 
+// The priority viewports are covered by the viewport matrix in layout.spec.ts.
+const extraViewport = { width: 1440, height: 900 };
+
 const source = (url: string) => readFileSync(fileURLToPath(url), 'utf8');
 
 type Box = { left: number; top: number; right: number; bottom: number };
@@ -100,21 +103,19 @@ for (const aircraft of aircraftRegistry) {
     expect(clashes).toEqual([]);
   });
 
-  for (const viewport of viewports) {
-    test(`${aircraft.id} prints control lettering at the minimum size at ${viewport.width}x${viewport.height}`, async ({
-      page,
-    }) => {
-      await page.setViewportSize(viewport);
-      await openAircraft(page, aircraft);
-      for (const viewId of Object.keys(aircraft.views)) {
-        const root = await showView(page, aircraft, viewId, 'en');
-        expect(
-          await letteringProblems(root, aircraft, viewId),
-          `lettering below ${MIN_TEXT_PX - 0.5}px`,
-        ).toEqual([]);
-      }
-    });
-  }
+  test(`${aircraft.id} prints control lettering at the minimum size at ${extraViewport.width}x${extraViewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(extraViewport);
+    await openAircraft(page, aircraft);
+    for (const viewId of Object.keys(aircraft.views)) {
+      const root = await showView(page, aircraft, viewId, 'en');
+      expect(
+        await letteringProblems(root, aircraft, viewId),
+        `lettering below ${MIN_TEXT_PX - 0.5}px`,
+      ).toEqual([]);
+    }
+  });
 }
 
 const cardSizes = (svg: string) =>
