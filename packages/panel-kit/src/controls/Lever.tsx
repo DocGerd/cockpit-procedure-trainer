@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { finish, Kit, LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
+import { finish, LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
 import { along, clamp01, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions } from './positions';
@@ -135,9 +135,6 @@ export function Lever(props: ControlWidgetProps) {
     );
     return (
       <>
-        <Kit id={kit} use={['plate', 'bezel', 'well', 'plastic', 'specular']}>
-          <LinearGradient id={`${kit}-top`} from={[0, 0]} to={[0, 1]} stops={finish.dome} />
-        </Kit>
         <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
         <rect
@@ -204,7 +201,15 @@ export function Lever(props: ControlWidgetProps) {
   };
 
   return (
-    <Stage placard={placard} width={SIZE} height={SIZE} art={art}>
+    <Stage
+      kit={kit}
+      materials={['plate', 'bezel', 'well', 'plastic', 'specular']}
+      defs={<LinearGradient id={`${kit}-top`} from={[0, 0]} to={[0, 1]} stops={finish.dome} />}
+      placard={placard}
+      width={SIZE}
+      height={SIZE}
+      art={art}
+    >
       {continuous ? (
         <Fill
           role="slider"

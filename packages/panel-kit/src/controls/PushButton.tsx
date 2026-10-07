@@ -1,14 +1,6 @@
 import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
-import {
-  circleBox,
-  finish,
-  Kit,
-  paint,
-  RadialGradient,
-  SoftShadow,
-  useMaterialId,
-} from '../materials';
+import { circleBox, finish, paint, RadialGradient, SoftShadow, useMaterialId } from '../materials';
 import { CurrentState, Stage, hitStyle, vars } from './Stage';
 import { useHold } from './use-hold';
 
@@ -32,15 +24,6 @@ export function PushButton({
 
   const art = (
     <>
-      <Kit id={kit} use={['bezel', 'lip', 'plastic', 'dome', 'specular', 'well']}>
-        <RadialGradient
-          id={`${kit}-recess`}
-          userSpace
-          centre={[51.6, 52.4]}
-          radius={WELL + 2}
-          stops={finish.recess}
-        />
-      </Kit>
       <SoftShadow box={circleBox(50, 50, 44)} offset={[0.5, 1.4]} blur={1.6} />
       <circle cx={50} cy={50} r={44} style={{ fill: paint(kit, 'bezel') }} />
       <circle cx={50} cy={50} r={41.5} style={{ fill: paint(kit, 'lip') }} />
@@ -76,7 +59,23 @@ export function PushButton({
   );
 
   return (
-    <Stage placard={placard} width={100} height={100} art={art}>
+    <Stage
+      kit={kit}
+      materials={['bezel', 'lip', 'plastic', 'dome', 'specular', 'well']}
+      defs={
+        <RadialGradient
+          id={`${kit}-recess`}
+          userSpace
+          centre={[51.6, 52.4]}
+          radius={WELL + 2}
+          stops={finish.recess}
+        />
+      }
+      placard={placard}
+      width={100}
+      height={100}
+      art={art}
+    >
       <button
         type="button"
         className="pk-hit"

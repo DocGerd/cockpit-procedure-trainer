@@ -1,5 +1,5 @@
 import type { ControlWidgetProps } from '../types';
-import { Kit, LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
+import { LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
 import type { Stop } from '../materials';
 import { minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
@@ -49,9 +49,6 @@ export function Rocker({
     );
     return (
       <>
-        <Kit id={kit} use={['plastic', 'lip', 'specular']}>
-          <LinearGradient id={`${kit}-pressed`} from={[0, 0]} to={[0, 1]} stops={PRESSED} />
-        </Kit>
         <SoftShadow box={FRAME} offset={[0.5, 1.4]} blur={1.6} />
         <rect {...FRAME} style={{ fill: paint(kit, 'plastic') }} />
         <rect {...WELL} style={{ fill: paint(kit, 'lip') }} />
@@ -117,7 +114,15 @@ export function Rocker({
   };
 
   return (
-    <Stage placard={placard} width={100} height={100} art={art}>
+    <Stage
+      kit={kit}
+      materials={['plastic', 'lip', 'specular']}
+      defs={<LinearGradient id={`${kit}-pressed`} from={[0, 0]} to={[0, 1]} stops={PRESSED} />}
+      placard={placard}
+      width={100}
+      height={100}
+      art={art}
+    >
       <PositionGroup
         label={label}
         positions={positions}

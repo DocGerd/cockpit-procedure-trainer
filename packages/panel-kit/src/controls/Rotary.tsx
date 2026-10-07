@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Grain, Kit, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
+import { circleBox, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
+import type { KitMaterial } from '../materials';
 import { detentAngles, polar } from './geometry';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
@@ -48,7 +49,12 @@ function sideGap(slots: readonly Slot[]): number {
 }
 
 /** A knob or key in its own units (scaled by HEAD_SCALE): fixed shading, and the part that turns. */
-type Head = { still: ReactNode; shadow?: ReactNode; turning: ReactNode };
+type Head = {
+  materials: readonly KitMaterial[];
+  still: ReactNode;
+  shadow?: ReactNode;
+  turning: ReactNode;
+};
 
 function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
   const {
@@ -86,7 +92,6 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
       <>
         <SoftShadow box={circleBox(CENTRE, CENTRE, BEZEL)} offset={[0.5, 1.4]} blur={1.6} />
         <circle cx={CENTRE} cy={CENTRE} r={BEZEL} style={{ fill: paint(kit, 'plate') }} />
-        <circle cx={CENTRE} cy={CENTRE} r={BEZEL} style={{ fill: `url(#${kit}-grain)` }} />
         <circle
           cx={CENTRE}
           cy={CENTRE}
@@ -150,7 +155,14 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
   };
 
   return (
-    <Stage placard={placard} width={SIZE} height={SIZE} art={art}>
+    <Stage
+      kit={kit}
+      materials={head.materials}
+      placard={placard}
+      width={SIZE}
+      height={SIZE}
+      art={art}
+    >
       <PositionGroup
         label={label}
         positions={positions}
@@ -174,11 +186,9 @@ export function RotaryKnob(props: ControlWidgetProps) {
       {...props}
       kit={kit}
       head={{
+        materials: ['plate', 'bezel', 'plastic', 'dome', 'specular'],
         still: (
           <>
-            <Kit id={kit} use={['plate', 'bezel', 'plastic', 'dome', 'specular']}>
-              <Grain id={`${kit}-grain`} tile={3} />
-            </Kit>
             <SoftShadow box={circleBox(0, 0, 26)} offset={[2, 5]} blur={4} />
             <circle r={26} style={{ fill: paint(kit, 'plastic') }} />
             <Knurl
@@ -226,11 +236,9 @@ export function KeySwitch(props: ControlWidgetProps) {
       {...props}
       kit={kit}
       head={{
+        materials: ['plate', 'bezel', 'lip', 'cap', 'chrome'],
         still: (
           <>
-            <Kit id={kit} use={['plate', 'bezel', 'lip', 'cap', 'chrome']}>
-              <Grain id={`${kit}-grain`} tile={3} />
-            </Kit>
             <SoftShadow box={circleBox(0, 0, 19)} offset={[1, 2.6]} blur={2.5} />
             <circle r={19} style={{ fill: paint(kit, 'bezel') }} />
             <circle r={16} style={{ fill: paint(kit, 'lip') }} />

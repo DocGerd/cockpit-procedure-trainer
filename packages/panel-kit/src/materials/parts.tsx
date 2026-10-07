@@ -78,7 +78,7 @@ export function SoftShadow({
 }) {
   const layer = 1 - (1 - opacity) ** (1 / 3);
   return (
-    <g opacity={layer}>
+    <g opacity={layer} style={{ fill: 'var(--panel-shadow)' }}>
       {[blur / 2, 0, -blur / 2].map((grow) => (
         <rect
           key={grow}
@@ -87,7 +87,6 @@ export function SoftShadow({
           width={Math.max(0, box.width + 2 * grow)}
           height={Math.max(0, box.height + 2 * grow)}
           rx={Math.max(0, box.rx + grow)}
-          style={{ fill: 'var(--panel-shadow)' }}
         />
       ))}
     </g>

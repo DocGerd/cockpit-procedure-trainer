@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { Kit, paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import { paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import type { Metrics } from './legibility';
@@ -56,19 +56,6 @@ export function GuardedHandle({
     );
     return (
       <>
-        <Kit
-          id={kit}
-          use={[
-            'plate',
-            'bezel',
-            'well',
-            'ridge-across',
-            'chrome-across',
-            'screw',
-            'specular',
-            'glare',
-          ]}
-        />
         <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
         <rect
@@ -143,6 +130,17 @@ export function GuardedHandle({
 
   return (
     <Stage
+      kit={kit}
+      materials={[
+        'plate',
+        'bezel',
+        'well',
+        'ridge-across',
+        'chrome-across',
+        'screw',
+        'specular',
+        'glare',
+      ]}
       placard={placard}
       width={100}
       height={100}

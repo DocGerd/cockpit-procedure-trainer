@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Kit, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
+import { circleBox, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
 import { CurrentState, Stage, hitStyle, vars } from './Stage';
 
 const WIDTH = 100;
@@ -25,7 +25,6 @@ export function CircuitBreaker({
 
   const art = (
     <>
-      <Kit id={kit} use={['bezel', 'lip', 'plastic', 'dome', 'specular', 'band', 'ridge']} />
       <SoftShadow box={circleBox(50, BODY_Y, 40)} offset={[0.5, 1.3]} blur={1.6} />
       <circle cx={50} cy={BODY_Y} r={40} style={{ fill: paint(kit, 'bezel') }} />
       <Knurl
@@ -73,7 +72,14 @@ export function CircuitBreaker({
   );
 
   return (
-    <Stage placard={placard} width={WIDTH} height={HEIGHT} art={art}>
+    <Stage
+      kit={kit}
+      materials={['bezel', 'lip', 'plastic', 'dome', 'specular', 'band', 'ridge']}
+      placard={placard}
+      width={WIDTH}
+      height={HEIGHT}
+      art={art}
+    >
       <button
         type="button"
         role="switch"

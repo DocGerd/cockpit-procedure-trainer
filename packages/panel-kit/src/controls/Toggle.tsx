@@ -1,5 +1,5 @@
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Kit, paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import { circleBox, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions, springBackOf } from './positions';
@@ -46,7 +46,6 @@ export function Toggle({
     );
     return (
       <>
-        <Kit id={kit} use={['plate', 'bezel', 'lip', 'chrome', 'chrome-dome', 'screw']} />
         <SoftShadow box={PLATE} offset={[0.6, 1.6]} blur={2} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
         <rect
@@ -98,7 +97,14 @@ export function Toggle({
   };
 
   return (
-    <Stage placard={placard} width={WIDTH} height={HEIGHT} art={art}>
+    <Stage
+      kit={kit}
+      materials={['plate', 'bezel', 'lip', 'chrome', 'chrome-dome', 'screw']}
+      placard={placard}
+      width={WIDTH}
+      height={HEIGHT}
+      art={art}
+    >
       <PositionGroup
         label={label}
         positions={positions}

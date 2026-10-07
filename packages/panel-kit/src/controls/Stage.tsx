@@ -14,7 +14,8 @@ import {
   useRenderedMetrics,
 } from './legibility';
 import type { Metrics } from './legibility';
-import { Kit, paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import { Kit, paint, Screw, SoftShadow } from '../materials';
+import type { KitMaterial } from '../materials';
 import './controls.css';
 
 export const TARGET = 'var(--size-target)';
@@ -34,6 +35,10 @@ export function hitStyle(box: Box): CSSProperties {
 }
 
 type StageProps = {
+  /** The widget's material id and the kit it paints with; the placard plate adds its own. */
+  kit: string;
+  materials: readonly KitMaterial[];
+  defs?: ReactNode;
   width: number;
   height: number;
   art: ReactNode | ((metrics: Metrics | undefined) => ReactNode);
@@ -73,7 +78,6 @@ function Placard({
   const bevel = Math.min(1.2, height * 0.06);
   return (
     <>
-      <Kit id={id} use={['plate', 'bezel', 'screw']} />
       <SoftShadow box={box} offset={[0.3, 0.8]} blur={0.8} opacity={0.5} />
       <rect {...box} style={{ fill: paint(id, 'plate') }} />
       <rect
@@ -122,13 +126,25 @@ export function placardBand(
   return Number.isFinite(band) ? Math.min(band, height) : PLACARD_BAND;
 }
 
-export function Stage({ width, height, art, placard, children, onKeyDown }: StageProps) {
+const PLATE_MATERIALS: readonly KitMaterial[] = ['plate', 'bezel', 'screw'];
+
+export function Stage({
+  kit,
+  materials,
+  defs,
+  width,
+  height,
+  art,
+  placard,
+  children,
+  onKeyDown,
+}: StageProps) {
   const text = placard ? capitals(placard) : '';
   const [rootRef, room] = useBoxSize(text !== '');
   const band = text ? placardBand(room, room ? readMinPx() : FALLBACK_MIN_PX, width, height) : 0;
   const total = height + band;
   const [svgRef, metrics] = useRenderedMetrics({ width, height: total });
-  const id = useMaterialId('placard');
+  const use = text ? [...new Set([...materials, ...PLATE_MATERIALS])] : materials;
   return (
     <div ref={rootRef} className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
       <div
@@ -143,7 +159,10 @@ export function Stage({ width, height, art, placard, children, onKeyDown }: Stag
           aria-hidden="true"
           focusable="false"
         >
-          {text && <Placard id={id} text={text} width={width} band={band} metrics={metrics} />}
+          <Kit id={kit} use={use}>
+            {defs}
+          </Kit>
+          {text && <Placard id={kit} text={text} width={width} band={band} metrics={metrics} />}
           {typeof art === 'function' ? art(metrics) : art}
         </svg>
         <div
