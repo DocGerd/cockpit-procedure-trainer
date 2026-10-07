@@ -293,6 +293,39 @@ describe('deviations', () => {
     expect(next.deviations).toEqual([]);
   });
 
+  it('leave a wrong digit on the current target pending without a deviation', () => {
+    const code: ProcedureDefinition<FixtureState> = {
+      title: { de: 'Code', en: 'Code' },
+      type: 'normal',
+      startPhase: 'parked',
+      items: [
+        { type: 'action', control: 'xpdr.code1', position: '1', text: { de: 'x', en: 'x' } },
+        { type: 'action', control: 'xpdr.code2', position: '2', text: { de: 'x', en: 'x' } },
+      ],
+    };
+    let checklist = startChecklist(code, stateOf({ 'xpdr.code1': '0' }), {});
+    for (const [from, to] of [
+      ['0', '7'],
+      ['7', '3'],
+    ] as const) {
+      checklist = observeControl(
+        checklist,
+        position('xpdr.code1', from, to),
+        stateOf({ 'xpdr.code1': to }),
+      );
+      expect(checklist.deviations).toEqual([]);
+      expect(checklist.current).toBe(0);
+    }
+    checklist = observeControl(
+      checklist,
+      position('xpdr.code1', '3', '1'),
+      stateOf({ 'xpdr.code1': '1' }),
+    );
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.current).toBe(1);
+    expect(checklist.deviations).toEqual([]);
+  });
+
   it('never record spring changes, such as a released starter', () => {
     let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
     expect(checklist.current).toBe(6);
