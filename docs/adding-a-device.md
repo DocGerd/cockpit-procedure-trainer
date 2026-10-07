@@ -68,7 +68,11 @@ Rules that follow from how the session runs devices:
 Export the device, its state type and any constant a test or another package needs
 (ranges, durations, input names) from `src/logic/index.ts`.
 
-## Screen
+## Screen, Display, readout and floor
+
+A device exports four things for the app: the operable `Screen`, a read-only
+`Display`, a `readout` and a `floor`. The `Screen` opens in the device dock; the
+`Display` is the live mirror in the aircraft's panel slot (spec section 4.9).
 
 A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 
@@ -87,6 +91,23 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
   `apps/web/src/styles/tokens.css`. No status colours, no brand accent. Panel
   widgets draw their own focus ring from `var(--panel-focus)`.
 
+### Display, readout and floor
+
+- `Display` is a `ComponentType<{ on: boolean; state: unknown }>`: the same
+  display contents as the screen, with no buttons and no `send`. Size it for the
+  slot's aspect. The
+  mirror frame comes from `@cpt/panel-kit` and scales with the slot; its printed
+  label is the unit name (for example `COM`, `XPDR`, `GPS`), never "open". Keep
+  the display lettering readable at the panel floor.
+- `readout(state, lang)` returns a short text of what the display shows. The
+  slot's accessible name is the unit name followed by the readout.
+- `floor` is `{ width, height }`, the smallest size at which the `Screen` keeps
+  every button at least `--size-target`. The dock renders the screen at that
+  size or larger, and a test checks the aircraft's dock cell against it.
+- A slot mirrors the device in this version; `slotMode()` in the app is the
+  pure rule that could let a large slot be operated in place, and it always
+  returns mirror for now.
+
 ## Installing in an aircraft
 
 An aircraft places the device in a view through its `devices` entry. The key is
@@ -102,8 +123,8 @@ the install id, which prefixes the device's control ids:
       },
     }
 
-- `device` is the device id, `view` an existing view id and `placement` where the
-  screen is drawn.
+- `device` is the device id, `view` an existing view id and `placement` the slot
+  where the mirror is drawn. Activating the slot opens the device in the dock.
 - `powered` is the bus condition. The device is off when it is false.
 - `inputs` maps each input name the device reads to a function of the state. The
   transponder reads `pressureAltitude`; the COM radio takes none.
@@ -132,7 +153,8 @@ unknown device control and an impossible position.
 the package as a dependency of `apps/web` and register both halves:
 
 - `deviceRegistry`: the logic, passed to the session.
-- `deviceScreens`: the screen, keyed by device id.
+- `deviceScreens`: the entry keyed by device id, with `Screen`, `Display`,
+  `readout` and `floor`.
 
 Both are added in the app's registry file and nothing else in `apps/web` changes.
 
@@ -154,4 +176,5 @@ test-local aircraft, runs the aircraft validator and walks a procedure with
 `walkProcedure` (it fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first);
 screen tests for the display, the accessible names and the
-`send` calls.
+`send` calls; `tools/` contract tests check the `Display`, `readout` and `floor`
+exports of every `packages/device-*`.
