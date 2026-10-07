@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures';
+import { expect, injectInlineScript, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { contentSecurityPolicy } from '../src/csp';
@@ -14,11 +14,7 @@ async function expectPolicyEnforced(page: Page, violations: string[]) {
   );
   expect(first).toMatch(/^<meta charset=/);
   expect(second).toMatch(/^<meta http-equiv="Content-Security-Policy"/);
-  await page.evaluate(() => {
-    const script = document.createElement('script');
-    script.textContent = 'window.__cspProbe = true;';
-    document.head.append(script);
-  });
+  await injectInlineScript(page);
   await expect.poll(() => violations.length).toBeGreaterThan(0);
   expect(await page.evaluate(() => '__cspProbe' in window)).toBe(false);
   violations.length = 0;
