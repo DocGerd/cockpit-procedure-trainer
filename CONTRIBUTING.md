@@ -74,6 +74,8 @@ statement threshold in `vitest.config.ts`; it replaces plain `pnpm test`.
 `pnpm test:perf` measures the panel's performance budget (M12 plan, P1 to P4) in a
 CPU-throttled Chromium. A PR that changes panel art runs it locally before review; the
 `check` job does not run it, since throttled timings are unreliable on shared runners.
+A budget verdict needs an idle machine (low load average, no other browser tests running);
+under load a PR reports the alternating A/B delta instead (three rounds, medians of each).
 
 UI changes also need a pass in a real browser at tablet and desktop width.
 

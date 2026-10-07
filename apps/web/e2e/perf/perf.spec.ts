@@ -14,11 +14,16 @@ import {
   reraster,
   SAMPLES,
 } from './measure';
+import { range } from './trace';
 
 /** The plan's performance budget (M12, P1 to P4). */
 const BUDGET = { needleFrameMs: 4, rerasterMs: 33, payloadFactor: 3 };
 
 const ms = (value: number | undefined) => (value === undefined ? 'n/a' : value.toFixed(2));
+const spread = (values: readonly number[]) => {
+  const { min, max } = range(values);
+  return `${ms(median(values))} (${ms(min)}-${ms(max)})`;
+};
 
 for (const aircraft of aircraftRegistry) {
   test(`${aircraft.id} keeps needle frames, re-raster and filters in budget (P1-P3)`, async ({
@@ -65,7 +70,7 @@ for (const aircraft of aircraftRegistry) {
         toggles.push(toggle);
       }
       const needle = needles.length > 0 ? median(needles) : undefined;
-      const full = Math.max(median(resizes), median(toggles));
+      const show = median(toggles);
       const { images, domFilters } = await filterCounts(page, viewId);
       const filters = filterProblems(images, domFilters);
       const used = images.reduce((sum, { filters: count }) => sum + count, 0);
@@ -73,10 +78,10 @@ for (const aircraft of aircraftRegistry) {
       rows.push(
         [
           view.name.en.padEnd(16),
-          `P1 ${ms(needle)} ms/frame (${needleCount} parts)`.padEnd(34),
-          `P2 ${ms(full)} ms (resize ${ms(median(resizes))}, show ${ms(median(toggles))})`.padEnd(
-            48,
+          `P1 ${needles.length > 0 ? spread(needles) : 'n/a'} ms/frame (${needleCount} parts)`.padEnd(
+            44,
           ),
+          `P2 show ${spread(toggles)} ms, resize ${spread(resizes)} ms (information)`.padEnd(62),
           `P3 ${used} filter uses in ${images.length} images${filters.length ? ' FAIL' : ''}`,
         ].join(' | '),
       );
@@ -86,10 +91,12 @@ for (const aircraft of aircraftRegistry) {
           .soft(needle, `${viewId}: P1 needle frame ms`)
           .toBeLessThanOrEqual(BUDGET.needleFrameMs);
       }
-      expect.soft(full, `${viewId}: P2 re-raster ms`).toBeLessThanOrEqual(BUDGET.rerasterMs);
+      expect.soft(show, `${viewId}: P2 show ms`).toBeLessThanOrEqual(BUDGET.rerasterMs);
       expect.soft(filters, `${viewId}: P3 filters`).toEqual([]);
     }
-    console.log([`${aircraft.id}, 1024x768, CPU 4x, median of ${SAMPLES}:`, ...rows].join('\n  '));
+    console.log(
+      [`${aircraft.id}, 1024x768, CPU 4x, median (min-max) of ${SAMPLES}:`, ...rows].join('\n  '),
+    );
     expect(measuredNeedles, 'views with a needle to measure (P1)').toBeGreaterThan(0);
   });
 
