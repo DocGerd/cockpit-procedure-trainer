@@ -29,9 +29,14 @@ export async function paintCost(
   action: () => Promise<void>,
 ): Promise<number> {
   await browser.startTracing(page, { categories: CATEGORIES });
-  await action();
-  await page.waitForTimeout(200);
-  const trace = JSON.parse((await browser.stopTracing()).toString()) as {
+  let buffer: Buffer;
+  try {
+    await action();
+    await page.waitForTimeout(200);
+  } finally {
+    buffer = await browser.stopTracing();
+  }
+  const trace = JSON.parse(buffer.toString()) as {
     traceEvents?: TraceEvent[];
   };
   return (trace.traceEvents ?? [])
@@ -65,15 +70,18 @@ export async function needleFrame(browser: Browser, page: Page, viewId: string) 
           const pivot = /rotate\(\s*\S+?[\s,]+(\S+?)[\s,]+(\S+?)\s*\)/.exec(transform ?? '');
           return { element, transform, x: pivot?.[1] ?? '0', y: pivot?.[2] ?? '0' };
         });
-        for (let frame = 0; frame < frames; frame += 1) {
-          for (const { element, x, y } of parts) {
-            element.setAttribute('transform', `rotate(${-135 + 9 * frame} ${x} ${y})`);
+        try {
+          for (let frame = 0; frame < frames; frame += 1) {
+            for (const { element, x, y } of parts) {
+              element.setAttribute('transform', `rotate(${-135 + 9 * frame} ${x} ${y})`);
+            }
+            await new Promise((done) => requestAnimationFrame(done));
           }
-          await new Promise((done) => requestAnimationFrame(done));
-        }
-        for (const { element, transform } of parts) {
-          if (transform === null) element.removeAttribute('transform');
-          else element.setAttribute('transform', transform);
+        } finally {
+          for (const { element, transform } of parts) {
+            if (transform === null) element.removeAttribute('transform');
+            else element.setAttribute('transform', transform);
+          }
         }
       },
       { query: selector, frames: NEEDLE_FRAMES },

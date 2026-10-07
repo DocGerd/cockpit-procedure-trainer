@@ -30,6 +30,7 @@ for (const aircraft of aircraftRegistry) {
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await openAircraft(page, aircraft);
     const rows: string[] = [];
+    let measuredNeedles = 0;
     for (const [viewId, view] of Object.entries(aircraft.views)) {
       await showView(page, aircraft, viewId, 'en');
       await page.waitForFunction(
@@ -39,6 +40,14 @@ for (const aircraft of aircraftRegistry) {
           ),
         viewId,
       );
+      const broken = await page.evaluate(
+        (id) =>
+          [...document.querySelectorAll<HTMLImageElement>(`[data-view="${id}"] img`)]
+            .filter((image) => image.naturalWidth === 0)
+            .map((image) => image.src),
+        viewId,
+      );
+      expect(broken, `${viewId}: images that failed to load`).toEqual([]);
       await page.waitForTimeout(1000);
 
       const needles: number[] = [];
@@ -72,6 +81,7 @@ for (const aircraft of aircraftRegistry) {
         ].join(' | '),
       );
       if (needle !== undefined) {
+        measuredNeedles += 1;
         expect
           .soft(needle, `${viewId}: P1 needle frame ms`)
           .toBeLessThanOrEqual(BUDGET.needleFrameMs);
@@ -80,6 +90,7 @@ for (const aircraft of aircraftRegistry) {
       expect.soft(filters, `${viewId}: P3 filters`).toEqual([]);
     }
     console.log([`${aircraft.id}, 1024x768, CPU 4x, median of ${SAMPLES}:`, ...rows].join('\n  '));
+    expect(measuredNeedles, 'views with a needle to measure (P1)').toBeGreaterThan(0);
   });
 
   test(`${aircraft.id} prints each artwork part's rendered size at 1920x1080`, async ({ page }) => {
@@ -107,7 +118,7 @@ test('every aircraft keeps its artwork payload in budget (P4)', () => {
   const baseline = readBaseline();
   const rows = Object.entries(bytes).map(([id, size]) => {
     const base = baseline[id];
-    return `${id.padEnd(8)} ${size} bytes, baseline ${base ?? 'none'}${base ? `, ${(size / base).toFixed(2)}x` : ''}`;
+    return `${id.padEnd(8)} ${size} bytes, baseline ${base ?? 'none'}${base === undefined ? '' : `, ${(size / base).toFixed(2)}x`}`;
   });
   console.log(['P4 artwork SVG payload:', ...rows].join('\n  '));
   for (const [id, size] of Object.entries(bytes)) {
