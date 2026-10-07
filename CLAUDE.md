@@ -11,7 +11,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - `pnpm test:e2e` runs the Playwright browser tests (once:
   `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when 4399 is
   busy (parallel agents). Stop only processes you started; never `pkill` by
-  name (it kills other agents' servers)
+  name (it kills other agents' servers). Wait loops wait on a PID, never on
+  `pgrep -f` of text in their own command line (it matches itself forever);
+  verifier scripts live in the scratchpad, never in another agent's worktree
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 
 ## How work is done
@@ -48,7 +50,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 
 - Quality trade-offs follow `docs/adr/0002-quality-priorities.md`: gates
   (legal, security/privacy) are never traded; otherwise the higher rank wins
-  and the PR names any sacrificed quality.
+  and the PR names any sacrificed quality. Accessibility ranks lowest: briefs
+  and reviews add no screen-reader or keyboard-route work.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
@@ -94,6 +97,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Review replies: POST to `…/pulls/<n>/comments/<id>/replies` with
   `--field body=@file` (`--raw-field` posts the literal `@file`); resolve
   threads via GraphQL.
+- `gh pr edit` fails on the Projects-classic error: PATCH
+  `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead. Clear a
+  milestone with `--input` on a file holding `{"milestone": null}`.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
