@@ -154,6 +154,8 @@ export type CockpitLayout<V extends string> = {
   /** The arrangement's coordinate space, origin 0,0. Its unit is the author's; only proportions matter. */
   readonly size: ViewSize;
   readonly views: { readonly [K in V]: CockpitCell };
+  /** Where the device dock sits; its `minWidth` is at least the widest device floor. Not a view. */
+  readonly dock?: CockpitCell;
 };
 
 export type Environment = {

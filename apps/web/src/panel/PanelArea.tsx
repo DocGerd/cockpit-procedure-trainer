@@ -3,6 +3,8 @@ import { printsText } from '@cpt/panel-kit';
 import { Fragment, useCallback, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, RefObject } from 'react';
 import { DeviceLayer } from '../devices/DeviceLayer';
+import { Dock } from '../devices/Dock';
+import { DockProvider, testDockRequested } from '../devices/dock-state';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
 import { useLocalize, useMessages } from '../i18n';
 import { PanelOverlay } from '../modes/PanelOverlay';
@@ -284,6 +286,7 @@ function CombinedCockpit({
               gate={gate}
             />
           ))}
+          <Dock place={layout.dock} />
         </div>
       </TouchGateContext.Provider>
       <span id={`${panelId}-keys`} hidden>
@@ -341,6 +344,7 @@ function TabbedCockpit({
           {text.zoomKeys}
         </span>
       </div>
+      <Dock />
     </PanelZoomContext.Provider>
   );
 }
@@ -360,13 +364,20 @@ export function PanelArea({ layout = TABS, frame }: PanelAreaProps) {
   const fallback = useRef<HTMLDivElement>(null);
   const ref = frame ?? fallback;
 
+  const dockAvailable =
+    layout.kind === 'combined'
+      ? layout.dock !== undefined
+      : aircraft.cockpit?.dock !== undefined || testDockRequested();
+
   return (
     <ActiveViewContext.Provider value={active}>
-      {layout.kind === 'combined' ? (
-        <CombinedCockpit layout={layout} frame={ref} gate={gate} />
-      ) : (
-        <TabbedCockpit active={active} frame={ref} gate={gate} />
-      )}
+      <DockProvider available={dockAvailable}>
+        {layout.kind === 'combined' ? (
+          <CombinedCockpit layout={layout} frame={ref} gate={gate} />
+        ) : (
+          <TabbedCockpit active={active} frame={ref} gate={gate} />
+        )}
+      </DockProvider>
     </ActiveViewContext.Provider>
   );
 }
