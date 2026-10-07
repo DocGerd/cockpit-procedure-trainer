@@ -110,6 +110,7 @@ jobs:
           name: release
           path: ${{ runner.temp }}/release/
           if-no-files-found: error
+          overwrite: true
 
   release:
     needs: build
