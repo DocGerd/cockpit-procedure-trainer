@@ -18,20 +18,28 @@
   border-color: var(--panel-metal-light) var(--panel-bezel-dark) var(--panel-metal-shade)
     var(--panel-bezel);
   border-radius: var(--radius-sm);
+  /* A bay of panel paint inside the dock's padding, so the unit's shadow falls on panel. */
   box-shadow:
     var(--pk-cast),
     var(--pk-face-edge),
-    0 0 0 var(--space-2) var(--panel-surface),
-    0 0 0 calc(var(--space-2) + 1px) color-mix(in srgb, var(--panel-shadow) 50%, transparent);
+    0 0 0 calc(var(--space-2) - 2px) var(--panel-surface),
+    -1px -1px 0 calc(var(--space-2) - 2px)
+      color-mix(in srgb, var(--panel-metal-light) 80%, var(--panel-surface)),
+    1px 1px 0 calc(var(--space-2) - 2px) var(--panel-metal-shade);
 }
 
+/* The unit's faceplate around its screen; the screen sits in it behind a seam and lip. */
 .pk-device-screen {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--panel-screen);
+  background-color: var(--panel-bezel-dark);
+  background-image: var(--pk-faceplate);
+}
+
+.pk-device-content > * {
   box-shadow: var(--pk-lip);
 }
 
@@ -252,11 +260,11 @@
   /* A medium cast shadow down-right onto the panel, with a wider soft fall-off. */
   --pk-cast:
     var(--pk-hair) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 4)
-      color-mix(in srgb, var(--panel-shadow) 60%, transparent),
+      color-mix(in srgb, var(--panel-shadow) 75%, transparent),
     calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 8)
-      color-mix(in srgb, var(--panel-shadow) 35%, transparent),
+      color-mix(in srgb, var(--panel-shadow) 50%, transparent),
     calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 12) calc(var(--pk-hair) * 18)
-      color-mix(in srgb, var(--panel-shadow) 30%, transparent);
+      color-mix(in srgb, var(--panel-shadow) 45%, transparent);
 
   /* A dark seam, then the lip turned the other way: shaded up-left, lit down-right. */
   --pk-lip:
@@ -269,9 +277,9 @@
   --pk-glass:
     radial-gradient(
       ellipse 120% 160% at 0% -60%,
-      color-mix(in srgb, var(--panel-glare) 34%, transparent),
-      color-mix(in srgb, var(--panel-glare) 15%, transparent) 55%,
-      color-mix(in srgb, var(--panel-glare) 10%, transparent) 66%,
+      color-mix(in srgb, var(--panel-glare) 36%, transparent),
+      color-mix(in srgb, var(--panel-glare) 20%, transparent) 50%,
+      color-mix(in srgb, var(--panel-glare) 14%, transparent) 66%,
       transparent 67%
     ),
     linear-gradient(
