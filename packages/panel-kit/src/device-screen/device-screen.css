@@ -18,7 +18,11 @@
   border-color: var(--panel-metal-light) var(--panel-bezel-dark) var(--panel-metal-shade)
     var(--panel-bezel);
   border-radius: var(--radius-sm);
-  box-shadow: var(--pk-cast), var(--pk-face-edge);
+  box-shadow:
+    var(--pk-cast),
+    var(--pk-face-edge),
+    0 0 0 var(--space-2) var(--panel-surface),
+    0 0 0 calc(var(--space-2) + 1px) color-mix(in srgb, var(--panel-shadow) 50%, transparent);
 }
 
 .pk-device-screen {
@@ -156,7 +160,7 @@
   width: 100%;
   height: 100%;
   overflow: clip;
-  overflow-clip-margin: var(--space-4);
+  overflow-clip-margin: var(--space-8);
 }
 
 .pk-mirror-content {
@@ -250,7 +254,9 @@
     var(--pk-hair) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 4)
       color-mix(in srgb, var(--panel-shadow) 60%, transparent),
     calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 8)
-      color-mix(in srgb, var(--panel-shadow) 35%, transparent);
+      color-mix(in srgb, var(--panel-shadow) 35%, transparent),
+    calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 12) calc(var(--pk-hair) * 18)
+      color-mix(in srgb, var(--panel-shadow) 30%, transparent);
 
   /* A dark seam, then the lip turned the other way: shaded up-left, lit down-right. */
   --pk-lip:
@@ -262,10 +268,10 @@
   /* One soft canopy sweep up-left, a faint counter-reflection down-right, a little depth. */
   --pk-glass:
     radial-gradient(
-      ellipse 150% 120% at -25% -45%,
-      color-mix(in srgb, var(--panel-glare) 30%, transparent),
-      color-mix(in srgb, var(--panel-glare) 12%, transparent) 55%,
-      color-mix(in srgb, var(--panel-glare) 8%, transparent) 66%,
+      ellipse 120% 160% at 0% -60%,
+      color-mix(in srgb, var(--panel-glare) 34%, transparent),
+      color-mix(in srgb, var(--panel-glare) 15%, transparent) 55%,
+      color-mix(in srgb, var(--panel-glare) 10%, transparent) 66%,
       transparent 67%
     ),
     linear-gradient(
@@ -282,7 +288,7 @@
 
   /* The crisp rim reflection up-left and the recess shadow, strongest on the lit side. */
   --pk-glass-edge:
-    inset var(--pk-hair) var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 55%, transparent),
+    inset var(--pk-hair) var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 70%, transparent),
     inset calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 3)
       color-mix(in srgb, var(--panel-shadow) 75%, transparent);
 }
