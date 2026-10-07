@@ -276,7 +276,10 @@ export type ControlRules<CT extends ControlRecord> = string extends keyof CT
 
 export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   readonly name: Text;
+  /** The outside view; with `imageRunning` set, the view while the engine is stopped. */
   readonly image: string;
+  /** The outside view while `engineRunning` holds, with the propeller disc in place of the blade. */
+  readonly imageRunning?: string;
   readonly environment: Environment;
   readonly entry: {
     readonly controls: { readonly [K in ControlId<CT>]: PositionOf<NoInfer<CT>[K]> };
@@ -360,6 +363,8 @@ export type AircraftDefinition<
   readonly devices?: { readonly [installId: string]: DeviceInstall<S, NoInfer<V>> };
   readonly cockpit?: CockpitLayout<NoInfer<V>>;
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
+  /** Whether the engine runs; selects `imageRunning` over `image` in the outside view. */
+  readonly engineRunning?: Condition<S>;
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
   readonly procedures: {

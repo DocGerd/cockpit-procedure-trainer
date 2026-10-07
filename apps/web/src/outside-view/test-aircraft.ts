@@ -23,17 +23,20 @@ export const fixture: Aircraft = defineAircraft({
   indicators: {},
   views: { main: { name: text('Main'), image: 'main.svg', controls: {} } },
   systems: { initial, step: (state: Record<string, never>) => state },
+  engineRunning: (state) => state.controls['master'] === 'on',
   failures: {},
   phases: {
     ground: {
       name: text('Ground'),
       image: 'ground.svg',
+      imageRunning: 'ground-running.svg',
       environment,
       entry: { controls: { master: 'off' }, state: initial },
     },
     cruise: {
       name: text('Cruise'),
       image: 'cruise.svg',
+      imageRunning: 'cruise-running.svg',
       environment,
       entry: { controls: { master: 'on' }, state: initial },
     },

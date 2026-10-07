@@ -53,8 +53,30 @@ describe('outside view', () => {
   it('follows the phase when the session changes it', () => {
     renderStrip();
     act(() => trainer.session.jumpToPhase('cruise'));
-    expect(image().getAttribute('src')).toBe('cruise.svg');
+    expect(image().getAttribute('src')).toBe('cruise-running.svg');
     expect(image().getAttribute('alt')).toBe('Cruise');
+  });
+
+  it('swaps to the running image exactly while the engine runs', () => {
+    renderStrip();
+    expect(image().getAttribute('src')).toBe('ground.svg');
+    act(() => {
+      trainer.session.set('master', 'on');
+    });
+    expect(image().getAttribute('src')).toBe('ground-running.svg');
+    act(() => {
+      trainer.session.set('master', 'off');
+    });
+    expect(image().getAttribute('src')).toBe('ground.svg');
+  });
+
+  it('keeps the image of a phase that has no running image', () => {
+    renderStrip();
+    act(() => trainer.session.jumpToPhase('landed'));
+    act(() => {
+      trainer.session.set('master', 'on');
+    });
+    expect(image().getAttribute('src')).toBe('landed.svg');
   });
 
   it('follows a procedure into its end phase', () => {
@@ -86,7 +108,7 @@ describe('outside view', () => {
     fireEvent.error(image());
     act(() => trainer.session.jumpToPhase('cruise'));
     expect(image().tagName).toBe('IMG');
-    expect(image().getAttribute('src')).toBe('cruise.svg');
+    expect(image().getAttribute('src')).toBe('cruise-running.svg');
   });
 });
 

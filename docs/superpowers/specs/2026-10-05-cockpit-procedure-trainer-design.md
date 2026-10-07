@@ -163,6 +163,12 @@ defines. A phase supplies:
 The outside-view image is the first-person view out of the windshield from the
 pilot's seat, not a third-person picture of the aircraft.
 
+A phase may also supply a second outside-view image for a running engine (a
+static propeller-disc outline in place of the stopped blade). The aircraft then
+declares an `engineRunning` condition over its state; the outside view shows
+the running image while it holds. Both fields are optional, so the contract
+version does not change.
+
 ### 4.7 Procedures
 
 A procedure has an id, a title, a type (`normal` or `emergency`), the phase it

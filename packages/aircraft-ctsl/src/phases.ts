@@ -77,24 +77,28 @@ export const phases = {
   parking: {
     name: text('Parkposition', 'Parking'),
     image: images.parking,
+    imageRunning: images.parkingRunning,
     environment: ground(),
     entry: { controls: parked, state: facing('parking', initial) },
   },
   holding: {
     name: text('Rollhalt', 'Holding point'),
     image: images.holding,
+    imageRunning: images.holdingRunning,
     environment: ground(),
     entry: { controls: holdingShort, state: facing('holding', runningFrom(holdingShort)) },
   },
   linedUp: {
     name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
     image: images.linedUp,
+    imageRunning: images.linedUpRunning,
     environment: ground(),
     entry: { controls: holdingShort, state: facing('linedUp', runningFrom(holdingShort)) },
   },
   departure: {
     name: text('Abflug', 'Departure'),
     image: images.departure,
+    imageRunning: images.departureRunning,
     environment: departureEnvironment,
     entry: {
       controls: departing,
@@ -105,6 +109,7 @@ export const phases = {
   cruise: {
     name: text('Reiseflug', 'Cruise'),
     image: images.cruise,
+    imageRunning: images.cruiseRunning,
     environment: cruiseEnvironment,
     entry: {
       controls: cruising,
@@ -115,6 +120,7 @@ export const phases = {
   approach: {
     name: text('Anflug', 'Approach'),
     image: images.approach,
+    imageRunning: images.approachRunning,
     environment: approachEnvironment,
     entry: {
       controls: approaching,
@@ -125,6 +131,7 @@ export const phases = {
   landing: {
     name: text('Landung', 'Landing'),
     image: images.landing,
+    imageRunning: images.landingRunning,
     environment: landingEnvironment,
     entry: {
       controls: flaring,
@@ -135,12 +142,14 @@ export const phases = {
   taxiIn: {
     name: text('Rollen zum Vorfeld', 'Taxi in'),
     image: images.taxiIn,
+    imageRunning: images.taxiInRunning,
     environment: ground(),
     entry: { controls: taxiingIn, state: facing('taxiIn', runningFrom(taxiingIn)), guards: pinOut },
   },
   parkingSecuring: {
     name: text('Parken und Sichern', 'Parking and securing'),
     image: images.parkingSecuring,
+    imageRunning: images.parkingSecuringRunning,
     environment: ground(),
     entry: {
       controls: securing,

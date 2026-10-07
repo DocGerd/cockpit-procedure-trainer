@@ -8,7 +8,7 @@ import { phases } from './phases';
 import { avionicsProcedures } from './procedures/avionics';
 import { emergencyProcedures } from './procedures/emergency';
 import { normalProcedures } from './procedures/normal';
-import { initial, step } from './systems';
+import { engineRunning, initial, step } from './systems';
 import { text } from './text';
 import { views } from './views';
 
@@ -25,6 +25,7 @@ export const ctslAircraft = defineAircraft({
   cockpit,
   devices,
   systems: { initial, step },
+  engineRunning,
   failures,
   phases,
   procedures: { ...normalProcedures, ...emergencyProcedures, ...avionicsProcedures },
