@@ -80,7 +80,7 @@ Trade-offs taken:
 | Screws (black oxide, slotted) | `#4A4F56` | `#A4AAB2` | `#1A1C1F` | slots at varied angles |
 | Lamp lens (unlit) | `#1B1E22` | reflection only | | lit: lamp token core, glow by radial gradient, never a filter | `--panel-lamp-off` |
 
-Shadows and glare take `--panel-shadow` and `--panel-glare` at the opacities above; the plastic, screw and lamp-glow tokens arrive with Task 1. ¹ `--panel-bezel`, `--panel-bezel-dark` and `--panel-dial` predate M12 and do not match this table yet; Task 2 aligns them, so a generic widget beside aircraft artwork shows one metal.
+Shadows and glare take `--panel-shadow` and `--panel-glare` at the opacities above; the plastic, screw and lamp-glow tokens arrive with Task 1. ¹ `--panel-bezel`, `--panel-bezel-dark` and `--panel-dial` predate M12 and do not match this table yet; Task 2 aligns them (`--panel-bezel-dark` to `#1C1E22`, the deep bezel stop between base and shade in `gauge-airspeed.svg`), so a generic widget beside aircraft artwork shows one metal.
 
 **Shadow rules.**
 
