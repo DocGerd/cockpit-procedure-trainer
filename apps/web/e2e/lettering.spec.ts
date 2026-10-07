@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
+import { SWEEP_END } from '../../../packages/panel-kit/src/indicators/geometry';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';
 
@@ -161,4 +162,39 @@ for (const aircraft of aircraftRegistry) {
       [],
     );
   });
+}
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of viewports) {
+    test(`${aircraft.id} keeps gauge captions clear of the needle at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const crossings: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        crossings.push(
+          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
+            (gauges, { where, sweepEnd }) =>
+              gauges.flatMap((gauge) => {
+                const label = gauge.querySelector('[data-label]');
+                const needle = gauge.querySelector('[data-needle] line');
+                if (!label || !needle) return [];
+                const number = (element: Element, name: string) =>
+                  Number(element.getAttribute(name));
+                const length = number(needle, 'y1') - number(needle, 'y2');
+                const tip = number(needle, 'y1') - length * Math.cos(sweepEnd);
+                const top = number(label, 'y') - number(label, 'font-size') / 2;
+                return top < tip + number(needle, 'stroke-width') / 2
+                  ? [`${where}/${gauge.getAttribute('aria-label')}`]
+                  : [];
+              }),
+            { where: viewId, sweepEnd: (SWEEP_END * Math.PI) / 180 },
+          )),
+        );
+      }
+      expect(crossings, 'gauge captions reaching the needle at the end of its sweep').toEqual([]);
+    });
+  }
 }

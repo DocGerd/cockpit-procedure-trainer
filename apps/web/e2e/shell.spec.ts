@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { openAircraft, selectLanguage } from './legibility';
 import { aircraft, copy, copyDe, openPicker } from './trainer';
@@ -54,6 +54,46 @@ test('the theme switches and is remembered', async ({ page }) => {
   await page.getByRole('button', { name: copy.shell.switchToLight }).click();
   await expect(page.getByRole('button', { name: copy.shell.switchToDark })).toBeVisible();
 });
+
+// Asserts which theme-color tags the media queries leave active, not the colour the browser chrome
+// shows: headless Chromium has no chrome to inspect.
+for (const system of ['light', 'dark'] as const) {
+  test(`the theme-color tag follows an explicit theme, not a ${system} system setting`, async ({
+    page,
+  }) => {
+    const chosen = system === 'light' ? 'dark' : 'light';
+    await page.emulateMedia({ colorScheme: system });
+    await openPicker(page);
+
+    const colour = (scheme: string) =>
+      page.evaluate(
+        (value) =>
+          document.head.querySelector<HTMLMetaElement>(
+            `meta[name="theme-color"][data-scheme="${value}"]`,
+          )?.content,
+        scheme,
+      );
+    const activeColours = () =>
+      page.evaluate(() =>
+        Array.from(document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'))
+          .filter((tag) => window.matchMedia(tag.media).matches)
+          .map((tag) => tag.content),
+      );
+    const systemColour = await colour(system);
+    const chosenColour = await colour(chosen);
+    expect(systemColour).toBeTruthy();
+    expect(chosenColour).toBeTruthy();
+    expect(chosenColour).not.toBe(systemColour);
+    expect(await activeColours()).toEqual([systemColour]);
+
+    const switchTo = chosen === 'dark' ? copy.shell.switchToDark : copy.shell.switchToLight;
+    await page.getByRole('button', { name: switchTo }).click();
+    await expect.poll(activeColours).toEqual([chosenColour]);
+
+    await page.reload();
+    await expect.poll(activeColours).toEqual([chosenColour]);
+  });
+}
 
 const headerViewports = [
   { width: 1024, height: 768 },
@@ -120,4 +160,46 @@ for (const viewport of headerViewports) {
       expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
     });
   }
+}
+
+test('a header chip is a one-tap link back to the picker at desktop width', async ({ page }) => {
+  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+  if (!ctsl) throw new Error('The CTSL is not registered');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openAircraft(page, ctsl, 'rescueDeployment');
+
+  await page.getByRole('banner').getByRole('button', { name: ctsl.name.en }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
+});
+
+for (const language of languages) {
+  test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({
+    page,
+  }) => {
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    const rescue = ctsl?.procedures.rescueDeployment;
+    if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await openAircraft(page, ctsl, 'rescueDeployment');
+    await selectLanguage(page, language);
+
+    const header = page.getByRole('banner');
+    for (const full of [ctsl.name[language], rescue.title[language]]) {
+      await header.getByRole('button', { name: full }).click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toHaveCount(1);
+      await expect(dialog.getByText(full, { exact: true })).toBeVisible();
+      const shown = await dialog.evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect();
+        const value = element.querySelector('.shell-detail-value');
+        return { left, right, clipped: value ? value.scrollWidth > value.clientWidth : true };
+      });
+      expect(shown.left, 'dialog left').toBeGreaterThanOrEqual(0);
+      expect(shown.right, 'dialog right').toBeLessThanOrEqual(1024);
+      expect(shown.clipped, 'dialog value clipped').toBe(false);
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+    }
+  });
 }

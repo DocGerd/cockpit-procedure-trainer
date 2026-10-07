@@ -2,6 +2,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { writeSetting } from '../storage';
 import { ThemeProvider, ThemeSwitch } from './index';
 
 const labels = {
@@ -47,13 +48,27 @@ function renderSwitch() {
   );
 }
 
+const themeColorMedia = () =>
+  Array.from(document.head.querySelectorAll('meta[name="theme-color"]')).map((meta) =>
+    meta.getAttribute('media'),
+  );
+
 beforeEach(() => {
   localStorage.clear();
   delete document.documentElement.dataset.theme;
+  for (const scheme of ['light', 'dark']) {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = scheme;
+    meta.dataset.scheme = scheme;
+    meta.setAttribute('media', `(prefers-color-scheme: ${scheme})`);
+    document.head.append(meta);
+  }
 });
 
 afterEach(() => {
   cleanup();
+  document.head.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.remove());
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -116,5 +131,30 @@ describe('theme', () => {
     renderSwitch();
     await userEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }));
     expect(theme()).toBe('dark');
+  });
+
+  it('leaves the theme-color tags scoped to the system setting until a theme is chosen', () => {
+    mockSystemTheme('dark');
+    renderSwitch();
+    expect(themeColorMedia()).toEqual([
+      '(prefers-color-scheme: light)',
+      '(prefers-color-scheme: dark)',
+    ]);
+  });
+
+  it('makes the theme-color follow an explicit choice instead of the system setting', async () => {
+    mockSystemTheme('light');
+    renderSwitch();
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }));
+    expect(themeColorMedia()).toEqual(['not all', 'all']);
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to light theme' }));
+    expect(themeColorMedia()).toEqual(['all', 'not all']);
+  });
+
+  it('applies a stored choice to the theme-color on load', () => {
+    mockSystemTheme('light');
+    writeSetting('theme', 'dark');
+    renderSwitch();
+    expect(themeColorMedia()).toEqual(['not all', 'all']);
   });
 });

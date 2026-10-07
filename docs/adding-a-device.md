@@ -17,7 +17,7 @@ text in your own words, in German and English.
     packages/device-<id>/
       package.json          name @cpt/device-<id>, exports "." -> ./src/index.ts
       tsconfig.json         as in packages/device-com
-      README.md             "## Source revision" and "## Not modelled"
+      README.md             "## Source revision", "## Controls", "## Not modelled"
       LICENSES.md           one entry per image file, or a note that there is none
       src/index.ts          re-exports logic and screen
       src/logic/            the device definition, depends on @cpt/core only
@@ -38,8 +38,7 @@ Build the device with `defineDevice` from `@cpt/core`:
 - `id`: the id aircraft use to install it.
 - `manual`: a `Text` naming the revision the logic follows. A generic unit says so.
 - `notModelled`: a list of `Text`, one per function left out. The README's
-  `## Not modelled` bullets repeat the English texts, and a test per package
-  keeps the two equal.
+  `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
   `momentary`, `guarded`). Each has a `name` and `description` in both languages.
 - `initial`: the starting state.
@@ -140,6 +139,14 @@ Both are added in the app's registry file and nothing else in `apps/web` changes
 ## Checks
 
     pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+
+`tools/device-readme.test.ts` checks every `packages/device-*` README against the
+device's logic automatically; a new device needs no README test of its own. The
+README needs the title `# @cpt/device-<id>`, each of `## Source revision`,
+`## Controls` and `## Not modelled` once and non-empty, a `## Controls` bullet for
+every declared control (a range such as `key0` to `key7` is allowed) and none for an
+undeclared one, and `## Not modelled` bullets equal to the English `notModelled`
+texts. The device must be exported from `src/logic/index.ts`.
 
 Tests that every device package should have: logic tests for each behaviour in
 `step`, including power off; a session test that installs the device in a small

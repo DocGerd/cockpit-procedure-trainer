@@ -94,8 +94,8 @@ and description in German and English.
 | Kind | Example | Notes |
 |---|---|---|
 | `toggle` | master switch | two or more fixed positions |
-| `rotary` | ignition key, fuel selector | detents; a detent may spring back (START) |
-| `lever` | throttle, flaps, trim | continuous 0–1 or named notches |
+| `rotary` | ignition key, fuel selector | detents; a detent may spring back to a named rest detent (START) |
+| `lever` | throttle, flaps, trim | continuous 0–1 or named notches; an action on a continuous lever may target only an end stop (0 or 1) |
 | `momentary` | starter button, PTT | active only while held |
 | `guarded` | BRS handle | needs the guard removed first |
 | `breaker` | circuit breaker | in or pulled; a failure can trip it |
@@ -106,12 +106,22 @@ Gauges, lamps and readouts. Each binds to a value in the aircraft state through
 a selector function and declares how it shows it (needle range, lamp colour,
 digits). Indicators never hold state of their own.
 
+A lamp (annunciator) may also give `stateLabels`: plain strings for lit and
+dark, not bilingual text and not checked per language by the validator. The
+lamp's accessible name then reads the label followed by the current state.
+Without them the web app supplies its own lit and dark wording, which is
+localized.
+
 ### 4.3 Views
 
 One or more views (main panel, centre console, floor, overhead). Each has a
 background image and one placement per control and indicator: a 2D rectangle in
 image coordinates, plus an optional 3D position and orientation that the 2D
 renderer ignores.
+
+A view may declare a `size`, a positive width and height with its origin at 0,0,
+as the coordinate space of its placements. Without one the renderer uses an SVG's `viewBox` or a raster image's natural
+size, and the extent of the placements while neither is known yet. When a size is declared, every placement must lie inside it.
 
 An optional cockpit arrangement places every view in one left-seat layout and
 states, per view, the narrowest rendered width at which it stays legible and
@@ -168,6 +178,15 @@ Each item has text in both languages and one of:
 - **confirm**: no target (a visual or verbal check), ticked by the pilot.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
+
+The checklist starts from the procedure, the current state and the control
+definitions (the aircraft's plus those of its installed devices), because it
+needs to know which controls spring back. An action on a spring-back position
+(a momentary button's pressed position, or a rotary detent with a rest
+position) is satisfied only by a pilot press of its own: the control resting at
+that position is not enough, and each such action needs its own press. Any
+other action whose target already holds completes without one. An action with
+`holdUntil` still waits for its condition.
 
 ### 4.8 Appearance
 
@@ -266,8 +285,8 @@ the radii, and the status inks. It adds exactly one product accent.
 
 - **Accent: Violet**, `#6A57C4` light and `#9A8BE8` dark. It is the family
   member furthest from the red, amber, green and blue a cockpit already uses,
-  and matches the magenta pilots read as active guidance. The dark value has
-  the same lightness as the system's dark Azure and clears WCAG AA on the dark
+  and matches the magenta pilots read as active guidance. The dark value is a
+  product token the brand bundle does not define. It clears WCAG AA on the dark
   surface; text on a dark-theme accent fill is `#0D0E10`.
 - Recorded in `docs/design/BRAND.md`, which also carries the brand's legal
   rules: copyright line "© 2026 Patrick Kuhn", no company suffix, no ® or ™.
@@ -319,7 +338,11 @@ parallel.
   procedure target exists; every control and indicator is placed in a view;
   a cockpit arrangement, when given, places every view once without overlap;
   every text has both languages; every phase has an image and an entry
-  snapshot; every injected failure is declared.
+  snapshot; every injected failure is declared; an action on a continuous
+  lever targets only 0 or 1 (`inexact-lever-target`), since a slider cannot be
+  expected to land on a fraction; a declared view size is a positive, finite
+  width and height (`invalid-view-size`) and no placement lies outside it
+  (`placement-outside-view`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing image falls back to a labelled placeholder rather than a
   broken panel. `step` throwing is reported, not swallowed.
