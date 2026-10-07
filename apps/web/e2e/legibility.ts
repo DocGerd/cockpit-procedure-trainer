@@ -269,8 +269,7 @@ function tooSmall(svg: string, scale: number) {
 
 type FaceKind = 'controls' | 'indicators';
 
-// On an indicator face the floor binds what a pilot reads in flight, numerals and unit; captions
-// marked secondary print as small as on the real instrument (ADR 0002: realism ranks higher).
+// Indicator faces: captions marked data-lettering="secondary" are exempt from the floor (ADR 0002, realism).
 const withoutSecondary = (svg: string) =>
   svg.replace(/<text\b[^>]*data-lettering="secondary"[^>]*>[^<]*<\/text>/g, '');
 
