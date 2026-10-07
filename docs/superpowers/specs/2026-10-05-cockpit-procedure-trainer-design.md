@@ -266,10 +266,9 @@ the radii, and the status inks. It adds exactly one product accent.
 
 - **Accent: Violet**, `#6A57C4` light and `#9A8BE8` dark. It is the family
   member furthest from the red, amber, green and blue a cockpit already uses,
-  and matches the magenta pilots read as active guidance. The dark value is
-  a product token the brand bundle does not define: the light violet lifted to
-  read on the dark surface, not matched to the lightness of the system's dark
-  Azure. It clears WCAG AA on the dark surface; text on a dark-theme accent fill is `#0D0E10`.
+  and matches the magenta pilots read as active guidance. The dark value is a
+  product token the brand bundle does not define. It clears WCAG AA on the dark
+  surface; text on a dark-theme accent fill is `#0D0E10`.
 - Recorded in `docs/design/BRAND.md`, which also carries the brand's legal
   rules: copyright line "© 2026 Patrick Kuhn", no company suffix, no ® or ™.
 
