@@ -70,9 +70,11 @@
 }
 
 .pk-mirror-bezel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  column-gap: var(--space-2);
+  box-sizing: border-box;
   padding: var(--space-2);
   background: var(--panel-bezel-dark);
   border: var(--space-1) solid var(--panel-bezel);
@@ -80,6 +82,7 @@
 }
 
 .pk-mirror-label {
+  align-self: start;
   font-family: var(--font-mono);
   font-size: var(--text-2xl);
   line-height: var(--leading-2xl);
@@ -88,6 +91,8 @@
 
 .pk-mirror-screen {
   position: relative;
+  min-width: 0;
+  min-height: 0;
   overflow: hidden;
   background: var(--panel-screen);
 }

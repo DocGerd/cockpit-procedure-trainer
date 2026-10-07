@@ -7,5 +7,5 @@ export const sl40ScreenEntry: DeviceScreenEntry = {
   Screen: Sl40Screen,
   Display: Sl40Display,
   readout: sl40Readout,
-  floor: { width: 376, height: 130 },
+  floor: { width: 376, height: 160 },
 };

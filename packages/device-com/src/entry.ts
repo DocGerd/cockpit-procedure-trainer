@@ -7,5 +7,5 @@ export const comScreenEntry: DeviceScreenEntry = {
   Screen: ComScreen,
   Display: ComDisplay,
   readout: comReadout,
-  floor: { width: 480, height: 192 },
+  floor: { width: 480, height: 228 },
 };

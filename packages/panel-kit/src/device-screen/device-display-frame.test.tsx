@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DeviceDisplayFrame } from './index';
+import { DeviceDisplayFrame, GPS_MIRROR, RADIO_MIRROR } from './index';
 
 afterEach(() => {
   cleanup();
@@ -11,7 +11,7 @@ afterEach(() => {
 
 const mount = (on = true) =>
   render(
-    <DeviceDisplayFrame on={on} label="COM">
+    <DeviceDisplayFrame on={on} size={RADIO_MIRROR} label="COM">
       <span>118.000</span>
     </DeviceDisplayFrame>,
   ).container;
@@ -23,6 +23,19 @@ describe('DeviceDisplayFrame', () => {
     expect(bezel?.querySelector('[data-mirror-label]')?.textContent).toBe('COM');
     expect(container.querySelector('.pk-mirror-screen')?.textContent).toBe('118.000');
     expect(container.querySelector('[data-device-mirror]')?.getAttribute('data-on')).toBe('true');
+  });
+
+  it('draws the bezel at the natural size of the slot it is made for', () => {
+    const bezel = mount().querySelector<HTMLElement>('.pk-mirror-bezel');
+    expect(bezel?.style.width).toBe(RADIO_MIRROR.width);
+    expect(bezel?.style.aspectRatio).toBe('520 / 150');
+    cleanup();
+    const gps = render(
+      <DeviceDisplayFrame on size={GPS_MIRROR} label="GPS">
+        <span />
+      </DeviceDisplayFrame>,
+    ).container.querySelector<HTMLElement>('.pk-mirror-bezel');
+    expect(gps?.style.aspectRatio).toBe('400 / 300');
   });
 
   it('darkens the screen while off', () => {

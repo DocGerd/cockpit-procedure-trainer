@@ -17,7 +17,30 @@ const token = (name: string): number =>
   Number(new RegExp(`--${name}:\\s*(\\d+)px`).exec(tokens)?.[1]);
 const TARGET_PX = token('size-target');
 const textSizes = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'];
-const displayTextSizes = ['2xl', '3xl'];
+
+const FRAME_CHROME_PX = 2 * (token('space-2') + token('space-1'));
+const MIN_TEXT_PX = token('text-2xs');
+// The panel's narrowest width (decision on #339); slots scale with it.
+const PANEL_FLOOR_PX = 950;
+
+// The operable Screen's natural size with the unit powered, in its widest state, measured in
+// Chromium. Re-measure when a Screen's layout changes.
+const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
+  com: [456, 204],
+  sl40: [352, 136],
+  transponder: [584, 160],
+  gtx327: [400, 132],
+  gpsmap496: [220, 160],
+};
+
+// Radio-sized units use the slot of the same size; demo radios (#352) take the same units.
+const SLOT_OF: Readonly<Record<string, string>> = {
+  com: 'com',
+  sl40: 'com',
+  transponder: 'xpdr',
+  gtx327: 'xpdr',
+  gpsmap496: 'gps',
+};
 
 // The tools project resolves no React types; components are opaque here.
 type Component = (props: never) => unknown;
@@ -62,6 +85,23 @@ const fontSizes = (markup: string): string[] =>
 
 const send = () => undefined;
 
+const deviceCss = readFileSync(
+  resolve(packagesDir, 'panel-kit/src/device-screen/device-screen.css'),
+  'utf8',
+);
+const labelSize = /\.pk-mirror-label \{[^}]*font-size: var\(--text-(\w+)\)/.exec(deviceCss)?.[1];
+
+const pxOfText = (name: string): number => token(`text-${name}`);
+
+/** The mirror's natural size, from the token width and aspect ratio on its bezel. */
+function mirrorSize(markup: string): { width: number; height: number } {
+  const style = /class="pk-mirror-bezel" style="([^"]*)"/.exec(markup)?.[1] ?? '';
+  const width = /width:calc\(var\(--([\w-]+)\) \* (\d+) \+ var\(--([\w-]+)\)\)/.exec(style) ?? [];
+  const ratio = /aspect-ratio:(\d+) \/ (\d+)/.exec(style) ?? [];
+  const w = token(width[1] ?? '') * Number(width[2]) + token(width[3] ?? '');
+  return { width: w, height: (w * Number(ratio[2])) / Number(ratio[1]) };
+}
+
 describe('device screen entries', () => {
   it('finds the device packages and the touch-target token', () => {
     expect(deviceDirs.length).toBeGreaterThan(0);
@@ -75,13 +115,14 @@ describe('device screen entries', () => {
       expect(entries).toHaveLength(1);
     });
 
-    it('declares a floor that fits a touch target and whole numbers', async () => {
+    it('declares the measured natural size of the powered Screen plus the frame as its floor', async () => {
       const [entry] = (await load(dir)).entries;
-      const { width = 0, height = 0 } = entry?.floor ?? {};
-      for (const side of [width, height]) {
-        expect(Number.isInteger(side)).toBe(true);
-        expect(side).toBeGreaterThanOrEqual(TARGET_PX);
-      }
+      const [width = 0, height = 0] = NATURAL_SCREEN[dir.replace(/^device-/, '')] ?? [];
+      expect(entry?.floor).toEqual({
+        width: width + FRAME_CHROME_PX,
+        height: height + FRAME_CHROME_PX,
+      });
+      expect(Math.min(width, height)).toBeGreaterThanOrEqual(TARGET_PX);
     });
 
     it('reads out the display in both languages, powered and off', async () => {
@@ -134,12 +175,43 @@ describe('device screen entries', () => {
         const sizes = fontSizes(markup);
         expect(sizes.length).toBeGreaterThan(0);
         for (const size of sizes) {
-          expect(size).toMatch(
-            new RegExp(`^(var\\(--text-(${displayTextSizes.join('|')})\\)|inherit)$`),
-          );
+          expect(size).toMatch(new RegExp(`^(var\\(--text-(${textSizes.join('|')})\\)|inherit)$`));
         }
       },
     );
+  });
+});
+
+describe('mirror lettering at the panel floor', () => {
+  it('finds the bezel label size', () => {
+    expect(labelSize).toBeDefined();
+  });
+
+  it.each(deviceDirs)('%s fills its slot and keeps its smallest text legible', async (dir) => {
+    const id = dir.replace(/^device-/, '');
+    const { entries, devices, html } = await load(dir);
+    const Display = entries[0]?.Display;
+    if (!Display) throw new Error(`${dir} has no Display`);
+    const markup = html(Display, { on: true, state: devices[0]?.initial });
+    const ctsl: {
+      deviceSlots: Record<string, { rect: { w: number; h: number } }>;
+      views: { panel: { size: { width: number } } };
+    } = await import(resolve(packagesDir, 'aircraft-ctsl/src/views.ts'));
+    const slot = ctsl.deviceSlots[SLOT_OF[id] ?? ''];
+    if (!slot) throw new Error(`no slot for ${id}`);
+    const unit = PANEL_FLOOR_PX / ctsl.views.panel.size.width;
+    const [slotW, slotH] = [slot.rect.w * unit, slot.rect.h * unit];
+    const natural = mirrorSize(markup);
+    expect(natural.width / natural.height).toBeCloseTo(slotW / slotH, 2);
+    const scale = Math.min(slotW / natural.width, slotH / natural.height);
+    const smallest = Math.min(
+      pxOfText(labelSize ?? ''),
+      ...fontSizes(markup).flatMap((size) => {
+        const name = /--text-(\w+)/.exec(size)?.[1];
+        return name === undefined ? [] : [pxOfText(name)];
+      }),
+    );
+    expect(smallest * scale).toBeGreaterThanOrEqual(MIN_TEXT_PX);
   });
 });
 

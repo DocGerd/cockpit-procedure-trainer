@@ -1,4 +1,4 @@
-import { DeviceDisplayFrame } from '@cpt/panel-kit';
+import { GPS_MIRROR, DeviceDisplayFrame } from '@cpt/panel-kit';
 import type { DeviceDisplayProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import { glow } from '../glow';
@@ -10,9 +10,9 @@ const screenStyle: CSSProperties = {
   placeContent: 'center',
   justifyItems: 'center',
   boxSizing: 'border-box',
-  width: 'calc(var(--space-12) * 8 + var(--space-4))',
-  aspectRatio: '400 / 300',
-  padding: 'var(--space-2)',
+  width: '100%',
+  height: '100%',
+  padding: 'var(--space-1)',
   background: 'var(--panel-screen)',
   fontFamily: 'var(--font-mono)',
   fontSize: 'var(--text-3xl)',
@@ -30,7 +30,7 @@ export function Gpsmap496Display({ on, state }: DeviceDisplayProps) {
   const unit = state as Gpsmap496State;
   const lit = on && unit.on;
   return (
-    <DeviceDisplayFrame on={on} label="GPS">
+    <DeviceDisplayFrame on={on} size={GPS_MIRROR} label="GPS">
       <div data-backlight={unit.backlight} style={{ ...screenStyle, color: glow(unit.backlight) }}>
         {lit && (
           <>

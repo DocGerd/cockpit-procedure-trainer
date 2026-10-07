@@ -1,4 +1,4 @@
-import { DeviceDisplayFrame } from '@cpt/panel-kit';
+import { RADIO_MIRROR, DeviceDisplayFrame } from '@cpt/panel-kit';
 import type { DeviceDisplayProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import { formatFrequency } from '../logic';
@@ -13,9 +13,9 @@ const screenStyle: CSSProperties = {
   alignItems: 'baseline',
   columnGap: 'var(--space-4)',
   boxSizing: 'border-box',
-  width: 'calc(var(--space-12) * 10 + var(--space-10))',
-  aspectRatio: '520 / 150',
-  padding: 'var(--space-2)',
+  width: '100%',
+  height: '100%',
+  padding: 'var(--space-1)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
   fontFamily: 'var(--font-mono)',
@@ -40,7 +40,7 @@ const smallValueStyle: CSSProperties = {
 export function Sl40Display({ on, state }: DeviceDisplayProps) {
   const { active, standby, volume, monitoring } = state as Sl40State;
   return (
-    <DeviceDisplayFrame on={on} label="COM">
+    <DeviceDisplayFrame on={on} size={RADIO_MIRROR} label="COM">
       <div style={screenStyle}>
         <span style={legendStyle}>ACT</span>
         <span data-field="active" style={valueStyle}>

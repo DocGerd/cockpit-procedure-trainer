@@ -1,4 +1,4 @@
-import { DeviceDisplayFrame } from '@cpt/panel-kit';
+import { RADIO_MIRROR, DeviceDisplayFrame } from '@cpt/panel-kit';
 import type { DeviceDisplayProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
 import type { TransponderState } from '../logic';
@@ -10,9 +10,9 @@ const screenStyle: CSSProperties = {
   alignItems: 'baseline',
   columnGap: 'var(--space-4)',
   boxSizing: 'border-box',
-  width: 'calc(var(--space-12) * 10 + var(--space-10))',
-  aspectRatio: '520 / 150',
-  padding: 'var(--space-2)',
+  width: '100%',
+  height: '100%',
+  padding: 'var(--space-1)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
   fontFamily: 'var(--font-mono)',
@@ -34,7 +34,7 @@ const identStyle: CSSProperties = {
 export function TransponderDisplay({ on, state }: DeviceDisplayProps) {
   const { mode, squawk, altitude, ident } = state as TransponderState;
   return (
-    <DeviceDisplayFrame on={on} label="XPDR">
+    <DeviceDisplayFrame on={on} size={RADIO_MIRROR} label="XPDR">
       <div style={screenStyle}>
         <span data-field="mode">{on ? mode.toUpperCase() : ''}</span>
         <span data-field="code" style={codeStyle}>
