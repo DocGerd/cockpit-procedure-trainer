@@ -1,7 +1,10 @@
 import { DeviceScreenFrame, DeviceScreenPlaceholder } from '@cpt/panel-kit';
+import { useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { deviceScreens } from '../device-registry';
 import { format, useMessages } from '../i18n';
+import { useGuidedInstall } from '../modes/guided-install';
+import { useKeyRing } from '../modes/key-ring';
 import { useSessionState, useTrainer } from '../trainer';
 import { deviceFloor } from './dock-floor';
 import { useDock } from './dock-state';
@@ -20,8 +23,11 @@ function DockedDevice({ installId }: { installId: string }) {
   const { aircraft } = useTrainer();
   const text = useMessages(messages);
   const send = useDeviceSend(installId);
+  const targeted = useGuidedInstall() === installId;
   const deviceId = aircraft.devices?.[installId]?.device;
   const device = useSessionState((s) => s.state().devices[installId]);
+  const unit = useRef<HTMLDivElement>(null);
+  useKeyRing(unit, installId, device);
   if (deviceId === undefined || device === undefined) return null;
 
   const Screen = Object.hasOwn(deviceScreens, deviceId) ? deviceScreens[deviceId] : undefined;
@@ -31,7 +37,13 @@ function DockedDevice({ installId }: { installId: string }) {
     ({ '--dock-floor-width': floor.width, '--dock-floor-height': floor.height } as CSSProperties);
 
   return (
-    <div className="dock-device" data-dock-device={installId} style={sizes}>
+    <div
+      ref={unit}
+      className="dock-device"
+      data-dock-device={installId}
+      data-target={targeted ? 'true' : undefined}
+      style={sizes}
+    >
       {Screen ? (
         <DeviceScreenFrame on={device.on} label={deviceId}>
           <Screen on={device.on} state={device.state} send={send} />

@@ -82,6 +82,8 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
             key={candidate}
             type="button"
             aria-pressed={candidate === mode}
+            data-control="mode"
+            data-position={candidate}
             style={candidate === mode ? selectedStyle : buttonStyle}
             onClick={() => send('mode', 'set', candidate)}
           >
@@ -91,6 +93,7 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
         <button
           type="button"
           style={buttonStyle}
+          data-control="ident"
           onClick={() => {
             send('ident', 'press');
             send('ident', 'release');
@@ -102,10 +105,20 @@ export function TransponderScreen({ on, state, send }: DeviceScreenProps) {
       <div style={rowStyle}>
         {CODE_CONTROLS.map((control, index) => (
           <span key={control} style={rowStyle}>
-            <button type="button" style={buttonStyle} onClick={stepDigit(index, 1)}>
+            <button
+              type="button"
+              style={buttonStyle}
+              data-control={control}
+              onClick={stepDigit(index, 1)}
+            >
               {`SQ${index + 1} +`}
             </button>
-            <button type="button" style={buttonStyle} onClick={stepDigit(index, -1)}>
+            <button
+              type="button"
+              style={buttonStyle}
+              data-control={control}
+              onClick={stepDigit(index, -1)}
+            >
               {`SQ${index + 1} −`}
             </button>
           </span>
