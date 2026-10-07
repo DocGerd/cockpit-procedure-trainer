@@ -85,8 +85,8 @@ export async function needleFrame(browser: Browser, page: Page, viewId: string) 
 /** Per-switch cost of a full re-raster of the view: the larger of a resize and a hide-and-show. */
 export async function reraster(browser: Browser, page: Page, viewId: string) {
   const size = page.viewportSize() ?? { width: 1024, height: 768 };
-  // One pixel wider, not narrower: 1023 crosses the shell header's 1024 px breakpoint, so the
-  // sample would measure the header re-wrapping and the cockpit re-laying out, not a re-raster.
+  // One pixel wider, not narrower: narrower crosses the shell header's min-width rule in
+  // shell.css, so the sample would measure the header re-wrapping and the cockpit re-laying out.
   const resize = await paintCost(browser, page, async () => {
     await page.setViewportSize({ width: size.width + 1, height: size.height });
     await nextPaint(page);
