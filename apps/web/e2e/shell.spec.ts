@@ -161,3 +161,45 @@ for (const viewport of headerViewports) {
     });
   }
 }
+
+test('a header chip is a one-tap link back to the picker at desktop width', async ({ page }) => {
+  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+  if (!ctsl) throw new Error('The CTSL is not registered');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openAircraft(page, ctsl, 'rescueDeployment');
+
+  await page.getByRole('banner').getByRole('button', { name: ctsl.name.en }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
+});
+
+for (const language of languages) {
+  test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({
+    page,
+  }) => {
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    const rescue = ctsl?.procedures.rescueDeployment;
+    if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await openAircraft(page, ctsl, 'rescueDeployment');
+    await selectLanguage(page, language);
+
+    const header = page.getByRole('banner');
+    for (const full of [ctsl.name[language], rescue.title[language]]) {
+      await header.getByRole('button', { name: full }).click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toHaveCount(1);
+      await expect(dialog.getByText(full, { exact: true })).toBeVisible();
+      const shown = await dialog.evaluate((element) => {
+        const { left, right } = element.getBoundingClientRect();
+        const value = element.querySelector('.shell-detail-value');
+        return { left, right, clipped: value ? value.scrollWidth > value.clientWidth : true };
+      });
+      expect(shown.left, 'dialog left').toBeGreaterThanOrEqual(0);
+      expect(shown.right, 'dialog right').toBeLessThanOrEqual(1024);
+      expect(shown.clipped, 'dialog value clipped').toBe(false);
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+    }
+  });
+}
