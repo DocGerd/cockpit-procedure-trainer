@@ -371,6 +371,34 @@ describe('visibility', () => {
     const aside = screen.getByRole('complementary', { name: 'Checklist' });
     expect(within(aside).getByRole('heading', { name: 'Flow' })).toBeTruthy();
   });
+
+  it('scrolls the current step into view when the running checklist returns', async () => {
+    vi.stubGlobal('innerWidth', 1400);
+    renderWithLanguage(
+      <ThemeProvider>
+        <TrainerProvider>
+          <Probe />
+          <TrainerLayout />
+        </TrainerProvider>
+      </ThemeProvider>,
+    );
+    start(flow);
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      const rect = this === aside ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
+      return { ...rect, left: 0, right: 0, width: 0, height: 0, x: 0, y: rect.top } as DOMRect;
+    });
+    await userEvent.selectOptions(
+      screen.getByRole('combobox', { name: 'Show checklist' }),
+      'followUp',
+    );
+    expect(aside.scrollTop).toBe(0);
+    await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
+    expect(aside.scrollTop).toBe(140);
+    vi.restoreAllMocks();
+  });
 });
 
 describe('viewing a checklist', () => {
@@ -436,6 +464,24 @@ describe('viewing a checklist', () => {
     await view('followUp');
     await view(flow);
     expect(stateLabels()).toEqual(['Done', 'Current', 'Pending', 'Pending']);
+  });
+
+  it('keeps the running deviation notice in view in Guided while another checklist is read', async () => {
+    renderPane();
+    start(flow);
+    await view('followUp');
+    expect(screen.queryByText('Deviation')).toBeNull();
+    operate('avionics', 'on');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toContain('Avionics operated');
+  });
+
+  it('shows no deviation notice in Practice while another checklist is read', async () => {
+    renderPane();
+    start(flow, 'practice');
+    await view('followUp');
+    operate('avionics', 'on');
+    expect(screen.queryByText('Deviation')).toBeNull();
   });
 
   it('works the same in Practice', async () => {

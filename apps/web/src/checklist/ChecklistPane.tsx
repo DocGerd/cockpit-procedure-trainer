@@ -93,14 +93,28 @@ function ItemRow({
   );
 }
 
+function DeviationBanner({ checklist }: { checklist: ChecklistState<unknown> }) {
+  const text = useMessages(messages);
+  const describe = useDeviationText(checklist);
+  const latest = checklist.deviations.at(-1);
+  return (
+    <div role="status">
+      {latest && (
+        <div className="checklist-banner">
+          <div className="checklist-eyebrow">{text.deviationBanner}</div>
+          <div>{describe.banner(latest)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknown>; mode: Mode }) {
   const text = useMessages(messages);
   const localize = useLocalize();
   const trainer = useTrainer();
-  const describe = useDeviationText(checklist);
   const { procedure, completed, deviations } = checklist;
   const guided = mode === 'guided';
-  const latest = deviations.at(-1);
   const count = deviations.length;
   const list = useRef<HTMLOListElement>(null);
 
@@ -130,16 +144,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         </div>
       </div>
 
-      {guided && (
-        <div role="status">
-          {latest && (
-            <div className="checklist-banner">
-              <div className="checklist-eyebrow">{text.deviationBanner}</div>
-              <div>{describe.banner(latest)}</div>
-            </div>
-          )}
-        </div>
-      )}
+      {guided && <DeviationBanner checklist={checklist} />}
 
       <ol ref={list} className="checklist-items">
         {procedure.items.map((item, index) => (
@@ -186,7 +191,12 @@ export function ChecklistPane() {
     <>
       <ChecklistSelector />
       {running === undefined ? (
-        <ProcedureViewer />
+        <>
+          {mode === 'guided' && checklist !== undefined && !checklist.done && (
+            <DeviationBanner checklist={checklist} />
+          )}
+          <ProcedureViewer />
+        </>
       ) : running.done ? (
         <DeviationSummary checklist={running} />
       ) : (
