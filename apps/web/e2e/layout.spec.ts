@@ -262,6 +262,9 @@ for (const { aircraft: id, height, folded } of strips) {
     await openAircraft(page, aircraft);
     await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
     await expect(outsideView(page)).toHaveAttribute('data-folded', folded);
+    expect(await derivedState(page, aircraft), 'the rule agrees').toEqual(
+      await renderedState(page),
+    );
     const box = await outsideView(page).boundingBox();
     if (folded === 'true') expect(box?.height).toBeGreaterThanOrEqual(72);
     if (folded === 'hidden') {
