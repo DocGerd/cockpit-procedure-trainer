@@ -17,7 +17,7 @@ text in your own words, in German and English.
     packages/device-<id>/
       package.json          name @cpt/device-<id>, exports "." -> ./src/index.ts
       tsconfig.json         as in packages/device-com
-      README.md             "## Source revision" and "## Not modelled"
+      README.md             "## Source revision", "## Controls", "## Not modelled"
       LICENSES.md           one entry per image file, or a note that there is none
       src/index.ts          re-exports logic and screen
       src/logic/            the device definition, depends on @cpt/core only
@@ -38,8 +38,7 @@ Build the device with `defineDevice` from `@cpt/core`:
 - `id`: the id aircraft use to install it.
 - `manual`: a `Text` naming the revision the logic follows. A generic unit says so.
 - `notModelled`: a list of `Text`, one per function left out. The README's
-  `## Not modelled` bullets repeat the English texts, and a test per package
-  keeps the two equal.
+  `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
   `momentary`, `guarded`). Each has a `name` and `description` in both languages.
 - `initial`: the starting state.
@@ -141,7 +140,12 @@ Both are added in the app's registry file and nothing else in `apps/web` changes
 
     pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
 
-Tests that every device package should have: logic tests for each behaviour in
+Tests that every device package should have: a `src/readme.test.ts` that passes
+the README and the device to `describeDeviceReadme` from `tools/readme-contract.ts`
+(it needs the title `# @cpt/device-<id>`, each of the three README sections once and
+non-empty, a `## Controls` bullet for every declared control, with a range such as
+`key0` to `key7` allowed, and `## Not modelled` bullets equal to the English
+`notModelled` texts); logic tests for each behaviour in
 `step`, including power off; a session test that installs the device in a small
 test-local aircraft, runs the aircraft validator and walks a procedure with
 `walkProcedure` (it fails a spring-back press unless the control rests at the
