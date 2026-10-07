@@ -7,3 +7,4 @@ export {
   type Gpsmap496Page,
   type Gpsmap496State,
 } from './gpsmap496';
+export { PAGE_NAMES, gpsmap496Readout } from './readout';

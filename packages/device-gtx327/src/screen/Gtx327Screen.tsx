@@ -1,15 +1,9 @@
 import { useHold } from '@cpt/panel-kit';
 import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
-import { DIGIT_KEYS, MODES } from '../logic';
+import { DIGIT_KEYS, MODES, codeText, readingText } from '../logic';
 import type { Gtx327State } from '../logic';
 import './Gtx327Screen.css';
-
-const MS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const CODE_LENGTH = 4;
-const TEST_PATTERN = '8888';
 
 const COLUMNS = 7;
 const DISPLAY_WIDTH = 'calc(var(--space-12) + var(--space-10))';
@@ -83,26 +77,6 @@ function Key({ name, control, send, span = 1 }: KeyProps) {
       {name}
     </button>
   );
-}
-
-const pad = (value: number): string => String(value).padStart(2, '0');
-
-function formatTimer(ms: number): string {
-  const total = Math.floor(ms / MS_PER_SECOND);
-  const seconds = total % SECONDS_PER_MINUTE;
-  const minutes = Math.floor(total / SECONDS_PER_MINUTE) % MINUTES_PER_HOUR;
-  const hours = Math.floor(total / (SECONDS_PER_MINUTE * MINUTES_PER_HOUR));
-  return `${hours}:${pad(minutes)}:${pad(seconds)}`;
-}
-
-function codeText({ mode, entry, squawk }: Gtx327State): string {
-  if (mode === 'tst') return TEST_PATTERN;
-  return entry === '' ? squawk : entry.padEnd(CODE_LENGTH, '_');
-}
-
-function readingText(state: Gtx327State): string {
-  if (state.page === 'countUp') return formatTimer(state.timerMs);
-  return state.altitude === null ? '' : `${Math.round(state.altitude)} FT`;
 }
 
 export function Gtx327Screen({ on, state, send }: DeviceScreenProps) {

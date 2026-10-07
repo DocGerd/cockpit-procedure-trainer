@@ -7,3 +7,4 @@ export {
   type Sl40Knobs,
   type Sl40State,
 } from './sl40';
+export { sl40Readout } from './readout';
