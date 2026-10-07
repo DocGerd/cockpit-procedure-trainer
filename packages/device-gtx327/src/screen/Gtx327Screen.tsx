@@ -73,7 +73,12 @@ function Key({ name, control, send, span = 1 }: KeyProps) {
   const hold = useHold(() => send(control, 'release'));
   const style = span > 1 ? { ...buttonStyle, gridColumn: `span ${span}` } : buttonStyle;
   return (
-    <button type="button" style={style} {...hold.handlers(() => send(control, 'press'))}>
+    <button
+      type="button"
+      style={style}
+      data-control={control}
+      {...hold.handlers(() => send(control, 'press'))}
+    >
       {name}
     </button>
   );
@@ -103,6 +108,8 @@ export function Gtx327Screen({ on, state, send }: DeviceScreenProps) {
             key={candidate}
             type="button"
             aria-pressed={candidate === unit.mode}
+            data-control="mode"
+            data-position={candidate}
             style={candidate === unit.mode ? selectedStyle : buttonStyle}
             onClick={() => send('mode', 'set', candidate)}
           >

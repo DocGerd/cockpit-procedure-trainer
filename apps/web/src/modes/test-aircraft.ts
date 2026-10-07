@@ -31,6 +31,13 @@ export const radio = defineDevice({
       name: text('Page'),
       description: text('Selects the page.'),
     },
+    spare: {
+      kind: 'rotary',
+      positions: ['a', 'b'],
+      initial: 'a',
+      name: text('Spare'),
+      description: text('Has no key on the screen.'),
+    },
   },
   initial: {},
   step: (state) => state,
@@ -39,7 +46,12 @@ export const radio = defineDevice({
 export function RadioScreen({ send }: DeviceScreenProps) {
   return createElement(
     'button',
-    { type: 'button', onClick: () => send('page', 'set', 'b') },
+    {
+      type: 'button',
+      'data-control': 'page',
+      'data-position': 'b',
+      onClick: () => send('page', 'set', 'b'),
+    },
     'Radio page B',
   );
 }
@@ -171,6 +183,12 @@ export const fixture: Aircraft = defineAircraft({
         { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff cut') },
         { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
       ],
+    },
+    keyless: {
+      title: text('Keyless'),
+      type: 'normal',
+      startPhase: 'ground',
+      items: [{ type: 'action', control: 'com.spare', position: 'b', text: text('Spare b') }],
     },
     shutdown: {
       title: text('Shutdown'),

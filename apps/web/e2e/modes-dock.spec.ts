@@ -40,21 +40,32 @@ async function expectSameBox(a: Locator, b: Locator) {
   }
 }
 
-async function radioSteps(page: Page) {
-  await unit(page, 'sl40').getByRole('button', { name: 'STBY MHz +' }).click();
+/** Press a key of the docked unit; in Guided it is the one ringed first. */
+async function press(page: Page, device: string, name: string, guided: boolean) {
+  const key = unit(page, device).getByRole('button', { name, exact: true });
+  if (guided) {
+    const ringed = unit(page, device).locator('[data-target="true"]');
+    await expect(ringed).toHaveText(name);
+    await expect(ringed).toHaveCSS('outline-style', 'solid');
+  }
+  await key.click();
+}
+
+async function radioSteps(page: Page, guided = false) {
+  await press(page, 'sl40', 'STBY MHz +', guided);
   await expect(done(page, 0)).toBeVisible();
-  await unit(page, 'sl40').getByRole('button', { name: 'SWAP' }).click();
+  await press(page, 'sl40', 'SWAP', guided);
   await expect(done(page, 1)).toBeVisible();
   await row(page, 2).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
 }
 
-async function transponderSteps(page: Page) {
-  await unit(page, 'gtx327').getByRole('button', { name: 'SBY', exact: true }).click();
+async function transponderSteps(page: Page, guided = false) {
+  await press(page, 'gtx327', 'SBY', guided);
   await expect(done(page, 3)).toBeVisible();
-  await unit(page, 'gtx327').getByRole('button', { name: 'VFR', exact: true }).click();
+  await press(page, 'gtx327', 'VFR', guided);
   await expect(done(page, 4)).toBeVisible();
   await row(page, 5).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
-  await unit(page, 'gtx327').getByRole('button', { name: 'ALT', exact: true }).click();
+  await press(page, 'gtx327', 'ALT', guided);
   await expect(done(page, 6)).toBeVisible();
   await row(page, 7).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
   await expect(
@@ -78,7 +89,7 @@ test('Guided docks each device the steps target, rings its slot and the docked d
   );
   await expect(page.getByRole('tab')).toHaveCount(0);
 
-  await radioSteps(page);
+  await radioSteps(page, true);
 
   await expect(unit(page, 'gtx327')).toBeVisible();
   await expect(unit(page, 'sl40')).toHaveCount(0);
@@ -87,7 +98,7 @@ test('Guided docks each device the steps target, rings its slot and the docked d
     'data-target',
     'true',
   );
-  await transponderSteps(page);
+  await transponderSteps(page, true);
 });
 
 test('Guided leaves the dock to the pilot after closing it on a step', async ({ page }) => {

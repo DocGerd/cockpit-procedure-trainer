@@ -882,17 +882,26 @@ describe('the device dock in the modes', () => {
     expect(ring?.closest('[data-view]')?.getAttribute('data-view')).toBe('console');
   });
 
-  it('rings the docked device', () => {
+  it('rings the key of the target and not the unit around it', () => {
     renderTrainer('en', dockedLayout);
     start('start', 'guided');
     toDeviceStep();
-    expect(document.querySelector('[data-dock-device="com"]')?.getAttribute('data-target')).toBe(
-      'true',
-    );
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    const keys = [...(unit?.querySelectorAll('[data-target="true"]') ?? [])];
+    expect(keys.map((key) => key.textContent)).toEqual(['Radio page B']);
+    expect(unit?.dataset.keyRing).toBe('true');
     act(() => trainer.session.set('com.page', 'b'));
-    expect(
-      document.querySelector('[data-dock-device="com"]')?.getAttribute('data-target'),
-    ).toBeNull();
+    expect(unit?.querySelector('[data-target]')).toBeNull();
+    expect(unit?.dataset.keyRing).toBeUndefined();
+  });
+
+  it('rings the unit when the target has no key on its screen', () => {
+    renderTrainer('en', dockedLayout);
+    start('keyless', 'guided');
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    expect(unit?.dataset.target).toBe('true');
+    expect(unit?.dataset.keyRing).toBeUndefined();
+    expect(unit?.querySelector('[data-control][data-target]')).toBeNull();
   });
 
   it('keeps the shown tab for a device target', () => {

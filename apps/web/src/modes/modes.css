@@ -86,10 +86,16 @@
   border-radius: var(--radius-md);
 }
 
-.dock-device[data-target='true'] {
+.dock-device[data-target='true']:not([data-key-ring]) {
   outline: 3px solid var(--color-accent);
   outline-offset: var(--space-1);
   border-radius: var(--radius-md);
+}
+
+.dock-device [data-control][data-target='true'] {
+  outline: 3px solid var(--color-accent);
+  outline-offset: calc(-1 * var(--space-1));
+  border-radius: var(--radius-sm);
 }
 
 .modes-outline[data-pulse='true'] {

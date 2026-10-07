@@ -76,7 +76,12 @@ type HoldButtonProps = { name: string; control: string; send: DeviceScreenProps[
 function HoldButton({ name, control, send }: HoldButtonProps) {
   const hold = useHold(() => send(control, 'release'));
   return (
-    <button type="button" style={buttonStyle} {...hold.handlers(() => send(control, 'press'))}>
+    <button
+      type="button"
+      style={buttonStyle}
+      data-control={control}
+      {...hold.handlers(() => send(control, 'press'))}
+    >
       {name}
     </button>
   );
@@ -92,7 +97,13 @@ export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
   };
 
   const button = (name: string, control: string, position?: ControlPosition) => (
-    <button type="button" style={buttonStyle} onClick={click(control, position)}>
+    <button
+      type="button"
+      style={buttonStyle}
+      data-control={control}
+      data-position={position === undefined ? undefined : String(position)}
+      onClick={click(control, position)}
+    >
       {name}
     </button>
   );
@@ -121,6 +132,7 @@ export function Sl40Screen({ on, state, send }: DeviceScreenProps) {
           <span>VOL</span>
           <input
             type="range"
+            data-control="volume"
             aria-label="VOL"
             min={0}
             max={1}
