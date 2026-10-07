@@ -29,6 +29,9 @@ test('Guided docks the demo radio and then the transponder, ringing each slot', 
   expect(Math.abs((slot?.x ?? 0) - (mark?.x ?? 99))).toBeLessThanOrEqual(1);
   expect(Math.abs((slot?.y ?? 0) - (mark?.y ?? 99))).toBeLessThanOrEqual(1);
 
+  const ringed = radio.locator('[data-target="true"]');
+  await expect(ringed).toHaveText('STBY MHz +');
+  await expect(ringed).toHaveCSS('outline-style', 'solid');
   await radio.getByRole('button', { name: 'STBY MHz +' }).click();
   await row(2).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
   await radio.getByRole('button', { name: 'SWAP' }).click();
