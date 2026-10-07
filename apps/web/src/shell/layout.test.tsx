@@ -359,6 +359,55 @@ describe('trainer layout on desktop', () => {
     expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
   });
 
+  it.each(['guided', 'practice'] as const)(
+    'brings the checklist back when switching from Free explore to %s',
+    async (mode) => {
+      renderShell();
+      await startProcedure();
+      act(() => trainer.setMode('explore'));
+      expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+      act(() => trainer.setMode(mode));
+      expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
+      expect(
+        within(screen.getByRole('banner')).getByRole('button', { name: /^Procedure/ }),
+      ).toBeTruthy();
+    },
+  );
+
+  it('returns to the picker when switching from Free explore without a procedure', async () => {
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
+    act(() => trainer.setMode('practice'));
+    expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
+    expect((screen.getByRole('radio', { name: /^Practice/ }) as HTMLInputElement).checked).toBe(
+      true,
+    );
+  });
+
+  it('brings the checklist back on a tablet behind its header toggle', async () => {
+    setWidth(DESKTOP_MIN_WIDTH - 1);
+    renderShell();
+    await startProcedure();
+    act(() => trainer.setMode('explore'));
+    expect(
+      within(screen.getByRole('banner')).queryByRole('button', { name: /^Checklist/ }),
+    ).toBeNull();
+    act(() => trainer.setMode('guided'));
+    expect(checklistToggle().textContent).toContain(`0 / ${itemCount}`);
+  });
+
+  it('brings the tablet checklist back collapsed even when its drawer was open', async () => {
+    setWidth(DESKTOP_MIN_WIDTH - 1);
+    renderShell();
+    await startProcedure();
+    await userEvent.click(checklistToggle());
+    expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
+    act(() => trainer.setMode('explore'));
+    act(() => trainer.setMode('guided'));
+    expect(checklistToggle().getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+  });
+
   it('drops the procedure from the header and the pane after a phase jump, also after a reset', async () => {
     renderShell();
     await startProcedure();

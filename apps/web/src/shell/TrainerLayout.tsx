@@ -88,6 +88,10 @@ export function TrainerLayout() {
   }, [done]);
 
   useEffect(() => {
+    if (!hasChecklist) setExpanded(false);
+  }, [hasChecklist]);
+
+  useEffect(() => {
     const aside = pane.current;
     const item = aside?.querySelector('[aria-current="step"]');
     if (!aside || !item) return;
