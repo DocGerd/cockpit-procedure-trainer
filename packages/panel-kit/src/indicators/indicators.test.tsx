@@ -535,26 +535,36 @@ describe('legibility', () => {
   it.each([
     [48, { numerals: false, units: false, label: false }],
     [80, { numerals: false, units: false, label: false }],
-    [96, { numerals: false, units: false, label: false }],
+    [96, { numerals: false, units: true, label: false }],
     [112, { numerals: false, units: true, label: true }],
     [128, { numerals: true, units: true, label: true }],
     [208, { numerals: true, units: true, label: true }],
   ])(
-    'a gauge at %i px keeps what fits, dropping numerals, then units, then the label',
+    'a gauge at %i px keeps what fits, dropping numerals, then units; the caption only when it does not fit',
     (px, expected) => {
       placeAt(px, px);
       expect(present(named(gauge, 17, gaugeOptions).container)).toEqual(expected);
     },
   );
 
-  it('never shows a gauge numeral without its units and label', () => {
+  const longGauge = (px: number) => {
+    placeAt(px, px);
+    const Gauge = gauge;
+    return render(<Gauge value={17} label="Oil pressure" options={{ ...gaugeOptions, arcs: [] }} />)
+      .container;
+  };
+
+  it('never shows a gauge numeral without its units', () => {
     for (const px of [48, 64, 80, 96, 112, 128, 160, 208, 320]) {
       placeAt(px, px);
       const shown = present(named(gauge, 17, gaugeOptions).container);
-      if (shown.numerals) expect(shown.units && shown.label).toBe(true);
-      if (shown.units) expect(shown.label).toBe(true);
+      if (shown.numerals) expect(shown.units).toBe(true);
       cleanup();
     }
+  });
+
+  it('keeps numerals and units when only the caption is dropped', () => {
+    expect(present(longGauge(126))).toEqual({ numerals: true, units: true, label: false });
   });
 
   it.each([48, 80, 128, 208])('renders every gauge text at 11 px or more at %i px', (px) => {
@@ -580,19 +590,10 @@ describe('legibility', () => {
     },
   );
 
-  const longCaption = (px: number) => {
-    placeAt(px, px);
-    const Gauge = gauge;
-    const { container } = render(
-      <Gauge value={17} label="Oil pressure" options={{ ...gaugeOptions, arcs: [] }} />,
-    );
-    return container.querySelector('[data-label]');
-  };
-
   it.each([160, 208, 320])(
     'keeps a long caption between the arc ends and below the end ticks at %i px',
     (px) => {
-      const label = longCaption(px);
+      const label = longGauge(px).querySelector('[data-label]');
       expect(label).not.toBeNull();
       const size = Number(label?.getAttribute('font-size'));
       const length = Number(
@@ -608,7 +609,7 @@ describe('legibility', () => {
   );
 
   it.each([96, 126])('drops a long caption it cannot fit between the arc ends at %i px', (px) => {
-    expect(longCaption(px)).toBeNull();
+    expect(longGauge(px).querySelector('[data-label]')).toBeNull();
   });
 
   it('keeps the caption inside the dial and below the numerals and units', () => {
