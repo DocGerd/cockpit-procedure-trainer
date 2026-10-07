@@ -156,6 +156,11 @@ const typeSpacingSelectors = [
 
 const literalSelectors = [...colourLiterals, ...typeSpacingSelectors];
 
+const e2eRelativePackageImport = {
+  regex: '^\\.{1,2}/(?:\\.{1,2}/)*packages/',
+  message: 'Import another package by its name, never by a relative path.',
+};
+
 const deviceGroups = [
   {
     group: otherThanCoreAndPanelKit,
@@ -303,6 +308,10 @@ export default tseslint.config(
     rules: restrict('web', [], literalSelectors),
   },
   {
+    files: ['apps/web/e2e/**/*.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [e2eRelativePackageImport] }] },
+  },
+  {
     files: ['apps/web/e2e/**/*.spec.ts'],
     rules: {
       'no-restricted-imports': [
@@ -316,6 +325,7 @@ export default tseslint.config(
                 'Import test and expect from ./fixtures so the spec fails on a CSP violation.',
             },
           ],
+          patterns: [e2eRelativePackageImport],
         },
       ],
     },
