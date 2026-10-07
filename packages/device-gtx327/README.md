@@ -40,6 +40,13 @@ confirm against it:
 The unit is powered by the install's `powered` condition. Losing power stops the timer and
 drops any half-typed code; the active code is kept.
 
+## Display
+
+`gtx327ScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot
+(its bezel is lettered XPDR), a `readout` of what the display shows in German and English,
+and the `floor`: the smallest frame size at which the operable screen keeps full
+touch targets (see `src/entry.ts`).
+
 ## Not modelled
 
 - Interrogation and replies, reply annunciation

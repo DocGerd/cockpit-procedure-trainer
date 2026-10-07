@@ -16,6 +16,13 @@ Generic unit, no manufacturer manual.
 
 The unit is powered by the install's `powered` condition. It takes no inputs.
 
+## Display
+
+`comScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot
+(its bezel is lettered COM), a `readout` of what the display shows in German and English,
+and the `floor`: the smallest frame size at which the operable screen keeps full
+touch targets (see `src/entry.ts`).
+
 ## Not modelled
 
 - Audio and the effect of the volume setting

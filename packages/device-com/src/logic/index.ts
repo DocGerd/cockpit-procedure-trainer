@@ -7,3 +7,4 @@ export {
   type ComKnobs,
   type ComState,
 } from './com';
+export { comReadout } from './readout';
