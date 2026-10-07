@@ -8,3 +8,11 @@ export function inlinedSvgs(script: string): string[] {
     ).replaceAll("'", '"'),
   );
 }
+
+const normalizeSvg = (svg: string): string =>
+  svg.replace(/>\s+</g, '><').trim().replaceAll("'", '"');
+
+export function inlinedSvgMatcher(script: string): (source: string) => boolean {
+  const inlined = new Set(inlinedSvgs(script).map(normalizeSvg));
+  return (source) => inlined.has(normalizeSvg(source));
+}

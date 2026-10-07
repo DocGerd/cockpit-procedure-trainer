@@ -516,6 +516,37 @@ describe('legibility', () => {
     }
   });
 
+  it.each([80, 100, 126, 160, 208])(
+    'keeps the caption clear of the needle at either end of the sweep at %i px',
+    (px) => {
+      placeAt(px, px);
+      const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
+      const label = container.querySelector('[data-label]');
+      const needle = container.querySelector('[data-needle] line');
+      const size = Number(label?.getAttribute('font-size'));
+      const needleLength = Number(needle?.getAttribute('y1')) - Number(needle?.getAttribute('y2'));
+      const needleStroke = Number(needle?.getAttribute('stroke-width'));
+      const tip = polar(SWEEP_END, needleLength).y + needleStroke / 2;
+      expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(tip);
+    },
+  );
+
+  it('keeps the caption inside the dial and below the numerals and units', () => {
+    for (const px of [80, 100, 126, 160, 208]) {
+      placeAt(px, px);
+      const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
+      const label = container.querySelector('[data-label]');
+      const size = Number(label?.getAttribute('font-size'));
+      const top = Number(label?.getAttribute('y')) - size / 2;
+      expect(top + size).toBeLessThanOrEqual(96);
+      for (const text of container.querySelectorAll('[data-tick-label], [data-units]')) {
+        const half = Number(text.getAttribute('font-size')) / 2;
+        expect(Number(text.getAttribute('y')) + half).toBeLessThanOrEqual(top);
+      }
+      cleanup();
+    }
+  });
+
   it('keeps the accessible name and reading when the gauge drops all text', () => {
     placeAt(48, 48);
     const svg = named(gauge, 17, gaugeOptions).container.querySelector('svg');
