@@ -80,6 +80,17 @@ describe('device hardware', () => {
     expect(body).toMatch(/pointer-events:\s*none/);
   });
 
+  it.each(['.pk-device', '.pk-mirror-bezel'])('%s casts its own shadow', (selector) => {
+    expect(rule(selector)).toMatch(/box-shadow:\s*var\(--pk-cast\)/);
+  });
+
+  it('lets the mirror bezel shadow fall past the slot edge, and clips beyond it', () => {
+    const slot = rule('.pk-mirror');
+    expect(slot).not.toMatch(/box-shadow/);
+    expect(slot).toMatch(/overflow:\s*clip;/);
+    expect(slot).toMatch(/overflow-clip-margin:\s*var\(--space-/);
+  });
+
   it('puts glare on the glass over a display, never over the keys', () => {
     expect(rule('.pk-mirror-screen::after')).toMatch(/var\(--pk-glass\)/);
     expect(rule('.pk-device-content > * > :first-child::after')).toMatch(/var\(--pk-glass\)/);
