@@ -220,14 +220,21 @@
 /* Satin black anodised faceplate, window lip and glass, shared by the slot and the dock frame. */
 .pk-device,
 .pk-mirror-bezel {
-  --pk-faceplate: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--panel-metal-light) 50%, var(--panel-metal-shade)),
-    color-mix(in srgb, var(--panel-metal-light) 40%, var(--panel-metal-shade)) 25%,
-    color-mix(in srgb, var(--panel-metal-light) 28%, var(--panel-metal-shade)) 70%,
-    color-mix(in srgb, var(--panel-metal-light) 18%, var(--panel-metal-shade))
-  );
-  --pk-face-edge: inset 0 var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 12%, transparent);
+  --pk-faceplate:
+    radial-gradient(
+      ellipse 70% 120% at 15% 0%,
+      color-mix(in srgb, var(--panel-glare) 10%, transparent),
+      transparent
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--panel-metal-light) 50%, var(--panel-metal-shade)),
+      color-mix(in srgb, var(--panel-metal-light) 40%, var(--panel-metal-shade)) 25%,
+      color-mix(in srgb, var(--panel-metal-light) 28%, var(--panel-metal-shade)) 70%,
+      color-mix(in srgb, var(--panel-metal-light) 18%, var(--panel-metal-shade))
+    );
+  --pk-face-edge: inset var(--pk-hair) var(--pk-hair) 0
+    color-mix(in srgb, var(--panel-glare) 14%, transparent);
 
   /* A dark seam, then the lip turned the other way: shaded up-left, lit down-right. */
   --pk-lip:
