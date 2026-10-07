@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
+import { clearanceProblems } from './clearance';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
 import { copy, openPicker, showView as showViewTab } from './trainer';
 
@@ -63,111 +64,8 @@ const widgetPlacards = (aircraft: Aircraft, viewId: string) =>
     return [{ id, text: (control.placard ?? control.name.en).toUpperCase() }];
   });
 
-export type Box = { left: number; right: number; top: number; bottom: number };
-type Point = { x: number; y: number };
-
-/** An SVG shape as the browser reports it: its local bounding box and its local-to-screen matrix. */
-export type Shape = {
-  tag: string;
-  box: { x: number; y: number; width: number; height: number };
-  matrix: { a: number; b: number; c: number; d: number; e: number; f: number };
-};
-
-const corners = ({ box, matrix: m }: Shape): Point[] =>
-  [
-    [box.x, box.y],
-    [box.x + box.width, box.y],
-    [box.x + box.width, box.y + box.height],
-    [box.x, box.y + box.height],
-  ].map(([x = 0, y = 0]) => ({ x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f }));
-
 const MEASURABLE = 'rect, circle, ellipse, line, path, polygon, polyline';
 const UNSUPPORTED = 'text, use, image, foreignObject';
-
-// The label sits this far into a moving part before it counts as overlapping.
-const CLEARANCE_PX = 1;
-
-const SIMILARITY_EPSILON = 1e-6;
-
-/** Radius on screen of a circle under a turn and uniform scale, else undefined. */
-const circleRadius = ({ tag, box, matrix: m }: Shape): number | undefined => {
-  const scale = Math.hypot(m.a, m.b);
-  const similar =
-    Math.abs(scale - Math.hypot(m.c, m.d)) < SIMILARITY_EPSILON * scale &&
-    Math.abs(m.a * m.c + m.b * m.d) < SIMILARITY_EPSILON * scale * scale;
-  return tag === 'circle' && similar ? (scale * box.width) / 2 : undefined;
-};
-
-const centre = ({ box, matrix: m }: Shape): Point => {
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
-  return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f };
-};
-
-const circleHitsBox = (middle: Point, radius: number, area: Box) => {
-  const nearX = Math.min(Math.max(middle.x, area.left), area.right);
-  const nearY = Math.min(Math.max(middle.y, area.top), area.bottom);
-  return Math.hypot(middle.x - nearX, middle.y - nearY) < radius;
-};
-
-/** Separating-axis test of a turned rectangle, possibly flat, against an upright box. */
-const quadHitsBox = (quad: readonly Point[], area: Box) => {
-  const areaCorners = [
-    { x: area.left, y: area.top },
-    { x: area.right, y: area.top },
-    { x: area.right, y: area.bottom },
-    { x: area.left, y: area.bottom },
-  ];
-  const axes = [
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-    ...quad.flatMap((from, index) => {
-      const to = quad[(index + 1) % quad.length] ?? from;
-      const length = Math.hypot(to.x - from.x, to.y - from.y);
-      return length === 0 ? [] : [{ x: (from.y - to.y) / length, y: (to.x - from.x) / length }];
-    }),
-  ];
-  return axes.every((axis) => {
-    const project = (points: readonly Point[]) => {
-      const along = points.map(({ x, y }) => x * axis.x + y * axis.y);
-      return { min: Math.min(...along), max: Math.max(...along) };
-    };
-    const part = project(quad);
-    const other = project(areaCorners);
-    return part.min < other.max && other.min < part.max;
-  });
-};
-
-/**
- * Findings for one control: a moving part that cannot be measured, none at all, or a placard
- * that reaches into one. Parts are measured as they are drawn (turned, scaled, round), not by
- * the upright box around them.
- */
-export function clearanceProblems(
-  where: string,
-  label: Box,
-  shapes: readonly Shape[],
-  unmeasurable: readonly string[],
-): string[] {
-  const problems = unmeasurable.map((tag) => `${where} moving part <${tag}> cannot be measured`);
-  if (shapes.length === 0 && unmeasurable.length === 0) {
-    problems.push(`${where} has no measurable moving part`);
-  }
-  const area: Box = {
-    left: label.left + CLEARANCE_PX,
-    right: label.right - CLEARANCE_PX,
-    top: label.top + CLEARANCE_PX,
-    bottom: label.bottom - CLEARANCE_PX,
-  };
-  const hit = shapes.some((shape) => {
-    const radius = circleRadius(shape);
-    return radius === undefined
-      ? quadHitsBox(corners(shape), area)
-      : circleHitsBox(centre(shape), radius, area);
-  });
-  if (hit) problems.push(`${where} placard overlaps a moving part`);
-  return problems;
-}
 
 /** Placard text, fit, placement, touch targets and clearance of the moving parts, per widget control. */
 export async function placardProblems(
@@ -199,25 +97,32 @@ export async function placardProblems(
           overfull: label?.hasAttribute('data-overfull') ?? false,
           underControl: Boolean(hit?.closest('button, [role="slider"], [role="radio"]')),
           ...(() => {
-            const parts = [...element.querySelectorAll('.pk-move')].flatMap((part) => [
-              ...(part.matches(measurable) || part.matches(unsupported) ? [part] : []),
-              ...part.querySelectorAll(`${measurable}, ${unsupported}`),
-            ]);
+            const parts = [...element.querySelectorAll('.pk-move')]
+              .flatMap((part) => [
+                ...(part.matches(measurable) || part.matches(unsupported) ? [part] : []),
+                ...part.querySelectorAll(`${measurable}, ${unsupported}`),
+              ])
+              .filter((part) => !part.closest('defs, clipPath, mask'));
+            const drawn = parts
+              .filter((part): part is SVGGraphicsElement => part.matches(measurable))
+              .map((part) => ({ part, matrix: part.getScreenCTM() }));
             return {
-              shapes: parts
-                .filter((part): part is SVGGraphicsElement => part.matches(measurable))
-                .map((part) => {
-                  const { x, y, width, height } = part.getBBox();
-                  const { a, b, c, d, e, f } = part.getScreenCTM() ?? new DOMMatrix();
-                  return {
+              shapes: drawn.flatMap(({ part, matrix }) => {
+                if (!matrix) return [];
+                const { x, y, width, height } = part.getBBox();
+                const { a, b, c, d, e, f } = matrix;
+                return [
+                  {
                     tag: part.tagName.toLowerCase(),
                     box: { x, y, width, height },
                     matrix: { a, b, c, d, e, f },
-                  };
-                }),
-              unmeasurable: parts
-                .filter((part) => part.matches(unsupported))
-                .map((part) => part.tagName.toLowerCase()),
+                  },
+                ];
+              }),
+              unmeasurable: [
+                ...parts.filter((part) => part.matches(unsupported)),
+                ...drawn.filter(({ matrix }) => !matrix).map(({ part }) => part),
+              ].map((part) => part.tagName.toLowerCase()),
             };
           })(),
           targets: [...element.querySelectorAll('button, [role="slider"]')].map((target) => {
