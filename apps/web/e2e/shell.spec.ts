@@ -162,16 +162,56 @@ for (const viewport of headerViewports) {
   }
 }
 
-test('a header chip is a one-tap link back to the picker at desktop width', async ({ page }) => {
-  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-  if (!ctsl) throw new Error('The CTSL is not registered');
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openAircraft(page, ctsl, 'rescueDeployment');
+const chipViewports = [
+  { width: 1366, height: 1024, hasTouch: true },
+  { width: 1440, height: 900, hasTouch: false },
+  { width: 1920, height: 1080, hasTouch: false },
+];
 
-  await page.getByRole('banner').getByRole('button', { name: ctsl.name.en }).click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
-});
+for (const { hasTouch, ...viewport } of chipViewports) {
+  test.describe(`header chip at ${viewport.width}x${viewport.height}${hasTouch ? ' with touch' : ''}`, () => {
+    test.use({ viewport, hasTouch });
+
+    test('opens the full text and "Change" returns to the picker', async ({ page }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      const rescue = ctsl?.procedures.rescueDeployment;
+      if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
+      await openAircraft(page, ctsl, 'rescueDeployment');
+
+      const header = page.getByRole('banner');
+      const open = async (full: string) => {
+        const chip = header.getByRole('button', { name: full });
+        if (hasTouch) await chip.tap();
+        else await chip.click();
+        const dialog = page.getByRole('dialog');
+        await expect(dialog.getByText(full, { exact: true })).toBeVisible();
+        const clipped = await dialog.evaluate((element) => {
+          const { left, right } = element.getBoundingClientRect();
+          const value = element.querySelector('.shell-detail-value');
+          return {
+            offscreen: left < 0 || right > window.innerWidth,
+            value: value ? value.scrollWidth > value.clientWidth : true,
+          };
+        });
+        expect(clipped.offscreen, 'dialog outside the window').toBe(false);
+        expect(clipped.value, 'dialog value clipped').toBe(false);
+        return dialog;
+      };
+
+      await open(rescue.title.en);
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+
+      const dialog = await open(ctsl.name.en);
+      const change = dialog.getByRole('button', { name: copy.shell.changeAircraft });
+      if (hasTouch) await change.tap();
+      else await change.click();
+      await expect(
+        page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle }),
+      ).toBeVisible();
+    });
+  });
+}
 
 for (const language of languages) {
   test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({
