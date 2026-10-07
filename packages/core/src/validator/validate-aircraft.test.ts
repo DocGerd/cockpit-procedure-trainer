@@ -400,6 +400,54 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('artwork-glass-size', () => {
+    const sizes: Record<string, { width: number; height: number }> = {
+      'volts-face.png': { width: 200, height: 200 },
+      'volts-glass.png': { width: 200, height: 200 },
+      'master-face.png': { width: 60, height: 80 },
+    };
+    const imageSize = (url: string) => sizes[url];
+    const glassFindings = (aircraft: Aircraft, context = { imageSize }) =>
+      validateAircraft(aircraft, context).filter((f) => f.code === 'artwork-glass-size');
+
+    it('accepts glass the size of its face', () => {
+      expect(glassFindings(fixtureAircraft)).toEqual([]);
+    });
+
+    it('reports indicator glass of another size than its face', () => {
+      const [finding, ...rest] = glassFindings(fixtureAircraft, {
+        imageSize: (url) => (url === 'volts-glass.png' ? { width: 100, height: 200 } : sizes[url]),
+      });
+      expect(rest).toEqual([]);
+      expect(finding).toMatchObject({ id: 'busVolts' });
+      expect(finding?.message).toContain('100x200');
+      expect(finding?.message).toContain('200x200');
+    });
+
+    it('reports control glass of another size than its face', () => {
+      const aircraft = withControl('master', {
+        appearance: {
+          artwork: {
+            face: 'master-face.png',
+            glass: 'volts-glass.png',
+            moving: { type: 'positions', images: { off: 'a.png', on: 'b.png' } },
+          },
+        },
+      });
+      expect(glassFindings(aircraft).map((f) => f.id)).toEqual(['master']);
+    });
+
+    it('skips the check for an image whose size the context cannot tell', () => {
+      expect(glassFindings(fixtureAircraft, { imageSize: () => undefined })).toEqual([]);
+      expect(
+        glassFindings(fixtureAircraft, {
+          imageSize: (url) => (url === 'volts-glass.png' ? undefined : sizes[url]),
+        }),
+      ).toEqual([]);
+      expect(validateAircraft(fixtureAircraft)).toEqual([]);
+    });
+  });
+
   it('formats a finding with the aircraft, code and id', () => {
     const [finding] = validateAircraft(withPhase('parking', { image: '' }));
     const line = formatFinding(finding as Finding);

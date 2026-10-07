@@ -1,6 +1,6 @@
-import { useId } from 'react';
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
+import { Materials, paint, useMaterialId } from '../materials';
 import {
   angleAt,
   ARC_RADIUS,
@@ -55,93 +55,9 @@ const DIAL_RADIUS = 46;
 const NEEDLE_SHADOW = { x: 0.6, y: 1.3 };
 const GLARE = 'M5 50A45 45 0 0 1 84 22C62 19 26 30 7 62Z';
 
-type Material = 'metal-light' | 'metal-shade' | 'bezel' | 'bezel-dark' | 'glare';
-type Stop = readonly [offset: number, token: Material, opacity?: number];
-
-function Gradient({
-  id,
-  stops,
-  from,
-  to,
-}: {
-  id: string;
-  stops: readonly Stop[];
-  from: [number, number];
-  to: [number, number];
-}) {
-  return (
-    <linearGradient id={id} x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]}>
-      {stops.map(([offset, token, opacity]) => (
-        <stop
-          key={offset}
-          offset={offset}
-          style={{ stopColor: `var(--panel-${token})` }}
-          {...(opacity === undefined ? {} : { stopOpacity: opacity })}
-        />
-      ))}
-    </linearGradient>
-  );
-}
-
-function Materials({ id }: { id: string }) {
-  return (
-    <defs>
-      <Gradient
-        id={`${id}-bezel`}
-        from={[0.15, 0.08]}
-        to={[0.85, 0.95]}
-        stops={[
-          [0, 'metal-light'],
-          [0.35, 'bezel'],
-          [0.7, 'bezel-dark'],
-          [1, 'metal-shade'],
-        ]}
-      />
-      <Gradient
-        id={`${id}-lip`}
-        from={[0.85, 0.95]}
-        to={[0.15, 0.08]}
-        stops={[
-          [0, 'bezel'],
-          [0.45, 'bezel-dark'],
-          [1, 'metal-shade'],
-        ]}
-      />
-      <Gradient
-        id={`${id}-glare`}
-        from={[0.15, 0]}
-        to={[0.6, 1]}
-        stops={[
-          [0, 'glare', 0.28],
-          [0.55, 'glare', 0.07],
-          [1, 'glare', 0],
-        ]}
-      />
-      <radialGradient
-        id={`${id}-recess`}
-        gradientUnits="userSpaceOnUse"
-        cx={CENTRE + 1.6}
-        cy={CENTRE + 2.4}
-        r={DIAL_RADIUS + 3}
-      >
-        <stop offset={0.84} style={{ stopColor: 'var(--panel-shadow)' }} stopOpacity={0} />
-        <stop offset={0.93} style={{ stopColor: 'var(--panel-shadow)' }} stopOpacity={0.3} />
-        <stop offset={1} style={{ stopColor: 'var(--panel-shadow)' }} stopOpacity={0.75} />
-      </radialGradient>
-      <radialGradient id={`${id}-cap`} cx={0.38} cy={0.34} r={0.7}>
-        <stop offset={0} style={{ stopColor: 'var(--panel-metal-light)' }} />
-        <stop offset={0.6} style={{ stopColor: 'var(--panel-bezel-dark)' }} />
-        <stop offset={1} style={{ stopColor: 'var(--panel-metal-shade)' }} />
-      </radialGradient>
-    </defs>
-  );
-}
-
-const paint = (id: string, material: string) => `url(#${id}-${material})`;
-
 export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   const [ref, metrics] = useRenderedMetrics(VIEWBOX);
-  const id = `pk-gauge-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const id = useMaterialId('gauge');
   const config = readGaugeOptions(options);
   if (config === null || typeof value !== 'number' || !Number.isFinite(value)) {
     return <IndicatorPlaceholder label={label} />;
@@ -213,7 +129,10 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
       aria-valuemax={max}
       aria-valuetext={reading}
     >
-      <Materials id={id} />
+      <Materials
+        id={id}
+        recess={{ centre: [CENTRE + 1.6, CENTRE + 2.4], radius: DIAL_RADIUS + 3 }}
+      />
       <circle cx={CENTRE} cy={CENTRE} r={49.5} style={{ fill: paint(id, 'bezel') }} />
       <circle cx={CENTRE} cy={CENTRE} r={47.6} style={{ fill: paint(id, 'lip') }} />
       <circle cx={CENTRE} cy={CENTRE} r={DIAL_RADIUS} style={{ fill: 'var(--panel-dial)' }} />
@@ -293,6 +212,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
       <circle cx={CENTRE} cy={CENTRE} r={DIAL_RADIUS} style={{ fill: paint(id, 'recess') }} />
       <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} opacity={0.45}>
         <line
+          data-needle-shadow=""
           x1={CENTRE}
           y1={CENTRE}
           x2={CENTRE}
