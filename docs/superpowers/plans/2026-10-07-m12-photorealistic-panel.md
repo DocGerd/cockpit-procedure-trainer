@@ -57,14 +57,14 @@ Trade-offs taken:
 | Medium cast shadow (bezel, rocker frame) | 0.4–0.55 %, 1.1–1.7 % | 0.8–1.2 % | 0.6 |
 | Large cast shadow (knob, handle, pulled button; no specimen yet) | about twice medium | about twice medium | 0.6 |
 | Screw head shadow | 0, 0.45 % | none | 0.45 |
-| Needle shadow outside the rotation (stage or TSX) | 0.6 %, 1.3 % | none in TSX | 0.45 |
+| Needle shadow outside the rotation (stage or TSX); its offset shows the needle's height above the dial | 1–1.5 %, 2–2.5 % | 0.5–0.8 % in the stage; none in TSX | 0.5 |
 | Rotation-safe needle shadow inside a needle image (until Task 1) | centred | 0.85 % | 0.7 |
 | Recess (dial, well, screen): radial gradient whose centre sits down-right of the opening's | centre 1.6–1.75 %, 2.4–2.5 % | stops over the outer 15 % of the radius | 0 → 0.3 → 0.7 |
 | Glass glare: one sweep from the upper left | | linear gradient | 0.3 → 0.08 → 0 |
 | Glass rim highlight: a crisp arc, upper left | | none | 0.45 |
 | Specular edge on metal or plastic, upper left | | linear gradient | 0.55–0.75 → 0 |
 
-**Reference specimens.** The spike's files are the worked examples every task matches: `gauge-airspeed.svg` and `needle-airspeed.svg` (bezel, lip, recess, glass, screws, needle), `rocker-beacon.svg` with `rocker-on.svg` and `rocker-off.svg` (frame, well, paddle), and `RoundGauge.tsx` (the same materials from tokens). A task that departs from a specimen says so in its PR.
+**Reference specimens.** The spike's files show the technique and the light every task follows: `gauge-airspeed.svg` and `needle-airspeed.svg` (bezel, lip, recess, glass, screws, needle), `rocker-beacon.svg` with `rocker-on.svg` and `rocker-off.svg` (frame, well, paddle), and `RoundGauge.tsx` (the same materials from tokens). They do not set the finish: the ui-verifier scored them below the rubric's bar ("good drawings, not photographs"), so every task goes beyond them with the photoreal devices below.
 
 **Materials and palette** (hex values are for aircraft SVG files; panel-kit takes the same roles from the `--panel-*` tokens in the last column, and a token's value is the hex it stands for):
 
@@ -93,34 +93,56 @@ Shadows and glare take `--panel-shadow` and `--panel-glare` at the opacities abo
 
 **Size.** Detail is drawn for the size the part renders at in the built app in a 1920x1080 browser window (the HD-first layout #388 settles); the perf harness prints each artwork part's rendered CSS size there. A bevel, rim highlight or screw that is under one CSS px at that size is dropped, not drawn faint.
 
+**Photoreal devices.** A palette and a light make a good drawing; these make a part read as a photograph of the hardware. Every task applies the devices of the parts it draws. Gradients and `<pattern>` fills are cheap and free under P3; blur filters count against P3.
+
+| Part | Devices (all required) | Cost |
+|---|---|---|
+| Instrument and device bezel (machined, anodised) | outer ring with a multi-stop gradient (at least four stops: lit, base, deep, shade) along the light axis; a narrow chamfer band at the outer edge, bright up-left and dark down-right; an inner lip with the reversed gradient; a thin dark seam between lip and dial or screen; corner screws where the hardware has them | gradients |
+| Glass | one soft glare sweep up-left; one crisp rim reflection, a thin bright arc just inside the upper-left bezel edge; a faint counter-reflection down-right; glare drawn above the needle (Task 1's glass layer) | gradients, strokes |
+| Cast shadow | every instrument, device and raised control casts its own shadow down-right onto the panel, soft at its outer edge, at the reference strength; drawn in the part's margin or, where the box has no room, in the view background (Task 5) | one blur filter, or a gradient fall-off |
+| Printed dial | matte black with a fine grain (a small `<pattern>` tile of dots or hatch at 4–8 % opacity); markings and numerals in off-white ink (`#ECEAE3`), never pure white; the recess shadow inside the bezel | pattern |
+| Needle | a tapered blade with a visible stem into the hub; a counterweight; a domed hub cap with a slotted hub screw; a soft shadow offset down-right that shows its height above the dial (stage-drawn after Task 1) | gradients; the stage shadow per P3 |
+| Rocker, toggle, push button keycap (moulded plastic) | a rounded moulded edge band; a thin specular line along the lit edge; a pressed and a raised end that read by shading alone; the cap sits in a housing recess with an inner shadow and a frame that casts its own shadow | gradients |
+| Knob, lever, handle | a turned or knurled rim (repeated thin lines or a pattern); a top face with a radial highlight up-left; a shadow that lengthens with height (pulled knobs) | gradients, pattern |
+| Placard and legend | sits on something: printed ink on the panel paint (no outline, no shadow, ink colour from the palette) or an engraved or printed plate with its own bevel, fixing screws and, when engraved, letters with an inner shadow on the lit side; a legend never floats over a part | gradients |
+| Panel | painted metal with a fine stipple (one `feTurbulence` per view background at most), plate seams and panel screws | one filter per background |
+
 ## Rubric for the ui-verifier
 
-Judged on screenshots of both aircraft at 1920x1080 and 3840x2160 in Guided and Free explore, plus 1024x768 for touch. Each criterion passes or fails per element; the verdict lists failures by element.
+Judged on screenshots of both aircraft at 1920x1080 and 3840x2160 in Guided and Free explore, plus 1024x768 for touch. The ui-verifier crops each element at device scale factor 2 and scores every visual heading that applies to it (1–5, 7, 10, 12) from 0 to 3:
 
-1. **Bezel depth.** Every bezel shows a lit edge up-left, a shaded edge down-right and a reversed inner lip.
+- **0** absent: the effect is not there.
+- **1** drawn: the effect is there but reads as a diagram or icon.
+- **2** convincing: at a glance the element reads as the real material and form.
+- **3** photographic: at that crop it could pass for a photograph of the hardware.
+
+**Bar.** An element passes when every applicable visual heading scores at least 2 and their mean is at least 2.5, and every pass/fail heading (6, 8, 9, 11) passes. Lettering passes only at 10.5 px or more rendered (`MIN_TEXT_PX` minus 0.5, as `lettering.spec.ts` measures) at 1920x1080. The verdict lists every element's scores and every failure.
+
+1. **Bezel depth.** Every bezel shows a lit edge up-left, a shaded edge down-right, a chamfer and a reversed inner lip, and reads as machined metal.
 2. **Glass glare.** Every glass-covered face (gauges, compass, lamp lenses, device screens) shows one soft reflection up-left and a crisp rim highlight; glare never hides a numeral or a legend.
 3. **Cast shadow.** Every raised part casts a soft shadow down-right onto what is beneath it; every recess shows its inner shadow on the lit side.
 4. **Panel texture.** At 4K a fine stipple is visible on every panel surface (none is one flat fill); at 1920x1080 no surface shows coarse noise or stepped gradient bands.
-5. **Needle shadow.** Every needle and the compass card show a shadow that never points toward the light.
-6. **Lettering.** All printed lettering stays legible at 1920x1080 and 4K; `lettering.spec.ts` and `placards.spec.ts` pass.
+5. **Needle.** Every needle shows its stem, hub screw and a shadow that never points toward the light and shows its height above the dial; the compass card shows its shadow.
+6. **Lettering** (pass/fail). All printed lettering, gauge faces included, renders at 10.5 px or more at 1920x1080; `lettering.spec.ts` and `placards.spec.ts` pass.
 7. **State at a glance.** Every two- and multi-position control shows its position without hovering: pressed and raised rocker ends, pulled breaker band, lever and knob positions.
-8. **No status colours** on the panel; lit lamps only in lamp colours.
-9. **Touch targets.** 44 px targets intact; artwork changes never move a hit region (`placards.spec.ts` touch checks, `touch.test.tsx`).
+8. **No status colours** (pass/fail) on the panel; lit lamps only in lamp colours.
+9. **Touch targets** (pass/fail). 44 px targets intact; artwork changes never move a hit region (`placards.spec.ts` touch checks, `touch.test.tsx`).
 10. **One light, one palette.** Compared with the reference specimens, every element has its lit edges up-left, its shadows down-right at the reference strength and its materials in the palette's tones; no element is a flat fill next to a shaded neighbour (milestone end only; mid-milestone, unfinished parts are listed, not failed).
-11. **Self-drawn.** Every new or changed image has its `LICENSES.md` row and no traced manufacturer artwork (G1).
+11. **Self-drawn** (pass/fail). Every new or changed image has its `LICENSES.md` row and no traced manufacturer artwork (G1).
+12. **Material.** Every part reads as its material through the photoreal devices of its kind: anodised metal, moulded plastic, printed dial, printed or engraved placard, painted panel.
 
 ## Performance budget
 
 These are requirements; each task's PR reports its own numbers against them, taken with `pnpm test:perf` (Task 1).
 
-**Harness method** (the spike's scripts were not committed; Task 1 builds this):
+**Harness method.** The spike's scripts were not committed. Task 1 rebuilds them to this method, which is how the spike measured the numbers the budget rests on:
 
-- Built app (`vite preview`), Chromium through Playwright, viewport 1024x768, CPU throttled four times with CDP `Emulation.setCPUThrottlingRate`.
-- One sample is one CDP trace (`Tracing.start`, categories `devtools.timeline` and `disabled-by-default-devtools.timeline`) around one action, after one untraced warm-up of the same action. Its cost is the summed duration of its `Paint`, `RasterTask`, `ImageDecodeTask` and `Decode Image` events. A result is the median of at least nine samples, taken in interleaved rounds.
-- **Needle frame:** the needles are driven through the app's own state, every needle of the view changing in the same frame; the sample is that frame.
-- **Re-raster:** a switch to the view and a window resize, sampled separately; the larger counts.
-- **Filters:** `<filter>` elements counted in each image the view loads and in the view's DOM.
-- **Payload:** bytes of each aircraft's `assets/` SVG files, against a baseline the harness records when Task 1 lands, committed beside the specs.
+- Built app (`vite preview`; the spike used the dev server). Chromium through Playwright, viewport 1024x768, dark colour scheme, CPU throttled four times with CDP `Emulation.setCPUThrottlingRate { rate: 4 }`. The aircraft is opened through the picker and a procedure started in Guided; at this size the cockpit is tabbed, so a view is opened by its tab.
+- One sample is one trace (`browser.startTracing` with the categories `devtools.timeline` and `disabled-by-default-devtools.timeline`) around one action. Its cost is the summed `dur` of the complete (`ph: 'X'`) events named `Paint`, `RasterTask`, `Decode Image`, `ImageDecodeTask` and `PaintImage`. A result is the median of nine samples.
+- **Needle frame (P1):** in the page, set the `transform` of every needle overlay `image` in the view (`[data-moving="needle"] image`) to `rotate(-135 + 9i, pivot)` for 30 frames, one `requestAnimationFrame` each, then restore it; the sample is the total over 30. Panel-kit gauges rotate `[data-needle]` and the needle shadow the same way.
+- **Re-raster (P2):** resize the viewport to 1023x768 and back, waiting for the paint after each (total over 2); and hide and show the view's `[role="tabpanel"]` with `visibility` twice, a double `requestAnimationFrame` after each (total over 2). The larger counts.
+- **Filters (P3):** for every `img[src]` and `image[href]` in the view, read the SVG (decoding data URIs, else fetching the URL) and count `filter="url(` and `filter='url(` uses; in panel-kit TSX, count `<filter>` in the view's DOM.
+- **Payload (P4):** bytes of each aircraft's `assets/` SVG files, against a baseline the harness records when Task 1 lands, committed beside the specs.
 
 - **P1 Needles.** While every CTSL needle sweeps at once, paint and raster per frame stay at or below 4 ms. Needles and the compass card render on their own layer (spike).
 - **P2 Full re-raster.** Switching to, or resizing, any one view costs at most 33 ms of paint and raster (two frames).
@@ -171,7 +193,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 5: Perf harness** under `apps/web/e2e/perf/`, built to the Harness method above, in its own Playwright project that `pnpm test:e2e` skips, run by `pnpm test:perf`; records the P4 baseline, prints a table (with each artwork part's rendered size in a 1920x1080 window, for the Size rule), fails on P1 to P4.
 - [ ] **Step 6: Fragment:** `Instrument artwork can carry a glass layer above the needle.`
 
-**Definition of done:** stage, validator and token tests green; `pnpm test:perf` runs locally and passes on `develop`; the airspeed prototype still renders unchanged.
+**Definition of done:** stage, validator and token tests green; `pnpm test:perf` runs locally and passes on `develop`; the airspeed prototype still renders unchanged, now with its glare above the needle; the ui-verifier scores the stage's glass layer and needle shadow at least 2 on headings 2 and 5 on the airspeed prototype.
 
 ---
 
@@ -192,7 +214,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 5: Gallery check** at every size: no new small-text warnings; `ui-verifier` on the gallery and the demo panel.
 - [ ] **Step 6: Fragment:** `Generic panel controls and gauges look like real hardware: metal bezels, glass, shadows and shaded switches.`
 
-**Definition of done:** panel-kit tests and `printed-labels.test.tsx` green; rubric items 1–3, 5–9 pass on the gallery at 1920x1080 and 4K; P1 and P2 hold on the demo panel.
+**Definition of done:** panel-kit tests and `printed-labels.test.tsx` green; every widget in the gallery meets the rubric's bar on headings 1–3, 5–9 and 12 (every applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px) at 1920x1080 and 4K; P1 and P2 hold on the demo panel.
 
 ---
 
@@ -202,16 +224,17 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 
 **Scope:** the eight CTSL instruments (airspeed, altimeter, VSI, tachometer, oil pressure, oil temperature, CHT, compass) as photorealistic face, needle or card, and glass images. Out of scope: view backgrounds, controls.
 
-**Files:** `packages/aircraft-ctsl/src/assets/artwork/gauge-*.svg`, `needle*.svg`, `compass-*.svg`, glass images (create), `packages/aircraft-ctsl/src/artwork.ts`, `packages/aircraft-ctsl/src/artwork.test.ts`, `packages/aircraft-ctsl/LICENSES.md`, `changelog.d/<issue>.changed.md`
+**Files:** `packages/aircraft-ctsl/src/assets/artwork/gauge-*.svg`, `needle*.svg`, `compass-*.svg`, glass images (create), `packages/aircraft-ctsl/src/artwork.ts`, `packages/aircraft-ctsl/src/artwork.test.ts`, `packages/aircraft-ctsl/LICENSES.md`, `apps/web/e2e/legibility.ts` and `apps/web/e2e/lettering.spec.ts` (gauge-face lettering check), `changelog.d/<issue>.changed.md`
 
 **Dependencies:** Task 1; #388 (the 1080p layout that sets the Size rule's rendered sizes).
 
 - [ ] **Step 1:** One shared photorealistic needle replaces `needle.svg` and the spike's `needle-airspeed.svg` (or one per needle style the CTSL panel shows); glare and hub move to glass images.
-- [ ] **Step 2:** Redraw the airspeed indicator, altimeter, VSI, tachometer, oil pressure, oil temperature, CHT and compass (face, card, glass) to the brief. Scales, arcs, lettering positions and pivots unchanged; `artwork.test.ts` sweep and lettering checks stay green.
-- [ ] **Step 3:** `LICENSES.md` rows for every new file; drop rows of removed files.
-- [ ] **Step 4: Fragment:** `The CT Supralight instruments look like real gauges: metal bezels, glass glare and shadowed needles.`
+- [ ] **Step 2: Failing lettering check for gauge faces.** `letteringProblems` checks control faces only; extend it to indicator faces, so gauge lettering below 10.5 px at 1920x1080 fails (the airspeed indicator's AIRSPEED and km/h do today).
+- [ ] **Step 3:** Redraw the airspeed indicator, altimeter, VSI, tachometer, oil pressure, oil temperature, CHT and compass (face, card, glass) to the brief. Scales, arcs and pivots unchanged; lettering grows where Step 2 needs it, staying clear of the needle sweep; `artwork.test.ts` sweep and lettering checks green.
+- [ ] **Step 4:** `LICENSES.md` rows for every new file; drop rows of removed files.
+- [ ] **Step 5: Fragment:** `The CT Supralight instruments look like real gauges: metal bezels, glass glare and shadowed needles.`
 
-**Definition of done:** CTSL tests, `lettering.spec.ts`, `placards.spec.ts` green; rubric items 1, 2, 3, 5, 6, 8 pass for all eight instruments; P1, P3 hold.
+**Definition of done:** CTSL tests, `lettering.spec.ts` (gauge faces included) and `placards.spec.ts` green; all eight instruments meet the rubric's bar on headings 1, 2, 3, 5, 6, 8 and 12 (every applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px); P1, P3 hold.
 
 ---
 
@@ -230,7 +253,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 3:** `LICENSES.md` rows.
 - [ ] **Step 4: Fragment:** `The CT Supralight switches, breakers, knobs and levers look like real hardware.`
 
-**Definition of done:** CTSL and panel tests and e2e green; rubric items 1, 3, 6–9 pass for every control; P2, P3 hold.
+**Definition of done:** CTSL and panel tests and e2e green; every control meets the rubric's bar on headings 1, 3, 6–9 and 12 (every applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px); P2, P3 hold.
 
 ---
 
@@ -248,7 +271,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 2:** Backdrop lettering keeps its scale (`lettering.spec.ts`); the compass placement checks in `artwork.test.ts` still find their plates and bay.
 - [ ] **Step 3: Fragment:** `The CT Supralight panel reads as painted metal with shadows around its instruments.`
 
-**Definition of done:** rubric items 3, 4, 6, 10 pass on the CTSL at 1920x1080 and 4K; P2, P4 hold.
+**Definition of done:** the CTSL panel, centre and console views meet the rubric's bar on headings 3, 4, 6, 10 and 12 (every applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px) at 1920x1080 and 4K; P2, P4 hold.
 
 ---
 
@@ -266,7 +289,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 2:** Screen content (LCD and LED segments, pages) unchanged; contract tests in `tools/` green.
 - [ ] **Step 3: Fragment:** `Avionics units sit in shaded bezels behind glass.`
 
-**Definition of done:** device and `tools/` tests green; rubric items 1–3, 6, 9 pass for every device in its slot and in the dock.
+**Definition of done:** device and `tools/` tests green; every device meets the rubric's bar on headings 1–3, 6, 9 and 12 (every applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px) in its slot and in the dock.
 
 ---
 
@@ -283,7 +306,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 1:** Demo panel and console backgrounds to the brief (texture, cutout shadows, placards); the demo keeps generic widgets only.
 - [ ] **Step 2: Fragment:** `The demo aircraft's panel matches the new look.`
 
-**Definition of done:** demo tests and e2e green; rubric passes on the demo at 1920x1080, 4K and 1024x768.
+**Definition of done:** demo tests and e2e green; every element of the demo meets the rubric's bar on every applicable heading (every visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px) at 1920x1080, 4K and 1024x768.
 
 ---
 
@@ -302,4 +325,4 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 - [ ] **Step 3: Spec §1 success criteria,** walked in the built app: pick an aircraft and a procedure, operate every control, see deviations; wrong operation behaves as the aircraft would (starter with magnetos off); adding an aircraft still touches no `apps/web` file beyond its registry line and workspace dependency; the app installs and works offline (`offline.spec.ts`).
 - [ ] **Step 4:** G1 audit: every image in every aircraft and device package has a licence row; none is traced.
 
-**Definition of done:** the milestone note lists rubric results, perf numbers and the §1 audit with no open failure, or each open failure as a filed issue the owner accepts at the release review.
+**Definition of done:** the milestone note lists every element's rubric scores (each applicable visual heading at least 2, mean at least 2.5, crops at device scale factor 2, lettering at least 10.5 px), perf numbers and the §1 audit with no open failure, or each open failure as a filed issue the owner accepts at the release review.
