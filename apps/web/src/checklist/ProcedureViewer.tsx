@@ -15,7 +15,7 @@ export function ProcedureViewer() {
   const running = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
 
   return (
-    <div className="checklist" data-readonly="true">
+    <div className="checklist">
       <div className="checklist-header">
         <ProcedureKind type={procedure.type} />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
