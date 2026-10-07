@@ -601,7 +601,7 @@ describe('legibility', () => {
       const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
       const label = container.querySelector('[data-label]');
       const bladeNode = container.querySelector('[data-needle] [data-blade]');
-      const blade = bladeNode?.getAttribute('d') ?? '';
+      const shadowNode = container.querySelector('[data-needle-shadow] path');
       const outline = Number(bladeNode?.getAttribute('stroke-width') ?? 0) / 2;
       const castDown = Number(
         /translate\(\S+ (\S+)\)/.exec(
@@ -612,16 +612,19 @@ describe('legibility', () => {
       );
       expect(castDown).toBeGreaterThan(0);
       const size = Number(label?.getAttribute('font-size'));
-      const points = [...blade.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map(([, x, y]) => ({
-        x: Number(x),
-        y: Number(y),
-      }));
-      expect(points.length).toBeGreaterThanOrEqual(3);
-      const end = Math.min(...points.map(({ y }) => y));
-      const halfWidth = Math.max(
-        ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),
-      );
-      const tip = polar(SWEEP_END, CENTRE - end).y + halfWidth + outline + Math.max(castDown, 0);
+      // How far below the centre the tip of a needle-shaped path reaches at the end of the sweep.
+      const lowest = (path: Element | null) => {
+        const points = [
+          ...(path?.getAttribute('d') ?? '').matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g),
+        ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
+        expect(points.length).toBeGreaterThanOrEqual(3);
+        const end = Math.min(...points.map(({ y }) => y));
+        const halfWidth = Math.max(
+          ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),
+        );
+        return polar(SWEEP_END, CENTRE - end).y + halfWidth;
+      };
+      const tip = Math.max(lowest(bladeNode) + outline, lowest(shadowNode) + castDown);
       expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(tip);
     },
   );
