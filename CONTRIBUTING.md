@@ -71,6 +71,10 @@ statement threshold in `vitest.config.ts`; it replaces plain `pnpm test`.
 `pnpm test:e2e` builds the app and drives it in Chromium; install the browser once with
 `pnpm exec playwright install chromium`. The required `check` job runs all of these.
 
+`pnpm test:perf` measures the panel's performance budget (M12 plan, P1 to P4) in a
+CPU-throttled Chromium. A PR that changes panel art runs it locally before review; the
+`check` job does not run it, since throttled timings are unreliable on shared runners.
+
 UI changes also need a pass in a real browser at tablet and desktop width.
 
 ## Package boundaries

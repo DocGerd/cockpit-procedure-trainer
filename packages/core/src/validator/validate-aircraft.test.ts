@@ -439,6 +439,11 @@ describe('validateAircraft', () => {
 
     it('skips the check for an image whose size the context cannot tell', () => {
       expect(glassFindings(fixtureAircraft, { imageSize: () => undefined })).toEqual([]);
+      expect(
+        glassFindings(fixtureAircraft, {
+          imageSize: (url) => (url === 'volts-glass.png' ? undefined : sizes[url]),
+        }),
+      ).toEqual([]);
       expect(validateAircraft(fixtureAircraft)).toEqual([]);
     });
   });

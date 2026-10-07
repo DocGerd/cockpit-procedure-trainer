@@ -29,9 +29,9 @@ export function useMaterialId(kind: string): string {
 export const paint = (id: string, material: string) => `url(#${id}-${material})`;
 
 function Stops({ stops }: { stops: readonly Stop[] }) {
-  return stops.map(([offset, token, opacity]) => (
+  return stops.map(([offset, token, opacity], index) => (
     <stop
-      key={offset}
+      key={index}
       offset={offset}
       style={{ stopColor: `var(--panel-${token})` }}
       {...(opacity === undefined ? {} : { stopOpacity: opacity })}

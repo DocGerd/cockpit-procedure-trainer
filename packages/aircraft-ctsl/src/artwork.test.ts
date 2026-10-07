@@ -1,8 +1,10 @@
 // @ts-expect-error aircraft-ctsl declares no node types; its manifest belongs to the scaffold
 import { readdirSync, readFileSync } from 'node:fs';
+import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { images } from './artwork';
+import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
 import { deviceSlots, views } from './views';
@@ -76,6 +78,16 @@ describe('CTSL artwork files', () => {
         expect(sizeOf(url), `${id}: ${fileOf(url)}`).toEqual(face);
       }
     }
+  });
+
+  it('passes the validator glass size check with sizes read from the files', () => {
+    const imageSize = (url: string) => {
+      if (!shipped.includes(fileOf(url))) return undefined;
+      const { width, height } = sizeOf(url);
+      return { width: Number(width), height: Number(height) };
+    };
+    const findings = validateAircraft(ctslAircraft, { imageSize });
+    expect(findings.filter(({ code }) => code === 'artwork-glass-size')).toEqual([]);
   });
 });
 
