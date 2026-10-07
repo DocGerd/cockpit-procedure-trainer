@@ -13,7 +13,9 @@ const rendersRange = (stylesheet: string): boolean => {
   const dir = resolve(repoRoot, dirname(stylesheet));
   return globSync('*.tsx', { cwd: dir })
     .filter((file) => !file.includes('.test.'))
-    .some((file) => /type=["']range["']/.test(readFileSync(resolve(dir, file), 'utf8')));
+    .some((file) =>
+      /type\s*=\s*(?:\{\s*)?["'`]range["'`]/.test(readFileSync(resolve(dir, file), 'utf8')),
+    );
 };
 
 describe('device stylesheets', () => {
@@ -27,6 +29,10 @@ describe('device stylesheets', () => {
 
   describe.each(stylesheets)('%s', (path) => {
     const css = readFileSync(resolve(repoRoot, path), 'utf8');
+
+    it('styles a range input exactly when its screen renders one', () => {
+      expect(css.includes("input[type='range']")).toBe(rendersRange(path));
+    });
 
     it('takes every colour from a panel token and uses no brand or status token', () => {
       expect(css).not.toMatch(/--color-/);
