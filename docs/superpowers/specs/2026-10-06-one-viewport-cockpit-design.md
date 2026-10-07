@@ -48,7 +48,10 @@ least as wide as its legibility floor. Tabs otherwise.**
   the cockpit region, compute the uniform scale of the arrangement, the
   contain-fit width of each view inside its cell, and compare with the floors.
   The dock's `minWidth` is compared the same way. The dock must meet the
-  widest device floor in both width and height; the floor test checks both.
+  widest device floor in both width and height; a test in
+  `apps/web/src/aircraft-validation.test.ts` checks that, because device floors
+  come from the web device registry. `floors.spec.ts` keeps checking rendered
+  touch targets and lettering.
   This is a pure function, `chooseLayout`, unit-tested on its own.
 
 Why declared floors and not a computed rule: what makes a view illegible lives
@@ -164,8 +167,9 @@ bottom).
   empties it. It starts empty, with a hint that is chrome text, never on the
   panel. The Screen renders at its floor size or larger.
 - **Guided.** The device the current step targets opens in the dock and its
-  slot is ringed; no view switches. Practice opens and rings nothing; Explore and Free explore
-  dock a device when its slot is activated.
+  slot is ringed; no view switches. Practice opens and rings nothing; in every mode, activating a
+  slot docks its device. In Free explore the docked device's keys operate only
+  under the existing operate-freely rule, as panel controls do.
 - **Device exports.** Each device exports its Screen, a read-only Display sized
   for the slot's aspect, a `readout` text and a `floor` (the smallest size at
   which its Screen meets `--size-target`). The mirror frame scales with the
