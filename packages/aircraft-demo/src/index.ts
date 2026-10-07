@@ -1,5 +1,5 @@
 import { defineAircraft } from '@cpt/core';
-import type { Environment } from '@cpt/core';
+import type { Environment, Placement } from '@cpt/core';
 import { images } from './assets';
 import { cockpit } from './cockpit';
 import { controls } from './controls';
@@ -66,6 +66,12 @@ const radio = (state: DemoTrainerState) => state.devices.radio?.state as ComRead
 const transponder = (state: DemoTrainerState) =>
   state.devices.xpdr?.state as TransponderReading | undefined;
 
+// Each slot is a 520 by 150 recess drawn on the panel backdrop; its device mirrors there.
+const deviceSlots = {
+  radio: { rect: { x: 194, y: 604, w: 520, h: 150 } },
+  xpdr: { rect: { x: 734, y: 604, w: 520, h: 150 } },
+} as const satisfies Record<string, Placement>;
+
 const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
 const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
@@ -84,25 +90,25 @@ export const demoAircraft = defineAircraft({
     panel: {
       name: text('Instrumententafel', 'Panel'),
       image: images.panel,
-      size: { width: 1406, height: 660 },
+      size: { width: 1406, height: 784 },
       controls: {
-        battery: { rect: { x: 34, y: 371, w: 110, h: 210 } },
-        alternator: { rect: { x: 146, y: 371, w: 110, h: 210 } },
-        avionics: { rect: { x: 258, y: 375, w: 118, h: 210 } },
-        annunciator: { rect: { x: 410, y: 366, w: 100, h: 210 } },
-        starter: { rect: { x: 544, y: 375, w: 118, h: 210 } },
-        magnetos: { rect: { x: 688, y: 345, w: 270, h: 270 } },
-        alternatorBreaker: { rect: { x: 978, y: 363, w: 196, h: 235 } },
-        avionicsBreaker: { rect: { x: 1174, y: 363, w: 196, h: 235 } },
+        battery: { rect: { x: 34, y: 329, w: 110, h: 210 } },
+        alternator: { rect: { x: 146, y: 329, w: 110, h: 210 } },
+        avionics: { rect: { x: 258, y: 333, w: 118, h: 210 } },
+        annunciator: { rect: { x: 410, y: 324, w: 100, h: 210 } },
+        starter: { rect: { x: 544, y: 333, w: 118, h: 210 } },
+        magnetos: { rect: { x: 688, y: 303, w: 270, h: 270 } },
+        alternatorBreaker: { rect: { x: 978, y: 321, w: 196, h: 235 } },
+        avionicsBreaker: { rect: { x: 1174, y: 321, w: 196, h: 235 } },
       },
       indicators: {
-        tachometer: { rect: { x: 45, y: 50, w: 260, h: 260 } },
-        oilPressure: { rect: { x: 330, y: 50, w: 260, h: 260 } },
-        ammeter: { rect: { x: 615, y: 50, w: 260, h: 260 } },
-        hourMeter: { rect: { x: 910, y: 50, w: 220, h: 126 } },
-        compass: { rect: { x: 1140, y: 50, w: 220, h: 126 } },
-        lowVoltageLamp: { rect: { x: 915, y: 200, w: 210, h: 90 } },
-        oilPressureLamp: { rect: { x: 1150, y: 200, w: 210, h: 90 } },
+        tachometer: { rect: { x: 45, y: 40, w: 230, h: 230 } },
+        oilPressure: { rect: { x: 330, y: 40, w: 230, h: 230 } },
+        ammeter: { rect: { x: 615, y: 40, w: 230, h: 230 } },
+        hourMeter: { rect: { x: 910, y: 40, w: 220, h: 120 } },
+        compass: { rect: { x: 1140, y: 40, w: 220, h: 120 } },
+        lowVoltageLamp: { rect: { x: 915, y: 170, w: 210, h: 90 } },
+        oilPressureLamp: { rect: { x: 1150, y: 170, w: 210, h: 90 } },
       },
     },
     console: {
@@ -117,25 +123,20 @@ export const demoAircraft = defineAircraft({
         fuelShutoff: { rect: { x: 625, y: 300, w: 130, h: 200 } },
       },
     },
-    avionics: {
-      name: text('Funkgeräte', 'Radio stack'),
-      image: images.avionics,
-      size: { width: 640, height: 432 },
-    },
   },
   cockpit,
   devices: {
     radio: {
       device: 'com',
-      view: 'avionics',
-      placement: { rect: { x: 16, y: 16, w: 608, h: 192 } },
+      view: 'panel',
+      placement: deviceSlots.radio,
       powered: avionicsPowered,
       inputs: {},
     },
     xpdr: {
       device: 'transponder',
-      view: 'avionics',
-      placement: { rect: { x: 16, y: 232, w: 608, h: 184 } },
+      view: 'panel',
+      placement: deviceSlots.xpdr,
       powered: avionicsPowered,
       inputs: { pressureAltitude },
     },

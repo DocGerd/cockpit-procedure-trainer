@@ -1,5 +1,5 @@
 :root {
-  --dock-empty-height: calc(var(--size-target) + var(--space-4) + 2px);
+  --dock-empty-height: var(--space-12);
 }
 
 .dock {

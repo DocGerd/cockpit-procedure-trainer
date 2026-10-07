@@ -86,7 +86,7 @@ describe('the cockpit layout', () => {
     ['tablet', DESKTOP_MIN_WIDTH - 1],
   ])('is combined once the region reaches the floors, on a %s shell', async (_, width) => {
     setWidth(width);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(layoutOf()).toBe('combined');
@@ -96,11 +96,11 @@ describe('the cockpit layout', () => {
 
   it('falls back to tabs when the region shrinks below a floor', async () => {
     setWidth(DESKTOP_MIN_WIDTH);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(layoutOf()).toBe('combined');
-    stubRegion(399, 400);
+    stubRegion(399, 500);
     act(() => {
       window.dispatchEvent(new Event('resize'));
     });
@@ -109,7 +109,7 @@ describe('the cockpit layout', () => {
 
   it('keeps the checklist beside the cockpit in both', async () => {
     setWidth(DESKTOP_MIN_WIDTH);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();

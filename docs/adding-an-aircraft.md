@@ -130,7 +130,7 @@ ids pulled when the failure is injected; the validator rejects an id that is not
 is `{ rect: { x, y, w, h } }` in the coordinate space of the view's background: an
 SVG's `viewBox`, or a raster image's natural size. `position3d` and `orientation`
 are optional and the 2D renderer ignores them. Every control and every indicator
-must be placed in at least one view. The demo has a `panel`, a `console` and an `avionics` view.
+must be placed in at least one view. The demo has a `panel` and a `console` view.
 
 A view may also declare `size: { width, height }`, the coordinate space of its
 placements with the origin at 0,0. The panel uses it in preference to the image's
@@ -172,11 +172,11 @@ The validator reports a `size` that is not a positive, finite width and height a
 a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
 `h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
-finite number as `invalid-cockpit-min-width`. An optional `dock` cell (same shape as a
-view cell, held beside `views`, not in it) reports a malformed `rect` or `minWidth`, a cell
-outside `size` and an overlap with a view cell as `invalid-cockpit-dock`. A cockpit
-without a `dock` stays valid; one that declares it must be at least as wide and as tall
-as the floor of every installed device, which `aircraft-validation.test.ts` checks.
+finite number as `invalid-cockpit-min-width`. The required `dock` cell (same shape as a
+view cell, held beside `views`, not in it) reports a missing cell, a malformed `rect` or
+`minWidth`, a cell outside `size` and an overlap with a view cell as
+`invalid-cockpit-dock`. The dock must be at least as wide and as tall as the floor of
+every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 
