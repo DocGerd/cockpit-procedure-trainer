@@ -8,9 +8,23 @@ import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { aircraft, deviceScreens, devices, screenInput } from './test-fixtures';
 
+const state = vi.hoisted(() => ({ withDock: false }));
+
 vi.mock('../aircraft-registry', async () => {
   const fixtures = await import('./test-fixtures');
-  return { aircraftRegistry: [fixtures.aircraft] };
+  const withDock = {
+    ...fixtures.aircraft,
+    cockpit: {
+      size: { width: 400, height: 300 },
+      views: {},
+      dock: { rect: { x: 0, y: 200, w: 400, h: 100 }, minWidth: 100 },
+    },
+  } as unknown as typeof fixtures.aircraft;
+  return {
+    get aircraftRegistry() {
+      return [state.withDock ? withDock : fixtures.aircraft];
+    },
+  };
 });
 
 vi.mock('../device-registry', async () => {
@@ -232,11 +246,11 @@ describe('slot mirrors', () => {
     within(placement(installId) as HTMLElement).queryAllByRole('button');
 
   beforeEach(() => {
-    window.__cptDock = {};
+    state.withDock = true;
   });
 
   afterEach(() => {
-    delete window.__cptDock;
+    state.withDock = false;
   });
 
   it('mirrors each screened device with no operable keys in the slot', () => {

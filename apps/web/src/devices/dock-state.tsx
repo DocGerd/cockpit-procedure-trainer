@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTrainer } from '../trainer';
 
@@ -21,15 +13,6 @@ export type DockApi = {
 };
 
 const DockContext = createContext<DockApi | undefined>(undefined);
-
-declare global {
-  interface Window {
-    /** Browser tests create this object first; the dock then shows in tabs and fills in `open` and `close`. */
-    __cptDock?: Partial<Pick<DockApi, 'open' | 'close'>>;
-  }
-}
-
-export const testDockRequested = () => typeof window !== 'undefined' && !!window.__cptDock;
 
 /** The dock of the enclosing cockpit; undefined outside one, where a device layer stays operable. */
 export function useDock(): DockApi | undefined {
@@ -67,13 +50,6 @@ export function DockProvider({ available, children }: { available: boolean; chil
     () => ({ available, installId, open, close }),
     [available, installId, open, close],
   );
-
-  useEffect(() => {
-    const hook = window.__cptDock;
-    if (!hook) return;
-    hook.open = open;
-    hook.close = close;
-  }, [open, close]);
 
   return <DockContext.Provider value={api}>{children}</DockContext.Provider>;
 }
