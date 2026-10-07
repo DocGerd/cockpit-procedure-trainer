@@ -1,5 +1,6 @@
 import { ESLint } from 'eslint';
 import { execFileSync } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -184,6 +185,61 @@ describe('package boundaries', () => {
         "await import('../../core/src/index');\n",
       ),
     ).toBe(1);
+  });
+});
+
+describe('unknown package kinds', () => {
+  it.each([
+    ['packages/widget-x/src/x.ts'],
+    ['packages/widget-x/src/x.tsx'],
+    ['packages/widget-x/vite.config.ts'],
+    ['packages/widget-x/src/x.mts'],
+    ['packages/widget-x/src/x.cts'],
+    ['packages/devices/src/x.ts'],
+    ['packages/aircraft/src/x.ts'],
+  ])('rejects %s, a package matching no known kind', async (filePath) => {
+    expect(await restrictedSyntax(filePath, 'export {};\n')).toBe(1);
+  });
+
+  it.each([
+    ['packages/core/src/x.ts'],
+    ['packages/panel-kit/src/x.tsx'],
+    ['packages/aircraft-demo/src/x.ts'],
+    ['packages/device-x/src/x.ts'],
+    ['packages/device-x/src/screen/x.tsx'],
+  ])('accepts %s, a package of a known kind', async (filePath) => {
+    expect(await restrictedSyntax(filePath, 'export {};\n')).toBe(0);
+  });
+});
+
+describe('every package under packages/', () => {
+  const kinds = [
+    { kind: 'core', matches: (dir: string) => dir === 'core', forbidden: 'react' },
+    { kind: 'panel-kit', matches: (dir: string) => dir === 'panel-kit', forbidden: '@cpt/web' },
+    {
+      kind: 'aircraft',
+      matches: (dir: string) => dir.startsWith('aircraft-'),
+      forbidden: '@cpt/panel-kit',
+    },
+    {
+      kind: 'device',
+      matches: (dir: string) => dir.startsWith('device-'),
+      forbidden: '@cpt/web',
+    },
+  ];
+  const dirs = readdirSync(resolve(root, 'packages'), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+  it.each(dirs)('%s is of exactly one known kind', (dir) => {
+    expect(kinds.filter((k) => k.matches(dir))).toHaveLength(1);
+  });
+
+  it.each(dirs)('%s is bounded by its kind and rejects a forbidden import', async (dir) => {
+    const file = `packages/${dir}/src/x.ts`;
+    const kind = kinds.find((k) => k.matches(dir));
+    expect(await restrictedSyntax(file, 'export {};\n')).toBe(0);
+    expect(await restricted(file, `import '${kind?.forbidden}';\n`)).toBe(1);
   });
 });
 

@@ -44,7 +44,6 @@ export function formatFinding(finding: Finding): string {
 
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
-// The context carries registries the aircraft cannot see.
 /** A rect with finite x and y and a positive, finite w and h. */
 export function isUsableRect(rect: unknown): rect is Rect {
   const { x, y, w, h } = (rect ?? {}) as Record<string, unknown>;
@@ -52,6 +51,7 @@ export function isUsableRect(rect: unknown): rect is Rect {
   return finite(x) && finite(y) && finite(w) && finite(h) && (w as number) > 0 && (h as number) > 0;
 }
 
+// The context carries registries the aircraft cannot see.
 export function validateAircraft(aircraft: Aircraft, context: ValidationContext = {}): Finding[] {
   const findings: Finding[] = [];
   const add = (code: FindingCode, id: string, message: string) =>
