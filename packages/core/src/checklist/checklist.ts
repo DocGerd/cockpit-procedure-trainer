@@ -111,6 +111,8 @@ export function observeControl<S>(
 ): ChecklistState<S> {
   const item = currentItem(checklist);
   if (!item) return checklist;
+  // A stepped control, such as a transponder digit, passes through wrong
+  // values on its way to the target; spec §5 step 4 counts only non-target controls.
   const deviating =
     change.source === 'pilot' && change.kind === 'position' && !targets(item, change.id);
   const pressing =
