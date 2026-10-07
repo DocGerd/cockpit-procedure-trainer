@@ -45,24 +45,22 @@ const nextPaint = (page: Page) =>
       new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
   );
 
+/**
+ * What turns with a needle: artwork needle images (the stage's shadow mask holds one too) and a
+ * panel-kit gauge's needle and its shadow.
+ */
+const NEEDLE_PARTS =
+  ':is([data-moving="needle"] image, [data-widget] :is([data-needle], [data-needle-shadow]))';
+
 /** Per-frame cost of turning every needle in the view, or undefined when it has none. */
 export async function needleFrame(browser: Browser, page: Page, viewId: string) {
-  const needles = await page.evaluate(
-    (id) =>
-      document.querySelectorAll(
-        `[data-view="${id}"] :is([data-moving="needle"] image, [data-needle], [data-needle-shadow])`,
-      ).length,
-    viewId,
-  );
+  const selector = `[data-view="${viewId}"] ${NEEDLE_PARTS}`;
+  const needles = await page.evaluate((query) => document.querySelectorAll(query).length, selector);
   if (needles === 0) return undefined;
   const total = await paintCost(browser, page, () =>
     page.evaluate(
-      async ({ id, frames }) => {
-        const parts = [
-          ...document.querySelectorAll(
-            `[data-view="${id}"] :is([data-moving="needle"] image, [data-needle], [data-needle-shadow])`,
-          ),
-        ].map((element) => {
+      async ({ query, frames }) => {
+        const parts = [...document.querySelectorAll(query)].map((element) => {
           const transform = element.getAttribute('transform');
           const pivot = /rotate\(\s*\S+?[\s,]+(\S+?)[\s,]+(\S+?)\s*\)/.exec(transform ?? '');
           return { element, transform, x: pivot?.[1] ?? '0', y: pivot?.[2] ?? '0' };
@@ -78,7 +76,7 @@ export async function needleFrame(browser: Browser, page: Page, viewId: string) 
           else element.setAttribute('transform', transform);
         }
       },
-      { id: viewId, frames: NEEDLE_FRAMES },
+      { query: selector, frames: NEEDLE_FRAMES },
     ),
   );
   return { needles, ms: total / NEEDLE_FRAMES };
