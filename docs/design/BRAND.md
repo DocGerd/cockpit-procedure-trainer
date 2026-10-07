@@ -140,6 +140,10 @@ there. Aircraft artwork brings its own colours and does not use these.
 | `--panel-arc-red`      | `#D8483C` | `#D8483C` | gauge arc, limit                    |
 | `--panel-arc-white`    | `#ECEEF1` | `#ECEEF1` | gauge arc, flap range               |
 | `--panel-focus`        | `#FFFFFF` | `#FFFFFF` | keyboard focus ring on the panel    |
+| `--panel-metal-light`  | `#6B717A` | `#6B717A` | lit side of a metal bezel or cap    |
+| `--panel-metal-shade`  | `#0B0C0E` | `#0B0C0E` | shaded side of a metal bezel or cap |
+| `--panel-shadow`       | `#000000` | `#000000` | cast and recess shadows, by opacity |
+| `--panel-glare`        | `#FFFFFF` | `#FFFFFF` | glass glare, by opacity             |
 
 ## Delta mark
 

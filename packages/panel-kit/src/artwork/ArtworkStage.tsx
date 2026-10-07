@@ -92,6 +92,8 @@ export function ArtworkStage({
           viewBox={`0 0 ${size.width} ${size.height}`}
           aria-hidden="true"
           focusable="false"
+          className="cpt-artwork-moving"
+          data-moving={moving.type}
           style={overlayStyle}
         >
           <image
