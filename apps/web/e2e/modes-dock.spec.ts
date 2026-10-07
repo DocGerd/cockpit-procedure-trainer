@@ -1,7 +1,7 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
-import { checklistPane, copy, openPicker } from './trainer';
+import { checklistPane, copy, deviceDock as dock, openPicker } from './trainer';
 
 const radioAndTransponder = 'radioAndTransponder';
 const found = ctslAircraft.procedures[radioAndTransponder]?.title.en;
@@ -10,7 +10,6 @@ const title: string = found;
 
 const hint = 'Select a device on the panel to operate it here.';
 
-const dock = (page: Page) => page.getByRole('region', { name: 'Device dock' });
 const unit = (page: Page, device: string) =>
   dock(page).getByRole('group', { name: device, exact: true });
 const slotRing = (page: Page) => page.locator('[data-outline="target"]');
