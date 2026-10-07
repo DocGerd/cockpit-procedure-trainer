@@ -252,15 +252,18 @@ describe('CTSL view backdrops', () => {
         `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
     );
 
-  it.each(['panel', 'centre', 'console'] as const)(
-    'paints %s with one stipple texture and no other filter',
-    (id) => {
-      const svg = backdrop(id);
-      expect(count(svg, /<feTurbulence\b/g)).toBe(1);
-      expect(count(svg, /filter=["']url\(/g)).toBe(1);
-      expect(count(svg, /<pattern\b/g)).toBeGreaterThan(0);
-    },
-  );
+  it.each(['panel', 'centre', 'console'] as const)('uses at most one filter on %s', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
+    expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+  });
+
+  // The panel view has no re-raster headroom for the stipple (P2).
+  it.each(['centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+    expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
+  });
 
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
