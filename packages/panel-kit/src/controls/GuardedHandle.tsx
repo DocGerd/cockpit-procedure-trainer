@@ -76,14 +76,13 @@ export function GuardedHandle({
           <g className="pk-move pk-slide" style={vars({ '--pk-y': offset - HANDLE.top })}>
             <SoftShadow box={GRIP} offset={[1, 2.6]} blur={2.4} />
             <rect {...GRIP} style={{ fill: paint(kit, 'chrome-across') }} />
-            <line
-              x1={GRIP.x + 3}
-              x2={GRIP.x + GRIP.width - 3}
-              y1={GRIP.y + 1}
-              y2={GRIP.y + 1}
-              strokeWidth={0.8}
-              strokeLinecap="round"
-              style={{ stroke: paint(kit, 'specular') }}
+            <rect
+              x={GRIP.x + 2.6}
+              y={GRIP.y + 0.6}
+              width={GRIP.width - 5.2}
+              height={0.8}
+              rx={0.4}
+              style={{ fill: paint(kit, 'specular') }}
             />
           </g>
         </g>

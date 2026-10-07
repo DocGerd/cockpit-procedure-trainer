@@ -185,14 +185,13 @@ export function Lever(props: ControlWidgetProps) {
               style={{ stroke: 'var(--panel-plastic-shade)' }}
             />
           ))}
-          <line
-            x1={HANDLE.x + 4}
-            x2={HANDLE.x + HANDLE.width - 4}
-            y1={HANDLE.y + 1.3}
-            y2={HANDLE.y + 1.3}
-            strokeWidth={1}
-            strokeLinecap="round"
-            style={{ stroke: paint(kit, 'specular') }}
+          <rect
+            x={HANDLE.x + 3.5}
+            y={HANDLE.y + 0.8}
+            width={HANDLE.width - 7}
+            height={1}
+            rx={0.5}
+            style={{ fill: paint(kit, 'specular') }}
           />
           <line className="pk-line" x1={25} x2={35} y1={-1.5} y2={-1.5} />
         </g>

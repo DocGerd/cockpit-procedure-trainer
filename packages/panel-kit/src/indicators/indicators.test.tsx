@@ -616,6 +616,7 @@ describe('legibility', () => {
         x: Number(x),
         y: Number(y),
       }));
+      expect(points.length).toBeGreaterThanOrEqual(3);
       const end = Math.min(...points.map(({ y }) => y));
       const halfWidth = Math.max(
         ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),

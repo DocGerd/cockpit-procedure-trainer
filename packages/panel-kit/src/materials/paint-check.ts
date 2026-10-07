@@ -18,6 +18,20 @@ function serverProblems(root: ParentNode, id: string): string[] {
   return [`${id} is a ${tag}, not a gradient or pattern`];
 }
 
+// A paint server in box units on a shape with no width or height paints nothing.
+const flatLine = (node: Element) =>
+  node.tagName.toLowerCase() === 'line' &&
+  (node.getAttribute('x1') === node.getAttribute('x2') ||
+    node.getAttribute('y1') === node.getAttribute('y2'));
+
+const boxUnits = (root: ParentNode, id: string) => {
+  const server = root.querySelector(`[id="${id}"]`);
+  const units = server?.getAttribute(
+    server.tagName.toLowerCase() === 'pattern' ? 'patternUnits' : 'gradientUnits',
+  );
+  return server !== null && units !== 'userSpaceOnUse';
+};
+
 /**
  * Every fill and stroke inside the widget's SVG is a panel token, or a `url(#…)` to a gradient whose
  * stops are panel tokens or to a pattern whose own shapes pass the same check; no filter anywhere.
@@ -36,8 +50,12 @@ export function paintProblems(root: ParentNode): string[] {
     for (const paint of paints) {
       if (!paint || paint === 'none') continue;
       const reference = REFERENCE.exec(paint)?.[1];
-      if (reference !== undefined) problems.push(...serverProblems(root, reference));
-      else if (!TOKEN.test(paint)) problems.push(`${node.tagName} paints ${paint}`);
+      if (reference !== undefined) {
+        problems.push(...serverProblems(root, reference));
+        if (flatLine(node) && boxUnits(root, reference)) {
+          problems.push(`straight ${node.tagName} paints the box-unit url(#${reference})`);
+        }
+      } else if (!TOKEN.test(paint)) problems.push(`${node.tagName} paints ${paint}`);
     }
   }
   return problems;

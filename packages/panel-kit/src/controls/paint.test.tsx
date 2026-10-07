@@ -61,6 +61,25 @@ describe('materials', () => {
     expect(normalisedMarkup(draw(id, control, position, open))).toBe(first);
   });
 
+  it('rejects a straight line painted with a gradient in box units', () => {
+    const { container } = render(
+      <svg>
+        <defs>
+          <linearGradient id="g">
+            <stop style={{ stopColor: 'var(--panel-glare)' }} />
+          </linearGradient>
+          <linearGradient id="u" gradientUnits="userSpaceOnUse">
+            <stop style={{ stopColor: 'var(--panel-glare)' }} />
+          </linearGradient>
+        </defs>
+        <line x1={0} x2={10} y1={1} y2={1} style={{ stroke: 'url(#g)' }} />
+        <line x1={0} x2={10} y1={1} y2={1} style={{ stroke: 'url(#u)' }} />
+        <line x1={0} x2={10} y1={1} y2={4} style={{ stroke: 'url(#g)' }} />
+      </svg>,
+    );
+    expect(paintProblems(container)).toEqual(['straight line paints the box-unit url(#g)']);
+  });
+
   it('gives each mount its own material ids', () => {
     const ids = (container: HTMLElement) =>
       [...container.querySelectorAll('[id]')].map((node) => node.id);
