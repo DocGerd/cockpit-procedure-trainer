@@ -271,8 +271,7 @@ describe('CTSL view backdrops', () => {
     expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
   });
 
-  // The panel view has no re-raster headroom for the stipple (P2).
-  it.each(['centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
+  it.each(['panel', 'centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
     const svg = backdrop(id);
     expect(count(svg, /<feTurbulence\b/g)).toBe(1);
     expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
