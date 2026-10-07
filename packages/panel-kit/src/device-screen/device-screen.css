@@ -75,7 +75,16 @@
   inset: 0;
   pointer-events: none;
   content: '';
-  background-image: var(--pk-glass);
+  /* A docked window is wide and large: a second, narrow canopy band keeps the glass legible. */
+  background-image:
+    var(--pk-glass),
+    linear-gradient(
+      105deg,
+      transparent 6%,
+      color-mix(in srgb, var(--panel-glare) 12%, transparent) 7%,
+      color-mix(in srgb, var(--panel-glare) 6%, transparent) 18%,
+      transparent 19%
+    );
   box-shadow: var(--pk-lip), var(--pk-glass-edge);
 }
 
@@ -299,6 +308,13 @@
     inset var(--pk-hair) var(--pk-hair) 0 color-mix(in srgb, var(--panel-glare) 70%, transparent),
     inset calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 3)
       color-mix(in srgb, var(--panel-shadow) 75%, transparent);
+}
+
+/* The dock clips at its padding, so the docked unit's shadow fades out inside that band. */
+.pk-device {
+  --pk-cast:
+    1px 2px 4px color-mix(in srgb, var(--panel-shadow) 70%, transparent),
+    2px 3px 7px color-mix(in srgb, var(--panel-shadow) 45%, transparent);
 }
 
 /* Black-oxide slotted screws in the four corners, slots at varied angles, each with its shadow. */
