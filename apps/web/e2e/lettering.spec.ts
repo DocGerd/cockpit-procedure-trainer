@@ -198,3 +198,46 @@ for (const aircraft of aircraftRegistry) {
     });
   }
 }
+
+const ARC_STEP = 0.25;
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of viewports) {
+    test(`${aircraft.id} keeps gauge captions clear of the arcs at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const crowded: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        crowded.push(
+          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
+            (gauges, { where, step }) =>
+              gauges.flatMap((gauge) => {
+                const label = gauge.querySelector<SVGTextElement>('[data-label]');
+                if (!label) return [];
+                const box = label.getBBox();
+                const touches = [...gauge.querySelectorAll<SVGPathElement>('[data-arc]')].some(
+                  (arc) => {
+                    const reach = Number(arc.getAttribute('stroke-width')) / 2;
+                    const length = arc.getTotalLength();
+                    for (let at = 0; at <= length; at = at + step) {
+                      const point = arc.getPointAtLength(at);
+                      const dx = Math.max(box.x - point.x, 0, point.x - (box.x + box.width));
+                      const dy = Math.max(box.y - point.y, 0, point.y - (box.y + box.height));
+                      if (Math.hypot(dx, dy) < reach) return true;
+                    }
+                    return false;
+                  },
+                );
+                return touches ? [`${where}/${gauge.getAttribute('aria-label')}`] : [];
+              }),
+            { where: viewId, step: ARC_STEP },
+          )),
+        );
+      }
+      expect(crowded, 'gauge captions touching a coloured arc').toEqual([]);
+    });
+  }
+}

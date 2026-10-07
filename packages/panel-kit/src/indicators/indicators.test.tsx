@@ -4,7 +4,15 @@ import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Annunciator } from './Annunciator';
 import { DigitalReadout, UNITS_ROOM, unitsReserve } from './DigitalReadout';
-import { angleAt, polar, squeeze, SWEEP_END, SWEEP_START } from './geometry';
+import {
+  angleAt,
+  ARC_RADIUS,
+  ARC_STROKE,
+  polar,
+  squeeze,
+  SWEEP_END,
+  SWEEP_START,
+} from './geometry';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
 import type { IndicatorWidget } from '../types';
@@ -487,7 +495,8 @@ describe('legibility', () => {
 
   it.each([
     [48, { numerals: false, units: false, label: false }],
-    [80, { numerals: false, units: false, label: true }],
+    [80, { numerals: false, units: false, label: false }],
+    [96, { numerals: false, units: true, label: true }],
     [128, { numerals: true, units: true, label: true }],
     [208, { numerals: true, units: true, label: true }],
   ])(
@@ -516,7 +525,7 @@ describe('legibility', () => {
     }
   });
 
-  it.each([80, 100, 126, 160, 208])(
+  it.each([96, 100, 126, 160, 208])(
     'keeps the caption clear of the needle at either end of the sweep at %i px',
     (px) => {
       placeAt(px, px);
@@ -531,8 +540,24 @@ describe('legibility', () => {
     },
   );
 
+  it.each([96, 100, 126, 160, 208])('keeps a long caption between the arc ends at %i px', (px) => {
+    placeAt(px, px);
+    const Gauge = gauge;
+    const { container } = render(
+      <Gauge value={17} label="Oil pressure" options={{ ...gaugeOptions, arcs: [] }} />,
+    );
+    const label = container.querySelector('[data-label]');
+    const arcEnd = polar(SWEEP_END, ARC_RADIUS - ARC_STROKE / 2);
+    if (label === null) return;
+    const size = Number(label.getAttribute('font-size'));
+    const length = Number(label.getAttribute('textLength') ?? 12 * 0.65 * size);
+    const top = Number(label.getAttribute('y')) - size / 2;
+    expect(top).toBeLessThan(arcEnd.y);
+    expect(length / 2).toBeLessThan(arcEnd.x - 50);
+  });
+
   it('keeps the caption inside the dial and below the numerals and units', () => {
-    for (const px of [80, 100, 126, 160, 208]) {
+    for (const px of [96, 100, 126, 160, 208]) {
       placeAt(px, px);
       const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
       const label = container.querySelector('[data-label]');

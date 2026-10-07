@@ -1,17 +1,27 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
-import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze, SWEEP_END } from './geometry';
+import {
+  angleAt,
+  ARC_RADIUS,
+  ARC_STROKE,
+  arcEndRoom,
+  arcPath,
+  CENTRE,
+  formatNumber,
+  polar,
+  squeeze,
+  SWEEP_END,
+} from './geometry';
 import { readGaugeOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
-const ARC_RADIUS = 42;
 const TICK_OUTER = 38;
 const TICK_INNER = 33;
 const NUMERAL_RADIUS = 26;
 const NEEDLE_LENGTH = 34;
 const NEEDLE_STROKE = 1.6;
 const VIEWBOX = { width: 100, height: 100 };
-const LABEL_WIDTH = 66;
+const CAPTION_GAP = 1;
 const NUMERAL_DESIGN = 5;
 const UNITS_DESIGN = 5;
 const LABEL_DESIGN = 5.5;
@@ -46,15 +56,25 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   const { min, max, units, ticks, arcs } = config;
   const reading = units === '' ? formatNumber(value) : `${formatNumber(value)} ${units}`;
 
+  const captionSize = placeText(metrics, {
+    design: LABEL_DESIGN,
+    room: Infinity,
+    chars: 0,
+  }).fontSize;
+  // The caption slides down off the needle's lowest tip; units and numerals keep their own room.
+  const labelY = Math.max(LABEL_Y, NEEDLE_LOW + captionSize / 2);
+  const captionBottom = labelY + captionSize / 2;
+  const captionRoom = Math.min(
+    chordRoom(captionBottom),
+    arcEndRoom(labelY - captionSize / 2, captionBottom, CAPTION_GAP),
+  );
   const caption = placeText(metrics, {
     design: LABEL_DESIGN,
-    room: LABEL_WIDTH,
+    room: captionRoom,
     chars: label.length,
     advance: SANS_ADVANCE,
     squeezable: true,
   });
-  // The caption slides down off the needle's lowest tip; units and numerals keep their own room.
-  const labelY = Math.max(LABEL_Y, NEEDLE_LOW + caption.fontSize / 2);
   const showCaption = caption.show && labelY + caption.fontSize / 2 <= CENTRE + FACE_RADIUS;
   const unit = placeText(metrics, {
     design: UNITS_DESIGN,
@@ -111,7 +131,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           data-arc=""
           d={arcPath(angleAt(arc.from, min, max), angleAt(arc.to, min, max), ARC_RADIUS)}
           fill="none"
-          strokeWidth={3}
+          strokeWidth={ARC_STROKE}
           style={{ stroke: `var(--panel-arc-${arc.colour})` }}
         />
       ))}
@@ -171,8 +191,8 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           style={{ fill: 'var(--panel-legend)', fontFamily: sans }}
           {...squeeze(
             label,
-            Math.floor(LABEL_WIDTH / (SANS_ADVANCE * caption.fontSize)),
-            LABEL_WIDTH,
+            Math.floor(captionRoom / (SANS_ADVANCE * caption.fontSize)),
+            captionRoom,
           )}
         >
           {label}
