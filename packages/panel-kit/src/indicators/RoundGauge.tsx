@@ -63,9 +63,10 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
     advance: SANS_ADVANCE,
     squeezable: true,
   });
-  const labelTop = LABEL_Y - caption.fontSize / 2;
+  // Deliberately the caption's design position, not labelY: units and numerals keep their own room.
+  const textFloor = LABEL_Y - caption.fontSize / 2;
   const showUnits =
-    units !== '' && showCaption && unit.show && UNITS_Y + unit.fontSize / 2 <= labelTop;
+    units !== '' && showCaption && unit.show && UNITS_Y + unit.fontSize / 2 <= textFloor;
   const tickLabels = ticks.map(formatNumber);
   const numeral = placeText(metrics, {
     design: NUMERAL_DESIGN,
@@ -80,7 +81,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
     (units === '' || showUnits) &&
     showCaption &&
     numeral.show &&
-    lowestNumeral + numeral.fontSize / 2 <= labelTop;
+    lowestNumeral + numeral.fontSize / 2 <= textFloor;
 
   return (
     <svg
