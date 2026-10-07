@@ -48,6 +48,8 @@ export type CtslState = {
 
 export type CtslTrainerState = TrainerState<CtslState>;
 
+export const engineRunning = (state: CtslTrainerState) => state.systems.engine.running;
+
 type Throttle = 'idle' | 'low' | 'runup' | 'cruise' | 'full';
 
 // Intake values: docs/aircraft/ctsl-intake.md §4 and §5.

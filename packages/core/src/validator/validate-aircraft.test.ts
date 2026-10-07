@@ -214,6 +214,28 @@ describe('validateAircraft', () => {
     only(withPhase('parking', { image: '' }), 'phase-without-image', 'parking');
   });
 
+  describe('running image', () => {
+    const engineRunning = () => true;
+
+    it('accepts a running image with an engineRunning condition', () => {
+      const aircraft = { ...withPhase('parking', { imageRunning: 'running.svg' }), engineRunning };
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports a running image without an engineRunning condition', () => {
+      only(
+        withPhase('parking', { imageRunning: 'running.svg' }),
+        'running-image-without-engine',
+        'parking',
+      );
+    });
+
+    it('reports an empty running image', () => {
+      const aircraft = { ...withPhase('parking', { imageRunning: '' }), engineRunning };
+      only(aircraft, 'phase-without-image', 'parking');
+    });
+  });
+
   describe('phase-without-snapshot', () => {
     it('reports a phase with no entry', () => {
       only(withPhase('parking', { entry: undefined }), 'phase-without-snapshot', 'parking');

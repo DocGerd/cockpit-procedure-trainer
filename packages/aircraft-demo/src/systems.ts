@@ -27,6 +27,8 @@ export type DemoState = {
 
 export type DemoTrainerState = TrainerState<DemoState>;
 
+export const engineRunning = (state: DemoTrainerState) => state.systems.engine.running;
+
 const bus = electricalBus({ batteryVolts: 12, chargingVolts: 14 });
 const engine = pistonEngineStart({ crankMsToStart: 1500 });
 

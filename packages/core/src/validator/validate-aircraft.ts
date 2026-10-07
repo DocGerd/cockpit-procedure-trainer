@@ -7,6 +7,7 @@ export type FindingCode =
   | 'unplaced-indicator'
   | 'missing-translation'
   | 'phase-without-image'
+  | 'running-image-without-engine'
   | 'phase-without-snapshot'
   | 'undeclared-failure'
   | 'unknown-position'
@@ -353,6 +354,18 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   for (const [phaseId, phase] of Object.entries(aircraft.phases)) {
     checkText(phaseId, 'name', phase.name);
     if (isMissing(phase.image)) add('phase-without-image', phaseId, 'declares no image');
+    if (phase.imageRunning !== undefined) {
+      if (isMissing(phase.imageRunning)) {
+        add('phase-without-image', phaseId, 'declares an empty running image');
+      }
+      if (aircraft.engineRunning === undefined) {
+        add(
+          'running-image-without-engine',
+          phaseId,
+          'declares a running image but no engineRunning',
+        );
+      }
+    }
 
     const entry = phase.entry as Partial<typeof phase.entry> | undefined;
     if (!entry?.controls || entry.state === undefined) {

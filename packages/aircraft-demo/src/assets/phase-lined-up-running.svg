@@ -43,9 +43,9 @@
 <path d="M799.9 151.3 L800.1 151.3 L800.1 151.3 L799.9 151.3 Z" fill="#F2F4F6"/>
 <g data-runway-designator="27" fill="#F2F4F6" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="bold" text-anchor="middle"><text transform="translate(780 198) scale(1 .62)">2</text><text transform="translate(820 198) scale(1 .62)">7</text></g>
 <g><rect x="1238.5" y="126.7" width="3" height="34" fill="#2B3138"/><path d="M1240 126.7 L1252 128.7 L1252 133.7 L1240 136.7 Z" fill="#E98A3A" stroke="#2B3138" stroke-width="1"/><path d="M1245.5 127.7 V135.7" stroke="#F2F4F6" stroke-width="3"/></g>
+<circle cx="800" cy="246" r="150" fill="#33393F" fill-opacity="0.1" stroke="#33393F" stroke-opacity="0.7" stroke-width="5"/>
 <path d="M260 300 C420 230 640 200 800 200 C960 200 1180 230 1340 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M790 204 L810 204 L812 300 L788 300 Z" fill="#9AA1AA" opacity="0.6"/>
-<g transform="translate(-130 -4)"><path d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
 <path d="M0 300 V262 C300 252 1300 252 1600 262 V300 Z" fill="#2B3138"/>
 <path d="M0 262 C300 252 1300 252 1600 262" fill="none" stroke="#4B535C" stroke-width="4"/>
 <path d="M0 0 H64 L30 300 H0 Z" fill="#2B3138"/><path d="M64 0 L30 300" stroke="#4B535C" stroke-width="4"/>
