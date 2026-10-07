@@ -208,10 +208,11 @@ Two sources, mixable within one aircraft:
   cap colour. The kit covers typical GA hardware and is the placeholder until
   an aircraft has its own artwork.
 - **Aircraft artwork**: image files shipped in the aircraft package, described
-  as layers: a static face and the moving part (needle with pivot and angle
-  range, switch states as one image per position, lever travel as a path). The
-  renderer animates the layers; the same description later maps onto a 3D
-  model.
+  as layers: a static face, the moving part (needle with pivot and angle
+  range, switch states as one image per position, lever travel as a path) and
+  an optional glass layer above it that never moves, so glare lies over the
+  needle. The renderer animates the moving part and can cast a needle's shadow
+  from it; the same description later maps onto a 3D model.
 
 A control with no declared appearance falls back to the generic widget for its
 kind, so a new aircraft is usable before any artwork exists.

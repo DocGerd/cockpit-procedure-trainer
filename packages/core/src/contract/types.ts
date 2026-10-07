@@ -34,6 +34,8 @@ export type ArtworkAppearance = {
   readonly artwork: {
     readonly face: string;
     readonly moving: MovingPart;
+    /** Glass drawn above the moving part and never moved, so its glare lies over the needle; the face's size. */
+    readonly glass?: string;
     /** The text the face image prints, so a check can see that the control is labelled. */
     readonly lettering?: readonly string[];
   };

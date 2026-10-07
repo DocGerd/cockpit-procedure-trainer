@@ -37,6 +37,7 @@ export function ArtworkIndicator({
       artwork={artwork}
       value={value}
       fallback={fallback}
+      options={options}
       imageLabel={nameOf(label, value, options)}
     />
   );

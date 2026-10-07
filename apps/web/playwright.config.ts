@@ -3,6 +3,9 @@ import { defineConfig, devices } from '@playwright/test';
 const base = process.env.BASE_PATH ?? '/';
 const port = Number(process.env.E2E_PORT ?? 4399);
 const offlineSpec = /offline\.spec\.ts$/;
+const perfSpec = /perf[\\/].*\.spec\.ts$/;
+// The perf budget runs only through `pnpm test:perf`: it throttles the CPU, so the default run skips it.
+const perf = process.env.E2E_PERF === '1';
 const origin = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
@@ -25,8 +28,18 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', testIgnore: offlineSpec },
+    { name: 'chromium', testIgnore: [offlineSpec, perfSpec] },
     { name: 'offline', testMatch: offlineSpec, use: { serviceWorkers: 'allow' } },
+    ...(perf
+      ? [
+          {
+            name: 'perf',
+            testMatch: perfSpec,
+            timeout: 30 * 60_000,
+            use: { viewport: { width: 1024, height: 768 }, colorScheme: 'dark' as const },
+          },
+        ]
+      : []),
   ],
   webServer: {
     command: `pnpm run build && pnpm exec vite preview --host 127.0.0.1 --port ${port} --strictPort`,
