@@ -117,6 +117,9 @@ const compassCard: ArtworkAppearance = {
   },
 };
 
+// Seven stage shadows sweeping at once overrun the needle-frame budget; the small gauges go without.
+const noShadow = { needleShadow: false };
+
 export const gaugeArtwork = {
   compass: compassCard,
   airspeed: needle(
@@ -142,7 +145,7 @@ export const gaugeArtwork = {
   verticalSpeed: needle(
     images.gaugeVsi,
     { min: -5, max: 5 },
-    { units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
+    { ...noShadow, units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
     { min: -225, max: 45 },
   ),
   tachometer: needle(
@@ -163,6 +166,7 @@ export const gaugeArtwork = {
     images.gaugeOilPressure,
     { min: 0, max: 10 },
     {
+      ...noShadow,
       units: 'bar',
       decimals: 1,
       ticks: [0, 2, 4, 6, 8, 10],
@@ -178,6 +182,7 @@ export const gaugeArtwork = {
     images.gaugeOilTemperature,
     { min: 40, max: 150 },
     {
+      ...noShadow,
       units: '°C',
       decimals: 0,
       ticks: [40, 50, 70, 90, 110, 130, 150],
@@ -193,6 +198,7 @@ export const gaugeArtwork = {
     images.gaugeCht,
     { min: 40, max: 150 },
     {
+      ...noShadow,
       units: '°C',
       decimals: 0,
       ticks: [40, 50, 70, 90, 110, 120, 150],
