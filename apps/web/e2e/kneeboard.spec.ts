@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 
-const CARD_FILL = '#C9CDD2';
 const MIN_GAP = 4;
 // A title that overflows the card must still be attributed to it, so the card's own text is
 // collected a little past its bottom edge.
@@ -19,7 +18,7 @@ test('ctsl knee-board cards keep the top rule clear of the title and the lines i
   await page.setContent(`<body>${readFileSync(fileURLToPath(panelUrl), 'utf8')}</body>`);
 
   const cards = await page.evaluate(
-    ({ fill, reach }) => {
+    ({ reach }) => {
       const svg = document.querySelector('svg');
       if (!svg) return [];
       const number = (el: Element, name: string) => Number(el.getAttribute(name));
@@ -38,7 +37,7 @@ test('ctsl knee-board cards keep the top rule clear of the title and the lines i
         ];
       });
       return [...svg.querySelectorAll('rect')]
-        .filter((rect) => rect.getAttribute('fill')?.toUpperCase() === fill)
+        .filter((rect) => rect.hasAttribute('data-card'))
         .map((rect) => {
           const left = number(rect, 'x');
           const top = number(rect, 'y');
@@ -61,7 +60,7 @@ test('ctsl knee-board cards keep the top rule clear of the title and the lines i
           return { bottom, ruleBottom: rule?.bottom ?? null, titles };
         });
     },
-    { fill: CARD_FILL, reach: OVERFLOW_REACH },
+    { reach: OVERFLOW_REACH },
   );
 
   expect(cards.length, 'knee-board cards found').toBeGreaterThan(0);
