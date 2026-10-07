@@ -8,6 +8,12 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.11.1] - 2026-10-07
+
+### Security
+
+- Releases now ship the production web bundle as a `.tar.gz` asset signed with keyless Sigstore (GitHub artifact attestations); `docs/verifying-a-release.md` explains how to verify it.
+
 ## [0.11.0] - 2026-10-07
 
 ### Added
@@ -209,7 +215,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...v0.9.0

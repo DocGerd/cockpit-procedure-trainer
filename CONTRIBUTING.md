@@ -36,10 +36,24 @@ holds released state and feeds the production site.
    PR merges by the owner account. Deliberate obfuscation (shell expansion
    tricks, clients other than `gh`, `curl` and `wget` such as python) is out of
    scope for the tripwire.
-3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
-   `vX.Y.Z` and the GitHub Release.
+3. A workflow reads the top released section of `CHANGELOG.md`, builds and
+   signs the production bundle, and creates tag `vX.Y.Z` and the GitHub Release
+   with the bundle attached. [Verifying a release](docs/verifying-a-release.md)
+   shows how to check its signature.
 
 Versions are semantic and below 1.0: milestone Mn is released as v0.(n+1).0.
+
+## Code of conduct, governance, security
+
+Participation is under the [Code of Conduct](CODE_OF_CONDUCT.md); decision
+making and roles are in [`GOVERNANCE.md`](GOVERNANCE.md); the direction is in
+[`ROADMAP.md`](ROADMAP.md). Report vulnerabilities privately as
+[`SECURITY.md`](SECURITY.md) describes, never in a public issue.
+
+## Tests
+
+New functionality needs automated tests (unit, and e2e where the behaviour is
+user-visible) in the same pull request; the required `check` job runs them.
 
 ## Machine prerequisites
 
@@ -49,7 +63,10 @@ TypeScript language server plugin needs
 
 ## Checks
 
-    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e
+
+`pnpm test:coverage` runs the unit tests with v8 coverage and fails below the
+statement threshold in `vitest.config.ts`; it replaces plain `pnpm test`.
 
 `pnpm test:e2e` builds the app and drives it in Chromium; install the browser once with
 `pnpm exec playwright install chromium`. The required `check` job runs all of these.

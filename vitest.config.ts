@@ -8,5 +8,12 @@ export default defineConfig({
       'tools/**/*.test.ts',
     ],
     passWithNoTests: false,
+    coverage: {
+      provider: 'v8',
+      include: ['packages/*/src/**', 'apps/web/src/**'],
+      exclude: ['**/*.test.{ts,tsx}', '**/e2e/**', '**/*.d.ts', '**/dist/**'],
+      reporter: ['text-summary'],
+      thresholds: { statements: 95 },
+    },
   },
 });
