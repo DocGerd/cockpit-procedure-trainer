@@ -18,7 +18,7 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 - Header: aircraft, procedure, mode, phase, language, theme (spec §5). The UAT build adds a "UAT" badge.
 - Free explore hides the procedure button; the phase control stays, because phase is global session state.
 - Outside-view strip on top.
-- Panel below it, with view tabs.
+- Cockpit below it: the panel with the device dock (S12) under it, the centre field and console stacked on the right. View tabs only where the combined cockpit would be too small; the dock then sits below the tab panel.
 - Checklist pane at the side.
 
 ### S2 Main layout, tablet
@@ -57,9 +57,9 @@ If the procedure names an end phase, the app moves to it (spec §5).
 
 The tapped control is selected with the accent outline (S9). Its details show name and purpose, type and view as tags, the positions with the current one marked, and a "Used in" list of procedures and items. A toggle switches to operating controls freely instead.
 
-### S8 Device screens in the panel
+### S8 Device mirrors in the panel
 
-An avionics unit's own screen and bezel inside its panel placement (spec §4.9): powered and powered off.
+An avionics unit's slot in the panel (spec §4.9) shows a live read-only mirror of the unit: bezel with the printed unit name, display, powered and powered off. The slot is one tappable target that opens the unit in the device dock (S12).
 
 ### S9 Guided highlight on the panel
 
@@ -67,18 +67,26 @@ Accent outline with a pulse around the current target. A reduced-motion variant 
 
 ### S10 Light and dark
 
-Both themes for S1 to S9 and S11.
+Both themes for S1 to S9, S11 and S12.
 
 ### S11 Error states
 
 - Error boundary: a readable message and a reset.
 - Missing panel image: a labelled placeholder.
 
+### S12 Device dock
+
+One non-modal dock under the panel (spec §4.9), holding one avionics unit at a time with its operable screen and bezel.
+
+- Empty: a hint in chrome text; nothing on the panel changes.
+- Holding a unit: the unit's operable screen at its floor size or larger, and a close button that empties the dock. Activating another slot swaps the unit; Escape returns focus to the slot that opened it.
+- Guided: the dock opens the unit the current step targets and the slot is ringed (S9); no view switches.
+
 ## Covered and missing
 
 Where the spec and the canvas disagree, this brief follows the spec for behaviour and the canvas for appearance.
 
-The product's design canvas draws every screen; three states are not drawn, and some screens are drawn in one theme only (S10 row below). `handoff/README.md` maps each exported artboard to its screens.
+The product's design canvas draws every screen; some states are not drawn, and some screens are drawn in one theme only (S10 row below). `handoff/README.md` maps each exported artboard to its screens.
 
 Drawn, by artboard:
 
@@ -91,7 +99,7 @@ Drawn, by artboard:
 | Picker, light and dark                     | the training-aid notice                           | S5, S10                                |
 | Summary, light and dark                    | the procedure summary                             | S6, S10                                |
 | Tablet, collapsed and expanded             | the checklist as a header toggle, and over panel  | S2                                     |
-| Device screens                             | powered and powered off                           | S8                                     |
+| Device screens                             | powered and powered off, as operable screens      | S8 (before the dock)                   |
 | Error boundary, missing panel image (dark) | the two error states                              | S11, S10 (part)                        |
 
 Not drawn, specified below in words:
@@ -100,18 +108,21 @@ Not drawn, specified below in words:
 | ------ | ------------------------------------------------------------------------------------------------------------------------ |
 | S3     | the deviated item state                                                                                                  |
 | S6     | the end phase after the summary                                                                                          |
+| S8     | the slot mirror                                                                                                          |
 | S9     | reduced-motion variant                                                                                                   |
+| S12    | the device dock, empty and holding a unit                                                                                |
 | S10    | the other theme of S2, S7 popover, S8 and S11: each is drawn in one theme only, and the missing panel image in dark only |
 
 ## Specification of the screens and states not drawn
 
-The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S9 reduced motion, the S10 themes). S2, S7, S8 and S11 are now drawn; their sections below stay as the behaviour text. Each derives from a drawn artboard, so the web shell can be built without new drawings.
+The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S8 slot mirror, S9 reduced motion, S12 device dock, the S10 themes). S2, S7 and S11 are now drawn; their sections below stay as the behaviour text. Each derives from a drawn artboard, so the web shell can be built without new drawings.
 
 ### S2 Tablet
 
+- The device dock (S12) sits below the tab panel and is shared across tabs.
 - Below the desktop breakpoint, which the web shell chooses, the checklist pane collapses to a header button showing progress (`2 / 6`).
 - Opening it slides the pane in from the side, over the panel. Content is the same as on desktop.
-- A tap outside the pane, or the same button, closes it. Guided keeps highlighting and switching views while the pane is closed.
+- A tap outside the pane, or the same button, closes it. Guided keeps highlighting, and switching views for non-device targets, while the pane is closed.
 - Header, outside-view strip and panel keep the S1 layout.
 
 ### S3 Deviated item
@@ -130,11 +141,16 @@ When the app moves to the end phase, the phase in the header and the outside-vie
 - It is chrome: surface, border and text tokens apply, the control keeps its own look.
 - With operate freely on, a tap operates the control and no popover opens.
 
-### S8 Device screens
+### S8 Device mirrors
 
-- The device draws its own rendering inside its panel placement: bezel, display and the unit's controls. It is aircraft content and takes no brand tokens.
-- Powered: the screen shows the unit's current page.
-- Powered off: a dark screen with no content. A device's power follows its electrical bus.
+- The slot draws the device's read-only display inside a bezel that scales with the slot, printed with the unit name. It is aircraft content and takes no brand tokens.
+- Powered: the mirror shows the unit's current page. Powered off: a dark screen with no content. A device's power follows its electrical bus.
+- The slot is one target of at least the touch size; activating it opens the unit in the dock.
+
+### S12 Device dock
+
+- The dock is chrome around aircraft content: its hint and close button use chrome tokens, the device inside takes none.
+- Empty on start. Only one unit is open at a time.
 
 ### S9 Reduced motion
 
