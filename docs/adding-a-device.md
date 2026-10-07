@@ -17,11 +17,14 @@ text in your own words, in German and English.
     packages/device-<id>/
       package.json          name @cpt/device-<id>, exports "." -> ./src/index.ts
       tsconfig.json         as in packages/device-com
-      README.md             "## Source revision", "## Controls", "## Not modelled"
+      README.md             "## Source revision", "## Controls", "## Not modelled"; "## Display"
+                            as in the other devices
       LICENSES.md           one entry per image file, or a note that there is none
-      src/index.ts          re-exports logic and screen
-      src/logic/            the device definition, depends on @cpt/core only
-      src/screen/           the screen component, depends on @cpt/panel-kit
+      src/index.ts          re-exports logic, screen, the entry and the display
+      src/entry.ts          the DeviceScreenEntry: Screen, Display, readout, floor
+      src/logic/            the device definition and readout, depends on @cpt/core only
+      src/screen/           the operable screen, depends on @cpt/panel-kit
+      src/display/          the read-only display for the panel slot
 
 `package.json` depends on `@cpt/core` and `@cpt/panel-kit` as `workspace:*`.
 React, React DOM and their types are dev dependencies (the screen tests render) and React is a peer dependency, as
@@ -70,7 +73,8 @@ Export the device, its state type and any constant a test or another package nee
 
 ## Screen, Display, readout and floor
 
-A device exports four things for the app: the operable `Screen`, a read-only
+A device exports one `DeviceScreenEntry` from `@cpt/panel-kit` (`<id>ScreenEntry`,
+built in `src/entry.ts`) with four members: the operable `Screen`, a read-only
 `Display`, a `readout` and a `floor`. The `Screen` opens in the device dock; the
 `Display` is the live mirror in the aircraft's panel slot (spec section 4.9).
 
@@ -98,20 +102,24 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 
 ### Display, readout and floor
 
-- `Display` is a `ComponentType<{ on: boolean; state: unknown }>`: the same
-  display contents as the screen, with no buttons and no `send`. Size it for the
-  slot's aspect. The
-  mirror frame comes from `@cpt/panel-kit` and scales with the slot; its printed
-  label is the unit name (for example `COM`, `XPDR`, `GPS`), never "open". Keep
-  the display lettering readable at the panel floor.
-- `readout(state, lang)` returns a short text of what the display shows. The
-  slot's accessible name is the unit name followed by the readout.
+- `Display` is a `ComponentType<DeviceDisplayProps>`, `{ on: boolean; state: unknown }`:
+  the same display contents as the screen, with no buttons and no `send`. Wrap it
+  in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (the 520 by 150
+  radio and transponder slot) or `GPS_MIRROR` (the 400 by 300 GPS slot); the frame
+  scales with the slot. Its printed label is the unit name (for example `COM`,
+  `XPDR`, `GPS`), never "open". Keep the display lettering readable at the panel
+  floor.
+- `readout(state, language, on)` returns a short text of what the display shows,
+  in `'de'` or `'en'`, and a text for the powered-off unit when `on` is false. It
+  is `src/logic/readout.ts` in the existing devices. The slot's accessible name is the unit name
+  followed by the readout.
 - `floor` is `{ width, height }`, the smallest size at which the `Screen` keeps
   every button at least `--size-target`. The dock renders the screen at that
   size or larger, and a test checks the aircraft's dock cell against it.
 - A slot mirrors the device in this version; `slotMode()` in the app is the
   pure rule that could let a large slot be operated in place, and it always
-  returns mirror for now.
+  returns mirror for now. Only where the cockpit has no dock (an aircraft without
+  `cockpit`) is the `Screen` itself drawn in the slot.
 
 ## Installing in an aircraft
 
@@ -130,6 +138,10 @@ the install id, which prefixes the device's control ids:
 
 - `device` is the device id, `view` an existing view id and `placement` the slot
   where the mirror is drawn. Activating the slot opens the device in the dock.
+  The device has no view of its own.
+- The aircraft's `cockpit` arrangement needs a `dock` cell, and the dock must be
+  at least as wide and as tall as the `floor` of every installed device
+  (`docs/adding-an-aircraft.md`, Cockpit arrangement).
 - `powered` is the bus condition. The device is off when it is false.
 - `inputs` maps each input name the device reads to a function of the state. The
   transponder reads `pressureAltitude`; the COM radio takes none.
@@ -158,10 +170,15 @@ unknown device control and an impossible position.
 the package as a dependency of `apps/web` and register both halves:
 
 - `deviceRegistry`: the logic, passed to the session.
-- `deviceScreens`: the entry keyed by device id, with `Screen`, `Display`,
-  `readout` and `floor`.
+- `deviceEntries`: the `<id>ScreenEntry` keyed by device id. `deviceScreens`, the
+  operable screens, is derived from it; do not edit it.
 
-Both are added in the app's registry file and nothing else in `apps/web` changes.
+Also add the unit's name in both languages to `unitNames` in
+`apps/web/src/devices/messages.ts`; the slot's accessible name uses it, and
+`unit-names.test.ts` fails without it. In `tools/device-entry.test.ts` add the
+device to `NATURAL_SCREEN` (the powered `Screen`'s measured natural size) and
+`SLOT_OF` (the CTSL slot its mirror is checked against). Nothing else in `apps/web`
+changes.
 
 ## Checks
 
@@ -181,5 +198,6 @@ test-local aircraft, runs the aircraft validator and walks a procedure with
 `walkProcedure` (it fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first);
 screen tests for the display, the accessible names and the
-`send` calls; `tools/` contract tests check the `Display`, `readout` and `floor`
-exports of every `packages/device-*`.
+`send` calls; `tools/` contract tests check the entry (`Display`, `readout` and
+`floor`) of every `packages/device-*`, and `apps/web/src/device-keys.test.tsx` the
+`data-control` and `data-position` of every registered device's keys.
