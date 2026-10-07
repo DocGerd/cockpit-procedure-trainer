@@ -105,7 +105,7 @@ Not drawn, specified below in words:
 
 ## Specification of the screens and states not drawn
 
-The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S9 reduced motion, the S10 themes). The sections for screens that are now drawn also keep the behaviour text for screens that are now drawn. Each derives from a drawn artboard, so the web shell can be built without new drawings.
+The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S9 reduced motion, the S10 themes). S2, S7, S8 and S11 are now drawn; their sections below stay as the behaviour text. Each derives from a drawn artboard, so the web shell can be built without new drawings.
 
 ### S2 Tablet
 
