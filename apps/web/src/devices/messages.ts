@@ -14,3 +14,21 @@ export const messages = defineMessages({
     dockClose: 'Gerät schließen',
   },
 });
+
+/** The unit's name as the pilot says it, keyed by device id; a device without one is named by its id. */
+export const unitNames = defineMessages({
+  en: {
+    com: 'COM radio',
+    sl40: 'COM radio',
+    transponder: 'Transponder',
+    gtx327: 'Transponder',
+    gpsmap496: 'GPS',
+  },
+  de: {
+    com: 'COM-Funkgerät',
+    sl40: 'COM-Funkgerät',
+    transponder: 'Transponder',
+    gtx327: 'Transponder',
+    gpsmap496: 'GPS',
+  },
+});
