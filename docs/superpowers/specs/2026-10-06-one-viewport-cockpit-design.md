@@ -348,7 +348,8 @@ and dark, each mode; one tablet size to confirm tabs still work.
 
 1. ~~Which chrome yields first when the floors cannot be met at HD?~~ Decided
    (#388): the outside strip folds to a thin band (§6) before the layout falls
-   back to tabs; the checklist column and the header and footer stay.
+   back to tabs; the checklist column and the header and footer stay. Decision 3
+   holds: the strip stays on top, only its height folds.
 2. ~~Target overlap (Decision 7): its own issue, and should the floor test
    gain a no-overlap check once the art allows it?~~ Superseded: the floor
    test checks it, with the remaining overlaps accepted by name (Decision 7).

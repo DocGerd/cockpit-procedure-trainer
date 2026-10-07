@@ -10,6 +10,7 @@ const desktops = [
 
 // A browser window on a 1080p screen: the tab, address and bookmark bars and the taskbar take the rest.
 const browserWindow = { width: 1920, height: 950 };
+const fullHd = { width: 1920, height: 1080 };
 
 const tablets = [
   { width: 1024, height: 768 },
@@ -20,7 +21,7 @@ const cockpitLayout = (page: Page) => page.locator('.shell');
 
 const themes = ['light', 'dark'] as const;
 
-// Too short for the outside-view strip to fold far enough: the tabs.
+// Below every aircraft's folded breakpoint (the outside-view strip at its minimum): the tabs.
 const shortDesktop = { width: 1920, height: 800 };
 
 async function expectNoPageScroll(page: Page) {
@@ -149,7 +150,7 @@ test('the outside-view strip folds in a browser window and a docked device still
 test('the outside-view strip is whole where the cockpit fits without folding it', async ({
   page,
 }) => {
-  await page.setViewportSize(desktops[0] ?? browserWindow);
+  await page.setViewportSize(fullHd);
   await openAircraft(page, ctsl);
   await expect(page.getByRole('region', { name: 'Outside view' })).toHaveAttribute(
     'data-folded',
