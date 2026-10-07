@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
@@ -5,6 +6,7 @@ import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useTrainer } from '../trainer';
+import { useLayout } from './layout';
 import { messages } from './messages';
 
 function BrandMark() {
@@ -19,37 +21,138 @@ function BrandMark() {
 function HeaderChoice({
   eyebrow,
   value,
-  onClick,
+  action,
+  details,
+  open,
+  onToggle,
+  onClose,
+  onChange,
 }: {
   eyebrow: string;
   value: string;
-  onClick(): void;
+  action: string;
+  details: boolean;
+  open: boolean;
+  onToggle(): void;
+  onClose(): void;
+  onChange(): void;
 }) {
+  const anchor = useRef<HTMLDivElement>(null);
+  const chip = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const dialogId = useId();
+  const labelId = useId();
+  const close = useRef(onClose);
+  close.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Node) || !anchor.current?.contains(event.target)) {
+        close.current();
+      }
+    };
+    // Capture phase: the dialog is the topmost layer, so Escape must not reach the checklist drawer.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation();
+      if (anchor.current?.contains(document.activeElement)) chip.current?.focus();
+      close.current();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) dialog.current?.focus();
+  }, [open]);
+
+  if (!details) {
+    return (
+      <button type="button" className="chrome-button shell-choice" title={value} onClick={onChange}>
+        <span className="shell-eyebrow">{eyebrow}</span>{' '}
+        <span className="shell-choice-value">{value}</span>
+      </button>
+    );
+  }
+
   return (
-    <button type="button" className="chrome-button shell-choice" title={value} onClick={onClick}>
-      <span className="shell-eyebrow">{eyebrow}</span>{' '}
-      <span className="shell-choice-value">{value}</span>
-    </button>
+    <div
+      ref={anchor}
+      className="shell-choice-anchor"
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (open && next instanceof Node && !anchor.current?.contains(next)) onClose();
+      }}
+    >
+      <button
+        ref={chip}
+        type="button"
+        className="chrome-button shell-choice"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? dialogId : undefined}
+        onClick={onToggle}
+      >
+        <span className="shell-eyebrow">{eyebrow}</span>{' '}
+        <span className="shell-choice-value">{value}</span>
+      </button>
+      {open && (
+        <div
+          ref={dialog}
+          id={dialogId}
+          role="dialog"
+          aria-labelledby={labelId}
+          tabIndex={-1}
+          className="shell-choice-details"
+        >
+          <p id={labelId} className="shell-detail-label">
+            {eyebrow}
+          </p>
+          <p className="shell-detail-value">{value}</p>
+          <button type="button" className="chrome-button" onClick={onChange}>
+            {action}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
+
+type Choice = 'aircraft' | 'procedure';
 
 function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
+  const details = useLayout() === 'tablet';
+  const [open, setOpen] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
+  const choice = (kind: Choice) => ({
+    details,
+    open: details && open === kind,
+    onToggle: () => setOpen((current) => (current === kind ? undefined : kind)),
+    onClose: () => setOpen(undefined),
+    onChange: backToPicker,
+  });
   return (
     <>
       <HeaderChoice
         eyebrow={text.aircraft}
         value={localize(aircraft.name)}
-        onClick={backToPicker}
+        action={text.changeAircraft}
+        {...choice('aircraft')}
       />
       {procedure && (
         <HeaderChoice
           eyebrow={text.procedure}
           value={localize(procedure.title)}
-          onClick={backToPicker}
+          action={text.changeProcedure}
+          {...choice('procedure')}
         />
       )}
     </>
