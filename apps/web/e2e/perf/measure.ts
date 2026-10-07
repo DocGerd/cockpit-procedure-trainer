@@ -1,15 +1,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { Browser, Page } from '@playwright/test';
+import { paintMs } from './trace';
+import type { TraceEvent } from './trace';
 
-/** The trace events whose summed duration is a sample's paint and raster cost. */
-const PAINT_EVENTS = new Set([
-  'Paint',
-  'RasterTask',
-  'Decode Image',
-  'ImageDecodeTask',
-  'PaintImage',
-]);
 const CATEGORIES = ['devtools.timeline', 'disabled-by-default-devtools.timeline'];
 
 export const SAMPLES = 9;
@@ -19,8 +13,6 @@ export const median = (values: readonly number[]): number => {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.floor(sorted.length / 2)] ?? Number.NaN;
 };
-
-type TraceEvent = { ph?: string; name?: string; dur?: number };
 
 /** Paint and raster milliseconds of the trace around `action`. */
 export async function paintCost(
@@ -39,9 +31,7 @@ export async function paintCost(
   const trace = JSON.parse(buffer.toString()) as {
     traceEvents?: TraceEvent[];
   };
-  return (trace.traceEvents ?? [])
-    .filter((event) => event.ph === 'X' && PAINT_EVENTS.has(event.name ?? ''))
-    .reduce((sum, event) => sum + (event.dur ?? 0) / 1000, 0);
+  return paintMs(trace.traceEvents ?? []);
 }
 
 const nextPaint = (page: Page) =>
@@ -90,7 +80,7 @@ export async function needleFrame(browser: Browser, page: Page, viewId: string) 
   return { needles, ms: total / NEEDLE_FRAMES };
 }
 
-/** Per-switch cost of a full re-raster of the view: the larger of a resize and a hide-and-show. */
+/** Per-switch cost of a full re-raster of the view: a one-pixel resize and a hide-and-show. */
 export async function reraster(browser: Browser, page: Page, viewId: string) {
   const size = page.viewportSize() ?? { width: 1024, height: 768 };
   // One pixel wider, not narrower: narrower crosses the shell header's min-width rule in
