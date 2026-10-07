@@ -28,7 +28,16 @@ const workspaceDirs = ['packages', 'apps'].flatMap((root) =>
     .map((entry) => entry.name),
 );
 
-const isDevice = (name) => name.startsWith('device-');
+// The one list of package kinds: every per-kind block and the catch-all derive from it.
+const packageKinds = {
+  core: 'packages/core',
+  panelKit: 'packages/panel-kit',
+  aircraft: 'packages/aircraft-*',
+  device: 'packages/device-*',
+};
+const dirPrefix = (kind) => packageKinds[kind].slice('packages/'.length, -1);
+const isDevice = (name) => name.startsWith(dirPrefix('device'));
+const aircraftDirs = workspaceDirs.filter((name) => name.startsWith(dirPrefix('aircraft')));
 
 // A device has no package name to exclude, so every device directory is reached by wildcard.
 const reachableDirs = (own) =>
@@ -202,33 +211,26 @@ const restrict = (own, groups, selectors = []) => ({
   ],
 });
 
-const knownPackageKinds = [
-  'packages/core/**',
-  'packages/panel-kit/**',
-  'packages/aircraft-*/**',
-  'packages/device-*/**',
-];
-
 export default tseslint.config(
   { ignores: ['**/dist/**', '**/node_modules/**', 'docs/design/handoff/**'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
-    files: ['packages/*/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
-    ignores: knownPackageKinds,
+    files: ['packages/*/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'],
+    ignores: Object.values(packageKinds).map((dir) => `${dir}/**`),
     rules: {
       'no-restricted-syntax': [
         'error',
         {
           selector: 'Program',
           message:
-            'This package matches no known kind (core, panel-kit, aircraft-*, device-*). Give it boundary rules in eslint.config.js.',
+            'This package matches no known kind. Add the kind to packageKinds with its boundary rules in eslint.config.js.',
         },
       ],
     },
   },
   {
-    files: ['packages/core/**/*.{ts,tsx}'],
+    files: [`${packageKinds.core}/**/*.{ts,tsx}`],
     rules: restrict(
       'core',
       [
@@ -245,31 +247,29 @@ export default tseslint.config(
       [{ selector: dynamicOtherThanCore, message: 'core imports no other workspace package.' }],
     ),
   },
-  ...workspaceDirs
-    .filter((name) => name.startsWith('aircraft-'))
-    .map((name) => ({
-      files: [`packages/${name}/**/*.{ts,tsx}`],
-      rules: restrict(
-        name,
-        [
-          {
-            group: [...ui, ...otherThanCore],
-            message: 'An aircraft depends only on @cpt/core and names widgets and devices by id.',
-          },
-        ],
-        [{ selector: dynamicOtherThanCore, message: 'An aircraft depends only on @cpt/core.' }],
-      ),
-    })),
+  ...aircraftDirs.map((name) => ({
+    files: [`packages/${name}/**/*.{ts,tsx}`],
+    rules: restrict(
+      name,
+      [
+        {
+          group: [...ui, ...otherThanCore],
+          message: 'An aircraft depends only on @cpt/core and names widgets and devices by id.',
+        },
+      ],
+      [{ selector: dynamicOtherThanCore, message: 'An aircraft depends only on @cpt/core.' }],
+    ),
+  })),
   {
-    files: ['packages/device-*/**/*.{ts,tsx}'],
+    files: [`${packageKinds.device}/**/*.{ts,tsx}`],
     rules: restrict(null, deviceGroups, deviceSelectors),
   },
   {
-    files: ['packages/device-*/src/screen/**/*.{ts,tsx}'],
+    files: [`${packageKinds.device}/src/screen/**/*.{ts,tsx}`],
     rules: restrict(null, deviceGroups, [...deviceSelectors, ...literalSelectors]),
   },
   {
-    files: ['packages/device-*/src/logic/**/*.{ts,tsx}'],
+    files: [`${packageKinds.device}/src/logic/**/*.{ts,tsx}`],
     rules: restrict(
       null,
       [
@@ -290,7 +290,7 @@ export default tseslint.config(
     ),
   },
   {
-    files: ['packages/panel-kit/**/*.{ts,tsx}'],
+    files: [`${packageKinds.panelKit}/**/*.{ts,tsx}`],
     rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...literalSelectors]),
   },
   {
@@ -307,11 +307,11 @@ export default tseslint.config(
     rules: restrict('web', webGroups, [...webSelectors, ...colourLiterals]),
   },
   {
-    files: ['packages/panel-kit/**/*.test.{ts,tsx}'],
+    files: [`${packageKinds.panelKit}/**/*.test.{ts,tsx}`],
     rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...colourLiterals]),
   },
   {
-    files: ['packages/device-*/src/screen/**/*.test.{ts,tsx}'],
+    files: [`${packageKinds.device}/src/screen/**/*.test.{ts,tsx}`],
     rules: restrict(null, deviceGroups, [...deviceSelectors, ...colourLiterals]),
   },
 );

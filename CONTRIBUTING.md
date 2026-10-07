@@ -69,8 +69,7 @@ UI changes also need a pass in a real browser at tablet and desktop width.
   and devices only in `src/device-registry.ts`.
 
 ESLint enforces these. A package under `packages/` of any other kind fails
-`pnpm lint` until `eslint.config.js` gives its kind a boundary block and the kind is listed in
-`knownPackageKinds`; extend `tools/boundary.test.ts` in the same change.
+`pnpm lint` until `eslint.config.js` lists its kind in `packageKinds` and gives it a boundary block; extend `tools/boundary.test.ts` in the same change.
 
 Colours, type and spacing come only from `apps/web/src/styles/tokens.css`. ESLint and Stylelint enforce
 this in `apps/web/src` and in the package sources and stylesheets (`pnpm lint` runs both);
