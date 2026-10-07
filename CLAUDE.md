@@ -50,8 +50,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 
 - Quality trade-offs follow `docs/adr/0002-quality-priorities.md`: gates
   (legal, security/privacy) are never traded; otherwise the higher rank wins
-  and the PR names any sacrificed quality. Accessibility ranks lowest: briefs
-  and reviews add no screen-reader or keyboard-route work.
+  and the PR names any sacrificed quality. Accessibility ranks lowest: existing
+  support stays, but briefs and reviews add no new screen-reader or
+  keyboard-route work.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
@@ -99,7 +100,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   threads via GraphQL.
 - `gh pr edit` fails on the Projects-classic error: PATCH
   `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead. Clear a
-  milestone with `--input` on a file holding `{"milestone": null}`.
+  milestone by PATCHing `repos/<owner>/<repo>/issues/<n>` with `--input` on a
+  file holding `{"milestone": null}`.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
