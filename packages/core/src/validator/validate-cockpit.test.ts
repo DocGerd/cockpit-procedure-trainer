@@ -140,4 +140,78 @@ describe('cockpit arrangement', () => {
     expect(() => validateAircraft(aircraft)).not.toThrow();
     expect(codes(aircraft)).toContain('invalid-cockpit-min-width');
   });
+
+  describe('device dock', () => {
+    const docked = (dock: unknown) =>
+      withCockpit({ ...arrangement, size: { width: 400, height: 300 }, dock });
+    const dockCell = cell(0, 200, 400, 100);
+
+    it('finds nothing for a valid dock', () => {
+      expect(validateAircraft(docked(dockCell))).toEqual([]);
+    });
+
+    it('lets the dock touch the cells beside it', () => {
+      expect(codes(docked(cell(0, 200, 400, 100)))).toEqual([]);
+    });
+
+    it.each([
+      ['zero', 0],
+      ['negative', -5],
+      ['infinite', Infinity],
+      ['NaN', NaN],
+      ['a string', '300'],
+    ])('reports a %s dock minWidth', (_, minWidth) => {
+      expect(cockpitFindings(docked({ ...dockCell, minWidth }))).toMatchObject([
+        { code: 'invalid-cockpit-dock', id: 'dock' },
+      ]);
+    });
+
+    it.each([
+      ['a missing rect', { minWidth: 300 }],
+      ['a null rect', { rect: null, minWidth: 300 }],
+      ['a zero width', cell(0, 200, 0, 100)],
+      ['a negative height', cell(0, 200, 400, -100)],
+      ['a NaN origin', cell(NaN, 200, 400, 100)],
+    ])('reports %s as exactly one invalid dock', (_, broken) => {
+      expect(cockpitFindings(docked(broken))).toMatchObject([
+        { code: 'invalid-cockpit-dock', id: 'dock' },
+      ]);
+    });
+
+    it.each([
+      ['right', cell(100, 200, 301, 100)],
+      ['bottom', cell(0, 201, 400, 100)],
+      ['left', cell(-1, 200, 100, 100)],
+      ['top', cell(0, -1, 100, 100)],
+    ])('reports a dock that leaves the arrangement past the %s edge', (_, outside) => {
+      const findings = cockpitFindings(docked(outside)).filter(
+        ({ code }) => code === 'invalid-cockpit-dock',
+      );
+      expect(findings.map(({ message }) => message)).toContainEqual(
+        expect.stringContaining('outside'),
+      );
+    });
+
+    it('reports a dock that overlaps a view cell, naming the view', () => {
+      const [finding, ...rest] = cockpitFindings(docked(cell(0, 199, 400, 101)));
+      expect(rest).toEqual([]);
+      expect(finding).toMatchObject({ code: 'invalid-cockpit-dock', id: 'dock' });
+      expect(finding?.message).toContain('console');
+    });
+
+    it('checks the dock against no bounds when the size is invalid', () => {
+      const aircraft = withCockpit({ ...arrangement, size: 'big', dock: dockCell });
+      expect(codes(aircraft)).toEqual(['invalid-cockpit-size']);
+    });
+
+    it('does not throw on a null dock', () => {
+      const aircraft = docked(null);
+      expect(() => validateAircraft(aircraft)).not.toThrow();
+      expect(codes(aircraft)).toContain('invalid-cockpit-dock');
+    });
+
+    it('does not make the dock a view', () => {
+      expect(codes(docked(dockCell))).not.toContain('unknown-cockpit-view');
+    });
+  });
 });

@@ -90,4 +90,40 @@ describe('chooseLayout', () => {
   it('judges the height too: a short region lowers the scale', () => {
     expect(chooseLayout(aircraft, { width: 4000, height: 150 })).toMatchObject({ scale: 1.5 });
   });
+
+  describe('the device dock', () => {
+    // The dock sits under the views, so the arrangement grows to 400 x 150.
+    const docked = (dock: unknown, width = 400): Pick<Aircraft, 'cockpit' | 'views'> =>
+      ({
+        views: aircraft.views,
+        cockpit: { ...aircraft.cockpit, size: { width, height: 150 }, dock },
+      }) as unknown as Pick<Aircraft, 'cockpit' | 'views'>;
+    const dock = { rect: { x: 0, y: 100, w: 400, h: 50 }, minWidth: 400 };
+
+    it('places the dock like a cell, scaled with the arrangement', () => {
+      expect(chooseLayout(docked(dock), { width: 800, height: 300 })).toMatchObject({
+        kind: 'combined',
+        scale: 2,
+        dock: { left: 0, top: 200, width: 800, height: 100 },
+      });
+    });
+
+    it('is tabs when the dock is one CSS px short of its floor', () => {
+      expect(chooseLayout(docked(dock), { width: 400, height: 150 }).kind).toBe('combined');
+      expect(chooseLayout(docked(dock), { width: 399, height: 150 }).kind).toBe('tabs');
+    });
+
+    it('is tabs, without throwing, for a dock with a malformed rect', () => {
+      const broken = { rect: { x: 0, y: 100, w: NaN, h: 50 }, minWidth: 100 };
+      expect(chooseLayout(docked(broken), { width: 400, height: 150 }).kind).toBe('tabs');
+      expect(chooseLayout(docked({ minWidth: 100 }), { width: 400, height: 150 }).kind).toBe(
+        'tabs',
+      );
+    });
+
+    it('has no dock field when the arrangement declares none', () => {
+      const layout = chooseLayout(aircraft, { width: 400, height: 100 });
+      expect(layout.kind === 'combined' && 'dock' in layout).toBe(false);
+    });
+  });
 });
