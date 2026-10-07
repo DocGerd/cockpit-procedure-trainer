@@ -16,7 +16,7 @@
 <g data-runway-designator="27" fill="#F2F4F6" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" text-anchor="middle"><text transform="translate(768 181) scale(1 .6)">2</text><text transform="translate(832 181) scale(1 .6)">7</text></g>
 <path d="M260 300 C420 224 640 194 800 194 C960 194 1180 224 1340 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M790 198 L810 198 L812 300 L788 300 Z" fill="#9AA1AA" opacity="0.6"/>
-<g transform="translate(-130 -10)"><path d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
+<g transform="translate(-130 -10)"><path id="propeller-blade" d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
 <path d="M0 300 V262 C300 246 1300 246 1600 262 V300 Z" fill="#2B3138"/>
 <path d="M0 262 C300 246 1300 246 1600 262" fill="none" stroke="#4B535C" stroke-width="4"/>
 <path d="M0 0 H64 L30 300 H0 Z" fill="#2B3138"/><path d="M64 0 L30 300" stroke="#4B535C" stroke-width="4"/>

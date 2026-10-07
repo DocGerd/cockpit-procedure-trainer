@@ -15,7 +15,7 @@
 <path d="M350 247.5 L372.5 247.5 L726.7 166.7 L722.9 166.7 Z" fill="#F2F4F6"/>
 <path d="M1250 247.5 L1272.5 247.5 L881 166.7 L877.1 166.7 Z" fill="#F2F4F6"/>
 </g>
-<circle cx="930" cy="250" r="150" fill="#33393F" fill-opacity="0.1" stroke="#33393F" stroke-opacity="0.7" stroke-width="5"/>
+<circle id="propeller-disc" cx="930" cy="250" r="150" fill="#33393F" fill-opacity="0.1" stroke="#33393F" stroke-opacity="0.7" stroke-width="5"/>
 <path d="M390 300 C550 238 770 204 930 204 C1090 204 1310 238 1470 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M916 208 L944 208 L948 300 L912 300 Z" fill="#9AA1AA" opacity="0.5"/>
 <path d="M0 300 V258 C340 246 1260 246 1600 258 V300 Z" fill="#2B3138"/>

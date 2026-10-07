@@ -408,7 +408,7 @@
 </g>
 <path d="M390 300 C550 238 770 204 930 204 C1090 204 1310 238 1470 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M916 208 L944 208 L948 300 L912 300 Z" fill="#9AA1AA" opacity="0.5"/>
-<g transform="translate(0 0)"><path d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
+<g transform="translate(0 0)"><path id="propeller-blade" d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
 <path d="M0 300 V258 C340 246 1260 246 1600 258 V300 Z" fill="#2B3138"/>
 <path d="M0 258 C340 246 1260 246 1600 258" fill="none" stroke="#4B535C" stroke-width="4"/>
 <rect x="640" y="226" width="56" height="26" rx="8" fill="#1E2328"/><rect x="650" y="232" width="36" height="13" rx="3" fill="#D9DCE0"/>

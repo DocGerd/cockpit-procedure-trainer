@@ -218,7 +218,13 @@ describe('validateAircraft', () => {
     const engineRunning = () => true;
 
     it('accepts a running image with an engineRunning condition', () => {
-      const aircraft = { ...withPhase('parking', { imageRunning: 'running.svg' }), engineRunning };
+      const phases = Object.fromEntries(
+        Object.entries(fixtureAircraft.phases).map(([id, phase]) => [
+          id,
+          { ...phase, imageRunning: 'running.svg' },
+        ]),
+      );
+      const aircraft = { ...fixtureAircraft, phases, engineRunning } as Aircraft;
       expect(validateAircraft(aircraft)).toEqual([]);
     });
 
@@ -228,6 +234,12 @@ describe('validateAircraft', () => {
         'running-image-without-engine',
         'parking',
       );
+    });
+
+    it('reports a phase without a running image when the aircraft declares engineRunning', () => {
+      const aircraft = { ...fixtureAircraft, engineRunning } as Aircraft;
+      const found = ofCode(aircraft, 'phase-without-running-image');
+      expect(found.map((f) => f.id).sort()).toEqual(Object.keys(fixtureAircraft.phases).sort());
     });
 
     it('reports an empty running image', () => {

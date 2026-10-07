@@ -45,7 +45,7 @@
 <g data-runway-designator="36" fill="#F2F4F6" font-family="Helvetica, Arial, sans-serif" font-size="58" font-weight="bold" text-anchor="middle"><text transform="translate(780 204) scale(1 .62)">3</text><text transform="translate(820 204) scale(1 .62)">6</text></g>
 <g><rect x="1240" y="136" width="3" height="34" fill="#4B535C"/><path d="M1242 136 L1254 138 L1254 143 L1242 146 Z" fill="#E98A3A"/><path d="M1247 137 V145" stroke="#F2F4F6" stroke-width="3"/></g>
 </g>
-<circle cx="930" cy="256" r="150" fill="#33393F" fill-opacity="0.1" stroke="#33393F" stroke-opacity="0.7" stroke-width="5"/>
+<circle id="propeller-disc" cx="930" cy="256" r="150" fill="#33393F" fill-opacity="0.1" stroke="#33393F" stroke-opacity="0.7" stroke-width="5"/>
 <path d="M390 300 C550 244 770 210 930 210 C1090 210 1310 244 1470 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M916 214 L944 214 L948 300 L912 300 Z" fill="#9AA1AA" opacity="0.5"/>
 <path d="M0 300 V258 C340 246 1260 246 1600 258 V300 Z" fill="#2B3138"/>
