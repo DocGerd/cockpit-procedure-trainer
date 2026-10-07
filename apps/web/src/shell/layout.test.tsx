@@ -338,36 +338,70 @@ describe('trainer layout on desktop', () => {
     expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
   });
 
-  it('has no checklist and no procedure in Free explore', async () => {
+  it('shows a read-only checklist and no procedure in Free explore', async () => {
     renderShell();
     await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
     expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    expect(within(aside).getByRole('combobox', { name: 'Show checklist' })).toBeTruthy();
+    expect(within(aside).getByRole('heading', { name: 'Alpha power up' })).toBeTruthy();
+    expect(within(aside).queryByRole('img')).toBeNull();
     expect(
       within(screen.getByRole('banner')).queryByRole('button', { name: /^Procedure/ }),
     ).toBeNull();
   });
 
-  it('ends the procedure when switching to Free explore mid-procedure', async () => {
+  it('ends the procedure but keeps its checklist readable when switching to Free explore mid-procedure', async () => {
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
     expect(within(header).getByRole('button', { name: /^Procedure/ })).toBeTruthy();
     act(() => trainer.setMode('explore'));
     expect(trainer.session.procedureId()).toBeUndefined();
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    expect(within(aside).getByRole('heading', { name: 'Alpha power up' })).toBeTruthy();
+    expect(within(aside).queryByRole('img')).toBeNull();
     expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
   });
 
+  it('ticks nothing in the Free explore checklist when the panel is operated', async () => {
+    renderShell();
+    await startProcedure();
+    act(() => trainer.setMode('explore'));
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    const before = aside.innerHTML;
+    act(() => trainer.session.set('master', 'on'));
+    expect(aside.innerHTML).toBe(before);
+    expect(trainer.session.checklist()).toBeUndefined();
+  });
+
+  it('lets a Guided user read the emergency checklist without leaving the running one', async () => {
+    renderShell();
+    await userEvent.click(screen.getByRole('button', { name: /^Bravo/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Bravo power up/ }));
+    await startProcedure();
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    await userEvent.selectOptions(within(aside).getByRole('combobox'), 'fire');
+    expect(within(aside).getByRole('heading', { name: 'Bravo engine fire' })).toBeTruthy();
+    expect(trainer.procedureId).toBe('powerUp');
+    await userEvent.click(
+      within(aside).getByRole('button', { name: 'Back to running checklist: Bravo power up' }),
+    );
+    expect(within(aside).getByRole('heading', { name: 'Bravo power up' })).toBeTruthy();
+    expect(within(aside).getAllByRole('img')).not.toHaveLength(0);
+  });
+
   it.each(['guided', 'practice'] as const)(
-    'brings the checklist back when switching from Free explore to %s',
+    'brings the running checklist back when switching from Free explore to %s',
     async (mode) => {
       renderShell();
       await startProcedure();
       act(() => trainer.setMode('explore'));
-      expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+      expect(screen.queryAllByRole('img', { name: /^(Done|Current|Pending)$/ })).toHaveLength(0);
       act(() => trainer.setMode(mode));
-      expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
+      expect(
+        within(screen.getByRole('complementary', { name: 'Checklist' })).getAllByRole('img'),
+      ).not.toHaveLength(0);
       expect(
         within(screen.getByRole('banner')).getByRole('button', { name: /^Procedure/ }),
       ).toBeTruthy();
@@ -384,40 +418,47 @@ describe('trainer layout on desktop', () => {
     );
   });
 
-  it('brings the checklist back on a tablet behind its header toggle', async () => {
+  it('keeps the checklist behind its header toggle on a tablet in every mode', async () => {
     setWidth(DESKTOP_MIN_WIDTH - 1);
     renderShell();
     await startProcedure();
     act(() => trainer.setMode('explore'));
+    expect(checklistToggle().textContent).not.toContain('/');
+    await userEvent.click(checklistToggle());
     expect(
-      within(screen.getByRole('banner')).queryByRole('button', { name: /^Checklist/ }),
-    ).toBeNull();
+      within(screen.getByRole('complementary', { name: 'Checklist' })).getByRole('heading', {
+        name: 'Alpha power up',
+      }),
+    ).toBeTruthy();
     act(() => trainer.setMode('guided'));
     expect(checklistToggle().textContent).toContain(`0 / ${itemCount}`);
   });
 
-  it('brings the tablet checklist back collapsed even when its drawer was open', async () => {
+  it('leaves the tablet drawer as the user left it when the mode changes', async () => {
     setWidth(DESKTOP_MIN_WIDTH - 1);
     renderShell();
     await startProcedure();
     await userEvent.click(checklistToggle());
-    expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
     act(() => trainer.setMode('explore'));
     act(() => trainer.setMode('guided'));
-    expect(checklistToggle().getAttribute('aria-expanded')).toBe('false');
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    expect(checklistToggle().getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
   });
 
-  it('drops the procedure from the header and the pane after a phase jump, also after a reset', async () => {
+  it('drops the procedure from the header after a phase jump, also after a reset, and keeps the checklist as a read-only reference', async () => {
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
     act(() => trainer.jumpToPhase('cruise'));
     expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    expect(
+      within(screen.getByRole('complementary', { name: 'Checklist' })).queryByRole('img'),
+    ).toBeNull();
     act(() => trainer.resetSession());
     expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
+    expect(
+      within(screen.getByRole('complementary', { name: 'Checklist' })).queryByRole('img'),
+    ).toBeNull();
   });
 
   it('shows the UAT badge in a UAT build only', async () => {
@@ -544,7 +585,7 @@ describe('the tablet drawer from the keyboard', () => {
     await startProcedure();
     await userEvent.keyboard('{Enter}');
     expect(pane().contains(document.activeElement)).toBe(true);
-    expect(document.activeElement).toBe(within(pane()).getAllByRole('button')[0]);
+    expect(document.activeElement).toBe(within(pane()).getByRole('combobox'));
   });
 
   it('returns focus to the toggle on Escape and on a tap outside', async () => {
@@ -577,7 +618,7 @@ describe('the tablet drawer from the keyboard', () => {
     act(() => buttons.at(-1)?.focus());
     await userEvent.tab();
     expect(document.activeElement).toBe(checklistToggle());
-    act(() => buttons[0]?.focus());
+    act(() => within(pane()).getByRole('combobox').focus());
     await userEvent.tab({ shift: true });
     expect(document.activeElement).toBe(checklistToggle());
   });

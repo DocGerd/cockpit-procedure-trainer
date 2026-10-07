@@ -4,6 +4,41 @@
   min-width: 0;
 }
 
+.checklist-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.checklist-selector-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-2xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.checklist-selector-select {
+  width: 100%;
+  color: var(--color-text);
+}
+
+.checklist-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.checklist-back {
+  align-self: flex-start;
+  min-height: var(--size-target);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-md);
+  text-align: start;
+}
+
 .checklist-header {
   display: flex;
   flex-direction: column;

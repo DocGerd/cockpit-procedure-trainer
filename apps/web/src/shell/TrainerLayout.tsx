@@ -67,7 +67,7 @@ function ChecklistToggle({
 export function TrainerLayout() {
   const text = useMessages(messages);
   const layout = useLayout();
-  const { aircraft, mode, procedureId } = useTrainer();
+  const { aircraft, procedureId, viewedProcedureId } = useTrainer();
   const [expanded, setExpanded] = useState(false);
   const paneId = useId();
   const overlay = layout === 'tablet';
@@ -80,16 +80,11 @@ export function TrainerLayout() {
   const section = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const cockpit = useCockpitLayout(aircraft, useCockpitRegion(shell, section), frame);
-  const hasChecklist = mode !== 'explore' && procedureId !== undefined;
-  const showPane = hasChecklist && (!overlay || expanded);
+  const showPane = !overlay || expanded;
 
   useEffect(() => {
     if (done) setExpanded(true);
   }, [done]);
-
-  useEffect(() => {
-    if (!hasChecklist) setExpanded(false);
-  }, [hasChecklist]);
 
   useEffect(() => {
     const aside = pane.current;
@@ -99,7 +94,7 @@ export function TrainerLayout() {
     const rect = item.getBoundingClientRect();
     if (rect.top < box.top) aside.scrollTop -= box.top - rect.top;
     else if (rect.bottom > box.bottom) aside.scrollTop += rect.bottom - box.bottom;
-  }, [current, showPane]);
+  }, [current, showPane, viewedProcedureId]);
 
   useEffect(() => {
     if (!overlay || !expanded) return;
@@ -118,8 +113,8 @@ export function TrainerLayout() {
 
   // A collapsed pane takes its focus with it, as does a procedure start; the toggle leads back to it.
   useEffect(() => {
-    if (overlay && hasChecklist && !expanded && focusLost()) toggle.current?.focus();
-  }, [overlay, hasChecklist, expanded, procedureId]);
+    if (overlay && !expanded && focusLost()) toggle.current?.focus();
+  }, [overlay, expanded, procedureId]);
 
   // The open drawer covers the panel, so Tab leaves it for the toggle instead of the panel behind.
   const onPaneKeyDown = (event: ReactKeyboardEvent<HTMLElement>) => {
@@ -142,8 +137,7 @@ export function TrainerLayout() {
       <Header
         variant="trainer"
         checklistToggle={
-          overlay &&
-          hasChecklist && (
+          overlay && (
             <ChecklistToggle
               expanded={expanded}
               controls={paneId}

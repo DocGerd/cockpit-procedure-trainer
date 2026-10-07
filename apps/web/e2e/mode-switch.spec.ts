@@ -29,7 +29,9 @@ async function startFromPicker(page: Page, mode: 'guided' | 'practice') {
 async function expectChecklist(page: Page) {
   if ((page.viewportSize()?.width ?? 0) < DESKTOP_MIN_WIDTH) {
     await expect(checklistToggle(page)).toBeVisible();
-    await checklistToggle(page).click();
+    if ((await checklistToggle(page).getAttribute('aria-expanded')) !== 'true') {
+      await checklistToggle(page).click();
+    }
   }
   await expect(checklistPane(page)).toBeVisible();
   await expect(
@@ -41,7 +43,13 @@ async function enterExplore(page: Page) {
   await modeButton(page, text.explore).click();
   await page.getByRole('button', { name: text.exploreConfirm }).click();
   await expect(modeButton(page, text.explore)).toHaveAttribute('aria-pressed', 'true');
-  await expect(checklistPane(page)).toHaveCount(0);
+}
+
+// Free explore keeps the checklist as a read-only reference: no marks, nothing running.
+async function expectReadOnlyChecklist(page: Page) {
+  await expectChecklist(page);
+  await expect(checklistPane(page).getByRole('img')).toHaveCount(0);
+  await expect(page.getByRole('banner').getByRole('button', { name: /^Procedure/ })).toHaveCount(0);
 }
 
 for (const viewport of viewports) {
@@ -56,7 +64,7 @@ for (const viewport of viewports) {
       await expectChecklist(page);
 
       await enterExplore(page);
-      await expect(checklistToggle(page)).toHaveCount(0);
+      await expectReadOnlyChecklist(page);
 
       await modeButton(page, label).click();
       await expect(modeButton(page, label)).toHaveAttribute('aria-pressed', 'true');
