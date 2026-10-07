@@ -269,11 +269,11 @@
   /* A medium cast shadow down-right onto the panel, with a wider soft fall-off. */
   --pk-cast:
     var(--pk-hair) calc(var(--pk-hair) * 3) calc(var(--pk-hair) * 4)
-      color-mix(in srgb, var(--panel-shadow) 75%, transparent),
+      color-mix(in srgb, var(--panel-shadow) 85%, transparent),
     calc(var(--pk-hair) * 2) calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 8)
-      color-mix(in srgb, var(--panel-shadow) 50%, transparent),
+      color-mix(in srgb, var(--panel-shadow) 62%, transparent),
     calc(var(--pk-hair) * 5) calc(var(--pk-hair) * 12) calc(var(--pk-hair) * 18)
-      color-mix(in srgb, var(--panel-shadow) 45%, transparent);
+      color-mix(in srgb, var(--panel-shadow) 55%, transparent);
 
   /* A dark seam, then the lip turned the other way: shaded up-left, lit down-right. */
   --pk-lip:
