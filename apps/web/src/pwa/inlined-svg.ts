@@ -8,3 +8,7 @@ export function inlinedSvgs(script: string): string[] {
     ).replaceAll("'", '"'),
   );
 }
+
+export function normalizeSvg(svg: string): string {
+  return svg.replace(/>\s+</g, '><').trim().replaceAll("'", '"');
+}
