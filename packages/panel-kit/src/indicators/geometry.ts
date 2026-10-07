@@ -4,6 +4,10 @@ export const SWEEP_START = -135;
 export const SWEEP_END = 135;
 export const ARC_RADIUS = 42;
 export const ARC_STROKE = 3;
+export const TICK_OUTER = 38;
+export const TICK_STROKE = 1;
+export const CAPTION_GAP = 1.5;
+export const TICK_GAP = 1;
 
 export function fraction(value: number, min: number, max: number): number {
   return Math.min(1, Math.max(0, (value - min) / (max - min)));

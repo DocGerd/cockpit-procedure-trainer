@@ -8,11 +8,18 @@ import {
   angleAt,
   ARC_RADIUS,
   ARC_STROKE,
+  arcEndRoom,
+  CAPTION_GAP,
+  CENTRE,
   polar,
   squeeze,
   SWEEP_END,
   SWEEP_START,
+  TICK_GAP,
+  TICK_OUTER,
+  TICK_STROKE,
 } from './geometry';
+import { SANS_ADVANCE } from '../controls/legibility';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
 import type { IndicatorWidget } from '../types';
@@ -435,6 +442,38 @@ describe('invalid options', () => {
   });
 });
 
+describe('arcEndRoom', () => {
+  const inner = ARC_RADIUS - ARC_STROKE / 2;
+  const end = polar(SWEEP_END, inner);
+  const outerEnd = polar(SWEEP_END, ARC_RADIUS + ARC_STROKE / 2);
+
+  it('is unbounded for a band wholly below the arc ends', () => {
+    expect(arcEndRoom(outerEnd.y, outerEnd.y + 5, 1)).toBe(Infinity);
+    expect(arcEndRoom(outerEnd.y + 1, outerEnd.y + 6, 1)).toBe(Infinity);
+  });
+
+  it('is the chord between the inner arc ends for a band that reaches them', () => {
+    expect(arcEndRoom(end.y - 3, end.y + 3, 0)).toBeCloseTo(2 * (end.x - CENTRE));
+    expect(arcEndRoom(end.y, outerEnd.y - 0.1, 0)).toBeCloseTo(2 * (end.x - CENTRE));
+  });
+
+  it('does not narrow further for a band extending below the arc end', () => {
+    expect(arcEndRoom(end.y - 3, end.y + 20, 1)).toBeCloseTo(arcEndRoom(end.y - 3, end.y, 1));
+  });
+
+  it('widens with a band that stops above the arc end', () => {
+    const high = arcEndRoom(end.y - 12, end.y - 6, 0);
+    expect(high).toBeCloseTo(2 * Math.sqrt(inner ** 2 - (end.y - 6 - CENTRE) ** 2));
+    expect(high).toBeGreaterThan(arcEndRoom(end.y - 12, end.y, 0));
+  });
+
+  it('takes the gap off both sides', () => {
+    expect(arcEndRoom(end.y - 3, end.y + 3, 0) - arcEndRoom(end.y - 3, end.y + 3, 2)).toBeCloseTo(
+      4,
+    );
+  });
+});
+
 describe('squeeze', () => {
   it('asks for a fixed length only when the text exceeds the capacity', () => {
     expect(squeeze('abcd', 4, 50)).toEqual({});
@@ -496,7 +535,8 @@ describe('legibility', () => {
   it.each([
     [48, { numerals: false, units: false, label: false }],
     [80, { numerals: false, units: false, label: false }],
-    [96, { numerals: false, units: true, label: true }],
+    [96, { numerals: false, units: false, label: false }],
+    [112, { numerals: false, units: true, label: true }],
     [128, { numerals: true, units: true, label: true }],
     [208, { numerals: true, units: true, label: true }],
   ])(
@@ -525,7 +565,7 @@ describe('legibility', () => {
     }
   });
 
-  it.each([96, 100, 126, 160, 208])(
+  it.each([112, 126, 160, 208])(
     'keeps the caption clear of the needle at either end of the sweep at %i px',
     (px) => {
       placeAt(px, px);
@@ -540,24 +580,39 @@ describe('legibility', () => {
     },
   );
 
-  it.each([96, 100, 126, 160, 208])('keeps a long caption between the arc ends at %i px', (px) => {
+  const longCaption = (px: number) => {
     placeAt(px, px);
     const Gauge = gauge;
     const { container } = render(
       <Gauge value={17} label="Oil pressure" options={{ ...gaugeOptions, arcs: [] }} />,
     );
-    const label = container.querySelector('[data-label]');
-    const arcEnd = polar(SWEEP_END, ARC_RADIUS - ARC_STROKE / 2);
-    if (label === null) return;
-    const size = Number(label.getAttribute('font-size'));
-    const length = Number(label.getAttribute('textLength') ?? 12 * 0.65 * size);
-    const top = Number(label.getAttribute('y')) - size / 2;
-    expect(top).toBeLessThan(arcEnd.y);
-    expect(length / 2).toBeLessThan(arcEnd.x - 50);
+    return container.querySelector('[data-label]');
+  };
+
+  it.each([160, 208, 320])(
+    'keeps a long caption between the arc ends and below the end ticks at %i px',
+    (px) => {
+      const label = longCaption(px);
+      expect(label).not.toBeNull();
+      const size = Number(label?.getAttribute('font-size'));
+      const length = Number(
+        label?.getAttribute('textLength') ?? 'Oil pressure'.length * SANS_ADVANCE * size,
+      );
+      const arcEnd = polar(SWEEP_END, ARC_RADIUS - ARC_STROKE / 2);
+      expect(length / 2 + CAPTION_GAP).toBeLessThanOrEqual(arcEnd.x - 50);
+      const tickLow = polar(SWEEP_END, TICK_OUTER).y + TICK_STROKE / 2;
+      expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(
+        tickLow + TICK_GAP,
+      );
+    },
+  );
+
+  it.each([96, 126])('drops a long caption it cannot fit between the arc ends at %i px', (px) => {
+    expect(longCaption(px)).toBeNull();
   });
 
   it('keeps the caption inside the dial and below the numerals and units', () => {
-    for (const px of [96, 100, 126, 160, 208]) {
+    for (const px of [112, 126, 160, 208]) {
       placeAt(px, px);
       const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
       const label = container.querySelector('[data-label]');
