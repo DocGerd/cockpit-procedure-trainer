@@ -71,7 +71,41 @@ statement threshold in `vitest.config.ts`; it replaces plain `pnpm test`.
 `pnpm test:e2e` builds the app and drives it in Chromium; install the browser once with
 `pnpm exec playwright install chromium`. The required `check` job runs all of these.
 
+`pnpm test:perf` measures the panel's performance budget (M12 plan, P1 to P4) in a
+CPU-throttled Chromium. A PR that changes panel art runs it locally before review; the
+`check` job does not run it, since throttled timings are unreliable on shared runners.
+
 UI changes also need a pass in a real browser at tablet and desktop width.
+
+### Viewport matrix
+
+`apps/web/e2e/layout.spec.ts` runs one test per registered aircraft and priority
+viewport (`priorityViewports` in `apps/web/e2e/layout-probe.ts`), on one page each:
+
+| Viewport           | What the row proves                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------- |
+| 1920x1080          | The design target: combined layout, outside-view strip whole.                                |
+| 1920x950           | A real 1080p browser window: the strip folds or hides before the cockpit falls back to tabs. |
+| 3840x2160          | The cockpit scales up and stays one viewport.                                                |
+| 1024x768, 768x1024 | Tablets: tabs.                                                                               |
+
+Every row checks, in order:
+
+- The layout and the strip state the spec's rule gives for the room the page leaves
+  (`chooseLayout` and `outsideViewFold` fed with a fresh measurement), against what the
+  page renders and against the table `expectedStates`.
+- In combined layouts: every view and the dock at or above their declared floors, the dock
+  under the panel, no tabs, no page scroll, the footer in view and clear of the controls.
+- No page scroll with the dock empty in both themes; with each device docked in turn, the
+  dock unchanged and the device inside it (combined), every device key and the close
+  button at 44 px.
+- Slot mirrors at 44 px, no status colour on any panel element in either theme, and control
+  face and backdrop lettering at the minimum size.
+- Indicator face lettering at the minimum size, in its own test per row; rows that fail
+  today are `test.fail` in `indicatorFaceGaps`, pending the art in M12 (#391).
+
+Content security policy violations fail every e2e test through the `fixtures.ts` auto
+fixture. Outside-strip steps between the priority heights are in the same spec.
 
 ## Package boundaries
 

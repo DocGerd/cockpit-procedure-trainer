@@ -55,7 +55,12 @@ type Send = DeviceScreenProps['send'];
 function Key({ name, control, send }: { name: string; control: string; send: Send }) {
   const hold = useHold(() => send(control, 'release'));
   return (
-    <button type="button" style={buttonStyle} {...hold.handlers(() => send(control, 'press'))}>
+    <button
+      type="button"
+      style={buttonStyle}
+      data-control={control}
+      {...hold.handlers(() => send(control, 'press'))}
+    >
       {name}
     </button>
   );

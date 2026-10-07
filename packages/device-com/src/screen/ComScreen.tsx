@@ -67,7 +67,13 @@ export function ComScreen({ on, state, send }: DeviceScreenProps) {
   };
 
   const button = (name: string, control: string, position?: ControlPosition) => (
-    <button type="button" style={buttonStyle} onClick={click(control, position)}>
+    <button
+      type="button"
+      style={buttonStyle}
+      data-control={control}
+      data-position={position === undefined ? undefined : String(position)}
+      onClick={click(control, position)}
+    >
       {name}
     </button>
   );
@@ -92,6 +98,7 @@ export function ComScreen({ on, state, send }: DeviceScreenProps) {
           <span>VOL</span>
           <input
             type="range"
+            data-control="volume"
             aria-label="VOL"
             min={0}
             max={1}

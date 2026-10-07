@@ -1,5 +1,13 @@
 import { isPosition } from '../contract';
-import type { Aircraft, ControlDefinition, Device, Rect, Text, ViewSize } from '../contract';
+import type {
+  Aircraft,
+  Appearance,
+  ControlDefinition,
+  Device,
+  Rect,
+  Text,
+  ViewSize,
+} from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -27,7 +35,8 @@ export type FindingCode =
   | 'cockpit-cell-outside'
   | 'cockpit-cells-overlap'
   | 'invalid-cockpit-min-width'
-  | 'invalid-cockpit-dock';
+  | 'invalid-cockpit-dock'
+  | 'artwork-glass-size';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -36,8 +45,12 @@ export type Finding = {
   readonly message: string;
 };
 
+export type ImageSize = { readonly width: number; readonly height: number };
+
 export type ValidationContext = {
   readonly devices?: readonly Device[];
+  /** The pixel size of an image URL, where the caller can read it; artwork sizes are checked only then. */
+  readonly imageSize?: (url: string) => ImageSize | undefined;
   readonly [extension: string]: unknown;
 };
 
@@ -159,6 +172,23 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const checkGlass = (id: string, appearance: Appearance | undefined) => {
+    if (!appearance || !('artwork' in appearance) || !context.imageSize) return;
+    const { face, glass } = appearance.artwork;
+    if (glass === undefined) return;
+    const faceSize = context.imageSize(face);
+    const glassSize = context.imageSize(glass);
+    if (!faceSize || !glassSize) return;
+    if (faceSize.width !== glassSize.width || faceSize.height !== glassSize.height) {
+      const format = ({ width, height }: ImageSize) => `${width}x${height}`;
+      add(
+        'artwork-glass-size',
+        id,
+        `glass is ${format(glassSize)}, its face ${format(faceSize)}; both must match`,
+      );
+    }
+  };
+
   checkText(aircraft.id, 'name', aircraft.name);
   checkText(aircraft.id, 'handbookRevision', aircraft.handbookRevision);
 
@@ -194,6 +224,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
+    checkGlass(id, control.appearance);
+
     const placed = views.some(([, view]) => view.controls && Object.hasOwn(view.controls, id));
     if (!placed) add('unplaced-control', id, 'is not placed in any view');
 
@@ -204,6 +236,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
 
   for (const [id, indicator] of indicators) {
     checkText(id, 'name', indicator.name);
+    checkGlass(id, indicator.appearance);
     const placed = views.some(([, view]) => view.indicators && Object.hasOwn(view.indicators, id));
     if (!placed) add('unplaced-indicator', id, 'is not placed in any view');
   }

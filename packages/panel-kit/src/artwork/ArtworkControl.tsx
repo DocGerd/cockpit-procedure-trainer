@@ -460,6 +460,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
       value={position}
       notches={notches}
       fallback={fallback}
+      options={props.options}
       renderInput={input}
     />
   );

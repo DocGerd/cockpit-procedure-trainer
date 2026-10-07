@@ -14,7 +14,8 @@
     "typecheck": "pnpm -r exec tsc --noEmit && tsc -p tools",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage.enabled",
-    "test:e2e": "pnpm --filter @cpt/web exec playwright test"
+    "test:e2e": "pnpm --filter @cpt/web exec playwright test",
+    "test:perf": "pnpm --filter @cpt/web test:perf"
   },
   "packageManager": "pnpm@11.22.0",
   "devDependencies": {

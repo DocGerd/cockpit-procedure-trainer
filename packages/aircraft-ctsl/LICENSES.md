@@ -17,6 +17,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/phase-taxi-in.svg`                 | Outside view, taxi in                     |
 | `src/assets/phase-parking-securing.svg`        | Outside view, parking and securing        |
 | `src/assets/artwork/gauge-airspeed.svg`        | Gauge face, airspeed                      |
+| `src/assets/artwork/glass-airspeed.svg`        | Gauge glass, airspeed                     |
 | `src/assets/artwork/gauge-altimeter.svg`       | Gauge face, altimeter                     |
 | `src/assets/artwork/gauge-vsi.svg`             | Gauge face, vsi                           |
 | `src/assets/artwork/gauge-tachometer.svg`      | Gauge face, tachometer                    |

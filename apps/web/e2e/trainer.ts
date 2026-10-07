@@ -66,6 +66,19 @@ export async function showView(page: Page, viewName: string) {
 
 const selectView = (page: Page, controlId: string) => showView(page, viewOf(controlId).name.en);
 
+export const deviceDock = (page: Page) => page.getByRole('region', { name: 'Device dock' });
+
+/** The operable unit of an install in the dock; a slot opens it unless Guided already did. */
+export async function dockedUnit(page: Page, installId: string, deviceId: string) {
+  const held = deviceDock(page).locator(`[data-dock-device="${installId}"]`);
+  if ((await held.count()) === 0) {
+    await page.locator(`[data-placement="${installId}"]`).getByRole('button').click();
+  }
+  const unit = deviceDock(page).getByRole('group', { name: deviceId, exact: true });
+  await expect(unit).toBeVisible();
+  return unit;
+}
+
 export async function setControl(page: Page, controlId: string, position: string | number) {
   const definition = control(controlId);
   await selectView(page, controlId);

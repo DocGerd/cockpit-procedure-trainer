@@ -159,7 +159,9 @@ export const fixtureAircraft = defineAircraft({
             angleRange: { min: -60, max: 60 },
             valueRange: { min: 8, max: 16 },
           },
+          glass: 'volts-glass.png',
         },
+        options: { needleShadow: true },
       },
     },
     rpm: {

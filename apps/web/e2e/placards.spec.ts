@@ -1,14 +1,9 @@
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { priorityViewports } from './layout-probe';
 import { openAircraft, placardProblems, selectLanguage, showView } from './legibility';
 
-const viewports = [
-  { width: 768, height: 1024 },
-  { width: 1024, height: 768 },
-  { width: 1440, height: 900 },
-  { width: 1920, height: 1080 },
-  { width: 3840, height: 2160 },
-];
+const viewports = [...priorityViewports, { width: 1440, height: 900 }];
 
 const runs = aircraftRegistry.flatMap((aircraft) =>
   viewports.flatMap((viewport) =>

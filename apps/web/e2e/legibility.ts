@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Aircraft } from '@cpt/core';
+import type { Aircraft, Appearance } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { clearanceProblems } from './clearance';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
@@ -250,32 +250,26 @@ function tooSmall(svg: string, scale: number) {
     .map(({ text, size }) => `${text} ${(size * scale).toFixed(1)}px`);
 }
 
-const faces = (aircraft: Aircraft, viewId: string) =>
-  Object.keys(aircraft.views[viewId]?.controls ?? {}).flatMap((id) => {
-    const appearance = aircraft.controls[id]?.appearance;
+type FaceKind = 'controls' | 'indicators';
+
+const faces = (aircraft: Aircraft, viewId: string, kind: FaceKind) => {
+  const definitions: Readonly<Record<string, { appearance?: Appearance } | undefined>> =
+    kind === 'controls' ? aircraft.controls : aircraft.indicators;
+  return Object.keys(aircraft.views[viewId]?.[kind] ?? {}).flatMap((id) => {
+    const appearance = definitions[id]?.appearance;
     return appearance && 'artwork' in appearance ? [{ id, face: appearance.artwork.face }] : [];
   });
+};
 
-/** Backdrop and face lettering at the size the view renders, and each face's aspect. */
-export async function letteringProblems(
+/** Lettering and aspect of each face of `kind` at the size the view renders it. */
+async function faceProblems(
   root: Locator,
   aircraft: Aircraft,
   viewId: string,
+  kind: FaceKind,
 ): Promise<string[]> {
-  const view = aircraft.views[viewId];
-  if (!view) return [`${viewId} is not a view`];
   const problems: string[] = [];
-  const background = await root
-    .locator('.panel-image')
-    .first()
-    .evaluate((image) => image.getBoundingClientRect().width);
-  const backdrop = source(view.image);
-  problems.push(
-    ...tooSmall(backdrop, background / viewBoxWidth(backdrop)).map(
-      (label) => `${viewId}: ${label}`,
-    ),
-  );
-  for (const { id, face } of faces(aircraft, viewId)) {
+  for (const { id, face } of faces(aircraft, viewId, kind)) {
     const svg = source(face);
     const { width: rendered, height } = await root
       .locator(`[data-placement="${id}"] img`)
@@ -296,6 +290,31 @@ export async function letteringProblems(
   }
   return problems;
 }
+
+/** Backdrop and control face lettering at the size the view renders, and each face's aspect. */
+export async function letteringProblems(
+  root: Locator,
+  aircraft: Aircraft,
+  viewId: string,
+): Promise<string[]> {
+  const view = aircraft.views[viewId];
+  if (!view) return [`${viewId} is not a view`];
+  const background = await root
+    .locator('.panel-image')
+    .first()
+    .evaluate((image) => image.getBoundingClientRect().width);
+  const backdrop = source(view.image);
+  return [
+    ...tooSmall(backdrop, background / viewBoxWidth(backdrop)).map(
+      (label) => `${viewId}: ${label}`,
+    ),
+    ...(await faceProblems(root, aircraft, viewId, 'controls')),
+  ];
+}
+
+/** Indicator face lettering at the size the view renders, and each face's aspect. */
+export const indicatorLetteringProblems = (root: Locator, aircraft: Aircraft, viewId: string) =>
+  faceProblems(root, aircraft, viewId, 'indicators');
 
 // Tall enough that the stage is bound by its width alone, never by the viewport height.
 const TALL_VIEWPORT_PX = 4000;

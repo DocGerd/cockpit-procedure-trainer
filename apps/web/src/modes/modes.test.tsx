@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import type { Aircraft } from '@cpt/core';
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,16 +11,41 @@ import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Mode, Trainer } from '../trainer';
 import { ModeControl } from './ModeControl';
+import { targetInstall } from './target';
+import { fixture } from './test-aircraft';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: [(await import('./test-aircraft')).fixture],
-}));
+const dockState = vi.hoisted(() => ({ withDock: false }));
 
-vi.mock('../device-registry', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  deviceRegistry: [(await import('./test-aircraft')).radio],
-  deviceScreens: { 'modes-radio': (await import('./test-aircraft')).RadioScreen },
-}));
+vi.mock('../aircraft-registry', async () => {
+  const { fixture } = await import('./test-aircraft');
+  const cell = (x: number, y: number, w: number, h: number) => ({
+    rect: { x, y, w, h },
+    minWidth: 100,
+  });
+  const docked = {
+    ...fixture,
+    cockpit: {
+      size: { width: 1000, height: 600 },
+      views: { main: cell(0, 0, 600, 400), console: cell(600, 0, 400, 400) },
+      dock: cell(0, 400, 1000, 200),
+    },
+  } as unknown as Aircraft;
+  return {
+    get aircraftRegistry() {
+      return [dockState.withDock ? docked : fixture];
+    },
+  };
+});
+
+vi.mock('../device-registry', async (importOriginal) => {
+  const { radio, radioEntry, RadioScreen } = await import('./test-aircraft');
+  return {
+    ...(await importOriginal<object>()),
+    deviceRegistry: [radio],
+    deviceScreens: { 'modes-radio': RadioScreen },
+    deviceEntries: { 'modes-radio': radioEntry },
+  };
+});
 
 let trainer: Trainer;
 function Probe() {
@@ -57,6 +83,7 @@ function enterExplore() {
 let reducedMotion = false;
 beforeEach(() => {
   reducedMotion = false;
+  dockState.withDock = false;
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
@@ -818,6 +845,137 @@ describe('Guided in the combined layout', () => {
     const focused = document.activeElement;
     act(() => trainer.session.set('master', 'on'));
     expect(document.activeElement).toBe(focused);
+  });
+});
+
+const dockedLayout: CockpitLayoutChoice = {
+  ...combined,
+  height: 700,
+  dock: { left: 0, top: 500, width: 1000, height: 200 },
+};
+
+describe('the device dock in the modes', () => {
+  const dockRegion = () => screen.getByRole('region', { name: 'Device dock' });
+  const docked = () =>
+    dockRegion().querySelector<HTMLElement>('[data-dock-device]')?.dataset.dockDevice;
+  const toDeviceStep = () =>
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+      trainer.session.checkOff();
+    });
+
+  beforeEach(() => {
+    dockState.withDock = true;
+  });
+
+  it('opens the targeted device in the dock and rings the slot without switching views', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'guided');
+    expect(dockRegion().getAttribute('data-dock')).toBe('empty');
+
+    toDeviceStep();
+    expect(docked()).toBe('com');
+    expect(within(dockRegion()).getByRole('button', { name: 'Radio page B' })).toBeTruthy();
+    const ring = document.querySelector<HTMLElement>('[data-outline="target"]');
+    expect(boxOf(ring)).toEqual(boxOf(placement('com')));
+    expect(ring?.closest('[data-view]')?.getAttribute('data-view')).toBe('console');
+  });
+
+  it('rings the key of the target and not the unit around it', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'guided');
+    toDeviceStep();
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    const keys = [...(unit?.querySelectorAll('[data-target="true"]') ?? [])];
+    expect(keys.map((key) => key.textContent)).toEqual(['Radio page B']);
+    expect(unit?.dataset.keyRing).toBe('true');
+    act(() => trainer.session.set('com.page', 'b'));
+    expect(unit?.querySelector('[data-target]')).toBeNull();
+    expect(unit?.dataset.keyRing).toBeUndefined();
+  });
+
+  it('rings the unit when the target has no key on its screen', () => {
+    renderTrainer('en', dockedLayout);
+    start('keyless', 'guided');
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    expect(unit?.dataset.target).toBe('true');
+    expect(unit?.dataset.keyRing).toBeUndefined();
+    expect(unit?.querySelector('[data-control][data-target]')).toBeNull();
+  });
+
+  it('keeps the shown tab for a device target', () => {
+    renderTrainer('en');
+    start('start', 'guided');
+    toDeviceStep();
+    expect(selectedTab()).toBe('Main panel');
+    expect(docked()).toBe('com');
+    expect(dockRegion().querySelector('[data-target="true"]')).not.toBeNull();
+  });
+
+  it('opens the device once per step, so a closed dock stays closed', async () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'guided');
+    toDeviceStep();
+    await userEvent.click(within(dockRegion()).getByRole('button', { name: 'Close device' }));
+    expect(dockRegion().getAttribute('data-dock')).toBe('empty');
+    act(() => trainer.session.set('com.page', 'b'));
+    expect(dockRegion().getAttribute('data-dock')).toBe('empty');
+  });
+
+  it('leaves the dock empty for a target no device owns', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'guided');
+    expect(dockRegion().getAttribute('data-dock')).toBe('empty');
+    expect(dockRegion().querySelector('[data-target]')).toBeNull();
+  });
+
+  it('opens and rings nothing in Practice', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'practice');
+    toDeviceStep();
+    expect(dockRegion().getAttribute('data-dock')).toBe('empty');
+    expect(document.querySelector('[data-outline]')).toBeNull();
+    expect(document.querySelector('[data-target]')).toBeNull();
+  });
+
+  it('docks the device of an activated slot in Free explore', async () => {
+    renderTrainer('en', dockedLayout);
+    enterExplore();
+    await userEvent.click(screen.getByRole('button', { name: 'modes-radio: Radio page A' }));
+    expect(docked()).toBe('com');
+    expect(document.querySelector('[data-target]')).toBeNull();
+  });
+
+  it('opens the device when Guided starts on a device step', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'practice');
+    toDeviceStep();
+    act(() => trainer.setMode('guided'));
+    expect(docked()).toBe('com');
+  });
+});
+
+describe('the device target without a dock', () => {
+  it('still switches to the view of the slot, where the device is operable', () => {
+    renderTrainer('en');
+    start('start', 'guided');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+      trainer.session.checkOff();
+    });
+    expect(selectedTab()).toBe('Centre console');
+    expect(screen.queryByRole('region', { name: 'Device dock' })).toBeNull();
+  });
+});
+
+describe('targetInstall', () => {
+  it('names the install of a device control and nothing else', () => {
+    expect(targetInstall(fixture, { control: 'com.page' })).toBe('com');
+    expect(targetInstall(fixture, { control: 'master' })).toBeUndefined();
+    expect(targetInstall(fixture, { indicator: 'volts' })).toBeUndefined();
+    expect(targetInstall(fixture, { control: 'ghost.page' })).toBeUndefined();
   });
 });
 
