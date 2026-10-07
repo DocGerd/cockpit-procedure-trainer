@@ -177,7 +177,14 @@ for (const aircraft of aircraftRegistry) {
           ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
             (gauges, { where }) =>
               gauges.flatMap((gauge) => {
-                const sweepEnd = (Number(gauge.getAttribute('data-sweep-end')) * Math.PI) / 180;
+                const sweepAttribute = gauge.getAttribute('data-sweep-end');
+                const sweepDegrees = sweepAttribute === null ? NaN : Number(sweepAttribute);
+                if (!Number.isFinite(sweepDegrees)) {
+                  throw new Error(
+                    `${where}/${gauge.getAttribute('aria-label')} has no usable data-sweep-end`,
+                  );
+                }
+                const sweepEnd = (sweepDegrees * Math.PI) / 180;
                 const label = gauge.querySelector('[data-label]');
                 const needle = gauge.querySelector('[data-needle] line');
                 if (!label || !needle) return [];
