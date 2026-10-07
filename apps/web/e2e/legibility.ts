@@ -182,6 +182,23 @@ export async function deviceTargets(root: Locator): Promise<string[]> {
     .map(({ label, size }) => `device button ${label} ${size.toFixed(1)}px`);
 }
 
+/** Every operable target of a placed control, artwork included, at least the touch target. */
+export async function controlTargets(root: Locator): Promise<string[]> {
+  const targets = await root
+    .locator('[data-kind="control"] :is(button, [role="slider"])')
+    .evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const { width, height } = element.getBoundingClientRect();
+        if (width === 0) return [];
+        const placement = element.closest('[data-placement]')?.getAttribute('data-placement');
+        return [{ placement: placement ?? '', size: Math.min(width, height) }];
+      }),
+    );
+  return targets
+    .filter(({ size }) => size < TOUCH_TARGET_PX - TOLERANCE_PX)
+    .map(({ placement, size }) => `control ${placement} target ${size.toFixed(1)}px`);
+}
+
 /** The finding for overlapping targets of one placement (`a`) or of two (`a and b`, sorted). */
 export const overlapProblem = (viewId: string, placements: string) =>
   `${viewId}: touch targets of ${placements} overlap`;
@@ -376,6 +393,7 @@ export async function legibilityProblems(
     ...(await placardProblems(root, aircraft, viewId)),
     ...(await letteringProblems(root, aircraft, viewId)),
     ...(await deviceTargets(root)),
+    ...(await controlTargets(root)),
     ...(await targetOverlaps(root, viewId)),
   ];
 }
