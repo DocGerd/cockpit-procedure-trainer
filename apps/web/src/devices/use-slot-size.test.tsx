@@ -37,8 +37,9 @@ describe('useSlotSize', () => {
       },
     );
     const size = { width: 120, height: 60 };
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => size.width);
-    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(() => size.height);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      () => ({ width: size.width, height: size.height }) as DOMRect,
+    );
     render(<Probe />);
     expect(screen.getByTestId('slot').textContent).toBe('120x60');
     size.width = 200;
