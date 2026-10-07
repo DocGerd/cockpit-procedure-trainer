@@ -46,6 +46,16 @@ describe('materials', () => {
     expect(paintProblems(draw(id, control, position, open))).toEqual([]);
   });
 
+  it.each(states)('%s at %s defines its own materials without a placard', (...state) => {
+    const [id, position, control, open] = state;
+    const Widget = controlWidgets[id];
+    if (!Widget) throw new Error(id);
+    const { container } = render(
+      <Widget {...widgetProps(control, { position, guardOpen: open })} />,
+    );
+    expect(paintProblems(container)).toEqual([]);
+  });
+
   it.each(states)('%s at %s is shaded with the shared materials', (...state) => {
     const [id, position, control, open] = state;
     const shaded = [...draw(id, control, position, open).querySelectorAll<SVGElement>('svg *')]

@@ -1,6 +1,15 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { CAST, Chamfer, paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import {
+  CAST,
+  Chamfer,
+  LinearGradient,
+  paint,
+  Screw,
+  SoftShadow,
+  useMaterialId,
+} from '../materials';
+import type { Stop } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import type { Metrics } from './legibility';
@@ -17,6 +26,11 @@ const PLATE = { x: 8, y: 6, width: 48, height: 88, rx: 8 };
 const GATE = { x: 27, y: HANDLE.top - 5, width: 10, height: HANDLE.travel + 10, rx: 5 };
 const GRIP = { x: 14, y: -5, width: 36, height: 10, rx: 5 };
 const FLAP = { x: 10, y: 14, width: 44, height: 72, rx: 6 };
+const OPEN_EDGE = FLAP.y + FLAP.height * FLAP_OPEN;
+const LID_SHADOW: readonly Stop[] = [
+  [0, 'shadow', 0.7],
+  [1, 'shadow', 0],
+];
 
 export function GuardedHandle({
   control,
@@ -58,7 +72,17 @@ export function GuardedHandle({
       <>
         <SoftShadow box={PLATE} {...CAST.medium} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
-        <Chamfer id={kit} box={PLATE} width={2} />
+        <Chamfer id={kit} box={PLATE} width={3} />
+        <rect
+          x={PLATE.x + 3.75}
+          y={PLATE.y + 3.75}
+          width={PLATE.width - 7.5}
+          height={PLATE.height - 7.5}
+          rx={PLATE.rx - 3}
+          fill="none"
+          strokeWidth={1.5}
+          style={{ stroke: paint(kit, 'lip') }}
+        />
         <Screw id={kit} cx={15} cy={90} r={2.6} angle={40} />
         <Screw id={kit} cx={49} cy={90} r={2.6} angle={110} />
         <rect {...GATE} style={{ fill: 'var(--panel-plastic-shade)' }} />
@@ -89,9 +113,15 @@ export function GuardedHandle({
             />
           ))}
         <g className="pk-move pk-fold" style={vars({ '--pk-fold': guardOpen ? FLAP_OPEN : 1 })}>
-          <rect {...FLAP} opacity={0.5} style={{ fill: 'var(--panel-plastic-shade)' }} />
+          <SoftShadow box={FLAP} {...CAST.medium} />
+          <rect {...FLAP} opacity={0.7} style={{ fill: 'var(--panel-plastic-shade)' }} />
           <rect {...FLAP} style={{ fill: paint(kit, 'glare') }} />
-          <Chamfer id={kit} box={FLAP} width={1.6} />
+          <path
+            d={`M${FLAP.x + 6} ${FLAP.y + 40}L${FLAP.x + 26} ${FLAP.y + 6}H${FLAP.x + 34}L${FLAP.x + 14} ${FLAP.y + 40}Z`}
+            opacity={0.14}
+            style={{ fill: 'var(--panel-glare)' }}
+          />
+          <Chamfer id={kit} box={FLAP} width={2.4} />
           <rect
             x={FLAP.x}
             y={FLAP.y}
@@ -101,6 +131,27 @@ export function GuardedHandle({
             style={{ fill: paint(kit, 'ridge-across') }}
           />
         </g>
+        {guardOpen && (
+          <>
+            {/* The raised guard stands up off the hinge: its lit lip, and the shadow it throws below. */}
+            <rect
+              x={FLAP.x + 1}
+              y={OPEN_EDGE + 0.5}
+              width={FLAP.width - 2}
+              height={5}
+              style={{ fill: paint(kit, 'lid-shadow') }}
+            />
+            <rect
+              x={FLAP.x + 1}
+              y={OPEN_EDGE - 1.2}
+              width={FLAP.width - 2}
+              height={1.4}
+              rx={0.7}
+              opacity={0.75}
+              style={{ fill: 'var(--panel-glare)' }}
+            />
+          </>
+        )}
       </>
     );
   };
@@ -112,9 +163,13 @@ export function GuardedHandle({
   return (
     <Stage
       kit={kit}
+      defs={
+        <LinearGradient id={`${kit}-lid-shadow`} from={[0, 0]} to={[0, 1]} stops={LID_SHADOW} />
+      }
       materials={[
         'plate',
-        'bezel',
+        'lip',
+        'chamfer',
         'well',
         'ridge-across',
         'chrome-across',

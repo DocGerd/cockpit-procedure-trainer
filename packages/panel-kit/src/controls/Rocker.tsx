@@ -15,6 +15,8 @@ const LEGEND_X = 64;
 const FRAME = { x: 8, y: 6, width: 48, height: 88, rx: 10 };
 const WELL = { x: 12, y: 10, width: 40, height: 80, rx: 7 };
 const PADDLE = { x: 14, y: TOP, width: 36, height: SPAN, rx: 6 };
+// The moulded edge band round the paddle's face.
+const BAND = 3.5;
 // The pressed end sinks into the well: the raised paddle above it throws its shadow onto it.
 const PRESSED: readonly Stop[] = [
   [0, 'shadow', 0.9],
@@ -54,25 +56,31 @@ export function Rocker({
     );
     return (
       <>
-        <SoftShadow box={FRAME} {...CAST.medium} />
+        <SoftShadow box={FRAME} {...CAST.large} />
         <rect {...FRAME} style={{ fill: paint(kit, 'plastic') }} />
-        <Chamfer id={kit} box={FRAME} width={2} />
+        <Chamfer id={kit} box={FRAME} width={3} />
         <rect {...WELL} style={{ fill: paint(kit, 'lip') }} />
-        <rect {...PADDLE} style={{ fill: paint(kit, 'plastic') }} />
         <rect
-          x={PADDLE.x + 2}
-          y={PADDLE.y + 2}
-          width={PADDLE.width - 4}
-          height={PADDLE.height - 4}
-          rx={PADDLE.rx - 2}
+          {...PADDLE}
+          strokeWidth={1}
+          style={{ fill: paint(kit, 'plastic'), stroke: 'var(--panel-plastic-shade)' }}
+        />
+        <Chamfer id={kit} box={PADDLE} width={1.4} />
+        <rect
+          x={PADDLE.x + BAND}
+          y={PADDLE.y + BAND}
+          width={PADDLE.width - 2 * BAND}
+          height={PADDLE.height - 2 * BAND}
+          rx={PADDLE.rx - BAND / 2}
           style={{ fill: paint(kit, 'raised') }}
         />
         <path
-          d={`M${PADDLE.x + 1} ${PADDLE.y + PADDLE.height * 0.6}V${PADDLE.y + PADDLE.rx}a${PADDLE.rx - 1} ${PADDLE.rx - 1} 0 0 1 ${PADDLE.rx - 1} ${-(PADDLE.rx - 1)}H${PADDLE.x + PADDLE.width * 0.75}`}
+          d={`M${PADDLE.x + 2} ${PADDLE.y + PADDLE.height * 0.55}V${PADDLE.y + PADDLE.rx}a${PADDLE.rx - 2} ${PADDLE.rx - 2} 0 0 1 ${PADDLE.rx - 2} ${-(PADDLE.rx - 2)}H${PADDLE.x + PADDLE.width * 0.7}`}
           fill="none"
-          strokeWidth={1.2}
+          strokeWidth={1.4}
           strokeLinecap="round"
-          style={{ stroke: paint(kit, 'specular') }}
+          opacity={0.6}
+          style={{ stroke: 'var(--panel-glare)' }}
         />
         <g className="pk-move pk-slide" style={vars({ '--pk-y': bandOf(Math.max(current, 0)) })}>
           <rect
@@ -133,7 +141,7 @@ export function Rocker({
   return (
     <Stage
       kit={kit}
-      materials={['plastic', 'lip', 'chamfer', 'specular']}
+      materials={['plastic', 'lip', 'chamfer']}
       defs={
         <>
           <LinearGradient id={`${kit}-pressed`} from={[0, 0]} to={[0, 1]} stops={PRESSED} />

@@ -69,11 +69,13 @@ const GLARE = 'M5 50A45 45 0 0 1 84 22C62 19 26 30 7 62Z';
 const BEZEL_RADIUS = 48.4;
 const CAST = { x: 0.9, y: 1.4, spread: 0.2 };
 const CAST_STOPS: readonly Stop[] = [
-  [0.86, 'shadow', 0.75],
+  [0.8, 'shadow', 0.9],
   [1, 'shadow', 0],
 ];
 const HUB = 3.5;
 const BLADE = `M${CENTRE - 1.3} ${CENTRE}L${CENTRE - 0.35} ${CENTRE - NEEDLE_LENGTH}L${CENTRE + 0.35} ${CENTRE - NEEDLE_LENGTH}L${CENTRE + 1.3} ${CENTRE}Z`;
+// A shadow softens and spreads with height, so it is a little wider than the blade.
+const BLADE_SHADOW = `M${CENTRE - 1.8} ${CENTRE}L${CENTRE - 0.7} ${CENTRE - NEEDLE_LENGTH}L${CENTRE + 0.7} ${CENTRE - NEEDLE_LENGTH}L${CENTRE + 1.8} ${CENTRE}Z`;
 const COUNTERWEIGHT = `M${CENTRE - 1.6} ${CENTRE}V${CENTRE + 7}a1.6 1.6 0 0 0 3.2 0V${CENTRE}Z`;
 const RIM = arcAt(47.6, -95, -10);
 const COUNTER = arcAt(45, 100, 150);
@@ -264,12 +266,12 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         </text>
       )}
       <circle cx={CENTRE} cy={CENTRE} r={DIAL_RADIUS} style={{ fill: paint(id, 'recess') }} />
-      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} fillOpacity={0.6}>
+      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} fillOpacity={0.75}>
         <g
           data-needle-shadow=""
           transform={`rotate(${angleAt(value, min, max)} ${CENTRE} ${CENTRE})`}
         >
-          <path d={BLADE} style={{ fill: 'var(--panel-shadow)' }} />
+          <path d={BLADE_SHADOW} style={{ fill: 'var(--panel-shadow)' }} />
           <path d={COUNTERWEIGHT} style={{ fill: 'var(--panel-shadow)' }} />
         </g>
       </g>
