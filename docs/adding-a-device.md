@@ -116,9 +116,8 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `floor` is `{ width, height }`, the smallest size at which the `Screen` keeps
   every button at least `--size-target`. The dock renders the screen at that
   size or larger, and a test checks the aircraft's dock cell against it.
-- A slot mirrors the device in this version; `slotMode()` in the app is the
-  pure rule that could let a large slot be operated in place, and it always
-  returns mirror for now. Only where the cockpit has no dock (an aircraft without
+- A slot mirrors the device: `IN_SLOT_OPERATION` is off, and `slotMode()` in the
+  app is the pure rule that could let a large slot be operated in place. Only where the cockpit has no dock (an aircraft without
   `cockpit`) is the `Screen` itself drawn in the slot.
 
 ## Installing in an aircraft
