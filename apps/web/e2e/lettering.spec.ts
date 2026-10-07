@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
-import { SWEEP_END } from '../../../packages/panel-kit/src/indicators/geometry';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';
 
@@ -176,8 +175,9 @@ for (const aircraft of aircraftRegistry) {
         const root = await showView(page, aircraft, viewId, 'en');
         crossings.push(
           ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
-            (gauges, { where, sweepEnd }) =>
+            (gauges, { where }) =>
               gauges.flatMap((gauge) => {
+                const sweepEnd = (Number(gauge.getAttribute('data-sweep-end')) * Math.PI) / 180;
                 const label = gauge.querySelector('[data-label]');
                 const needle = gauge.querySelector('[data-needle] line');
                 if (!label || !needle) return [];
@@ -190,7 +190,7 @@ for (const aircraft of aircraftRegistry) {
                   ? [`${where}/${gauge.getAttribute('aria-label')}`]
                   : [];
               }),
-            { where: viewId, sweepEnd: (SWEEP_END * Math.PI) / 180 },
+            { where: viewId },
           )),
         );
       }

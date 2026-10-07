@@ -61,6 +61,11 @@ describe('round gauge', () => {
     expect(needleRotation(container)).toBe(angleAt(25, 10, 30));
   });
 
+  it('reports the end of its sweep on the rendered dial', () => {
+    const { container } = draw(gauge, 25, range);
+    expect(container.querySelector('svg')?.getAttribute('data-sweep-end')).toBe(String(SWEEP_END));
+  });
+
   it('clamps the needle at both ends', () => {
     const below = draw(gauge, -500, range);
     expect(needleRotation(below.container)).toBe(SWEEP_START);
