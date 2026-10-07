@@ -130,7 +130,7 @@ ids pulled when the failure is injected; the validator rejects an id that is not
 is `{ rect: { x, y, w, h } }` in the coordinate space of the view's background: an
 SVG's `viewBox`, or a raster image's natural size. `position3d` and `orientation`
 are optional and the 2D renderer ignores them. Every control and every indicator
-must be placed in at least one view. The demo has a `panel`, a `console` and an `avionics` view.
+must be placed in at least one view. The demo has a `panel` and a `console` view.
 
 A view may also declare `size: { width, height }`, the coordinate space of its
 placements with the origin at 0,0. The panel uses it in preference to the image's

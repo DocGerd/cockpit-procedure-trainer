@@ -73,12 +73,13 @@
 /*
  * Contain-fit: as wide as the panel, but no taller than the viewport below the stage's top. The
  * reserve is the surface's bottom padding and border, the shell body's bottom padding and the
- * footer's height. The floor keeps the panel usable in a very short window, which then scrolls.
+ * footer's height; the tabs' dock below the surface is taken off as well. The floor keeps the panel usable in a very short window, which then scrolls.
  */
 .panel-stage {
   --panel-reserve: calc(var(--space-4) + 3px + var(--space-6));
   --panel-fit-height: calc(
-    100dvh - var(--panel-top) * 1px - var(--panel-footer) * 1px - var(--panel-reserve)
+    100dvh - var(--panel-top) * 1px - var(--panel-footer) * 1px - var(--panel-dock, 0) * 1px -
+      var(--panel-reserve)
   );
   --panel-min-height: calc(var(--space-12) * 6);
 
