@@ -27,9 +27,9 @@ fixes the order once.
 1. **Procedural correctness.** The trainer never teaches a wrong flow; the
    systems model follows the aircraft handbook.
 2. **Training UX.** Realism, learnability, printed panel labels, 44 px touch
-   targets, lettering minimums legible at the panel floor. On the cockpit panel aircraft
-   realism beats convenience; convenience (hints, checklist, zoom) lives only in
-   the app frame.
+   targets, lettering minimums legible at the panel floor. On the cockpit panel
+   aircraft realism beats convenience; convenience (hints, checklist, zoom)
+   lives only in the app frame.
 3. **Performance.** Fast load, smooth panel interaction. Ranked above offline
    because feel is part of training UX.
 4. **Reliability and offline.** The PWA works at the airfield without a
