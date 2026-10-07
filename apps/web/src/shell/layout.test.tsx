@@ -54,6 +54,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -262,6 +263,28 @@ describe('trainer layout on desktop', () => {
       const procedureDialog = screen.getByRole('dialog', { name: 'Procedure' });
       expect(within(procedureDialog).getByText(title)).toBeTruthy();
       expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    });
+
+    it('mounts the dialog in its chip wrapper and flips it at the viewport edge', async () => {
+      renderShell();
+      await startProcedure();
+      const aircraftChip = chip(/^Aircraft/);
+      const original = HTMLElement.prototype.getBoundingClientRect;
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+        this: HTMLElement,
+      ) {
+        if (this.getAttribute('role') === 'dialog') return new DOMRect(0, 40, 300, 100);
+        if (this === aircraftChip) return new DOMRect(width - 80, 0, 80, 40);
+        return original.call(this);
+      });
+      await userEvent.click(aircraftChip);
+      const dialog = screen.getByRole('dialog', { name: 'Aircraft' });
+      expect(dialog.parentElement).toBe(aircraftChip.parentElement);
+      expect(dialog.dataset.placement).toBe('end');
+      await userEvent.click(aircraftChip);
+      vi.restoreAllMocks();
+      await userEvent.click(aircraftChip);
+      expect(screen.getByRole('dialog').dataset.placement).toBe('start');
     });
 
     it('closes on a second tap on the chip', async () => {

@@ -166,6 +166,7 @@ const chipViewports = [
   { width: 1366, height: 1024, hasTouch: true },
   { width: 1440, height: 900, hasTouch: false },
   { width: 1920, height: 1080, hasTouch: false },
+  { width: 768, height: 1024, hasTouch: true },
 ];
 
 for (const { hasTouch, ...viewport } of chipViewports) {
@@ -194,6 +195,21 @@ for (const { hasTouch, ...viewport } of chipViewports) {
           };
         });
         expect(clipped.offscreen, 'dialog outside the window').toBe(false);
+        const [chipBox, dialogBox] = [await chip.boundingBox(), await dialog.boundingBox()];
+        if (!chipBox || !dialogBox) throw new Error('chip or dialog has no box');
+        expect(dialogBox.y, 'dialog under the chip').toBeGreaterThanOrEqual(
+          chipBox.y + chipBox.height - 1,
+        );
+        expect(dialogBox.y - (chipBox.y + chipBox.height), 'gap below the chip').toBeLessThan(16);
+        expect(dialogBox.x, 'dialog starts at or left of the chip').toBeLessThanOrEqual(
+          chipBox.x + 1,
+        );
+        expect(dialogBox.x + dialogBox.width, 'dialog reaches the chip').toBeGreaterThan(chipBox.x);
+        const flush = Math.abs(dialogBox.x - chipBox.x) <= 1;
+        const pulled = dialogBox.x + dialogBox.width >= viewport.width - 48;
+        expect(flush || pulled, 'dialog aligned to the chip or pulled back from the edge').toBe(
+          true,
+        );
         expect(clipped.value, 'dialog value clipped').toBe(false);
         return dialog;
       };
