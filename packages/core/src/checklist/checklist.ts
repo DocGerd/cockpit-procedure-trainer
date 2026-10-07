@@ -111,6 +111,9 @@ export function observeControl<S>(
 ): ChecklistState<S> {
   const item = currentItem(checklist);
   if (!item) return checklist;
+  // Any position of the current item's own control is no deviation: a stepped
+  // control, such as a transponder digit, passes through values on its way to
+  // the target, and the item staying pending already shows the value is wrong.
   const deviating =
     change.source === 'pilot' && change.kind === 'position' && !targets(item, change.id);
   const pressing =

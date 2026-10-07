@@ -293,6 +293,27 @@ describe('deviations', () => {
     expect(next.deviations).toEqual([]);
   });
 
+  it('leave a wrong position on the current target pending without a deviation', () => {
+    let checklist = checkOff(atConfirm(), pumpOn);
+    const target = beforeStart.items[checklist.current];
+    expect(target).toMatchObject({ type: 'action', control: 'ignition', position: 'both' });
+    for (const [from, to] of [
+      ['off', 'right'],
+      ['right', 'left'],
+    ] as const) {
+      checklist = observeControl(
+        checklist,
+        position('ignition', from, to),
+        stateOf({ master: 'on', fuelPump: 'on', ignition: to }, { busPowered: true }),
+      );
+      expect(checklist.deviations).toEqual([]);
+      expect(checklist.completed).not.toContain(4);
+    }
+    checklist = observeControl(checklist, position('ignition', 'left', 'both'), magnetosOn);
+    expect(checklist.completed).toContain(4);
+    expect(checklist.deviations).toEqual([]);
+  });
+
   it('never record spring changes, such as a released starter', () => {
     let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
     expect(checklist.current).toBe(6);
