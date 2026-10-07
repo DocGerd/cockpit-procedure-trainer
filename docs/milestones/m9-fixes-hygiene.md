@@ -8,7 +8,7 @@ Visible in the app:
 
 - **Full text of truncated header chips at tablet width** (#317, for #298). In the tablet layout the aircraft and procedure chips open a small dialog with the full name or title, wrapping and never clipped, plus a "Change aircraft" or "Change procedure" button that goes back to the picker. It works by tap and keyboard; Escape closes it and returns focus to the chip. On desktop nothing changes: one tap goes back to the picker and the hover title shows the full text.
 - **Browser chrome colour follows the theme you pick** (#323, for #178). Choosing light or dark in the app now switches the `theme-color` meta tags, not only the system setting, and a stored choice applies on load. Browser support varies; see Decisions.
-- **Round gauge captions clear the needle** (#320, for #184). At tablet portrait the caption moves down below the needle tip instead of being crossed by it; at design size nothing moves.
+- **Round gauge captions clear the needle** (#320, for #184). Wherever the minimum text size makes a gauge caption reach the needle tip (the demo panel at 768x1024, 1024x768 and 1920x1080), the caption moves down below the tip instead of being crossed by it; a gauge at design size is unchanged.
 
 For contributors and the test suite:
 
@@ -39,7 +39,7 @@ The spec's decisions table is unchanged: #309 and #322 change prose only.
 - **#180 closed as already done** by #303.
 - **Header chip dialog at tablet width only** (#317). Desktop keeps the one-tap back-to-picker and the hover title, because desktop HD is the priority viewport and nothing truncates at 1920. At tablet, going back to the picker is now two taps. The dialog uses React state rather than the native popover attribute, takes focus on open, and handles Escape in the capture phase so one Escape closes only the dialog, not the checklist drawer behind it. Known gap, wider than the PR assumed: the release review measured both CTSL chips truncating in the desktop layout at 1200, 1280, 1366x1024 and 1440 wide, with only a hover title (Open question 2).
 - **`theme-color` by switching `media`** (#323). The tag for the chosen theme gets `media="all"`, the other `media="not all"`, so no colour value is needed at runtime and colours stay build-time from `tokens.css`. The build tags carry `data-scheme` so the runtime does not parse media strings. There is no restore branch, because nothing in the app clears a choice; a future "system" option must reset the attributes itself. The update runs in an effect like the existing `data-theme` one, so a first-paint lag is accepted. A runtime `media` change cannot be verified headless: the e2e checks which tag the media queries leave active, not the chrome colour. Support (from #323): Chromium on Android, installed PWAs and Safari 15 to 18 honour it; Firefox ignores it; iOS 26 and later uses the page background.
-- **A wrong digit on the current item's own control is no deviation** (#316, for #186). Intended: spec data-flow step 4 counts only changes to controls that are not the current item's target, and a stepped control has to pass through wrong values. Pinned by a test, no logic change, no spec change.
+- **A wrong digit on the current item's own control is no deviation** (#316, for #186). Intended: spec §5 (Runtime) step 4 counts only changes to controls that are not the current item's target, and a stepped control has to pass through wrong values. Pinned by a test, no logic change, no spec change.
 - **Gauge caption slides down rather than being dropped** (#320). Dropping it would trade a label for a collision the dial has room to avoid. Which texts show at each size is unchanged, and the caption width stays. Left alone: at 768x1024 the widest caption still crosses the ends of the coloured arc (filed as #321).
 - **Contract tests live in `tools/`** (#311, #313), which is now typechecked. They discover every device by themselves, so a new device is covered without a new test, and no package imports from `tools/`. `## Inputs` stays optional in device READMEs because a device does not declare its inputs; the source revision is only checked as non-empty.
 - **Boundary catch-all scope** (#314): it covers ts, tsx, mts, cts and the js family; the known kinds' rule blocks still match ts and tsx only (filed as #319).
@@ -47,7 +47,7 @@ The spec's decisions table is unchanged: #309 and #322 change prose only.
 - **Clearance check** (#318): the issue's premise differed (round and rotated handles were already caught); the real gaps were false positives from the upright box and a vacuous pass with no moving part, and both are fixed. No exemption mechanism; a part that cannot be measured fails; only the current position is measured. No real panel gained an overlap.
 - **`workbox-window` as `^7.4.1`** (#312), the version the lockfile already resolved; a dev dependency because the plugin bundles it at build time.
 - **PWA SVG comparison** (#315): already symmetric in effect, so the fix is one shared helper plus the missing regression test; the build is untouched.
-- **Docs** (#310, #322): the brief's drawn table is grouped by artboard pair and states no count, so it does not go stale; its "Specification of the missing screens" heading is now slightly stale. `docs/adding-an-aircraft.md` already covered every contract addition, so only the spec changed.
+- **Docs** (#310, #322): the brief's drawn table is grouped by artboard pair and states no count, so it does not go stale; one sentence in the section below it reads garbled (#329). `docs/adding-an-aircraft.md` already covered every contract addition, so only the spec changed.
 
 ## Open questions for the owner
 
@@ -69,7 +69,7 @@ The review also suggests, for your next `/revise-claude-md`, that the `CLAUDE.md
   1. At 1024x768 (DevTools device toolbar), start a long procedure such as the CTSL rescue-system procedure. Tap the procedure chip: a dialog shows the full title and a "Change procedure" button. Escape closes it and focus returns to the chip. Repeat with the aircraft chip and in German.
   2. At 1920x1080 the chips show in full, and one click goes straight back to the picker.
   3. With the system set to light, switch the app to the dark theme with the theme button in the header, and reload. In DevTools, `document.querySelectorAll('meta[name=theme-color]')` shows the dark tag with `media="all"` and the light one with `media="not all"`. On Chromium for Android or the installed PWA, the browser chrome turns dark.
-  4. Demo aircraft at 768x1024: no gauge caption touches the needle tip.
+  4. Demo aircraft at 768x1024 and at 1920x1080: no gauge caption touches the needle tip.
 - After the owner merges this release PR: `gh api repos/DocGerd/cockpit-procedure-trainer/releases/tags/v0.10.0 --jq .tag_name` prints `v0.10.0`, and the prod footer reads `Version v0.10.0`.
 
 ### When you merge the release PR
