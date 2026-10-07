@@ -59,13 +59,14 @@ The dock PRs (#384, #386, #387, #397, #400) superseded two `CLAUDE.md` rules in 
 2. **Fidelity spike #360** (how much system logic to simulate, how to show wrong actions) is still open and unmilestoned: a spec decision for you.
 3. **Indicator-face lettering below 10.5 px** on the CTSL is pre-existing, now caught by the matrix's `test.fail` rows, and is fixed by M12 #391 (also #297).
 4. **ADR-0002 reading for M12**: hardware-recognisable realism counts as rank 2 (Training UX); finish beyond what makes the hardware recognisable counts as rank 6. Confirm before the M12 art tasks trade against it.
-5. **Demo at 1920x950 is combined by a few pixels of panel slack** (#411): any chrome change flips it to the folded strip. Accept the knife edge, or give the demo room?
-6. **No priority viewport exercises the folded strip** (#412): the folded state is covered only by the strip-height steps, not by the matrix's full checks.
-7. **Tablet checklist overlay** (#414, from the #410 review): at 1024x768 with a long procedure the overlay's footer sits below the fold.
-8. **Demo dead space under the console** at 1920x1080 (#397): accept as the cost of the dock cell, or ask for a demo centre field.
-9. **Stale milestone text**: `docs/milestones/m8-polish-hardening.md` still describes the old radios and GPS views (noted in #387); it is a historical record, so it is left as is unless you want a note added.
-10. **Spec drift on the dock** (#415, from the release review): the one-viewport spec §3 and §8, the main spec §4.3 and `docs/adding-an-aircraft.md` still describe the dock cell as optional; a docs fix that changes no decision.
-11. **Backlog**: #340 (operable in-slot devices, `slotMode()` prepared) and #354 (keyboard route, dropped by the accessibility ranking).
+5. **What "photorealistic" means for M12**: the art is judged against a rubric the agents wrote (plan `docs/superpowers/plans/2026-10-07-m12-photorealistic-panel.md`, "Rubric for the ui-verifier"): each visual heading is scored 0 (absent) to 3 (could pass for a photograph) on crops at device scale factor 2, and an element passes when every heading scores at least 2 ("convincing: at a glance it reads as the real material") and the mean is at least 2.5. The furthest examples on `develop` are the demo panel and console backgrounds (#402, scores in its description) and the CTSL airspeed indicator with its glass above the needle (#401; the plan notes the ui-verifier scored the spike's airspeed specimen below the bar before that change). Is that level what you mean by "photorealistic", or should the bar be raised before the remaining M12 PRs land?
+6. **Demo at 1920x950 is combined by a few pixels of panel slack** (#411): any chrome change flips it to the folded strip. Accept the knife edge, or give the demo room?
+7. **No priority viewport exercises the folded strip** (#412): the folded state is covered only by the strip-height steps, not by the matrix's full checks.
+8. **Tablet checklist overlay** (#414, from the #410 review): at 1024x768 with a long procedure the overlay's footer sits below the fold.
+9. **Demo dead space under the console** at 1920x1080 (#397): accept as the cost of the dock cell, or ask for a demo centre field.
+10. **Stale milestone text**: `docs/milestones/m8-polish-hardening.md` still describes the old radios and GPS views (noted in #387); it is a historical record, so it is left as is unless you want a note added.
+11. **Spec drift on the dock** (#415, from the release review): the one-viewport spec §3 and §8, the main spec §4.3 and `docs/adding-an-aircraft.md` still describe the dock cell as optional; a docs fix that changes no decision.
+12. **Backlog**: #340 (operable in-slot devices, `slotMode()` prepared) and #354 (keyboard route, dropped by the accessibility ranking).
 
 Follow-ups filed at this release, without milestone: #411, #412, #414 and #415.
 
