@@ -8,6 +8,29 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.12.0] - 2026-10-07
+
+### Added
+
+- Every avionics device now has a read-only display for a panel slot, a short text readout of that display (used as the slot's accessible name) in German and English, and a declared floor size at which its operable screen keeps full touch targets.
+- Each device slot in the panel shows a live read-only mirror with one button that opens the device in the dock, where the aircraft has a dock.
+- A device dock under the panel holds one operable avionics device at a time, with a close button and an empty-state hint; aircraft declare its cell in their cockpit arrangement.
+- Photorealistic panel (M12, in progress): instrument artwork can carry a glass layer above the needle.
+
+### Changed
+
+- The CT Supralight now has three views (panel, centre field, console). Its COM radio, transponder and GPS sit in the panel as live mirrors; selecting one opens the operable unit in the device dock under the panel. Showing the whole cockpit at once now needs a larger window than before; on smaller windows the cockpit falls back to view tabs.
+- The demo aircraft has a radio section on its panel: its COM radio and transponder show as live mirrors there and open in the device dock, and its radio-stack view is gone.
+- In Guided, a step that targets an avionics device now opens that device in the device dock and rings its panel slot and the key to press, instead of switching to another view; Practice opens and rings nothing, and Free explore docks a unit when you select its slot.
+- Photorealistic panel (M12, in progress): the CT Supralight airspeed indicator and light rockers, and the generic round gauge, gain metal bezels, glass glare and shadows; a turning needle no longer repaints the face beneath it.
+- Photorealistic panel (M12, in progress): the demo aircraft's panel and console are drawn as painted, recessed metal.
+
+### Fixed
+
+- The header chip dialogs now open attached under their chip, aligned to it and kept inside the window.
+- On a 1920x1080 screen in a normal browser window, the whole cockpit now stays in one view: the outside-view strip above it folds, and hides where even that is not enough, before the layout falls back to view tabs.
+- The checklist pane keeps its footer, with the Restart button, and the end-of-procedure buttons in view while the pane scrolls, so a short window no longer cuts them off.
+
 ## [0.11.1] - 2026-10-07
 
 ### Security
@@ -215,7 +238,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...v0.10.0
