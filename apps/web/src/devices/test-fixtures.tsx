@@ -1,6 +1,6 @@
 import { defineAircraft, defineDevice } from '@cpt/core';
 import type { Aircraft, Device, Environment, Text, TrainerState } from '@cpt/core';
-import type { DeviceScreenProps } from '@cpt/panel-kit';
+import type { DeviceDisplayProps, DeviceScreenEntry, DeviceScreenProps } from '@cpt/panel-kit';
 import type { ComponentType } from 'react';
 
 // Test-only: a fixture device, screen and aircraft, so device tests do not depend on a package.
@@ -85,6 +85,21 @@ export function FixtureScreen({ on, state, send }: DeviceScreenProps) {
     </div>
   );
 }
+
+export function FixtureDisplay({ on, state }: DeviceDisplayProps) {
+  const { page } = state as FixtureDeviceState;
+  return <output data-mirror-page>{on ? page : ''}</output>;
+}
+
+export const deviceEntries: Readonly<Record<string, DeviceScreenEntry>> = {
+  'fixture-radio': {
+    Screen: FixtureScreen,
+    Display: FixtureDisplay,
+    readout: (state, language, on) =>
+      on ? `${language === 'de' ? 'Seite' : 'Page'} ${(state as FixtureDeviceState).page}` : 'Off',
+    floor: { width: 100, height: 50 },
+  },
+};
 
 export const deviceScreens: Readonly<Record<string, ComponentType<DeviceScreenProps>>> = {
   'fixture-radio': FixtureScreen,

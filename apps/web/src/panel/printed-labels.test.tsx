@@ -7,13 +7,17 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
+import { unitNames } from '../devices/messages';
 import { deviceRegistry, deviceScreens } from '../device-registry';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { PanelArea } from './PanelArea';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  delete window.__cptDock;
+});
 
 type Lettering = { text: string; x: number; y: number };
 
@@ -129,6 +133,45 @@ describe('printed placards on the rendered panel', () => {
             wrong.push(`${viewId}/${id}: ${String(shown)} != ${String(expected)}`);
         }
       }
+      expect(wrong).toEqual([]);
+    },
+  );
+});
+
+describe('device slot mirrors', () => {
+  it.each(
+    registered.flatMap(([id, aircraft]) => languages.map((lang) => [id, lang, aircraft] as const)),
+  )(
+    '%s in %s prints the unit name and names one button for every slot',
+    async (_id, language, aircraft) => {
+      window.__cptDock = {};
+      renderWithLanguage(
+        <TrainerProvider>
+          <Probe />
+          <PanelArea />
+        </TrainerProvider>,
+        { language },
+      );
+      act(() => trainer.selectAircraft(aircraft.id));
+      const wrong: string[] = [];
+      let slots = 0;
+      for (const [viewId, view] of Object.entries(aircraft.views)) {
+        await userEvent.click(screen.getByRole('tab', { name: view.name[language] }));
+        for (const [installId, install] of Object.entries(aircraft.devices ?? {})) {
+          if (install.view !== viewId) continue;
+          slots += 1;
+          const slot = document.querySelector(`[data-placement="${installId}"]`);
+          const printed = slot?.querySelector('[data-mirror-label]')?.textContent;
+          const buttons = [...(slot?.querySelectorAll('button') ?? [])];
+          const unit = unitNames[language][install.device as keyof (typeof unitNames)['en']];
+          if (!/^(COM|XPDR|GPS)$/.test(printed ?? ''))
+            wrong.push(`${installId}: printed ${String(printed)}`);
+          if (buttons.length !== 1) wrong.push(`${installId}: ${buttons.length} buttons`);
+          if (!buttons[0]?.getAttribute('aria-label')?.startsWith(`${unit}: `))
+            wrong.push(`${installId}: named ${String(buttons[0]?.getAttribute('aria-label'))}`);
+        }
+      }
+      expect(slots).toBe(Object.keys(aircraft.devices ?? {}).length);
       expect(wrong).toEqual([]);
     },
   );

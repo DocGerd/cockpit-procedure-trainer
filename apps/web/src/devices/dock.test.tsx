@@ -37,7 +37,11 @@ vi.mock('../aircraft-registry', async () => {
 
 vi.mock('../device-registry', async () => {
   const fixtures = await import('./test-fixtures');
-  return { deviceRegistry: fixtures.devices, deviceScreens: fixtures.deviceScreens };
+  return {
+    deviceRegistry: fixtures.devices,
+    deviceScreens: fixtures.deviceScreens,
+    deviceEntries: fixtures.deviceEntries,
+  };
 });
 
 vi.mock('./dock-floor', () => ({ deviceFloor: () => state.floor }));

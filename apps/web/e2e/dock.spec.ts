@@ -1,7 +1,7 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
-import { openAircraft } from './legibility';
+import { deviceTargets, fitViewAt, openAircraft, showView } from './legibility';
 
 // No aircraft declares a dock yet, so the page is asked for one before it loads; the hook it
 // gets back opens and closes the dock the way a slot mirror will.
@@ -66,4 +66,31 @@ test('the docked device operates and the dock is not modal', async ({ page }) =>
   await other.click();
   await expect(other).toHaveAttribute('aria-selected', 'true');
   await expect(unit).toBeVisible();
+});
+
+test('each device slot mirrors its device with one button of the touch-target size', async ({
+  page,
+}) => {
+  const installs = Object.values(ctslAircraft.devices ?? {});
+  const viewIds = [...new Set(installs.map((install) => install.view))];
+  expect(viewIds.length).toBeGreaterThan(0);
+  for (const viewId of viewIds) {
+    const root = await showView(page, ctslAircraft, viewId, 'en');
+    await fitViewAt(page, viewId, ctslAircraft.cockpit?.views[viewId]?.minWidth ?? 0);
+    const slots = root.locator('[data-kind="device"]');
+    const expected = installs.filter((install) => install.view === viewId).length;
+    await expect(slots).toHaveCount(expected);
+    for (const slot of await slots.all()) {
+      await expect(slot.locator('[data-device-mirror]')).toHaveCount(1);
+      await expect(slot.getByRole('button')).toHaveCount(1);
+    }
+    expect(await deviceTargets(root)).toEqual([]);
+  }
+});
+
+test('activating a slot mirror docks its device', async ({ page }) => {
+  await showView(page, ctslAircraft, 'radios', 'en');
+  const slot = page.locator('[data-placement="xpdr"]');
+  await slot.getByRole('button').click();
+  await expect(dock(page).getByRole('group', { name: 'gtx327', exact: true })).toBeVisible();
 });

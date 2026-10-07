@@ -15,7 +15,11 @@ vi.mock('../aircraft-registry', async () => {
 
 vi.mock('../device-registry', async () => {
   const fixtures = await import('./test-fixtures');
-  return { deviceRegistry: fixtures.devices, deviceScreens: fixtures.deviceScreens };
+  return {
+    deviceRegistry: fixtures.devices,
+    deviceScreens: fixtures.deviceScreens,
+    deviceEntries: fixtures.deviceEntries,
+  };
 });
 
 let trainer: Trainer;
@@ -219,5 +223,76 @@ describe('device controls in Free explore', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Page B' }));
     expect(controls()['radio.page']).toBe('b');
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('slot mirrors', () => {
+  const dock = () => screen.getByRole('region', { name: 'Device dock' });
+  const slotButtons = (installId: string) =>
+    within(placement(installId) as HTMLElement).queryAllByRole('button');
+
+  beforeEach(() => {
+    window.__cptDock = {};
+  });
+
+  afterEach(() => {
+    delete window.__cptDock;
+  });
+
+  it('mirrors each screened device with no operable keys in the slot', () => {
+    renderPanel();
+    expect(placement('radio')?.querySelector('[data-slot-mirror]')).not.toBeNull();
+    expect(placement('radio')?.querySelector('[data-device-frame]')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Page B' })).toBeNull();
+  });
+
+  it('puts exactly one named button in the slot, the unit name then the readout', async () => {
+    renderPanel();
+    expect(slotButtons('radio').map((button) => button.getAttribute('aria-label'))).toEqual([
+      'fixture-radio: Off',
+    ]);
+    powerBus();
+    expect(slotButtons('radio').map((button) => button.getAttribute('aria-label'))).toEqual([
+      'fixture-radio: Page a',
+    ]);
+  });
+
+  it('localizes the readout in the accessible name', () => {
+    renderPanel('de');
+    powerBus();
+    expect(screen.getByRole('button', { name: 'fixture-radio: Seite a' })).toBeTruthy();
+  });
+
+  it('updates with the device state', () => {
+    renderPanel();
+    powerBus();
+    expect(within(placement('radio') as HTMLElement).getByText('a')).toBeTruthy();
+    act(() => void trainer.session.set('radio.page', 'b'));
+    expect(within(placement('radio') as HTMLElement).getByText('b')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'fixture-radio: Page b' })).toBeTruthy();
+  });
+
+  it('asks the dock for the slot device on activation and leaves the device untouched', async () => {
+    renderPanel();
+    expect(dock().getAttribute('data-dock')).toBe('empty');
+    await userEvent.click(screen.getByRole('button', { name: 'fixture-radio: Off' }));
+    expect(dock().getAttribute('data-dock')).toBe('held');
+    expect(within(dock()).getByRole('button', { name: 'Page B' })).toBeTruthy();
+    expect(controls()['radio.page']).toBe('a');
+  });
+
+  it('docks the device of the activated slot, swapping the one held', async () => {
+    renderPanel();
+    await userEvent.click(screen.getByRole('tab', { name: 'Side' }));
+    await userEvent.click(screen.getByRole('button', { name: 'fixture-radio: Off' }));
+    expect(dock().querySelector('[data-dock-device]')?.getAttribute('data-dock-device')).toBe(
+      'far',
+    );
+  });
+
+  it('keeps the placeholder for a device without a screen', () => {
+    renderPanel();
+    expect(placement('spare')?.querySelector('[data-slot-mirror]')).toBeNull();
+    expect(screen.getByRole('img', { name: 'No screen for fixture-unscreened' })).toBeTruthy();
   });
 });
