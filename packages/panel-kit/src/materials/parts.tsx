@@ -30,6 +30,11 @@ const kit = {
   'chrome-dome': (id: string) => <RadialGradient id={id} {...DOME} stops={finish['chrome-dome']} />,
   band: (id: string) => <LinearGradient id={id} {...ACROSS} stops={finish.band} />,
   well: (id: string) => <LinearGradient id={id} {...LIGHT} stops={finish.well} />,
+  'lens-glare': (id: string) => (
+    <RadialGradient id={id} centre={[0, 0]} radius={1.05} stops={finish.lensGlare} />
+  ),
+  chamfer: (id: string) => <LinearGradient id={id} {...LIGHT} stops={finish.chamfer} />,
+  aluminium: (id: string) => <LinearGradient id={id} {...LIGHT} stops={finish.aluminium} />,
   specular: (id: string) => <LinearGradient id={id} {...LIGHT} stops={finish.specular} />,
   glare: (id: string) => <LinearGradient id={id} {...GLARE_SWEEP} stops={finish.glare} />,
   'screen-glare': (id: string) => (
@@ -60,6 +65,42 @@ export function Kit({
 }
 
 type Box = { x: number; y: number; width: number; height: number; rx: number };
+
+/** The brief's depth classes in a part's own units: a bezel or housing, and a knob or handle. */
+export const CAST = {
+  medium: { offset: [1.2, 3], blur: 3.5, opacity: 0.7 },
+  large: { offset: [2, 5], blur: 5, opacity: 0.7 },
+} as const satisfies Record<string, { offset: Point; blur: number; opacity: number }>;
+
+/** The soft canopy reflection on a flat lens or screen: a sweep over its upper-left part. */
+export function glareSweep({ x, y, width, height }: Box): string {
+  const inset = 0.6;
+  const left = x + inset;
+  const top = y + inset;
+  return [
+    `M${left} ${y + height * 0.82}`,
+    `V${top}`,
+    `H${x + width * 0.62}`,
+    `C${x + width * 0.42} ${y + height * 0.24} ${x + width * 0.2} ${y + height * 0.48} ${left} ${y + height * 0.82}`,
+    'Z',
+  ].join('');
+}
+
+/** A machined edge round `box`: lit line up-left, deep shade down-right, `width` wide inside it. */
+export function Chamfer({ id, box, width }: { id: string; box: Box; width: number }) {
+  return (
+    <rect
+      x={box.x + width / 2}
+      y={box.y + width / 2}
+      width={box.width - width}
+      height={box.height - width}
+      rx={Math.max(0, box.rx - width / 2)}
+      fill="none"
+      strokeWidth={width}
+      style={{ stroke: paint(id, 'chamfer') }}
+    />
+  );
+}
 
 /**
  * A soft cast shadow without a blur filter: two translucent copies of the outline, `blur` apart,

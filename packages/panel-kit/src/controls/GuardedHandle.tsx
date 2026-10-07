@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import { CAST, Chamfer, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import type { Metrics } from './legibility';
@@ -56,25 +56,16 @@ export function GuardedHandle({
     );
     return (
       <>
-        <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
+        <SoftShadow box={PLATE} {...CAST.medium} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
-        <rect
-          x={PLATE.x + 0.75}
-          y={PLATE.y + 0.75}
-          width={PLATE.width - 1.5}
-          height={PLATE.height - 1.5}
-          rx={PLATE.rx - 0.75}
-          fill="none"
-          strokeWidth={1.5}
-          style={{ stroke: paint(kit, 'bezel') }}
-        />
+        <Chamfer id={kit} box={PLATE} width={2} />
         <Screw id={kit} cx={15} cy={90} r={2.6} angle={40} />
         <Screw id={kit} cx={49} cy={90} r={2.6} angle={110} />
         <rect {...GATE} style={{ fill: 'var(--panel-plastic-shade)' }} />
         <rect {...GATE} style={{ fill: paint(kit, 'well') }} />
         <g transform={`translate(0 ${HANDLE.top})`}>
           <g className="pk-move pk-slide" style={vars({ '--pk-y': offset - HANDLE.top })}>
-            <SoftShadow box={GRIP} offset={[1, 2.6]} blur={2.4} />
+            <SoftShadow box={GRIP} {...CAST.large} />
             <rect {...GRIP} style={{ fill: paint(kit, 'chrome-across') }} />
             <rect
               x={GRIP.x + 2.6}
@@ -100,16 +91,7 @@ export function GuardedHandle({
         <g className="pk-move pk-fold" style={vars({ '--pk-fold': guardOpen ? FLAP_OPEN : 1 })}>
           <rect {...FLAP} opacity={0.5} style={{ fill: 'var(--panel-plastic-shade)' }} />
           <rect {...FLAP} style={{ fill: paint(kit, 'glare') }} />
-          <rect
-            x={FLAP.x + 0.75}
-            y={FLAP.y + 0.75}
-            width={FLAP.width - 1.5}
-            height={FLAP.height - 1.5}
-            rx={FLAP.rx - 0.75}
-            fill="none"
-            strokeWidth={1.5}
-            style={{ stroke: paint(kit, 'bezel') }}
-          />
+          <Chamfer id={kit} box={FLAP} width={1.6} />
           <rect
             x={FLAP.x}
             y={FLAP.y}

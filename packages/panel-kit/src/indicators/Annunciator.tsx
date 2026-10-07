@@ -2,6 +2,8 @@ import type { IndicatorWidgetProps } from '../types';
 import { placeText, SANS_ADVANCE, useRenderedMetrics } from '../controls/legibility';
 import { squeeze } from './geometry';
 import {
+  Chamfer,
+  glareSweep,
   Grain,
   Kit,
   lampGlow,
@@ -17,7 +19,7 @@ const VIEWBOX = { width: 100, height: 50 };
 const LABEL_DESIGN = 13;
 const LABEL_WIDTH = 80;
 const LAMP_HEIGHT = 36;
-const FRAME = { x: 0.5, y: 0.5, width: 98, height: 47.5, rx: 7 };
+const FRAME = { x: 0.5, y: 0.5, width: 97, height: 46.5, rx: 7 };
 const LENS = { x: 6, y: 6, width: 88, height: 38, rx: 4 };
 
 export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
@@ -51,7 +53,7 @@ export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
       role="img"
       aria-label={accessibleName}
     >
-      <Kit id={kit} use={['bezel', 'lip', 'well', 'screen-glare', 'specular']}>
+      <Kit id={kit} use={['bezel', 'lip', 'chamfer', 'well', 'lens-glare', 'specular']}>
         <RadialGradient
           id={`${kit}-glow`}
           centre={[0.5, 0.5]}
@@ -60,8 +62,9 @@ export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
         />
         <Grain id={`${kit}-grain`} tile={2.5} opacity={0.08} />
       </Kit>
-      <SoftShadow box={FRAME} offset={[0.5, 1.2]} blur={1.4} />
+      <SoftShadow box={FRAME} offset={[1.2, 1.8]} blur={1.6} opacity={0.7} />
       <rect {...FRAME} style={{ fill: paint(kit, 'bezel') }} />
+      <Chamfer id={kit} box={FRAME} width={1.4} />
       <rect
         x={FRAME.x + 2}
         y={FRAME.y + 2}
@@ -74,7 +77,7 @@ export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
         x={5}
         y={5}
         width={90}
-        height={40}
+        height={39.5}
         rx={5}
         style={{ fill: 'var(--panel-metal-shade)' }}
       />
@@ -117,11 +120,11 @@ export function Annunciator({ value, label, options }: IndicatorWidgetProps) {
           {label}
         </text>
       )}
-      <rect {...LENS} style={{ fill: paint(kit, 'screen-glare') }} />
+      <path d={glareSweep(LENS)} style={{ fill: paint(kit, 'lens-glare') }} />
       <path
         d="M7.5 30V11.5A4.5 4.5 0 0 1 12 7H52"
         fill="none"
-        strokeWidth={0.8}
+        strokeWidth={0.9}
         strokeLinecap="round"
         style={{ stroke: paint(kit, 'specular') }}
       />

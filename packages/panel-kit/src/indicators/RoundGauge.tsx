@@ -42,7 +42,9 @@ const LABEL_DESIGN = 5.5;
 const UNITS_Y = 66;
 const LABEL_Y = 78;
 const FACE_RADIUS = 46;
-const NEEDLE_LOW = polar(SWEEP_END, NEEDLE_LENGTH).y + NEEDLE_STROKE / 2;
+// The light falls from the upper left, so a needle's shadow lands below and to the right of it.
+const NEEDLE_SHADOW = { x: 1.3, y: 2.3 };
+const NEEDLE_LOW = polar(SWEEP_END, NEEDLE_LENGTH).y + NEEDLE_STROKE / 2 + NEEDLE_SHADOW.y;
 const TICK_LOW = polar(SWEEP_END, TICK_OUTER).y + TICK_STROKE / 2;
 
 function chordRoom(bottom: number, margin = 2): number {
@@ -62,14 +64,12 @@ export function tickSpacing(angles: readonly number[]): number {
 const sans = 'var(--font-sans)';
 const mono = 'var(--font-mono)';
 const DIAL_RADIUS = 46;
-// The light falls from the upper left, so a needle's shadow lands below and to the right of it.
-const NEEDLE_SHADOW = { x: 0.6, y: 1.3 };
 const GLARE = 'M5 50A45 45 0 0 1 84 22C62 19 26 30 7 62Z';
 // The bezel stops short of the box so its cast shadow fits down-right inside it, unclipped.
 const BEZEL_RADIUS = 48.4;
-const CAST = { x: 0.6, y: 1.4, spread: 0.2 };
+const CAST = { x: 0.9, y: 1.4, spread: 0.2 };
 const CAST_STOPS: readonly Stop[] = [
-  [0.92, 'shadow', 0.6],
+  [0.86, 'shadow', 0.75],
   [1, 'shadow', 0],
 ];
 const HUB = 3.5;
@@ -161,6 +161,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
       <Materials id={id} recess={{ centre: [CENTRE + 1.6, CENTRE + 2.4], radius: DIAL_RADIUS + 3 }}>
         <RadialGradient id={`${id}-screw`} {...DOME} stops={finish.screw} />
         <LinearGradient id={`${id}-specular`} {...LIGHT} stops={finish.specular} />
+        <LinearGradient id={`${id}-chamfer`} {...LIGHT} stops={finish.chamfer} />
         <Grain id={`${id}-grain`} tile={2} />
         <RadialGradient
           id={`${id}-cast`}
@@ -183,7 +184,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         r={BEZEL_RADIUS - 0.45}
         fill="none"
         strokeWidth={0.9}
-        style={{ stroke: paint(id, 'lip') }}
+        style={{ stroke: paint(id, 'chamfer') }}
       />
       <circle cx={CENTRE} cy={CENTRE} r={47.2} style={{ fill: paint(id, 'lip') }} />
       <circle cx={CENTRE} cy={CENTRE} r={46.5} style={{ fill: 'var(--panel-metal-shade)' }} />
@@ -263,7 +264,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         </text>
       )}
       <circle cx={CENTRE} cy={CENTRE} r={DIAL_RADIUS} style={{ fill: paint(id, 'recess') }} />
-      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} fillOpacity={0.5}>
+      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} fillOpacity={0.6}>
         <g
           data-needle-shadow=""
           transform={`rotate(${angleAt(value, min, max)} ${CENTRE} ${CENTRE})`}
@@ -286,8 +287,8 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         />
       </g>
       <circle
-        cx={CENTRE + 0.4}
-        cy={CENTRE + 0.8}
+        cx={CENTRE + NEEDLE_SHADOW.x * 0.7}
+        cy={CENTRE + NEEDLE_SHADOW.y * 0.7}
         r={HUB + 0.3}
         opacity={0.5}
         style={{ fill: 'var(--panel-shadow)' }}

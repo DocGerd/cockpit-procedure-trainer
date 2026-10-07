@@ -14,7 +14,7 @@ import {
   useRenderedMetrics,
 } from './legibility';
 import type { Metrics } from './legibility';
-import { Kit, paint, Screw } from '../materials';
+import { Chamfer, Kit, paint, Screw, SoftShadow } from '../materials';
 import type { KitMaterial } from '../materials';
 import './controls.css';
 
@@ -50,6 +50,8 @@ type StageProps = {
 export const PLACARD_BAND = 26;
 const PLATE_PAD = 4;
 const SCREW_RADIUS = 2.4;
+// Engraved letters: light catches the lower lip of each cut, a hairline below and right of it.
+const CUT = { x: 0.35, y: 0.45 };
 
 function Placard({
   id,
@@ -75,24 +77,25 @@ function Placard({
   const screwed = textWidth + 2 * (PLATE_PAD + screwRoom) <= width - 2 * EDGE;
   const plate = textWidth + 2 * (PLATE_PAD + (screwed ? screwRoom : 0));
   const box = { x: (width - plate) / 2, y: -band + EDGE, width: plate, height, rx: 2 };
-  const bevel = Math.min(1.2, height * 0.06);
+  const bevel = Math.min(1.6, height * 0.08);
+  const cut = { x: width / 2 + CUT.x, y: -band / 2 + CUT.y };
   return (
     <>
-      <rect {...box} style={{ fill: paint(id, 'plate') }} />
-      <rect
-        x={box.x + bevel / 2}
-        y={box.y + bevel / 2}
-        width={box.width - bevel}
-        height={box.height - bevel}
-        rx={box.rx}
-        fill="none"
-        strokeWidth={bevel}
-        style={{ stroke: paint(id, 'bezel') }}
-      />
+      <SoftShadow box={box} offset={[0.5, 1.2]} blur={1.4} opacity={0.6} />
+      <rect {...box} style={{ fill: paint(id, 'aluminium') }} />
+      <Chamfer id={id} box={box} width={bevel} />
       {screwed &&
         [box.x + PLATE_PAD / 2 + screw, box.x + plate - PLATE_PAD / 2 - screw].map((cx, index) => (
           <Screw key={cx} id={id} cx={cx} cy={-band / 2} r={screw} angle={index ? 120 : 35} />
         ))}
+      <text
+        {...cut}
+        className="pk-placard pk-placard-cut"
+        style={vars({ '--pk-font': title.fontSize })}
+        {...(length === undefined ? {} : { textLength: length, lengthAdjust: 'spacingAndGlyphs' })}
+      >
+        {text}
+      </text>
       <text
         x={width / 2}
         y={-band / 2}
@@ -125,7 +128,7 @@ export function placardBand(
   return Number.isFinite(band) ? Math.min(band, height) : PLACARD_BAND;
 }
 
-const PLATE_MATERIALS: readonly KitMaterial[] = ['plate', 'bezel', 'screw'];
+const PLATE_MATERIALS: readonly KitMaterial[] = ['aluminium', 'chamfer', 'screw'];
 
 export function Stage({
   kit,

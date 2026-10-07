@@ -1,6 +1,15 @@
 import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, finish, paint, RadialGradient, SoftShadow, useMaterialId } from '../materials';
+import {
+  CAST,
+  Chamfer,
+  circleBox,
+  finish,
+  paint,
+  RadialGradient,
+  SoftShadow,
+  useMaterialId,
+} from '../materials';
 import { CurrentState, Stage, hitStyle, vars } from './Stage';
 import { useHold } from './use-hold';
 
@@ -24,8 +33,9 @@ export function PushButton({
 
   const art = (
     <>
-      <SoftShadow box={circleBox(50, 50, 44)} offset={[0.5, 1.4]} blur={1.6} />
+      <SoftShadow box={circleBox(50, 50, 44)} {...CAST.medium} />
       <circle cx={50} cy={50} r={44} style={{ fill: paint(kit, 'bezel') }} />
+      <Chamfer id={kit} box={circleBox(50, 50, 44)} width={1.6} />
       <circle cx={50} cy={50} r={41.5} style={{ fill: paint(kit, 'lip') }} />
       <circle cx={50} cy={50} r={WELL + 0.8} style={{ fill: 'var(--panel-metal-shade)' }} />
       <circle cx={50} cy={50} r={WELL} style={{ fill: 'var(--panel-plastic-shade)' }} />
@@ -61,7 +71,7 @@ export function PushButton({
   return (
     <Stage
       kit={kit}
-      materials={['bezel', 'lip', 'plastic', 'dome', 'specular', 'well']}
+      materials={['bezel', 'lip', 'chamfer', 'plastic', 'dome', 'specular', 'well']}
       defs={
         <RadialGradient
           id={`${kit}-recess`}

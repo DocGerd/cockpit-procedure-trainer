@@ -189,6 +189,29 @@ export const finish = {
     [0.5, 'glare', 0.04],
     [1, 'glare', 0],
   ],
+  /**
+   * The machined edge of a plate or bezel, drawn as a stroke: a specular line on the lit side,
+   * a hard turn at the light axis, deep shade on the far side.
+   */
+  chamfer: [
+    [0, 'glare', 0.85],
+    [0.3, 'glare', 0.25],
+    [0.5, 'glare', 0],
+    [0.5, 'shadow', 0],
+    [0.72, 'shadow', 0.4],
+    [1, 'shadow', 0.85],
+  ],
+  /** A lens reflection from its upper-left corner, gone by the far edge of its sweep. */
+  lensGlare: [
+    [0, 'glare', 0.32],
+    [0.35, 'glare', 0.1],
+    [0.75, 'glare', 0],
+  ],
+  /** A brushed aluminium placard plate, brighter towards the light. */
+  aluminium: [
+    [0, 'screw-light'],
+    [1, 'legend-muted'],
+  ],
 } as const satisfies Record<string, readonly Stop[]>;
 
 /** A lit lamp: a hot core in its glow token, falling off through the lamp colour to nothing. */

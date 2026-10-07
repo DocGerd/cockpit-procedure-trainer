@@ -1,7 +1,15 @@
 import { useRef } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { finish, LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
+import {
+  CAST,
+  Chamfer,
+  finish,
+  LinearGradient,
+  paint,
+  SoftShadow,
+  useMaterialId,
+} from '../materials';
 import { along, clamp01, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions } from './positions';
@@ -135,18 +143,9 @@ export function Lever(props: ControlWidgetProps) {
     );
     return (
       <>
-        <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
+        <SoftShadow box={PLATE} {...CAST.medium} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
-        <rect
-          x={PLATE.x + 0.75}
-          y={PLATE.y + 0.75}
-          width={PLATE.width - 1.5}
-          height={PLATE.height - 1.5}
-          rx={PLATE.rx - 0.75}
-          fill="none"
-          strokeWidth={1.5}
-          style={{ stroke: paint(kit, 'bezel') }}
-        />
+        <Chamfer id={kit} box={PLATE} width={2} />
         <rect {...GATE} style={{ fill: 'var(--panel-plastic-shade)' }} />
         <rect {...GATE} style={{ fill: paint(kit, 'well') }} />
         {positions.map((id, index) => (
@@ -164,7 +163,7 @@ export function Lever(props: ControlWidgetProps) {
           </g>
         ))}
         <g className="pk-move pk-slide" style={vars({ '--pk-y': yOf(value) })}>
-          <SoftShadow box={HANDLE} offset={[1, 3]} blur={3} />
+          <SoftShadow box={HANDLE} {...CAST.large} />
           <rect {...HANDLE} style={{ fill: paint(kit, 'plastic') }} />
           <rect
             x={HANDLE.x + 1.5}
@@ -202,7 +201,7 @@ export function Lever(props: ControlWidgetProps) {
   return (
     <Stage
       kit={kit}
-      materials={['plate', 'bezel', 'well', 'plastic', 'specular']}
+      materials={['plate', 'chamfer', 'well', 'plastic', 'specular']}
       defs={<LinearGradient id={`${kit}-top`} from={[0, 0]} to={[0, 1]} stops={finish.dome} />}
       placard={placard}
       width={SIZE}

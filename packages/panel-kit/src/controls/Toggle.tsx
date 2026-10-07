@@ -1,5 +1,5 @@
 import type { ControlWidgetProps } from '../types';
-import { circleBox, paint, Screw, SoftShadow, useMaterialId } from '../materials';
+import { CAST, Chamfer, circleBox, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions, springBackOf } from './positions';
@@ -46,25 +46,16 @@ export function Toggle({
     );
     return (
       <>
-        <SoftShadow box={PLATE} offset={[0.6, 1.6]} blur={2} />
+        <SoftShadow box={PLATE} {...CAST.medium} />
         <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
-        <rect
-          x={PLATE.x + 1}
-          y={PLATE.y + 1}
-          width={PLATE.width - 2}
-          height={PLATE.height - 2}
-          rx={PLATE.rx - 1}
-          fill="none"
-          strokeWidth={2}
-          style={{ stroke: paint(kit, 'bezel') }}
-        />
+        <Chamfer id={kit} box={PLATE} width={2.4} />
         <Screw id={kit} cx={17} cy={14} r={3.5} angle={30} />
         <Screw id={kit} cx={17} cy={86} r={3.5} angle={105} />
-        <SoftShadow box={circleBox(PIVOT.x, PIVOT.y, 14)} offset={[0.8, 2]} blur={2} />
+        <SoftShadow box={circleBox(PIVOT.x, PIVOT.y, 14)} {...CAST.medium} />
         <polygon points={NUT} style={{ fill: paint(kit, 'bezel') }} />
         <circle cx={PIVOT.x} cy={PIVOT.y} r={10} style={{ fill: paint(kit, 'lip') }} />
         <circle cx={PIVOT.x} cy={PIVOT.y} r={7.5} style={{ fill: paint(kit, 'bezel') }} />
-        <g transform={`translate(${PIVOT.x + 2} ${PIVOT.y + 3.5})`} fillOpacity={0.45}>
+        <g transform={`translate(${PIVOT.x + 2.5} ${PIVOT.y + 5})`} fillOpacity={0.5}>
           <g className="pk-move pk-turn" style={vars({ '--pk-angle': angle })}>
             <path d={BAT} style={{ fill: 'var(--panel-shadow)' }} />
             <circle cy={-REACH} r={7.5} style={{ fill: 'var(--panel-shadow)' }} />
@@ -99,7 +90,7 @@ export function Toggle({
   return (
     <Stage
       kit={kit}
-      materials={['plate', 'bezel', 'lip', 'chrome', 'chrome-dome', 'screw']}
+      materials={['plate', 'bezel', 'lip', 'chamfer', 'chrome', 'chrome-dome', 'screw']}
       placard={placard}
       width={WIDTH}
       height={HEIGHT}

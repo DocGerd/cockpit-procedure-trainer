@@ -153,7 +153,12 @@
   /* stylelint-disable-next-line declaration-property-unit-disallowed-list -- SVG user units from the stage geometry, not a type-scale size */
   font-size: calc(var(--pk-font) * 1px);
   font-weight: var(--weight-semibold);
-  fill: var(--panel-legend);
+  fill: var(--panel-face);
   text-anchor: middle;
   dominant-baseline: central;
+}
+
+.pk-placard-cut {
+  fill: var(--panel-glare);
+  fill-opacity: 0.6;
 }

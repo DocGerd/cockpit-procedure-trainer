@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
+import { CAST, Chamfer, circleBox, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
 import type { KitMaterial } from '../materials';
 import { detentAngles, polar } from './geometry';
 import { namedPositions, springBackOf } from './positions';
@@ -90,16 +90,9 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
     );
     return (
       <>
-        <SoftShadow box={circleBox(CENTRE, CENTRE, BEZEL)} offset={[0.5, 1.4]} blur={1.6} />
+        <SoftShadow box={circleBox(CENTRE, CENTRE, BEZEL)} {...CAST.medium} />
         <circle cx={CENTRE} cy={CENTRE} r={BEZEL} style={{ fill: paint(kit, 'plate') }} />
-        <circle
-          cx={CENTRE}
-          cy={CENTRE}
-          r={BEZEL - 0.75}
-          fill="none"
-          strokeWidth={1.5}
-          style={{ stroke: paint(kit, 'bezel') }}
-        />
+        <Chamfer id={kit} box={circleBox(CENTRE, CENTRE, BEZEL)} width={1.5} />
         {positions.map((id, index) => {
           const angle = angles[index] ?? 0;
           const from = polar(angle, TICK.from);
@@ -133,7 +126,7 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
         })}
         <g transform={`translate(${CENTRE} ${CENTRE}) scale(${HEAD_SCALE})`}>{head.still}</g>
         {head.shadow !== undefined && (
-          <g transform={`translate(${CENTRE + 1.2} ${CENTRE + 3})`} fillOpacity={0.5}>
+          <g transform={`translate(${CENTRE + 2} ${CENTRE + 4.5})`} fillOpacity={0.55}>
             <g
               className="pk-move pk-turn"
               style={vars({ '--pk-angle': angles[Math.max(current, 0)] ?? 0 })}
@@ -157,7 +150,7 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
   return (
     <Stage
       kit={kit}
-      materials={head.materials}
+      materials={[...head.materials, 'chamfer']}
       placard={placard}
       width={SIZE}
       height={SIZE}
@@ -189,7 +182,7 @@ export function RotaryKnob(props: ControlWidgetProps) {
         materials: ['plate', 'bezel', 'plastic', 'dome', 'specular'],
         still: (
           <>
-            <SoftShadow box={circleBox(0, 0, 26)} offset={[2, 5]} blur={4} />
+            <SoftShadow box={circleBox(0, 0, 26)} {...CAST.large} />
             <circle r={26} style={{ fill: paint(kit, 'plastic') }} />
             <Knurl
               cx={0}
@@ -213,9 +206,9 @@ export function RotaryKnob(props: ControlWidgetProps) {
         ),
         turning: (
           <line
-            y1={-7}
-            y2={-19}
-            strokeWidth={3.2}
+            y1={-5}
+            y2={-25}
+            strokeWidth={4}
             strokeLinecap="round"
             style={{ stroke: 'var(--panel-legend)' }}
           />
@@ -225,8 +218,8 @@ export function RotaryKnob(props: ControlWidgetProps) {
   );
 }
 
-const KEY = 'M-3.5 4V-24H3.5V4Z';
-const BOW = 'M-9 -34a7 7 0 0 1 7 -7h4a7 7 0 0 1 7 7v4a7 7 0 0 1 -7 7h-4a7 7 0 0 1 -7 -7z';
+const KEY = 'M-3.5 4V-26H3.5V4Z';
+const BOW = 'M-10 -36a8 8 0 0 1 8 -8h4a8 8 0 0 1 8 8v4a8 8 0 0 1 -8 8h-4a8 8 0 0 1 -8 -8z';
 
 export function KeySwitch(props: ControlWidgetProps) {
   const kit = useMaterialId('key');
@@ -239,7 +232,7 @@ export function KeySwitch(props: ControlWidgetProps) {
         materials: ['plate', 'bezel', 'lip', 'cap', 'chrome'],
         still: (
           <>
-            <SoftShadow box={circleBox(0, 0, 19)} offset={[1, 2.6]} blur={2.5} />
+            <SoftShadow box={circleBox(0, 0, 19)} {...CAST.medium} />
             <circle r={19} style={{ fill: paint(kit, 'bezel') }} />
             <circle r={16} style={{ fill: paint(kit, 'lip') }} />
             <circle r={13} style={{ fill: paint(kit, 'cap') }} />
@@ -263,7 +256,7 @@ export function KeySwitch(props: ControlWidgetProps) {
             />
             <path d={KEY} style={metal} />
             <path d={BOW} style={metal} />
-            <circle cy={-33} r={3} style={{ fill: 'var(--panel-metal-shade)' }} />
+            <circle cy={-34} r={3.2} style={{ fill: 'var(--panel-metal-shade)' }} />
           </>
         ),
       }}
