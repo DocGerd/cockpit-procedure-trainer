@@ -25,8 +25,9 @@ Check the milestone page, not this file, for its contents.
 - **Procedural correctness.** More faithful systems logic and clearer feedback
   on wrong actions; more aircraft and checklists, written in our own words from
   paraphrased intake notes.
-- **Supply-chain and project hygiene.** Signed release artifacts, keeping
-  CodeQL scanning and Dependabot current, keeping the unit-test statement
+- **Supply-chain and project hygiene.** Keeping release signing (every
+  release after v0.11.0 carries a Sigstore-attested bundle), CodeQL scanning
+  and Dependabot current, keeping the unit-test statement
   coverage threshold (`vitest.config.ts`, enforced by the required `check`
   job) meaningful, and keeping the OpenSSF Best Practices badge
   ([project 15281](https://www.bestpractices.dev/projects/15281)) current.

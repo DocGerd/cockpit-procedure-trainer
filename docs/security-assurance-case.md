@@ -95,10 +95,12 @@ Out of model: attacks on GitHub, browsers or the user's operating system.
   self-approval, so review is by a separate agent plus required checks (see
   [`GOVERNANCE.md`](../GOVERNANCE.md)). A compromised owner account could ship a
   malicious release.
-- **Unsigned release artifacts.** Signing is pending work
-  ([#369](https://github.com/DocGerd/cockpit-procedure-trainer/issues/369)),
-  which adds [`verifying-a-release.md`](verifying-a-release.md); until then a
-  release is verifiable only by rebuilding it from the tagged source.
+- **Signing covers the release asset only.** Releases after v0.11.0 carry a
+  Sigstore-attested bundle ([`verifying-a-release.md`](verifying-a-release.md));
+  v0.11.0 and earlier have none and are verifiable only by rebuilding from the
+  tagged source. The Pages deployment itself is not attested, and the release
+  build job's actions are tag-pinned, so a compromised build action could still
+  alter the bundle that is then signed.
 
 ## 8. Assumptions
 

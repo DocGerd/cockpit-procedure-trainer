@@ -87,11 +87,12 @@ enabled and alert on vulnerable dependencies.
 
 ## Verifying a release
 
-Signed release artifacts are pending work
-([#369](https://github.com/DocGerd/cockpit-procedure-trainer/issues/369)),
-which adds [docs/verifying-a-release.md](docs/verifying-a-release.md) with the
-verification steps. Until then a release is verifiable only by rebuilding it
-from the tagged source.
+Every GitHub Release after v0.11.0 carries the production bundle as an asset,
+signed keylessly with Sigstore through GitHub artifact attestations;
+[docs/verifying-a-release.md](docs/verifying-a-release.md) has the
+verification steps and what the signature proves. v0.11.0 and earlier have no
+signed asset and are verifiable only by rebuilding them from the tagged
+source.
 
 ## Review and merge controls
 
