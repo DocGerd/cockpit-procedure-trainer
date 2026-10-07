@@ -5,13 +5,18 @@ interface Span {
   right: number;
 }
 
+const TOLERANCE = 0.5;
+
+// Left and right are physical: the shipped languages are all left-to-right.
 export function choosePlacement(
   chip: Span,
   width: number,
   viewport: number,
   margin: number,
 ): Placement {
-  if (chip.left >= margin && chip.left + width <= viewport - margin) return 'start';
-  if (chip.right - width >= margin && chip.right <= viewport - margin) return 'end';
+  const min = margin - TOLERANCE;
+  const max = viewport - margin + TOLERANCE;
+  if (chip.left >= min && chip.left + width <= max) return 'start';
+  if (chip.right - width >= min && chip.right <= max) return 'end';
   return 'header';
 }

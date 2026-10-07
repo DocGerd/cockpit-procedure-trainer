@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { openAircraft, selectLanguage } from './legibility';
@@ -162,6 +163,18 @@ for (const viewport of headerViewports) {
   }
 }
 
+async function expectPlacement(dialog: Locator, chip: Box, box: Box, placement: 'start' | 'end') {
+  await expect(dialog).toHaveAttribute('data-placement', placement);
+  expect(box.y, 'dialog under the chip').toBeGreaterThanOrEqual(chip.y + chip.height - 1);
+  expect(box.y - (chip.y + chip.height), 'gap below the chip').toBeLessThan(16);
+  const dialogEdge = placement === 'start' ? box.x : box.x + box.width;
+  const chipEdge = placement === 'start' ? chip.x : chip.x + chip.width;
+  expect(
+    Math.abs(dialogEdge - chipEdge),
+    `dialog ${placement} edge on the chip`,
+  ).toBeLessThanOrEqual(1);
+}
+
 const chipViewports = [
   { width: 1366, height: 1024, hasTouch: true },
   { width: 1440, height: 900, hasTouch: false },
@@ -201,15 +214,7 @@ for (const { hasTouch, ...viewport } of chipViewports) {
           chipBox.y + chipBox.height - 1,
         );
         expect(dialogBox.y - (chipBox.y + chipBox.height), 'gap below the chip').toBeLessThan(16);
-        expect(dialogBox.x, 'dialog starts at or left of the chip').toBeLessThanOrEqual(
-          chipBox.x + 1,
-        );
-        expect(dialogBox.x + dialogBox.width, 'dialog reaches the chip').toBeGreaterThan(chipBox.x);
-        const flush = Math.abs(dialogBox.x - chipBox.x) <= 1;
-        const pulled = dialogBox.x + dialogBox.width >= viewport.width - 48;
-        expect(flush || pulled, 'dialog aligned to the chip or pulled back from the edge').toBe(
-          true,
-        );
+        await expectPlacement(dialog, chipBox, dialogBox, 'start');
         expect(clipped.value, 'dialog value clipped').toBe(false);
         return dialog;
       };
@@ -228,6 +233,34 @@ for (const { hasTouch, ...viewport } of chipViewports) {
     });
   });
 }
+
+type Box = { x: number; y: number; width: number; height: number };
+
+test('a chip near the right edge opens its dialog aligned to the chip end', async ({ page }) => {
+  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+  const rescue = ctsl?.procedures.rescueDeployment;
+  if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openAircraft(page, ctsl, 'rescueDeployment');
+
+  const chip = page.getByRole('banner').getByRole('button', { name: rescue.title.en });
+  const margin = await page.evaluate(() =>
+    parseFloat(getComputedStyle(document.querySelector('.shell-header') as Element).paddingLeft),
+  );
+  await chip.evaluate((element, edge) => {
+    const anchor = element.parentElement as HTMLElement;
+    const { right } = anchor.getBoundingClientRect();
+    anchor.style.transform = `translateX(${edge - right}px)`;
+  }, 1440 - margin);
+  await chip.click();
+
+  const dialog = page.getByRole('dialog');
+  const [chipBox, dialogBox] = [await chip.boundingBox(), await dialog.boundingBox()];
+  if (!chipBox || !dialogBox) throw new Error('chip or dialog has no box');
+  await expectPlacement(dialog, chipBox, dialogBox, 'end');
+  expect(dialogBox.x, 'dialog inside the window').toBeGreaterThanOrEqual(0);
+  expect(dialogBox.x + dialogBox.width, 'dialog inside the window').toBeLessThanOrEqual(1440);
+});
 
 for (const language of languages) {
   test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({

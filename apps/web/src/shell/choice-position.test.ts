@@ -17,4 +17,10 @@ describe('choosePlacement', () => {
   it('keeps the margin on the start side', () => {
     expect(choosePlacement({ left: 100, right: 180 }, 880, 1000, 24)).toBe('header');
   });
+
+  it('absorbs sub-pixel rounding at the margin and the far edge', () => {
+    expect(choosePlacement({ left: 23.6, right: 103.6 }, 300, 1000, 24)).toBe('start');
+    expect(choosePlacement({ left: 100, right: 180 }, 876.4, 1000, 24)).toBe('start');
+    expect(choosePlacement({ left: 23.4, right: 103.4 }, 70, 1000, 24)).toBe('end');
+  });
 });
