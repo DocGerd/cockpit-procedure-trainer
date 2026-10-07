@@ -8,6 +8,9 @@ const desktops = [
   { width: 3840, height: 2160 },
 ];
 
+// A browser window on a 1080p screen: the tab, address and bookmark bars and the taskbar take the rest.
+const browserWindow = { width: 1920, height: 950 };
+
 const tablets = [
   { width: 1024, height: 768 },
   { width: 768, height: 1024 },
@@ -17,8 +20,8 @@ const cockpitLayout = (page: Page) => page.locator('.shell');
 
 const themes = ['light', 'dark'] as const;
 
-// A short desktop window falls back to the tabs.
-const shortDesktop = { width: 1920, height: 980 };
+// Too short for the outside-view strip to fold far enough: the tabs.
+const shortDesktop = { width: 1920, height: 800 };
 
 async function expectNoPageScroll(page: Page) {
   const overflow = await page.evaluate(() => ({
@@ -30,7 +33,7 @@ async function expectNoPageScroll(page: Page) {
 }
 
 for (const aircraft of aircraftRegistry) {
-  for (const viewport of desktops) {
+  for (const viewport of [...desktops, browserWindow]) {
     test(`${aircraft.id} shows every view at once at ${viewport.width}x${viewport.height}`, async ({
       page,
     }) => {
@@ -118,6 +121,41 @@ for (const aircraft of aircraftRegistry) {
 
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
 if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+
+test('the outside-view strip folds in a browser window and a docked device still fits', async ({
+  page,
+}) => {
+  await page.setViewportSize(browserWindow);
+  await openAircraft(page, ctsl);
+  await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+  const strip = page.getByRole('region', { name: 'Outside view' });
+  await expect(strip).toHaveAttribute('data-folded', 'true');
+  await expect(strip).toBeInViewport({ ratio: 1 });
+
+  await page.locator('[data-placement="gps"]').getByRole('button').click();
+  const dock = page.getByRole('region', { name: 'Device dock' });
+  const unit = dock.getByRole('group', { name: 'gpsmap496', exact: true });
+  await expect(unit).toBeVisible();
+  const [dockBox, unitBox] = await Promise.all([dock.boundingBox(), unit.boundingBox()]);
+  if (!dockBox || !unitBox) throw new Error('no boxes');
+  expect(unitBox.x).toBeGreaterThanOrEqual(dockBox.x);
+  expect(unitBox.y).toBeGreaterThanOrEqual(dockBox.y);
+  expect(unitBox.x + unitBox.width).toBeLessThanOrEqual(dockBox.x + dockBox.width + 0.5);
+  expect(unitBox.y + unitBox.height).toBeLessThanOrEqual(dockBox.y + dockBox.height + 0.5);
+  expect(dockBox.y + dockBox.height).toBeLessThanOrEqual(browserWindow.height);
+  await expectNoPageScroll(page);
+});
+
+test('the outside-view strip is whole where the cockpit fits without folding it', async ({
+  page,
+}) => {
+  await page.setViewportSize(desktops[0] ?? browserWindow);
+  await openAircraft(page, ctsl);
+  await expect(page.getByRole('region', { name: 'Outside view' })).toHaveAttribute(
+    'data-folded',
+    'false',
+  );
+});
 
 // #226: holding the key on START while watching the tachometer.
 for (const viewport of desktops) {

@@ -243,10 +243,23 @@
 }
 
 .shell-outside-view {
+  --outside-view-band-min: var(--space-6);
+  --outside-view-pull: var(--space-3);
+  box-sizing: border-box;
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+
+.shell-outside-view[data-folded='true'] {
+  display: grid;
+  align-content: center;
+  margin-block-end: calc(-1 * var(--outside-view-pull));
+}
+
+.shell-outside-view[data-folded='true'] .outside-view-caption {
+  display: none;
 }
 
 .shell-panel {

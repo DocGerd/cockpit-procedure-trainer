@@ -98,3 +98,44 @@ export function chooseLayout(
     ...(dock && { dock }),
   };
 }
+
+/** The outside-view strip as the page lays it out unfolded, and what folding it may take, in CSS px. */
+export type OutsideStrip = {
+  /** The strip's full height, borders included. */
+  readonly natural: number;
+  /** The least height the strip folds to. */
+  readonly min: number;
+  /** How far the folded strip is pulled toward the cockpit, closing part of the gap between them. */
+  readonly pull: number;
+};
+
+/**
+ * The height the outside-view strip folds to so the cockpit reaches combined, or undefined when it
+ * does so with the strip unfolded, or not even with the strip folded as far as it goes. `region` is
+ * the cockpit region the unfolded strip leaves, so the answer never depends on the strip's own
+ * current height. Found by asking `chooseLayout`, which keeps the two rules in step.
+ */
+export function outsideViewBand(
+  aircraft: Pick<Aircraft, 'cockpit' | 'views'>,
+  region: CockpitRegion,
+  strip: OutsideStrip,
+): number | undefined {
+  if (!(strip.natural > strip.min) || chooseLayout(aircraft, region).kind === 'combined') {
+    return undefined;
+  }
+  const gives = (give: number) =>
+    chooseLayout(aircraft, { width: region.width, height: region.height + give }).kind ===
+    'combined';
+  let low = strip.pull + 1;
+  let high = strip.natural - strip.min + strip.pull;
+  if (!gives(high)) return undefined;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (gives(middle)) high = middle;
+    else low = middle + 1;
+  }
+  return strip.natural - (low - strip.pull);
+}
+
+/** The height the cockpit region gains when the strip folds to `band`. */
+export const foldedGain = (strip: OutsideStrip, band: number) => strip.natural - band + strip.pull;

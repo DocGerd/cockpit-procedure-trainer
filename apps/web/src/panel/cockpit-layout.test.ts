@@ -1,6 +1,6 @@
 import type { Aircraft } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { chooseLayout } from './cockpit-layout';
+import { chooseLayout, foldedGain, outsideViewBand } from './cockpit-layout';
 
 const text = { de: 'x', en: 'x' };
 
@@ -125,5 +125,45 @@ describe('chooseLayout', () => {
       const layout = chooseLayout(aircraft, { width: 400, height: 100 });
       expect(layout.kind === 'combined' && 'dock' in layout).toBe(false);
     });
+  });
+});
+
+describe('outsideViewBand', () => {
+  const strip = { natural: 100, min: 20, pull: 10 };
+  const wide = 400;
+
+  it('leaves the strip unfolded while the cockpit is combined', () => {
+    expect(outsideViewBand(aircraft, { width: wide, height: 100 }, strip)).toBeUndefined();
+  });
+
+  it('folds the strip by only as much as the cockpit needs', () => {
+    const band = outsideViewBand(aircraft, { width: wide, height: 80 }, strip);
+    expect(band).toBe(90);
+    const gain = (value: number) => foldedGain(strip, value);
+    expect(chooseLayout(aircraft, { width: wide, height: 80 + gain(90) }).kind).toBe('combined');
+    expect(chooseLayout(aircraft, { width: wide, height: 80 + gain(91) }).kind).toBe('tabs');
+  });
+
+  it('folds the strip as far as it goes when that is exactly enough', () => {
+    expect(outsideViewBand(aircraft, { width: wide, height: 10 }, strip)).toBe(20);
+  });
+
+  it('leaves the strip unfolded when folding it is not enough', () => {
+    expect(outsideViewBand(aircraft, { width: wide, height: 9 }, strip)).toBeUndefined();
+  });
+
+  it('leaves the strip unfolded when the width is what falls short', () => {
+    expect(outsideViewBand(aircraft, { width: wide - 1, height: 80 }, strip)).toBeUndefined();
+  });
+
+  it('leaves a strip that is no taller than its fold unfolded', () => {
+    const thin = { natural: 20, min: 20, pull: 10 };
+    expect(outsideViewBand(aircraft, { width: wide, height: 80 }, thin)).toBeUndefined();
+  });
+
+  it('leaves the strip unfolded for an aircraft without an arrangement', () => {
+    expect(
+      outsideViewBand({ views: aircraft.views }, { width: wide, height: 80 }, strip),
+    ).toBeUndefined();
   });
 });

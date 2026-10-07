@@ -196,13 +196,21 @@ The floor test owns the numbers. Constraints this design sets:
   apply only to the dock, where the Screen renders at its own floor size.
 
 The HD layout test (§9) fails until it holds. The chrome stays as it is
-(Decision 3). If the floors cannot be met, the fallback is an owner question
-(Open question 1), not a silent compromise.
+(Decision 3). Where the floors cannot be met at full strip height, the outside
+view folds (§6) before the layout falls back to tabs, so a browser window on a
+1080p screen, which is shorter than the screen, still shows the whole cockpit.
 
 ## 6. Outside view and checklist
 
 - **Outside view:** stays a strip above the cockpit, full width of the main
-  column, as today. Its height rule is unchanged.
+  column, at its usual height. Where the cockpit would otherwise fall below a
+  floor, the strip folds: it shrinks, down to a thin band without caption, by
+  just as much as the cockpit needs, and pulls closer to the cockpit. The fold
+  is part of the switch rule: `outsideViewBand` asks `chooseLayout` how much
+  height the cockpit needs, from the region the unfolded strip leaves, so the
+  strip's own height is never an input and the choice cannot oscillate. The
+  strip folds only if folding it reaches combined; otherwise it stays whole and
+  the layout is tabs.
 - **Checklist:** stays the side column at desktop widths (≥ the existing
   `DESKTOP_MIN_WIDTH`), always visible, as today. Guided mode depends on the
   current item being in sight while the pilot looks for the control, and the
@@ -338,10 +346,9 @@ and dark, each mode; one tablet size to confirm tabs still work.
 
 ## 11. Open questions
 
-1. If the CTSL floor work cannot reach the HD budget without making the panel
-   look wrong, which chrome yields first: the checklist as a collapsible
-   column at HD, or the outside view folded into the checklist column? (Either
-   alone gains less than the floor work; the plan does not assume one.)
+1. ~~Which chrome yields first when the floors cannot be met at HD?~~ Decided
+   (#388): the outside strip folds to a thin band (§6) before the layout falls
+   back to tabs; the checklist column and the header and footer stay.
 2. ~~Target overlap (Decision 7): its own issue, and should the floor test
    gain a no-overlap check once the art allows it?~~ Superseded: the floor
    test checks it, with the remaining overlaps accepted by name (Decision 7).
