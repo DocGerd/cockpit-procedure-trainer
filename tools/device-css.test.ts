@@ -1,10 +1,15 @@
-// @ts-expect-error the device packages declare no node types
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const css = readFileSync(new URL('Sl40Screen.css', import.meta.url), 'utf8');
+const stylesheets = [
+  ['ComScreen', 'packages/device-com/src/screen/ComScreen.css'],
+  ['Sl40Screen', 'packages/device-sl40/src/screen/Sl40Screen.css'],
+] as const;
 
-describe('Sl40Screen stylesheet', () => {
+describe.each(stylesheets)('%s stylesheet', (_name, path) => {
+  const css = readFileSync(resolve(import.meta.dirname, '..', path), 'utf8');
+
   it('styles the volume slider in both engines', () => {
     expect(css).toMatch(/input\[type='range'\] \{[^}]*accent-color: var\(--panel-/);
     expect(css).toContain('::-webkit-slider-thumb {');
