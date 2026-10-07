@@ -55,6 +55,43 @@ test('the theme switches and is remembered', async ({ page }) => {
   await expect(page.getByRole('button', { name: copy.shell.switchToDark })).toBeVisible();
 });
 
+test('the browser chrome colour follows an explicit theme, not the system setting', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await openPicker(page);
+
+  const themeColor = () =>
+    page.evaluate(() =>
+      Array.from(document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'))
+        .filter((tag) => window.matchMedia(tag.media).matches)
+        .map((tag) => tag.content),
+    );
+  const dark = await page.evaluate(
+    () =>
+      document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-scheme="dark"]')
+        ?.content,
+  );
+  const light = await page.evaluate(
+    () =>
+      document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"][data-scheme="light"]')
+        ?.content,
+  );
+  expect(dark).toBeTruthy();
+  expect(light).toBeTruthy();
+  expect(dark).not.toBe(light);
+  expect(await themeColor()).toEqual([light]);
+
+  await page.getByRole('button', { name: copy.shell.switchToDark }).click();
+  await expect.poll(themeColor).toEqual([dark]);
+
+  await page.reload();
+  await expect.poll(themeColor).toEqual([dark]);
+
+  await page.getByRole('button', { name: copy.shell.switchToLight }).click();
+  await expect.poll(themeColor).toEqual([light]);
+});
+
 const headerViewports = [
   { width: 1024, height: 768 },
   { width: 1440, height: 900 },

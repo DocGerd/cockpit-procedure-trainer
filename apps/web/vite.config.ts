@@ -54,6 +54,7 @@ const themeColorMeta: Plugin = {
         name: 'theme-color',
         content: pwaColors(tokens, theme).themeColor,
         media: `(prefers-color-scheme: ${theme})`,
+        'data-scheme': theme,
       },
       injectTo: 'head',
     })),

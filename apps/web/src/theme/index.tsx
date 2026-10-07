@@ -15,6 +15,24 @@ function storedTheme(): Theme | undefined {
   return stored === 'light' || stored === 'dark' ? stored : undefined;
 }
 
+// An explicit choice makes its theme-color tag unconditional and disables the other, so the
+// browser chrome follows the choice rather than the OS; no choice restores the media scoping.
+function syncThemeColor(choice: Theme | undefined) {
+  const tags = document.head.querySelectorAll<HTMLMetaElement>(
+    'meta[name="theme-color"][data-scheme]',
+  );
+  for (const tag of tags) {
+    const scheme = tag.dataset.scheme;
+    const media =
+      choice === undefined
+        ? `(prefers-color-scheme: ${scheme})`
+        : choice === scheme
+          ? 'all'
+          : 'not all';
+    tag.setAttribute('media', media);
+  }
+}
+
 type ThemeContextValue = { theme: Theme; setTheme(theme: Theme): void };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -36,6 +54,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    syncThemeColor(choice);
+  }, [choice]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
