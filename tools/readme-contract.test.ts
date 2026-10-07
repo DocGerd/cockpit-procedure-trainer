@@ -52,6 +52,26 @@ describe('readmeProblems', () => {
       good.replace('`key0` to `key2`', '`key0` to `key1`'),
       'control "key2"',
     ],
+    [
+      'an over-wide control range',
+      good.replace('`key0` to `key2`', '`key0` to `key9`'),
+      'documents "key9"',
+    ],
+    [
+      'a duplicated section',
+      `${good}\n## Controls\n\n- \`volume\`: again.\n`,
+      '"## Controls" must appear exactly once, found 2',
+    ],
+    [
+      'an empty Controls',
+      good.replace('- `volume`: a lever.\n- `key0` to `key2`: keys.\n', ''),
+      '"## Controls" is empty',
+    ],
+    [
+      'an empty Not modelled',
+      good.replace('- Audio\n- Memory\n', ''),
+      '"## Not modelled" is empty',
+    ],
     ['a stale control', good.replace('`volume`', '`gain`'), 'documents "gain"'],
     ['a stale not-modelled bullet', good.replace('- Memory', '- Storage'), 'differ'],
     ['a missing not-modelled bullet', good.replace('- Memory\n', ''), 'differ'],

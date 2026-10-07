@@ -1,7 +1,4 @@
-import { describe, expect, it } from 'vitest';
-
-// Structural, so this file needs no package import: a device package cannot
-// resolve anything but its own dependencies from here.
+// Structural, so this file needs no package import.
 export type ReadmeDevice = {
   readonly id: string;
   readonly notModelled: readonly { readonly en: string }[];
@@ -78,12 +75,4 @@ export function readmeProblems(readme: string, device: ReadmeDevice): string[] {
   }
 
   return problems;
-}
-
-export function describeDeviceReadme(readme: string, device: ReadmeDevice): void {
-  describe('README', () => {
-    it('meets the device README contract in docs/adding-a-device.md', () => {
-      expect(readmeProblems(readme, device)).toEqual([]);
-    });
-  });
 }

@@ -140,12 +140,15 @@ Both are added in the app's registry file and nothing else in `apps/web` changes
 
     pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
 
-Tests that every device package should have: a `src/readme.test.ts` that passes
-the README and the device to `describeDeviceReadme` from `tools/readme-contract.ts`
-(it needs the title `# @cpt/device-<id>`, each of the three README sections once and
-non-empty, a `## Controls` bullet for every declared control, with a range such as
-`key0` to `key7` allowed, and `## Not modelled` bullets equal to the English
-`notModelled` texts); logic tests for each behaviour in
+`tools/device-readme.test.ts` checks every `packages/device-*` README against the
+device's logic automatically; a new device needs no README test of its own. The
+README needs the title `# @cpt/device-<id>`, each of `## Source revision`,
+`## Controls` and `## Not modelled` once and non-empty, a `## Controls` bullet for
+every declared control (a range such as `key0` to `key7` is allowed) and none for an
+undeclared one, and `## Not modelled` bullets equal to the English `notModelled`
+texts. The device must be exported from `src/logic/index.ts`.
+
+Tests that every device package should have: logic tests for each behaviour in
 `step`, including power off; a session test that installs the device in a small
 test-local aircraft, runs the aircraft validator and walks a procedure with
 `walkProcedure` (it fails a spring-back press unless the control rests at the
