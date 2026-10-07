@@ -157,7 +157,7 @@ export type CockpitLayout<V extends string> = {
   readonly size: ViewSize;
   readonly views: { readonly [K in V]: CockpitCell };
   /** Where the device dock sits; its `minWidth` is at least the widest device floor. Not a view. */
-  readonly dock?: CockpitCell;
+  readonly dock: CockpitCell;
 };
 
 export type Environment = {

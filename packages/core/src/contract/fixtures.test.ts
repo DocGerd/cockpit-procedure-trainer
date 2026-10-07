@@ -88,7 +88,7 @@ describe('cockpit arrangement types', () => {
   it('accepts a cell for every view', () => {
     const defined = defineAircraft({
       ...aircraft,
-      cockpit: { size, views: { panel: cell, console: cell } },
+      cockpit: { size, views: { panel: cell, console: cell }, dock: cell },
     });
     expect(Object.keys(defined.cockpit?.views ?? {})).toEqual(['panel', 'console']);
   });
@@ -104,6 +104,7 @@ describe('cockpit arrangement types', () => {
           // @ts-expect-error nope is not a view
           nope: cell,
         },
+        dock: cell,
       },
     });
   });
@@ -112,7 +113,15 @@ describe('cockpit arrangement types', () => {
     defineAircraft({
       ...aircraft,
       // @ts-expect-error console has no cell
-      cockpit: { size, views: { panel: cell } },
+      cockpit: { size, views: { panel: cell }, dock: cell },
+    });
+  });
+
+  it('rejects an arrangement without a dock', () => {
+    defineAircraft({
+      ...aircraft,
+      // @ts-expect-error the dock is required
+      cockpit: { size, views: { panel: cell, console: cell } },
     });
   });
 });

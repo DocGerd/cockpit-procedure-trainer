@@ -130,8 +130,8 @@ const strips = [
   { aircraft: 'ctsl', height: 1000, folded: 'true' },
   { aircraft: 'ctsl', height: 950, folded: 'hidden' },
   { aircraft: 'demo', height: 1080, folded: 'false' },
-  { aircraft: 'demo', height: 950, folded: 'true' },
-  { aircraft: 'demo', height: 880, folded: 'hidden' },
+  { aircraft: 'demo', height: 920, folded: 'true' },
+  { aircraft: 'demo', height: 860, folded: 'hidden' },
 ];
 
 for (const { aircraft: id, height, folded } of strips) {

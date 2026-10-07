@@ -9,9 +9,12 @@ const cell = (x: number, y: number, w: number, h: number, minWidth = 300) => ({
   minWidth,
 });
 
+const dockCell = cell(0, 200, 400, 100);
+
 const arrangement = {
-  size: { width: 400, height: 200 },
+  size: { width: 400, height: 300 },
   views: { panel: cell(0, 0, 400, 100), console: cell(0, 100, 400, 100) },
+  dock: dockCell,
 };
 
 const withCockpit = (cockpit: unknown): Aircraft => ({ ...fixtureAircraft, cockpit }) as Aircraft;
@@ -35,8 +38,9 @@ describe('cockpit arrangement', () => {
 
   it('lets cells that touch at an edge sit side by side', () => {
     const touching = {
-      size: { width: 400, height: 200 },
+      size: { width: 400, height: 300 },
       views: { panel: cell(0, 0, 200, 200), console: cell(200, 0, 200, 200) },
+      dock: dockCell,
     };
     expect(codes(withCockpit(touching))).toEqual([]);
   });
@@ -65,8 +69,9 @@ describe('cockpit arrangement', () => {
 
   it('reports a cell that names no view', () => {
     const aircraft = withCockpit({
-      size: { width: 400, height: 300 },
-      views: { ...arrangement.views, glareshield: cell(0, 200, 400, 100) },
+      ...arrangement,
+      size: { width: 400, height: 400 },
+      views: { ...arrangement.views, glareshield: cell(0, 300, 400, 100) },
     });
     expect(cockpitFindings(aircraft)).toMatchObject([
       { code: 'unknown-cockpit-view', id: 'glareshield' },
@@ -75,7 +80,7 @@ describe('cockpit arrangement', () => {
 
   it.each([
     ['right', cell(100, 0, 301, 100)],
-    ['bottom', cell(0, 101, 400, 100)],
+    ['bottom', cell(0, 201, 400, 100)],
     ['left', cell(-1, 0, 100, 100)],
     ['top', cell(0, -1, 100, 100)],
   ])('reports a cell that leaves the arrangement past the %s edge', (_, outside) => {
@@ -86,6 +91,12 @@ describe('cockpit arrangement', () => {
     expect(
       cockpitFindings(aircraft).filter(({ code }) => code === 'cockpit-cell-outside'),
     ).toMatchObject([{ id: 'panel' }]);
+  });
+
+  it('reports a cockpit without a dock', () => {
+    expect(
+      cockpitFindings(withCockpit({ size: arrangement.size, views: arrangement.views })),
+    ).toMatchObject([{ code: 'invalid-cockpit-dock', id: 'dock' }]);
   });
 
   it('reports two cells that overlap, naming both views', () => {
@@ -144,7 +155,6 @@ describe('cockpit arrangement', () => {
   describe('device dock', () => {
     const docked = (dock: unknown) =>
       withCockpit({ ...arrangement, size: { width: 400, height: 300 }, dock });
-    const dockCell = cell(0, 200, 400, 100);
 
     it('finds nothing for a valid dock', () => {
       expect(validateAircraft(docked(dockCell))).toEqual([]);

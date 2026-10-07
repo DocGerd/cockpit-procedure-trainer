@@ -337,7 +337,9 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         }
       }
     }
-    if (dock !== undefined) {
+    if (dock === undefined) {
+      add('invalid-cockpit-dock', 'dock', 'the cockpit arrangement needs a dock cell');
+    } else {
       const dockRect = isUsableRect(dock?.rect) ? dock?.rect : undefined;
       const flawed = (reason: string) => add('invalid-cockpit-dock', 'dock', reason);
       if (!isLength(dock?.minWidth)) flawed('minWidth must be a positive, finite number');
