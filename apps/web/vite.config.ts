@@ -1,7 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { contentSecurityPolicy } from './src/csp';
@@ -18,16 +17,6 @@ const copyright = copyrightNotice(repoFile('LICENSE'));
 if (release === undefined) throw new Error('CHANGELOG.md has no released version heading');
 if (copyright === undefined) throw new Error('LICENSE has no copyright line');
 const tokens = readFileSync(resolve(import.meta.dirname, 'src/styles/tokens.css'), 'utf8');
-
-// The plugin's register module imports workbox-window, which only the plugin's own install can see.
-const workboxWindow = resolve(
-  dirname(
-    createRequire(createRequire(import.meta.url).resolve('vite-plugin-pwa')).resolve(
-      'workbox-window',
-    ),
-  ),
-  '..',
-);
 
 const noindexForUat: Plugin = {
   name: 'noindex-for-uat',
@@ -76,7 +65,6 @@ export default defineConfig({
     'import.meta.env.VITE_APP_RELEASE': JSON.stringify(release),
     'import.meta.env.VITE_COPYRIGHT': JSON.stringify(copyright),
   },
-  resolve: { alias: { 'workbox-window': workboxWindow } },
   plugins: [
     react(),
     noindexForUat,
