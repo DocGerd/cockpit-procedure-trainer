@@ -42,9 +42,10 @@ const indicatorArtwork = Object.entries(
   return artwork ? [{ id, indicator, artwork }] : [];
 });
 
-const urlsOf = ({ face, moving }: Artwork): string[] => [
+const urlsOf = ({ face, moving, glass }: Artwork): string[] => [
   face,
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
+  ...(glass === undefined ? [] : [glass]),
 ];
 const used = new Set(
   [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
@@ -66,7 +67,7 @@ describe('CTSL artwork files', () => {
     );
   });
 
-  it('keeps a moving image the size of its face, with explicit pixel dimensions', () => {
+  it('keeps every moving and glass image the size of its face, with explicit pixel dimensions', () => {
     for (const { id, artwork } of [...controlArtwork, ...indicatorArtwork]) {
       const face = sizeOf(artwork.face);
       expect(face.width, id).toBeDefined();

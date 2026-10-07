@@ -10,6 +10,7 @@ export const images = {
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
   needleAirspeed: new URL('./assets/artwork/needle-airspeed.svg', import.meta.url).href,
+  glassAirspeed: new URL('./assets/artwork/glass-airspeed.svg', import.meta.url).href,
   compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
   compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   rockerBeacon: new URL('./assets/artwork/rocker-beacon.svg', import.meta.url).href,
@@ -78,6 +79,7 @@ const needle = (
   options: JsonObject,
   angleRange = { min: -135, max: 135 },
   image: string = images.needle,
+  glass?: string,
 ): ArtworkAppearance => ({
   options: { ...valueRange, ...options },
   artwork: {
@@ -89,6 +91,7 @@ const needle = (
       angleRange,
       valueRange,
     },
+    ...(glass === undefined ? {} : { glass }),
   },
 });
 
@@ -123,6 +126,7 @@ export const gaugeArtwork = {
     {
       units: 'km/h',
       decimals: 0,
+      needleShadow: true,
       ticks: [40, 80, 120, 160, 200, 240, 280],
       arcs: [
         { from: 72, to: 115, colour: 'white' },
@@ -133,6 +137,7 @@ export const gaugeArtwork = {
     },
     undefined,
     images.needleAirspeed,
+    images.glassAirspeed,
   ),
   altimeter: needle(
     images.gaugeAltimeter,
