@@ -302,6 +302,15 @@
   contain: size;
 }
 
+.shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] .checklist-footer,
+.shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] .checklist-actions,
+.shell-checklist[data-overlay='true'] .checklist-footer,
+.shell-checklist[data-overlay='true'] .checklist-actions {
+  position: sticky;
+  inset-block-end: 0;
+  background: var(--color-surface);
+}
+
 .shell-checklist[data-overlay='true'] {
   position: absolute;
   inset-block: 0;
