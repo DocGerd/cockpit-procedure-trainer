@@ -7,7 +7,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 ## Commands
 
 - `pnpm dev` runs the web app
-- `pnpm test` runs all unit tests (fails if none are found)
+- `pnpm test` runs all unit tests (fails if none are found); `pnpm test:coverage`
+  is what the `check` job runs (statement threshold in `vitest.config.ts`)
 - `pnpm test:e2e` runs the Playwright browser tests (once:
   `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when 4399 is
   busy (parallel agents). Stop only processes you started; never `pkill` by
@@ -95,6 +96,16 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   commands.
 - `gh pr merge --delete-branch` errors when a worktree holds the branch (the
   PR still lands); delete branches after removing the worktree.
+- After landing a PR, check its `Closes` issue is closed; if not, PATCH
+  `repos/<owner>/<repo>/issues/<n>` with `state=closed`, `state_reason=completed`.
+- OpenSSF Best Practices silver (project 15281) rests on
+  `docs/openssf-best-practices-badge.md`, `SECURITY.md`, `GOVERNANCE.md` and
+  `docs/security-assurance-case.md`: a PR that changes a workflow, security
+  behaviour or process they describe updates them in the same PR.
+- Every action in `release.yml` is pinned by full commit SHA (its output is
+  attested).
+- Local `gh` lacks `gh attestation`: verify a release with a current gh release
+  binary unpacked in the scratchpad (`docs/verifying-a-release.md`).
 - Review replies: POST to `…/pulls/<n>/comments/<id>/replies` with
   `--field body=@file` (`--raw-field` posts the literal `@file`); resolve
   threads via GraphQL.
