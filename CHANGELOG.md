@@ -8,6 +8,20 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.10.0] - 2026-10-07
+
+### Changed
+
+- The web app declares `workbox-window` as a dev dependency; the build-config alias that worked around its absence is gone.
+- Linting now fails any package under `packages/` of a kind with no boundary rules, so a new package kind cannot ship unbounded.
+- Every end-to-end test now fails on a content security policy violation, not only the dedicated policy test, so an injection in any flow the browser tests drive no longer passes unnoticed.
+
+### Fixed
+
+- The browser chrome colour (`theme-color`) now follows a theme chosen in the app, not only the system setting.
+- A round gauge's caption now sits below the needle tip at every size, so it no longer overlaps the needle at tablet portrait.
+- At tablet width the header chips open a dialog with the full aircraft name or procedure title, so touch and keyboard users can read what the narrow header truncates.
+
 ## [0.9.0] - 2026-10-06
 
 ### Changed
@@ -182,7 +196,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.6.0...v0.7.0
