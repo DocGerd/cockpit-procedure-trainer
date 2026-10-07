@@ -1,4 +1,5 @@
 import type { ControlWidgetProps } from '../types';
+import { CAST, Chamfer, circleBox, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions, springBackOf } from './positions';
@@ -11,6 +12,12 @@ const HEIGHT = 100;
 const PIVOT = { x: 32, y: 50 };
 const REACH = 38;
 const LEGEND_X = 78;
+const PLATE = { x: 8, y: 6, width: 48, height: 88, rx: 10 };
+const NUT = Array.from({ length: 6 }, (_, index) => {
+  const turn = (index * Math.PI) / 3;
+  return `${PIVOT.x + 14 * Math.cos(turn)},${PIVOT.y + 14 * Math.sin(turn)}`;
+}).join(' ');
+const BAT = `M-4.5 0L-3 ${-REACH}H3L4.5 0Z`;
 
 export function Toggle({
   control,
@@ -29,6 +36,8 @@ export function Toggle({
   );
   const angle = 180 * (1 - along(Math.max(current, 0), positions.length));
 
+  const kit = useMaterialId('toggle');
+
   const art = (metrics: Metrics | undefined) => {
     const legends = placeLegends(
       metrics,
@@ -37,12 +46,30 @@ export function Toggle({
     );
     return (
       <>
-        <rect x={8} y={6} width={48} height={88} rx={10} className="pk-bezel-dark" />
-        <circle cx={PIVOT.x} cy={PIVOT.y} r={14} className="pk-bezel" />
+        <SoftShadow box={PLATE} {...CAST.medium} />
+        <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
+        <Chamfer id={kit} box={PLATE} width={2.4} />
+        <Screw id={kit} cx={17} cy={14} r={3.5} angle={30} />
+        <Screw id={kit} cx={17} cy={86} r={3.5} angle={105} />
+        <SoftShadow box={circleBox(PIVOT.x, PIVOT.y, 14)} {...CAST.medium} />
+        <polygon points={NUT} style={{ fill: paint(kit, 'bezel') }} />
+        <circle cx={PIVOT.x} cy={PIVOT.y} r={10} style={{ fill: paint(kit, 'lip') }} />
+        <circle cx={PIVOT.x} cy={PIVOT.y} r={7.5} style={{ fill: paint(kit, 'bezel') }} />
+        <g transform={`translate(${PIVOT.x + 2.5} ${PIVOT.y + 5})`} fillOpacity={0.5}>
+          <g className="pk-move pk-turn" style={vars({ '--pk-angle': angle })}>
+            <path d={BAT} style={{ fill: 'var(--panel-shadow)' }} />
+            <circle cy={-REACH} r={7.5} style={{ fill: 'var(--panel-shadow)' }} />
+          </g>
+        </g>
         <g transform={`translate(${PIVOT.x} ${PIVOT.y})`}>
           <g className="pk-move pk-turn" style={vars({ '--pk-angle': angle })}>
-            <rect x={-3.5} y={-REACH} width={7} height={REACH} rx={3.5} className="pk-cap-light" />
-            <circle cy={-REACH} r={7} className="pk-cap" />
+            <path d={BAT} style={{ fill: paint(kit, 'chrome') }} />
+            <g transform={`translate(0 ${-REACH})`}>
+              {/* Turned back against the bat, so the ball's highlight stays up-left. */}
+              <g className="pk-move pk-turn" style={vars({ '--pk-angle': -angle })}>
+                <circle r={7} style={{ fill: paint(kit, 'chrome-dome') }} />
+              </g>
+            </g>
           </g>
         </g>
         {legends.show &&
@@ -61,7 +88,14 @@ export function Toggle({
   };
 
   return (
-    <Stage placard={placard} width={WIDTH} height={HEIGHT} art={art}>
+    <Stage
+      kit={kit}
+      materials={['plate', 'bezel', 'lip', 'chamfer', 'chrome', 'chrome-dome', 'screw']}
+      placard={placard}
+      width={WIDTH}
+      height={HEIGHT}
+      art={art}
+    >
       <PositionGroup
         label={label}
         positions={positions}

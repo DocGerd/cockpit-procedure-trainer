@@ -121,47 +121,9 @@
   opacity: 1;
 }
 
-.pk-bezel {
-  fill: var(--panel-bezel);
-}
-
-.pk-bezel-dark {
-  fill: var(--panel-bezel-dark);
-}
-
-.pk-cap {
-  fill: var(--panel-cap);
-}
-
-.pk-cap-light {
-  fill: var(--panel-cap-light);
-}
-
-.pk-face {
-  fill: var(--panel-face);
-}
-
-.pk-legend-fill {
-  fill: var(--panel-legend);
-}
-
-.pk-flap {
-  fill: var(--panel-cap-light);
-  fill-opacity: 0.6;
-  stroke: var(--panel-bezel);
-  stroke-width: 1.5;
-}
-
 .pk-line {
   stroke: var(--panel-legend-muted);
   stroke-width: 1.5;
-  stroke-linecap: round;
-}
-
-.pk-mark {
-  fill: none;
-  stroke: var(--panel-bezel-dark);
-  stroke-width: 2;
   stroke-linecap: round;
 }
 
@@ -186,16 +148,17 @@
   fill: var(--panel-legend);
 }
 
-.pk-placard-plate {
-  fill: var(--panel-face);
-}
-
 .pk-placard {
   font-family: var(--font-sans);
   /* stylelint-disable-next-line declaration-property-unit-disallowed-list -- SVG user units from the stage geometry, not a type-scale size */
   font-size: calc(var(--pk-font) * 1px);
   font-weight: var(--weight-semibold);
-  fill: var(--panel-legend);
+  fill: var(--panel-face);
   text-anchor: middle;
   dominant-baseline: central;
+}
+
+.pk-placard-cut {
+  fill: var(--panel-glare);
+  fill-opacity: 0.6;
 }

@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import type { ReactNode } from 'react';
 import type { LampColour } from '../indicators/options';
 
 export type Material =
@@ -7,6 +8,11 @@ export type Material =
   | 'bezel'
   | 'bezel-dark'
   | 'dial'
+  | 'screen'
+  | 'legend'
+  | 'legend-muted'
+  | 'needle'
+  | 'lamp-off'
   | 'shadow'
   | 'glare'
   | 'plastic'
@@ -132,6 +138,80 @@ export const finish = {
     [0.55, 'screw'],
     [1, 'screw-shade'],
   ],
+  /** A flat anodised plate: a faint sheen, no bevel; the bevel is its own stroke. */
+  plate: [
+    [0, 'bezel'],
+    [1, 'bezel-dark'],
+  ],
+  /** A moulded cap top seen as a dome: highlight up-left, falling off into the shade. */
+  dome: [
+    [0, 'plastic-light'],
+    [0.5, 'plastic'],
+    [1, 'plastic-shade'],
+  ],
+  /** Across a round bar or shaft, so it stays right however the part turns: lit along its ridge. */
+  ridge: [
+    [0, 'metal-shade'],
+    [0.45, 'metal-light'],
+    [0.6, 'bezel'],
+    [1, 'metal-shade'],
+  ],
+  /** Polished metal across a bat or key, bright along its ridge; symmetric, so it may turn. */
+  chrome: [
+    [0, 'metal-shade'],
+    [0.3, 'metal-light'],
+    [0.5, 'legend'],
+    [0.7, 'metal-light'],
+    [1, 'metal-shade'],
+  ],
+  /** A polished ball or bow seen from the light: hot spot up-left, dark rim. */
+  'chrome-dome': [
+    [0, 'legend'],
+    [0.3, 'screw-light'],
+    [0.75, 'metal-light'],
+    [1, 'metal-shade'],
+  ],
+  /** A painted band round a breaker stem, shaded as a cylinder lit from the left. */
+  band: [
+    [0, 'legend-muted'],
+    [0.35, 'legend'],
+    [1, 'legend-muted'],
+  ],
+  /** The inner shadow of a well or window, darkest at the edge nearest the light. */
+  well: [
+    [0, 'shadow', 0.7],
+    [0.3, 'shadow', 0.25],
+    [0.6, 'shadow', 0],
+  ],
+  /** Glass over a screen or lens, kept fainter than a gauge's so it never dims a legend. */
+  screenGlare: [
+    [0, 'glare', 0.16],
+    [0.5, 'glare', 0.04],
+    [1, 'glare', 0],
+  ],
+  /**
+   * The machined edge of a plate or bezel, drawn as a stroke: a specular line on the lit side,
+   * a hard turn at the light axis, deep shade on the far side.
+   */
+  chamfer: [
+    [0, 'glare', 0.85],
+    [0.3, 'glare', 0.25],
+    [0.5, 'glare', 0],
+    [0.5, 'shadow', 0],
+    [0.72, 'shadow', 0.4],
+    [1, 'shadow', 0.85],
+  ],
+  /** A lens reflection from its upper-left corner, gone by the far edge of its sweep. */
+  lensGlare: [
+    [0, 'glare', 0.32],
+    [0.35, 'glare', 0.1],
+    [0.75, 'glare', 0],
+  ],
+  /** A brushed aluminium placard plate, brighter towards the light. */
+  aluminium: [
+    [0, 'screw-light'],
+    [1, 'legend-muted'],
+  ],
 } as const satisfies Record<string, readonly Stop[]>;
 
 /** A lit lamp: a hot core in its glow token, falling off through the lamp colour to nothing. */
@@ -186,9 +266,11 @@ export function Grain({
 export function Materials({
   id,
   recess,
+  children,
 }: {
   id: string;
   recess: { centre: Point; radius: number };
+  children?: ReactNode;
 }) {
   return (
     <defs>
@@ -197,6 +279,7 @@ export function Materials({
       <LinearGradient id={`${id}-glare`} {...GLARE_SWEEP} stops={finish.glare} />
       <RadialGradient id={`${id}-recess`} userSpace {...recess} stops={finish.recess} />
       <RadialGradient id={`${id}-cap`} {...DOME} stops={finish.cap} />
+      {children}
     </defs>
   );
 }

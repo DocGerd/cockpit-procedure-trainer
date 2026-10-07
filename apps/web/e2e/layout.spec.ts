@@ -29,7 +29,7 @@ const TOLERANCE_PX = 0.5;
 const indicatorFaceGaps: Readonly<
   Record<string, readonly (typeof priorityViewports)[number]['name'][]>
 > = {
-  ctsl: ['1080p screen', '1080p browser window', 'tablet landscape', 'tablet portrait'],
+  ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
 const desktops = [
@@ -217,7 +217,7 @@ for (const aircraft of aircraftRegistry) {
     }) => {
       test.fail(
         indicatorFaceGaps[aircraft.id]?.includes(viewport.name) ?? false,
-        'Gauge numerals and captions print below the minimum; the art is M12 (#391)',
+        'Gauges render too small at tablet sizes for face lettering at the minimum (#420)',
       );
       await page.setViewportSize(viewport);
       await openAircraft(page, aircraft);

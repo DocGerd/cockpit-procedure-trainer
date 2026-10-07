@@ -284,7 +284,7 @@ over the needle. The renderer stacks the three layers for a gauge like this:
 artwork: {
   face: images.gaugeAirspeed, // bezel, dial, markings and lettering
   moving: { type: 'needle', image: images.needle, pivot, angleRange, valueRange },
-  glass: images.glassAirspeed, // glare and rim highlight, above the needle
+  glass: images.glassGauge, // glare, rim highlight and hub cap, above the needle
 },
 options: { needleShadow: true },
 ```

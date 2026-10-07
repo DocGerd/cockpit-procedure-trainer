@@ -1,6 +1,17 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
 import { formatNumber, squeeze } from './geometry';
+import {
+  Chamfer,
+  glareSweep,
+  Kit,
+  LIGHT,
+  LinearGradient,
+  paint,
+  SoftShadow,
+  useMaterialId,
+} from '../materials';
+import type { Stop } from '../materials';
 import { readReadoutOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
@@ -17,12 +28,24 @@ const LABEL_DESIGN = 6;
 const UNITS_DESIGN = 7;
 export const UNITS_ROOM = 32;
 export const UNITS_GAP = 2;
+const FRAME = { x: 0.3, y: 0.3, width: 96.6, height: 37.9, rx: 4 };
+const WINDOW = { x: 2.6, y: 2.6, width: 92.3, height: 34, rx: 2.4 };
+// Dark glass, a shade lighter towards the light, over a screen that is darker still.
+const GLASS: readonly Stop[] = [
+  [0, 'bezel-dark'],
+  [0.55, 'screen'],
+];
+const INNER: readonly Stop[] = [
+  [0, 'shadow', 0.85],
+  [1, 'shadow', 0],
+];
 
 export const unitsReserve = (units: string, fontSize: number) =>
   Math.min(units.length * MONO_ADVANCE * fontSize, UNITS_ROOM) + UNITS_GAP;
 
 export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) {
   const [ref, metrics] = useRenderedMetrics(VIEWBOX);
+  const kit = useMaterialId('readout');
   const config = readReadoutOptions(options);
   if (config === null) return <IndicatorPlaceholder label={label} />;
   const { units, decimals } = config;
@@ -84,14 +107,30 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       role="img"
       aria-label={units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`}
     >
+      <Kit id={kit} use={['bezel', 'lip', 'chamfer', 'well', 'lens-glare', 'specular']}>
+        <LinearGradient id={`${kit}-glass`} {...LIGHT} stops={GLASS} />
+        <LinearGradient id={`${kit}-inner`} from={[0, 0]} to={[0, 1]} stops={INNER} />
+      </Kit>
+      <SoftShadow box={FRAME} offset={[1.6, 1.2]} blur={1} opacity={0.75} />
+      <rect {...FRAME} style={{ fill: paint(kit, 'bezel') }} />
+      <Chamfer id={kit} box={FRAME} width={1.4} />
       <rect
-        x={1}
-        y={1}
-        width={98}
-        height={38}
-        rx={4}
-        strokeWidth={2}
-        style={{ fill: 'var(--panel-screen)', stroke: 'var(--panel-bezel)' }}
+        x={FRAME.x + 1.2}
+        y={FRAME.y + 1.2}
+        width={FRAME.width - 2.4}
+        height={FRAME.height - 2.4}
+        rx={FRAME.rx - 1}
+        style={{ fill: paint(kit, 'lip') }}
+      />
+      <rect {...WINDOW} style={{ fill: paint(kit, 'glass') }} />
+      <rect {...WINDOW} style={{ fill: paint(kit, 'well') }} />
+      <rect
+        x={WINDOW.x}
+        y={WINDOW.y}
+        width={WINDOW.width}
+        height={3}
+        rx={WINDOW.rx}
+        style={{ fill: paint(kit, 'inner') }}
       />
       {showCaption && (
         <text
@@ -132,6 +171,22 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
           {units}
         </text>
       )}
+      <path d={glareSweep(WINDOW)} style={{ fill: paint(kit, 'lens-glare') }} />
+      <path
+        d={`M${WINDOW.x + 0.6} ${WINDOW.y + 22}V${WINDOW.y + 2.5}A2 2 0 0 1 ${WINDOW.x + 2.5} ${WINDOW.y + 0.6}H${WINDOW.x + 50}`}
+        fill="none"
+        strokeWidth={0.8}
+        strokeLinecap="round"
+        style={{ stroke: paint(kit, 'specular') }}
+      />
+      <path
+        d={`M${WINDOW.x + WINDOW.width * 0.7} ${WINDOW.y + WINDOW.height - 0.6}H${WINDOW.x + WINDOW.width - 2.4}A1.8 1.8 0 0 0 ${WINDOW.x + WINDOW.width - 0.6} ${WINDOW.y + WINDOW.height - 2.4}V${WINDOW.y + WINDOW.height * 0.6}`}
+        fill="none"
+        strokeWidth={0.7}
+        strokeLinecap="round"
+        opacity={0.14}
+        style={{ stroke: 'var(--panel-glare)' }}
+      />
     </svg>
   );
 }
