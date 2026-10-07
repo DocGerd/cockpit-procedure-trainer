@@ -60,11 +60,31 @@ Everything else is paste work. These need a human:
    `GOVERNANCE.md`), `bus_factor` (genuinely 1), `version_tags_signed`
    (artifact attestation instead of signed tags). Leave them Unmet with the
    one-line reasons below.
-5. **Contact email.** The form asks for a project contact; pick the address
-   to publish. Vulnerability reports go through GitHub private advisories, not
-   email (`SECURITY.md`).
+5. **Contact email.** Concerns the form's project contact field (the
+   address the form lists for questions about the project, separate from the
+   `vulnerability_report_*` criteria). Options: a public maintainer address
+   (the Git author email), or leave the field empty if the form allows it.
+   GitHub private vulnerability reporting needs no email; vulnerability reports
+   go through it, not email (`SECURITY.md`).
 6. **After the award**, swap the README badge to the level variant the form
    offers, and add the Silver badge once it is granted.
+
+---
+
+## Project fields (non-criterion form fields)
+
+Paste these into the project-details part of the form. The entry's name is
+currently unset.
+
+| Form field               | Value                                                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name                     | Cockpit Procedure Trainer                                                                                                                         |
+| Description              | Browser-based cockpit procedure trainer for general aviation. Practise checklists and procedures on an interactive panel; not a flight simulator. |
+| Homepage URL             | https://docgerd.github.io/cockpit-procedure-trainer/                                                                                              |
+| Repository URL           | https://github.com/DocGerd/cockpit-procedure-trainer                                                                                              |
+| Implementation languages | TypeScript                                                                                                                                        |
+| License                  | MIT                                                                                                                                               |
+| CPE                      | none (leave empty; the project is not distributed as a CPE-tracked package)                                                                       |
 
 ---
 
@@ -278,7 +298,7 @@ The URL column is spelled out in full, ready to paste.
 | `signed_releases`                 | MUST      | Met    | `release.yml` builds the production bundle, packs it deterministically, attests it with `actions/attest-build-provenance` (keyless Sigstore: Fulcio certificate for the workflow identity, Rekor transparency log), verifies the attestation with `gh attestation verify` and only then creates the tag and Release with the asset attached. `docs/verifying-a-release.md` gives the download and verify commands and states what the signature proves. The first signed release is the next one after v0.11.0; see section 0 item 1 before entering this.                                                    | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/docs/verifying-a-release.md                      |
 | `version_tags_signed`             | SUGGESTED | Unmet  | Git tags are created unsigned by `release.yml`; the project signs the release artifact (Sigstore attestation) instead of the tag.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/.github/workflows/release.yml                    |
 | `input_validation`                | MUST      | Met    | The app parses no file, URL or network response supplied by a user (`docs/security-assurance-case.md` § 2). The inputs it does take are validated: aircraft and device data pass `validateAircraft` in `packages/core/src/validator/` (typed contract plus structural findings) in CI for every registered aircraft; `localStorage` values are read through a guarded accessor and checked against an allow-list (`isLanguage`) before use; pointer and keyboard events reach typed control models only. TypeScript `strict` with `exactOptionalPropertyTypes` and `noUncheckedIndexedAccess` types the rest. | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/packages/core/src/validator/validate-aircraft.ts |
-| `hardening`                       | SHOULD    | Met    | Strict CSP shipped in the build (`apps/web/src/csp.ts`: `default-src 'self'`, `object-src 'none'`, `form-action 'none'`, `base-uri 'self'`, no inline script or style) and asserted by every e2e spec; least-privilege workflow `permissions` with `contents: read` at the top level; SHA-pinned actions in `codeql.yml` and the signing job of `release.yml`; build and signing in separate jobs so build-time code cannot mint an OIDC token; no repository secrets.                                                                                                                                        | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/apps/web/src/csp.ts                              |
+| `hardening`                       | SHOULD    | Met    | Strict CSP shipped in the build (`apps/web/src/csp.ts`: `default-src 'self'`, `object-src 'none'`, `form-action 'none'`, `base-uri 'self'`, no inline script or style) and asserted by every e2e spec; least-privilege workflow `permissions` with `contents: read` at the top level; SHA-pinned actions in `codeql.yml` and `release.yml`; build and signing in separate jobs so build-time code cannot mint an OIDC token; no repository secrets.                                                                                                                                                           | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/apps/web/src/csp.ts                              |
 | `assurance_case`                  | MUST      | Met    | `docs/security-assurance-case.md`: claims, system description, trust boundaries, threat model, secure-design argument, common-weakness table, known gaps and accepted risk, assumptions, maintenance triggers.                                                                                                                                                                                                                                                                                                                                                                                                | https://github.com/DocGerd/cockpit-procedure-trainer/blob/develop/docs/security-assurance-case.md                  |
 
 ### Analysis

@@ -23,7 +23,7 @@ jobs:
       exists: ${{ steps.existing.outputs.exists }}
       asset: ${{ steps.pack.outputs.asset }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       - name: Read the top released section of CHANGELOG.md
@@ -70,11 +70,11 @@ jobs:
           fi
       # The bundle is built and signed before the Release is created, so a failed
       # build or attestation leaves no Release and a re-run starts clean.
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         if: steps.existing.outputs.exists == 'false'
       # No pnpm cache: a cache written by another branch's run must not feed a
       # signed bundle.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         if: steps.existing.outputs.exists == 'false'
         with:
           node-version: 24
@@ -104,7 +104,7 @@ jobs:
             --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
             -C apps/web/dist -cf - . | gzip -9n > "$RUNNER_TEMP/release/$asset"
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: steps.existing.outputs.exists == 'false'
         with:
           name: release
