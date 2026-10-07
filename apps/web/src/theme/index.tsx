@@ -15,6 +15,18 @@ function storedTheme(): Theme | undefined {
   return stored === 'light' || stored === 'dark' ? stored : undefined;
 }
 
+// The build's tags are media-scoped, which already covers a mount with no choice. An explicit
+// choice makes its tag unconditional and disables the other, so the browser chrome follows the
+// choice rather than the OS.
+function applyThemeColorChoice(choice: Theme) {
+  const tags = document.head.querySelectorAll<HTMLMetaElement>(
+    'meta[name="theme-color"][data-scheme]',
+  );
+  for (const tag of tags) {
+    tag.setAttribute('media', tag.dataset.scheme === choice ? 'all' : 'not all');
+  }
+}
+
 type ThemeContextValue = { theme: Theme; setTheme(theme: Theme): void };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -36,6 +48,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    if (choice) applyThemeColorChoice(choice);
+  }, [choice]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
