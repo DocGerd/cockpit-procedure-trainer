@@ -6,6 +6,7 @@ import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useTrainer } from '../trainer';
+import { useLayout } from './layout';
 import { messages } from './messages';
 
 function BrandMark() {
@@ -21,6 +22,7 @@ function HeaderChoice({
   eyebrow,
   value,
   action,
+  details,
   open,
   onToggle,
   onClose,
@@ -29,6 +31,7 @@ function HeaderChoice({
   eyebrow: string;
   value: string;
   action: string;
+  details: boolean;
   open: boolean;
   onToggle(): void;
   onClose(): void;
@@ -36,7 +39,9 @@ function HeaderChoice({
 }) {
   const anchor = useRef<HTMLDivElement>(null);
   const chip = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
   const dialogId = useId();
+  const labelId = useId();
   const close = useRef(onClose);
   close.current = onClose;
 
@@ -47,25 +52,48 @@ function HeaderChoice({
         close.current();
       }
     };
+    // Capture phase: the dialog is the topmost layer, so Escape must not reach the checklist drawer.
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      event.stopPropagation();
       if (anchor.current?.contains(document.activeElement)) chip.current?.focus();
       close.current();
     };
     document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown, true);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
     };
   }, [open]);
 
+  useEffect(() => {
+    if (open) dialog.current?.focus();
+  }, [open]);
+
+  if (!details) {
+    return (
+      <button type="button" className="chrome-button shell-choice" title={value} onClick={onChange}>
+        <span className="shell-eyebrow">{eyebrow}</span>{' '}
+        <span className="shell-choice-value">{value}</span>
+      </button>
+    );
+  }
+
   return (
-    <div ref={anchor} className="shell-choice-anchor">
+    <div
+      ref={anchor}
+      className="shell-choice-anchor"
+      onBlur={(event) => {
+        const next = event.relatedTarget;
+        if (open && next instanceof Node && !anchor.current?.contains(next)) onClose();
+      }}
+    >
       <button
         ref={chip}
         type="button"
         className="chrome-button shell-choice"
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? dialogId : undefined}
         onClick={onToggle}
@@ -74,8 +102,17 @@ function HeaderChoice({
         <span className="shell-choice-value">{value}</span>
       </button>
       {open && (
-        <div id={dialogId} role="dialog" aria-label={eyebrow} className="shell-choice-details">
-          <p className="shell-detail-label">{eyebrow}</p>
+        <div
+          ref={dialog}
+          id={dialogId}
+          role="dialog"
+          aria-labelledby={labelId}
+          tabIndex={-1}
+          className="shell-choice-details"
+        >
+          <p id={labelId} className="shell-detail-label">
+            {eyebrow}
+          </p>
           <p className="shell-detail-value">{value}</p>
           <button type="button" className="chrome-button" onClick={onChange}>
             {action}
@@ -92,10 +129,12 @@ function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
+  const details = useLayout() === 'tablet';
   const [open, setOpen] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   const choice = (kind: Choice) => ({
-    open: open === kind,
+    details,
+    open: details && open === kind,
     onToggle: () => setOpen((current) => (current === kind ? undefined : kind)),
     onClose: () => setOpen(undefined),
     onChange: backToPicker,

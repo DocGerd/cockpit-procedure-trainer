@@ -222,6 +222,7 @@ describe('trainer layout on desktop', () => {
   });
 
   it('names the aircraft and the procedure in the header, and goes back to the picker', async () => {
+    setWidth(DESKTOP_MIN_WIDTH);
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
@@ -230,11 +231,26 @@ describe('trainer layout on desktop', () => {
     await userEvent.click(
       within(header).getByRole('button', { name: `Aircraft ${alpha.name.en}` }),
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Change aircraft' }));
     expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
   });
 
-  describe('header chip details', () => {
+  it('keeps the chip a one-tap link with a hover title on desktop', async () => {
+    setWidth(DESKTOP_MIN_WIDTH);
+    renderShell();
+    await startProcedure();
+    const aircraftChip = within(screen.getByRole('banner')).getByRole('button', {
+      name: /^Aircraft/,
+    });
+    expect(aircraftChip.getAttribute('title')).toBe(alpha.name.en);
+    expect(aircraftChip.hasAttribute('aria-expanded')).toBe(false);
+    await userEvent.click(aircraftChip);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
+  });
+
+  describe('header chip details on a tablet', () => {
+    beforeEach(() => setWidth(DESKTOP_MIN_WIDTH - 1));
+
     const chip = (name: RegExp | string) =>
       within(screen.getByRole('banner')).getByRole('button', { name });
 
@@ -244,6 +260,8 @@ describe('trainer layout on desktop', () => {
       const title = alpha.procedures[procedureId]?.title.en ?? '';
       const aircraftChip = chip(/^Aircraft/);
       expect(aircraftChip.getAttribute('aria-expanded')).toBe('false');
+      expect(aircraftChip.getAttribute('aria-haspopup')).toBe('dialog');
+      expect(aircraftChip.hasAttribute('title')).toBe(false);
       expect(screen.queryByRole('dialog')).toBeNull();
 
       await userEvent.click(aircraftChip);
@@ -273,11 +291,35 @@ describe('trainer layout on desktop', () => {
       await startProcedure();
       const aircraftChip = chip(/^Aircraft/);
       await userEvent.click(aircraftChip);
+      expect(document.activeElement).toBe(screen.getByRole('dialog'));
       await userEvent.tab();
       expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Change aircraft' }));
       await userEvent.keyboard('{Escape}');
       expect(screen.queryByRole('dialog')).toBeNull();
       expect(document.activeElement).toBe(aircraftChip);
+    });
+
+    it('closes when focus leaves it', async () => {
+      renderShell();
+      await startProcedure();
+      await userEvent.click(chip(/^Aircraft/));
+      await userEvent.tab();
+      expect(screen.getByRole('dialog')).toBeTruthy();
+      await userEvent.tab();
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('lets one Escape close only the dialog, not the checklist drawer behind it', async () => {
+      renderShell();
+      await startProcedure();
+      await userEvent.click(checklistToggle());
+      await userEvent.click(chip(/^Aircraft/));
+      expect(screen.getByRole('dialog')).toBeTruthy();
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
     });
 
     it('closes on a tap outside', async () => {

@@ -122,6 +122,17 @@ for (const viewport of headerViewports) {
   }
 }
 
+test('a header chip is a one-tap link back to the picker at desktop width', async ({ page }) => {
+  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+  if (!ctsl) throw new Error('The CTSL is not registered');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openAircraft(page, ctsl, 'rescueDeployment');
+
+  await page.getByRole('banner').getByRole('button', { name: ctsl.name.en }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
+});
+
 for (const language of languages) {
   test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({
     page,
