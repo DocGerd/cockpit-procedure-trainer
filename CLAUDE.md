@@ -10,7 +10,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - `pnpm test` runs all unit tests (fails if none are found)
 - `pnpm test:e2e` runs the Playwright browser tests (once:
   `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when 4399 is
-  busy (parallel agents)
+  busy (parallel agents). Stop only processes you started; never `pkill` by
+  name (it kills other agents' servers)
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 
 ## How work is done
@@ -51,6 +52,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
   `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
   a package kind.
+- Cross-package contract tests (device CSS, device READMEs) live in `tools/`,
+  discover `packages/device-*` themselves, and are typechecked by
+  `tsc -p tools`; packages never import from `tools/`.
 - Adding an aircraft: a new `packages/aircraft-<id>`, one line in
   `apps/web/src/aircraft-registry.ts` and its workspace dependency in
   `apps/web/package.json`. Nothing else in `apps/web` changes.
@@ -69,7 +73,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   contract test in `apps/web/src/panel/printed-labels.test.tsx` enforces it.
   A placard never names a trainer view or app UI.
 - No inline `<style>`/`<script>`: the build ships a strict CSP
-  (`apps/web/src/csp.ts`); `e2e/csp.spec.ts` fails on any violation.
+  (`apps/web/src/csp.ts`); every e2e spec fails on a violation via the
+  `apps/web/e2e/fixtures.ts` auto fixture. Specs import `test`/`expect` from
+  `./fixtures` (lint-enforced).
 - Avionics devices get their own view (like `radios`/`gps`); a device in a
   scaled panel slot misses the 44 px touch targets.
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
@@ -83,6 +89,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   endpoints literally, run `git pull --ff-only origin develop` on its own. A
   global force-push guard also refuses `--noEmit` and `+0`-like text in
   commands.
+- `gh pr merge --delete-branch` errors when a worktree holds the branch (the
+  PR still lands); delete branches after removing the worktree.
 - Review replies: POST to `…/pulls/<n>/comments/<id>/replies` with
   `--field body=@file` (`--raw-field` posts the literal `@file`); resolve
   threads via GraphQL.
