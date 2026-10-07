@@ -115,6 +115,11 @@ describe('ArtworkIndicator needle', () => {
     expect(screen.getByRole('img', { name: 'Gauge: 0' })).toBeTruthy();
   });
 
+  it('marks the needle layer so it can turn without repainting the face', () => {
+    renderIndicator(needle, 0);
+    expect(document.querySelector('svg')?.getAttribute('data-moving')).toBe('needle');
+  });
+
   it('names the gauge with its units', () => {
     renderIndicator(needle, 200.02, { units: 'km/h' });
     expect(screen.getByRole('img', { name: 'Gauge: 200.02 km/h' })).toBeTruthy();

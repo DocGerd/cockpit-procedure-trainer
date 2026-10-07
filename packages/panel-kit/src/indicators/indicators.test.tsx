@@ -230,7 +230,27 @@ describe('round gauge', () => {
     ]);
     const used = paints.filter((paint) => paint !== '' && paint !== 'none');
     expect(used.length).toBeGreaterThan(0);
-    for (const paint of used) expect(paint).toMatch(/^var\(--panel-[a-z-]+\)$/);
+    for (const paint of used) {
+      const material = /^url\("?#([^"]+)"?\)$/.exec(paint)?.[1];
+      if (material === undefined) {
+        expect(paint).toMatch(/^var\(--panel-[a-z-]+\)$/);
+        continue;
+      }
+      const stops = [...(container.querySelector(`[id="${material}"]`)?.children ?? [])];
+      expect(stops.length, material).toBeGreaterThan(0);
+      for (const stop of stops) {
+        expect((stop as SVGElement).style.stopColor).toMatch(/^var\(--panel-[a-z-]+\)$/);
+      }
+    }
+  });
+
+  it('gives each gauge its own material ids', () => {
+    const first = draw(gauge, 20, range).container;
+    const second = draw(gauge, 20, range).container;
+    const ids = (container: HTMLElement) =>
+      [...container.querySelectorAll('[id]')].map((node) => node.id);
+    expect(ids(first).length).toBeGreaterThan(0);
+    expect(ids(first).filter((id) => ids(second).includes(id))).toEqual([]);
   });
 });
 
@@ -374,10 +394,17 @@ describe('every indicator', () => {
     ['digital-readout', readout, 'ABC', { units: 'x' }],
   ];
 
+  // Material ids come from useId and differ per mount; everything else must follow from the props.
+  const markup = (container: HTMLElement) =>
+    [...container.querySelectorAll('[id]')].reduce(
+      (html, node, index) => html.replaceAll(node.id, `id-${index}`),
+      container.innerHTML,
+    );
+
   it.each(cases)('%s renders the same output for the same props', (_id, Widget, value, options) => {
-    const first = draw(Widget, value, options).container.innerHTML;
+    const first = markup(draw(Widget, value, options).container);
     cleanup();
-    const second = draw(Widget, value, options).container.innerHTML;
+    const second = markup(draw(Widget, value, options).container);
     expect(second).toBe(first);
   });
 

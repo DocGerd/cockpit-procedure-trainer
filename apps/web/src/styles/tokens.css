@@ -95,4 +95,8 @@
   --panel-arc-red: #d8483c;
   --panel-arc-white: #eceef1;
   --panel-focus: #ffffff;
+  --panel-metal-light: #8a9098;
+  --panel-metal-shade: #0b0c0e;
+  --panel-shadow: #000000;
+  --panel-glare: #ffffff;
 }
