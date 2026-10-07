@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';

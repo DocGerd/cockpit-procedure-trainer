@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { copy, openPicker } from './trainer';
 
