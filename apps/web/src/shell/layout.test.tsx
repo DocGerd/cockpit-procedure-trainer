@@ -230,7 +230,71 @@ describe('trainer layout on desktop', () => {
     await userEvent.click(
       within(header).getByRole('button', { name: `Aircraft ${alpha.name.en}` }),
     );
+    await userEvent.click(screen.getByRole('button', { name: 'Change aircraft' }));
     expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
+  });
+
+  describe('header chip details', () => {
+    const chip = (name: RegExp | string) =>
+      within(screen.getByRole('banner')).getByRole('button', { name });
+
+    it('opens a dialog with the full aircraft name and procedure title on tap', async () => {
+      renderShell();
+      await startProcedure();
+      const title = alpha.procedures[procedureId]?.title.en ?? '';
+      const aircraftChip = chip(/^Aircraft/);
+      expect(aircraftChip.getAttribute('aria-expanded')).toBe('false');
+      expect(screen.queryByRole('dialog')).toBeNull();
+
+      await userEvent.click(aircraftChip);
+      expect(aircraftChip.getAttribute('aria-expanded')).toBe('true');
+      const dialog = screen.getByRole('dialog', { name: 'Aircraft' });
+      expect(aircraftChip.getAttribute('aria-controls')).toBe(dialog.id);
+      expect(within(dialog).getByText(alpha.name.en)).toBeTruthy();
+
+      await userEvent.click(chip(/^Procedure/));
+      expect(aircraftChip.getAttribute('aria-expanded')).toBe('false');
+      const procedureDialog = screen.getByRole('dialog', { name: 'Procedure' });
+      expect(within(procedureDialog).getByText(title)).toBeTruthy();
+      expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    });
+
+    it('closes on a second tap on the chip', async () => {
+      renderShell();
+      await startProcedure();
+      const aircraftChip = chip(/^Aircraft/);
+      await userEvent.click(aircraftChip);
+      await userEvent.click(aircraftChip);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('closes on Escape and returns focus to the chip', async () => {
+      renderShell();
+      await startProcedure();
+      const aircraftChip = chip(/^Aircraft/);
+      await userEvent.click(aircraftChip);
+      await userEvent.tab();
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Change aircraft' }));
+      await userEvent.keyboard('{Escape}');
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(document.activeElement).toBe(aircraftChip);
+    });
+
+    it('closes on a tap outside', async () => {
+      renderShell();
+      await startProcedure();
+      await userEvent.click(chip(/^Aircraft/));
+      await userEvent.click(document.body);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('goes back to the picker from the procedure dialog', async () => {
+      renderShell();
+      await startProcedure();
+      await userEvent.click(chip(/^Procedure/));
+      await userEvent.click(screen.getByRole('button', { name: 'Change procedure' }));
+      expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
+    });
   });
 
   it('has no checklist and no procedure in Free explore', async () => {

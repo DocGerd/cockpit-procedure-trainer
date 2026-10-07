@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
@@ -19,37 +20,100 @@ function BrandMark() {
 function HeaderChoice({
   eyebrow,
   value,
-  onClick,
+  action,
+  open,
+  onToggle,
+  onClose,
+  onChange,
 }: {
   eyebrow: string;
   value: string;
-  onClick(): void;
+  action: string;
+  open: boolean;
+  onToggle(): void;
+  onClose(): void;
+  onChange(): void;
 }) {
+  const anchor = useRef<HTMLDivElement>(null);
+  const chip = useRef<HTMLButtonElement>(null);
+  const dialogId = useId();
+  const close = useRef(onClose);
+  close.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Node) || !anchor.current?.contains(event.target)) {
+        close.current();
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (anchor.current?.contains(document.activeElement)) chip.current?.focus();
+      close.current();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <button type="button" className="chrome-button shell-choice" title={value} onClick={onClick}>
-      <span className="shell-eyebrow">{eyebrow}</span>{' '}
-      <span className="shell-choice-value">{value}</span>
-    </button>
+    <div ref={anchor} className="shell-choice-anchor">
+      <button
+        ref={chip}
+        type="button"
+        className="chrome-button shell-choice"
+        aria-expanded={open}
+        aria-controls={open ? dialogId : undefined}
+        onClick={onToggle}
+      >
+        <span className="shell-eyebrow">{eyebrow}</span>{' '}
+        <span className="shell-choice-value">{value}</span>
+      </button>
+      {open && (
+        <div id={dialogId} role="dialog" aria-label={eyebrow} className="shell-choice-details">
+          <p className="shell-detail-label">{eyebrow}</p>
+          <p className="shell-detail-value">{value}</p>
+          <button type="button" className="chrome-button" onClick={onChange}>
+            {action}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
+
+type Choice = 'aircraft' | 'procedure';
 
 function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
+  const [open, setOpen] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
+  const choice = (kind: Choice) => ({
+    open: open === kind,
+    onToggle: () => setOpen((current) => (current === kind ? undefined : kind)),
+    onClose: () => setOpen(undefined),
+    onChange: backToPicker,
+  });
   return (
     <>
       <HeaderChoice
         eyebrow={text.aircraft}
         value={localize(aircraft.name)}
-        onClick={backToPicker}
+        action={text.changeAircraft}
+        {...choice('aircraft')}
       />
       {procedure && (
         <HeaderChoice
           eyebrow={text.procedure}
           value={localize(procedure.title)}
-          onClick={backToPicker}
+          action={text.changeProcedure}
+          {...choice('procedure')}
         />
       )}
     </>
