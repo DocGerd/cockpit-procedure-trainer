@@ -41,15 +41,15 @@ accounts or uploads.
 
 ## 4. Threat model
 
-| Threat                                                     | Countered by                                                                                                                                                                                                    |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1 Compromised dependency                                  | Lockfile (`pnpm-lock.yaml`), Dependabot version and security updates, a CSP that blocks exfiltration to third-party origins even if injected code ran                                                           |
-| T2 Script injection (XSS)                                  | No user-supplied HTML is rendered, no `dangerouslySetInnerHTML`, React escaping, `script-src 'self'` with no inline script or style (the e2e specs fail on a violation), `object-src 'none'`, `base-uri 'self'` |
-| T3 Data exfiltration or tracking                           | No analytics, no third-party origin; `connect-src 'self'` and `form-action 'none'`                                                                                                                              |
-| T4 Tampering between repository and browser                | Pull-request-only protected branches, required `check` job, deploy from `main` through GitHub's OIDC Pages flow, HTTPS from GitHub Pages                                                                        |
-| T5 Local attacker with device access                       | Out of scope: only three non-sensitive settings are stored                                                                                                                                                      |
-| T6 Malicious contributor or compromised maintainer account | Required checks and review threads, a separate review agent, owner-only release pull request; a compromised owner account is an accepted risk (section 7)                                                       |
-| T7 Malicious or broken aircraft content                    | The validator rejects inconsistent aircraft data in CI; content is paraphrased in-repo and never fetched at runtime                                                                                             |
+| Threat                                                     | Countered by                                                                                                                                                                                                                                                         |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1 Compromised dependency                                  | Lockfile (`pnpm-lock.yaml`), Dependabot version and security updates, a CSP that blocks exfiltration to third-party origins even if injected code ran                                                                                                                |
+| T2 Script injection (XSS)                                  | No user-supplied HTML is rendered, no `dangerouslySetInnerHTML`, React escaping, `script-src 'self'` with no inline script or style (the e2e specs fail on a violation), `object-src 'none'`, `base-uri 'self'`; CodeQL scans every pull request for injection sinks |
+| T3 Data exfiltration or tracking                           | No analytics, no third-party origin; `connect-src 'self'` and `form-action 'none'`                                                                                                                                                                                   |
+| T4 Tampering between repository and browser                | Pull-request-only protected branches, required `check` job, deploy from `main` through GitHub's OIDC Pages flow, HTTPS from GitHub Pages                                                                                                                             |
+| T5 Local attacker with device access                       | Out of scope: only non-sensitive settings are stored                                                                                                                                                                                                                 |
+| T6 Malicious contributor or compromised maintainer account | Required checks and review threads, a separate review agent, owner-only release pull request; a compromised owner account is an accepted risk (section 7)                                                                                                            |
+| T7 Malicious or broken aircraft content                    | The validator rejects inconsistent aircraft data in CI; content is paraphrased in-repo and never fetched at runtime                                                                                                                                                  |
 
 Out of model: attacks on GitHub, browsers or the user's operating system.
 
@@ -63,19 +63,21 @@ Out of model: attacks on GitHub, browsers or the user's operating system.
   secrets.
 - **Fail-safe defaults.** Storage reads and writes are guarded and the app works
   without them; an error boundary shows a readable message and a reset.
-- **Economy of mechanism.** No networking code in the app, no parsers for
-  external input, minimal persistence.
+- **Economy of mechanism.** The only fetch in the app reads its own SVG
+  artwork from the same origin (`apps/web/src/panel/image-size.ts`); nothing
+  parses user- or third-party-supplied input; minimal persistence.
 - **Defense in depth.** Even if a dependency were compromised, the CSP limits
   where it could send data; ESLint package boundaries limit what each package
   can import.
 - **Build integrity.** Dependency installs from the lockfile, CI-built
-  artifacts, protected branches.
+  artifacts, protected branches, CodeQL static analysis
+  (`.github/workflows/codeql.yml`) on every pull request and on a schedule.
 
 ## 6. Common implementation weaknesses
 
 | Weakness (OWASP / CWE)                 | Status                                                                                  |
 | -------------------------------------- | --------------------------------------------------------------------------------------- |
-| Injection, XSS (CWE-79, CWE-89)        | No SQL or backend; no HTML injection sinks; strict CSP                                  |
+| Injection, XSS (CWE-79, CWE-89)        | No SQL or backend; no HTML injection sinks; strict CSP; CodeQL scanning                 |
 | Broken authentication / access control | Not applicable: no accounts                                                             |
 | Sensitive data exposure (CWE-200)      | No sensitive data collected or stored; HTTPS only                                       |
 | Insecure deserialization (CWE-502)     | Settings are plain strings read through a guarded accessor; no external input is parsed |
@@ -86,15 +88,17 @@ Out of model: attacks on GitHub, browsers or the user's operating system.
 
 ## 7. Known gaps and accepted risk
 
-- **CSP via `<meta>`.** GitHub Pages cannot send headers, so `frame-ancestors`,
+- **CSP via `<meta>`.** GitHub Pages cannot set custom response headers, so `frame-ancestors`,
   `report-uri` and `sandbox` are unavailable. Clickjacking is not mitigated; the
   app holds nothing worth clicking through to.
 - **Single maintainer.** One human approves every release; GitHub does not count
   self-approval, so review is by a separate agent plus required checks (see
   [`GOVERNANCE.md`](../GOVERNANCE.md)). A compromised owner account could ship a
   malicious release.
-- **Release verification** is described in
-  [`verifying-a-release.md`](verifying-a-release.md).
+- **Unsigned release artifacts.** Signing is pending work
+  ([#369](https://github.com/DocGerd/cockpit-procedure-trainer/issues/369)),
+  which adds [`verifying-a-release.md`](verifying-a-release.md); until then a
+  release is verifiable only by rebuilding it from the tagged source.
 
 ## 8. Assumptions
 

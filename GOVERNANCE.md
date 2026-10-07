@@ -93,10 +93,10 @@ indefinitely.
 
 The outcome that matters is creating and closing issues, accepting changes and
 releasing within a week without the current maintainer. The whole build,
-release and deploy pipeline is committed in the repository, and all three
-workflows (`.github/workflows/ci.yml`, `deploy.yml`, `release.yml`) run on the
-automatic `GITHUB_TOKEN` alone: none uses a repository secret, and the Pages
-deploy uses GitHub's OIDC flow. So anyone who forks can, without cooperation:
+release and deploy pipeline is committed in the repository, and every workflow
+under `.github/workflows/` runs on the automatic `GITHUB_TOKEN` alone: the
+repository holds no Actions secrets, and the Pages deploy uses GitHub's OIDC
+flow. So anyone who forks can, without cooperation:
 
 - use the fork's own issue tracker and pull-request flow immediately;
 - run CI, and build and deploy by enabling GitHub Pages and the `github-pages`

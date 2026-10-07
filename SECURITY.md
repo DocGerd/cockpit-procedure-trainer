@@ -5,7 +5,7 @@
 The Cockpit Procedure Trainer is a client-only static web app with no backend
 and no accounts. The only supported version is the latest production
 deployment at <https://docgerd.github.io/cockpit-procedure-trainer/> (built
-from `main`). The installed PWA updates itself on the next online visit. The
+from `main`). An installed PWA offers the update on the next online visit. The
 `/uat/` preview is the unreleased `develop` state and is not supported.
 
 ## Security requirements: what you can and cannot expect
@@ -19,9 +19,9 @@ and common-weakness arguments) is the
 - **No accounts and no credentials to steal.** No sign-up, login, session or
   cookie.
 - **No backend to breach.** The project operates no server, API or database.
-- **Your data stays on your device.** The only persisted data is three
-  settings (theme, language, last aircraft) in the browser's `localStorage`.
-  Nothing is uploaded.
+- **Your data stays on your device.** The only persisted user data are the
+  settings theme, language and last aircraft, in the browser's `localStorage`;
+  the service worker caches only the app's own assets. Nothing is uploaded.
 - **No analytics, telemetry or tracking.**
 - **No runtime calls to third-party origins.** The app loads only its own
   assets; a strict Content Security Policy
@@ -35,7 +35,7 @@ and common-weakness arguments) is the
 - **No flight-safety authority.** This is a training aid. The aircraft's
   handbook is authoritative; do not use the app in flight.
 - **No protection against a compromised device or browser.**
-- **No response headers.** GitHub Pages cannot send HTTP headers, so the CSP is
+- **No custom response headers.** GitHub Pages cannot set them, so the CSP is
   delivered as a `<meta>` tag, which cannot carry `frame-ancestors`.
 - **No third-party availability guarantees.** GitHub Pages is outside the
   project's control.
@@ -87,7 +87,11 @@ enabled and alert on vulnerable dependencies.
 
 ## Verifying a release
 
-See [docs/verifying-a-release.md](docs/verifying-a-release.md).
+Signed release artifacts are pending work
+([#369](https://github.com/DocGerd/cockpit-procedure-trainer/issues/369)),
+which adds [docs/verifying-a-release.md](docs/verifying-a-release.md) with the
+verification steps. Until then a release is verifiable only by rebuilding it
+from the tagged source.
 
 ## Review and merge controls
 
@@ -95,4 +99,6 @@ See [docs/verifying-a-release.md](docs/verifying-a-release.md).
 through pull requests with a passing `check` job and resolved review threads.
 With one maintainer, GitHub does not count self-approval, so a second human's
 approving review is not required; every pull request is instead reviewed by a
-separate agent before merge, and only the owner merges into `main`.
+separate agent before merge, and only the owner merges into `main`. CodeQL
+code scanning (`.github/workflows/codeql.yml`) analyses every pull request and
+push to `develop` and `main`, and runs on a schedule.

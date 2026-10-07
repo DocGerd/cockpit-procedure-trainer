@@ -25,8 +25,9 @@ Check the milestone page, not this file, for its contents.
 - **Procedural correctness.** More faithful systems logic and clearer feedback
   on wrong actions; more aircraft and checklists, written in our own words from
   paraphrased intake notes.
-- **Supply-chain and project hygiene.** Code scanning, a coverage threshold,
-  signed release artifacts and keeping the OpenSSF Best Practices badge
+- **Supply-chain and project hygiene.** A coverage threshold, signed release
+  artifacts, keeping CodeQL scanning and Dependabot current, and keeping the
+  OpenSSF Best Practices badge
   ([project 15281](https://www.bestpractices.dev/projects/15281)) current.
 - **Maintainability.** Keep package boundaries enforced and the add-an-aircraft
   path cheap.
