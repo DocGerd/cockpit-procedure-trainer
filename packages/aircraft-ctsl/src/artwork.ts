@@ -9,7 +9,6 @@ export const images = {
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
-  needleSmall: new URL('./assets/artwork/needle-small.svg', import.meta.url).href,
   glassGauge: new URL('./assets/artwork/glass-gauge.svg', import.meta.url).href,
   glassCompass: new URL('./assets/artwork/glass-compass.svg', import.meta.url).href,
   compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
@@ -79,16 +78,13 @@ const needle = (
   valueRange: { min: number; max: number },
   options: JsonObject,
   angleRange = { min: -135, max: 135 },
-  image: string = images.needle,
 ): ArtworkAppearance => ({
-  // Seven stage shadows sweeping at once overrun the needle-frame budget, so the small gauges'
-  // needle carries its own rotation-safe shadow instead.
-  options: { ...valueRange, needleShadow: image === images.needle, ...options },
+  options: { ...valueRange, needleShadow: true, ...options },
   artwork: {
     face,
     moving: {
       type: 'needle',
-      image,
+      image: images.needle,
       pivot: { x: 100, y: 100 },
       angleRange,
       valueRange,
@@ -148,7 +144,6 @@ export const gaugeArtwork = {
     { min: -5, max: 5 },
     { units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
     { min: -225, max: 45 },
-    images.needleSmall,
   ),
   tachometer: needle(
     images.gaugeTachometer,
@@ -178,8 +173,6 @@ export const gaugeArtwork = {
         { from: 5, to: 10, colour: 'red' },
       ],
     },
-    undefined,
-    images.needleSmall,
   ),
   oilTemperature: needle(
     images.gaugeOilTemperature,
@@ -195,8 +188,6 @@ export const gaugeArtwork = {
         { from: 130, to: 150, colour: 'red' },
       ],
     },
-    undefined,
-    images.needleSmall,
   ),
   cht: needle(
     images.gaugeCht,
@@ -210,8 +201,6 @@ export const gaugeArtwork = {
         { from: 120, to: 150, colour: 'red' },
       ],
     },
-    undefined,
-    images.needleSmall,
   ),
 } as const;
 

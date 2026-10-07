@@ -25,7 +25,6 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/gauge-oil-temperature.svg` | Gauge face, oil temperature               |
 | `src/assets/artwork/gauge-cht.svg`             | Gauge face, cht                           |
 | `src/assets/artwork/needle.svg`                | Shared gauge needle                       |
-| `src/assets/artwork/needle-small.svg`          | Small gauge needle with its own shadow    |
 | `src/assets/artwork/compass-face.svg`          | Compass bezel and bowl                    |
 | `src/assets/artwork/compass-card.svg`          | Compass card                              |
 | `src/assets/artwork/glass-compass.svg`         | Compass glass and lubber line             |
