@@ -41,6 +41,18 @@ holds released state and feeds the production site.
 
 Versions are semantic and below 1.0: milestone Mn is released as v0.(n+1).0.
 
+## Code of conduct, governance, security
+
+Participation is under the [Code of Conduct](CODE_OF_CONDUCT.md); decision
+making and roles are in [`GOVERNANCE.md`](GOVERNANCE.md); the direction is in
+[`ROADMAP.md`](ROADMAP.md). Report vulnerabilities privately as
+[`SECURITY.md`](SECURITY.md) describes, never in a public issue.
+
+## Tests
+
+New functionality needs automated tests (unit, and e2e where the behaviour is
+user-visible) in the same pull request; the required `check` job runs them.
+
 ## Machine prerequisites
 
 Node 24, pnpm, `gh` and `jq`. The Claude Code formatting hook uses `jq`. The
