@@ -4,7 +4,14 @@ import type { Aircraft } from '@cpt/core';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
-import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';
+import {
+  MIN_TEXT_PX,
+  fitViewAt,
+  indicatorLetteringProblems,
+  letteringProblems,
+  openAircraft,
+  showView,
+} from './legibility';
 
 const viewports = [
   { width: 768, height: 1024 },
@@ -116,6 +123,27 @@ for (const aircraft of aircraftRegistry) {
       ).toEqual([]);
     }
   });
+}
+
+// From 1920x1080 up only (HD first): below it the small gauges render too small to letter at all.
+const gaugeViewports = viewports.filter(({ width }) => width >= 1920);
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of gaugeViewports) {
+    test(`${aircraft.id} prints gauge face lettering at the minimum size at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        expect(
+          await indicatorLetteringProblems(root, aircraft, viewId),
+          `gauge lettering below ${MIN_TEXT_PX - 0.5}px`,
+        ).toEqual([]);
+      }
+    });
+  }
 }
 
 const cardSizes = (svg: string) =>

@@ -269,6 +269,10 @@ function tooSmall(svg: string, scale: number) {
 
 type FaceKind = 'controls' | 'indicators';
 
+// Indicator faces: captions marked data-lettering="secondary" are exempt from the floor (ADR 0002, realism).
+const withoutSecondary = (svg: string) =>
+  svg.replace(/<text\b[^>]*data-lettering="secondary"[^>]*>[^<]*<\/text>/g, '');
+
 const faces = (aircraft: Aircraft, viewId: string, kind: FaceKind) => {
   const definitions: Readonly<Record<string, { appearance?: Appearance } | undefined>> =
     kind === 'controls' ? aircraft.controls : aircraft.indicators;
@@ -287,7 +291,7 @@ async function faceProblems(
 ): Promise<string[]> {
   const problems: string[] = [];
   for (const { id, face } of faces(aircraft, viewId, kind)) {
-    const svg = source(face);
+    const svg = kind === 'indicators' ? withoutSecondary(source(face)) : source(face);
     const { width: rendered, height } = await root
       .locator(`[data-placement="${id}"] img`)
       .first()

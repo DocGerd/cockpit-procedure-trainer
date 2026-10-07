@@ -17,7 +17,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/phase-taxi-in.svg`                 | Outside view, taxi in                     |
 | `src/assets/phase-parking-securing.svg`        | Outside view, parking and securing        |
 | `src/assets/artwork/gauge-airspeed.svg`        | Gauge face, airspeed                      |
-| `src/assets/artwork/glass-airspeed.svg`        | Gauge glass, airspeed                     |
+| `src/assets/artwork/glass-gauge.svg`           | Gauge glass and hub cap, shared           |
 | `src/assets/artwork/gauge-altimeter.svg`       | Gauge face, altimeter                     |
 | `src/assets/artwork/gauge-vsi.svg`             | Gauge face, vsi                           |
 | `src/assets/artwork/gauge-tachometer.svg`      | Gauge face, tachometer                    |
@@ -25,9 +25,9 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/gauge-oil-temperature.svg` | Gauge face, oil temperature               |
 | `src/assets/artwork/gauge-cht.svg`             | Gauge face, cht                           |
 | `src/assets/artwork/needle.svg`                | Shared gauge needle                       |
-| `src/assets/artwork/needle-airspeed.svg`       | Airspeed needle                           |
-| `src/assets/artwork/compass-face.svg`          | Compass bezel and lubber line             |
+| `src/assets/artwork/compass-face.svg`          | Compass bezel and bowl                    |
 | `src/assets/artwork/compass-card.svg`          | Compass card                              |
+| `src/assets/artwork/glass-compass.svg`         | Compass glass and lubber line             |
 | `src/assets/artwork/rocker-beacon.svg`         | Rocker switch plate, beacon               |
 | `src/assets/artwork/rocker-position.svg`       | Rocker switch plate, position             |
 | `src/assets/artwork/rocker-intercom.svg`       | Rocker switch plate, intercom             |
