@@ -24,7 +24,8 @@ type Viewport = { readonly width: number; readonly height: number };
 const themes = ['light', 'dark'] as const;
 const TOLERANCE_PX = 0.5;
 
-// Where the indicator faces print below the minimum today, by aircraft and priority viewport.
+// Where the indicator faces print below the minimum, by aircraft and priority viewport. Marked
+// `test.fail`, so the row fails once the art is fixed and the entry has to go.
 const indicatorFaceGaps: Readonly<
   Record<string, readonly (typeof priorityViewports)[number]['name'][]>
 > = {
@@ -214,7 +215,7 @@ for (const aircraft of aircraftRegistry) {
     test(`${aircraft.id} prints indicator face lettering at the minimum size at ${viewport.name} ${viewport.width}x${viewport.height}`, async ({
       page,
     }) => {
-      test.fixme(
+      test.fail(
         indicatorFaceGaps[aircraft.id]?.includes(viewport.name) ?? false,
         'Gauge numerals and captions print below the minimum; the art is M12 (#391)',
       );
@@ -238,6 +239,31 @@ for (const aircraft of aircraftRegistry) {
     await expectNoPageScroll(page);
   });
 }
+
+test('the status colour probe sees a status colour on a panel element', async ({ page }) => {
+  const [aircraft] = aircraftRegistry;
+  if (!aircraft) throw new Error('The aircraft registry is empty');
+  await openAircraft(page, aircraft);
+  const [viewId] = Object.keys(aircraft.views);
+  if (!viewId) throw new Error(`${aircraft.id} has no views`);
+  const root = await showView(page, aircraft, viewId, 'en');
+  await inEachTheme(page, async () => {
+    for (const token of ['--color-success', '--color-warning', '--color-danger']) {
+      await root.evaluate((region, name) => {
+        const tinted = document.createElement('div');
+        tinted.dataset.placement = 'negative-control';
+        tinted.style.color = `var(${name})`;
+        region.append(tinted);
+      }, token);
+      expect(await statusColourProblems(root), token).toContain(
+        'negative-control color is ' + token,
+      );
+      await root.evaluate((region) =>
+        region.querySelector('[data-placement="negative-control"]')?.remove(),
+      );
+    }
+  });
+});
 
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
 if (!ctsl) throw new Error('The aircraft registry has no CTSL');

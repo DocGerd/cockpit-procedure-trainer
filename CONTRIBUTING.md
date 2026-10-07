@@ -83,7 +83,7 @@ viewport (`priorityViewports` in `apps/web/e2e/layout-probe.ts`), on one page ea
 | 1920x1080          | The design target: combined layout, outside-view strip whole.                                |
 | 1920x950           | A real 1080p browser window: the strip folds or hides before the cockpit falls back to tabs. |
 | 3840x2160          | The cockpit scales up and stays one viewport.                                                |
-| 1024x768, 768x1024 | Tablets: tabs, the dock in flow below the tab panel.                                         |
+| 1024x768, 768x1024 | Tablets: tabs.                                                                               |
 
 Every row checks, in order:
 
@@ -98,7 +98,7 @@ Every row checks, in order:
 - Slot mirrors at 44 px, no status colour on any panel element in either theme, and control
   face and backdrop lettering at the minimum size.
 - Indicator face lettering at the minimum size, in its own test per row; rows that fail
-  today are `test.fixme` in `indicatorFaceGaps`, pending the art in M12 (#391).
+  today are `test.fail` in `indicatorFaceGaps`, pending the art in M12 (#391).
 
 Content security policy violations fail every e2e test through the `fixtures.ts` auto
 fixture. Outside-strip steps between the priority heights are in the same spec.
