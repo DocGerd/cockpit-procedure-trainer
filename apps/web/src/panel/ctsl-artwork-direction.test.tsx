@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { ControlDefinition, ControlPosition, Point } from '@cpt/core';
 import { resolveControl } from '@cpt/panel-kit';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
@@ -17,7 +19,9 @@ type Drawn = {
 };
 
 const faceSvg = (url: string) =>
-  Buffer.from(url.slice(url.indexOf('base64,') + 7), 'base64').toString('utf8');
+  url.startsWith('data:')
+    ? Buffer.from(url.slice(url.indexOf('base64,') + 7), 'base64').toString('utf8')
+    : readFileSync(join(process.cwd(), new URL(url, 'http://localhost').pathname), 'utf8');
 
 const drawn: Drawn[] = Object.entries(ctsl.controls).flatMap(([id, control]) => {
   const { appearance, positions } = control;
