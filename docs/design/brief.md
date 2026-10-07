@@ -78,28 +78,29 @@ Both themes for S1 to S9 and S11.
 
 Where the spec and the canvas disagree, this brief follows the spec for behaviour and the canvas for appearance.
 
-The product's design canvas has five artboards.
+The product's design canvas draws every screen except the three below. `handoff/README.md` maps each exported artboard to its screens.
 
-| Artboard | Draws                                                  | Screens                       |
-| -------- | ------------------------------------------------------ | ----------------------------- |
-| Main     | desktop Guided in light                                | S1, S3 Guided, S4             |
-| Practice | dark, emergency procedure, a deviation, phase selector | S3 Practice, S4, S10 (part)   |
-| Explore  | light, control details as a side pane                  | S3 Free explore, S7 as a pane |
-| Picker   | the training-aid notice                                | S5                            |
-| Summary  | the procedure summary                                  | S6                            |
+Drawn, by artboard:
+
+| Artboard                                   | Draws                                             | Screens                       |
+| ------------------------------------------ | ------------------------------------------------- | ----------------------------- |
+| Guided, light and dark                     | desktop Guided                                    | S1, S3 Guided, S4, S9, S10    |
+| Practice, light and dark                   | a procedure for an abnormal event, phase selector | S3 Practice, S4, S10          |
+| Free explore, light and dark               | control details as a side pane                    | S3 Free explore, S7 as a pane |
+| Free explore, control details popover      | control details as a popover                      | S7                            |
+| Picker, light and dark                     | the training-aid notice                           | S5, S10                       |
+| Summary, light and dark                    | the procedure summary                             | S6, S10                       |
+| Tablet, collapsed and expanded             | the checklist as a header toggle, and over panel  | S2                            |
+| Device screens                             | powered and powered off                           | S8                            |
+| Error boundary, missing panel image (dark) | the two error states                              | S11, S10 (part)               |
 
 Not drawn, specified below in words:
 
-| Screen | Missing                                                          |
-| ------ | ---------------------------------------------------------------- |
-| S2     | tablet with the collapsed and the expanded checklist             |
-| S3     | the deviated item state                                          |
-| S6     | the end phase after the summary                                  |
-| S7     | control details as a popover                                     |
-| S8     | device screens                                                   |
-| S9     | reduced-motion variant                                           |
-| S10    | dark for Guided, Explore, picker and summary; light for Practice |
-| S11    | error states                                                     |
+| Screen | Missing                         |
+| ------ | ------------------------------- |
+| S3     | the deviated item state         |
+| S6     | the end phase after the summary |
+| S9     | reduced-motion variant          |
 
 ## Specification of the missing screens
 
