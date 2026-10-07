@@ -77,9 +77,14 @@ export function TrainerLayout() {
   const toggle = useRef<HTMLButtonElement>(null);
   const openedByToggle = useRef(false);
   const shell = useRef<HTMLDivElement>(null);
+  const outside = useRef<HTMLElement>(null);
   const section = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const cockpit = useCockpitLayout(aircraft, useCockpitRegion(shell, section), frame);
+  const { layout: cockpit, fold } = useCockpitLayout(
+    aircraft,
+    useCockpitRegion(shell, section, outside),
+    frame,
+  );
   const showPane = !overlay || expanded;
 
   useEffect(() => {
@@ -152,7 +157,13 @@ export function TrainerLayout() {
       />
       <div className="shell-body">
         <main className="shell-main">
-          <section className="shell-outside-view" aria-label={text.outsideView}>
+          <section
+            ref={outside}
+            className="shell-outside-view"
+            aria-label={text.outsideView}
+            data-folded={fold?.kind === 'hidden' ? 'hidden' : fold !== undefined}
+            style={fold?.kind === 'folded' ? { height: fold.band } : undefined}
+          >
             <OutsideView />
           </section>
           <section ref={section} className="shell-panel" aria-label={text.cockpitPanel}>

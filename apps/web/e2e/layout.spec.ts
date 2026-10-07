@@ -8,6 +8,9 @@ const desktops = [
   { width: 3840, height: 2160 },
 ];
 
+// A browser window on a 1080p screen: the tab, address and bookmark bars and the taskbar take the rest.
+const browserWindow = { width: 1920, height: 950 };
+
 const tablets = [
   { width: 1024, height: 768 },
   { width: 768, height: 1024 },
@@ -17,8 +20,8 @@ const cockpitLayout = (page: Page) => page.locator('.shell');
 
 const themes = ['light', 'dark'] as const;
 
-// A short desktop window falls back to the tabs.
-const shortDesktop = { width: 1920, height: 980 };
+// Below every aircraft's breakpoint, even with the outside-view strip hidden: the tabs.
+const shortDesktop = { width: 1920, height: 800 };
 
 async function expectNoPageScroll(page: Page) {
   const overflow = await page.evaluate(() => ({
@@ -30,7 +33,7 @@ async function expectNoPageScroll(page: Page) {
 }
 
 for (const aircraft of aircraftRegistry) {
-  for (const viewport of desktops) {
+  for (const viewport of [...desktops, browserWindow]) {
     test(`${aircraft.id} shows every view at once at ${viewport.width}x${viewport.height}`, async ({
       page,
     }) => {
@@ -118,6 +121,57 @@ for (const aircraft of aircraftRegistry) {
 
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
 if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+
+const outsideView = (page: Page) => page.locator('.shell-outside-view');
+
+// Where the outside-view strip gives up room, by aircraft, in a 1920 wide window.
+const strips = [
+  { aircraft: 'ctsl', height: 1080, folded: 'false' },
+  { aircraft: 'ctsl', height: 1000, folded: 'true' },
+  { aircraft: 'ctsl', height: 950, folded: 'hidden' },
+  { aircraft: 'demo', height: 1080, folded: 'false' },
+  { aircraft: 'demo', height: 950, folded: 'true' },
+  { aircraft: 'demo', height: 880, folded: 'hidden' },
+];
+
+for (const { aircraft: id, height, folded } of strips) {
+  test(`the ${id} outside-view strip is ${folded === 'false' ? 'whole' : folded === 'true' ? 'folded' : 'hidden'} at 1920x${height}`, async ({
+    page,
+  }) => {
+    const aircraft = aircraftRegistry.find((entry) => entry.id === id);
+    if (!aircraft) throw new Error(`The aircraft registry has no ${id}`);
+    await page.setViewportSize({ width: 1920, height });
+    await openAircraft(page, aircraft);
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expect(outsideView(page)).toHaveAttribute('data-folded', folded);
+    const box = await outsideView(page).boundingBox();
+    if (folded === 'true') expect(box?.height).toBeGreaterThanOrEqual(72);
+    if (folded === 'hidden') {
+      await expect(outsideView(page)).toBeHidden();
+      await expect(page.locator('.shell-panel')).toBeInViewport();
+    }
+    await expectNoPageScroll(page);
+  });
+}
+
+test('a docked device still fits its dock in a browser window', async ({ page }) => {
+  await page.setViewportSize(browserWindow);
+  await openAircraft(page, ctsl);
+  await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+
+  await page.locator('[data-placement="gps"]').getByRole('button').click();
+  const dock = page.getByRole('region', { name: 'Device dock' });
+  const unit = dock.getByRole('group', { name: 'gpsmap496', exact: true });
+  await expect(unit).toBeVisible();
+  const [dockBox, unitBox] = await Promise.all([dock.boundingBox(), unit.boundingBox()]);
+  if (!dockBox || !unitBox) throw new Error('no boxes');
+  expect(unitBox.x).toBeGreaterThanOrEqual(dockBox.x);
+  expect(unitBox.y).toBeGreaterThanOrEqual(dockBox.y);
+  expect(unitBox.x + unitBox.width).toBeLessThanOrEqual(dockBox.x + dockBox.width + 0.5);
+  expect(unitBox.y + unitBox.height).toBeLessThanOrEqual(dockBox.y + dockBox.height + 0.5);
+  expect(dockBox.y + dockBox.height).toBeLessThanOrEqual(browserWindow.height);
+  await expectNoPageScroll(page);
+});
 
 // #226: holding the key on START while watching the tachometer.
 for (const viewport of desktops) {
