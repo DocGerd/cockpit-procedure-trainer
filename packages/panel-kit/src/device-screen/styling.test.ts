@@ -88,7 +88,7 @@ describe('device hardware', () => {
     const slot = rule('.pk-mirror');
     expect(slot).not.toMatch(/box-shadow/);
     expect(slot).toMatch(/overflow:\s*clip;/);
-    expect(slot).toMatch(/overflow-clip-margin:\s*var\(--space-/);
+    expect(slot).toMatch(/overflow-clip-margin:\s*(?:calc\()?var\(--space-/);
   });
 
   it('puts glare on the glass over a display, never over the keys', () => {
