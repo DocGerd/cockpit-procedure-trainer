@@ -303,6 +303,24 @@ export default tseslint.config(
     rules: restrict('web', [], literalSelectors),
   },
   {
+    files: ['apps/web/e2e/**/*.spec.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@playwright/test',
+              allowTypeImports: true,
+              message:
+                'Import test and expect from ./fixtures so the spec fails on a CSP violation.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['apps/web/src/**/*.test.{ts,tsx}'],
     rules: restrict('web', webGroups, [...webSelectors, ...colourLiterals]),
   },

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 
 const CARD_FILL = '#C9CDD2';
