@@ -41,7 +41,8 @@ const positive = (value: number) => Number.isFinite(value) && value > 0;
 
 /**
  * Combined when every view, contain-fit in its cell at the arrangement's uniform scale, and the
- * dock, if declared, is at least as wide as its declared floor; tabs otherwise. Pure arithmetic: nothing is rendered to decide.
+ * dock, if declared, is at least as wide as its declared floor; tabs otherwise. Pure arithmetic:
+ * nothing is rendered to decide.
  */
 export function chooseLayout(
   aircraft: Pick<Aircraft, 'cockpit' | 'views'>,
