@@ -48,7 +48,7 @@ export function CircuitBreaker({
       <g
         className="pk-move pk-slide"
         style={vars({ '--pk-y': pulled ? -LIFT + SHADOW_LAG : 0 })}
-        opacity={pulled ? 0.5 : 0.6}
+        fillOpacity={pulled ? 0.5 : 0.6}
       >
         <circle
           cx={50 + (pulled ? 3 : 1)}

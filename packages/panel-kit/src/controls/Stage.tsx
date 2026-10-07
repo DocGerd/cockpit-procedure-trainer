@@ -14,7 +14,7 @@ import {
   useRenderedMetrics,
 } from './legibility';
 import type { Metrics } from './legibility';
-import { Kit, paint, Screw, SoftShadow } from '../materials';
+import { Kit, paint, Screw } from '../materials';
 import type { KitMaterial } from '../materials';
 import './controls.css';
 
@@ -78,7 +78,6 @@ function Placard({
   const bevel = Math.min(1.2, height * 0.06);
   return (
     <>
-      <SoftShadow box={box} offset={[0.3, 0.8]} blur={0.8} opacity={0.5} />
       <rect {...box} style={{ fill: paint(id, 'plate') }} />
       <rect
         x={box.x + bevel / 2}

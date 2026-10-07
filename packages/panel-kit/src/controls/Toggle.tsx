@@ -64,7 +64,7 @@ export function Toggle({
         <polygon points={NUT} style={{ fill: paint(kit, 'bezel') }} />
         <circle cx={PIVOT.x} cy={PIVOT.y} r={10} style={{ fill: paint(kit, 'lip') }} />
         <circle cx={PIVOT.x} cy={PIVOT.y} r={7.5} style={{ fill: paint(kit, 'bezel') }} />
-        <g transform={`translate(${PIVOT.x + 2} ${PIVOT.y + 3.5})`} opacity={0.45}>
+        <g transform={`translate(${PIVOT.x + 2} ${PIVOT.y + 3.5})`} fillOpacity={0.45}>
           <g className="pk-move pk-turn" style={vars({ '--pk-angle': angle })}>
             <path d={BAT} style={{ fill: 'var(--panel-shadow)' }} />
             <circle cy={-REACH} r={7.5} style={{ fill: 'var(--panel-shadow)' }} />

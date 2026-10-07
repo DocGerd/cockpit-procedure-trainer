@@ -133,7 +133,7 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
         })}
         <g transform={`translate(${CENTRE} ${CENTRE}) scale(${HEAD_SCALE})`}>{head.still}</g>
         {head.shadow !== undefined && (
-          <g transform={`translate(${CENTRE + 1.2} ${CENTRE + 3})`} opacity={0.5}>
+          <g transform={`translate(${CENTRE + 1.2} ${CENTRE + 3})`} fillOpacity={0.5}>
             <g
               className="pk-move pk-turn"
               style={vars({ '--pk-angle': angles[Math.max(current, 0)] ?? 0 })}

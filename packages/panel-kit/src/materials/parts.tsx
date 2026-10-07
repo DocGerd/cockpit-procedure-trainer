@@ -62,8 +62,8 @@ export function Kit({
 type Box = { x: number; y: number; width: number; height: number; rx: number };
 
 /**
- * A soft cast shadow without a blur filter: three translucent copies of the outline, stepped out
- * by `blur`, so their sum falls off towards the edge.
+ * A soft cast shadow without a blur filter: two translucent copies of the outline, `blur` apart,
+ * so their sum falls off towards the edge. Fill opacity, not group opacity: no offscreen layer.
  */
 export function SoftShadow({
   box,
@@ -76,10 +76,10 @@ export function SoftShadow({
   blur: number;
   opacity?: number;
 }) {
-  const layer = 1 - (1 - opacity) ** (1 / 3);
+  const layer = 1 - (1 - opacity) ** (1 / 2);
   return (
-    <g opacity={layer} style={{ fill: 'var(--panel-shadow)' }}>
-      {[blur / 2, 0, -blur / 2].map((grow) => (
+    <g fillOpacity={layer} style={{ fill: 'var(--panel-shadow)' }}>
+      {[blur / 2, -blur / 2].map((grow) => (
         <rect
           key={grow}
           x={box.x + offset[0] - grow}

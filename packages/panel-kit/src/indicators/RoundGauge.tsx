@@ -263,7 +263,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
         </text>
       )}
       <circle cx={CENTRE} cy={CENTRE} r={DIAL_RADIUS} style={{ fill: paint(id, 'recess') }} />
-      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} opacity={0.5}>
+      <g transform={`translate(${NEEDLE_SHADOW.x} ${NEEDLE_SHADOW.y})`} fillOpacity={0.5}>
         <g
           data-needle-shadow=""
           transform={`rotate(${angleAt(value, min, max)} ${CENTRE} ${CENTRE})`}
