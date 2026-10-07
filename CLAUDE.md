@@ -83,8 +83,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   endpoints literally, run `git pull --ff-only origin develop` on its own. A
   global force-push guard also refuses `--noEmit` and `+0`-like text in
   commands.
-- Review replies: `gh api …/pulls/comments/<id>/replies --field body=@file`
-  (`--raw-field` posts the literal `@file`); resolve threads via GraphQL.
+- Review replies: `gh api …/pulls/<n>/comments/<id>/replies --field
+  body=@file` (`--raw-field` posts the literal `@file`); resolve threads via
+  GraphQL.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
