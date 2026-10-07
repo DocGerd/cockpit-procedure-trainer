@@ -99,11 +99,12 @@ Reasons, in ADR-0002 order:
   can be added later without touching this design.
 - **1 Procedural correctness.** The 3D view calls the same `usePanelInput`
   handlers; there is no second input path that could diverge from 2D.
-- **2 Training UX.** Keyboard operation, accessible names, printed labels,
-  reduced motion, touch handling and the Guided highlight carry over because
-  the widgets are the same DOM. Sacrificed: volumetric realism (a lever has no
-  shaft, a knob no depth). Realism and accessibility rank together here; the
-  accessible, already-tested widget wins, and B stays open for a later
+- **2 Training UX.** Printed labels, touch handling and the Guided highlight
+  carry over because the widgets are the same DOM (keyboard operation, accessible
+  names and reduced motion carry over too; accessibility ranks lowest in
+  ADR-0002). Sacrificed: volumetric realism (a lever has no shaft, a knob no
+  depth). Realism wins here, but the already-tested widget is kept for now, and B
+  stays open for a later
   milestone because the 3D data in §5 is renderer-neutral.
 - **3 Performance.** Camera moves change one transform on the scene root, set
   through a ref, so no widget re-renders while the pilot looks around. Nothing
