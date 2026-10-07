@@ -1,9 +1,14 @@
 import type { Aircraft } from '@cpt/core';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
-import { chooseLayout, foldedGain, outsideViewBand } from './cockpit-layout';
+import { chooseLayout, outsideViewFold } from './cockpit-layout';
 import { footerHeight } from './fit';
-import type { CockpitLayoutChoice, CockpitRegion, OutsideStrip } from './cockpit-layout';
+import type {
+  CockpitLayoutChoice,
+  CockpitRegion,
+  OutsideFold,
+  OutsideStrip,
+} from './cockpit-layout';
 
 const NO_REGION: CockpitRegion = { width: 0, height: 0 };
 
@@ -12,7 +17,7 @@ export type CockpitMeasure = CockpitRegion & { readonly strip?: OutsideStrip };
 
 const TABS: CockpitLayoutChoice = { kind: 'tabs' };
 
-const pixels = (value: string) => Number.parseFloat(value) || 0;
+const pixels = (value: string | undefined) => Number.parseFloat(value ?? '') || 0;
 
 /**
  * The space the cockpit section leaves for the cockpit: its width, and its height down to the foot
@@ -39,7 +44,7 @@ export function useCockpitRegion(
           strip.offsetHeight -
           strip.clientHeight,
       );
-      // How much of the room above the cockpit section the strip has given up by folding.
+      // How much of the room above the cockpit section the strip has given up by folding or hiding.
       const folded = natural - strip.getBoundingClientRect().height - pixels(style.marginBottom);
       const top = element.getBoundingClientRect().top + window.scrollY + folded;
       const footer = footerHeight(root);
@@ -52,6 +57,9 @@ export function useCockpitRegion(
           natural,
           min: pixels(style.getPropertyValue('--outside-view-band-min')),
           pull: pixels(style.getPropertyValue('--outside-view-pull')),
+          gap: pixels(
+            strip.parentElement ? getComputedStyle(strip.parentElement).rowGap : undefined,
+          ),
         },
       };
       setRegion((previous) =>
@@ -59,7 +67,8 @@ export function useCockpitRegion(
         previous.height === next.height &&
         previous.strip?.natural === natural &&
         previous.strip.min === next.strip?.min &&
-        previous.strip.pull === next.strip?.pull
+        previous.strip.pull === next.strip?.pull &&
+        previous.strip.gap === next.strip?.gap
           ? previous
           : next,
       );
@@ -82,14 +91,14 @@ export function useCockpitRegion(
 
 /**
  * The layout the aircraft's cockpit gets in `region`, once the frame that surrounds the cockpit has
- * taken its padding and border, and the height the outside-view strip folds to for it, if it does.
+ * taken its padding and border, and how the outside-view strip gives up room for it, if it does.
  * Tabs while no region is known.
  */
 export function useCockpitLayout(
   aircraft: Aircraft,
   region: CockpitMeasure | undefined,
   frame: RefObject<HTMLElement | null>,
-): { readonly layout: CockpitLayoutChoice; readonly band: number | undefined } {
+): { readonly layout: CockpitLayoutChoice; readonly fold: OutsideFold | undefined } {
   const [chrome, setChrome] = useState(NO_REGION);
 
   useLayoutEffect(() => {
@@ -111,13 +120,12 @@ export function useCockpitLayout(
   }, [frame]);
 
   return useMemo(() => {
-    if (!region) return { layout: TABS, band: undefined };
+    if (!region) return { layout: TABS, fold: undefined };
     const room = { width: region.width - chrome.width, height: region.height - chrome.height };
-    const band = region.strip && outsideViewBand(aircraft, room, region.strip);
-    const gain = region.strip && band !== undefined ? foldedGain(region.strip, band) : 0;
+    const fold = region.strip && outsideViewFold(aircraft, room, region.strip);
     return {
-      layout: chooseLayout(aircraft, { ...room, height: room.height + gain }),
-      band,
+      layout: chooseLayout(aircraft, { ...room, height: room.height + (fold?.gain ?? 0) }),
+      fold,
     };
   }, [aircraft, region, chrome]);
 }

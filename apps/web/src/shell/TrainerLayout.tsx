@@ -80,7 +80,7 @@ export function TrainerLayout() {
   const outside = useRef<HTMLElement>(null);
   const section = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const { layout: cockpit, band } = useCockpitLayout(
+  const { layout: cockpit, fold } = useCockpitLayout(
     aircraft,
     useCockpitRegion(shell, section, outside),
     frame,
@@ -161,8 +161,8 @@ export function TrainerLayout() {
             ref={outside}
             className="shell-outside-view"
             aria-label={text.outsideView}
-            data-folded={band !== undefined}
-            style={band === undefined ? undefined : { height: band }}
+            data-folded={fold?.kind === 'hidden' ? 'hidden' : fold !== undefined}
+            style={fold?.kind === 'folded' ? { height: fold.band } : undefined}
           >
             <OutsideView />
           </section>

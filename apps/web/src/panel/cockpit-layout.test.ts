@@ -1,6 +1,6 @@
 import type { Aircraft } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { chooseLayout, foldedGain, outsideViewBand } from './cockpit-layout';
+import { chooseLayout, outsideViewFold } from './cockpit-layout';
 
 const text = { de: 'x', en: 'x' };
 
@@ -128,42 +128,56 @@ describe('chooseLayout', () => {
   });
 });
 
-describe('outsideViewBand', () => {
-  const strip = { natural: 100, min: 20, pull: 10 };
+describe('outsideViewFold', () => {
+  const strip = { natural: 100, min: 40, pull: 10, gap: 16 };
   const wide = 400;
+  const room = (height: number, width = wide) => ({ width, height });
+  const combinedWith = (height: number, gain: number) =>
+    chooseLayout(aircraft, room(height + gain)).kind === 'combined';
 
-  it('leaves the strip unfolded while the cockpit is combined', () => {
-    expect(outsideViewBand(aircraft, { width: wide, height: 100 }, strip)).toBeUndefined();
+  it('leaves the strip whole while the cockpit is combined', () => {
+    expect(outsideViewFold(aircraft, room(100), strip)).toBeUndefined();
   });
 
   it('folds the strip by only as much as the cockpit needs', () => {
-    const band = outsideViewBand(aircraft, { width: wide, height: 80 }, strip);
-    expect(band).toBe(90);
-    const gain = (value: number) => foldedGain(strip, value);
-    expect(chooseLayout(aircraft, { width: wide, height: 80 + gain(90) }).kind).toBe('combined');
-    expect(chooseLayout(aircraft, { width: wide, height: 80 + gain(91) }).kind).toBe('tabs');
+    const fold = outsideViewFold(aircraft, room(80), strip);
+    expect(fold).toEqual({ kind: 'folded', band: 90, gain: 20 });
+    expect(combinedWith(80, 20)).toBe(true);
+    expect(combinedWith(80, 19)).toBe(false);
   });
 
-  it('folds the strip as far as it goes when that is exactly enough', () => {
-    expect(outsideViewBand(aircraft, { width: wide, height: 10 }, strip)).toBe(20);
+  it('folds the strip down to its minimum when that is exactly enough', () => {
+    expect(outsideViewFold(aircraft, room(30), strip)).toEqual({
+      kind: 'folded',
+      band: 40,
+      gain: 70,
+    });
   });
 
-  it('leaves the strip unfolded when folding it is not enough', () => {
-    expect(outsideViewBand(aircraft, { width: wide, height: 9 }, strip)).toBeUndefined();
+  it('hides the strip, with its gap, when its minimum is not enough', () => {
+    expect(outsideViewFold(aircraft, room(29), strip)).toEqual({ kind: 'hidden', gain: 116 });
+    expect(outsideViewFold(aircraft, room(-16), strip)).toEqual({ kind: 'hidden', gain: 116 });
   });
 
-  it('leaves the strip unfolded when the width is what falls short', () => {
-    expect(outsideViewBand(aircraft, { width: wide - 1, height: 80 }, strip)).toBeUndefined();
+  it('hides a strip that is no taller than its minimum when that makes the cockpit combined', () => {
+    const short = { natural: 40, min: 40, pull: 10, gap: 16 };
+    expect(outsideViewFold(aircraft, room(80), short)).toEqual({ kind: 'hidden', gain: 56 });
   });
 
-  it('leaves a strip that is no taller than its fold unfolded', () => {
-    const thin = { natural: 20, min: 20, pull: 10 };
-    expect(outsideViewBand(aircraft, { width: wide, height: 80 }, thin)).toBeUndefined();
+  it('leaves the strip whole when not even hiding it makes the cockpit combined', () => {
+    expect(outsideViewFold(aircraft, room(-17), strip)).toBeUndefined();
   });
 
-  it('leaves the strip unfolded for an aircraft without an arrangement', () => {
-    expect(
-      outsideViewBand({ views: aircraft.views }, { width: wide, height: 80 }, strip),
-    ).toBeUndefined();
+  it('leaves the strip whole when the width is what falls short', () => {
+    expect(outsideViewFold(aircraft, room(80, wide - 1), strip)).toBeUndefined();
+  });
+
+  it('leaves the strip whole when none is measured', () => {
+    const none = { natural: 0, min: 40, pull: 10, gap: 16 };
+    expect(outsideViewFold(aircraft, room(80), none)).toBeUndefined();
+  });
+
+  it('leaves the strip whole for an aircraft without an arrangement', () => {
+    expect(outsideViewFold({ views: aircraft.views }, room(80), strip)).toBeUndefined();
   });
 });
