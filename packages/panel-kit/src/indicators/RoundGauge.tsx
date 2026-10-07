@@ -1,17 +1,29 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
-import { angleAt, arcPath, CENTRE, formatNumber, polar, squeeze, SWEEP_END } from './geometry';
+import {
+  angleAt,
+  ARC_RADIUS,
+  ARC_STROKE,
+  arcEndRoom,
+  arcPath,
+  CAPTION_GAP,
+  CENTRE,
+  formatNumber,
+  polar,
+  squeeze,
+  SWEEP_END,
+  TICK_GAP,
+  TICK_OUTER,
+  TICK_STROKE,
+} from './geometry';
 import { readGaugeOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
-const ARC_RADIUS = 42;
-const TICK_OUTER = 38;
 const TICK_INNER = 33;
 const NUMERAL_RADIUS = 26;
 const NEEDLE_LENGTH = 34;
 const NEEDLE_STROKE = 1.6;
 const VIEWBOX = { width: 100, height: 100 };
-const LABEL_WIDTH = 66;
 const NUMERAL_DESIGN = 5;
 const UNITS_DESIGN = 5;
 const LABEL_DESIGN = 5.5;
@@ -19,10 +31,11 @@ const UNITS_Y = 66;
 const LABEL_Y = 78;
 const FACE_RADIUS = 46;
 const NEEDLE_LOW = polar(SWEEP_END, NEEDLE_LENGTH).y + NEEDLE_STROKE / 2;
+const TICK_LOW = polar(SWEEP_END, TICK_OUTER).y + TICK_STROKE / 2;
 
-function chordRoom(bottom: number): number {
+function chordRoom(bottom: number, margin = 2): number {
   const drop = bottom - CENTRE;
-  return drop >= FACE_RADIUS ? 0 : 2 * Math.sqrt(FACE_RADIUS ** 2 - drop ** 2) - 4;
+  return drop >= FACE_RADIUS ? 0 : 2 * (Math.sqrt(FACE_RADIUS ** 2 - drop ** 2) - margin);
 }
 
 export function tickSpacing(angles: readonly number[]): number {
@@ -46,15 +59,29 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   const { min, max, units, ticks, arcs } = config;
   const reading = units === '' ? formatNumber(value) : `${formatNumber(value)} ${units}`;
 
+  const captionSize = placeText(metrics, {
+    design: LABEL_DESIGN,
+    room: Infinity,
+    chars: 0,
+  }).fontSize;
+  // The caption slides down off the needle's lowest tip and the end ticks; units and numerals keep their own room.
+  const labelY = Math.max(
+    LABEL_Y,
+    NEEDLE_LOW + captionSize / 2,
+    TICK_LOW + TICK_GAP + captionSize / 2,
+  );
+  const captionBottom = labelY + captionSize / 2;
+  const captionRoom = Math.min(
+    chordRoom(captionBottom, CAPTION_GAP),
+    arcEndRoom(labelY - captionSize / 2, captionBottom, CAPTION_GAP),
+  );
   const caption = placeText(metrics, {
     design: LABEL_DESIGN,
-    room: LABEL_WIDTH,
+    room: captionRoom,
     chars: label.length,
     advance: SANS_ADVANCE,
     squeezable: true,
   });
-  // The caption slides down off the needle's lowest tip; units and numerals keep their own room.
-  const labelY = Math.max(LABEL_Y, NEEDLE_LOW + caption.fontSize / 2);
   const showCaption = caption.show && labelY + caption.fontSize / 2 <= CENTRE + FACE_RADIUS;
   const unit = placeText(metrics, {
     design: UNITS_DESIGN,
@@ -65,8 +92,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   });
   // Deliberately the caption's design position, not labelY: units and numerals keep their own room.
   const textFloor = LABEL_Y - caption.fontSize / 2;
-  const showUnits =
-    units !== '' && showCaption && unit.show && UNITS_Y + unit.fontSize / 2 <= textFloor;
+  const showUnits = units !== '' && unit.show && UNITS_Y + unit.fontSize / 2 <= textFloor;
   const tickLabels = ticks.map(formatNumber);
   const numeral = placeText(metrics, {
     design: NUMERAL_DESIGN,
@@ -79,7 +105,6 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   );
   const showNumerals =
     (units === '' || showUnits) &&
-    showCaption &&
     numeral.show &&
     lowestNumeral + numeral.fontSize / 2 <= textFloor;
 
@@ -111,7 +136,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           data-arc=""
           d={arcPath(angleAt(arc.from, min, max), angleAt(arc.to, min, max), ARC_RADIUS)}
           fill="none"
-          strokeWidth={3}
+          strokeWidth={ARC_STROKE}
           style={{ stroke: `var(--panel-arc-${arc.colour})` }}
         />
       ))}
@@ -128,7 +153,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
               y1={outer.y}
               x2={inner.x}
               y2={inner.y}
-              strokeWidth={1}
+              strokeWidth={TICK_STROKE}
               style={{ stroke: 'var(--panel-legend)' }}
             />
             {showNumerals && (
@@ -171,8 +196,8 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           style={{ fill: 'var(--panel-legend)', fontFamily: sans }}
           {...squeeze(
             label,
-            Math.floor(LABEL_WIDTH / (SANS_ADVANCE * caption.fontSize)),
-            LABEL_WIDTH,
+            Math.floor(captionRoom / (SANS_ADVANCE * caption.fontSize)),
+            captionRoom,
           )}
         >
           {label}

@@ -198,3 +198,68 @@ for (const aircraft of aircraftRegistry) {
     });
   }
 }
+
+const SAMPLE_STEP = 0.25;
+const CAPTION_CLEARANCE = 0.5;
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of viewports) {
+    test(`${aircraft.id} keeps gauge captions clear of arcs, ticks and numerals at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const crowded: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        crowded.push(
+          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
+            (gauges, { where, step, clearance }) =>
+              gauges.flatMap((gauge) => {
+                const label = gauge.querySelector<SVGTextElement>('[data-label]');
+                if (!label) return [];
+                const lineBox = (text: SVGTextElement) => {
+                  const { x, width } = text.getBBox();
+                  const size = Number(text.getAttribute('font-size'));
+                  return { x, width, y: Number(text.getAttribute('y')) - size / 2, height: size };
+                };
+                const box = lineBox(label);
+                const gap = (x: number, y: number) =>
+                  Math.hypot(
+                    Math.max(box.x - x, 0, x - (box.x + box.width)),
+                    Math.max(box.y - y, 0, y - (box.y + box.height)),
+                  );
+                const strokes =
+                  gauge.querySelectorAll<SVGGeometryElement>('[data-arc], [data-tick]');
+                const touchesStroke = [...strokes].some((stroke) => {
+                  const reach = Number(stroke.getAttribute('stroke-width')) / 2 + clearance;
+                  const length = stroke.getTotalLength();
+                  for (let at = 0; at <= length; at = at + step) {
+                    const point = stroke.getPointAtLength(at);
+                    if (gap(point.x, point.y) < reach) return true;
+                  }
+                  return false;
+                });
+                const touchesNumeral = [
+                  ...gauge.querySelectorAll<SVGTextElement>('[data-tick-label]'),
+                ].some((numeral) => {
+                  const other = lineBox(numeral);
+                  return (
+                    other.x < box.x + box.width + clearance &&
+                    other.x + other.width > box.x - clearance &&
+                    other.y < box.y + box.height + clearance &&
+                    other.y + other.height > box.y - clearance
+                  );
+                });
+                return touchesStroke || touchesNumeral
+                  ? [`${where}/${gauge.getAttribute('aria-label')}`]
+                  : [];
+              }),
+            { where: viewId, step: SAMPLE_STEP, clearance: CAPTION_CLEARANCE },
+          )),
+        );
+      }
+      expect(crowded, 'gauge captions touching an arc, tick or numeral').toEqual([]);
+    });
+  }
+}
