@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import type { ReactNode } from 'react';
 import type { LampColour } from '../indicators/options';
 
 export type Material =
@@ -242,9 +243,11 @@ export function Grain({
 export function Materials({
   id,
   recess,
+  children,
 }: {
   id: string;
   recess: { centre: Point; radius: number };
+  children?: ReactNode;
 }) {
   return (
     <defs>
@@ -253,6 +256,7 @@ export function Materials({
       <LinearGradient id={`${id}-glare`} {...GLARE_SWEEP} stops={finish.glare} />
       <RadialGradient id={`${id}-recess`} userSpace {...recess} stops={finish.recess} />
       <RadialGradient id={`${id}-cap`} {...DOME} stops={finish.cap} />
+      {children}
     </defs>
   );
 }

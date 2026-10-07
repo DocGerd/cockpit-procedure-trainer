@@ -1,6 +1,16 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
-import { Grain, Kit, Materials, paint, RadialGradient, useMaterialId } from '../materials';
+import {
+  DOME,
+  finish,
+  Grain,
+  LIGHT,
+  LinearGradient,
+  Materials,
+  paint,
+  RadialGradient,
+  useMaterialId,
+} from '../materials';
 import type { Stop } from '../materials';
 import {
   angleAt,
@@ -148,11 +158,9 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
       aria-valuemax={max}
       aria-valuetext={reading}
     >
-      <Materials
-        id={id}
-        recess={{ centre: [CENTRE + 1.6, CENTRE + 2.4], radius: DIAL_RADIUS + 3 }}
-      />
-      <Kit id={id} use={['screw', 'specular']}>
+      <Materials id={id} recess={{ centre: [CENTRE + 1.6, CENTRE + 2.4], radius: DIAL_RADIUS + 3 }}>
+        <RadialGradient id={`${id}-screw`} {...DOME} stops={finish.screw} />
+        <LinearGradient id={`${id}-specular`} {...LIGHT} stops={finish.specular} />
         <Grain id={`${id}-grain`} tile={2} />
         <RadialGradient
           id={`${id}-cast`}
@@ -161,7 +169,7 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
           radius={BEZEL_RADIUS + CAST.spread}
           stops={CAST_STOPS}
         />
-      </Kit>
+      </Materials>
       <circle
         cx={CENTRE + CAST.x}
         cy={CENTRE + CAST.y}
