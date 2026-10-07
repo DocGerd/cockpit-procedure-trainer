@@ -9,7 +9,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - `pnpm dev` runs the web app
 - `pnpm test` runs all unit tests (fails if none are found)
 - `pnpm test:e2e` runs the Playwright browser tests (once:
-  `pnpm exec playwright install chromium`)
+  `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when 4399 is
+  busy (parallel agents)
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 
 ## How work is done
@@ -66,6 +67,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Every operable control shows a printed label on the panel (`placard`,
   artwork `lettering` or view `printed`), in the panel's own fixed wording; the
   contract test in `apps/web/src/panel/printed-labels.test.tsx` enforces it.
+  A placard never names a trainer view or app UI.
+- No inline `<style>`/`<script>`: the build ships a strict CSP
+  (`apps/web/src/csp.ts`); `e2e/csp.spec.ts` fails on any violation.
 - Avionics devices get their own view (like `radios`/`gps`); a device in a
   scaled panel slot misses the 44 px touch targets.
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
@@ -76,8 +80,12 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   commands that contain it (a newline in a quoted body counts as chaining), and
   in gh, curl and wget commands any expansion in the subcommand, endpoint,
   GraphQL query or URL: write such text to a file (`--body-file`), spell
-  endpoints literally, run `git pull --ff-only origin develop` on its own. A global force-push guard also refuses `--noEmit` and
-  `+0`-like text in commands.
+  endpoints literally, run `git pull --ff-only origin develop` on its own. A
+  global force-push guard also refuses `--noEmit` and `+0`-like text in
+  commands.
+- Review replies: `gh api …/pulls/comments/<id>/replies --field body=@file`
+  (`--raw-field` posts the literal `@file`); resolve threads via GraphQL.
+- Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
 - `doc-writer` cannot run git or gh: pair it with an agent that commits and
