@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { messages as modeMessages } from '../src/modes/messages';
+import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
 import { aircraft, checklistPane, copy, openPicker, procedure } from './trainer';
 
 const text = modeMessages.en;
@@ -26,7 +27,10 @@ async function startFromPicker(page: Page, mode: 'guided' | 'practice') {
 
 // A tablet keeps the checklist behind the header toggle; a desktop shows the pane.
 async function expectChecklist(page: Page) {
-  if (await checklistToggle(page).count()) await checklistToggle(page).click();
+  if ((page.viewportSize()?.width ?? 0) < DESKTOP_MIN_WIDTH) {
+    await expect(checklistToggle(page)).toBeVisible();
+    await checklistToggle(page).click();
+  }
   await expect(checklistPane(page)).toBeVisible();
   await expect(
     page.getByRole('heading', { level: 1, name: procedure(engineStart).title.en }),
