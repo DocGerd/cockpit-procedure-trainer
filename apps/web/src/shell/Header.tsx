@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
@@ -6,6 +6,7 @@ import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useTrainer } from '../trainer';
+import { choosePlacement } from './choice-position';
 import { messages } from './messages';
 
 function BrandMark() {
@@ -66,6 +67,27 @@ function HeaderChoice({
 
   useEffect(() => {
     if (open) dialog.current?.focus();
+  }, [open]);
+
+  // The dialog hangs under its chip; it flips to the chip's end edge or the header edge only to stay on screen.
+  useLayoutEffect(() => {
+    const element = dialog.current;
+    if (!open || !element) return;
+    const place = () => {
+      const header = anchor.current?.parentElement;
+      const margin = header ? parseFloat(getComputedStyle(header).paddingLeft) || 0 : 0;
+      const chipBox = chip.current?.getBoundingClientRect();
+      if (!chipBox) return;
+      element.dataset.placement = choosePlacement(
+        chipBox,
+        element.getBoundingClientRect().width,
+        window.innerWidth,
+        margin,
+      );
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
   }, [open]);
 
   return (
