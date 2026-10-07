@@ -49,7 +49,10 @@ TypeScript language server plugin needs
 
 ## Checks
 
-    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e
+    pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e
+
+`pnpm test:coverage` runs the unit tests with v8 coverage and fails below the
+statement threshold in `vitest.config.ts`; it replaces plain `pnpm test`.
 
 `pnpm test:e2e` builds the app and drives it in Chromium; install the browser once with
 `pnpm exec playwright install chromium`. The required `check` job runs all of these.
