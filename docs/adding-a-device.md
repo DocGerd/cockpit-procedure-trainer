@@ -87,6 +87,11 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - Every operable element is a native `<button>` or a native range input with an
   accessible name, so keyboard operation needs no device code. Screens have no
   language prop, so use unit-neutral aviation labels (`SWAP`, `STBY MHz +`).
+- Every key carries `data-control`, the device-local control id it operates, and a
+  key that stands for one position also carries `data-position`, that position as
+  a string. Guided rings the keys for the step's position (else every key of the
+  control) in the docked unit; without them it rings the whole unit.
+  `apps/web/src/device-keys.test.tsx` checks every registered device.
 - Colours come from `var(--panel-*)` only, type and spacing from the token scale in
   `apps/web/src/styles/tokens.css`. No status colours, no brand accent. Panel
   widgets draw their own focus ring from `var(--panel-focus)`.
