@@ -120,9 +120,9 @@ there. Aircraft artwork brings its own colours and does not use these.
 | `--panel-surface`         | `#26282C` | `#26282C` | panel ground                        |
 | `--panel-frame`           | `#3B4046` | `#3B4046` | panel frame, group rules            |
 | `--panel-face`            | `#0B0C0E` | `#0B0C0E` | instrument case, switch body, label |
-| `--panel-dial`            | `#131518` | `#131518` | gauge dial                          |
-| `--panel-bezel`           | `#5E646B` | `#5E646B` | bezel ring, outlines                |
-| `--panel-bezel-dark`      | `#2A2E33` | `#2A2E33` | inner ring, needle hub              |
+| `--panel-dial`            | `#121316` | `#121316` | gauge dial                          |
+| `--panel-bezel`           | `#34383E` | `#34383E` | bezel ring, outlines                |
+| `--panel-bezel-dark`      | `#1C1E22` | `#1C1E22` | inner ring, needle hub              |
 | `--panel-cap`             | `#8C9199` | `#8C9199` | switch cap, knob                    |
 | `--panel-cap-light`       | `#C2C7CD` | `#C2C7CD` | raised face of a cap                |
 | `--panel-legend`          | `#ECEEF1` | `#ECEEF1` | legends, ticks                      |

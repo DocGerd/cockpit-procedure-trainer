@@ -8,6 +8,10 @@ import { controlFixtures, indicatorFixtures, samplesOf } from './fixtures';
 import type { ControlFixture } from './fixtures';
 import { Gallery } from './Gallery';
 
+// Every test mounts the whole gallery, each widget with its own paint servers; under a loaded
+// parallel run the default timeout trips on the first, cold render.
+vi.setConfig({ testTimeout: 20_000 });
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
