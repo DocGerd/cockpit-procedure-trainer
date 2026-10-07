@@ -329,6 +329,19 @@ describe('declared view sizes', () => {
     expect([x, y]).toEqual([0, 0]);
     expect(demoAircraft.views[id]?.size).toEqual({ width, height });
   });
+
+  it.each(Object.keys(sources))('view %s uses at most one filter, for its texture', (id) => {
+    const source = sources[id] ?? '';
+    expect(source.match(/<filter\b/g)?.length ?? 0).toBeLessThanOrEqual(1);
+    expect(source.match(/filter="url\(/g)?.length ?? 0).toBeLessThanOrEqual(1);
+  });
+
+  it('keeps the RADIO legend and both slot recesses where the devices sit', () => {
+    expect(viewPanel).toMatch(/<text x="106" y="696" [^>]*font-size="30"[^>]*>RADIO<\/text>/);
+    for (const x of [184, 724]) {
+      expect(viewPanel).toContain(`<rect x="${x}" y="598" width="540" height="162" rx="10"`);
+    }
+  });
 });
 
 describe('radio section layout', () => {
