@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
+import { clearanceProblems } from './clearance';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
 import { copy, openPicker, showView as showViewTab } from './trainer';
 
@@ -63,6 +64,9 @@ const widgetPlacards = (aircraft: Aircraft, viewId: string) =>
     return [{ id, text: (control.placard ?? control.name.en).toUpperCase() }];
   });
 
+const MEASURABLE = 'rect, circle, ellipse, line, path, polygon, polyline';
+const UNSUPPORTED = 'text, use, image, foreignObject';
+
 /** Placard text, fit, placement, touch targets and clearance of the moving parts, per widget control. */
 export async function placardProblems(
   root: Locator,
@@ -72,39 +76,70 @@ export async function placardProblems(
   const problems: string[] = [];
   for (const { id, text } of widgetPlacards(aircraft, viewId)) {
     const where = `${viewId}/${id}`;
-    const geometry = await root.locator(`[data-placement="${id}"]`).evaluate((element) => {
-      const box = (target: Element | null) => {
-        const rect = target?.getBoundingClientRect();
-        return rect && { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
-      };
-      const label = element.querySelector('[data-placard]');
-      const labelBox = label?.getBoundingClientRect();
-      const hit = labelBox
-        ? document.elementFromPoint(
-            (labelBox.left + labelBox.right) / 2,
-            (labelBox.top + labelBox.bottom) / 2,
-          )
-        : null;
-      return {
-        text: label?.textContent?.trim() ?? null,
-        placement: box(element),
-        label: box(label),
-        overfull: label?.hasAttribute('data-overfull') ?? false,
-        underControl: Boolean(hit?.closest('button, [role="slider"], [role="radio"]')),
-        moving: [...element.querySelectorAll('.pk-move')].map(box),
-        targets: [...element.querySelectorAll('button, [role="slider"]')].map((target) => {
-          const { width, height } = target.getBoundingClientRect();
-          return Math.min(width, height);
-        }),
-        fontPx: label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0,
-        scale: (() => {
-          const svg = element.querySelector('svg');
-          const width = svg?.viewBox.baseVal.width ?? 0;
-          return width > 0 ? (svg?.getBoundingClientRect().width ?? 0) / width : 0;
-        })(),
-      };
-    });
-    const { placement: outer, label, moving, fontPx, scale } = geometry;
+    const geometry = await root.locator(`[data-placement="${id}"]`).evaluate(
+      (element, { measurable, unsupported }) => {
+        const box = (target: Element | null) => {
+          const rect = target?.getBoundingClientRect();
+          return rect && { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
+        };
+        const label = element.querySelector('[data-placard]');
+        const labelBox = label?.getBoundingClientRect();
+        const hit = labelBox
+          ? document.elementFromPoint(
+              (labelBox.left + labelBox.right) / 2,
+              (labelBox.top + labelBox.bottom) / 2,
+            )
+          : null;
+        return {
+          text: label?.textContent?.trim() ?? null,
+          placement: box(element),
+          label: box(label),
+          overfull: label?.hasAttribute('data-overfull') ?? false,
+          underControl: Boolean(hit?.closest('button, [role="slider"], [role="radio"]')),
+          ...(() => {
+            const parts = [...element.querySelectorAll('.pk-move')]
+              .flatMap((part) => [
+                ...(part.matches(measurable) || part.matches(unsupported) ? [part] : []),
+                ...part.querySelectorAll(`${measurable}, ${unsupported}`),
+              ])
+              .filter((part) => !part.closest('defs, clipPath, mask'));
+            const drawn = parts
+              .filter((part): part is SVGGraphicsElement => part.matches(measurable))
+              .map((part) => ({ part, matrix: part.getScreenCTM() }));
+            return {
+              shapes: drawn.flatMap(({ part, matrix }) => {
+                if (!matrix) return [];
+                const { x, y, width, height } = part.getBBox();
+                const { a, b, c, d, e, f } = matrix;
+                return [
+                  {
+                    tag: part.tagName.toLowerCase(),
+                    box: { x, y, width, height },
+                    matrix: { a, b, c, d, e, f },
+                  },
+                ];
+              }),
+              unmeasurable: [
+                ...parts.filter((part) => part.matches(unsupported)),
+                ...drawn.filter(({ matrix }) => !matrix).map(({ part }) => part),
+              ].map((part) => part.tagName.toLowerCase()),
+            };
+          })(),
+          targets: [...element.querySelectorAll('button, [role="slider"]')].map((target) => {
+            const { width, height } = target.getBoundingClientRect();
+            return Math.min(width, height);
+          }),
+          fontPx: label ? Number.parseFloat(getComputedStyle(label).fontSize) : 0,
+          scale: (() => {
+            const svg = element.querySelector('svg');
+            const width = svg?.viewBox.baseVal.width ?? 0;
+            return width > 0 ? (svg?.getBoundingClientRect().width ?? 0) / width : 0;
+          })(),
+        };
+      },
+      { measurable: MEASURABLE, unsupported: UNSUPPORTED },
+    );
+    const { placement: outer, label, fontPx, scale } = geometry;
     if (geometry.text !== text) {
       problems.push(`${where} prints ${JSON.stringify(geometry.text)}, expected ${text}`);
     }
@@ -124,15 +159,7 @@ export async function placardProblems(
     if (small.length > 0) {
       problems.push(`${where} touch targets ${small.map((size) => size.toFixed(1)).join(', ')}px`);
     }
-    const clashes = moving.filter(
-      (part) =>
-        part !== undefined &&
-        part.left < label.right - 1 &&
-        part.right > label.left + 1 &&
-        part.top < label.bottom - 1 &&
-        part.bottom > label.top + 1,
-    );
-    if (clashes.length > 0) problems.push(`${where} placard overlaps a moving part`);
+    problems.push(...clearanceProblems(where, label, geometry.shapes, geometry.unmeasurable));
   }
   return problems;
 }
