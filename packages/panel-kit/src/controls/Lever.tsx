@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import type { ControlWidgetProps } from '../types';
+import { finish, Kit, LinearGradient, paint, SoftShadow, useMaterialId } from '../materials';
 import { along, clamp01, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import { namedPositions } from './positions';
@@ -13,6 +14,10 @@ const LEGEND_X = 58;
 const SLOT = { top: 12, bottom: 88 };
 const KEY_STEP = 0.1;
 const PAGE_STEP = 0.25;
+const PLATE = { x: 8, y: 2, width: 44, height: 96, rx: 8 };
+const GATE = { x: 25, y: SLOT.top - 1, width: 10, height: SLOT.bottom - SLOT.top + 2, rx: 5 };
+const HANDLE = { x: 12, y: -9, width: 36, height: 18, rx: 5 };
+const GRIP = [16, 18.5, 21, 39, 41.5, 44];
 
 const yOf = (value: number) => SLOT.bottom - value * (SLOT.bottom - SLOT.top);
 
@@ -120,6 +125,8 @@ export function Lever(props: ControlWidgetProps) {
     if (next !== value) onSet(next);
   }
 
+  const kit = useMaterialId('lever');
+
   const art = (metrics: Metrics | undefined) => {
     const legends = placeLegends(
       metrics,
@@ -128,15 +135,23 @@ export function Lever(props: ControlWidgetProps) {
     );
     return (
       <>
-        <rect x={8} y={2} width={44} height={96} rx={8} className="pk-bezel-dark" />
+        <Kit id={kit} use={['plate', 'bezel', 'well', 'plastic', 'specular']}>
+          <LinearGradient id={`${kit}-top`} from={[0, 0]} to={[0, 1]} stops={finish.dome} />
+        </Kit>
+        <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
+        <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
         <rect
-          x={26}
-          y={SLOT.top}
-          width={8}
-          height={SLOT.bottom - SLOT.top}
-          rx={4}
-          className="pk-face"
+          x={PLATE.x + 0.75}
+          y={PLATE.y + 0.75}
+          width={PLATE.width - 1.5}
+          height={PLATE.height - 1.5}
+          rx={PLATE.rx - 0.75}
+          fill="none"
+          strokeWidth={1.5}
+          style={{ stroke: paint(kit, 'bezel') }}
         />
+        <rect {...GATE} style={{ fill: 'var(--panel-plastic-shade)' }} />
+        <rect {...GATE} style={{ fill: paint(kit, 'well') }} />
         {positions.map((id, index) => (
           <g key={id}>
             <line className="pk-line" x1={14} x2={22} y1={ys[index]} y2={ys[index]} />
@@ -152,9 +167,37 @@ export function Lever(props: ControlWidgetProps) {
           </g>
         ))}
         <g className="pk-move pk-slide" style={vars({ '--pk-y': yOf(value) })}>
-          <rect x={12} y={-9} width={36} height={18} rx={5} className="pk-cap-light" />
-          <rect x={12} y={-9} width={36} height={18} rx={5} className="pk-mark" />
-          <line className="pk-line" x1={18} x2={42} y1={0} y2={0} />
+          <SoftShadow box={HANDLE} offset={[1, 3]} blur={3} />
+          <rect {...HANDLE} style={{ fill: paint(kit, 'plastic') }} />
+          <rect
+            x={HANDLE.x + 1.5}
+            y={HANDLE.y + 1}
+            width={HANDLE.width - 3}
+            height={HANDLE.height - 5}
+            rx={HANDLE.rx - 1}
+            style={{ fill: paint(kit, 'top') }}
+          />
+          {GRIP.map((x) => (
+            <line
+              key={x}
+              x1={x}
+              x2={x}
+              y1={HANDLE.y + 3}
+              y2={HANDLE.y + HANDLE.height - 6}
+              strokeWidth={1.2}
+              style={{ stroke: 'var(--panel-plastic-shade)' }}
+            />
+          ))}
+          <line
+            x1={HANDLE.x + 4}
+            x2={HANDLE.x + HANDLE.width - 4}
+            y1={HANDLE.y + 1.3}
+            y2={HANDLE.y + 1.3}
+            strokeWidth={1}
+            strokeLinecap="round"
+            style={{ stroke: paint(kit, 'specular') }}
+          />
+          <line className="pk-line" x1={25} x2={35} y1={-1.5} y2={-1.5} />
         </g>
       </>
     );

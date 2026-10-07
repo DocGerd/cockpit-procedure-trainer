@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ControlWidgetProps } from '../types';
+import { Kit, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import { along, minGap, verticalBoxes } from './geometry';
 import { EDGE, placard as capitals, placeLegends } from './legibility';
 import type { Metrics } from './legibility';
@@ -12,6 +13,10 @@ const FLAP_OPEN = 0.18;
 const WIDTH = 100;
 const LEGEND_X = 64;
 const GUARD_ZONE = 40;
+const PLATE = { x: 8, y: 6, width: 48, height: 88, rx: 8 };
+const GATE = { x: 27, y: HANDLE.top - 5, width: 10, height: HANDLE.travel + 10, rx: 5 };
+const GRIP = { x: 14, y: -5, width: 36, height: 10, rx: 5 };
+const FLAP = { x: 10, y: 14, width: 44, height: 72, rx: 6 };
 
 export function GuardedHandle({
   control,
@@ -27,6 +32,7 @@ export function GuardedHandle({
   onCloseGuard,
 }: ControlWidgetProps) {
   const groupId = useId();
+  const kit = useMaterialId('guard');
   const guard = useRef<HTMLButtonElement>(null);
   const group = useRef<HTMLDivElement>(null);
   const positions = namedPositions(control);
@@ -50,18 +56,48 @@ export function GuardedHandle({
     );
     return (
       <>
-        <rect x={8} y={6} width={48} height={88} rx={8} className="pk-bezel-dark" />
-        <rect
-          x={28}
-          y={HANDLE.top - 4}
-          width={8}
-          height={HANDLE.travel + 8}
-          rx={4}
-          className="pk-face"
+        <Kit
+          id={kit}
+          use={[
+            'plate',
+            'bezel',
+            'well',
+            'ridge-across',
+            'chrome-across',
+            'screw',
+            'specular',
+            'glare',
+          ]}
         />
+        <SoftShadow box={PLATE} offset={[0.5, 1.4]} blur={1.6} />
+        <rect {...PLATE} style={{ fill: paint(kit, 'plate') }} />
+        <rect
+          x={PLATE.x + 0.75}
+          y={PLATE.y + 0.75}
+          width={PLATE.width - 1.5}
+          height={PLATE.height - 1.5}
+          rx={PLATE.rx - 0.75}
+          fill="none"
+          strokeWidth={1.5}
+          style={{ stroke: paint(kit, 'bezel') }}
+        />
+        <Screw id={kit} cx={15} cy={90} r={2.6} angle={40} />
+        <Screw id={kit} cx={49} cy={90} r={2.6} angle={110} />
+        <rect {...GATE} style={{ fill: 'var(--panel-plastic-shade)' }} />
+        <rect {...GATE} style={{ fill: paint(kit, 'well') }} />
         <g transform={`translate(0 ${HANDLE.top})`}>
           <g className="pk-move pk-slide" style={vars({ '--pk-y': offset - HANDLE.top })}>
-            <rect x={14} y={-5} width={36} height={10} rx={5} className="pk-cap-light" />
+            <SoftShadow box={GRIP} offset={[1, 2.6]} blur={2.4} />
+            <rect {...GRIP} style={{ fill: paint(kit, 'chrome-across') }} />
+            <line
+              x1={GRIP.x + 3}
+              x2={GRIP.x + GRIP.width - 3}
+              y1={GRIP.y + 1}
+              y2={GRIP.y + 1}
+              strokeWidth={0.8}
+              strokeLinecap="round"
+              style={{ stroke: paint(kit, 'specular') }}
+            />
           </g>
         </g>
         {legends.show &&
@@ -76,7 +112,26 @@ export function GuardedHandle({
             />
           ))}
         <g className="pk-move pk-fold" style={vars({ '--pk-fold': guardOpen ? FLAP_OPEN : 1 })}>
-          <rect x={10} y={14} width={44} height={72} rx={6} className="pk-flap" />
+          <rect {...FLAP} opacity={0.5} style={{ fill: 'var(--panel-plastic-shade)' }} />
+          <rect {...FLAP} style={{ fill: paint(kit, 'glare') }} />
+          <rect
+            x={FLAP.x + 0.75}
+            y={FLAP.y + 0.75}
+            width={FLAP.width - 1.5}
+            height={FLAP.height - 1.5}
+            rx={FLAP.rx - 0.75}
+            fill="none"
+            strokeWidth={1.5}
+            style={{ stroke: paint(kit, 'bezel') }}
+          />
+          <rect
+            x={FLAP.x}
+            y={FLAP.y}
+            width={FLAP.width}
+            height={6}
+            rx={3}
+            style={{ fill: paint(kit, 'ridge-across') }}
+          />
         </g>
       </>
     );

@@ -23,6 +23,7 @@ import { SANS_ADVANCE } from '../controls/legibility';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
 import type { IndicatorWidget } from '../types';
+import { normalisedMarkup, paintProblems } from '../materials/paint-check';
 
 afterEach(cleanup);
 
@@ -133,8 +134,8 @@ describe('round gauge', () => {
 
   it('draws the needle in the needle token', () => {
     const { container } = draw(gauge, 20, range);
-    const needle = container.querySelector('[data-needle] line') as SVGElement;
-    expect(needle.style.stroke).toBe('var(--panel-needle)');
+    const blade = container.querySelector('[data-needle] [data-blade]') as SVGElement;
+    expect(blade.style.fill).toBe('var(--panel-needle)');
   });
 
   it('clamps an arc to the range and drops an arc wholly outside it', () => {
@@ -217,31 +218,6 @@ describe('round gauge', () => {
     const { container } = draw(gauge, 50);
     expect(needleRotation(container)).toBe(0);
     expect(container.querySelector('[data-placeholder]')).toBeNull();
-  });
-
-  it('takes all its colours from panel tokens', () => {
-    const { container } = draw(gauge, 20, {
-      ...range,
-      arcs: [{ from: 10, to: 30, colour: 'red' }],
-    });
-    const paints = [...container.querySelectorAll<SVGElement>('*')].flatMap((node) => [
-      node.style.fill,
-      node.style.stroke,
-    ]);
-    const used = paints.filter((paint) => paint !== '' && paint !== 'none');
-    expect(used.length).toBeGreaterThan(0);
-    for (const paint of used) {
-      const material = /^url\("?#([^"]+)"?\)$/.exec(paint)?.[1];
-      if (material === undefined) {
-        expect(paint).toMatch(/^var\(--panel-[a-z-]+\)$/);
-        continue;
-      }
-      const stops = [...(container.querySelector(`[id="${material}"]`)?.children ?? [])];
-      expect(stops.length, material).toBeGreaterThan(0);
-      for (const stop of stops) {
-        expect((stop as SVGElement).style.stopColor).toMatch(/^var\(--panel-[a-z-]+\)$/);
-      }
-    }
   });
 
   it('gives each gauge its own material ids', () => {
@@ -394,18 +370,29 @@ describe('every indicator', () => {
     ['digital-readout', readout, 'ABC', { units: 'x' }],
   ];
 
-  // Material ids come from useId and differ per mount; everything else must follow from the props.
-  const markup = (container: HTMLElement) =>
-    [...container.querySelectorAll('[id]')].reduce(
-      (html, node, index) => html.replaceAll(node.id, `id-${index}`),
-      container.innerHTML,
-    );
-
   it.each(cases)('%s renders the same output for the same props', (_id, Widget, value, options) => {
-    const first = markup(draw(Widget, value, options).container);
+    const first = normalisedMarkup(draw(Widget, value, options).container);
     cleanup();
-    const second = markup(draw(Widget, value, options).container);
+    const second = normalisedMarkup(draw(Widget, value, options).container);
     expect(second).toBe(first);
+  });
+
+  it.each([
+    ...cases,
+    ['dark annunciator', annunciator, false, { lamp: 'blue' }] as const,
+    [
+      'gauge with every arc',
+      gauge,
+      20,
+      { ...range, arcs: [{ from: 10, to: 30, colour: 'red' }] },
+    ] as const,
+  ])('%s takes every paint from panel tokens and no filter', (_id, Widget, value, options) => {
+    const { container } = draw(Widget, value, options);
+    expect(paintProblems(container)).toEqual([]);
+    const shaded = [...container.querySelectorAll<SVGElement>('svg *')].filter((node) =>
+      node.style.fill.startsWith('url('),
+    );
+    expect(shaded.length).toBeGreaterThan(2);
   });
 
   it.each(cases)('%s keeps no state between renders', (_id, Widget, value, options) => {
@@ -613,11 +600,17 @@ describe('legibility', () => {
       placeAt(px, px);
       const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
       const label = container.querySelector('[data-label]');
-      const needle = container.querySelector('[data-needle] line');
+      const blade = container.querySelector('[data-needle] [data-blade]')?.getAttribute('d') ?? '';
       const size = Number(label?.getAttribute('font-size'));
-      const needleLength = Number(needle?.getAttribute('y1')) - Number(needle?.getAttribute('y2'));
-      const needleStroke = Number(needle?.getAttribute('stroke-width'));
-      const tip = polar(SWEEP_END, needleLength).y + needleStroke / 2;
+      const points = [...blade.matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g)].map(([, x, y]) => ({
+        x: Number(x),
+        y: Number(y),
+      }));
+      const end = Math.min(...points.map(({ y }) => y));
+      const halfWidth = Math.max(
+        ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),
+      );
+      const tip = polar(SWEEP_END, CENTRE - end).y + halfWidth;
       expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(tip);
     },
   );

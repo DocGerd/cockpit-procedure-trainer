@@ -1,6 +1,7 @@
 import type { IndicatorWidgetProps } from '../types';
 import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
 import { formatNumber, squeeze } from './geometry';
+import { Kit, paint, SoftShadow, useMaterialId } from '../materials';
 import { readReadoutOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
 
@@ -17,12 +18,15 @@ const LABEL_DESIGN = 6;
 const UNITS_DESIGN = 7;
 export const UNITS_ROOM = 32;
 export const UNITS_GAP = 2;
+const FRAME = { x: 0.3, y: 0.3, width: 98.4, height: 38.4, rx: 4 };
+const WINDOW = { x: 2.6, y: 2.6, width: 93.8, height: 34.4, rx: 2.4 };
 
 export const unitsReserve = (units: string, fontSize: number) =>
   Math.min(units.length * MONO_ADVANCE * fontSize, UNITS_ROOM) + UNITS_GAP;
 
 export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) {
   const [ref, metrics] = useRenderedMetrics(VIEWBOX);
+  const kit = useMaterialId('readout');
   const config = readReadoutOptions(options);
   if (config === null) return <IndicatorPlaceholder label={label} />;
   const { units, decimals } = config;
@@ -84,15 +88,19 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       role="img"
       aria-label={units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`}
     >
+      <Kit id={kit} use={['bezel', 'lip', 'well', 'screen-glare', 'specular']} />
+      <SoftShadow box={FRAME} offset={[0.4, 0.8]} blur={0.8} />
+      <rect {...FRAME} style={{ fill: paint(kit, 'bezel') }} />
       <rect
-        x={1}
-        y={1}
-        width={98}
-        height={38}
-        rx={4}
-        strokeWidth={2}
-        style={{ fill: 'var(--panel-screen)', stroke: 'var(--panel-bezel)' }}
+        x={FRAME.x + 1.2}
+        y={FRAME.y + 1.2}
+        width={FRAME.width - 2.4}
+        height={FRAME.height - 2.4}
+        rx={FRAME.rx - 1}
+        style={{ fill: paint(kit, 'lip') }}
       />
+      <rect {...WINDOW} style={{ fill: 'var(--panel-screen)' }} />
+      <rect {...WINDOW} style={{ fill: paint(kit, 'well') }} />
       {showCaption && (
         <text
           data-label=""
@@ -132,6 +140,14 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
           {units}
         </text>
       )}
+      <rect {...WINDOW} style={{ fill: paint(kit, 'screen-glare') }} />
+      <path
+        d={`M${WINDOW.x + 0.6} ${WINDOW.y + 22}V${WINDOW.y + 2.5}A2 2 0 0 1 ${WINDOW.x + 2.5} ${WINDOW.y + 0.6}H${WINDOW.x + 50}`}
+        fill="none"
+        strokeWidth={0.6}
+        strokeLinecap="round"
+        style={{ stroke: paint(kit, 'specular') }}
+      />
     </svg>
   );
 }

@@ -14,6 +14,7 @@ import {
   useRenderedMetrics,
 } from './legibility';
 import type { Metrics } from './legibility';
+import { Kit, paint, Screw, SoftShadow, useMaterialId } from '../materials';
 import './controls.css';
 
 export const TARGET = 'var(--size-target)';
@@ -43,13 +44,16 @@ type StageProps = {
 
 export const PLACARD_BAND = 26;
 const PLATE_PAD = 4;
+const SCREW_RADIUS = 2.4;
 
 function Placard({
+  id,
   text,
   width,
   band,
   metrics,
 }: {
+  id: string;
   text: string;
   width: number;
   band: number;
@@ -60,17 +64,32 @@ function Placard({
   const natural = text.length * CAPS_ADVANCE * title.fontSize;
   const length = natural > room ? room : undefined;
   const textWidth = length ?? natural;
-  const plate = textWidth + 2 * PLATE_PAD;
+  const height = band - 2 * EDGE;
+  const screw = Math.min(SCREW_RADIUS, height * 0.16);
+  const screwRoom = 2 * screw + PLATE_PAD;
+  const screwed = textWidth + 2 * (PLATE_PAD + screwRoom) <= width - 2 * EDGE;
+  const plate = textWidth + 2 * (PLATE_PAD + (screwed ? screwRoom : 0));
+  const box = { x: (width - plate) / 2, y: -band + EDGE, width: plate, height, rx: 2 };
+  const bevel = Math.min(1.2, height * 0.06);
   return (
     <>
+      <Kit id={id} use={['plate', 'bezel', 'screw']} />
+      <SoftShadow box={box} offset={[0.3, 0.8]} blur={0.8} opacity={0.5} />
+      <rect {...box} style={{ fill: paint(id, 'plate') }} />
       <rect
-        x={(width - plate) / 2}
-        y={-band + EDGE}
-        width={plate}
-        height={band - 2 * EDGE}
-        rx={3}
-        className="pk-placard-plate"
+        x={box.x + bevel / 2}
+        y={box.y + bevel / 2}
+        width={box.width - bevel}
+        height={box.height - bevel}
+        rx={box.rx}
+        fill="none"
+        strokeWidth={bevel}
+        style={{ stroke: paint(id, 'bezel') }}
       />
+      {screwed &&
+        [box.x + PLATE_PAD / 2 + screw, box.x + plate - PLATE_PAD / 2 - screw].map((cx, index) => (
+          <Screw key={cx} id={id} cx={cx} cy={-band / 2} r={screw} angle={index ? 120 : 35} />
+        ))}
       <text
         x={width / 2}
         y={-band / 2}
@@ -109,6 +128,7 @@ export function Stage({ width, height, art, placard, children, onKeyDown }: Stag
   const band = text ? placardBand(room, room ? readMinPx() : FALLBACK_MIN_PX, width, height) : 0;
   const total = height + band;
   const [svgRef, metrics] = useRenderedMetrics({ width, height: total });
+  const id = useMaterialId('placard');
   return (
     <div ref={rootRef} className="pk-root" style={{ minWidth: TARGET, minHeight: TARGET }}>
       <div
@@ -123,7 +143,7 @@ export function Stage({ width, height, art, placard, children, onKeyDown }: Stag
           aria-hidden="true"
           focusable="false"
         >
-          {text && <Placard text={text} width={width} band={band} metrics={metrics} />}
+          {text && <Placard id={id} text={text} width={width} band={band} metrics={metrics} />}
           {typeof art === 'function' ? art(metrics) : art}
         </svg>
         <div

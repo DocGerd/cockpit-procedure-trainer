@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ControlWidgetProps } from '../types';
+import { circleBox, Grain, Kit, paint, SoftShadow, useMaterialId } from '../materials';
 import { detentAngles, polar } from './geometry';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
@@ -46,9 +47,22 @@ function sideGap(slots: readonly Slot[]): number {
   return gap;
 }
 
-function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
-  const { control, position, label, placard, positionLabels, head, onSet, onPress, onRelease } =
-    props;
+/** A knob or key in its own units (scaled by HEAD_SCALE): fixed shading, and the part that turns. */
+type Head = { still: ReactNode; shadow?: ReactNode; turning: ReactNode };
+
+function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
+  const {
+    control,
+    position,
+    label,
+    placard,
+    positionLabels,
+    kit,
+    head,
+    onSet,
+    onPress,
+    onRelease,
+  } = props;
   const positions = namedPositions(control);
   const current = positions.indexOf(position as string);
   const angles = detentAngles(positions.length);
@@ -70,7 +84,17 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
     );
     return (
       <>
-        <circle cx={CENTRE} cy={CENTRE} r={BEZEL} className="pk-bezel-dark" />
+        <SoftShadow box={circleBox(CENTRE, CENTRE, BEZEL)} offset={[0.5, 1.4]} blur={1.6} />
+        <circle cx={CENTRE} cy={CENTRE} r={BEZEL} style={{ fill: paint(kit, 'plate') }} />
+        <circle cx={CENTRE} cy={CENTRE} r={BEZEL} style={{ fill: `url(#${kit}-grain)` }} />
+        <circle
+          cx={CENTRE}
+          cy={CENTRE}
+          r={BEZEL - 0.75}
+          fill="none"
+          strokeWidth={1.5}
+          style={{ stroke: paint(kit, 'bezel') }}
+        />
         {positions.map((id, index) => {
           const angle = angles[index] ?? 0;
           const from = polar(angle, TICK.from);
@@ -102,12 +126,23 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
             </g>
           );
         })}
+        <g transform={`translate(${CENTRE} ${CENTRE}) scale(${HEAD_SCALE})`}>{head.still}</g>
+        {head.shadow !== undefined && (
+          <g transform={`translate(${CENTRE + 1.2} ${CENTRE + 3})`} opacity={0.5}>
+            <g
+              className="pk-move pk-turn"
+              style={vars({ '--pk-angle': angles[Math.max(current, 0)] ?? 0 })}
+            >
+              <g transform={`scale(${HEAD_SCALE})`}>{head.shadow}</g>
+            </g>
+          </g>
+        )}
         <g transform={`translate(${CENTRE} ${CENTRE})`}>
           <g
             className="pk-move pk-turn"
             style={vars({ '--pk-angle': angles[Math.max(current, 0)] ?? 0 })}
           >
-            <g transform={`scale(${HEAD_SCALE})`}>{head}</g>
+            <g transform={`scale(${HEAD_SCALE})`}>{head.turning}</g>
           </g>
         </g>
       </>
@@ -132,33 +167,101 @@ function Rotary(props: ControlWidgetProps & { head: ReactNode }) {
   );
 }
 
+const KNURL = Array.from({ length: 40 }, (_, index) => index * 9);
+
 export function RotaryKnob(props: ControlWidgetProps) {
+  const kit = useMaterialId('knob');
   return (
     <Rotary
       {...props}
-      head={
-        <>
-          <circle r={26} className="pk-cap-light" />
-          <circle r={26} className="pk-mark" />
-          <rect x={-2.5} y={-23} width={5} height={15} rx={2.5} className="pk-bezel-dark" />
-        </>
-      }
+      kit={kit}
+      head={{
+        still: (
+          <>
+            <Kit id={kit} use={['plate', 'bezel', 'plastic', 'dome', 'specular']}>
+              <Grain id={`${kit}-grain`} tile={3} />
+            </Kit>
+            <SoftShadow box={circleBox(0, 0, 26)} offset={[2, 5]} blur={4} />
+            <circle r={26} style={{ fill: paint(kit, 'plastic') }} />
+            {KNURL.map((angle) => (
+              <line
+                key={angle}
+                y1={-26}
+                y2={-21.5}
+                transform={`rotate(${angle})`}
+                strokeWidth={1.4}
+                style={{ stroke: 'var(--panel-plastic-shade)' }}
+              />
+            ))}
+            <circle r={21} style={{ fill: 'var(--panel-plastic-shade)' }} />
+            <circle r={20} style={{ fill: paint(kit, 'dome') }} />
+            <path
+              d="M-24.5 -4A25 25 0 0 1 -4 -24.5"
+              fill="none"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              style={{ stroke: paint(kit, 'specular') }}
+            />
+          </>
+        ),
+        turning: (
+          <line
+            y1={-7}
+            y2={-19}
+            strokeWidth={3.2}
+            strokeLinecap="round"
+            style={{ stroke: 'var(--panel-legend)' }}
+          />
+        ),
+      }}
     />
   );
 }
 
+const KEY = 'M-3.5 4V-24H3.5V4Z';
+const BOW = 'M-9 -34a7 7 0 0 1 7 -7h4a7 7 0 0 1 7 7v4a7 7 0 0 1 -7 7h-4a7 7 0 0 1 -7 -7z';
+
 export function KeySwitch(props: ControlWidgetProps) {
+  const kit = useMaterialId('key');
+  const metal = { fill: paint(kit, 'chrome') };
   return (
     <Rotary
       {...props}
-      head={
-        <>
-          <circle r={18} className="pk-bezel" />
-          <rect x={-5} y={-32} width={10} height={34} rx={3} className="pk-cap-light" />
-          <circle cy={-32} r={9} className="pk-cap-light" />
-          <circle cy={-32} r={3.5} className="pk-bezel-dark" />
-        </>
-      }
+      kit={kit}
+      head={{
+        still: (
+          <>
+            <Kit id={kit} use={['plate', 'bezel', 'lip', 'cap', 'chrome']}>
+              <Grain id={`${kit}-grain`} tile={3} />
+            </Kit>
+            <SoftShadow box={circleBox(0, 0, 19)} offset={[1, 2.6]} blur={2.5} />
+            <circle r={19} style={{ fill: paint(kit, 'bezel') }} />
+            <circle r={16} style={{ fill: paint(kit, 'lip') }} />
+            <circle r={13} style={{ fill: paint(kit, 'cap') }} />
+          </>
+        ),
+        shadow: (
+          <>
+            <path d={KEY} style={{ fill: 'var(--panel-shadow)' }} />
+            <path d={BOW} style={{ fill: 'var(--panel-shadow)' }} />
+          </>
+        ),
+        turning: (
+          <>
+            <rect
+              x={-2}
+              y={-11}
+              width={4}
+              height={22}
+              rx={1}
+              style={{ fill: 'var(--panel-shadow)' }}
+            />
+            <path d={KEY} style={metal} />
+            <path d={BOW} style={metal} />
+            <circle cy={-33} r={3} style={{ fill: 'var(--panel-metal-shade)' }} />
+          </>
+        ),
+      }}
     />
   );
 }
