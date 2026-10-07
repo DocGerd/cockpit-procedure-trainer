@@ -55,7 +55,8 @@ const DIAL_RADIUS = 46;
 const NEEDLE_SHADOW = { x: 0.6, y: 1.3 };
 const GLARE = 'M5 50A45 45 0 0 1 84 22C62 19 26 30 7 62Z';
 
-type Stop = readonly [offset: number, token: string, opacity?: number];
+type Material = 'metal-light' | 'metal-shade' | 'bezel' | 'bezel-dark' | 'glare';
+type Stop = readonly [offset: number, token: Material, opacity?: number];
 
 function Gradient({
   id,
