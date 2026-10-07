@@ -230,7 +230,7 @@ export default tseslint.config(
     },
   },
   {
-    files: [`${packageKinds.core}/**/*.{ts,tsx}`],
+    files: [`${packageKinds.core}/**/*.{ts,tsx,mts,cts}`],
     rules: restrict(
       'core',
       [
@@ -248,7 +248,7 @@ export default tseslint.config(
     ),
   },
   ...aircraftDirs.map((name) => ({
-    files: [`packages/${name}/**/*.{ts,tsx}`],
+    files: [`packages/${name}/**/*.{ts,tsx,mts,cts}`],
     rules: restrict(
       name,
       [
@@ -261,15 +261,15 @@ export default tseslint.config(
     ),
   })),
   {
-    files: [`${packageKinds.device}/**/*.{ts,tsx}`],
+    files: [`${packageKinds.device}/**/*.{ts,tsx,mts,cts}`],
     rules: restrict(null, deviceGroups, deviceSelectors),
   },
   {
-    files: [`${packageKinds.device}/src/screen/**/*.{ts,tsx}`],
+    files: [`${packageKinds.device}/src/screen/**/*.{ts,tsx,mts,cts}`],
     rules: restrict(null, deviceGroups, [...deviceSelectors, ...literalSelectors]),
   },
   {
-    files: [`${packageKinds.device}/src/logic/**/*.{ts,tsx}`],
+    files: [`${packageKinds.device}/src/logic/**/*.{ts,tsx,mts,cts}`],
     rules: restrict(
       null,
       [
@@ -290,11 +290,11 @@ export default tseslint.config(
     ),
   },
   {
-    files: [`${packageKinds.panelKit}/**/*.{ts,tsx}`],
+    files: [`${packageKinds.panelKit}/**/*.{ts,tsx,mts,cts}`],
     rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...literalSelectors]),
   },
   {
-    files: ['apps/web/src/**/*.{ts,tsx}'],
+    files: ['apps/web/src/**/*.{ts,tsx,mts,cts}'],
     ignores: ['apps/web/src/aircraft-registry.ts', 'apps/web/src/device-registry.ts'],
     rules: restrict('web', webGroups, [...webSelectors, ...literalSelectors]),
   },
@@ -321,15 +321,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/web/src/**/*.test.{ts,tsx}'],
+    files: ['apps/web/src/**/*.test.{ts,tsx,mts,cts}'],
     rules: restrict('web', webGroups, [...webSelectors, ...colourLiterals]),
   },
   {
-    files: [`${packageKinds.panelKit}/**/*.test.{ts,tsx}`],
+    files: [`${packageKinds.panelKit}/**/*.test.{ts,tsx,mts,cts}`],
     rules: restrict('panel-kit', panelKitGroups, [...panelKitSelectors, ...colourLiterals]),
   },
   {
-    files: [`${packageKinds.device}/src/screen/**/*.test.{ts,tsx}`],
+    files: [`${packageKinds.device}/src/screen/**/*.test.{ts,tsx,mts,cts}`],
     rules: restrict(null, deviceGroups, [...deviceSelectors, ...colourLiterals]),
   },
 );

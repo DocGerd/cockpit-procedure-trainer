@@ -188,6 +188,35 @@ describe('package boundaries', () => {
   });
 });
 
+describe('module-flavoured sources in known package kinds', () => {
+  it.each([
+    ['packages/core/src/x', '@cpt/panel-kit'],
+    ['packages/panel-kit/src/x', '@cpt/web'],
+    ['packages/aircraft-demo/src/x', '@cpt/panel-kit'],
+    ['packages/device-x/src/x', '@cpt/web'],
+    ['packages/device-x/src/screen/x', '@cpt/web'],
+    ['packages/device-x/src/logic/x', '@cpt/panel-kit'],
+  ])('rejects a forbidden import in %s as .ts, .mts and .cts', async (base, forbidden) => {
+    for (const ext of ['ts', 'mts', 'cts']) {
+      expect(await restricted(`${base}.${ext}`, `import '${forbidden}';\n`)).toBe(1);
+      expect(await restrictedSyntax(`${base}.${ext}`, `await import('${forbidden}');\n`)).toBe(1);
+    }
+  });
+
+  it.each([
+    ['packages/panel-kit/src/x', "export const w = '12px';\n"],
+    ['packages/panel-kit/src/x.test', "export const c = '#fff';\n"],
+    ['packages/device-x/src/screen/x', "export const w = '12px';\n"],
+    ['packages/device-x/src/screen/x.test', "export const c = '#fff';\n"],
+    ['apps/web/src/x', "export const w = '12px';\n"],
+    ['apps/web/src/x.test', "export const c = '#fff';\n"],
+  ])('rejects a literal in %s as .ts, .mts and .cts', async (base, code) => {
+    for (const ext of ['ts', 'mts', 'cts']) {
+      expect(await restrictedSyntax(`${base}.${ext}`, code)).toBe(1);
+    }
+  });
+});
+
 describe('unknown package kinds', () => {
   it.each([
     ['packages/widget-x/src/x.ts'],
