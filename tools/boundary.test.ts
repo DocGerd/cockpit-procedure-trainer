@@ -187,6 +187,28 @@ describe('package boundaries', () => {
   });
 });
 
+describe('unknown package kinds', () => {
+  it.each([
+    ['packages/widget-x/src/x.ts'],
+    ['packages/widget-x/src/x.tsx'],
+    ['packages/widget-x/vite.config.ts'],
+    ['packages/devices/src/x.ts'],
+    ['packages/aircraft/src/x.ts'],
+  ])('rejects %s, a package matching no known kind', async (filePath) => {
+    expect(await restrictedSyntax(filePath, 'export {};\n')).toBe(1);
+  });
+
+  it.each([
+    ['packages/core/src/x.ts'],
+    ['packages/panel-kit/src/x.tsx'],
+    ['packages/aircraft-demo/src/x.ts'],
+    ['packages/device-x/src/x.ts'],
+    ['packages/device-x/src/screen/x.tsx'],
+  ])('accepts %s, a package of a known kind', async (filePath) => {
+    expect(await restrictedSyntax(filePath, 'export {};\n')).toBe(0);
+  });
+});
+
 describe('device package boundaries', () => {
   const logic = 'packages/device-x/src/logic/x.ts';
   const screen = 'packages/device-x/src/screen/x.tsx';

@@ -68,7 +68,9 @@ UI changes also need a pass in a real browser at tablet and desktop width.
 - `apps/web`: the app. Imports aircraft only in `src/aircraft-registry.ts`
   and devices only in `src/device-registry.ts`.
 
-ESLint enforces these.
+ESLint enforces these. A package under `packages/` of any other kind fails
+`pnpm lint` until `eslint.config.js` gives its kind a boundary block and the kind is listed in
+`knownPackageKinds`; extend `tools/boundary.test.ts` in the same change.
 
 Colours, type and spacing come only from `apps/web/src/styles/tokens.css`. ESLint and Stylelint enforce
 this in `apps/web/src` and in the package sources and stylesheets (`pnpm lint` runs both);

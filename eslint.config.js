@@ -202,10 +202,31 @@ const restrict = (own, groups, selectors = []) => ({
   ],
 });
 
+const knownPackageKinds = [
+  'packages/core/**',
+  'packages/panel-kit/**',
+  'packages/aircraft-*/**',
+  'packages/device-*/**',
+];
+
 export default tseslint.config(
   { ignores: ['**/dist/**', '**/node_modules/**', 'docs/design/handoff/**'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
+  {
+    files: ['packages/*/**/*.{ts,tsx,js,jsx,mjs,cjs}'],
+    ignores: knownPackageKinds,
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Program',
+          message:
+            'This package matches no known kind (core, panel-kit, aircraft-*, device-*). Give it boundary rules in eslint.config.js.',
+        },
+      ],
+    },
+  },
   {
     files: ['packages/core/**/*.{ts,tsx}'],
     rules: restrict(
