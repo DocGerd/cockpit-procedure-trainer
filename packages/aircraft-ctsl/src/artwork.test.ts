@@ -241,3 +241,54 @@ describe('CTSL control artwork', () => {
     }
   });
 });
+
+describe('CTSL view backdrops', () => {
+  const backdrop = (id: 'panel' | 'centre' | 'console'): string =>
+    readFileSync(new URL(`./assets/${fileOf(views[id].image)}`, import.meta.url), 'utf8');
+  const count = (svg: string, pattern: RegExp) => [...svg.matchAll(pattern)].length;
+  const lettering = (svg: string) =>
+    [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(
+      ([, attributes = '', text]) =>
+        `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
+    );
+
+  it.each(['panel', 'centre', 'console'] as const)(
+    'paints %s with one stipple texture and no other filter',
+    (id) => {
+      const svg = backdrop(id);
+      expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+      expect(count(svg, /filter=["']url\(/g)).toBe(1);
+      expect(count(svg, /<pattern\b/g)).toBeGreaterThan(0);
+    },
+  );
+
+  it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
+    const expected = {
+      panel: [
+        'TAKE@90,92/30',
+        'OFF@90,130/30',
+        'LIMITS@90,292/30',
+        'COM RADIO@450,449/40',
+        'TRANSPONDER@450,609/40',
+        'GPS@1368,204/40',
+        'BREAKERS@1736,54/30',
+      ],
+      centre: [
+        'AVIONICS OFF TO START AND STOP@570,272/29',
+        '12 V@120,378/29',
+        'INTERCOM@590,384/29',
+        'AUDIO@945,384/29',
+        'FLAPS@540,550/29',
+        'HEADSET@910,490/29',
+        'IGNITION@340,886/29',
+        'BAT@930,658/29',
+        'GEN@1090,658/29',
+        'ELT@162,450/29',
+        'OPEN@110,574/29',
+        'CLOSED@110,884/29',
+      ],
+      console: [],
+    }[id];
+    expect(lettering(backdrop(id))).toEqual(expected);
+  });
+});
