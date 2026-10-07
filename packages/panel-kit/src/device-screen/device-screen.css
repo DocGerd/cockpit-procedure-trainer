@@ -3,8 +3,8 @@
 
 .pk-device {
   --pk-hair: 1px;
-  --pk-screw: 7px;
-  --pk-screw-at: 0.5px;
+  --pk-screw: 9px;
+  --pk-screw-at: 1px;
 
   position: relative;
   display: flex;
@@ -170,8 +170,8 @@
 .pk-mirror-bezel {
   /* Drawn at the slot's natural size and scaled down with it, so a hairline takes two units. */
   --pk-hair: 2px;
-  --pk-screw: 8px;
-  --pk-screw-at: 0px;
+  --pk-screw: 10px;
+  --pk-screw-at: 1px;
 
   position: relative;
   display: grid;
@@ -261,12 +261,12 @@
 
   /* One soft canopy sweep up-left, a faint counter-reflection down-right, a little depth. */
   --pk-glass:
-    linear-gradient(
-      118deg,
+    radial-gradient(
+      ellipse 150% 120% at -25% -45%,
       color-mix(in srgb, var(--panel-glare) 30%, transparent),
-      color-mix(in srgb, var(--panel-glare) 12%, transparent) 22%,
-      color-mix(in srgb, var(--panel-glare) 8%, transparent) 31%,
-      transparent 32%
+      color-mix(in srgb, var(--panel-glare) 12%, transparent) 55%,
+      color-mix(in srgb, var(--panel-glare) 8%, transparent) 66%,
+      transparent 67%
     ),
     linear-gradient(
       298deg,
@@ -331,7 +331,8 @@
   --pk-drop-bottom: calc(var(--pk-at) - var(--pk-screw) * 0.12);
 
   position: absolute;
-  inset: 0;
+  inset: calc(var(--space-1) * -1);
+  z-index: 1;
   pointer-events: none;
   content: '';
   background-repeat: no-repeat;
