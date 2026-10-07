@@ -12,5 +12,5 @@ export {
   useMaterialId,
 } from './Materials';
 export type { Material, Point, Stop } from './Materials';
-export { circleBox, Kit, Screw, SoftShadow } from './parts';
+export { circleBox, Kit, Knurl, Screw, SoftShadow } from './parts';
 export type { KitMaterial } from './parts';

@@ -139,3 +139,39 @@ export function Screw({
     </g>
   );
 }
+
+/** A knurled ring: one dashed circle, its dashes the ridges between `inner` and `outer`. */
+export function Knurl({
+  cx,
+  cy,
+  inner,
+  outer,
+  ridges,
+  width,
+  token,
+  opacity = 1,
+}: {
+  cx: number;
+  cy: number;
+  inner: number;
+  outer: number;
+  ridges: number;
+  width: number;
+  token: 'metal-shade' | 'plastic-shade';
+  opacity?: number;
+}) {
+  const r = (inner + outer) / 2;
+  const pitch = (2 * Math.PI * r) / ridges;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      fill="none"
+      strokeWidth={outer - inner}
+      strokeDasharray={`${width} ${pitch - width}`}
+      opacity={opacity}
+      style={{ stroke: `var(--panel-${token})` }}
+    />
+  );
+}

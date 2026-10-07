@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Kit, paint, SoftShadow, useMaterialId } from '../materials';
+import { circleBox, Kit, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
 import { CurrentState, Stage, hitStyle, vars } from './Stage';
 
 const WIDTH = 100;
@@ -10,7 +10,6 @@ const BODY_Y = 46;
 const LIFT = 16;
 // A pulled button stands higher, so its shadow falls further below it than the button rises.
 const SHADOW_LAG = 7;
-const KNURL = Array.from({ length: 36 }, (_, index) => index * 10);
 
 export function CircuitBreaker({
   position,
@@ -29,19 +28,16 @@ export function CircuitBreaker({
       <Kit id={kit} use={['bezel', 'lip', 'plastic', 'dome', 'specular', 'band', 'ridge']} />
       <SoftShadow box={circleBox(50, BODY_Y, 40)} offset={[0.5, 1.3]} blur={1.6} />
       <circle cx={50} cy={BODY_Y} r={40} style={{ fill: paint(kit, 'bezel') }} />
-      {KNURL.map((angle) => (
-        <line
-          key={angle}
-          x1={50}
-          y1={BODY_Y - 40}
-          x2={50}
-          y2={BODY_Y - 35}
-          transform={`rotate(${angle} 50 ${BODY_Y})`}
-          strokeWidth={1.1}
-          opacity={0.6}
-          style={{ stroke: 'var(--panel-metal-shade)' }}
-        />
-      ))}
+      <Knurl
+        cx={50}
+        cy={BODY_Y}
+        inner={35}
+        outer={40}
+        ridges={36}
+        width={1.1}
+        token="metal-shade"
+        opacity={0.6}
+      />
       <circle cx={50} cy={BODY_Y} r={34} style={{ fill: paint(kit, 'lip') }} />
       <circle cx={50} cy={BODY_Y} r={29} style={{ fill: paint(kit, 'bezel') }} />
       <circle cx={50} cy={BODY_Y} r={26.5} style={{ fill: 'var(--panel-metal-shade)' }} />

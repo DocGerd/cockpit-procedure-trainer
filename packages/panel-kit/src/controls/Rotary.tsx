@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ControlWidgetProps } from '../types';
-import { circleBox, Grain, Kit, paint, SoftShadow, useMaterialId } from '../materials';
+import { circleBox, Grain, Kit, Knurl, paint, SoftShadow, useMaterialId } from '../materials';
 import { detentAngles, polar } from './geometry';
 import { namedPositions, springBackOf } from './positions';
 import { PositionGroup } from './PositionGroup';
@@ -167,8 +167,6 @@ function Rotary(props: ControlWidgetProps & { kit: string; head: Head }) {
   );
 }
 
-const KNURL = Array.from({ length: 40 }, (_, index) => index * 9);
-
 export function RotaryKnob(props: ControlWidgetProps) {
   const kit = useMaterialId('knob');
   return (
@@ -183,16 +181,15 @@ export function RotaryKnob(props: ControlWidgetProps) {
             </Kit>
             <SoftShadow box={circleBox(0, 0, 26)} offset={[2, 5]} blur={4} />
             <circle r={26} style={{ fill: paint(kit, 'plastic') }} />
-            {KNURL.map((angle) => (
-              <line
-                key={angle}
-                y1={-26}
-                y2={-21.5}
-                transform={`rotate(${angle})`}
-                strokeWidth={1.4}
-                style={{ stroke: 'var(--panel-plastic-shade)' }}
-              />
-            ))}
+            <Knurl
+              cx={0}
+              cy={0}
+              inner={21.5}
+              outer={26}
+              ridges={40}
+              width={1.4}
+              token="plastic-shade"
+            />
             <circle r={21} style={{ fill: 'var(--panel-plastic-shade)' }} />
             <circle r={20} style={{ fill: paint(kit, 'dome') }} />
             <path
