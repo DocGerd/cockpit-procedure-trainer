@@ -224,6 +224,147 @@ describe('image errors fall back to the generic widget', () => {
   });
 });
 
+describe('glass layer', () => {
+  const positions: MovingPart = { type: 'positions', images: { on: 'on.png' } };
+  const glassy = (moving: MovingPart): Artwork => ({ ...artworkOf(moving), glass: 'glass.png' });
+  const glass = () => document.querySelector<HTMLImageElement>('img[src="glass.png"]');
+
+  function renderGlass(moving: MovingPart, value: number | string) {
+    render(
+      <ArtworkIndicator value={value} label="Gauge" artwork={glassy(moving)} fallback={fallback} />,
+    );
+    loadFace();
+  }
+
+  it.each([
+    ['needle', needle, 40],
+    ['positions', positions, 'on'],
+    ['travel', travel, 0.5],
+  ] as const)('lies above the %s layer and never moves', (_type, moving, value) => {
+    renderGlass(moving, value);
+    const overlay = document.querySelector('svg.cpt-artwork-moving');
+    const pane = glass();
+    expect(overlay).not.toBeNull();
+    expect(pane).not.toBeNull();
+    expect(
+      (overlay as Node).compareDocumentPosition(pane as Node) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(pane?.getAttribute('transform')).toBeNull();
+    expect(pane?.style.transform).toBe('');
+    expect(pane?.className).toBe('cpt-artwork-glass');
+    expect(pane?.getAttribute('alt')).toBe('');
+  });
+
+  it('lies below the control inputs', () => {
+    render(
+      <ArtworkControl
+        control={toggle}
+        position="a"
+        guardOpen={false}
+        label="Control"
+        positionLabels={{}}
+        artwork={{ ...artworkOf(switchImages), glass: 'glass.png' }}
+        fallback={fallback}
+        onSet={vi.fn()}
+        onPress={vi.fn()}
+        onRelease={vi.fn()}
+        onOpenGuard={vi.fn()}
+        onCloseGuard={vi.fn()}
+      />,
+    );
+    loadFace();
+    const input = screen.getByRole('button', { name: /Control/ });
+    expect(
+      (glass() as Node).compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('is drawn only once the face has loaded', () => {
+    render(
+      <ArtworkIndicator value={1} label="Gauge" artwork={glassy(needle)} fallback={fallback} />,
+    );
+    expect(glass()).toBeNull();
+  });
+
+  it('is absent, with the stage as before, when the artwork has none', () => {
+    renderIndicator(needle, 40);
+    expect(document.querySelectorAll('img')).toHaveLength(1);
+    expect(document.querySelector('.cpt-artwork-glass')).toBeNull();
+  });
+
+  it('falls back to the generic widget when it fails, like the face', () => {
+    renderGlass(needle, 40);
+    fireEvent.error(glass() as HTMLImageElement);
+    expect(screen.getByText('generic widget')).toBeTruthy();
+    expect(document.querySelector('img')).toBeNull();
+  });
+});
+
+describe('needle shadow', () => {
+  const shadowGroup = () => document.querySelector('[data-needle-shadow]');
+
+  it('is not drawn unless the artwork asks for it', () => {
+    renderIndicator(needle, 50);
+    expect(shadowGroup()).toBeNull();
+    expect(layers()).toHaveLength(1);
+  });
+
+  it('casts the needle image down-right, translated outside its rotation', () => {
+    renderIndicator(needle, 75, { needleShadow: true });
+    const group = shadowGroup();
+    expect(group).not.toBeNull();
+    const [dx = 0, dy = 0] = numbers(transformOf(group ?? undefined));
+    expect(transformOf(group ?? undefined)).toMatch(/^translate\(/);
+    expect(dx).toBeGreaterThan(0);
+    expect(dy).toBeGreaterThan(dx);
+    const shape = group?.querySelector('[mask]');
+    const maskId = /^url\(#(.+)\)$/.exec(shape?.getAttribute('mask') ?? '')?.[1];
+    const mask = maskId === undefined ? null : document.getElementById(maskId);
+    expect(mask?.tagName.toLowerCase()).toBe('mask');
+    const silhouette = mask?.querySelector('image');
+    expect(silhouette?.getAttribute('href')).toBe('needle.png');
+    expect(transformOf(silhouette ?? undefined)).toBe(transformOf(layers().at(-1)));
+    expect(numbers(transformOf(silhouette ?? undefined))[0]).toBeCloseTo(45);
+  });
+
+  it('scales its offset with the shorter side of the face', () => {
+    renderIndicator(needle, 50, { needleShadow: true });
+    const [dx = 0, dy = 0] = numbers(transformOf(shadowGroup() ?? undefined));
+    expect(dx / FACE.height).toBeGreaterThanOrEqual(0.01);
+    expect(dx / FACE.height).toBeLessThanOrEqual(0.015);
+    expect(dy / FACE.height).toBeGreaterThanOrEqual(0.02);
+    expect(dy / FACE.height).toBeLessThanOrEqual(0.025);
+  });
+
+  it('draws the shadow below the needle, in shadow colour, without a filter', () => {
+    renderIndicator(needle, 50, { needleShadow: true });
+    const overlay = document.querySelector('svg.cpt-artwork-moving');
+    const needleImage = overlay?.querySelector(':scope > image');
+    expect(
+      (shadowGroup() as Node).compareDocumentPosition(needleImage as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    const shape = shadowGroup()?.querySelector<SVGElement>('[mask]');
+    expect(shape?.style.fill).toBe('var(--panel-shadow)');
+    expect(document.querySelector('filter')).toBeNull();
+  });
+
+  it('gives each stage its own mask id', () => {
+    renderIndicator(needle, 50, { needleShadow: true });
+    renderIndicator(needle, 50, { needleShadow: true });
+    for (const face of document.querySelectorAll('img')) fireEvent.load(face);
+    const ids = [...document.querySelectorAll('mask')].map((mask) => mask.id);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    for (const id of ids) expect(id).toMatch(/^[a-zA-Z0-9_-]+$/);
+  });
+
+  it('is ignored on a part that does not turn', () => {
+    renderIndicator(travel, 0.5, { needleShadow: true });
+    expect(shadowGroup()).toBeNull();
+  });
+});
+
 type Handlers = {
   onSet: Mock<(position: ControlPosition) => void>;
   onPress: Mock<(position?: ControlPosition) => void>;
