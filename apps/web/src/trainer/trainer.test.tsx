@@ -109,6 +109,54 @@ describe('trainer store', () => {
     expect(snapshot.checklist()).toBeUndefined();
   });
 
+  it.each(['guided', 'practice'] as const)(
+    'restarts the last procedure fresh in %s when leaving Free explore',
+    (mode) => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.startProcedure(firstProcedure));
+      act(() => result.current.trainer.session.set(firstControl, 'on'));
+      act(() => result.current.trainer.setMode('explore'));
+      act(() => result.current.trainer.setMode(mode));
+      const { trainer, snapshot } = result.current;
+      expect(trainer.mode).toBe(mode);
+      expect(trainer.screen).toBe('trainer');
+      expect(trainer.procedureId).toBe(firstProcedure);
+      expect(trainer.session.procedureId()).toBe(firstProcedure);
+      expect(snapshot.checklist()?.completed).toEqual([]);
+      expect(snapshot.state().controls[firstControl]).toBe('off');
+    },
+  );
+
+  it.each(['guided', 'practice'] as const)(
+    'returns to the picker in %s when Free explore was entered without a procedure',
+    (mode) => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.setMode('explore'));
+      act(() => result.current.trainer.setMode(mode));
+      const { trainer } = result.current;
+      expect(trainer.screen).toBe('picker');
+      expect(trainer.mode).toBe(mode);
+      expect(trainer.procedureId).toBeUndefined();
+      expect(trainer.session.procedureId()).toBeUndefined();
+    },
+  );
+
+  it('forgets the last procedure when going back to the picker or choosing another aircraft', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.backToPicker());
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    expect(result.current.trainer.screen).toBe('picker');
+
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.selectAircraft(second.id));
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    expect(result.current.trainer.screen).toBe('picker');
+    expect(result.current.trainer.procedureId).toBeUndefined();
+  });
+
   it('resets the cockpit to the start of the phase when Free explore ends the procedure', () => {
     const { result } = renderTrainer();
     act(() => result.current.trainer.startProcedure(firstProcedure));

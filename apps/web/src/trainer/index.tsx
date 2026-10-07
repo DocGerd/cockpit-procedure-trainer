@@ -22,6 +22,7 @@ export type Trainer = {
   selectAircraft(id: string): void;
   session: Session;
   procedureId: string | undefined;
+  lastProcedureId: string | undefined;
   startProcedure(id: string): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
@@ -36,6 +37,7 @@ type TrainerState = {
   session: Session;
   mode: Mode;
   screen: TrainerScreen;
+  lastProcedureId: string | undefined;
 };
 
 function findAircraft(id: string): Aircraft | undefined {
@@ -56,7 +58,13 @@ function initialState(): TrainerState {
   const stored = readSetting('aircraft');
   const aircraft = (stored === undefined ? undefined : findAircraft(stored)) ?? aircraftRegistry[0];
   if (!aircraft) throw new Error('The aircraft registry is empty');
-  return { aircraft, session: newSession(aircraft), mode: 'guided', screen: 'picker' };
+  return {
+    aircraft,
+    session: newSession(aircraft),
+    mode: 'guided',
+    screen: 'picker',
+    lastProcedureId: undefined,
+  };
 }
 
 const TrainerContext = createContext<Trainer | undefined>(undefined);
@@ -86,11 +94,11 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         const aircraft = findAircraft(id);
         if (!aircraft) throw new Error(`Unknown aircraft "${id}"`);
         writeSetting('aircraft', id);
-        update({ aircraft, session: newSession(aircraft) });
+        update({ aircraft, session: newSession(aircraft), lastProcedureId: undefined });
       },
       startProcedure(id) {
         current.current.session.startProcedure(id);
-        update({ screen: 'trainer' });
+        update({ screen: 'trainer', lastProcedureId: id });
       },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
@@ -99,8 +107,16 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         if (mode === 'explore') {
           endProcedure(current.current.session);
           update({ mode, screen: 'trainer' });
-        } else {
+        } else if (current.current.mode !== 'explore') {
           update({ mode });
+        } else {
+          const { lastProcedureId } = current.current;
+          if (lastProcedureId === undefined) {
+            update({ mode, screen: 'picker' });
+          } else {
+            current.current.session.startProcedure(lastProcedureId);
+            update({ mode, screen: 'trainer' });
+          }
         }
       },
       resetSession() {
@@ -116,7 +132,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       },
       backToPicker() {
         endProcedure(current.current.session);
-        update({ screen: 'picker' });
+        update({ screen: 'picker', lastProcedureId: undefined });
       },
     };
   }, [state, procedureId]);
