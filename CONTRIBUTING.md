@@ -36,8 +36,10 @@ holds released state and feeds the production site.
    PR merges by the owner account. Deliberate obfuscation (shell expansion
    tricks, clients other than `gh`, `curl` and `wget` such as python) is out of
    scope for the tripwire.
-3. A workflow reads the top released section of `CHANGELOG.md` and creates tag
-   `vX.Y.Z` and the GitHub Release.
+3. A workflow reads the top released section of `CHANGELOG.md`, builds and
+   signs the production bundle, and creates tag `vX.Y.Z` and the GitHub Release
+   with the bundle attached. [Verifying a release](docs/verifying-a-release.md)
+   shows how to check its signature.
 
 Versions are semantic and below 1.0: milestone Mn is released as v0.(n+1).0.
 
