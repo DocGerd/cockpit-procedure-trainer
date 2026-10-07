@@ -13,6 +13,7 @@
 <path d="M-4000 388 L591.3 143.1 M-1600 388 L695.7 143.1 M3200 388 L904.3 143.1 M5600 388 L1008.7 143.1 M-9866.7 217.3 L11466.7 217.3 M-4533.3 174.7 L6133.3 174.7 M-2109.1 155.3 L3709.1 155.3" stroke="#7D8389" stroke-width="2" fill="none"/>
 <path d="M260 300 C420 230 640 200 800 200 C960 200 1180 230 1340 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M790 204 L810 204 L812 300 L788 300 Z" fill="#9AA1AA" opacity="0.6"/>
+<g transform="translate(-130 -4)"><path id="propeller-blade" d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
 <path d="M0 300 V262 C300 252 1300 252 1600 262 V300 Z" fill="#2B3138"/>
 <path d="M0 262 C300 252 1300 252 1600 262" fill="none" stroke="#4B535C" stroke-width="4"/>
 <path d="M0 0 H64 L30 300 H0 Z" fill="#2B3138"/><path d="M64 0 L30 300" stroke="#4B535C" stroke-width="4"/>

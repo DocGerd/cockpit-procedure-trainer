@@ -16,6 +16,7 @@
 <g transform="translate(560 138) scale(0.6)" fill="#FFFFFF" opacity="0.85"><ellipse cx="0" cy="0" rx="70" ry="14"/><ellipse cx="-30" cy="-10" rx="34" ry="14"/><ellipse cx="22" cy="-14" rx="40" ry="16"/></g><g transform="translate(1060 140) scale(0.5)" fill="#FFFFFF" opacity="0.85"><ellipse cx="0" cy="0" rx="70" ry="14"/><ellipse cx="-30" cy="-10" rx="34" ry="14"/><ellipse cx="22" cy="-14" rx="40" ry="16"/></g>
 <path d="M260 300 C420 229 640 199 800 199 C960 199 1180 229 1340 300 Z" fill="url(#cowl)" stroke="#2B3138" stroke-width="3"/>
 <path d="M790 203 L810 203 L812 300 L788 300 Z" fill="#9AA1AA" opacity="0.6"/>
+<g transform="translate(-130 -5)"><path id="propeller-blade" d="M919 206 C914 164 918 124 924 100 Q931 90 938 100 C944 124 947 164 942 206 Z" fill="#33393F"/></g>
 <path d="M0 300 V262 C300 251 1300 251 1600 262 V300 Z" fill="#2B3138"/>
 <path d="M0 262 C300 251 1300 251 1600 262" fill="none" stroke="#4B535C" stroke-width="4"/>
 <path d="M0 0 H64 L30 300 H0 Z" fill="#2B3138"/><path d="M64 0 L30 300" stroke="#4B535C" stroke-width="4"/>

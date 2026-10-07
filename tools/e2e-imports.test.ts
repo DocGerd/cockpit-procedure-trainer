@@ -30,4 +30,19 @@ describe('e2e fixture import', () => {
       await restricted('apps/web/e2e/x.ts', "import { expect } from '@playwright/test';\n"),
     ).toBe(0);
   });
+
+  it('rejects a relative import into packages/ in a spec', async () => {
+    expect(
+      await restricted(
+        'apps/web/e2e/x.spec.ts',
+        "import { SWEEP_END } from '../../../packages/panel-kit/src/indicators/geometry';\n",
+      ),
+    ).toBe(1);
+  });
+
+  it('rejects a relative import into packages/ in an e2e helper', async () => {
+    expect(
+      await restricted('apps/web/e2e/x.ts', "import { a } from '../../../packages/core/src/a';\n"),
+    ).toBe(1);
+  });
 });

@@ -85,6 +85,7 @@ test.describe('changing the phase during a procedure', () => {
 
     await expect(page.getByRole('alertdialog')).toHaveCount(0);
     await expect(page.getByLabel(copy.outsideView.phase, { exact: true })).toHaveValue(targetId);
-    await expect(checklistPane(page)).toHaveCount(0);
+    await expect(progress(page)).toHaveCount(0);
+    await expect(checklistPane(page).getByRole('img')).toHaveCount(0);
   });
 });

@@ -26,10 +26,10 @@ fixes the order once.
 
 1. **Procedural correctness.** The trainer never teaches a wrong flow; the
    systems model follows the aircraft handbook.
-2. **Training UX.** Realism, learnability, accessibility (labelled controls,
-   keyboard, accessible names, reduced motion). On the cockpit panel aircraft
-   realism beats convenience; convenience (hints, checklist, zoom) lives only in
-   the app frame.
+2. **Training UX.** Realism, learnability, printed panel labels, 44 px touch
+   targets, lettering minimums legible at the panel floor. On the cockpit panel
+   aircraft realism beats convenience; convenience (hints, checklist, zoom)
+   lives only in the app frame.
 3. **Performance.** Fast load, smooth panel interaction. Ranked above offline
    because feel is part of training UX.
 4. **Reliability and offline.** The PWA works at the airfield without a
@@ -38,6 +38,10 @@ fixes the order once.
    aircraft, tests, lint.
 6. **Visual polish and brand.** `tokens.css`; the brand styles the frame,
    never the panel.
+7. **Accessibility.** Screen-reader names, keyboard routes, announcements,
+   reduced motion, low-vision support. Existing support stays; new work does
+   not spend effort on it, and reviews do not raise it as a finding above this
+   rank.
 
 **Device priority.** HD desktop (1920x1080) first, 4K second, tablet later;
 phones stay out of scope (ADR-0001). The whole cockpit fits one viewport (issue #253).
@@ -52,3 +56,6 @@ the milestone summary carries it. Gates are never traded.
 - Tablet and offline work follow desktop work; they are not dropped.
 - The spec's device decision now reads desktop first, superseding "Tablet and
   desktop; touch and mouse both first-class".
+- Accessibility was moved from rank 2 to the lowest rank on 2026-10-07 (owner
+  decision, #356): a pilot has high medical requirements and is not blind or
+  bad-sighted.

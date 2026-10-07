@@ -6,7 +6,6 @@ import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useTrainer } from '../trainer';
-import { useLayout } from './layout';
 import { messages } from './messages';
 
 function BrandMark() {
@@ -22,7 +21,6 @@ function HeaderChoice({
   eyebrow,
   value,
   action,
-  details,
   open,
   onToggle,
   onClose,
@@ -31,7 +29,6 @@ function HeaderChoice({
   eyebrow: string;
   value: string;
   action: string;
-  details: boolean;
   open: boolean;
   onToggle(): void;
   onClose(): void;
@@ -70,15 +67,6 @@ function HeaderChoice({
   useEffect(() => {
     if (open) dialog.current?.focus();
   }, [open]);
-
-  if (!details) {
-    return (
-      <button type="button" className="chrome-button shell-choice" title={value} onClick={onChange}>
-        <span className="shell-eyebrow">{eyebrow}</span>{' '}
-        <span className="shell-choice-value">{value}</span>
-      </button>
-    );
-  }
 
   return (
     <div
@@ -129,12 +117,10 @@ function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
-  const details = useLayout() === 'tablet';
   const [open, setOpen] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   const choice = (kind: Choice) => ({
-    details,
-    open: details && open === kind,
+    open: open === kind,
     onToggle: () => setOpen((current) => (current === kind ? undefined : kind)),
     onClose: () => setOpen(undefined),
     onChange: backToPicker,

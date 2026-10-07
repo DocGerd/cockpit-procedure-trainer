@@ -2,6 +2,12 @@ import { defineMessages } from '../i18n';
 
 export const messages = defineMessages({
   en: {
+    showChecklist: 'Show checklist',
+    groupNormal: 'Normal',
+    groupEmergency: 'Emergency',
+    runningSuffix: 'running',
+    viewOnly: 'Read-only view. Nothing here is checked off.',
+    backToRunning: 'Back to running checklist: {title}',
     normalProcedure: 'Normal procedure',
     abnormalProcedure: 'Emergency',
     failureInjected: 'Failure injected',
@@ -44,6 +50,12 @@ export const messages = defineMessages({
     announceDeviation: 'Deviation: {text}',
   },
   de: {
+    showChecklist: 'Checkliste anzeigen',
+    groupNormal: 'Normal',
+    groupEmergency: 'Notfall',
+    runningSuffix: 'läuft',
+    viewOnly: 'Nur Ansicht. Hier wird nichts abgehakt.',
+    backToRunning: 'Zurück zur laufenden Checkliste: {title}',
     normalProcedure: 'Normalverfahren',
     abnormalProcedure: 'Notfall',
     failureInjected: 'Fehler eingespielt',

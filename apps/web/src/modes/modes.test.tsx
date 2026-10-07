@@ -147,6 +147,33 @@ describe('ModeControl', () => {
     expect(trainer.procedureId).toBeUndefined();
   });
 
+  it.each(['Guided', 'Practice'])(
+    'restarts the last procedure when %s is chosen in Free explore',
+    async (name) => {
+      renderTrainer();
+      start('start', 'practice');
+      await userEvent.click(modeButton('Free explore'));
+      await userEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', {
+          name: 'Switch to Free explore',
+        }),
+      );
+      await userEvent.click(modeButton(name));
+      expect(trainer.mode).toBe(name.toLowerCase());
+      expect(trainer.procedureId).toBe('start');
+      expect(modeButton(name).getAttribute('aria-pressed')).toBe('true');
+    },
+  );
+
+  it('sends Guided or Practice chosen in a Free explore without a procedure back to the picker', async () => {
+    renderTrainer();
+    await userEvent.click(modeButton('Free explore'));
+    await userEvent.click(modeButton('Practice'));
+    expect(trainer.screen).toBe('picker');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+  });
+
   it('shows the operate toggle in Free explore only', () => {
     renderTrainer();
     expect(screen.queryByRole('checkbox', { name: /Operate controls/ })).toBeNull();

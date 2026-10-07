@@ -109,6 +109,54 @@ describe('trainer store', () => {
     expect(snapshot.checklist()).toBeUndefined();
   });
 
+  it.each(['guided', 'practice'] as const)(
+    'restarts the last procedure fresh in %s when leaving Free explore',
+    (mode) => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.startProcedure(firstProcedure));
+      act(() => result.current.trainer.session.set(firstControl, 'on'));
+      act(() => result.current.trainer.setMode('explore'));
+      act(() => result.current.trainer.setMode(mode));
+      const { trainer, snapshot } = result.current;
+      expect(trainer.mode).toBe(mode);
+      expect(trainer.screen).toBe('trainer');
+      expect(trainer.procedureId).toBe(firstProcedure);
+      expect(trainer.session.procedureId()).toBe(firstProcedure);
+      expect(snapshot.checklist()?.completed).toEqual([]);
+      expect(snapshot.state().controls[firstControl]).toBe('off');
+    },
+  );
+
+  it.each(['guided', 'practice'] as const)(
+    'returns to the picker in %s when Free explore was entered without a procedure',
+    (mode) => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.setMode('explore'));
+      act(() => result.current.trainer.setMode(mode));
+      const { trainer } = result.current;
+      expect(trainer.screen).toBe('picker');
+      expect(trainer.mode).toBe(mode);
+      expect(trainer.procedureId).toBeUndefined();
+      expect(trainer.session.procedureId()).toBeUndefined();
+    },
+  );
+
+  it('forgets the last procedure when going back to the picker or choosing another aircraft', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.backToPicker());
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    expect(result.current.trainer.screen).toBe('picker');
+
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.selectAircraft(second.id));
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    expect(result.current.trainer.screen).toBe('picker');
+    expect(result.current.trainer.procedureId).toBeUndefined();
+  });
+
   it('resets the cockpit to the start of the phase when Free explore ends the procedure', () => {
     const { result } = renderTrainer();
     act(() => result.current.trainer.startProcedure(firstProcedure));
@@ -116,6 +164,49 @@ describe('trainer store', () => {
     expect(result.current.snapshot.state().controls[firstControl]).toBe('on');
     act(() => result.current.trainer.setMode('explore'));
     expect(result.current.snapshot.state().controls[firstControl]).toBe('off');
+  });
+
+  describe('the viewed procedure', () => {
+    it('follows the running procedure, then the last one in Free explore, else the first', () => {
+      const { result } = renderTrainer();
+      expect(result.current.trainer.viewedProcedureId).toBe(firstProcedure);
+      act(() => result.current.trainer.selectAircraft(second.id));
+      act(() => result.current.trainer.startProcedure('fire'));
+      expect(result.current.trainer.viewedProcedureId).toBe('fire');
+      act(() => result.current.trainer.setMode('explore'));
+      expect(result.current.trainer.viewedProcedureId).toBe('fire');
+      act(() => result.current.trainer.backToPicker());
+      expect(result.current.trainer.viewedProcedureId).toBe(firstProcedure);
+    });
+
+    it('is a selection that leaves the running session alone', () => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.selectAircraft(second.id));
+      act(() => result.current.trainer.startProcedure(firstProcedure));
+      const session = result.current.trainer.session;
+      act(() => result.current.trainer.viewProcedure('fire'));
+      expect(result.current.trainer.viewedProcedureId).toBe('fire');
+      expect(result.current.trainer.procedureId).toBe(firstProcedure);
+      expect(result.current.trainer.session).toBe(session);
+      expect(session.failures().size).toBe(0);
+    });
+
+    it('is dropped on a new start, a mode switch through Free explore and an aircraft change', () => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.selectAircraft(second.id));
+      act(() => result.current.trainer.startProcedure(firstProcedure));
+      act(() => result.current.trainer.viewProcedure('fire'));
+      act(() => result.current.trainer.startProcedure(firstProcedure));
+      expect(result.current.trainer.viewedProcedureId).toBe(firstProcedure);
+      act(() => result.current.trainer.viewProcedure('fire'));
+      act(() => result.current.trainer.setMode('practice'));
+      expect(result.current.trainer.viewedProcedureId).toBe('fire');
+      act(() => result.current.trainer.setMode('explore'));
+      expect(result.current.trainer.viewedProcedureId).toBe(firstProcedure);
+      act(() => result.current.trainer.viewProcedure('fire'));
+      act(() => result.current.trainer.selectAircraft(first.id));
+      expect(result.current.trainer.viewedProcedureId).toBe(firstProcedure);
+    });
   });
 
   it('keeps the procedure when switching between Guided and Practice', () => {

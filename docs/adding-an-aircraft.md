@@ -186,6 +186,16 @@ steps the systems once from a running engine. Guards start closed unless
 `startPhase` snapshot, so the snapshot must be a state the procedure's first item
 makes sense in.
 
+An aircraft with a propeller draws the stopped blade in `image` and sets `imageRunning`
+on every phase to the same view with a static propeller-disc outline instead, plus a
+top-level `engineRunning(state)` condition; the outside view shows `imageRunning` while it
+holds. A phase with `imageRunning` and no `engineRunning` is
+`running-image-without-engine`; an `engineRunning` with a phase lacking `imageRunning` is
+`phase-without-running-image`. Mark the blade `id="propeller-blade"` in each `image` SVG
+and the disc `id="propeller-disc"` in each `imageRunning` SVG; `tools/propeller-art.test.ts`
+checks the markers in every `packages/aircraft-*/src/assets/phase-*.svg` (running images are
+named `phase-<id>-running.svg`).
+
 ### Procedures
 
 `procedures` maps an id to `{ title, type, startPhase, endPhase?, items }`. A
@@ -292,7 +302,8 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `validateAircraft(aircraft, { devices })` from `@cpt/core` returns a list of
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
-`missing-translation`, `phase-without-image`, `phase-without-snapshot`,
+`missing-translation`, `phase-without-image`, `running-image-without-engine`,
+`phase-without-running-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view` and the six

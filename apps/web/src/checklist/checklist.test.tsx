@@ -326,20 +326,27 @@ describe('deviation summary', () => {
 });
 
 describe('visibility', () => {
-  it('renders nothing without a running procedure', () => {
-    const view = renderPane();
-    expect(view.container.innerHTML).toBe('');
+  it('shows a read-only reference without a running procedure', () => {
+    renderPane();
+    expect(trainer.session.checklist()).toBeUndefined();
+    expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
+    expect(items()).toHaveLength(itemCount);
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(screen.queryByRole('img')).toBeNull();
   });
 
-  it('renders nothing in Free explore, even with a procedure in the session', () => {
-    const view = renderPane();
+  it('shows the same static reference in Free explore, even with a procedure in the session', () => {
+    renderPane();
     act(() => trainer.setMode('explore'));
     act(() => trainer.startProcedure(flow));
     expect(trainer.session.checklist()).toBeDefined();
-    expect(view.container.innerHTML).toBe('');
+    expect(items()).toHaveLength(itemCount);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.queryByRole('button', { name: /^(Check off|Confirm|Restart)$/ })).toBeNull();
+    expect(items().every((item) => item.getAttribute('aria-current') === null)).toBe(true);
   });
 
-  it('is absent from the layout without a procedure, with no tablet toggle either', () => {
+  it('is present in the layout without a procedure, behind a tablet toggle', () => {
     renderWithLanguage(
       <ThemeProvider>
         <TrainerProvider>
@@ -347,8 +354,7 @@ describe('visibility', () => {
         </TrainerProvider>
       </ThemeProvider>,
     );
-    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
-    expect(screen.queryByRole('button', { name: /^Checklist/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /^Checklist/ })).toBeTruthy();
   });
 
   it('is mounted in the layout aside while a procedure runs', () => {
@@ -364,6 +370,173 @@ describe('visibility', () => {
     start(flow);
     const aside = screen.getByRole('complementary', { name: 'Checklist' });
     expect(within(aside).getByRole('heading', { name: 'Flow' })).toBeTruthy();
+  });
+
+  it('scrolls the current step into view when the running checklist returns', async () => {
+    vi.stubGlobal('innerWidth', 1400);
+    renderWithLanguage(
+      <ThemeProvider>
+        <TrainerProvider>
+          <Probe />
+          <TrainerLayout />
+        </TrainerProvider>
+      </ThemeProvider>,
+    );
+    start(flow);
+    const aside = screen.getByRole('complementary', { name: 'Checklist' });
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      const rect = this === aside ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
+      return { ...rect, left: 0, right: 0, width: 0, height: 0, x: 0, y: rect.top } as DOMRect;
+    });
+    await userEvent.selectOptions(
+      screen.getByRole('combobox', { name: 'Show checklist' }),
+      'followUp',
+    );
+    expect(aside.scrollTop).toBe(0);
+    await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
+    expect(aside.scrollTop).toBe(140);
+    vi.restoreAllMocks();
+  });
+});
+
+describe('viewing a checklist', () => {
+  const selector = () => screen.getByRole('combobox', { name: 'Show checklist' });
+  const view = (id: string) => userEvent.selectOptions(selector(), id);
+
+  it('offers every procedure of the aircraft, grouped, in the selector', () => {
+    renderPane();
+    start(flow);
+    const groups = within(selector())
+      .getAllByRole('group')
+      .map((group) => [
+        group.getAttribute('label'),
+        within(group)
+          .getAllByRole('option')
+          .map((option) => option.textContent),
+      ]);
+    expect(groups).toEqual([
+      ['Normal', ['Flow · running', 'Follow-up']],
+      ['Emergency', ['Fire']],
+    ]);
+  });
+
+  it('labels the selector and the back button in German', async () => {
+    renderPane('de');
+    start(flow);
+    expect(screen.getByRole('combobox', { name: 'Checkliste anzeigen' })).toBeTruthy();
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'fire');
+    expect(
+      screen.getByRole('button', { name: 'Zurück zur laufenden Checkliste: Flow (de)' }),
+    ).toBeTruthy();
+  });
+
+  it('shows another checklist read-only in Guided without disturbing the running one', async () => {
+    renderPane();
+    start(flow);
+    operate('master', 'on');
+    const before = trainer.session.checklist();
+    await view('followUp');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(items()).toHaveLength(1);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.queryByRole('progressbar')).toBeNull();
+    expect(trainer.procedureId).toBe(flow);
+    expect(trainer.session.checklist()).toBe(before);
+
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    expect(trainer.procedureId).toBe(flow);
+    expect(trainer.session.checklist()?.deviations.length).toBeGreaterThan(0);
+    expect(items()).toHaveLength(1);
+  });
+
+  it('returns to the running checklist with progress intact, from the button or the selector', async () => {
+    renderPane();
+    start(flow);
+    operate('master', 'on');
+    await view('followUp');
+    await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
+    expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
+    expect(stateLabels()).toEqual(['Done', 'Current', 'Pending', 'Pending']);
+
+    await view('followUp');
+    await view(flow);
+    expect(stateLabels()).toEqual(['Done', 'Current', 'Pending', 'Pending']);
+  });
+
+  it('keeps the running deviation notice in view in Guided while another checklist is read', async () => {
+    renderPane();
+    start(flow);
+    await view('followUp');
+    expect(screen.queryByText('Deviation')).toBeNull();
+    operate('avionics', 'on');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(screen.getByRole('status').textContent).toContain('Avionics operated');
+  });
+
+  it('shows no deviation notice in Practice while another checklist is read', async () => {
+    renderPane();
+    start(flow, 'practice');
+    await view('followUp');
+    operate('avionics', 'on');
+    expect(screen.queryByText('Deviation')).toBeNull();
+  });
+
+  it('works the same in Practice', async () => {
+    renderPane();
+    start(flow, 'practice');
+    await view('fire');
+    expect(screen.getByText('Emergency')).toBeTruthy();
+    expect(trainer.procedureId).toBe(flow);
+    await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
+    expect(stateLabels()).toEqual(['Current', 'Pending', 'Pending', 'Pending']);
+  });
+
+  it('forgets the view when the running procedure restarts or the mode changes', async () => {
+    renderPane();
+    start(flow);
+    await view('followUp');
+    act(() => trainer.startProcedure(flow));
+    expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
+    await view('followUp');
+    act(() => trainer.setMode('explore'));
+    expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
+  });
+
+  it('starts Free explore on the last procedure and lets the user read any other', async () => {
+    renderPane();
+    start('followUp');
+    act(() => trainer.setMode('explore'));
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Back to running/ })).toBeNull();
+    await view('fire');
+    expect(screen.getByRole('heading', { name: 'Fire' })).toBeTruthy();
+    expect(trainer.session.procedureId()).toBeUndefined();
+  });
+
+  it('ticks nothing when controls are operated in Free explore', async () => {
+    renderPane();
+    act(() => trainer.setMode('explore'));
+    await view(flow);
+    const before = screen.getByRole('list').innerHTML;
+    operate('master', 'on');
+    operate('pump', 'on');
+    expect(trainer.session.checklist()).toBeUndefined();
+    expect(trainer.session.failures().size).toBe(0);
+    expect(screen.getByRole('list').innerHTML).toBe(before);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.queryByText(/deviation/i)).toBeNull();
+  });
+
+  it('shows the read-only view after a phase jump ends the procedure', () => {
+    renderPane();
+    start(flow);
+    act(() => trainer.jumpToPhase('airborne'));
+    expect(trainer.procedureId).toBeUndefined();
+    expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
+    expect(screen.queryByRole('img')).toBeNull();
   });
 });
 

@@ -163,6 +163,12 @@ defines. A phase supplies:
 The outside-view image is the first-person view out of the windshield from the
 pilot's seat, not a third-person picture of the aircraft.
 
+A phase may also supply a second outside-view image for a running engine (a
+static propeller-disc outline in place of the stopped blade). The aircraft then
+declares an `engineRunning` condition over its state; the outside view shows
+the running image while it holds. Both fields are optional, so the contract
+version does not change.
+
 ### 4.7 Procedures
 
 A procedure has an id, a title, a type (`normal` or `emergency`), the phase it
@@ -258,7 +264,14 @@ keeps it independent of the systems model and testable alone.
 |---|---|---|---|
 | Guided | shown | current target highlighted, view switches to it | recorded, shown immediately |
 | Practice | shown | none | recorded, summary at the end |
-| Free explore | none | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
+| Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
+
+In every mode a checklist selector in the checklist pane opens any of the
+aircraft's checklists for reading. A checklist viewed that way is a static
+list of its items, independent of the running session: in Guided and Practice
+the running procedure is untouched and a button leads back to it; in Free
+explore the pane starts on the last procedure that ran, else the aircraft's
+first.
 
 ### Screen
 

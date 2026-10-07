@@ -29,7 +29,7 @@ The same regions as S1. The checklist pane is collapsed to a header toggle that 
 
 - Guided: current item highlighted, deviations shown at once.
 - Practice: no highlight on the panel, the current item marked in the pane, a deviation count in the footer, summary at the end. Deviations are recorded without an immediate banner (spec §5), because Practice tests recall and instant correction would make it Guided.
-- Free explore: no checklist; control details instead (S7).
+- Free explore: a read-only checklist reference with no arrow, hints, ticking or deviations, and control details (S7). In every mode a selector opens any checklist of the aircraft for reading; in Guided and Practice the running procedure is untouched and a button leads back to it.
 - Each item shows its state: pending, current, done, deviated.
 - An emergency procedure is marked as such in the pane header.
 
@@ -105,7 +105,7 @@ Not drawn, specified below in words:
 
 ## Specification of the screens and states not drawn
 
-The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S9 reduced motion, the S10 themes). The sections for screens that are now drawn also keep the behaviour text for screens that are now drawn. Each derives from a drawn artboard, so the web shell can be built without new drawings.
+The sections below specify in words what the table above lists as not drawn (S3 deviated item, S6 end phase, S9 reduced motion, the S10 themes). S2, S7, S8 and S11 are now drawn; their sections below stay as the behaviour text. Each derives from a drawn artboard, so the web shell can be built without new drawings.
 
 ### S2 Tablet
 

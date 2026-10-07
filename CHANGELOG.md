@@ -8,6 +8,19 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.11.0] - 2026-10-07
+
+### Added
+
+- Every mode now has a checklist selector in the checklist pane: any checklist of the aircraft can be opened and read, view-only. In Free explore the checklist is a static reference that ticks nothing; in Guided and Practice a viewed checklist leaves the running one untouched, with a button back to it.
+
+### Fixed
+
+- Round gauge captions are now fitted between the ends of the coloured arcs, so a long caption such as "Oil pressure" no longer crowds the arc ends at tablet portrait size. The smallest gauges drop a long caption slightly earlier instead.
+- The header aircraft and procedure chips now open a panel with the full text and a "Change aircraft" or "Change procedure" button at every window width, so truncated names can be read by touch and keyboard.
+- Switching from Free explore back to Guided or Practice now restarts the last procedure with its checklist; if no procedure is remembered (none started since the last return to the picker or aircraft change), it returns to the picker's procedure choice instead of leaving a mode with nothing to run.
+- The outside view now shows the stopped propeller blade with the engine off in every phase, and a static propeller-disc outline while the engine runs, so a running engine is visible at a glance and not only on the RPM gauge.
+
 ## [0.10.0] - 2026-10-07
 
 ### Changed
@@ -196,7 +209,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.7.0...v0.8.0

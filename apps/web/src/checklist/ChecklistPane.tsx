@@ -4,9 +4,12 @@ import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import './checklist.css';
+import { ChecklistSelector } from './ChecklistSelector';
 import { DeviationSummary } from './DeviationSummary';
 import { useDeviationText } from './deviation-text';
 import { messages } from './messages';
+import { ProcedureKind } from './ProcedureKind';
+import { ProcedureViewer } from './ProcedureViewer';
 
 type ItemState = 'done' | 'current' | 'pending' | 'deviated';
 
@@ -90,14 +93,28 @@ function ItemRow({
   );
 }
 
+function DeviationBanner({ checklist }: { checklist: ChecklistState<unknown> }) {
+  const text = useMessages(messages);
+  const describe = useDeviationText(checklist);
+  const latest = checklist.deviations.at(-1);
+  return (
+    <div role="status">
+      {latest && (
+        <div className="checklist-banner">
+          <div className="checklist-eyebrow">{text.deviationBanner}</div>
+          <div>{describe.banner(latest)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknown>; mode: Mode }) {
   const text = useMessages(messages);
   const localize = useLocalize();
   const trainer = useTrainer();
-  const describe = useDeviationText(checklist);
   const { procedure, completed, deviations } = checklist;
   const guided = mode === 'guided';
-  const latest = deviations.at(-1);
   const count = deviations.length;
   const list = useRef<HTMLOListElement>(null);
 
@@ -112,14 +129,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   return (
     <div className="checklist">
       <div className="checklist-header">
-        {procedure.type === 'emergency' ? (
-          <div className="checklist-kind">
-            <span className="checklist-chip">{text.abnormalProcedure}</span>
-            <span className="checklist-kind-text">{text.failureInjected}</span>
-          </div>
-        ) : (
-          <div className="checklist-eyebrow">{text.normalProcedure}</div>
-        )}
+        <ProcedureKind type={procedure.type} />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         <div className="checklist-progress">
           <progress
@@ -134,16 +144,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         </div>
       </div>
 
-      {guided && (
-        <div role="status">
-          {latest && (
-            <div className="checklist-banner">
-              <div className="checklist-eyebrow">{text.deviationBanner}</div>
-              <div>{describe.banner(latest)}</div>
-            </div>
-          )}
-        </div>
-      )}
+      {guided && <DeviationBanner checklist={checklist} />}
 
       <ol ref={list} className="checklist-items">
         {procedure.items.map((item, index) => (
@@ -180,12 +181,27 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
 }
 
 export function ChecklistPane() {
-  const { mode } = useTrainer();
+  const { mode, procedureId, viewedProcedureId } = useTrainer();
   const checklist = useSessionState((snapshot) => snapshot.checklist());
-  if (mode === 'explore' || !checklist) return null;
-  return checklist.done ? (
-    <DeviationSummary checklist={checklist} />
-  ) : (
-    <ActiveChecklist checklist={checklist} mode={mode} />
+  const running =
+    mode !== 'explore' && checklist !== undefined && viewedProcedureId === procedureId
+      ? checklist
+      : undefined;
+  return (
+    <>
+      <ChecklistSelector />
+      {running === undefined ? (
+        <>
+          {mode === 'guided' && checklist !== undefined && !checklist.done && (
+            <DeviationBanner checklist={checklist} />
+          )}
+          <ProcedureViewer />
+        </>
+      ) : running.done ? (
+        <DeviationSummary checklist={running} />
+      ) : (
+        <ActiveChecklist checklist={running} mode={mode} />
+      )}
+    </>
   );
 }
