@@ -159,10 +159,10 @@ describe('CTSL normal procedures', () => {
     expect(session.checklist()?.deviations).toEqual([]);
   });
 
-  describe('flows (assumed, intake §9 question 25)', () => {
+  describe('flows (assumed, intake §9 question 27)', () => {
     const flows = {
       engineStart: ['avionicsMaster', 'beacon', 'fuelValve', 'battery', 'carbHeat'],
-      beforeTakeoff: ['flapSelector', 'choke', 'carbHeat', 'trim'],
+      beforeTakeoff: ['flapSelector', 'choke', 'trim', 'carbHeat'],
       afterLanding: ['landingLight', 'flapSelector', 'carbHeat'],
     } as const;
 
