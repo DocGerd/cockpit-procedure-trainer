@@ -300,6 +300,9 @@ about −2 m/s in `approach`. The phase entry seeds device state as well as devi
 controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
 through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
 `taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
+The GPS also starts with its position fix in those phases, so the map page shows ground
+speed and track (taken from the airspeed and heading) at once; switched on by hand it
+searches first. The fix and the ground speed and track it shows are assumed (unverified).
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.

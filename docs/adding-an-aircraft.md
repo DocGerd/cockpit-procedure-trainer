@@ -349,8 +349,10 @@ image. `checkAppearance` reports `guardOpen` on a control that is not guarded an
 that is not one of the control's positions.
 
 An artwork control whose box reaches over a neighbour can confine its touch target per
-position with `options.hitArea`, a `{ left, top, width, height }` box in fractions of
-the face; a tap elsewhere in the box reaches the control beneath. The CTSL's open fuel
+position with `options.hitArea`, a map from position to a `{ left, top, width, height }`
+box in fractions of the face (`{ open: { left: 0, top: 0, width: 1, height: 0.56 } }`);
+a tap elsewhere in the box reaches the control beneath. A position without an entry
+keeps the whole box. The CTSL's open fuel
 valve takes taps only in its slot, so the key switch below stays operable; closed, its
 whole box does, as its handle covers the key slot.
 
@@ -384,6 +386,11 @@ a legend for an unknown position as `unknown-position` and an empty one as
 `missing-translation`. `apps/web/src/checklist/position-legends.test.tsx` fails when a
 position of any control would cue text the panel does not print.
 
+Generic indicator widgets print no caption: a gauge shows its scale and units, a lamp
+or readout nothing of its name. An aircraft letters them through the placement's
+`printed`, as the demo does for HOURS, COMPASS, LOW VOLT and OIL PRESS. The indicator's
+name stays as its accessible name.
+
 The label must name the function: a placard or lettering of only position legends
 (`ON`, `OFF`, `OPEN`, the control's own positions) does not count. `checkPlacards` from
 `@cpt/panel-kit` reports a placed control without such a label, and
@@ -404,7 +411,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the eight
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
@@ -421,7 +428,7 @@ Put your own tests in `src/index.test.ts`, as the demo does:
 
 - `expect(validateAircraft(aircraft, { devices })).toEqual([])`
 - `expect(walkProcedure(aircraft, id, { devices })).toEqual({ ok: true })` for each
-  procedure, emergencies included, since the app's walk-through skips them.
+  procedure, emergencies included, as the app's walk-through does.
 - Wrong-operation scenarios on a session from
   `createSession(aircraft, { devices, phase })`: press the starter with the magnetos
   off and expect the engine not to run. Use `session.set`, `press`, `release` and
