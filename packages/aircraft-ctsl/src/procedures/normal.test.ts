@@ -255,7 +255,10 @@ describe('CTSL normal procedures', () => {
       const item = items[at] as Item;
       if (item.type !== 'action') session.checkOff();
       else if (session.state().controls[item.control] === item.position) session.checkOff();
-      else if (item.control !== 'ignition') session.set(item.control, item.position);
+      else if (ctslAircraft.controls[item.control]?.kind === 'momentary') {
+        session.press(item.control);
+        session.release(item.control);
+      } else if (item.control !== 'ignition') session.set(item.control, item.position);
       else {
         const from = detents.indexOf(String(session.state().controls.ignition));
         for (const detent of detents.slice(from + 1, detents.indexOf(String(item.position)) + 1)) {
