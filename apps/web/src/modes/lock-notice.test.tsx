@@ -60,6 +60,14 @@ const radio = (control: string, position: string) =>
     name: new RegExp(position),
   });
 
+const lockRing = () => document.querySelector<HTMLElement>('[data-outline="lock"]');
+const boxOf = (element: HTMLElement | null) => {
+  const style = element?.style;
+  return { left: style?.left, top: style?.top, width: style?.width, height: style?.height };
+};
+const placementBox = (id: string) =>
+  boxOf(document.querySelector<HTMLElement>(`[data-placement="${id}"]`));
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
@@ -98,5 +106,51 @@ describe('the interlock notice', () => {
     expect(screen.getByRole('status')).toBeTruthy();
     act(() => vi.advanceTimersByTime(6000));
     expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
+describe('the lock ring', () => {
+  it.each(['guided', 'practice', 'explore'] as const)(
+    'rings the holding control on the panel when a move is refused, in %s',
+    (mode) => {
+      renderTrainer();
+      act(() => trainer.setMode(mode));
+      if (mode === 'explore')
+        fireEvent.click(screen.getByRole('checkbox', { name: /Operate controls/ }));
+      pressStarter();
+      expect(lockRing()).not.toBeNull();
+      expect(boxOf(lockRing())).toEqual(placementBox('master'));
+    },
+  );
+
+  it('draws nothing before a refusal', () => {
+    renderTrainer();
+    expect(lockRing()).toBeNull();
+  });
+
+  it('goes with the notice once a move goes through', async () => {
+    renderTrainer();
+    pressStarter();
+    expect(lockRing()).not.toBeNull();
+    await userEvent.click(radio('Master', 'on'));
+    expect(lockRing()).toBeNull();
+  });
+
+  it('goes with the notice after a while', () => {
+    vi.useFakeTimers();
+    renderTrainer();
+    pressStarter();
+    expect(lockRing()).not.toBeNull();
+    act(() => vi.advanceTimersByTime(6000));
+    expect(lockRing()).toBeNull();
+  });
+
+  it('pulses again on a repeat refusal', () => {
+    renderTrainer();
+    pressStarter();
+    const first = lockRing();
+    pressStarter();
+    expect(lockRing()).not.toBe(first);
+    expect(lockRing()?.dataset.pulse).toBe('once');
   });
 });

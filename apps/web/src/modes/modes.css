@@ -154,6 +154,12 @@
   outline-style: dashed;
 }
 
+/* Sits outside a target ring on the same control, so both read. */
+.modes-outline[data-outline='lock'] {
+  outline: max(6px, 0.6vmin) double var(--color-accent);
+  outline-offset: var(--space-3);
+}
+
 .modes-outline[data-pulse='true'] {
   animation: modes-pulse 1.6s ease-out infinite;
 }
