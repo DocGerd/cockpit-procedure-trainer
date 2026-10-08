@@ -2,6 +2,7 @@ import { expect, test } from './fixtures';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { openPicker } from './trainer';
 import {
   TOUCH_TARGET_PX,
   deviceTargets,
@@ -344,3 +345,73 @@ for (const viewport of desktops) {
     }
   });
 }
+
+// #440: the app chrome follows the panel up to 4K instead of staying at its 1080p size.
+const CHROME_SCALE_MIN = 1.5;
+type ChromeText = Readonly<Record<string, readonly [string, 'fontSize' | 'lineHeight']>>;
+
+const trainerText: ChromeText = {
+  'header brand': ['.shell-brand-name', 'fontSize'],
+  'mode button': ['.modes-segment', 'fontSize'],
+  'checklist item': ['.checklist-item-text', 'fontSize'],
+  'checklist line height': ['.checklist-item-text', 'lineHeight'],
+  footer: ['.app-footer', 'fontSize'],
+};
+
+const pickerText: ChromeText = {
+  'header brand': ['.shell-brand-name', 'fontSize'],
+  'picker title': ['.picker-title', 'fontSize'],
+  'procedure row': ['.picker-row-title', 'fontSize'],
+  footer: ['.app-footer', 'fontSize'],
+};
+
+const chromeFontSizes = async (page: Page, text: ChromeText) =>
+  new Map(
+    await Promise.all(
+      Object.entries(text).map(
+        async ([name, [selector, property]]) =>
+          [
+            name,
+            await page
+              .locator(selector)
+              .first()
+              .evaluate(
+                (element, key) => Number.parseFloat(getComputedStyle(element)[key]),
+                property,
+              ),
+          ] as const,
+      ),
+    ),
+  );
+
+const expectChromeScaled = (hd: Map<string, number>, uhd: Map<string, number>) => {
+  expect(uhd.size).toBeGreaterThan(0);
+  for (const [name, size] of uhd) {
+    const ratio = size / (hd.get(name) ?? Number.POSITIVE_INFINITY);
+    expect(ratio, name).toBeGreaterThanOrEqual(CHROME_SCALE_MIN);
+  }
+};
+
+test('the chrome text at 3840x2160 is at least 1.5 times its 1920x1080 size', async ({ page }) => {
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl);
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expectNoPageScroll(page);
+    sizes.push(await chromeFontSizes(page, trainerText));
+  }
+  const [hd, uhd] = sizes;
+  expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
+});
+
+test('the picker text at 3840x2160 is at least 1.5 times its 1920x1080 size', async ({ page }) => {
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openPicker(page);
+    sizes.push(await chromeFontSizes(page, pickerText));
+  }
+  const [hd, uhd] = sizes;
+  expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
+});
