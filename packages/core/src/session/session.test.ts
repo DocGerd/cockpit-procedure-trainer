@@ -89,6 +89,27 @@ describe('pilot input', () => {
     expect(session.set('fuelPump', 'on')).toEqual({ applied: true });
   });
 
+  it('shows guards in the state, and completes a guard item when the pilot moves the guard', () => {
+    const beforeStart = fixtureAircraft.procedures.beforeStart;
+    if (!beforeStart) throw new Error('fixture has no beforeStart');
+    const session = createSession({
+      ...fixtureAircraft,
+      procedures: {
+        cover: {
+          ...beforeStart,
+          items: [
+            { type: 'guard', control: 'fuelPump', position: 'open', text: beforeStart.title },
+          ],
+        },
+      },
+    });
+    session.startProcedure('cover');
+    expect(session.state().guards.fuelPump).toBe('closed');
+    session.openGuard('fuelPump');
+    expect(session.state().guards.fuelPump).toBe('open');
+    expect(session.checklist()?.done).toBe(true);
+  });
+
   it('advances time through the runtime', () => {
     const session = createSession(fixtureAircraft);
     session.set('master', 'on');

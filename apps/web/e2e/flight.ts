@@ -1,5 +1,5 @@
 import { createSession, flightLegs, MAX_STEPS, procedureOf, STEP_MS } from '@cpt/core';
-import type { Aircraft, ControlDefinition, ProcedureItem, Session } from '@cpt/core';
+import type { Aircraft, ControlDefinition, GuardPosition, ProcedureItem, Session } from '@cpt/core';
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { checklistPane, copy, dockedUnit } from './trainer';
@@ -25,7 +25,8 @@ type Step =
       readonly position: string | number;
       readonly holdMs: number;
     }
-  | { readonly kind: 'device'; readonly control: string; readonly position: string | number };
+  | { readonly kind: 'device'; readonly control: string; readonly position: string | number }
+  | { readonly kind: 'guard'; readonly control: string; readonly position: GuardPosition };
 
 export type Leg = { readonly id: string; readonly steps: readonly Step[] };
 
@@ -58,6 +59,16 @@ function shadowStep(session: Session, aircraft: Aircraft, item: Item, index: num
     const waitMs = runUntil(session, () => item.condition(session.state()));
     session.checkOff(item.response?.reading(session.state()));
     return { kind: 'check', waitMs };
+  }
+  if (item.type === 'guard') {
+    const { control, position } = item;
+    if (session.guards()[control] === position) {
+      session.checkOff();
+      return { kind: 'verify' };
+    }
+    if (position === 'open') session.openGuard(control);
+    else session.closeGuard(control);
+    return { kind: 'guard', control, position };
   }
   // A flow item already in place ticks when the leg starts; the pilot has nothing to do for it.
   if (item.flow === true && completed()) return { kind: 'preset' };
@@ -104,13 +115,16 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
     const { items } = procedureOf(aircraft, id);
     const onlyDevices =
       items.some((item) => isDeviceItem(aircraft, item)) &&
-      !items.some((item) => item.type === 'action' && !isDeviceItem(aircraft, item));
+      !items.some(
+        (item) =>
+          item.type === 'guard' || (item.type === 'action' && !isDeviceItem(aircraft, item)),
+      );
     if (onlyDevices) {
       return {
         id,
         steps: items.map((item): Step => {
           if (item.type === 'confirm') return { kind: 'confirm' };
-          if (item.type === 'check') return { kind: 'check', waitMs: 0 };
+          if (item.type === 'check' || item.type === 'guard') return { kind: 'check', waitMs: 0 };
           return { kind: 'device', control: item.control, position: item.position };
         }),
       };
@@ -212,6 +226,20 @@ async function setPosition(page: Page, aircraft: Aircraft, id: string, position:
   await expect(cycle).toHaveAttribute('aria-label', wanted);
 }
 
+const guardOf = (page: Page, id: string) =>
+  page.locator(`[data-placement="${id}"] [aria-expanded]`);
+
+/** Where the guard of a guarded control on the panel stands. */
+export async function guardAt(page: Page, id: string): Promise<GuardPosition> {
+  return (await guardOf(page, id).getAttribute('aria-expanded')) === 'true' ? 'open' : 'closed';
+}
+
+/** Pulls or puts back a safety pin, or opens or closes a cover, by its guard on the panel. */
+export async function setGuard(page: Page, id: string, position: GuardPosition) {
+  if ((await guardAt(page, id)) !== position) await guardOf(page, id).click();
+  await expect(guardOf(page, id)).toHaveAttribute('aria-expanded', String(position === 'open'));
+}
+
 /** Presses a device key in the dock, or verifies a selection key that is already selected. */
 export async function pressDevice(
   page: Page,
@@ -275,6 +303,8 @@ export async function flyLeg(page: Page, aircraft: Aircraft, leg: Leg) {
       if (step.waitMs > 0) await page.clock.runFor(step.waitMs);
     } else if (step.kind === 'device') {
       await pressDevice(page, aircraft, step.control, step.position, verify);
+    } else if (step.kind === 'guard') {
+      await setGuard(page, step.control, step.position);
     } else {
       const definition = aircraft.controls[step.control];
       const name = definition?.name.en ?? step.control;

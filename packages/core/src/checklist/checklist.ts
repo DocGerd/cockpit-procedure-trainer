@@ -88,13 +88,23 @@ export function takesTick<S>(checklist: ChecklistState<S>): boolean {
   return !item.flow && !springsBack(checklist.controls[item.control], item.position);
 }
 
+type Operated<S> = Extract<ProcedureItem<S>, { type: 'action' | 'guard' }>;
+
+function isOperated<S>(item: ProcedureItem<S> | undefined): item is Operated<S> {
+  return item?.type === 'action' || item?.type === 'guard';
+}
+
+function positionOf<S>(item: Operated<S>, state: TrainerState<S>): ControlPosition | undefined {
+  return item.type === 'guard' ? state.guards[item.control] : state.controls[item.control];
+}
+
 function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>): boolean {
   const item = currentItem(checklist);
   return (
-    item?.type === 'action' &&
+    isOperated(item) &&
     checklist.operated &&
-    state.controls[item.control] === item.position &&
-    (item.holdUntil?.(state) ?? true)
+    positionOf(item, state) === item.position &&
+    (item.type === 'guard' || (item.holdUntil?.(state) ?? true))
   );
 }
 
@@ -187,8 +197,8 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
 
 function leftAt<S>(checklist: ChecklistState<S>, state: TrainerState<S>): Deviation | undefined {
   const item = currentItem(checklist);
-  if (item?.type !== 'action') return undefined;
-  const position = state.controls[item.control];
+  if (!isOperated(item)) return undefined;
+  const position = positionOf(item, state);
   if (position === item.position) return undefined;
   return {
     kind: 'wrong-position',
@@ -244,9 +254,15 @@ export function observeControl<S>(
     change.kind === 'position' &&
     onTarget &&
     change.from === item.position;
-  const operating = touching && item.position === change.to;
+  // Guard moves are never deviations: the pilot opens a cover to reach the control beneath it.
+  const guarding =
+    change.source === 'pilot' &&
+    change.kind === 'guard' &&
+    item.type === 'guard' &&
+    item.control === change.id;
+  const operating = (touching || guarding) && item.position === change.to;
   const operated = checklist.operated || operating;
-  const touched = (checklist.touched || touching) && !releasing;
+  const touched = (checklist.touched || touching || guarding) && !releasing;
   const repeating = checklist.repeating && deviating;
   let next =
     operated === checklist.operated &&
@@ -292,8 +308,9 @@ export function retryItem<S>(checklist: ChecklistState<S>): ChecklistState<S> {
 }
 
 /**
- * Ticks the current item. An action other than a spring-back press counts as verified: it then
- * completes like an operated one, and a target not at its position is recorded as wrong.
+ * Ticks the current item. A guard item, or an action other than a spring-back press, counts as
+ * verified: it then completes like an operated one, and a target not at its position is recorded
+ * as wrong.
  */
 export function checkOff<S>(
   checklist: ChecklistState<S>,
@@ -302,7 +319,7 @@ export function checkOff<S>(
 ): ChecklistState<S> {
   const item = currentItem(checklist);
   if (!item || !takesTick(checklist)) return checklist;
-  if (item.type === 'action') {
+  if (isOperated(item)) {
     const left = leftAt(checklist, state);
     if (left) return settle(complete(deviate(checklist, left)), state);
     return settle({ ...checklist, operated: true }, state);

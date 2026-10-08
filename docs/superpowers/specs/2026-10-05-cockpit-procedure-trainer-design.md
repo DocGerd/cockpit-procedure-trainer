@@ -223,7 +223,9 @@ Each item has text in both languages and one of:
   tolerance: in Practice the pilot may enter the value read, and a reading off
   by more than the tolerance counts as an unmet check. Its text then states the
   challenge only ("Rpm check"), not the expected value;
-- **confirm**: no target (a visual or verbal check), ticked by the pilot.
+- **confirm**: no target (a visual or verbal check), ticked by the pilot;
+- **guard**: a guarded control and the position its guard is to reach, open or
+  closed, such as the rescue safety pin pulled before take-off (#520).
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
@@ -336,6 +338,8 @@ logic follows and lists the functions it does not model.
 4. The checklist engine observes control changes and state:
    - an action item completes when the pilot sets its target while it is
      current, or ticks it verified, and its `holdUntil` condition, if any, is met;
+     a guard item likewise when the pilot moves its guard, and moving a guard is
+     never a deviation;
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
      deviation: `out-of-order` when it sets a later action's target to that

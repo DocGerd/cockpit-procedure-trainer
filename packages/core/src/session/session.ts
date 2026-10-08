@@ -131,6 +131,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
   const buildState = (): TrainerState<unknown> => ({
     controls: store.positions(),
+    guards: store.guards(),
     systems: runtime.state(),
     devices,
   });

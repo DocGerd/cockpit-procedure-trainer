@@ -102,7 +102,7 @@ failures move freely. The other control must be a different one.
 ### Indicators
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
-from the trainer state, `{ controls, systems, devices }`, and returns a number,
+from the trainer state, `{ controls, guards, systems, devices }`, and returns a number,
 boolean or string; indicators hold no state. `appearance` is required.
 
 ### Systems
@@ -244,6 +244,14 @@ of:
   while the condition is false is recorded as an `unmet-check` deviation, not
   refused.
 - `confirm`: no target, a visual or verbal check the pilot ticks.
+- `guard`: a guarded `control` and the guard `position`, `'open'` or `'closed'`,
+  such as a safety pin pulled before take-off. It completes like an action: when
+  the pilot moves the guard to the position while the item is current, or ticks it
+  verified. Moving a guard is never a deviation, and a guard item cannot be in a
+  flow. The CTSL pulls its rescue safety pin this way. The item's hint and a guard
+  left wrong use the guard's own words when it declares
+  `guard.legends: { open, closed }`, each `{ state, act }` ("removed", "Remove the
+  safety pin"); without them they say open and closed.
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.
@@ -419,13 +427,15 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
-the control for an action, advances until a check's condition holds, and ticks a
-confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
+the control for an action, moves the guard for a guard item, advances until a
+check's condition holds, and ticks a confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
 points at its item. It does a flow in the listed order, or in reverse with
 `flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
-runs it for every procedure of every registered aircraft.
+runs it for every procedure of every registered aircraft. `afterChecklist(session, id)`,
+called once a checklist completes without a deviation, lets a test read the cockpit a
+procedure or flight leg leaves behind.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 

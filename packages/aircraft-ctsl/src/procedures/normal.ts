@@ -528,10 +528,15 @@ export const normalProcedures = {
         text: text('Trimmrad neutral', 'Trim neutral'),
       },
       confirm('Funkgerät eingestellt', 'Radio set'),
-      confirm(
-        'Rettungsgerät entsichert, Sicherungsstift gezogen',
-        'Rescue system armed, safety pin removed',
-      ),
+      {
+        type: 'guard',
+        control: 'rescueHandle',
+        position: 'open',
+        text: text(
+          'Rettungsgerät entsichert, Sicherungsstift gezogen',
+          'Rescue system armed, safety pin removed',
+        ),
+      },
       {
         type: 'action',
         control: 'elt',
@@ -939,10 +944,15 @@ export const normalProcedures = {
         position: 'out',
         text: text('Zündschlüssel abgezogen', 'Key out'),
       },
-      confirm(
-        'Rettungsgerät gesichert, Sicherungsstift gesteckt',
-        'Rescue system secured, safety pin in',
-      ),
+      {
+        type: 'guard',
+        control: 'rescueHandle',
+        position: 'closed',
+        text: text(
+          'Rettungsgerät gesichert, Sicherungsstift gesteckt',
+          'Rescue system secured, safety pin in',
+        ),
+      },
       {
         type: 'action',
         control: 'elt',

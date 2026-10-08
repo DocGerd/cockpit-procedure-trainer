@@ -40,13 +40,49 @@ const aircraft: Aircraft = {
         },
       },
     },
+    rescue: {
+      kind: 'guarded',
+      name: { de: 'Rettungsgerät', en: 'Rescue system' },
+      description: { de: 'Griff', en: 'Handle' },
+      positions: ['stowed', 'pulled'],
+      initial: 'stowed',
+      guard: { name: { de: 'Sicherungsstift', en: 'Safety pin' } },
+    },
+    pinned: {
+      kind: 'guarded',
+      name: { de: 'Griff', en: 'Handle' },
+      description: { de: 'Griff', en: 'Handle' },
+      positions: ['stowed', 'pulled'],
+      initial: 'stowed',
+      guard: {
+        name: { de: 'Stift', en: 'Pin' },
+        legends: {
+          open: { state: { de: 'gezogen', en: 'removed' }, act: { de: 'ziehen', en: 'Remove' } },
+          closed: { state: { de: 'gesteckt', en: 'in' }, act: { de: 'stecken', en: 'Fit' } },
+        },
+      },
+    },
   },
   procedures: {
     flow: {
       title: { de: 'Ablauf', en: 'Flow' },
       type: 'normal',
       startPhase: 'parking',
-      items: [{ type: 'confirm', text: { de: 'Bestätigen', en: 'Confirm' } }],
+      items: [
+        { type: 'confirm', text: { de: 'Bestätigen', en: 'Confirm' } },
+        {
+          type: 'guard',
+          control: 'rescue',
+          position: 'open',
+          text: { de: 'Stift ziehen', en: 'Pin out' },
+        },
+        {
+          type: 'guard',
+          control: 'pinned',
+          position: 'open',
+          text: { de: 'Stift ziehen', en: 'Pin out' },
+        },
+      ],
     },
   },
 };
@@ -291,6 +327,36 @@ describe('deviation text for each kind', () => {
     expect(en.title(left)).toBe('Key left in a wrong position: key out');
     expect(en.banner(left)).toBe('Key left in a wrong position during item 1: key out.');
     expect(de.title(left)).toBe('Zündschalter in falscher Stellung gelassen: Schlüssel abgezogen');
+  });
+
+  it('names a guard left wrong by the guard, open or closed', () => {
+    const en = describeIn('en');
+    const de = describeIn('de');
+    const left: Deviation = {
+      kind: 'wrong-position',
+      itemIndex: 1,
+      controlId: 'rescue',
+      position: 'closed',
+    };
+    expect(en.title(left)).toBe('Safety pin left in a wrong position: closed');
+    expect(en.expected(left)).toBe('Safety pin: open');
+    expect(en.actual(left)).toBe('Safety pin left in a wrong position: closed');
+    expect(en.banner(left)).toBe('Safety pin left in a wrong position during item 2: closed.');
+    expect(de.title(left)).toBe('Sicherungsstift in falscher Stellung gelassen: geschlossen');
+    expect(de.expected(left)).toBe('Sicherungsstift: offen');
+    expect(en.title({ ...unexpected('rescue'), itemIndex: 1 })).toContain('Rescue system');
+  });
+
+  it("names a guard's position in the guard's own words when it declares them", () => {
+    const left: Deviation = {
+      kind: 'wrong-position',
+      itemIndex: 2,
+      controlId: 'pinned',
+      position: 'closed',
+    };
+    expect(describeIn('en').title(left)).toBe('Pin left in a wrong position: in');
+    expect(describeIn('en').expected(left)).toBe('Pin: removed');
+    expect(describeIn('de').title(left)).toBe('Stift in falscher Stellung gelassen: gesteckt');
   });
 
   it('names a late memory item by its item in both languages', () => {
