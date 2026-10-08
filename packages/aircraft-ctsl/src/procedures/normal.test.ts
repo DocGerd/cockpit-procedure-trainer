@@ -179,7 +179,9 @@ describe('CTSL normal procedures', () => {
       const session = atValve();
       session.press('brake');
       session.checkOff();
-      expect(session.checklist()?.deviations).toHaveLength(1);
+      expect(session.checklist()?.deviations).toEqual([
+        expect.objectContaining({ kind: 'unmet-check', itemIndex: valve + 2 }),
+      ]);
     });
 
     it('passes the hold check once the lever springs back', () => {
