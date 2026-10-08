@@ -485,24 +485,6 @@ export const normalProcedures = {
       confirmRunwayHeading,
       {
         type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'open',
-        text: text(
-          'Parkbremse lösen, Rückflusshahn auf (Ergänzung des Trainers)',
-          'Release the parking brake, valve open (trainer addition)',
-        ),
-      },
-      {
-        type: 'check',
-        target: { control: 'parkingBrakeValve' },
-        condition: (state: State) => !state.systems.parkingBrakeSet,
-        text: text(
-          'Parkbremse gelöst (Ergänzung des Trainers)',
-          'Parking brake released (trainer addition)',
-        ),
-      },
-      {
-        type: 'action',
         control: 'flapSelector',
         position: '15',
         text: text('Klappen 15° (auf Asphalt auch 0°)', 'Flaps 15° (0° possible on pavement)'),

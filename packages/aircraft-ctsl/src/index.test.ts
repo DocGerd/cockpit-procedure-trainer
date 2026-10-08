@@ -453,6 +453,7 @@ describe('CTSL aircraft', () => {
   it.each([
     ['parking', true],
     ['holding', true],
+    ['linedUp', false],
     ['departure', false],
     ['cruise', false],
     ['approach', false],
@@ -487,6 +488,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['holding', '0'],
+    ['linedUp', '15'],
     ['departure', '0'],
     ['cruise', '-12'],
     ['approach', '15'],
@@ -544,6 +546,7 @@ describe('CTSL aircraft', () => {
   it.each([
     ['parking', 'in', 'closed'],
     ['holding', 'in', 'closed'],
+    ['linedUp', 'out', 'open'],
     ['departure', 'out', 'open'],
     ['cruise', 'out', 'open'],
     ['approach', 'out', 'open'],
@@ -553,6 +556,71 @@ describe('CTSL aircraft', () => {
   ])('enters %s with the rescue safety pin %s', (phase, _pin, guard) => {
     const session = createSession(ctslAircraft, { devices, phase });
     expect(session.guards().rescueHandle).toBe(guard);
+  });
+
+  it.each(Object.keys(expectedPhases))(
+    'enters %s with the cockpit light off (day VFR only)',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls.cockpitLight).toBe('off');
+      expect(entryState(id).consumers.cockpitLight).toBe(false);
+    },
+  );
+
+  it.each(Object.keys(expectedPhases).filter((id) => id !== 'parking'))(
+    'enters %s with the avionics, beacon and intercom on while the engine runs',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls).toMatchObject({
+        avionicsMaster: 'on',
+        beacon: 'on',
+        intercom: 'on',
+      });
+      expect(entryState(id).consumers).toMatchObject({ beacon: true, intercom: true });
+    },
+  );
+
+  it.each([
+    ['parking', 'off'],
+    ['holding', 'off'],
+    ['linedUp', 'off'],
+    ['departure', 'off'],
+    ['cruise', 'off'],
+    ['approach', 'on'],
+    ['landing', 'on'],
+    ['taxiIn', 'on'],
+    ['parkingSecuring', 'off'],
+  ])('enters %s with the landing light %s', (id, light) => {
+    expect(ctslAircraft.phases[id]?.entry.controls.landingLight).toBe(light);
+    expect(entryState(id).consumers.landingLight).toBe(light === 'on');
+  });
+
+  it.each(Object.keys(expectedPhases).filter((id) => !['parking', 'holding'].includes(id)))(
+    'enters %s rolling or flying, with the parking-brake valve open',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls.parkingBrakeValve).toBe('open');
+      expect(entryState(id).parkingBrakeSet).toBe(false);
+    },
+  );
+
+  it.each([
+    ['parking', 'off'],
+    ['holding', 'off'],
+    ['linedUp', 'alt'],
+    ['departure', 'alt'],
+    ['cruise', 'alt'],
+    ['approach', 'alt'],
+    ['landing', 'alt'],
+    ['taxiIn', 'alt'],
+    ['parkingSecuring', 'sby'],
+  ])('enters %s with the transponder at %s', (phase, mode) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().controls['xpdr.mode']).toBe(mode);
+  });
+
+  it.each([
+    ['departure', 'climbing', 1],
+    ['approach', 'descending', -1],
+  ])('enters %s %s on the vertical speed indicator', (id, _trend, sign) => {
+    expect(Math.sign(entryState(id).verticalSpeedMs)).toBe(sign);
   });
 
   it('starts a session at every phase', () => {
