@@ -191,7 +191,7 @@
 
 @media (min-width: 3200px) {
   .shell-main {
-    --shell-main-gap: calc(var(--space-4) * 2);
+    --shell-main-gap: var(--space-8);
     align-self: stretch;
   }
 
