@@ -53,7 +53,7 @@ export const engineRunning = (state: CtslTrainerState) => state.systems.engine.r
 type Throttle = 'idle' | 'low' | 'runup' | 'cruise' | 'full';
 
 // Intake values: docs/aircraft/ctsl-intake.md §4 and §5.
-const KMH_PER_KT = 1.852;
+export const KMH_PER_KT = 1.852;
 const STARTER_LIMIT_MS = 10_000;
 const STARTER_COOLING_MS = 120_000;
 const WARM_OIL_C = 50;

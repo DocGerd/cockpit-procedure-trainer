@@ -19,11 +19,27 @@ const text = (container: HTMLElement, field: string) =>
   container.querySelector(`[data-field="${field}"]`)?.textContent;
 
 describe('Gpsmap496Display', () => {
-  it('shows the page, that there is no position, and the backlight level', () => {
+  it('shows the page, that it is acquiring satellites, and the backlight level', () => {
     const container = show();
     expect(text(container, 'page')).toBe('ACTIVE ROUTE');
-    expect(text(container, 'position')).toBe('NO POSITION');
+    expect(text(container, 'position')).toBe('ACQUIRING');
     expect(text(container, 'backlight')).toBe('LIGHT 3/3');
+  });
+
+  it('shows the fix on a page without the map', () => {
+    expect(text(show(true, { fix: true }), 'position')).toBe('3D FIX');
+  });
+
+  it('draws the map with ground speed and track once it has a fix', () => {
+    const container = show(true, { page: 'map', fix: true, groundSpeedKt: 54.2, trackDeg: 90 });
+    expect(text(container, 'speed')).toBe('GS 54KT');
+    expect(text(container, 'track')).toBe('TRK 090°');
+    expect(container.querySelector('[data-field="map"] [data-north]')).not.toBeNull();
+    expect(container.querySelector('style')).toBeNull();
+  });
+
+  it('draws no map while acquiring', () => {
+    expect(show(true, { page: 'map' }).querySelector('[data-field="map"]')).toBeNull();
   });
 
   it('dims the display with the backlight level', () => {
@@ -37,7 +53,7 @@ describe('Gpsmap496Display', () => {
   });
 
   it('blanks the display while the receiver is off or the unit is dark', () => {
-    for (const container of [show(true, { on: false }), show(false)]) {
+    for (const container of [show(true, { on: false }), show(false, { page: 'map', fix: true })]) {
       expect(text(container, 'page')).toBeUndefined();
       expect(container.querySelector('[data-backlight]')?.textContent).toBe('');
     }

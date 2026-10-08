@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import { BACKLIGHT_LEVELS, PAGE_NAMES } from '../logic';
 import type { Gpsmap496State } from '../logic';
 import { glow } from '../glow';
+import { MapSchematic, formatSpeed, formatTrack } from './MapSchematic';
 import './Gpsmap496Screen.css';
 
 const screenStyle: CSSProperties = {
@@ -30,6 +31,20 @@ const pageStyle: CSSProperties = {
 };
 
 const legendStyle: CSSProperties = { color: 'var(--panel-legend-muted)' };
+
+const mapPageStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'auto auto',
+  gap: 'var(--space-3)',
+  alignItems: 'center',
+};
+
+const mapStyle: CSSProperties = {
+  width: 'calc(var(--size-target) * 2)',
+  height: 'calc(var(--size-target) * 2)',
+};
+
+const fieldsStyle: CSSProperties = { display: 'grid' };
 
 const rowStyle: CSSProperties = {
   display: 'grid',
@@ -69,6 +84,7 @@ function Key({ name, control, send }: { name: string; control: string; send: Sen
 export function Gpsmap496Screen({ on, state, send }: DeviceScreenProps) {
   const unit = state as Gpsmap496State;
   const lit = on && unit.on;
+  const light = `LIGHT ${unit.backlight + 1}/${BACKLIGHT_LEVELS}`;
 
   return (
     <div className="cpt-device-gpsmap496" style={screenStyle}>
@@ -77,12 +93,24 @@ export function Gpsmap496Screen({ on, state, send }: DeviceScreenProps) {
         data-backlight={unit.backlight}
         style={{ ...displayStyle, color: glow(unit.backlight) }}
       >
-        {lit && (
-          <>
-            <span style={pageStyle}>{PAGE_NAMES[unit.page].en.toUpperCase()}</span>
-            <span>NO POSITION</span>
-            <span style={legendStyle}>{`LIGHT ${unit.backlight + 1}/${BACKLIGHT_LEVELS}`}</span>
-          </>
+        {lit && unit.fix && unit.page === 'map' ? (
+          <div style={mapPageStyle}>
+            <MapSchematic trackDeg={unit.trackDeg} style={mapStyle} />
+            <div style={fieldsStyle}>
+              <span>{PAGE_NAMES.map.en.toUpperCase()}</span>
+              <span>{formatSpeed(unit.groundSpeedKt)}</span>
+              <span>{formatTrack(unit.trackDeg)}</span>
+              <span style={legendStyle}>{light}</span>
+            </div>
+          </div>
+        ) : (
+          lit && (
+            <>
+              <span style={pageStyle}>{PAGE_NAMES[unit.page].en.toUpperCase()}</span>
+              <span>{unit.fix ? '3D FIX' : 'ACQUIRING'}</span>
+              <span style={legendStyle}>{light}</span>
+            </>
+          )
         )}
       </div>
       <div style={rowStyle}>

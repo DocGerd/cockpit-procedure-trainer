@@ -88,7 +88,7 @@ const gpsmap496StandIn = defineDevice({
     page: momentary(text('Seite', 'Page')),
     quit: momentary(text('Zurück', 'Quit')),
   },
-  initial: { on: false, page: 'map' },
+  initial: { on: false, page: 'map', fix: false },
   step: (state) => state,
 });
 

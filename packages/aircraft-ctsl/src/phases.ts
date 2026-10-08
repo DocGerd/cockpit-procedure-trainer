@@ -75,9 +75,10 @@ const pinOut = { rescueHandle: 'open' } as const;
 // Assumed (unverified): ALT from line-up until after landing, standby once taxied in.
 const transponder = (mode: 'alt' | 'sby') => ({ xpdr: { mode } });
 
-// Assumed (unverified): the German VFR code squawked from line-up, the GPS on with its map page.
+// Assumed (unverified): the German VFR code squawked from line-up, the GPS on with its map page
+// and a position fix.
 const squawking = { xpdr: { squawk: '7000' } };
-const navigating = { ...squawking, gps: { on: true, page: 'map' } };
+const navigating = { ...squawking, gps: { on: true, page: 'map', fix: true } };
 
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
 const CLIMB_MS = 3;

@@ -1,15 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { BACKLIGHT_LEVELS, KEYS, PAGES, gpsmap496Device } from './gpsmap496';
+import {
+  ACQUIRE_MS,
+  BACKLIGHT_LEVELS,
+  GROUND_SPEED_INPUT,
+  KEYS,
+  PAGES,
+  TRACK_INPUT,
+  gpsmap496Device,
+} from './gpsmap496';
 import type { Gpsmap496State } from './gpsmap496';
 
 const released: Record<string, string> = Object.fromEntries(KEYS.map((key) => [key, 'released']));
 
-const step = (state: Gpsmap496State, controls: Record<string, string> = {}, powered = true) =>
+const flying = { [GROUND_SPEED_INPUT]: 108, [TRACK_INPUT]: 180 };
+
+const step = (
+  state: Gpsmap496State,
+  controls: Record<string, string> = {},
+  powered = true,
+  dtMs = 0,
+  inputs: Record<string, number | string> = flying,
+) =>
   gpsmap496Device.step(state, {
     controls: { ...released, ...controls },
     powered,
-    inputs: {},
-    dtMs: 0,
+    inputs,
+    dtMs,
   }) as Gpsmap496State;
 
 const start = gpsmap496Device.initial as Gpsmap496State;
@@ -83,5 +99,53 @@ describe('gpsmap496Device', () => {
   it('keeps the backlight setting across a power loss', () => {
     const dimmer = tap(running, 'backlight');
     expect(step(dimmer, {}, false).backlight).toBe(dimmer.backlight);
+  });
+});
+
+describe('gpsmap496Device position fix', () => {
+  const fixed = step(running, {}, true, ACQUIRE_MS);
+
+  it('starts without a fix and acquires one while switched on', () => {
+    expect(start).toMatchObject({ fix: false, groundSpeedKt: null, trackDeg: null });
+    expect(step(running, {}, true, ACQUIRE_MS - 1).fix).toBe(false);
+    expect(fixed.fix).toBe(true);
+  });
+
+  it('adds up the time spent acquiring across steps', () => {
+    const half = step(running, {}, true, ACQUIRE_MS / 2);
+    expect(half.fix).toBe(false);
+    expect(step(half, {}, true, ACQUIRE_MS / 2).fix).toBe(true);
+  });
+
+  it('reads ground speed and track from its inputs only with a fix', () => {
+    expect(running).toMatchObject({ groundSpeedKt: null, trackDeg: null });
+    expect(fixed).toMatchObject({ groundSpeedKt: 108, trackDeg: 180 });
+    expect(
+      step(fixed, {}, true, 50, { [GROUND_SPEED_INPUT]: 54, [TRACK_INPUT]: 360 }),
+    ).toMatchObject({ groundSpeedKt: 54, trackDeg: 360 });
+  });
+
+  it('leaves a reading blank when its input is missing or not a number', () => {
+    expect(step(fixed, {}, true, 0, {})).toMatchObject({
+      fix: true,
+      groundSpeedKt: null,
+      trackDeg: null,
+    });
+    expect(step(fixed, {}, true, 0, { [GROUND_SPEED_INPUT]: 'fast' }).groundSpeedKt).toBeNull();
+  });
+
+  it('keeps a fix the state starts with, as a phase seeds it', () => {
+    expect(step({ ...start, on: true, fix: true }).fix).toBe(true);
+  });
+
+  it('loses the fix and the readings when switched off or unpowered', () => {
+    for (const lost of [tap(fixed, 'power'), step(fixed, {}, false)]) {
+      expect(lost).toMatchObject({ fix: false, groundSpeedKt: null, trackDeg: null });
+      expect(step(tap(lost, 'power', true), {}, true, ACQUIRE_MS - 1).fix).toBe(false);
+    }
+  });
+
+  it('does not acquire while switched off', () => {
+    expect(step(start, {}, true, ACQUIRE_MS).fix).toBe(false);
   });
 });
