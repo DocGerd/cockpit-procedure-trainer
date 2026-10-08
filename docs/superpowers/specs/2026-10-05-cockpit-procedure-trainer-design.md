@@ -170,6 +170,10 @@ declares an `engineRunning` condition over its state; the outside view shows
 the running image while it holds. Both fields are optional, so the contract
 version does not change.
 
+An aircraft may also declare outside cues: images laid over the outside view while
+a condition over its state holds, such as smoke from the engine during a fire. The
+field is optional, so the contract version does not change.
+
 ### 4.7 Procedures
 
 A procedure has an id, a title, a type (`normal` or `emergency`), the phase it

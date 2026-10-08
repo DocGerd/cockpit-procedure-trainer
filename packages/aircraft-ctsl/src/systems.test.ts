@@ -6,6 +6,7 @@ import { ctslAircraft } from './index';
 import { chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
 import type { PhaseId } from './phases';
+import { emergencyProcedures } from './procedures/emergency';
 import { initial, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
@@ -601,6 +602,23 @@ describe('failures', () => {
     expect(full.secondsUntil(out, 90)).toBeLessThan(cruise.secondsUntil(out, 90));
   });
 
+  it('engineFire: CHT and oil temperature climb past their red lines', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.advance(30);
+    expect(failed.state().chtC).toBeGreaterThan(CHT_RED_LINE_C);
+    expect(failed.state().oilTempC).toBeGreaterThan(OIL_TEMP_RED_LINE_C);
+  });
+
+  it('engineFire: the temperatures fall once the fire is out', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.set('fuelValve', 'closed');
+    failed.secondsUntil((state) => !state.fire, 90);
+    const out = failed.state();
+    failed.advance(10);
+    expect(failed.state().chtC).toBeLessThan(out.chtC);
+    expect(failed.state().oilTempC).toBeLessThan(out.oilTempC);
+  });
+
   it('coolantLoss: CHT climbs past the red line at cruise power', () => {
     const failed = rig('cruise', ['coolantLoss']);
     failed.advance(60);
@@ -658,6 +676,73 @@ describe('failures', () => {
     failed.advance(5);
     expect(failed.state().flaps).toEqual({ angle: driven, moving: false });
   });
+
+  it('flapControlFailure: trips the flap breaker and darkens the flap readout', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    expect(session.state().controls['flapBreaker']).toBe('pulled');
+    expect(indicators.flapReadout.select(trainerState(session))).toBe('');
+  });
+
+  it('flapControlFailure: with the breaker reset the readout holds against the selector', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    session.set('flapBreaker', 'in');
+    session.set('flapSelector', '0');
+    advanceSeconds(session, 10);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe(-12);
+  });
+});
+
+// The surprise drill's cue window, owned by apps/web/src/trainer/scenarios.ts (#480).
+const CUE_WINDOW_MS = 5_000;
+
+const panelReading = (session: Session) => {
+  const state = session.state();
+  return JSON.stringify([
+    ctslAircraft.engineRunning?.(state),
+    Object.values(ctslAircraft.indicators).map((indicator) => indicator.select(state)),
+    Object.values(ctslAircraft.devices ?? {}).map((install) => [
+      install.powered(state),
+      Object.values(install.inputs).map((read) => read(state)),
+    ]),
+  ]);
+};
+
+describe('failure cues', () => {
+  const cruiseEmergencies = Object.entries(emergencyProcedures).filter(
+    ([, procedure]) => procedure.startPhase === 'cruise',
+  );
+  const byFailure = new Map(cruiseEmergencies.map(([id, procedure]) => [procedure.failure, id]));
+
+  it('covers every failure of the cruise emergencies', () => {
+    expect([...byFailure.keys()].sort()).toEqual(
+      [
+        'engineFire',
+        'engineStoppage',
+        'coolantLoss',
+        'oilLoss',
+        'flapControlFailure',
+        'generatorFailure',
+      ].sort(),
+    );
+  });
+
+  it.each([...byFailure])(
+    '%s changes the panel within the surprise cue window',
+    (_failure, procedureId) => {
+      const plain = sessionAt('cruise');
+      const failing = sessionAt('cruise');
+      failing.startProcedure(procedureId);
+      let cue = false;
+      for (let ms = 0; ms < CUE_WINDOW_MS && !cue; ms += STEP_MS) {
+        plain.advance(STEP_MS);
+        failing.advance(STEP_MS);
+        cue = panelReading(plain) !== panelReading(failing);
+      }
+      expect(cue).toBe(true);
+    },
+  );
 });
 
 describe('entry snapshots', () => {
@@ -697,6 +782,19 @@ describe('entry snapshots', () => {
 });
 
 describe('indicators', () => {
+  it('leave the flap readout dark while its circuit has no power', () => {
+    const session = sessionAt('cruise');
+    const readout = () => indicators.flapReadout.select(trainerState(session));
+    expect(readout()).toBe(-12);
+    session.set('flapBreaker', 'pulled');
+    expect(readout()).toBe('');
+    session.set('flapBreaker', 'in');
+    session.set('battery', 'pulled');
+    session.advance(STEP_MS);
+    expect(readout()).toBe('');
+    expect(indicators.flapReadout.select(trainerState(sessionAt('parking')))).toBe('');
+  });
+
   it('follow the model after a start', () => {
     const session = coldStart();
     session.set('generator', 'in');

@@ -209,6 +209,11 @@ and the disc `id="propeller-disc"` in each `imageRunning` SVG; `tools/propeller-
 checks the markers in every `packages/aircraft-*/src/assets/phase-*.svg` (running images are
 named `phase-<id>-running.svg`).
 
+A failure the pilot should see outside, such as smoke from an engine fire, is an
+`outsideCues` entry: a name, an image in the coordinate space of the phase images and
+transparent elsewhere, and a `shows(state)` condition. The outside view lays the image
+over the phase image while the condition holds, in every phase.
+
 ### Procedures
 
 `procedures` maps an id to `{ title, type, startPhase, endPhase?, items }`. A

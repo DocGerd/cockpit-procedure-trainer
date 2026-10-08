@@ -1,4 +1,4 @@
-import { CONTRACT_VERSION, createSession, validateAircraft } from '@cpt/core';
+import { CONTRACT_VERSION, createSession, STEP_MS, validateAircraft } from '@cpt/core';
 import type { ControlDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
@@ -597,7 +597,7 @@ describe('CTSL aircraft', () => {
     expect(entryState(id).altitudeFt).toBe(0);
   });
 
-  it('declares every failure of the plan, none tripping a breaker', () => {
+  it('declares every failure of the plan, only the flap control failure tripping a breaker', () => {
     expect(Object.keys(ctslAircraft.failures)).toEqual([
       'generatorFailure',
       'engineStoppage',
@@ -606,8 +606,29 @@ describe('CTSL aircraft', () => {
       'oilLoss',
       'flapControlFailure',
     ]);
-    for (const failure of Object.values(ctslAircraft.failures))
-      expect(failure.trips).toBeUndefined();
+    expect(
+      Object.fromEntries(
+        Object.entries(ctslAircraft.failures).flatMap(([id, failure]) =>
+          failure.trips ? [[id, failure.trips]] : [],
+        ),
+      ),
+    ).toEqual({ flapControlFailure: ['flapBreaker'] });
+  });
+
+  it('shows smoke from the engine in the outside view exactly while the fire burns', () => {
+    const cues = ctslAircraft.outsideCues ?? {};
+    expect(Object.keys(cues)).toEqual(['engineSmoke']);
+    const smoke = cues['engineSmoke'];
+    const session = createSession(ctslAircraft, { devices, phase: 'cruise' });
+    expect(smoke?.shows(session.state())).toBe(false);
+    session.startProcedure('engineFire');
+    session.advance(STEP_MS);
+    expect(smoke?.shows(session.state())).toBe(true);
+    session.set('fuelValve', 'closed');
+    session.set('ignition', 'off');
+    for (let ms = 0; ms < 2000; ms += STEP_MS) session.advance(STEP_MS);
+    expect((session.state().systems as CtslState).fire).toBe(false);
+    expect(smoke?.shows(session.state())).toBe(false);
   });
 
   it('assembles the procedures of its three modules and the installs of its devices module', () => {

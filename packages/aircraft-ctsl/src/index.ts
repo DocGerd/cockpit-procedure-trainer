@@ -4,6 +4,7 @@ import { controls } from './controls';
 import { devices } from './devices';
 import { failures } from './failures';
 import { indicators } from './indicators';
+import { outsideCues } from './outside-cues';
 import { phases } from './phases';
 import { avionicsProcedures } from './procedures/avionics';
 import { emergencyProcedures } from './procedures/emergency';
@@ -26,6 +27,7 @@ export const ctslAircraft = defineAircraft({
   devices,
   systems: { initial, step },
   engineRunning,
+  outsideCues,
   failures,
   phases,
   procedures: { ...normalProcedures, ...emergencyProcedures, ...avionicsProcedures },
