@@ -101,7 +101,7 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
   The key goes in and comes out at OFF, and comes out only with the fuel valve
   fully closed (E6). Assumed (unverified), from the handle covering the slot and
-  N3's order (#468): the key goes in only with the valve open (§9 item 27).
+  N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
 
@@ -374,7 +374,7 @@ accidental ELT activation _(confirm)_.
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
-(assumed, §9 item 27: the key comes out only with it closed, E6); key out; rescue
+(assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
 system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
 _(confirm)_.
 
