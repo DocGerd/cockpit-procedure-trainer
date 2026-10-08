@@ -385,6 +385,7 @@ describe('surprise failure', () => {
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
     expect(trainer.session.scenario()).toMatchObject({ phase: 'parking' });
+    expect(trainer.viewedProcedureId).toBeUndefined();
   });
 
   it('ends the drill with a phase jump, so a restart runs the checklist again', () => {
