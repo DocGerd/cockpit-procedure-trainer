@@ -215,15 +215,30 @@ describe('CTSL notched artwork controls', () => {
       expect(now(up ?? '')).toBeGreaterThan(now(here));
       expect(now(down ?? '')).toBeLessThan(now(here));
 
-      // Some stops print no legend (the throttle's middle stops), so compare the outermost printed ones.
+      // The nearest printed stops either side of here; a flap arc is only monotonic locally, and the
+      // throttle's middle stops print nothing.
+      const value = now(here);
       const marked = steps
         .filter((position) => legends[id]?.[position] !== undefined)
-        .map((position) => ({ position, value: now(position) }))
-        .sort((a, b) => a.value - b.value);
-      const [lowest, highest] = [marked[0]?.position ?? '', marked.at(-1)?.position ?? ''];
-      const [low, high] = [printed(lowest), printed(highest)];
-      if (vertical) expect(high.y).toBeLessThan(low.y);
-      else expect(high.x).toBeGreaterThan(low.x);
+        .map((position) => ({ position, value: now(position) }));
+      const above = marked
+        .filter((stop) => stop.value > value)
+        .sort((a, b) => a.value - b.value)[0];
+      const below = marked
+        .filter((stop) => stop.value < value)
+        .sort((a, b) => b.value - a.value)[0];
+      if (!above || !below) throw new Error(`${id} prints no legend on one side of ${here}`);
+      const pairs = legends[id]?.[here]
+        ? [
+            [here, above.position],
+            [below.position, here],
+          ]
+        : [[below.position, above.position]];
+      for (const [from = '', to = ''] of pairs) {
+        const [low, high] = [printed(from), printed(to)];
+        if (vertical) expect(high.y, `${from} to ${to}`).toBeLessThan(low.y);
+        else expect(high.x, `${from} to ${to}`).toBeGreaterThan(low.x);
+      }
     },
   );
 });
