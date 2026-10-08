@@ -55,6 +55,14 @@
   box-shadow: 0 var(--space-2) var(--space-6) color-mix(in srgb, var(--color-text) 16%, transparent);
 }
 
+.shell[data-layout='desktop'] .modes-notice {
+  inset-block-start: 50%;
+  inset-inline-end: calc(100% + var(--space-3));
+  max-width: calc(var(--space-12) * 11);
+  padding-block: var(--space-2);
+  transform: translateY(-50%);
+}
+
 .modes-operate {
   display: flex;
   align-items: center;

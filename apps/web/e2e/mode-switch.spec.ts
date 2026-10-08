@@ -99,6 +99,18 @@ test('switching Practice to Guided mid-run says live feedback is on', async ({ p
   await expectChecklist(page);
 
   await modeButton(page, text.guided).click();
-  await expect(page.getByRole('status').filter({ hasText: text.guidedOnNotice })).toBeVisible();
+  const notice = page.getByRole('status').filter({ hasText: text.guidedOnNotice });
+  await expect(notice).toBeVisible();
   await expect(modeButton(page, text.guided)).toHaveAttribute('aria-pressed', 'true');
+
+  const [noticeBox, paneBox, headerBox] = await Promise.all([
+    notice.boundingBox(),
+    checklistPane(page).boundingBox(),
+    page.getByRole('banner').boundingBox(),
+  ]);
+  if (!noticeBox || !paneBox || !headerBox) throw new Error('missing box');
+  expect(noticeBox.y + noticeBox.height, 'notice stays in the header band').toBeLessThanOrEqual(
+    paneBox.y,
+  );
+  expect(noticeBox.y, 'notice top').toBeGreaterThanOrEqual(headerBox.y);
 });
