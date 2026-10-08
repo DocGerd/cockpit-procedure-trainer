@@ -357,8 +357,8 @@ export const normalProcedures = {
     items: [
       flow('flapSelector', '15', 'Klappen 15°', 'Flaps 15°'),
       flow('choke', 'off', 'Choke zurück', 'Choke off'),
-      flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
       flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
+      flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
       ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),

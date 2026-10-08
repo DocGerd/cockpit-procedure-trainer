@@ -200,7 +200,9 @@ function DeviationBanner({
   const describe = useDeviationText(checklist);
   const stray = useStray();
   const latest = checklist.deviations.at(-1);
-  const retry = reserve && latest !== undefined && latest.itemIndex === checklist.current;
+  // A flow has no item to retry: its banner says how to undo the move.
+  const retry =
+    reserve && latest !== undefined && !latest.duringFlow && latest.itemIndex === checklist.current;
   return (
     <div role="status" className="checklist-status" data-reserved={reserve}>
       {latest && (
@@ -321,7 +323,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
               flowing ? (
                 <span className="checklist-item-detail checklist-group-detail">
                   <span className="checklist-hint">
-                    {guided ? text.flowHintGuided : text.flowHintPractice}
+                    {guided || flowShown ? text.flowHintGuided : text.flowHintPractice}
                   </span>
                   {mode === 'practice' && !flowShown && (
                     <button

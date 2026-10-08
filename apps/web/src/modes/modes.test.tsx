@@ -1111,6 +1111,18 @@ describe('a flow', () => {
     expect(boxOf(outlines()[0] ?? null)).toEqual(boxOf(placement('cutoff')));
   });
 
+  it('stays on a tab that still holds an open flow target', () => {
+    renderTrainer();
+    start('scanBack', 'guided');
+    expect(selectedTab()).toBe('Main panel');
+    act(() => trainer.session.set('throttle', 1));
+    expect(selectedTab()).toBe('Main panel');
+    expect(scans()).toEqual([['main', '3', '3']]);
+
+    act(() => cut());
+    expect(selectedTab()).toBe('Centre console');
+  });
+
   it('rings the whole flow in Practice after one Show me, while it lasts', () => {
     renderTrainer('en', combined);
     start('scan', 'practice');

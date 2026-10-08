@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import type { Aircraft } from '@cpt/core';
-import { act, cleanup, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
+import { PhaseControl } from '../outside-view/PhaseControl';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Mode, Trainer } from '../trainer';
 import { ChecklistAnnouncer } from './ChecklistAnnouncer';
@@ -58,10 +59,11 @@ afterEach(() => {
   cleanup();
 });
 
-function renderPane({ announcer = false } = {}) {
+function renderPane({ announcer = false, phase = false } = {}) {
   return renderWithLanguage(
     <TrainerProvider>
       <Probe />
+      {phase && <PhaseControl />}
       <ChecklistPane />
       {announcer && <ChecklistAnnouncer />}
     </TrainerProvider>,
@@ -118,6 +120,7 @@ it('says how to undo a stray move in the flow and debriefs it as the flow', () =
   expect(
     screen.getByText('Avionics set to ON. Not part of the flow. Return it to OFF.'),
   ).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Retry this item' })).toBeNull();
   operate('pump', 'on');
   operate('master', 'on');
   act(() => {
@@ -202,6 +205,10 @@ it('shows the whole flow with one Show me, for the rest of the flow', () => {
   act(() => screen.getByRole('button', { name: 'Show me' }).click());
   expect(trainer.assisted).toEqual([0]);
   for (const text of flowTexts) expect(screen.getByText(text)).toBeTruthy();
+  expect(
+    screen.getByText('Each ringed control belongs to the flow. Set them in any order.'),
+  ).toBeTruthy();
+  expect(screen.queryByText('Set the flow from memory, in any order.')).toBeNull();
 
   operate('master', 'on');
   expect(trainer.session.checklist()?.current).toBe(1);
@@ -232,4 +239,27 @@ it('counts a flow item already in place at the start as nothing the pilot would 
   operate('avionics', 'on');
   act(() => screen.getByRole('button', { name: 'Restart' }).click());
   expect(screen.getByRole('alertdialog', { name: 'Restart the procedure?' })).toBeTruthy();
+});
+
+it('still asks before discarding a deviation made with only preset flow items done', () => {
+  renderPane();
+  start('guided', 'preset');
+  operate('pump', 'off');
+  expect(trainer.session.checklist()?.deviations).toHaveLength(1);
+  act(() => screen.getByRole('button', { name: 'Restart' }).click());
+  expect(screen.getByRole('alertdialog', { name: 'Restart the procedure?' })).toBeTruthy();
+});
+
+it('jumps phase without asking while only preset flow items are done', () => {
+  renderPane({ phase: true });
+  start('guided', 'preset');
+  const phase = () => screen.getByRole('combobox', { name: 'Start in phase' });
+  fireEvent.change(phase(), { target: { value: 'ground' } });
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  expect(trainer.session.phase()).toBe('ground');
+
+  start('guided', 'preset');
+  operate('avionics', 'on');
+  fireEvent.change(phase(), { target: { value: 'ground' } });
+  expect(screen.getByRole('alertdialog')).toBeTruthy();
 });

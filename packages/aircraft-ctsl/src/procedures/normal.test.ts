@@ -162,7 +162,7 @@ describe('CTSL normal procedures', () => {
   describe('flows (assumed, intake §9 question 25)', () => {
     const flows = {
       engineStart: ['avionicsMaster', 'beacon', 'fuelValve', 'battery', 'carbHeat'],
-      beforeTakeoff: ['flapSelector', 'choke', 'trim', 'carbHeat'],
+      beforeTakeoff: ['flapSelector', 'choke', 'carbHeat', 'trim'],
       afterLanding: ['landingLight', 'flapSelector', 'carbHeat'],
     } as const;
 

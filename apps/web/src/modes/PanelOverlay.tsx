@@ -79,14 +79,19 @@ function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
   const own = useRef(viewId);
   own.current = viewId;
   useEffect(() => {
-    if (view !== undefined && !latest.current.visible(view)) {
+    // A flow has no order, so the pilot stays on a view that still holds one of its open targets.
+    const scanning = flow.some(({ control }) => {
+      const at = targetView(aircraft, { control });
+      return at !== undefined && latest.current.visible(at);
+    });
+    if (view !== undefined && !latest.current.visible(view) && !scanning) {
       focusPending.current = true;
       latest.current.setView(view);
     } else if (latest.current.combined && view === own.current && previousView.current !== view) {
       focusPending.current = true;
     }
     previousView.current = view;
-  }, [key, item, view]);
+  }, [key, item, view, flow, aircraft]);
 
   const box = target && targetBox(rects, target);
   const shown = box !== undefined;

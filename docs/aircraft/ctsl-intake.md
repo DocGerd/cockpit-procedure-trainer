@@ -552,7 +552,7 @@ verifies it on D-MPGO.
     centre field, then the console:
     - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
       carb heat off.
-    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+    - N6 Before take-off: flaps 15°; choke off; carb heat off; trim neutral. The
       parking brake stays out of the flow, since its valve and lever go in order
       (§3.4).
     - N15 After landing: landing light off; flaps 0°; carb heat off.
