@@ -130,6 +130,26 @@
   border-radius: var(--radius-sm);
 }
 
+.modes-scan {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: grid;
+  place-items: center;
+  min-width: var(--space-6);
+  min-height: var(--space-6);
+  box-sizing: border-box;
+  padding-inline: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%);
+}
+
 .modes-outline[data-outline='stray'] {
   outline-style: dashed;
 }

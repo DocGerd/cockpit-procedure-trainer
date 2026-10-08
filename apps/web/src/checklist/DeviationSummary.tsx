@@ -5,6 +5,7 @@ import { useSessionState, useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { flowLength } from './useCurrentTarget';
 
 const KINDS: readonly DeviationKind[] = [
   'unexpected-control',
@@ -101,6 +102,14 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     );
   });
   const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
+  const flowItems = flowLength(procedure);
+  // Memory items open an abnormal procedure and a flow a normal one, so at most one group leads.
+  const lead =
+    memoryCount > 0
+      ? { kind: 'memory', label: text.memoryItems, size: memoryCount }
+      : flowItems > 0
+        ? { kind: 'flow', label: text.flowHeading, size: flowItems }
+        : undefined;
   const goTo = (index: number) => {
     const row = rows.current.get(index);
     row?.focus({ preventScroll: true });
@@ -281,12 +290,12 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
 
       <section className="checklist-review" aria-label={text.itemsHeading}>
         <ol className="checklist-review-list">
-          {memoryCount > 0 && (
-            <ItemGroup kind="memory" label={text.memoryItems}>
-              {reviewRows.slice(0, memoryCount)}
+          {lead && (
+            <ItemGroup kind={lead.kind} label={lead.label}>
+              {reviewRows.slice(0, lead.size)}
             </ItemGroup>
           )}
-          {reviewRows.slice(memoryCount)}
+          {reviewRows.slice(lead?.size ?? 0)}
         </ol>
       </section>
 

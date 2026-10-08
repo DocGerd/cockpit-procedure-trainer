@@ -627,3 +627,15 @@ verifies it on D-MPGO.
     verification** (#233). Assumed (unverified), from the overload note of E9 and the
     wiring of §4: the readout is fed through the flap breaker, and a failed controller
     overloads the drive until the breaker trips.
+30. **Flows**: which procedures does the club open with a panel scan done from
+    memory before the checklist is read, and in which order? Today: three, each
+    verified by the §6 items that follow it. **Answered by assumption pending
+    owner verification** (#453). Assumed (unverified), from general-aviation
+    practice and the CT Supralight panel layout (§3), scanned top to bottom on the
+    centre field, then down the console's lever stack and across to carb heat:
+    - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
+      carb heat off.
+    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+      parking brake stays out of the flow, since its valve and lever go in order
+      (§3.4).
+    - N15 After landing: landing light off; flaps 0°; carb heat off.

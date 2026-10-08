@@ -126,7 +126,7 @@ test('the pane header and the whole current card stay in view at every item of t
   await openAircraft(page, ctslAircraft, id);
   const pane = checklistPane(page);
   const footer = pane.locator('.checklist-footer');
-  const list = pane.getByRole('list');
+  const list = pane.locator('.checklist-items');
   const card = pane.locator('[aria-current="step"]');
   const number = card.locator('.checklist-number');
   const title = pane.getByRole('heading', { level: 1 });
@@ -188,7 +188,7 @@ test('a deviation banner leaves the current card where it was once the list has 
   const [id, longest] = longestNormal;
   await openAircraft(page, ctslAircraft, id);
   const pane = checklistPane(page);
-  const list = pane.getByRole('list');
+  const list = pane.locator('.checklist-items');
   const card = pane.locator('[aria-current="step"]');
 
   for (let step = 0; step < longest.items.length; step++) {

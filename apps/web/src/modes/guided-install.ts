@@ -1,13 +1,27 @@
-import { useCurrentTarget } from '../checklist';
+import { inFlow } from '@cpt/core';
+import { flowLength, useCurrentTarget } from '../checklist';
 import { useSessionState, useTrainer } from '../trainer';
 import { targetInstall } from './target';
 
-/** Whether the current step's target is cued: every step in Guided, a step shown with Show me in Practice. */
+/**
+ * Whether the current step's target is cued: every step in Guided, a step shown with Show me in
+ * Practice. One Show me in a flow shows the whole flow for as long as it runs.
+ */
 export function useTargetCued(): boolean {
   const { mode, assisted } = useTrainer();
-  const item = useSessionState((session) => session.checklist()?.current);
+  const at = useSessionState((session) => {
+    const checklist = session.checklist();
+    if (!checklist) return undefined;
+    return {
+      item: checklist.current,
+      flow: inFlow(checklist) ? flowLength(checklist.procedure) : 0,
+    };
+  });
   return (
-    mode === 'guided' || (mode === 'practice' && item !== undefined && assisted.includes(item))
+    mode === 'guided' ||
+    (mode === 'practice' &&
+      at !== undefined &&
+      (assisted.includes(at.item) || assisted.some((index) => index < at.flow)))
   );
 }
 

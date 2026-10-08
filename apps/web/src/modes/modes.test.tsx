@@ -1063,6 +1063,87 @@ describe('Guided in the combined layout', () => {
   });
 });
 
+describe('a flow', () => {
+  const outlines = () => [...document.querySelectorAll<HTMLElement>('[data-outline="target"]')];
+  const scans = () =>
+    outlines().map((ring) => [
+      ring.closest('[data-view]')?.getAttribute('data-view'),
+      ring.dataset.scan,
+      ring.textContent,
+    ]);
+  const cut = () => {
+    trainer.session.openGuard('cutoff');
+    trainer.session.set('cutoff', 'cut');
+  };
+
+  it('rings every open flow target at once with its scan number', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    expect(scans()).toEqual([
+      ['main', '1', '1'],
+      ['console', '2', '2'],
+    ]);
+    const cutoff = outlines().find((ring) => ring.dataset.scan === '1') ?? null;
+    expect(boxOf(cutoff)).toEqual(boxOf(placement('cutoff')));
+    expect(cutoff?.dataset.pulse).toBe('true');
+  });
+
+  it('clears a ring once its target holds, in any order', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    act(() => trainer.session.set('pump', 'on'));
+    expect(scans()).toEqual([['main', '1', '1']]);
+    act(() => cut());
+    expect(outlines()).toEqual([]);
+  });
+
+  it('rings only the current target once the flow is done', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    act(() => {
+      trainer.session.set('pump', 'on');
+      cut();
+      trainer.session.set('unplaced', 'on');
+    });
+    expect(trainer.session.checklist()?.current).toBe(3);
+    expect(outlines()).toHaveLength(1);
+    expect(outlines()[0]?.dataset.scan).toBeUndefined();
+    expect(boxOf(outlines()[0] ?? null)).toEqual(boxOf(placement('cutoff')));
+  });
+
+  it('stays on a tab that still holds an open flow target', () => {
+    renderTrainer();
+    start('scanBack', 'guided');
+    expect(selectedTab()).toBe('Main panel');
+    act(() => trainer.session.set('throttle', 1));
+    expect(selectedTab()).toBe('Main panel');
+    expect(scans()).toEqual([['main', '3', '3']]);
+
+    act(() => cut());
+    expect(selectedTab()).toBe('Centre console');
+  });
+
+  it('rings the whole flow in Practice after one Show me, while it lasts', () => {
+    renderTrainer('en', combined);
+    start('scan', 'practice');
+    expect(outlines()).toEqual([]);
+    act(() => trainer.showMe());
+    expect(scans()).toEqual([
+      ['main', '1', '1'],
+      ['console', '2', '2'],
+    ]);
+    expect(outlines()[0]?.dataset.pulse).toBe('once');
+
+    act(() => cut());
+    expect(scans()).toEqual([['console', '2', '2']]);
+    act(() => {
+      trainer.session.set('pump', 'on');
+      trainer.session.set('unplaced', 'on');
+    });
+    expect(outlines()).toEqual([]);
+  });
+});
+
 const dockedLayout: CockpitLayoutChoice = {
   ...combined,
   height: 700,

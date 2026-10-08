@@ -1,4 +1,4 @@
-import { takesTick } from '@cpt/core';
+import { inFlow, takesTick } from '@cpt/core';
 import type { ChecklistState, ProcedureItem } from '@cpt/core';
 import { useEffect, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
@@ -14,15 +14,18 @@ import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
+import { flowLength } from './useCurrentTarget';
 import { useStray } from './useStray';
 
-type ItemState = 'done' | 'current' | 'pending' | 'deviated';
+/** `open` is a flow item still to do: while the flow runs, every one of them is equally next. */
+type ItemState = 'done' | 'current' | 'pending' | 'deviated' | 'open';
 
 const glyphs: Record<ItemState, string> = {
   done: '✓',
   current: '→',
   pending: '○',
   deviated: '▲',
+  open: '→',
 };
 
 function itemState(
@@ -105,6 +108,7 @@ function ItemRow({
   index,
   item,
   state,
+  current,
   mode,
   tick,
   lever,
@@ -114,6 +118,8 @@ function ItemRow({
   index: number;
   item: ProcedureItem<unknown>;
   state: ItemState;
+  /** The engine's current item; in a flow, the first one still open. */
+  current: boolean;
   mode: Mode;
   tick: boolean;
   lever: boolean;
@@ -130,6 +136,7 @@ function ItemRow({
     current: text.stateCurrent,
     pending: text.statePending,
     deviated: text.stateDeviated,
+    open: text.stateOpen,
   };
   // A current action that takes no tick springs back, so it is held.
   const gesture =
@@ -156,8 +163,8 @@ function ItemRow({
     <li
       className="checklist-item"
       data-state={state}
-      aria-current={state === 'current' ? 'step' : undefined}
-      tabIndex={state === 'current' ? -1 : undefined}
+      aria-current={current ? 'step' : undefined}
+      tabIndex={current ? -1 : undefined}
     >
       <span className="checklist-item-row">
         <span className="checklist-mark" role="img" aria-label={labels[state]}>
@@ -194,7 +201,9 @@ function DeviationBanner({
   const describe = useDeviationText(checklist);
   const stray = useStray();
   const latest = checklist.deviations.at(-1);
-  const retry = reserve && latest !== undefined && latest.itemIndex === checklist.current;
+  // A flow has no item to retry: its banner says how to undo the move.
+  const retry =
+    reserve && latest !== undefined && !latest.duringFlow && latest.itemIndex === checklist.current;
   return (
     <div role="status" className="checklist-status" data-reserved={reserve}>
       {latest && (
@@ -226,15 +235,23 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const guided = mode === 'guided';
   const count = deviations.length;
   const recalling = mode === 'practice' && trainer.recall;
+  const flowItems = flowLength(procedure);
+  const flowing = inFlow(checklist);
+  const flowShown = trainer.assisted.some((index) => index < flowItems);
   const list = useRef<HTMLOListElement>(null);
   const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
   const atRisk = useProgressAtRisk() !== undefined;
   const restart = () => trainer.restart();
   const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
-  const rows = procedure.items.map((item, index) => {
+
+  function row(item: ProcedureItem<unknown>, index: number) {
     const shown = trainer.assisted.includes(index);
-    const state = itemState(checklist, index, guided);
+    const flowRow = index < flowItems;
+    const state: ItemState =
+      flowRow && flowing && !completed.includes(index)
+        ? 'open'
+        : itemState(checklist, index, guided);
     // Upcoming items are not drawn at all, so their text is nowhere in the page.
     if (recalling && state === 'pending') return null;
     // Practice drills a memory item from recall: its text waits until it is done.
@@ -246,14 +263,24 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         index={index}
         item={item}
         state={state}
+        current={index === checklist.current}
         mode={mode}
-        tick={index === checklist.current && takesTick(checklist)}
+        tick={state === 'current' && takesTick(checklist)}
         lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
-        withheld={!shown && ((recalling && state === 'current') || recalled)}
+        // A flow is practised from memory, so its text stays out until it is done or shown.
+        withheld={
+          flowRow
+            ? mode === 'practice' && flowing && !flowShown
+            : !shown && ((recalling && state === 'current') || recalled)
+        }
         shown={shown}
       />
     );
-  });
+  }
+
+  const rows = procedure.items.map(row);
+  // Memory items open an abnormal procedure and a flow a normal one, so at most one group leads.
+  const leading = memoryCount > 0 ? memoryCount : flowItems;
 
   // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
@@ -300,7 +327,38 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
             {rows.slice(0, memoryCount)}
           </ItemGroup>
         )}
-        {rows.slice(memoryCount)}
+        {memoryCount === 0 && flowItems > 0 && (
+          <ItemGroup
+            kind="flow"
+            label={text.flowHeading}
+            state={flowing ? 'current' : 'done'}
+            after={
+              flowing ? (
+                <span className="checklist-item-detail checklist-group-detail">
+                  <span className="checklist-hint">
+                    {guided || flowShown ? text.flowHintGuided : text.flowHintPractice}
+                  </span>
+                  {mode === 'practice' && !flowShown && (
+                    <button
+                      type="button"
+                      className="button-secondary checklist-show-me"
+                      onClick={trainer.showMe}
+                    >
+                      {text.showMe}
+                    </button>
+                  )}
+                </span>
+              ) : (
+                checklist.current === flowItems && (
+                  <p className="checklist-transition">{text.flowVerify}</p>
+                )
+              )
+            }
+          >
+            {rows.slice(0, flowItems)}
+          </ItemGroup>
+        )}
+        {rows.slice(leading)}
       </ol>
 
       {guided && <DeviationBanner checklist={checklist} reserve />}

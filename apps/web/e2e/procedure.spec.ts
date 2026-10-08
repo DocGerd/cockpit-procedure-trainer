@@ -1,8 +1,9 @@
+import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import type { Page } from '@playwright/test';
 import { SURPRISE_MAX_MS } from '../src/trainer/surprise-delay';
 import { control } from './content';
 import { expect, test } from './fixtures';
-import { selectLanguage } from './legibility';
+import { openAircraft, selectLanguage } from './legibility';
 import {
   aircraft,
   checklistPane,
@@ -282,6 +283,61 @@ test('a summary with deviations makes Repeat primary and links each deviation to
     .getByRole('listitem');
   await expect(items.first()).toBeFocused();
   await expect(items.first()).toBeInViewport();
+});
+
+test.describe('a CTSL flow', () => {
+  const id = 'engineStart';
+  const found = ctslAircraft.procedures[id];
+  if (!found) throw new Error(`The CTSL has no procedure "${id}"`);
+  const { items, startPhase } = found;
+  const entry: Readonly<Record<string, unknown>> =
+    ctslAircraft.phases[startPhase]?.entry.controls ?? {};
+  const flow = items.flatMap((item, index) =>
+    item.type === 'action' && item.flow ? [{ index, item }] : [],
+  );
+  const open = flow.filter(({ item }) => entry[item.control] !== item.position);
+  const nameOf = (controlId: string) => ctslAircraft.controls[controlId]?.name.en ?? controlId;
+  // Every open flow target here is a two-way switch, so one tap sets it.
+  const flip = (page: Page, controlId: string) =>
+    page.locator(`button[aria-label^="${nameOf(controlId)}:"]`).click();
+
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openAircraft(page, ctslAircraft, id);
+  });
+
+  test('Guided rings every open flow target with its number, in any order, then asks to verify', async ({
+    page,
+  }) => {
+    expect(open.length, 'flow items still to do at the start').toBeGreaterThan(1);
+    const rings = page.locator('[data-outline="target"]');
+    const pane = checklistPane(page);
+    await expect(pane.getByRole('list', { name: copy.checklist.flowHeading })).toBeVisible();
+    await expect(rings).toHaveCount(open.length);
+    expect(await rings.evaluateAll((all) => all.map((ring) => ring.textContent))).toEqual(
+      open.map(({ index }) => String(index + 1)),
+    );
+
+    for (const [done, { item }] of [...open].reverse().entries()) {
+      await flip(page, item.control);
+      await expect(rings).toHaveCount(open.length - done - 1);
+    }
+    await expect(pane.getByText(copy.checklist.flowVerify)).toBeVisible();
+    await expect(page.getByRole('status')).not.toContainText(copy.checklist.deviationBanner);
+  });
+
+  test('Practice keeps the flow text out of the page until the flow is done', async ({ page }) => {
+    await page.getByRole('button', { name: copy.shell.practice, exact: true }).click();
+    const pane = checklistPane(page);
+    await pane.getByRole('checkbox', { name: copy.checklist.hideUpcoming }).check();
+    const body = page.locator('body');
+    for (const { item } of flow) await expect(body).not.toContainText(item.text.en);
+    await expect(page.locator('[data-outline="target"]')).toHaveCount(0);
+
+    for (const { item } of open) await flip(page, item.control);
+    await expect(pane.getByText(copy.checklist.flowVerify)).toBeVisible();
+    for (const { item } of flow) await expect(pane.getByText(item.text.en).first()).toBeVisible();
+  });
 });
 
 test.describe('the Alternator failure opens with its memory items', () => {

@@ -483,13 +483,23 @@ export function useSessionState<T>(
 export type ProgressAtRisk = { done: number; total: number; deviations: number };
 
 export function useProgressAtRisk(): ProgressAtRisk | undefined {
-  const { procedureId } = useTrainer();
+  const { procedureId, aircraft } = useTrainer();
   return useSessionState((snapshot) => {
     const checklist = snapshot.checklist();
     if (procedureId === undefined || checklist === undefined || checklist.done) return undefined;
     const done = checklist.completed.length;
     const deviations = checklist.deviations.length;
-    if (done === 0 && deviations === 0) return undefined;
+    // A flow item already in place ticks at the start, which is no work of the pilot's.
+    const entry: Readonly<Record<string, unknown>> =
+      aircraft.phases[checklist.procedure.startPhase]?.entry.controls ?? {};
+    const preset = checklist.procedure.items.filter(
+      (item, index) =>
+        item.type === 'action' &&
+        item.flow === true &&
+        entry[item.control] === item.position &&
+        checklist.completed.includes(index),
+    ).length;
+    if (done === preset && deviations === 0) return undefined;
     return { done, total: checklist.procedure.items.length, deviations };
   });
 }

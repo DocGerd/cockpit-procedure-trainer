@@ -1,4 +1,6 @@
+import type { PositionOf } from '@cpt/core';
 import { headingLabel, runway } from '../airfield';
+import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
@@ -78,6 +80,16 @@ const releaseParkingBrake = [
     text: text('Parkbremse gelöst', 'Parking brake released'),
   },
 ] as const;
+
+// Assumed (unverified), intake §9 question 30: the panel scans that open a procedure as a flow,
+// top to bottom on the centre field, then down the console's lever stack and across to carb heat.
+// The checklist items after them verify them.
+const flow = <C extends keyof typeof controls>(
+  control: C,
+  position: PositionOf<(typeof controls)[C]>,
+  de: string,
+  en: string,
+) => ({ type: 'action', flow: true, control, position, text: text(de, en) }) as const;
 
 const oilPressureGreen = {
   type: 'check',
@@ -211,6 +223,11 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'parking',
     items: [
+      flow('avionicsMaster', 'off', 'Avionik aus', 'Avionics Master off'),
+      flow('beacon', 'on', 'Beacon ein', 'Beacon on'),
+      flow('fuelValve', 'open', 'Brandhahn offen', 'Fuel valve open'),
+      flow('battery', 'in', 'Hauptschalter (BAT) eingedrückt', 'BAT in'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       confirm('Vorflugkontrolle erledigt', 'Pre-flight check done'),
       confirm(
         'Vor dem ersten Start des Tages Propeller von Hand durchgedreht',
@@ -347,6 +364,10 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'holding',
     items: [
+      flow('flapSelector', '15', 'Klappen 15°', 'Flaps 15°'),
+      flow('choke', 'off', 'Choke zurück', 'Choke off'),
+      flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),
@@ -765,6 +786,9 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'taxiIn',
     items: [
+      flow('landingLight', 'off', 'Landelicht aus', 'Landing light off'),
+      flow('flapSelector', '0', 'Klappen eingefahren (0°)', 'Flaps retracted (0°)'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       {
         type: 'action',
         control: 'throttle',
