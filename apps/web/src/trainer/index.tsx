@@ -12,7 +12,7 @@ import {
 import type { ReactNode } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { deviceRegistry } from '../device-registry';
-import { readSetting, writeSetting } from '../storage';
+import { readSetting, recordRun, writeSetting } from '../storage';
 
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
@@ -84,6 +84,24 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const timer = setInterval(() => session.advance(STEP_MS), STEP_MS);
     return () => clearInterval(timer);
+  }, [session]);
+
+  useEffect(() => {
+    let wasDone = false;
+    return session.subscribe(() => {
+      const checklist = session.checklist();
+      const done = checklist?.done ?? false;
+      const id = session.procedureId();
+      const { aircraft, mode } = current.current;
+      if (checklist && done && !wasDone && id !== undefined && mode !== 'explore') {
+        recordRun(aircraft.id, id, {
+          mode,
+          deviations: checklist.deviations.length,
+          at: Date.now(),
+        });
+      }
+      wasDone = done;
+    });
   }, [session]);
 
   const known = Object.keys(state.aircraft.procedures);
