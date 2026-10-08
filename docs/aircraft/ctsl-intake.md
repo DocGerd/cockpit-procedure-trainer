@@ -535,3 +535,12 @@ verifies it on D-MPGO.
     memory before the checklist is read? Today: none; every item is read and done
     from the list. **Answered by assumption pending owner verification** (#450
     records the assumed memory items here).
+24. **Phase start states**: which switches does the club have on in each phase? Today
+    (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
+    and standby once parked, landing light on from the approach until N15, vertical
+    speed climbing in `departure` and descending in `approach`. No procedure step
+    switches the landing light on (N12 says "as needed"), so the approach, landing
+    and `taxiIn` entries carry it. **Answered by assumption pending owner
+    verification** (#466). Assumed (unverified), from general-aviation practice;
+    the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
+    owner's.

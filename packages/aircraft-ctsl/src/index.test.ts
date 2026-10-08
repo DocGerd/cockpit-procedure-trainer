@@ -623,6 +623,13 @@ describe('CTSL aircraft', () => {
     expect(Math.sign(entryState(id).verticalSpeedMs)).toBe(sign);
   });
 
+  it.each(Object.keys(expectedPhases).filter((id) => !['departure', 'approach'].includes(id)))(
+    'enters %s with a level vertical speed indicator',
+    (id) => {
+      expect(entryState(id).verticalSpeedMs).toBe(0);
+    },
+  );
+
   it('starts a session at every phase', () => {
     for (const phase of Object.keys(expectedPhases)) {
       const session = createSession(ctslAircraft, { devices, phase });
