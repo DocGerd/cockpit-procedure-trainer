@@ -622,17 +622,22 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
         const checked = item.target;
-        const target =
-          checked === undefined
-            ? procedureId
-            : 'indicator' in checked
-              ? checked.indicator
-              : checked.control;
-        if (checked !== undefined && 'indicator' in checked) {
+        if (checked === undefined) {
+          if (item.response !== undefined) {
+            add(
+              'invalid-check-response',
+              procedureId,
+              `${where} asks for a reading but has nothing on the panel to read`,
+            );
+          }
+          return;
+        }
+        const target = 'indicator' in checked ? checked.indicator : checked.control;
+        if ('indicator' in checked) {
           if (!hasIndicator(checked.indicator)) {
             add('unknown-target', checked.indicator, `${where} checks an unknown indicator`);
           }
-        } else if (checked !== undefined) {
+        } else {
           checkControlTarget(checked.control, where);
         }
         const tolerance = item.response?.tolerance;

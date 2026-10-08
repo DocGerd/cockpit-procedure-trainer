@@ -240,8 +240,9 @@ of:
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
   state. Leave the `target` out when there is nothing to read on the panel, such
   as smoke seen outside: Guided then rings nothing, rather than a control of a
-  later item. The pilot ticks it; ticking while the condition is false is recorded as
-  an `unmet-check` deviation, not refused.
+  later item, and the check takes no `response`. The pilot ticks it; ticking
+  while the condition is false is recorded as an `unmet-check` deviation, not
+  refused.
 - `confirm`: no target, a visual or verbal check the pilot ticks.
 
 Input is never blocked: operating a control other than the current item's is

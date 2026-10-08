@@ -483,17 +483,21 @@ describe('validateAircraft', () => {
       expect(ofCode(check(tolerance), 'invalid-check-response')).toEqual([]);
     });
 
-    it('names the procedure for a check without a target', () => {
-      const aircraft = withItems('beforeStart', [
-        {
-          type: 'check',
-          condition: () => true,
-          response: { reading: () => 0, tolerance: -1 },
-          text,
-        },
-      ]);
-      only(aircraft, 'invalid-check-response', 'beforeStart');
-    });
+    it.each([0, -1])(
+      'rejects a reading on a check with nothing to read, tolerance %s',
+      (tolerance) => {
+        const aircraft = withItems('beforeStart', [
+          {
+            type: 'check',
+            condition: () => true,
+            response: { reading: () => 0, tolerance },
+            text,
+          },
+        ]);
+        const finding = only(aircraft, 'invalid-check-response', 'beforeStart');
+        expect(finding.message).toContain('nothing on the panel to read');
+      },
+    );
   });
 
   it('accepts a check with nothing to read on the panel', () => {
