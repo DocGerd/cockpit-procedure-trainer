@@ -5,7 +5,7 @@ import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
 import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
-import { useLostProgressText, useProgressAtRisk, useTrainer } from '../trainer';
+import { useLeavingRisk, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 
@@ -24,12 +24,11 @@ function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
-  const risk = useProgressAtRisk();
-  const lost = useLostProgressText();
+  const { atRisk, lost } = useLeavingRisk();
   const [pending, setPending] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   const choose = (kind: Choice) => {
-    if (risk === undefined) backToPicker();
+    if (!atRisk) backToPicker();
     else setPending(kind);
   };
   const chips: { kind: Choice; eyebrow: string; value: string; action: string }[] = [

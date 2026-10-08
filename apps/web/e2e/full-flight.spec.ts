@@ -58,6 +58,9 @@ test('the CTSL full flight runs from cold and dark to securing without a deviati
   await openPicker(page);
   await page.getByRole('button', { name: ctslAircraft.name.en }).click();
   await page.getByRole('radio', { name: copy.shell.guided }).check();
+  // Paused, the session advances only by the plan's runFor, tick for tick with the shadow, so
+  // a slow runner cannot give the cockpit extra time.
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1_000);
   await page.getByRole('button', { name: copy.shell.fullFlight, exact: true }).click();
   const phase = page.getByLabel(copy.outsideView.phase, { exact: true });
   const pane = checklistPane(page);
@@ -66,6 +69,11 @@ test('the CTSL full flight runs from cold and dark to securing without a deviati
     const definition = ctslAircraft.procedures[leg.id];
     if (!definition) throw new Error(`no leg ${leg.id}`);
     await expect(phase).toHaveValue(definition.startPhase);
+    await expect(pane.locator('.checklist-flight-leg')).toHaveText(
+      copy.checklist.flightLeg
+        .replace('{n}', String(index + 1))
+        .replace('{total}', String(plan.length)),
+    );
     await flyLeg(page, ctslAircraft, leg);
     await expect(
       pane.getByRole('heading', {

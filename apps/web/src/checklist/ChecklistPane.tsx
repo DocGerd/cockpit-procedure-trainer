@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../ui';
 import './checklist.css';
 import { ChecklistSelector } from './ChecklistSelector';
 import { DeviationSummary } from './DeviationSummary';
+import { FlightLeg } from './FlightLeg';
 import { useDeviationText } from './deviation-text';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
@@ -254,6 +255,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
     <div className="checklist">
       <div className="checklist-header">
         <ProcedureKind type={procedure.type} />
+        <FlightLeg />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         <div className="checklist-progress">
           <progress

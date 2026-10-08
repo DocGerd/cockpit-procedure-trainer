@@ -9,6 +9,7 @@ import type { Language } from '../i18n/language';
 import {
   shallowEqual,
   TrainerProvider,
+  useLeavingRisk,
   useLostProgressText,
   useProgressAtRisk,
   useSessionState,
@@ -771,6 +772,64 @@ describe('lost progress text', () => {
   it('counts the items done, without a deviation clause when there are none', () => {
     expect(run('en').current.text).toBe('Progress lost: 1 of 2 items done.');
     expect(run('de').current.text).toBe('Verlorener Fortschritt: 1 von 2 Punkten erledigt.');
+  });
+});
+
+describe('leaving risk', () => {
+  const renderLeaving = (language: Language = 'en') =>
+    renderHook(() => ({ trainer: useTrainer(), leaving: useLeavingRisk() }), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <LanguageProvider initial={language}>
+          <TrainerProvider>{children}</TrainerProvider>
+        </LanguageProvider>
+      ),
+    });
+  const flyFirstLeg = (result: ReturnType<typeof renderLeaving>['result']) => {
+    act(() => result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => result.current.trainer.startFlight());
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+      result.current.trainer.session.set('pump', 'on');
+    });
+  };
+
+  it('follows the run outside a full flight', () => {
+    const { result } = renderLeaving();
+    expect(result.current.leaving).toEqual({ atRisk: false, lost: '' });
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    expect(result.current.leaving).toEqual({
+      atRisk: true,
+      lost: 'Progress lost: 1 of 2 items done.',
+    });
+  });
+
+  it('keeps the legs flown at risk on a leg summary and at the start of the next leg', () => {
+    const { result } = renderLeaving();
+    flyFirstLeg(result);
+    expect(result.current.leaving).toEqual({
+      atRisk: true,
+      lost: 'The full flight ends after 1 of 2 legs.',
+    });
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.leaving.atRisk).toBe(true);
+  });
+
+  it('is nothing at the first leg before any work, or once the last leg is done', () => {
+    const { result } = renderLeaving();
+    act(() => result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => result.current.trainer.startFlight());
+    expect(result.current.leaving.atRisk).toBe(false);
+    flyFirstLeg(result);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.checkOff());
+    expect(result.current.leaving).toEqual({ atRisk: false, lost: '' });
+  });
+
+  it('says it in German', () => {
+    const { result } = renderLeaving('de');
+    flyFirstLeg(result);
+    expect(result.current.leaving.lost).toBe('Der ganze Flug endet nach 1 von 2 Abschnitten.');
   });
 });
 

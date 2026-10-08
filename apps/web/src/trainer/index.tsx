@@ -509,3 +509,29 @@ export function useLostProgressText(): string {
   );
   return `${items}, ${deviations}.`;
 }
+
+/** Leaving a full flight before its last leg is done discards the legs already flown. */
+function useFlightAtRisk(): { legs: number; total: number } | undefined {
+  const { flight } = useTrainer();
+  const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
+  if (!flight) return undefined;
+  const legs = flight.results.length + (done ? 1 : 0);
+  if (legs === 0 || legs === flight.legs.length) return undefined;
+  return { legs, total: flight.legs.length };
+}
+
+/**
+ * For the controls that leave the run (selection, phase, Free explore): whether to confirm, and
+ * the dialog's closing sentences. Restarting a leg keeps the flight, so it uses the run's risk.
+ */
+export function useLeavingRisk(): { atRisk: boolean; lost: string } {
+  const text = useMessages(messages);
+  const run = useProgressAtRisk();
+  const runLost = useLostProgressText();
+  const flight = useFlightAtRisk();
+  const flightLost = flight ? format(text.lostFlight, flight) : '';
+  return {
+    atRisk: run !== undefined || flight !== undefined,
+    lost: [runLost, flightLost].filter((part) => part !== '').join(' '),
+  };
+}

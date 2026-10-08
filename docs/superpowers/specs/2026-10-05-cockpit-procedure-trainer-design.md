@@ -366,7 +366,9 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   deviations, assists and time, and their totals. Each leg is recorded in the
   history as a run of its procedure. A chosen procedure, a taken checklist, a
   phase change, Free explore or the selection ends the flight; a runtime reset
-  starts it over.
+  starts it over. The checklist header names the running leg (leg n of m).
+  Leaving the flight by phase, Free explore or the selection before its last
+  leg is done asks first and names the legs flown.
 
 ### Screen
 

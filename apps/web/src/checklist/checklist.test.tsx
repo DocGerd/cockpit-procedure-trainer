@@ -579,6 +579,17 @@ describe('full flight summary', () => {
     expect(trainer.flight?.results).toMatchObject([{ id: flow, deviations: 2 }]);
   });
 
+  it('shows the leg in the header while a leg runs, and nothing outside a flight', async () => {
+    renderPane();
+    act(() => trainer.startProcedure(flow));
+    expect(screen.queryByText(/Full flight, leg/)).toBeNull();
+    startFlight();
+    expect(screen.getByText('Full flight, leg 1 of 2')).toBeTruthy();
+    finishFlowWithDeviations();
+    await continueFlight();
+    expect(screen.getByText('Full flight, leg 2 of 2')).toBeTruthy();
+  });
+
   it('repeats a leg from the cockpit it began with', async () => {
     renderPane();
     startFlight();
