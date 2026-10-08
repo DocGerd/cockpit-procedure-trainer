@@ -116,6 +116,7 @@
 @media (min-width: 3200px) {
   .shell-header,
   .picker,
+  .shell-outside-view,
   .shell-checklist,
   .app-footer {
     --text-2xs: 22px;

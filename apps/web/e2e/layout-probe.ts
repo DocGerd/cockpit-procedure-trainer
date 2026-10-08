@@ -68,7 +68,7 @@ const measureRegion = (page: Page): Promise<Measure> =>
     const strip = query<HTMLElement>('.shell-outside-view');
     const frame = query<HTMLElement>('.panel-surface');
     const style = getComputedStyle(strip);
-    const natural = Math.round(
+    const natural = Math.ceil(
       (strip.firstElementChild?.getBoundingClientRect().height ?? 0) +
         strip.offsetHeight -
         strip.clientHeight,
