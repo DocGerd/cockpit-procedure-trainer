@@ -97,12 +97,52 @@ describe('run history', () => {
           negative: { last: run(-1, 100), best: run(0, 100) },
           fractional: { last: run(1.5, 100), best: run(1, 100) },
           badMode: { last: { mode: 'explore', deviations: 1, at: 1 }, best: run(1, 1) },
+          hugeDate: { last: run(1, 1e308), best: run(1, 100) },
+          beyondDate: { last: run(1, 8.64e15 + 1), best: run(1, 100) },
           noBest: { last: run(1, 100) },
           text: { last: run(1, 100), best: { mode: 'guided', deviations: '0', at: 1 } },
         },
       }),
     );
     expect(readHistory('alpha')).toEqual({ good });
+  });
+
+  it('trims a stored map that is larger than the history ever grows', () => {
+    const entry = { last: run(1, 100), best: run(1, 100) };
+    const procedures = (count: number) =>
+      Object.fromEntries(Array.from({ length: count }, (_, index) => [`p${index}`, entry]));
+    const aircraft = Object.fromEntries(
+      Array.from({ length: 500 }, (_, index) => [`a${index}`, procedures(2)]),
+    );
+    localStorage.setItem(
+      'cpt.history',
+      JSON.stringify({
+        ...aircraft,
+        [`long${'x'.repeat(100)}`]: procedures(1),
+        big: procedures(1000),
+      }),
+    );
+    recordRun('fresh', 'start', run(0, 200));
+    const stored = JSON.parse(localStorage.getItem('cpt.history') ?? '{}') as Record<
+      string,
+      object
+    >;
+    expect(Object.keys(stored).length).toBeLessThanOrEqual(32);
+    expect(Object.keys(stored)).toContain('fresh');
+    expect(Object.keys(stored).every((name) => name.length <= 64)).toBe(true);
+    expect(Object.keys(readHistory('big')).length).toBeLessThanOrEqual(128);
+  });
+
+  it('evicts the least recently run procedure when an aircraft is full', () => {
+    for (let index = 0; index < 129; index += 1) recordRun('alpha', `p${index}`, run(0, index));
+    recordRun('alpha', 'p1', run(0, 500));
+    recordRun('alpha', 'extra', run(0, 600));
+    const names = Object.keys(readHistory('alpha'));
+    expect(names).toHaveLength(128);
+    expect(names).not.toContain('p0');
+    expect(names).not.toContain('p2');
+    expect(names).toContain('p1');
+    expect(names).toContain('extra');
   });
 
   it('starts over from corrupt storage when recording', () => {

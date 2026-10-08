@@ -65,7 +65,8 @@ Out of model: attacks on GitHub, browsers or the user's operating system.
   without them; an error boundary shows a readable message and a reset.
 - **Economy of mechanism.** The only fetch in the app reads its own SVG
   artwork from the same origin (`apps/web/src/panel/image-size.ts`); nothing
-  parses user- or third-party-supplied input; minimal persistence.
+  parses user- or third-party-supplied input beyond the validated, size-bounded
+  `localStorage` values; minimal persistence.
 - **Defense in depth.** Even if a dependency were compromised, the CSP limits
   where it could send data; ESLint package boundaries limit what each package
   can import.
@@ -75,16 +76,16 @@ Out of model: attacks on GitHub, browsers or the user's operating system.
 
 ## 6. Common implementation weaknesses
 
-| Weakness (OWASP / CWE)                 | Status                                                                                  |
-| -------------------------------------- | --------------------------------------------------------------------------------------- |
-| Injection, XSS (CWE-79, CWE-89)        | No SQL or backend; no HTML injection sinks; strict CSP; CodeQL scanning                 |
-| Broken authentication / access control | Not applicable: no accounts                                                             |
-| Sensitive data exposure (CWE-200)      | No sensitive data collected or stored; HTTPS only                                       |
-| Insecure deserialization (CWE-502)     | Settings are plain strings read through a guarded accessor; no external input is parsed |
-| Vulnerable components (CWE-1104)       | Dependabot and lockfile; see T1                                                         |
-| SSRF, CSRF                             | No server; `form-action 'none'`, no state-changing requests                             |
-| Misconfiguration                       | The CSP is built from one source file, `apps/web/src/csp.ts`, covered by `csp.test.ts`  |
-| Hard-coded credentials                 | None; workflows hold no secrets                                                         |
+| Weakness (OWASP / CWE)                 | Status                                                                                                                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Injection, XSS (CWE-79, CWE-89)        | No SQL or backend; no HTML injection sinks; strict CSP; CodeQL scanning                                                                                                             |
+| Broken authentication / access control | Not applicable: no accounts                                                                                                                                                         |
+| Sensitive data exposure (CWE-200)      | No sensitive data collected or stored; HTTPS only                                                                                                                                   |
+| Insecure deserialization (CWE-502)     | Settings are plain strings read through a guarded accessor; the run history is JSON parsed from `localStorage`, every field validated and the size bounded (`apps/web/src/storage`) |
+| Vulnerable components (CWE-1104)       | Dependabot and lockfile; see T1                                                                                                                                                     |
+| SSRF, CSRF                             | No server; `form-action 'none'`, no state-changing requests                                                                                                                         |
+| Misconfiguration                       | The CSP is built from one source file, `apps/web/src/csp.ts`, covered by `csp.test.ts`                                                                                              |
+| Hard-coded credentials                 | None; workflows hold no secrets                                                                                                                                                     |
 
 ## 7. Known gaps and accepted risk
 

@@ -41,7 +41,8 @@ inconsistent aircraft data.
 ## Persistence and network
 
 `localStorage` holds theme, language, last aircraft and a per-procedure run history
-(last and best result) only (`apps/web/src/storage`); the app works without it. Everything else is in memory. The app makes no
+(last and best result, validated and size-bounded) only (`apps/web/src/storage`);
+the app works without it. Everything else is in memory. The app makes no
 runtime requests beyond its own origin; the service worker precaches the app so
 it works offline. The strict CSP in `apps/web/src/csp.ts` enforces this.
 

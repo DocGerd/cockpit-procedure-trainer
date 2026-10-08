@@ -76,23 +76,26 @@ function ProcedureGroup({
             aria-pressed={id === selected}
             onClick={() => onSelect(id)}
           >
-            <span className="picker-row-text">
-              <span className="picker-row-title">{localize(procedure.title)}</span>
-              {run && (
+            <span className="picker-row-title">{localize(procedure.title)}</span>{' '}
+            <span className="picker-meta">
+              {phase ? `${localize(phase.name)} · ` : ''}
+              {count(procedure.items.length, text.itemOne, text.itemOther)}
+            </span>
+            {run && (
+              <span className="picker-history">
                 <span className="picker-meta">
                   {format(text.historyLast, {
                     result: deviationCount(run.last.deviations),
                     when: relativeDate(run.last.at, Date.now(), language),
                   })}
-                  {run.best.deviations < run.last.deviations &&
-                    ` · ${format(text.historyBest, { result: deviationCount(run.best.deviations) })}`}
                 </span>
-              )}
-            </span>{' '}
-            <span className="picker-meta">
-              {phase ? `${localize(phase.name)} · ` : ''}
-              {count(procedure.items.length, text.itemOne, text.itemOther)}
-            </span>
+                {run.best.deviations < run.last.deviations && (
+                  <span className="picker-meta">
+                    {format(text.historyBest, { result: deviationCount(run.best.deviations) })}
+                  </span>
+                )}
+              </span>
+            )}
           </button>
         );
       })}

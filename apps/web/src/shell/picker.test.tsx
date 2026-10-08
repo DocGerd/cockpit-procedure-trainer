@@ -189,8 +189,9 @@ describe('run history in the picker', () => {
     renderPicker();
     const rows = procedureButtons().map((button) => button.textContent ?? '');
     expect(rows.find((text) => text.includes('power up'))).toContain(
-      'Last run: 1 deviation, yesterday · Best: 0 deviations',
+      'Last run: 1 deviation, yesterday',
     );
+    expect(rows.find((text) => text.includes('power up'))).toContain('Best: 0 deviations');
     expect(rows.join()).not.toContain('Best: 1');
   });
 
@@ -220,6 +221,13 @@ describe('run history in the picker', () => {
 
   it('renders the list without history when the stored value is corrupt', () => {
     localStorage.setItem('cpt.history', '{nope');
+    renderPicker();
+    expect(procedureButtons()).toHaveLength(Object.keys(first.procedures).length);
+    expect(screen.queryByText(/Last run/)).toBeNull();
+  });
+
+  it('renders the list without history when a stored date is out of range', () => {
+    seed({ [first.id]: { powerUp: { last: run(1, 1e308), best: run(1, 1e308) } } });
     renderPicker();
     expect(procedureButtons()).toHaveLength(Object.keys(first.procedures).length);
     expect(screen.queryByText(/Last run/)).toBeNull();
