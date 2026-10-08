@@ -1,6 +1,8 @@
 import { CONTRACT_VERSION, createSession, validateAircraft } from '@cpt/core';
 import type { ControlDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
+import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
@@ -286,6 +288,64 @@ describe('CTSL aircraft', () => {
       const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
       const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
       expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
+    });
+  });
+
+  describe('centre field (intake §3.3)', () => {
+    // The web app's --size-target token; the centre cell renders at least its floor wide.
+    const TOUCH_TARGET_PX = 44;
+    const view = ctslAircraft.views.centre;
+    const floor = ctslAircraft.cockpit?.views.centre?.minWidth;
+    const size = view?.size;
+    if (!view?.controls || !floor || !size) throw new Error('the CTSL has no centre field');
+    const placed = view.controls;
+    const rectOf = (id: keyof typeof placed) => {
+      const rect = placed[id]?.rect;
+      if (!rect) throw new Error(`the centre field does not place ${id}`);
+      return rect;
+    };
+    const middle = (id: keyof typeof placed) => rectOf(id).x + rectOf(id).w / 2;
+
+    it.each(Object.keys(placed))('draws %s at least the touch target at the floor', (id) => {
+      const { w, h } = rectOf(id as keyof typeof placed);
+      expect(Math.min(w, h) * (floor / size.width)).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+    });
+
+    it('draws the Avionics Master larger than the other rockers', () => {
+      const master = rectOf('avionicsMaster');
+      for (const id of ['beacon', 'positionLights', 'intercom', 'cockpitLight', 'landingLight']) {
+        const rocker = rectOf(id as keyof typeof placed);
+        expect(master.w, id).toBeGreaterThan(rocker.w);
+        expect(master.h, id).toBeGreaterThan(rocker.h);
+      }
+    });
+
+    it('puts the ELT left of centre, clear of the left edge, and the flap selector right of it', () => {
+      expect(middle('elt')).toBeLessThan(size.width / 2);
+      expect(middle('elt')).toBeGreaterThan(size.width / 4);
+      expect(middle('flapSelector')).toBeGreaterThan(size.width / 2);
+      expect(rectOf('battery').x).toBeGreaterThanOrEqual(
+        rectOf('flapSelector').x + rectOf('flapSelector').w,
+      );
+    });
+
+    it('lays the closed valve handle over the key slot, and the open one clear of the key', () => {
+      const valve = rectOf('fuelValve');
+      const ignition = rectOf('ignition');
+      const slot = { x: ignition.x + ignition.w / 2, y: ignition.y + ignition.h / 2 };
+      const handle = (svg: string) => {
+        const [, x, y, w, h] =
+          /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#a\)"/.exec(
+            svg,
+          ) ?? [];
+        return { x: valve.x + Number(x), y: valve.y + Number(y), w: Number(w), h: Number(h) };
+      };
+      const covers = (part: ReturnType<typeof handle>) =>
+        slot.x > part.x && slot.x < part.x + part.w && slot.y > part.y && slot.y < part.y + part.h;
+      expect(covers(handle(valveClosed))).toBe(true);
+      expect(handle(valveOpen).y + handle(valveOpen).h).toBeLessThan(ignition.y);
+      const order = Object.keys(placed);
+      expect(order.indexOf('fuelValve')).toBeGreaterThan(order.indexOf('ignition'));
     });
   });
 

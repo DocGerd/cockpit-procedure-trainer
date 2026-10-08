@@ -215,6 +215,13 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
+    if (control.interlock) {
+      const { control: by, at, holds } = control.interlock;
+      checkPosition(id, 'interlock holds', holds);
+      if (hasControl(by)) checkPosition(by, `interlock of ${id}`, at);
+      else add('unknown-target', by, `the interlock of ${id} names an unknown control`);
+    }
+
     const moving =
       control.appearance && 'artwork' in control.appearance
         ? control.appearance.artwork.moving

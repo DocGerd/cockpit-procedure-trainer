@@ -88,7 +88,11 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   labelled "Flaps", centre. To its right the flap breaker (Klappensicherung, 8 A,
   thermal), then two headset emergency jacks (background).
 - Fuel valve (Brandhahn), left: a vertical slide lever, open up, closed down.
-  When closed, its handle covers the ignition key slot.
+  When closed, its handle covers the ignition key slot. Assumed (unverified),
+  from general knowledge of the CT Supralight (#447): the slide runs straight
+  above the key switch and its handle comes down over the slot, so the key cannot
+  be turned out of OFF while the valve is closed; the valve still closes with the
+  key turned on, as E6 requires; legends OPEN and CLOSED beside the slide.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
@@ -505,9 +509,11 @@ verifies it on D-MPGO.
     vertical speed indicator.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
-    colour is its lamp? Today: the printed label "ELT" with no position legends
-    and a red lamp. **Answered by assumption pending owner verification** (#447
-    records the assumed legends here).
+    colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
+    ON up and ARM down, its lamp beside it, red. **Answered by assumption pending
+    owner verification** (#447). Assumed (unverified), from general knowledge of
+    the CT Supralight: the remote plate prints ELT, ON (up) and ARM (down), with no
+    TEST or RESET position; the lamp lights red while the ELT transmits.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a

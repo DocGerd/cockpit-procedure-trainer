@@ -34,7 +34,7 @@ const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<s
     },
     ctsl: {
       centre: {
-        elt: `two-position switch: ARMED ${PARTLY}`,
+        'fuelValve and ignition': `the valve handle covers the key slot when closed (intake §3.3), so a tap there moves the valve; the key turns from its sides and lower half`,
       },
     },
   };
