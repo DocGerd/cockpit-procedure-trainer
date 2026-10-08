@@ -5,7 +5,7 @@ import type { Aircraft, ControlDefinition, Placement, Rect } from '@cpt/core';
 import { checkPlacards, printsText } from '@cpt/panel-kit';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import { unitNames } from '../devices/messages';
 import { deviceRegistry, deviceScreens } from '../device-registry';
@@ -14,7 +14,10 @@ import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { PanelArea } from './PanelArea';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 type Lettering = { text: string; x: number; y: number };
 
@@ -55,6 +58,14 @@ const placed = (aircraft: Aircraft) =>
     }),
   );
 
+const placedIndicators = (aircraft: Aircraft) =>
+  Object.entries(aircraft.views).flatMap(([viewId, view]) =>
+    Object.entries(view.indicators ?? {}).flatMap(([id, placement]) => {
+      const indicator = aircraft.indicators[id];
+      return indicator && placement ? [{ viewId, view, id, indicator, placement }] : [];
+    }),
+  );
+
 const artworkOf = (control: ControlDefinition) =>
   control.appearance && 'artwork' in control.appearance ? control.appearance.artwork : undefined;
 
@@ -83,12 +94,14 @@ describe('printed control labels', () => {
   });
 
   it.each(registered)('%s views print the lettering beside the placements', (_id, aircraft) => {
-    const absent = placed(aircraft).flatMap(({ viewId, view, id, placement }) => {
-      const printed = svgText(view.image);
-      return (placement.printed ?? [])
-        .filter((line) => !printed.some((text) => text.text === line && beside(text, placement)))
-        .map((line) => `${viewId}/${id}: ${line}`);
-    });
+    const absent = [...placed(aircraft), ...placedIndicators(aircraft)].flatMap(
+      ({ viewId, view, id, placement }) => {
+        const printed = svgText(view.image);
+        return (placement.printed ?? [])
+          .filter((line) => !printed.some((text) => text.text === line && beside(text, placement)))
+          .map((line) => `${viewId}/${id}: ${line}`);
+      },
+    );
     expect(absent).toEqual([]);
   });
 });
@@ -130,6 +143,51 @@ describe('printed placards on the rendered panel', () => {
             wrong.push(`${viewId}/${id}: ${String(shown)} != ${String(expected)}`);
         }
       }
+      expect(wrong).toEqual([]);
+    },
+  );
+});
+
+// A 4K viewport gives every widget room for any caption it would draw.
+const FOUR_K_PX = 640;
+
+describe('indicators on the rendered panel', () => {
+  it.each(
+    registered.flatMap(([id, aircraft]) => languages.map((lang) => [id, lang, aircraft] as const)),
+  )(
+    '%s in %s prints no accessible name in any indicator at a 4K render',
+    async (_id, language, aircraft) => {
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
+        new DOMRect(0, 0, FOUR_K_PX, FOUR_K_PX),
+      );
+      renderWithLanguage(
+        <TrainerProvider>
+          <Probe />
+          <PanelArea />
+        </TrainerProvider>,
+        { language },
+      );
+      act(() => trainer.selectAircraft(aircraft.id));
+      const wrong: string[] = [];
+      let seen = 0;
+      for (const [viewId, view] of Object.entries(aircraft.views)) {
+        await userEvent.click(screen.getByRole('tab', { name: view.name[language] }));
+        for (const { id, indicator } of placedIndicators(aircraft).filter(
+          (entry) => entry.viewId === viewId,
+        )) {
+          const widget = document.querySelector(`[data-placement="${id}"]`);
+          if (!widget) {
+            wrong.push(`${viewId}/${id}: is not rendered`);
+            continue;
+          }
+          seen += 1;
+          const name = indicator.name[language];
+          if (widget.querySelector('[data-label]')) wrong.push(`${viewId}/${id}: draws a caption`);
+          if (widget.textContent?.toLowerCase().includes(name.toLowerCase()))
+            wrong.push(`${viewId}/${id}: prints "${name}"`);
+        }
+      }
+      expect(seen).toBe(placedIndicators(aircraft).length);
       expect(wrong).toEqual([]);
     },
   );
