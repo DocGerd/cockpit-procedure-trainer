@@ -5,6 +5,7 @@ import { StartupNotice } from '../errors/StartupNotice';
 import { format, useLanguage, useLocalize, useMessages } from '../i18n';
 import { readHistory } from '../storage';
 import { useTrainer } from '../trainer';
+import { practiseNext, randomEmergency, surprisePhases } from '../trainer/scenarios';
 import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
@@ -100,6 +101,110 @@ function ProcedureGroup({
         );
       })}
     </div>
+  );
+}
+
+function Drills({ mode }: { mode: PickerMode }) {
+  const text = useMessages(messages);
+  const localize = useLocalize();
+  const trainer = useTrainer();
+  const { aircraft } = trainer;
+  const headingId = useId();
+  const nextHint = useId();
+  const randomHint = useId();
+  const surpriseHint = useId();
+  const phaseSelect = useId();
+  const suggestion = useMemo(() => practiseNext(aircraft, readHistory(aircraft.id)), [aircraft]);
+  const phases = surprisePhases(aircraft);
+  const [chosenPhase, setPhase] = useState<string>();
+  const phase = chosenPhase !== undefined && phases.includes(chosenPhase) ? chosenPhase : phases[0];
+  const suggested = suggestion && aircraft.procedures[suggestion.id];
+  if (!suggested && phase === undefined) return null;
+
+  const run = (id: string) => {
+    trainer.setMode(mode);
+    trainer.startProcedure(id);
+  };
+  const reasons = {
+    deviations: text.practiseNextDeviations,
+    new: text.practiseNextNew,
+    oldest: text.practiseNextOldest,
+  };
+
+  return (
+    <section className="picker-drills" aria-labelledby={headingId}>
+      <h2 id={headingId} className="picker-heading">
+        {text.drills}
+      </h2>
+      {suggestion && suggested && (
+        <div className="picker-drill">
+          <button
+            type="button"
+            className="button-secondary"
+            aria-describedby={nextHint}
+            onClick={() => run(suggestion.id)}
+          >
+            {text.practiseNext}
+          </button>
+          <p id={nextHint} className="picker-card-text">
+            {format(reasons[suggestion.reason], { title: localize(suggested.title) })}
+          </p>
+        </div>
+      )}
+      {phase !== undefined && (
+        <>
+          <div className="picker-drill">
+            <button
+              type="button"
+              className="button-secondary"
+              aria-describedby={randomHint}
+              onClick={() => {
+                const id = randomEmergency(aircraft);
+                if (id !== undefined) run(id);
+              }}
+            >
+              {text.randomEmergency}
+            </button>
+            <p id={randomHint} className="picker-card-text">
+              {text.randomEmergencyHint}
+            </p>
+          </div>
+          <div className="picker-drill">
+            <div className="picker-surprise">
+              <label htmlFor={phaseSelect} className="picker-card-text">
+                {text.surprisePhase}
+              </label>
+              <select
+                id={phaseSelect}
+                className="chrome-button"
+                value={phase}
+                onChange={(event) => setPhase(event.target.value)}
+              >
+                {phases.map((id) => {
+                  const name = aircraft.phases[id]?.name;
+                  return (
+                    <option key={id} value={id}>
+                      {name ? localize(name) : id}
+                    </option>
+                  );
+                })}
+              </select>
+              <button
+                type="button"
+                className="button-secondary"
+                aria-describedby={surpriseHint}
+                onClick={() => trainer.startSurprise(phase)}
+              >
+                {text.surpriseFailure}
+              </button>
+            </div>
+            <p id={surpriseHint} className="picker-card-text">
+              {text.surpriseHint}
+            </p>
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -219,6 +324,7 @@ export function Picker() {
               </div>
             </div>
           </section>
+          <Drills mode={mode} />
         </div>
         <StartupNotice />
       </main>
