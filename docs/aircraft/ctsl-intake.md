@@ -94,11 +94,15 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
   key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
+  For the key going in and out under the handle, see the ignition key below.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
+  The key goes in and comes out at OFF, and comes out only with the fuel valve
+  fully closed (E6). Assumed (unverified), from the handle covering the slot and
+  N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
 
@@ -310,7 +314,7 @@ checklist names. Steps marked _(confirm)_ have no control in the trainer.
 
 **N1 Pre-flight, cabin part (HB 4-1, 4-2).** Documents on board _(confirm)_;
 controls connected and free _(confirm)_; wing bolts secured _(confirm)_; ignition
-off; key out _(confirm)_; electrical consumers off; Avionics Master off; BAT in; flaps run
+off; key out; electrical consumers off; Avionics Master off; BAT in; flaps run
 out and back to check them; BAT out; fuel valve (Brandhahn) open; doors and
 glazing checked _(confirm)_. Walk-around zones as confirm items, one each: left
 fuselage and tail; right fuselage; right wing incl. fuel quantity (sight tube or
@@ -323,7 +327,7 @@ extinguisher, ELT remote switch. Folded into N6.
 
 **N3 Engine start (HB 4-3, 4-6).** Pre-flight done _(confirm)_; parking brake set;
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
-open; key in _(confirm)_; choke as needed (cold: on); throttle idle; propeller area
+open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
 after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
 to the taxi setting (0°). Before the first start of the day turn the prop by hand;
@@ -377,7 +381,8 @@ off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
 accidental ELT activation _(confirm)_.
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
-off; electrical consumers off; GEN out; ignition off; BAT out; key out _(confirm)_; rescue
+off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
+(assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
 system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
 _(confirm)_.
 
@@ -409,7 +414,7 @@ touchdown stick fully back and brake; ELT on if it has not triggered. Too high:
 S-turns.
 
 **E6 Engine fire (HB 3-2, 3-6).** Fuel valve closed at once; throttle full until
-the engine stops; ignition off; key out _(confirm)_ (the closed valve covers the key slot, so
+the engine stops; ignition off; key out (the closed valve covers the key slot, so
 this also proves the valve is fully closed); slip away from the flames while
 descending; emergency landing (E5). **Never deploy the rescue system with fire on
 board** (§8).
@@ -418,8 +423,8 @@ board** (§8).
 (**120 °C**, §8), using flaps 0–15° if speed gets low; land at the nearest
 airfield.
 
-**E8 Oil loss (HB 3-2, 3-7).** Ignition off; key out _(confirm)_; fuel valve closed;
-emergency landing (E5) at once: fire risk.
+**E8 Oil loss (HB 3-2, 3-7).** Ignition off; fuel valve closed; key out (after the
+valve, §8); emergency landing (E5) at once: fire risk.
 
 **E9 Flap control failure (HB 3-2, 3-7, 3-8, 7-13).** GEN out; BAT out; wait 3 s;
 BAT in; GEN in (safe in flight: the ignition does not need the bus). Flaps work:
@@ -443,23 +448,24 @@ get out, fire risk).
 
 ## 8. Handbook contradictions and the value used
 
-| Topic                         | Value A                                                                           | Value B                                                | Trainer uses                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                  | 120 °C (lowest)                                                                                |
-| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                        | 120 °C                                                                                         |
-| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                | 124 l                                                                                          |
-| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                    | 51 °C                                                                                          |
-| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)     | the by-flap table of §4.1; the checklist pair is flagged                                       |
-| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                             | 105 km/h (more margin over the stall)                                                          |
-| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)         | 125 km/h flaps 0° (the emergency chapter)                                                      |
-| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)             | gauge arcs as marked; speeds as listed                                                         |
-| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)         | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
-| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)       | never deploy; the fire procedure ends in an emergency landing                                  |
-| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off             | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                  | 260 km/h                                                                                       |
-| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                             | 130 °C                                                                                         |
-| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop               | GEN first, then avionics, after the engine runs                                                |
-| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4) | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
+| Topic                         | Value A                                                                           | Value B                                                         | Trainer uses                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                           | 120 °C (lowest)                                                                                |
+| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                                 | 120 °C                                                                                         |
+| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                         | 124 l                                                                                          |
+| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                             | 51 °C                                                                                          |
+| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)              | the by-flap table of §4.1; the checklist pair is flagged                                       |
+| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                                      | 105 km/h (more margin over the stall)                                                          |
+| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)                  | 125 km/h flaps 0° (the emergency chapter)                                                      |
+| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)                      | gauge arcs as marked; speeds as listed                                                         |
+| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
+| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
+| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                           | 260 km/h                                                                                       |
+| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
+| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
+| Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
+| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)          | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
 
 ## 9. Open questions for the club and instructor
 
@@ -574,14 +580,22 @@ verifies it on D-MPGO.
     Supralight: the handle sits centred between the seats on the bulkhead behind
     them, at about shoulder height, reached back over the shoulder; the pin goes
     through the holder and carries a remove-before-flight flag.
-27. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
+27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
+    covers the slot, and does N16 close the valve? Today: the key is out in
+    `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
+    it goes in only with the valve open, and the closed valve holds a key at OFF;
+    N16 closes the valve after BAT out so the key can come out, leaving the aircraft
+    as `parking` has it. **Answered by assumption pending owner verification**
+    (#468). Assumed (unverified), from the handle covering the slot and N3's order
+    (fuel valve open, then key in).
+28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
     engine bay streams over the windscreen in the outside view, and the CHT and oil
     temperature climb past their red lines within seconds while the fire burns; both
     clear once the valve is closed and the engine has stopped. **Answered by
     assumption pending owner verification** (#233). Assumed (unverified), from
     general-aviation practice: smell and smoke come first, and a fire in the engine
     bay heats the CHT and oil sensors; the size of the rise is a trainer value.
-28. **Flap control failure cue**: what shows on the panel when the flap controller
+29. **Flap control failure cue**: what shows on the panel when the flap controller
     fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
     position readout on that circuit goes dark, and with the breaker reset the readout
     stays put whatever the selector says. **Answered by assumption pending owner

@@ -87,12 +87,12 @@ export function createControlStore<CT extends ControlRecord>(
   }
 
   function locked(definition: ControlDefinition, id: string, to: ControlPosition): boolean {
-    const lock = definition.interlock;
-    return (
-      lock !== undefined &&
-      current.get(id) === lock.holds &&
-      to !== lock.holds &&
-      current.get(lock.control) === lock.at
+    const from = current.get(id);
+    return (definition.interlock ?? []).some(
+      ({ control, at, holds }) =>
+        current.get(control) === at &&
+        holds.some((held) => held === from) &&
+        !holds.some((held) => held === to),
     );
   }
 
