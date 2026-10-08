@@ -44,7 +44,7 @@ const longestNormal = Object.entries(ctslAircraft.procedures)
 
 const SUBPIXEL = 1;
 
-/** The CTSL panel draws its controls as artwork: buttons that flip, sliders that step, one radio group. */
+/** The CTSL panel draws its controls as artwork: buttons that flip or are held, sliders that step, one radio group. */
 async function operate(page: Page, controlId: string, position: string | number) {
   const name = ctslAircraft.controls[controlId]?.name.en;
   if (name === undefined) throw new Error(`no control ${controlId}`);
@@ -54,7 +54,11 @@ async function operate(page: Page, controlId: string, position: string | number)
   });
   const slider = page.getByRole('slider', { name, exact: true });
   const button = page.getByRole('button', { name: `${name}: ${position}`, exact: true });
-  if ((await radio.count()) > 0) {
+  if (ctslAircraft.controls[controlId]?.kind === 'momentary') {
+    await page.getByRole('button', { name, exact: true }).focus();
+    await page.keyboard.down('Enter');
+    await page.keyboard.up('Enter');
+  } else if ((await radio.count()) > 0) {
     await radio.click();
   } else if ((await slider.count()) > 0) {
     await slider.focus();

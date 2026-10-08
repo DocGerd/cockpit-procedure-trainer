@@ -327,9 +327,8 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     engine.running && failures.has('oilLoss') ? state.oilStarvedMs + dtMs : state.oilStarvedMs;
 
   const brakeApplied = on(controls, 'brake');
-  const parkingBrakeSet = !on(controls, 'parkingBrakeValve', 'closed')
-    ? false
-    : state.parkingBrakeSet || (brakeApplied && !state.brakeApplied);
+  const parkingBrakeSet =
+    on(controls, 'parkingBrakeValve', 'closed') && (state.parkingBrakeSet || brakeApplied);
 
   const consumer = (rocker: CtslControlId, breaker: CtslControlId) =>
     mainPowered && on(controls, rocker) && on(controls, breaker, 'in');
