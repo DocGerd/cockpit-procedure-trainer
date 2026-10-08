@@ -266,7 +266,7 @@ describe('trainer layout on desktop', () => {
     await startProcedure();
     act(() => trainer.session.set('master', 'on'));
     await userEvent.selectOptions(screen.getByLabelText('Start in phase'), 'cruise');
-    const dialog = screen.getByRole('alertdialog', { name: 'Jump to Cruise?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Jump to phase “Cruise”?' });
     expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
   });
 
