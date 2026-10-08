@@ -124,9 +124,16 @@ describe('phase control', () => {
     expect(phaseSelect()).toHaveProperty('value', 'ground');
   });
 
-  it('is named by a localized label', () => {
+  it('is named by a localized label that reads as the starting cockpit state', () => {
     renderStrip('de');
-    expect(within(screen.getByRole('banner')).getByLabelText('Flugphase')).toBe(phaseSelect());
+    expect(within(screen.getByRole('banner')).getByLabelText('Start in Flugphase')).toBe(
+      phaseSelect(),
+    );
+  });
+
+  it('is named Start in phase in English', () => {
+    renderStrip();
+    expect(within(screen.getByRole('banner')).getByLabelText('Start in phase')).toBe(phaseSelect());
   });
 
   it('jumps straight to the phase and loads its entry snapshot', async () => {

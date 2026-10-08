@@ -36,7 +36,9 @@ export const messages = defineMessages({
     practice: 'Practice',
     practiceHint: 'No highlight. Deviations are listed at the end',
     startProcedure: 'Start procedure',
+    startHint: 'Run the selected procedure in the chosen mode.',
     exploreCockpit: 'Explore the cockpit',
+    exploreHint: 'Look around the panel and read what each control does. No procedure runs.',
   },
   de: {
     brandName: 'Procedure Trainer',
@@ -73,6 +75,9 @@ export const messages = defineMessages({
     practice: 'Üben',
     practiceHint: 'Keine Hervorhebung. Abweichungen werden am Ende aufgelistet',
     startProcedure: 'Verfahren starten',
+    startHint: 'Das gewählte Verfahren im gewählten Modus durchlaufen.',
     exploreCockpit: 'Cockpit erkunden',
+    exploreHint:
+      'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
   },
 });
