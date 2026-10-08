@@ -340,9 +340,11 @@
   gap: var(--space-8);
   box-sizing: border-box;
   width: 100%;
-  max-width: 1080px;
+  max-width: calc(var(--space-12) * 22.5);
   margin: 0 auto;
   padding: var(--space-12) var(--space-6);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
 }
 
 .picker-intro {
