@@ -2,7 +2,7 @@
 
 Milestone M11 is released as v0.(11+1).0, so this is v0.12.0. On GitHub it is milestone 12. It replaces the "own view per avionics device" arrangement with the device dock you decided on spike #339 (layout A): each device shows a live read-only mirror in its panel slot, selecting the slot opens the operable unit in a dock cell under the panel, and Guided opens the target device there instead of switching views.
 
-This release also contains the first three M12 "Photorealistic panel" PRs, because they landed on `develop` before the cut: the spike and plan (#398), the glass layer, materials and perf harness (#401) and the demo backgrounds (#402). The panel art is therefore partly upgraded: the demo's panel and console are photoreal, the CT Supralight has its airspeed indicator glass and light rockers; the rest follows in the M12 release. Their changelog bullets are marked "Photorealistic panel (M12, in progress)".
+This release also contains the first three M12 "Photorealistic panel" PRs, because they landed on `develop` before the cut: the spike and plan (#398), the glass layer, materials and perf harness (#401) and the demo backgrounds (#402). The rest of M12 landed before this release PR was merged, so v0.12.0 ships all of M12 as well; its summary is `docs/milestones/m12-photorealistic-panel.md`.
 
 ## What shipped
 
