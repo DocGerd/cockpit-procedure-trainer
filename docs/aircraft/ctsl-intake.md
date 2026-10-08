@@ -476,3 +476,20 @@ Each item lists the value the trainer uses until it is answered.
     but the holding-point snapshot has the parking brake set. The trainer's
     `takeoff` checklist starts with releasing it (valve open, then a check that
     it is released), marked as a trainer addition. Is that how the club teaches it?
+19. **Field proportions**: how wide is the lower centre column compared with the
+    two upper fields, is it centred under their junction or offset, and where does
+    the console start below it? Uses the relative arrangement of §3 (centre column
+    low between the upper fields, console below it) with proportions chosen to fit
+    one screen (#436).
+20. **Compass**: panel compass with a reversed card in a narrow window, or a
+    vertical card? Its size and exact mount (panel or windscreen frame)? Uses a
+    round card turning under a lubber line, numbers increasing clockwise.
+21. **ELT remote switch legends**: what does the remote panel print beside its
+    positions (for example ON and ARM, or a TEST or RESET position), and what
+    colour is its lamp? Uses the printed label "ELT" with no position legends and
+    a red lamp.
+22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
+    and in which colour does it light? Uses an unlabelled red lamp.
+23. **Memory items**: which steps of the §7 procedures does the club expect from
+    memory before the checklist is read? Uses none: every item is read and done
+    from the list.
