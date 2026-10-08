@@ -387,8 +387,8 @@ a legend for an unknown position as `unknown-position` and an empty one as
 position of any control would cue text the panel does not print.
 
 Generic indicator widgets print no caption: a gauge shows its scale and units, a lamp
-or readout nothing of its name. An aircraft letters them through the placement's
-`printed`, as the demo does for HOURS, COMPASS, LOW VOLT and OIL PRESS. The indicator's
+or readout nothing of its name. An aircraft draws the lettering into the view image and lists it in the
+placement's `printed`, as the demo does for HOURS, COMPASS, LOW VOLT and OIL PRESS. The indicator's
 name stays as its accessible name.
 
 The label must name the function: a placard or lettering of only position legends

@@ -508,8 +508,8 @@ parallel.
   width and height (`invalid-view-size`) and no placement lies outside it
   (`placement-outside-view`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
-  a reset. A missing image falls back to the generic widget rather than a broken
-  panel. The generic indicator widgets and the indicator placeholder carry their
+  a reset. A missing view or outside-view image falls back to a labelled placeholder and
+  a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their
   name only as an accessible name, not as printed lettering (§4.8); the device
   placeholder for a device without a screen prints a short text. `step` throwing is reported, not swallowed.
 

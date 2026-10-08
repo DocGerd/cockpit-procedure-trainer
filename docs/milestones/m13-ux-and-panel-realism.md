@@ -20,7 +20,7 @@ The CT Supralight cockpit, closer to the aircraft:
 
 Shared phases and procedures:
 
-- **One phase set** (#482): every aircraft has the same ten phases, with a new Taxi out phase and outside view; Engine start ends on the taxiway.
+- **One phase set** (#482): every aircraft has the same phases in flight order, with a new Taxi out phase and outside view; Engine start ends on the taxiway.
 - **Taxi out procedure** (#496): the CTSL brake and steering checks moved into it, on the taxiway instead of at the parking position.
 - **Transponder before take-off** (#473): the pilot sets standby and the line checks it, instead of confirming a state nobody set.
 
@@ -38,7 +38,7 @@ The trainer, closer to procedure-trainer practice:
 Screens and navigation:
 
 - **Picker** (#437): Mode and Start stay in view, helper lines, "Start in phase", Free explore outside the Guided/Practice segments, a notice when Practice switches to Guided.
-- **Checklist pane** (#438): title and progress pinned, the current item clear of the footer, the deviation banner no longer shifts the list (also closed #414).
+- **Checklist pane** (#438): title and progress pinned, the current item clear of the footer, the deviation banner no longer shifts the list (the tablet overlay case, #414, went with it).
 - **Dock** (#439): dark panel hardware with a slim hint and a labelled close button.
 - **Navigation guards** (#441): Restart, Change aircraft and Change procedure ask before discarding progress and say what would be lost; header chips act in one click.
 - **4K** (#440, #457, #500): the chrome scales with the panel at 3840x2160, no empty band under the CTSL panel, and indicators no longer print their accessible name as a caption.
@@ -91,7 +91,7 @@ Follow-ups, without milestone (none blocks the release):
 
 - From the re-audit: #505 flow items tick themselves (question 5); #506 a surprise failure opens with an unrelated checklist shown; #507 4K dock hint and phase badge stay small; #508 the interlock notice shows far from the centre field; #509 check items give the expected value away, few CTSL checks take a reading (T10); #510 full flight cannot combine with a surprise failure or recall; #511 Guided engine fire rings the next item's controls.
 - From the M13 PRs and the plan: #483 airfield data spike; #360 system-fidelity spike; #415 spec and guide still call the dock optional; #237 hover info instead of the Operate toggle (H8 folded there); #425 an e2e that operates every control.
-- From the release review: #515 the picker's Best mixes Guided and Practice runs; #516 a history test asserts the deviation count against itself; #517 during a surprise failure only non-normal checklists can be run, so a wrong pick of a normal one cannot happen; #518 the full-flight walk covers the CT Supralight only; #519 in a full flight the GPS and intercom stay off, because carried legs do not re-seed device state and no step switches them on; #520 the rescue safety pin is only confirmed, never moved, so it is drawn wrong through a full flight; #521 the key can come out from BOTH by keyboard; #522 a panel-kit test does not check its clip polygons.
+- From the release review: #526 device controls in cues are not held to the wording the device prints; #515 the picker's Best mixes Guided and Practice runs; #516 a history test asserts the deviation count against itself; #517 during a surprise failure only non-normal checklists can be run, so a wrong pick of a normal one cannot happen; #518 the full-flight walk covers the CT Supralight only; #519 in a full flight the GPS and intercom stay off, because carried legs do not re-seed device state and no step switches them on; #520 the rescue safety pin is only confirmed, never moved, so it is drawn wrong through a full flight; #521 the key can come out from BOTH by keyboard; #522 a panel-kit test does not check its clip polygons.
 
 ## How to verify
 
@@ -100,7 +100,7 @@ Follow-ups, without milestone (none blocks the release):
 - Whole-milestone review: one reviewer over the diff since v0.12.0, with sub-reviews of core, web, aircraft content, and docs, panel-kit and changelog. Verdict: ship, no blockers. Fixed before the release: #512 (cues name positions as the panel prints them, for example L, R and ARM, and "key out"), #513 (leaving a full-flight leg summary asks first) and #514 (releasing a spring-back control early is no longer a wrong position; a flow item counts as verified only by a later item on the same position or a check of that control). Folded into the release preparation PR: spec, architecture, aircraft-guide, CT Supralight README and intake text that M13 had made stale (contract version 2, interlock refusal, phase device states and carry-over, flow latching, GPS fix, persisted options, indicator lettering, the walk-through's scope), the Taxi parking-brake release marked as a trainer addition, and changelog wording. The rest is filed as follow-ups above.
 - UAT (develop): https://docgerd.github.io/cockpit-procedure-trainer/uat/; prod after the merge: https://docgerd.github.io/cockpit-procedure-trainer/.
 
-A ten-minute walk-through at 1920x1080, CT Supralight, English:
+A short walk-through at 1920x1080, CT Supralight, English:
 
 1. **Cold and dark.** Pick Engine start in Guided with Start in phase Parking. Every rocker shows OFF, the key is out, and the fuel valve handle covers the slot. Try to turn the key: a notice names the fuel valve. Follow the numbered flow rings, then the checklist.
 2. **Full flight.** Back in the picker, Drills: Full flight in Guided. Fly the legs; set a switch in one leg and see it stay set in the next. At line-up the compass reads the runway heading, the transponder is at ALT 7000 and the GPS has a fix. Make one stray move: the cue says where to put the control back and rings it. The last leg ends with the table of every leg.
