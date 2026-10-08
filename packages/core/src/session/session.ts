@@ -1,5 +1,6 @@
 import { checkOff, observeControl, observeState, retryItem, startChecklist } from '../checklist';
 import type { ChecklistState } from '../checklist';
+import { sharedPhases } from '../contract';
 import type {
   Aircraft,
   ControlChange,
@@ -77,8 +78,7 @@ const FAILED: SessionControlResult = { applied: false, reason: 'failed' };
 
 export function createSession(aircraft: Aircraft, options: SessionOptions = {}): Session {
   const registry = options.devices ?? [];
-  const initialPhase = options.phase ?? Object.keys(aircraft.phases)[0];
-  if (initialPhase === undefined) throw new Error(`Aircraft "${aircraft.id}" has no phases`);
+  const initialPhase = options.phase ?? sharedPhases[0].id;
   const initial = entrySnapshot(aircraft, registry, initialPhase);
 
   const controls = { ...aircraft.controls, ...deviceControls(aircraft, registry) };

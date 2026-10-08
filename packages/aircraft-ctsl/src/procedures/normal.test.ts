@@ -11,7 +11,7 @@ const devices = testDevices;
 
 const expected = [
   ['preflight', 'parking', undefined],
-  ['engineStart', 'parking', undefined],
+  ['engineStart', 'parking', 'taxiOut'],
   ['beforeTakeoff', 'holding', undefined],
   ['takeoff', 'linedUp', 'departure'],
   ['shortTakeoff', 'linedUp', 'departure'],

@@ -1,4 +1,4 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixture, so checklist tests do not depend on the registered aircraft's content.
@@ -33,14 +33,12 @@ export const fixture: Aircraft = defineAircraft({
   systems: { initial, step: (_state, input) => ({ failing: input.failures.size > 0 }) },
   failures: { fire: { name: text('Fire') } },
   phases: {
-    ground: {
-      name: text('Ground'),
+    ...everyPhase({
       image: 'ground.svg',
       environment,
       entry: { controls: { master: 'off', pump: 'off', avionics: 'off' }, state: initial },
-    },
-    airborne: {
-      name: text('Airborne'),
+    }),
+    cruise: {
       image: 'airborne.svg',
       environment: { airspeedKt: 100, altitudeFt: 3000, onGround: false },
       entry: { controls: { master: 'on', pump: 'on', avionics: 'off' }, state: initial },
@@ -50,7 +48,7 @@ export const fixture: Aircraft = defineAircraft({
     flow: {
       title: text('Flow'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         {
@@ -66,14 +64,14 @@ export const fixture: Aircraft = defineAircraft({
     followUp: {
       title: text('Follow-up'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [{ type: 'action', control: 'avionics', position: 'on', text: text('Avionics on') }],
     },
     fire: {
       title: text('Fire'),
       type: 'emergency',
       failure: 'fire',
-      startPhase: 'airborne',
+      startPhase: 'cruise',
       items: [{ type: 'action', control: 'pump', position: 'off', text: text('Pump off') }],
     },
   },

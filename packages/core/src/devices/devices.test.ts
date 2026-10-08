@@ -91,19 +91,19 @@ describe('initialDeviceStates', () => {
 
   describe('with a phase that seeds device state', () => {
     const seeded = (deviceStates: unknown): Aircraft => {
-      const runup = fixtureDeviceAircraft.phases.runup;
+      const holding = fixtureDeviceAircraft.phases.holding;
       return {
         ...fixtureDeviceAircraft,
         phases: {
           ...fixtureDeviceAircraft.phases,
-          runup: { ...runup, entry: { ...runup?.entry, deviceStates } },
+          holding: { ...holding, entry: { ...holding?.entry, deviceStates } },
         },
       } as Aircraft;
     };
 
     it('lays the seeded fields over the starting state, leaving the rest', () => {
       const aircraft = seeded({ mon: { reading: 7 } });
-      expect(initialDeviceStates(aircraft, devices, 'runup')).toEqual({
+      expect(initialDeviceStates(aircraft, devices, 'holding')).toEqual({
         mon: { on: false, state: { page: 'engine', reading: 7 } },
       });
     });
@@ -116,7 +116,7 @@ describe('initialDeviceStates', () => {
     });
 
     it('does not change the device definition', () => {
-      initialDeviceStates(seeded({ mon: { reading: 7 } }), devices, 'runup');
+      initialDeviceStates(seeded({ mon: { reading: 7 } }), devices, 'holding');
       expect(engineMonitor.initial).toEqual({ page: 'engine', reading: null });
     });
 
@@ -255,12 +255,12 @@ describe('procedures over device controls', () => {
 
 describe('deviceEntryPositions', () => {
   const withEntry = (entryDevices: unknown): Aircraft => {
-    const runup = fixtureDeviceAircraft.phases.runup;
+    const holding = fixtureDeviceAircraft.phases.holding;
     return {
       ...fixtureDeviceAircraft,
       phases: {
         ...fixtureDeviceAircraft.phases,
-        runup: { ...runup, entry: { ...runup?.entry, devices: entryDevices } },
+        holding: { ...holding, entry: { ...holding?.entry, devices: entryDevices } },
       },
     } as Aircraft;
   };
@@ -273,7 +273,9 @@ describe('deviceEntryPositions', () => {
 
   it('uses the phase position where given', () => {
     const aircraft = withEntry({ mon: { page: 'electrical' } });
-    expect(deviceEntryPositions(aircraft, devices, 'runup')).toEqual({ 'mon.page': 'electrical' });
+    expect(deviceEntryPositions(aircraft, devices, 'holding')).toEqual({
+      'mon.page': 'electrical',
+    });
     expect(deviceEntryPositions(aircraft, devices, 'parking')).toEqual({ 'mon.page': 'engine' });
   });
 

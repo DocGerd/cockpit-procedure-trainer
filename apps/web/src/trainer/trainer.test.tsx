@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { STEP_MS } from '@cpt/core';
+import { phaseOrder, STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,7 +46,7 @@ describe('trainer store', () => {
     expect(trainer.screen).toBe('picker');
     expect(trainer.mode).toBe('guided');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.phase()).toBe(Object.keys(first.phases)[0]);
+    expect(trainer.session.phase()).toBe(phaseOrder[0]);
   });
 
   it('restores the last aircraft', () => {
@@ -320,7 +320,7 @@ describe('surprise failure', () => {
   const startSurprise = () => {
     const view = renderTrainer();
     act(() => view.result.current.trainer.selectAircraft(second.id));
-    act(() => view.result.current.trainer.startSurprise('ground'));
+    act(() => view.result.current.trainer.startSurprise('parking'));
     return view;
   };
 
@@ -331,7 +331,7 @@ describe('surprise failure', () => {
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
     expect(trainer.viewedProcedureId).toBe('powerUp');
-    expect(snapshot.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(snapshot.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(snapshot.failures().size).toBe(0);
   });
 
@@ -350,7 +350,7 @@ describe('surprise failure', () => {
     const { result } = startSurprise();
     act(() => result.current.trainer.backToPicker());
     expect(result.current.snapshot.scenario()).toBeUndefined();
-    act(() => result.current.trainer.startSurprise('ground'));
+    act(() => result.current.trainer.startSurprise('parking'));
     act(() => result.current.trainer.setMode('explore'));
     expect(result.current.snapshot.scenario()).toBeUndefined();
   });
@@ -366,7 +366,7 @@ describe('surprise failure', () => {
     const { trainer } = result.current;
     expect(trainer.procedureId).toBeUndefined();
     expect(trainer.mode).toBe('practice');
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(trainer.session.scenario()?.chosen).toBeUndefined();
     expect(trainer.session.failures().size).toBe(0);
   });
@@ -381,12 +381,12 @@ describe('surprise failure', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking' });
   });
 
   it('ends the drill with a phase jump, so a restart runs the checklist again', () => {
     const { result } = startSurprise();
-    act(() => result.current.trainer.jumpToPhase('ground'));
+    act(() => result.current.trainer.jumpToPhase('parking'));
     expect(result.current.trainer.surprisePhase).toBeUndefined();
     act(() => result.current.trainer.startProcedure('powerUp'));
     act(() => result.current.trainer.restart());
@@ -411,7 +411,7 @@ describe('surprise failure', () => {
     act(() => result.current.trainer.resetSession());
     const { session } = result.current.trainer;
     expect(session).not.toBe(before);
-    expect(session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(session.procedureId()).toBeUndefined();
   });
 });
@@ -516,7 +516,7 @@ describe('session state', () => {
     act(() => vi.advanceTimersByTime(STEP_MS * 3));
     expect(phaseRenders).toBe(phaseBefore);
     expect(objectRenders).toBe(objectBefore);
-    expect(phase.result.current).toBe('ground');
+    expect(phase.result.current).toBe('parking');
     expect(controls.result.current).toEqual({ master: 'off' });
   });
 

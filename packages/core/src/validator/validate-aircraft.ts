@@ -1,4 +1,4 @@
-import { isPosition } from '../contract';
+import { isPhaseId, isPosition, phaseOrder } from '../contract';
 import type {
   Aircraft,
   Appearance,
@@ -14,6 +14,8 @@ export type FindingCode =
   | 'unplaced-control'
   | 'unplaced-indicator'
   | 'missing-translation'
+  | 'missing-phase'
+  | 'unknown-phase'
   | 'phase-without-image'
   | 'running-image-without-engine'
   | 'phase-without-running-image'
@@ -430,8 +432,12 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   }
 
+  for (const phaseId of phaseOrder) {
+    if (!hasPhase(phaseId))
+      add('missing-phase', phaseId, 'declares no entry for this shared phase');
+  }
   for (const [phaseId, phase] of Object.entries(aircraft.phases)) {
-    checkText(phaseId, 'name', phase.name);
+    if (!isPhaseId(phaseId)) add('unknown-phase', phaseId, 'is not a shared phase');
     if (isMissing(phase.image)) add('phase-without-image', phaseId, 'declares no image');
     if (phase.imageRunning === undefined && aircraft.engineRunning !== undefined) {
       add(

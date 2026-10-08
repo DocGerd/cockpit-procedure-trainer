@@ -1,4 +1,5 @@
 import { defineAircraft } from './define-aircraft';
+import { everyPhase } from './phase-set';
 import type { Environment, StepInput, Text, TrainerState } from './types';
 
 export type FixtureState = {
@@ -63,6 +64,23 @@ const engineRunning = (state: TrainerState<FixtureState>) => state.systems.engin
 const busPowered = (state: TrainerState<FixtureState>) => state.systems.busPowered;
 
 const rect = (x: number, y: number) => ({ rect: { x, y, w: 40, h: 40 } });
+
+const parkedPhase = {
+  image: 'parking.png',
+  environment,
+  entry: {
+    controls: {
+      master: 'off',
+      ignition: 'off',
+      throttle: 0,
+      flaps: 'up',
+      lampTest: 'released',
+      fuelPump: 'off',
+      alternatorBreaker: 'in',
+    },
+    state: initial,
+  },
+} as const;
 
 export const fixtureAircraft = defineAircraft({
   id: 'fixture',
@@ -215,26 +233,9 @@ export const fixtureAircraft = defineAircraft({
     },
   },
   phases: {
-    parking: {
-      name: text('Parkposition', 'Parking'),
-      image: 'parking.png',
-      environment,
-      entry: {
-        controls: {
-          master: 'off',
-          ignition: 'off',
-          throttle: 0,
-          flaps: 'up',
-          lampTest: 'released',
-          fuelPump: 'off',
-          alternatorBreaker: 'in',
-        },
-        state: initial,
-      },
-    },
-    runup: {
-      name: text('Probelauf', 'Run-up'),
-      image: 'runup.png',
+    ...everyPhase(parkedPhase),
+    holding: {
+      image: 'holding.png',
       environment,
       entry: {
         controls: {
@@ -255,7 +256,7 @@ export const fixtureAircraft = defineAircraft({
       title: text('Vor dem Anlassen', 'Before start'),
       type: 'normal',
       startPhase: 'parking',
-      endPhase: 'runup',
+      endPhase: 'holding',
       items: [
         {
           type: 'action',
@@ -303,7 +304,7 @@ export const fixtureAircraft = defineAircraft({
     alternatorFailure: {
       title: text('Lichtmaschinenausfall', 'Alternator failure'),
       type: 'emergency',
-      startPhase: 'runup',
+      startPhase: 'holding',
       failure: 'alternatorFailure',
       items: [
         {

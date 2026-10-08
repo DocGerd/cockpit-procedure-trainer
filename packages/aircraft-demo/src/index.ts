@@ -1,5 +1,5 @@
 import { defineAircraft } from '@cpt/core';
-import type { Environment, Placement } from '@cpt/core';
+import type { Environment, PhaseId, Placement } from '@cpt/core';
 import { images } from './assets';
 import { cockpit } from './cockpit';
 import { controls } from './controls';
@@ -40,6 +40,7 @@ const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
 const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
 const flaring = { ...idling, flaps: 'landing' } as const;
+const taxiingOut = { ...idling, throttle: 0.15 } as const;
 const taxiingIn = { ...idling, throttle: 0.15, flaps: 'landing' } as const;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
@@ -68,7 +69,7 @@ const deviceSlots = {
 const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
 const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
-const facing = (phase: keyof typeof phaseHeadings, state: DemoState): DemoState => ({
+const facing = (phase: PhaseId, state: DemoState): DemoState => ({
   ...state,
   headingDeg: phaseHeadings[phase],
 });
@@ -144,28 +145,30 @@ export const demoAircraft = defineAircraft({
   },
   phases: {
     parking: {
-      name: text('Parkposition', 'Parking'),
       image: images.parking,
       imageRunning: images.parkingRunning,
       environment: ground(),
       entry: { controls: parked, state: facing('parking', initial) },
     },
+    taxiOut: {
+      image: images.taxiOut,
+      imageRunning: images.taxiOutRunning,
+      environment: ground(),
+      entry: { controls: taxiingOut, state: facing('taxiOut', runningFrom(taxiingOut)) },
+    },
     holding: {
-      name: text('Rollhalt', 'Holding point'),
       image: images.holding,
       imageRunning: images.holdingRunning,
       environment: ground(),
       entry: { controls: idling, state: facing('holding', runningFrom(idling)) },
     },
     linedUp: {
-      name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
       image: images.linedUp,
       imageRunning: images.linedUpRunning,
       environment: ground(),
       entry: { controls: linedUpControls, state: facing('linedUp', runningFrom(linedUpControls)) },
     },
     departure: {
-      name: text('Abflug', 'Departure'),
       image: images.departure,
       imageRunning: images.departureRunning,
       environment: departureEnvironment,
@@ -175,7 +178,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     cruise: {
-      name: text('Reiseflug', 'Cruise'),
       image: images.cruise,
       imageRunning: images.cruiseRunning,
       environment: cruiseEnvironment,
@@ -185,7 +187,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     approach: {
-      name: text('Anflug', 'Approach'),
       image: images.approach,
       imageRunning: images.approachRunning,
       environment: approachEnvironment,
@@ -195,7 +196,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     landing: {
-      name: text('Landung', 'Landing'),
       image: images.landing,
       imageRunning: images.landingRunning,
       environment: landingEnvironment,
@@ -205,14 +205,12 @@ export const demoAircraft = defineAircraft({
       },
     },
     taxiIn: {
-      name: text('Rollen zum Vorfeld', 'Taxi in'),
       image: images.taxiIn,
       imageRunning: images.taxiInRunning,
       environment: ground(),
       entry: { controls: taxiingIn, state: facing('taxiIn', runningFrom(taxiingIn)) },
     },
     parkingSecuring: {
-      name: text('Parken und Sichern', 'Parking and securing'),
       image: images.parkingSecuring,
       imageRunning: images.parkingSecuringRunning,
       environment: ground(),

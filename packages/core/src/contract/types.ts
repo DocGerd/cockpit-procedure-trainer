@@ -1,3 +1,5 @@
+import type { PhaseId } from './phase-set';
+
 export type Text = { readonly de: string; readonly en: string };
 
 export type JsonValue =
@@ -295,7 +297,6 @@ export type ControlRules<CT extends ControlRecord> = string extends keyof CT
   : { readonly [K in keyof NoInfer<CT>]: PositionRules<NoInfer<CT>[K]> };
 
 export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
-  readonly name: Text;
   /** The outside view; with `imageRunning` set, the view while the engine is stopped. */
   readonly image: string;
   /** The outside view while `engineRunning` holds, with the propeller disc in place of the blade. */
@@ -381,6 +382,14 @@ export type ProcedureDefinition<
   | { readonly type: 'emergency'; readonly failure: F }
 );
 
+/**
+ * Every shared phase and no other; `P` is inferred from the keys an aircraft declares, so an
+ * unknown key fails to typecheck even when the phases are built apart from `defineAircraft`.
+ */
+export type PhaseRecord<D, P extends string> = string extends P
+  ? { readonly [id: string]: D }
+  : { readonly [K in P]: K extends PhaseId ? D : never } & { readonly [K in PhaseId]: D };
+
 export type AircraftDefinition<
   S,
   CT extends ControlRecord,
@@ -401,7 +410,7 @@ export type AircraftDefinition<
   /** Whether the engine runs; selects `imageRunning` over `image` in the outside view. */
   readonly engineRunning?: Condition<S>;
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
-  readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
+  readonly phases: PhaseRecord<PhaseDefinition<S, CT>, P>;
   readonly procedures: {
     readonly [id: string]: ProcedureDefinition<S, CT, NoInfer<I>, NoInfer<F>, NoInfer<P>>;
   };

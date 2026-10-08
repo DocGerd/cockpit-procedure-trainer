@@ -15,7 +15,7 @@ vi.mock('../aircraft-registry', async () => {
   const scan = {
     title: text('Scan'),
     type: 'normal',
-    startPhase: 'ground',
+    startPhase: 'parking',
     items: [
       { type: 'action', flow: true, control: 'master', position: 'on', text: text('Master flow') },
       { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump flow') },
@@ -26,7 +26,7 @@ vi.mock('../aircraft-registry', async () => {
   const reading = {
     title: text('Reading'),
     type: 'normal',
-    startPhase: 'ground',
+    startPhase: 'parking',
     items: [
       {
         type: 'check',

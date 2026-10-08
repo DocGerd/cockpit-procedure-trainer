@@ -13,7 +13,7 @@ vi.mock('../aircraft-registry', async () => {
   const scan = {
     title: text('Scan'),
     type: 'normal',
-    startPhase: 'ground',
+    startPhase: 'parking',
     items: [
       { type: 'action', flow: true, control: 'master', position: 'on', text: text('Master') },
       { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump') },

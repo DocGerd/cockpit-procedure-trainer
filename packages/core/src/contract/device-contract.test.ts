@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineAircraft } from './index';
+import { defineAircraft, everyPhase } from './index';
 import type { Text, TrainerState } from './index';
 
 type State = { on: boolean };
@@ -26,14 +26,11 @@ const body = {
   views: { main: { name: text, image: 'panel.png' }, side: { name: text, image: 'side.png' } },
   systems: { initial, step: (state: State) => state },
   failures: {},
-  phases: {
-    parking: {
-      name: text,
-      image: 'parking.png',
-      environment,
-      entry: { controls: { master: 'off' }, state: initial },
-    },
-  },
+  phases: everyPhase({
+    image: 'parking.png',
+    environment,
+    entry: { controls: { master: 'off' }, state: initial },
+  }),
   procedures: {},
 } as const;
 
@@ -109,6 +106,7 @@ describe('device ids and installs', () => {
       ...body,
       devices: { mon: install },
       phases: {
+        ...body.phases,
         parking: { ...body.phases.parking, entry: { ...entry, devices: { mon: { page: 'a' } } } },
       },
     });
@@ -116,6 +114,7 @@ describe('device ids and installs', () => {
       ...body,
       devices: { mon: install },
       phases: {
+        ...body.phases,
         parking: {
           ...body.phases.parking,
           // @ts-expect-error a position is a string or a number

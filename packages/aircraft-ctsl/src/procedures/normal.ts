@@ -210,6 +210,7 @@ export const normalProcedures = {
     title: text('Triebwerk anlassen und Rollen', 'Engine start and taxi'),
     type: 'normal',
     startPhase: 'parking',
+    endPhase: 'taxiOut',
     items: [
       confirm('Vorflugkontrolle erledigt', 'Pre-flight check done'),
       confirm(

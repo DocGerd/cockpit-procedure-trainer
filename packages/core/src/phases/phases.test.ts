@@ -11,25 +11,25 @@ const fixturePhase = (id: string) => {
 
 describe('entrySnapshot', () => {
   it('takes the phase controls, state and environment', () => {
-    const snapshot = entrySnapshot(fixtureAircraft, [], 'runup');
-    const runup = fixturePhase('runup');
-    expect(snapshot.positions).toEqual(runup.entry.controls);
-    expect(snapshot.systems).toBe(runup.entry.state);
-    expect(snapshot.environment).toBe(runup.environment);
+    const snapshot = entrySnapshot(fixtureAircraft, [], 'holding');
+    const holding = fixturePhase('holding');
+    expect(snapshot.positions).toEqual(holding.entry.controls);
+    expect(snapshot.systems).toBe(holding.entry.state);
+    expect(snapshot.environment).toBe(holding.environment);
     expect(snapshot.devices).toEqual({});
     expect(snapshot.guards).toEqual({});
   });
 
   it('carries the guard positions the entry declares', () => {
-    const runup = fixturePhase('runup');
+    const holding = fixturePhase('holding');
     const aircraft = {
       ...fixtureAircraft,
       phases: {
         ...fixtureAircraft.phases,
-        runup: { ...runup, entry: { ...runup.entry, guards: { fuelPump: 'open' as const } } },
+        holding: { ...holding, entry: { ...holding.entry, guards: { fuelPump: 'open' as const } } },
       },
     };
-    expect(entrySnapshot(aircraft, [], 'runup').guards).toEqual({ fuelPump: 'open' });
+    expect(entrySnapshot(aircraft, [], 'holding').guards).toEqual({ fuelPump: 'open' });
   });
 
   it('completes the positions with device controls and starts devices off', () => {

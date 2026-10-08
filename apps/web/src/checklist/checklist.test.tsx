@@ -560,7 +560,7 @@ describe('deviation summary', () => {
 
 describe('surprise failure', () => {
   const note = /Surprise failure: a failure appears without warning/;
-  const surprise = () => act(() => trainer.startSurprise('airborne'));
+  const surprise = () => act(() => trainer.startSurprise('cruise'));
   const past = (ms: number) => act(() => trainer.session.advance(ms));
   const runButton = () => screen.queryByRole('button', { name: 'Run this checklist' });
 
@@ -594,7 +594,7 @@ describe('surprise failure', () => {
     expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'New surprise failure' }));
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'airborne', failure: 'fire' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'cruise', failure: 'fire' });
   });
 
   it('says when the chosen checklist is not the one for the failure', () => {
@@ -884,7 +884,7 @@ describe('viewing a checklist', () => {
   it('shows the read-only view after a phase jump ends the procedure', () => {
     renderPane();
     start(flow);
-    act(() => trainer.jumpToPhase('airborne'));
+    act(() => trainer.jumpToPhase('cruise'));
     expect(trainer.procedureId).toBeUndefined();
     expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
     expect(screen.queryByRole('img')).toBeNull();

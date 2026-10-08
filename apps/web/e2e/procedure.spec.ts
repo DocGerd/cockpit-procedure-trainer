@@ -1,3 +1,4 @@
+import { sharedPhases } from '@cpt/core';
 import { SURPRISE_MAX_MS } from '../src/trainer/surprise-delay';
 import { control } from './content';
 import { expect, test } from './fixtures';
@@ -171,9 +172,9 @@ test('a completed run shows in the picker after a reload and sends nothing out',
 
 test.describe('changing the phase during a procedure', () => {
   const startPhase = procedure(engineStart).startPhase;
-  const target = Object.entries(aircraft.phases).find(([id]) => id !== startPhase);
-  if (!target) throw new Error('The demo aircraft needs a second phase');
-  const [targetId, targetPhase] = target;
+  const target = sharedPhases.find(({ id }) => id !== startPhase);
+  if (!target) throw new Error('The phase set needs a second phase');
+  const { id: targetId, name: targetName } = target;
 
   test.beforeEach(async ({ page }) => {
     await startProcedure(page, engineStart, 'guided');
@@ -182,10 +183,10 @@ test.describe('changing the phase during a procedure', () => {
     await expect(progress(page)).toHaveJSProperty('value', 1);
     await page
       .getByLabel(copy.outsideView.phase, { exact: true })
-      .selectOption({ label: targetPhase.name.en });
+      .selectOption({ label: targetName.en });
     await expect(
       page.getByRole('alertdialog', {
-        name: copy.outsideView.jumpTitle.replace('{phase}', targetPhase.name.en),
+        name: copy.outsideView.jumpTitle.replace('{phase}', targetName.en),
       }),
     ).toBeVisible();
   });

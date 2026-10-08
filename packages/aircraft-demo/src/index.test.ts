@@ -93,6 +93,7 @@ describe('demo aircraft', () => {
   it('lists the phases of a whole flight in flight order', () => {
     expect(Object.keys(demoAircraft.phases)).toEqual([
       'parking',
+      'taxiOut',
       'holding',
       'linedUp',
       'departure',
@@ -113,6 +114,12 @@ describe('demo aircraft', () => {
       expect(systems(session).engine.running).toBe(true);
     },
   );
+
+  it('enters taxiOut on taxi power with the flaps up, on the ground at rest', () => {
+    const taxiOut = demoAircraft.phases.taxiOut;
+    expect(taxiOut?.entry.controls).toMatchObject({ throttle: 0.15, flaps: 'up' });
+    expect(taxiOut?.environment).toEqual({ airspeedKt: 0, altitudeFt: 0, onGround: true });
+  });
 
   it('ends the shutdown with the controls of the cold parked aircraft and a dead bus', () => {
     const session = createSession(demoAircraft, { devices, phase: 'parkingSecuring' });

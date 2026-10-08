@@ -39,7 +39,7 @@ const aircraft: Aircraft = {
     flow: {
       title: { de: 'Ablauf', en: 'Flow' },
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [{ type: 'confirm', text: { de: 'Bestätigen', en: 'Confirm' } }],
     },
   },

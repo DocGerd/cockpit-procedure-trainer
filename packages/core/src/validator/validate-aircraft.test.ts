@@ -173,11 +173,6 @@ describe('validateAircraft', () => {
       expect(found[1]?.message).toContain('description');
     });
 
-    it('reports a phase name', () => {
-      const aircraft = withPhase('parking', { name: { de: 'Parkposition', en: '' } });
-      only(aircraft, 'missing-translation', 'parking');
-    });
-
     it('reports a procedure title and an item text', () => {
       const aircraft = broken({
         procedures: {
@@ -214,6 +209,21 @@ describe('validateAircraft', () => {
       const found = ofCode(aircraft, 'missing-translation');
       expect(found.map((f) => f.id)).toEqual(['fixture']);
       expect(found[0]?.message).toContain('handbookRevision');
+    });
+  });
+
+  describe('the shared phase set', () => {
+    it('reports a shared phase the aircraft leaves out', () => {
+      const phases = Object.fromEntries(
+        Object.entries(fixtureAircraft.phases).filter(([id]) => id !== 'taxiOut'),
+      );
+      const finding = only(broken({ phases }), 'missing-phase', 'taxiOut');
+      expect(finding.message).toContain('shared phase');
+    });
+
+    it('reports a phase outside the shared set', () => {
+      const phases = { ...fixtureAircraft.phases, runup: fixtureAircraft.phases.holding };
+      only(broken({ phases }), 'unknown-phase', 'runup');
     });
   });
 

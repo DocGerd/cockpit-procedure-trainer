@@ -24,7 +24,7 @@ const ctsl = required(aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl'
 
 const withSecondFire: Aircraft = {
   ...bravo,
-  phases: { cruise: required(bravo.phases['cruise']), ground: required(bravo.phases['ground']) },
+  phases: { cruise: required(bravo.phases['cruise']), parking: required(bravo.phases['parking']) },
   failures: { ...bravo.failures, smoke: { name: { de: 'Rauch', en: 'Smoke' } } },
   procedures: {
     ...bravo.procedures,
@@ -40,30 +40,30 @@ const entry = (deviations: number, at: number): ProcedureHistory => ({
 });
 
 describe('surprisePhases', () => {
-  it('lists the phases with an emergency procedure in the aircraft order', () => {
+  it('lists the phases with an emergency procedure in flight order', () => {
     expect(surprisePhases(alpha)).toEqual([]);
-    expect(surprisePhases(bravo)).toEqual(['ground']);
-    expect(surprisePhases(withSecondFire)).toEqual(['cruise', 'ground']);
+    expect(surprisePhases(bravo)).toEqual(['parking']);
+    expect(surprisePhases(withSecondFire)).toEqual(['parking', 'cruise']);
   });
 });
 
 describe('pickSurprise', () => {
   it('picks among the failures of the phase only, each once', () => {
-    expect(pickSurprise(withSecondFire, 'ground', () => 0.99).failure).toBe('fire');
+    expect(pickSurprise(withSecondFire, 'parking', () => 0.99).failure).toBe('fire');
     expect(pickSurprise(withSecondFire, 'cruise', () => 0).failure).toBe('smoke');
   });
 
   it('keeps the delay within its bounds and on the step grid', () => {
-    expect(pickSurprise(bravo, 'ground', () => 0).delayMs).toBe(SURPRISE_MIN_MS);
-    expect(pickSurprise(bravo, 'ground', () => 0.999999).delayMs).toBe(SURPRISE_MAX_MS);
-    const { delayMs } = pickSurprise(bravo, 'ground', () => 0.37);
+    expect(pickSurprise(bravo, 'parking', () => 0).delayMs).toBe(SURPRISE_MIN_MS);
+    expect(pickSurprise(bravo, 'parking', () => 0.999999).delayMs).toBe(SURPRISE_MAX_MS);
+    const { delayMs } = pickSurprise(bravo, 'parking', () => 0.37);
     expect(delayMs).toBeGreaterThan(SURPRISE_MIN_MS);
     expect(delayMs).toBeLessThan(SURPRISE_MAX_MS);
     expect(delayMs % STEP_MS).toBe(0);
   });
 
   it('throws for a phase without an emergency procedure', () => {
-    expect(() => pickSurprise(alpha, 'ground')).toThrow('ground');
+    expect(() => pickSurprise(alpha, 'parking')).toThrow('parking');
   });
 });
 
@@ -76,7 +76,7 @@ describe('surprise cues', () => {
         step: (_state, input) => ({ failing: input.failures.has('fire') }),
       },
     };
-    expect(surprisePhases(smokeUnseen)).toEqual(['ground']);
+    expect(surprisePhases(smokeUnseen)).toEqual(['parking']);
     expect(() => pickSurprise(smokeUnseen, 'cruise')).toThrow('cruise');
   });
 

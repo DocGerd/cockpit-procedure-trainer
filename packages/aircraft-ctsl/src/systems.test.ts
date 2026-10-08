@@ -1,11 +1,10 @@
 import { createSession, createSystemsRuntime, STEP_MS } from '@cpt/core';
-import type { ControlPosition, Environment, Session } from '@cpt/core';
+import type { ControlPosition, Environment, PhaseId, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import type { CtslFailure } from './failures';
 import { ctslAircraft } from './index';
 import { chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import type { PhaseId } from './phases';
 import { initial, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';

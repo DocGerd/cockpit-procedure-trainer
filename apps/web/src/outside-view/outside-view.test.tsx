@@ -2,11 +2,13 @@
 import { act, cleanup, fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { phaseOrder, sharedPhases } from '@cpt/core';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { OutsideView } from './OutsideView';
 import { PhaseControl } from './PhaseControl';
+import { fixture } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => ({
   aircraftRegistry: [(await import('./test-aircraft')).fixture],
@@ -47,7 +49,7 @@ describe('outside view', () => {
   it('shows the current phase image with its localized name', () => {
     renderStrip();
     expect(image().getAttribute('src')).toBe('ground.svg');
-    expect(image().getAttribute('alt')).toBe('Ground');
+    expect(image().getAttribute('alt')).toBe('Parking');
   });
 
   it('follows the phase when the session changes it', () => {
@@ -72,7 +74,7 @@ describe('outside view', () => {
 
   it('keeps the image of a phase that has no running image', () => {
     renderStrip();
-    act(() => trainer.session.jumpToPhase('landed'));
+    act(() => trainer.session.jumpToPhase('taxiIn'));
     act(() => {
       trainer.session.set('master', 'on');
     });
@@ -86,21 +88,21 @@ describe('outside view', () => {
     act(() => {
       trainer.session.set('master', 'on');
     });
-    expect(trainer.session.phase()).toBe('landed');
+    expect(trainer.session.phase()).toBe('taxiIn');
     expect(image().getAttribute('src')).toBe('landed.svg');
-    expect(phaseSelect()).toHaveProperty('value', 'landed');
+    expect(phaseSelect()).toHaveProperty('value', 'taxiIn');
   });
 
   it('localizes the name', () => {
     renderStrip('de');
-    expect(image().getAttribute('alt')).toBe('Ground (de)');
+    expect(image().getAttribute('alt')).toBe('Parkposition');
   });
 
   it('shows the labelled placeholder when the image is broken', () => {
     renderStrip();
     fireEvent.error(image());
     expect(image().tagName).toBe('DIV');
-    expect(image().getAttribute('aria-label')).toBe('Ground');
+    expect(image().getAttribute('aria-label')).toBe('Parking');
   });
 
   it('tries the next phase image after a broken one', () => {
@@ -113,15 +115,37 @@ describe('outside view', () => {
 });
 
 describe('phase control', () => {
-  it('lists the phases by localized name and marks the current one', () => {
+  it('lists the shared phases in flight order by localized name and marks the current one', () => {
     renderStrip('de');
     const options = within(phaseSelect()).getAllByRole('option');
-    expect(options.map((option) => option.textContent)).toEqual([
-      'Ground (de)',
-      'Cruise (de)',
-      'Landed (de)',
-    ]);
-    expect(phaseSelect()).toHaveProperty('value', 'ground');
+    expect(options.map((option) => option.getAttribute('value'))).toEqual(phaseOrder);
+    expect(options.map((option) => option.textContent)).toEqual(
+      sharedPhases.map(({ name }) => name.de),
+    );
+    expect(options[1]?.textContent).toBe('Rollen zum Rollhalt');
+    expect(phaseSelect()).toHaveProperty('value', 'parking');
+  });
+
+  it('keeps the flight order whatever order the aircraft declares its phases in', () => {
+    const { phases } = fixture;
+    const reversed = Object.fromEntries(Object.entries(phases).reverse());
+    try {
+      (fixture as { phases: typeof phases }).phases = reversed;
+      renderStrip();
+      const options = within(phaseSelect()).getAllByRole('option');
+      expect(options.map((option) => option.getAttribute('value'))).toEqual(phaseOrder);
+      expect(phaseSelect()).toHaveProperty('value', 'parking');
+    } finally {
+      (fixture as { phases: typeof phases }).phases = phases;
+    }
+  });
+
+  it('jumps to a phase no procedure starts in', async () => {
+    renderStrip();
+    await userEvent.selectOptions(phaseSelect(), 'taxiOut');
+    expect(trainer.session.phase()).toBe('taxiOut');
+    expect(image().getAttribute('src')).toBe('ground.svg');
+    expect(image().getAttribute('alt')).toBe('Taxi out');
   });
 
   it('is named by a localized label that reads as the starting cockpit state', () => {
@@ -182,9 +206,9 @@ describe('phase control', () => {
       expect(description?.textContent).toContain('Progress lost: 1 of 2 items done.');
       const title = document.getElementById(dialog.getAttribute('aria-labelledby') ?? '');
       expect(title?.textContent).toBe('Jump to phase “Cruise”?');
-      expect(trainer.session.phase()).toBe('ground');
+      expect(trainer.session.phase()).toBe('parking');
       expect(trainer.procedureId).toBe('cycle');
-      expect(phaseSelect()).toHaveProperty('value', 'ground');
+      expect(phaseSelect()).toHaveProperty('value', 'parking');
     });
 
     it('keeps the procedure when cancelled', async () => {
@@ -192,7 +216,7 @@ describe('phase control', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.queryByRole('alertdialog')).toBeNull();
       expect(trainer.procedureId).toBe('cycle');
-      expect(trainer.session.phase()).toBe('ground');
+      expect(trainer.session.phase()).toBe('parking');
     });
 
     it('keeps the procedure on Escape', async () => {
@@ -233,13 +257,13 @@ describe('phase control', () => {
       expect(screen.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Zur Phase springen' })).toBeTruthy();
       expect(
-        screen.getByRole('alertdialog', { name: 'Zur Phase „Cruise (de)“ springen?' }),
+        screen.getByRole('alertdialog', { name: 'Zur Phase „Reiseflug“ springen?' }),
       ).toBeTruthy();
     });
 
     it('drops the question when the procedure ends meanwhile', async () => {
       await selectCruise();
-      act(() => trainer.session.jumpToPhase('ground'));
+      act(() => trainer.session.jumpToPhase('parking'));
       expect(screen.queryByRole('alertdialog')).toBeNull();
     });
   });

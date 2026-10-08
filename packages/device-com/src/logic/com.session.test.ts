@@ -1,6 +1,7 @@
 import {
   createSession,
   defineAircraft,
+  everyPhase,
   formatFinding,
   validateAircraft,
   walkProcedure,
@@ -53,14 +54,11 @@ const testAircraft = defineAircraft({
     step: (_state: BusState, { controls }): BusState => ({ busOn: controls.bus === 'on' }),
   },
   failures: {},
-  phases: {
-    parking: {
-      name: text('Parken', 'Parking'),
-      image: 'parking.svg',
-      environment,
-      entry: { controls: { bus: 'off' }, state: initial },
-    },
-  },
+  phases: everyPhase({
+    image: 'parking.svg',
+    environment,
+    entry: { controls: { bus: 'off' }, state: initial },
+  }),
   procedures: {
     tune: {
       title: text('Abstimmen', 'Tune'),

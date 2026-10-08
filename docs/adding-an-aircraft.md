@@ -191,7 +191,10 @@ every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 
-`phases` maps a phase id to `{ name, image, environment, entry }`. `image` is the
+`phases` maps every id of the shared phase set (`sharedPhases` in `@cpt/core`, which also
+names each phase) to `{ image, environment, entry }`, even a phase none of the
+aircraft's procedures starts in. Leaving one out or adding another fails `pnpm typecheck`,
+and the validator reports it as `missing-phase` or `unknown-phase`. `image` is the
 outside view. Draw it as the first-person view out of the windshield from the
 pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
