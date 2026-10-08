@@ -331,7 +331,9 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   await pane.getByRole('button', { name: copy.checklist.runChecklist }).click();
   for (const item of procedure(failureId).items) {
     const row = pane.locator('[aria-current="step"]');
-    await expect(row).toContainText(item.text.en);
+    // The drill runs in Practice, where a memory item's text waits until it is done.
+    if (item.memory === true) await expect(row).not.toContainText(item.text.en);
+    else await expect(row).toContainText(item.text.en);
     if (item.type === 'check') {
       await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
     } else if (item.type === 'confirm') {
