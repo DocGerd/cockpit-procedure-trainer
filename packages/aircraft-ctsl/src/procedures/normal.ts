@@ -359,7 +359,7 @@ export const normalProcedures = {
     ],
   },
   taxi: {
-    title: text('Rollen', 'Taxi'),
+    title: text('Rollen zum Rollhalt', 'Taxi out'),
     type: 'normal',
     startPhase: 'taxiOut',
     endPhase: 'holding',

@@ -130,6 +130,13 @@ describe('CTSL normal procedures', () => {
     expect(confirms('taxi')).toEqual(['Brakes checked', 'Nose-wheel steering checked']);
   });
 
+  it('titles the taxi procedure after its phase', () => {
+    expect(ctslAircraft.procedures.taxi?.title).toEqual({
+      de: 'Rollen zum Rollhalt',
+      en: 'Taxi out',
+    });
+  });
+
   it('states the handbook revision the procedures follow', () => {
     expect(ctslAircraft.handbookRevision.en).toContain('AE04300003, revision 01');
     expect(ctslAircraft.handbookRevision.de).toContain('AE04300003, Revision 01');
