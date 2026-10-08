@@ -219,27 +219,34 @@ const shared = (a: Span, b: Span) => Math.min(a.to, b.to) - Math.max(a.from, b.f
 /**
  * Placements whose operable targets, position targets and device buttons alike, overlap: each
  * target covers its rendered box, grown to at least the touch target around its centre, since a
- * tap anywhere in it can land on the neighbour.
+ * tap anywhere in it can land on the neighbour. The positions of one control share their overlap
+ * by clipping, so they are held apart by reach.spec.ts instead.
  */
 export async function targetOverlaps(root: Locator, viewId: string): Promise<string[]> {
   const boxes = await root
     .locator(':is([data-kind="control"], [data-kind="device"]) :is(button, [role="slider"])')
-    .evaluateAll((elements) =>
-      elements.flatMap((element) => {
+    .evaluateAll((elements) => {
+      const groups = [...document.querySelectorAll('[role="radiogroup"]')];
+      return elements.flatMap((element) => {
         const { left, right, top, bottom, width } = element.getBoundingClientRect();
         if (width === 0) return [];
         const placement = element.closest('[data-placement]')?.getAttribute('data-placement');
-        return [{ placement: placement ?? '', left, right, top, bottom }];
-      }),
-    );
-  const targets = boxes.map(({ placement, left, right, top, bottom }) => ({
+        const group = element.matches('[role="radio"]')
+          ? groups.indexOf(element.closest('[role="radiogroup"]') as Element)
+          : -1;
+        return [{ placement: placement ?? '', group, left, right, top, bottom }];
+      });
+    });
+  const targets = boxes.map(({ placement, group, left, right, top, bottom }) => ({
     placement,
+    group,
     x: hitSpan(left, right),
     y: hitSpan(top, bottom),
   }));
   const found = new Set<string>();
   targets.forEach((a, index) => {
     for (const b of targets.slice(index + 1)) {
+      if (a.group >= 0 && a.group === b.group) continue;
       if (shared(a.x, b.x) <= TOLERANCE_PX || shared(a.y, b.y) <= TOLERANCE_PX) continue;
       const pair = [...new Set([a.placement, b.placement])].sort();
       found.add(overlapProblem(viewId, pair.join(' and ')));

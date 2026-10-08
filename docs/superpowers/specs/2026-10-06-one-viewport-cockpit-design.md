@@ -349,7 +349,10 @@ and dark, each mode; one tablet size to confirm tabs still work.
    landing on the next position) and fails once an accepted overlap is gone.
    The four CTSL breaker-row acceptances are dropped (#339): the CTSL panel
    floor is raised to 950 px instead. Quality sacrificed: none ranked beyond
-   the existing acceptances.
+   the existing acceptances. The remaining acceptances are dropped too (#470):
+   the panel kit clips overlapping positions of one control to the points
+   nearer their own centre, so each stays tappable (`reach.spec.ts`), and the
+   floor test no longer compares positions of one control.
 8. **4K means 3840x2160 CSS px at DPR 1.** Reason: that is the case with the
    most room; DPR 2 is the HD case.
 
