@@ -3,11 +3,11 @@ import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixtures, so shell tests do not depend on the registered aircraft's content.
 
-type State = Record<string, never>;
+type State = { readonly failing: boolean };
 
 const text = (en: string): Text => ({ de: `${en} (de)`, en });
 const environment: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
-const initial: State = {};
+const initial: State = { failing: false };
 
 function fixture(id: string, name: string, withFire: boolean): Aircraft {
   return defineAircraft({
@@ -30,7 +30,13 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
         description: text('Fuel pump'),
       },
     },
-    indicators: {},
+    indicators: {
+      warning: {
+        name: text('Warning'),
+        select: (state) => state.systems.failing,
+        appearance: { widget: 'text' },
+      },
+    },
     views: {
       main: { name: text('Main'), image: 'main.svg', controls: {} },
     },
@@ -39,7 +45,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
       views: { main: { rect: { x: 0, y: 0, w: 100, h: 100 }, minWidth: 400 } },
       dock: { rect: { x: 0, y: 100, w: 100, h: 20 }, minWidth: 100 },
     },
-    systems: { initial, step: (state: State) => state },
+    systems: { initial, step: (_state, input) => ({ failing: input.failures.size > 0 }) },
     failures: { fire: { name: text('Fire') } },
     phases: {
       ground: {

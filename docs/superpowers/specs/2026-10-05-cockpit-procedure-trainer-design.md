@@ -327,12 +327,14 @@ Besides a chosen procedure, the picker offers drills (added in #446):
 - **Surprise failure**, always in Practice: the pilot picks a phase that has
   emergency procedures; the session loads it with no checklist and, after a
   random delay, injects one of the phase's failures with no banner and no title
-  naming it. The pane says only that a failure will come. The pilot reads
+  naming it. Only failures that change the panel within seconds are drawn, so
+  there is always something to recognise. The pane says only that a failure will come. The pilot reads
   checklists through the selector and runs the one they judge right; until
   then nothing is recorded. The debrief adds the time from the failure to that
   choice (or that it came before the failure) and whether the checklist was an
-  emergency procedure for the injected failure. Repeat starts a new surprise
-  in the same phase.
+  emergency procedure for the injected failure; a wrong checklist's run is not
+  recorded in the history. Repeat, Restart and returning from Free explore
+  start a new surprise in the same phase.
 - **Random emergency**: an emergency procedure picked at random, started as
   from the picker in the chosen mode.
 - **Practise next**: shown once the history holds a run of the aircraft; it

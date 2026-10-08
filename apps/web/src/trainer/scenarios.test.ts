@@ -1,6 +1,7 @@
 import { STEP_MS } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import { aircraftRegistry } from '../aircraft-registry';
 import type { ProcedureHistory, RunRecord } from '../storage';
 import {
   pickSurprise,
@@ -19,6 +20,7 @@ const required = <T>(value: T | undefined): T => {
   return value;
 };
 const fire = required(bravo.procedures['fire']);
+const ctsl = required(aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl'));
 
 const withSecondFire: Aircraft = {
   ...bravo,
@@ -62,6 +64,32 @@ describe('pickSurprise', () => {
 
   it('throws for a phase without an emergency procedure', () => {
     expect(() => pickSurprise(alpha, 'ground')).toThrow('ground');
+  });
+});
+
+describe('surprise cues', () => {
+  it('leaves out a failure the panel does not show, and a phase left with none', () => {
+    const smokeUnseen: Aircraft = {
+      ...withSecondFire,
+      systems: {
+        initial: { failing: false },
+        step: (_state, input) => ({ failing: input.failures.has('fire') }),
+      },
+    };
+    expect(surprisePhases(smokeUnseen)).toEqual(['ground']);
+    expect(() => pickSurprise(smokeUnseen, 'cruise')).toThrow('cruise');
+  });
+
+  it('draws on the CT Supralight in cruise only failures with a cue on its panel', () => {
+    const drawn = new Set(
+      Array.from({ length: 60 }, (_, n) => pickSurprise(ctsl, 'cruise', () => n / 60).failure),
+    );
+    expect([...drawn].sort()).toEqual([
+      'coolantLoss',
+      'engineStoppage',
+      'generatorFailure',
+      'oilLoss',
+    ]);
   });
 });
 

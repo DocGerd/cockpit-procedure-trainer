@@ -438,6 +438,25 @@ describe('takeChecklist', () => {
     expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
   });
 
+  it("counts another failure's checklist as wrong", () => {
+    const alternator = fixtureAircraft.procedures['alternatorFailure'];
+    if (alternator?.type !== 'emergency') throw new Error('fixture lost its alternator checklist');
+    const twoFailures: Aircraft = {
+      ...fixtureAircraft,
+      failures: { ...fixtureAircraft.failures, vacuumFailure: { name: alternator.title } },
+      procedures: {
+        ...fixtureAircraft.procedures,
+        vacuumFailure: { ...alternator, failure: 'vacuumFailure' },
+      },
+    };
+    const session = createSession(twoFailures);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('vacuumFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'vacuumFailure', matched: false });
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+  });
+
   it('injects a pending failure when the pilot chooses before it appeared', () => {
     const session = createSession(fixtureAircraft);
     session.startSurprise({ ...surprise, delayMs: 10 * STEP_MS });

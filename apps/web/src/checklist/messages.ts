@@ -33,6 +33,7 @@ export const messages = defineMessages({
     restart: 'Restart',
     restartTitle: 'Restart the procedure?',
     restartBody: 'Restarting returns the cockpit to the start phase and begins at the first item.',
+    restartSurpriseBody: 'Restarting starts a new surprise failure in the same phase.',
     restartCancel: 'Cancel',
     retryItem: 'Retry this item',
     noDeviations: 'No deviations',
@@ -142,6 +143,7 @@ export const messages = defineMessages({
     restartTitle: 'Verfahren neu starten?',
     restartBody:
       'Beim Neustart kehrt das Cockpit in die Startphase zurück und das Verfahren beginnt beim ersten Punkt.',
+    restartSurpriseBody: 'Beim Neustart beginnt ein neuer Überraschungsfehler in derselben Phase.',
     restartCancel: 'Abbrechen',
     retryItem: 'Diesen Punkt wiederholen',
     noDeviations: 'Keine Abweichungen',
@@ -207,10 +209,10 @@ export const messages = defineMessages({
     repeatProcedure: 'Verfahren wiederholen',
     backToSelection: 'Zurück zur Auswahl',
     surpriseNote:
-      'Überraschungsfehler: ein Fehler tritt unangekündigt auf. Sobald er bemerkt ist, hier seine Checkliste öffnen und ausführen.',
+      'Überraschungsfehler: ein Fehler tritt unangekündigt auf. Sobald er bemerkt wird, hier seine Checkliste öffnen und ausführen.',
     runChecklist: 'Diese Checkliste ausführen',
     recognition: 'Zeit bis zum Erkennen',
-    recognisedEarly: 'Zu früh',
+    recognisedEarly: 'Vorzeitig',
     chosenEarly: 'Die Checkliste wurde gewählt, bevor der Fehler auftrat.',
     surpriseMatched: 'Richtige Checkliste für den Fehler: {failure}.',
     surpriseMissed: 'Nicht die Checkliste für den Fehler: {failure}.',

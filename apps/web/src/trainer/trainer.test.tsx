@@ -14,6 +14,7 @@ import {
   useSessionState,
   useTrainer,
 } from './index';
+import { SURPRISE_MAX_MS } from './scenarios';
 import { testAircraft } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => ({
@@ -352,6 +353,56 @@ describe('surprise failure', () => {
     act(() => result.current.trainer.startSurprise('ground'));
     act(() => result.current.trainer.setMode('explore'));
     expect(result.current.snapshot.scenario()).toBeUndefined();
+  });
+
+  it.each([
+    ['restart', (trainer: ReturnType<typeof useTrainer>) => trainer.restart()],
+    ['reset', (trainer: ReturnType<typeof useTrainer>) => trainer.resetSession()],
+  ])('starts a new surprise, not the chosen checklist, on %s after the choice', (_, again) => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => again(result.current.trainer));
+    const { trainer } = result.current;
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(trainer.session.scenario()?.chosen).toBeUndefined();
+    expect(trainer.session.failures().size).toBe(0);
+  });
+
+  it('starts a new surprise when coming back from Free explore', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    const { trainer } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground' });
+  });
+
+  it('ends the drill with a phase jump, so a restart runs the checklist again', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.jumpToPhase('ground'));
+    expect(result.current.trainer.surprisePhase).toBeUndefined();
+    act(() => result.current.trainer.startProcedure('powerUp'));
+    act(() => result.current.trainer.restart());
+    expect(result.current.trainer.procedureId).toBe('powerUp');
+  });
+
+  it('keeps a wrong answer out of the run history', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+      result.current.trainer.session.set('pump', 'on');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+    expect(readHistory(second.id)).toEqual({});
   });
 
   it('starts a new surprise in the same phase on reset', () => {

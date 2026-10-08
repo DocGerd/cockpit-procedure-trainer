@@ -26,6 +26,8 @@ export type Trainer = {
   session: Session;
   procedureId: string | undefined;
   lastProcedureId: string | undefined;
+  /** The phase of the surprise drill in progress. */
+  surprisePhase: string | undefined;
   viewedProcedureId: string | undefined;
   viewProcedure(id: string): void;
   startProcedure(id: string): void;
@@ -33,6 +35,8 @@ export type Trainer = {
   startSurprise(phase: string): void;
   /** Runs a checklist from the cockpit as it stands; during a surprise, the pilot's answer. */
   takeChecklist(id: string): void;
+  /** Starts the running procedure over, or a new surprise in the same phase during a drill. */
+  restart(): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
   /** Deviations from this index on were made in Guided, so only they get its live cues. */
@@ -51,6 +55,8 @@ type TrainerState = {
   screen: TrainerScreen;
   lastProcedureId: string | undefined;
   viewed: string | undefined;
+  /** The phase of the surprise drill in progress, which outlives the session's own record. */
+  surprisePhase: string | undefined;
 };
 
 function findAircraft(id: string): Aircraft | undefined {
@@ -73,6 +79,15 @@ function startSurprise(aircraft: Aircraft, session: Session, phase: string): voi
   session.startSurprise({ phase, ...pickSurprise(aircraft, phase) });
 }
 
+const surpriseStarted = (phase: string): Partial<TrainerState> => ({
+  mode: 'practice',
+  screen: 'trainer',
+  guidedFrom: 0,
+  lastProcedureId: undefined,
+  viewed: undefined,
+  surprisePhase: phase,
+});
+
 function initialState(): TrainerState {
   const stored = readSetting('aircraft');
   const aircraft = (stored === undefined ? undefined : findAircraft(stored)) ?? aircraftRegistry[0];
@@ -85,6 +100,7 @@ function initialState(): TrainerState {
     screen: 'picker',
     lastProcedureId: undefined,
     viewed: undefined,
+    surprisePhase: undefined,
   };
 }
 
@@ -110,7 +126,9 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       const done = checklist?.done ?? false;
       const id = session.procedureId();
       const { aircraft, mode } = current.current;
-      if (checklist && done && !wasDone && id !== undefined && mode !== 'explore') {
+      // A wrong answer to a surprise ran against another checklist's failure: no run of its own.
+      const wrongAnswer = session.scenario()?.matched === false;
+      if (checklist && done && !wasDone && id !== undefined && mode !== 'explore' && !wrongAnswer) {
         recordRun(aircraft.id, id, {
           mode,
           deviations: checklist.deviations.length,
@@ -148,28 +166,41 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           guidedFrom: 0,
           lastProcedureId: undefined,
           viewed: undefined,
+          surprisePhase: undefined,
         });
       },
       startProcedure(id) {
         current.current.session.startProcedure(id);
-        update({ screen: 'trainer', guidedFrom: 0, lastProcedureId: id, viewed: undefined });
+        update({
+          screen: 'trainer',
+          guidedFrom: 0,
+          lastProcedureId: id,
+          viewed: undefined,
+          surprisePhase: undefined,
+        });
       },
       startSurprise(phase) {
         startSurprise(current.current.aircraft, current.current.session, phase);
-        update({
-          mode: 'practice',
-          screen: 'trainer',
-          guidedFrom: 0,
-          lastProcedureId: undefined,
-          viewed: undefined,
-        });
+        update(surpriseStarted(phase));
       },
       takeChecklist(id) {
         current.current.session.takeChecklist(id);
         update({ guidedFrom: 0, lastProcedureId: id, viewed: undefined });
       },
+      restart() {
+        const { aircraft, session, surprisePhase } = current.current;
+        const running = session.procedureId();
+        if (surprisePhase !== undefined) {
+          startSurprise(aircraft, session, surprisePhase);
+          update(surpriseStarted(surprisePhase));
+        } else if (running !== undefined) {
+          session.startProcedure(running);
+          update({ guidedFrom: 0, lastProcedureId: running, viewed: undefined });
+        }
+      },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
+        if (current.current.surprisePhase !== undefined) update({ surprisePhase: undefined });
       },
       setMode(mode) {
         if (mode === 'explore') {
@@ -179,34 +210,40 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           const guidedFrom = current.current.session.checklist()?.deviations.length ?? 0;
           update({ mode, guidedFrom });
         } else {
-          const { lastProcedureId } = current.current;
-          if (lastProcedureId === undefined) {
+          const { aircraft, session, lastProcedureId, surprisePhase } = current.current;
+          if (surprisePhase !== undefined) {
+            startSurprise(aircraft, session, surprisePhase);
+            update(surpriseStarted(surprisePhase));
+          } else if (lastProcedureId === undefined) {
             update({ mode, screen: 'picker', viewed: undefined });
           } else {
-            current.current.session.startProcedure(lastProcedureId);
+            session.startProcedure(lastProcedureId);
             update({ mode, guidedFrom: 0, screen: 'trainer', viewed: undefined });
           }
         }
       },
       resetSession() {
-        const { aircraft, session: old } = current.current;
+        const { aircraft, session: old, surprisePhase } = current.current;
         const running = old.procedureId();
-        const surprise = old.scenario();
-        if (surprise !== undefined && running === undefined) {
-          const fresh = newSession(aircraft);
-          startSurprise(aircraft, fresh, surprise.phase);
-          update({ session: fresh, guidedFrom: 0 });
+        const fresh = newSession(aircraft, running === undefined ? old.phase() : undefined);
+        if (surprisePhase !== undefined) {
+          startSurprise(aircraft, fresh, surprisePhase);
+          update({ ...surpriseStarted(surprisePhase), session: fresh });
         } else if (running === undefined) {
-          update({ session: newSession(aircraft, old.phase()) });
+          update({ session: fresh });
         } else {
-          const fresh = newSession(aircraft);
           fresh.startProcedure(running);
           update({ session: fresh, guidedFrom: 0 });
         }
       },
       backToPicker() {
         endProcedure(current.current.session);
-        update({ screen: 'picker', lastProcedureId: undefined, viewed: undefined });
+        update({
+          screen: 'picker',
+          lastProcedureId: undefined,
+          viewed: undefined,
+          surprisePhase: undefined,
+        });
       },
     };
   }, [state, procedureId, viewedProcedureId]);

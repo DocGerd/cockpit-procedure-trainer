@@ -202,9 +202,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
   const atRisk = useProgressAtRisk() !== undefined;
-  const restart = () => {
-    if (trainer.procedureId !== undefined) trainer.startProcedure(trainer.procedureId);
-  };
+  const restart = () => trainer.restart();
 
   // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
@@ -278,7 +276,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         {confirming && (
           <ConfirmDialog
             title={text.restartTitle}
-            body={`${text.restartBody} ${lost}`}
+            body={`${trainer.surprisePhase === undefined ? text.restartBody : text.restartSurpriseBody} ${lost}`}
             confirmLabel={text.restart}
             cancelLabel={text.restartCancel}
             onCancel={() => setConfirming(false)}

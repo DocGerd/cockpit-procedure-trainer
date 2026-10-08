@@ -1,4 +1,4 @@
-import { SURPRISE_MAX_MS } from '../src/trainer/scenarios';
+import { SURPRISE_MAX_MS } from '../src/trainer/surprise-delay';
 import { control } from './content';
 import { expect, test } from './fixtures';
 import { selectLanguage } from './legibility';
@@ -242,8 +242,12 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   const pane = checklistPane(page);
   await expect(pane.getByText(copy.checklist.surpriseNote)).toBeVisible();
   await expect(page.getByRole('heading', { name: title.en })).toHaveCount(0);
+  const lowVolt = aircraft.indicators['lowVoltageLamp']?.name.en ?? 'LOW VOLT';
+  const lamp = page.locator(`[data-widget="annunciator"][aria-label^="${lowVolt}"]`);
+  await expect(lamp).toHaveAttribute('data-lit', 'false');
 
   await page.clock.runFor(SURPRISE_MAX_MS + 2000);
+  await expect(lamp).toHaveAttribute('data-lit', 'true');
   await expect(page.getByText(copy.checklist.failureInjected)).toHaveCount(0);
   await pane.getByRole('combobox', { name: copy.checklist.showChecklist }).selectOption(failureId);
   await pane.getByRole('button', { name: copy.checklist.runChecklist }).click();
@@ -269,6 +273,8 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
 
   await expect(pane.getByText(copy.checklist.allAsListed)).toBeVisible();
   await expect(pane.getByText(copy.checklist.recognition)).toBeVisible();
+  await expect(pane.getByText(copy.checklist.recognisedEarly, { exact: true })).toHaveCount(0);
+  await expect(pane.getByText(copy.checklist.chosenEarly)).toHaveCount(0);
   await expect(
     pane.getByText(copy.checklist.surpriseMatched.replace('{failure}', title.en)),
   ).toBeVisible();

@@ -278,6 +278,38 @@ describe('drills in the picker', () => {
     expect(trainer.mode).toBe('guided');
   });
 
+  it.each([
+    [{ deviations: 2, other: 0 }, 'Its last run had deviations.'],
+    [{ deviations: 0, other: 0 }, 'Practised longest ago.'],
+  ])('gives the reason for the suggestion (%o)', ({ deviations, other }, reason) => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(other, 300), best: run(other, 300) },
+        fire: { last: run(deviations, 100), best: run(deviations, 100) },
+      },
+    });
+    renderPicker();
+    const region = drills();
+    if (!region) throw new Error('no drills');
+    expect(within(region).getByText(reason)).toBeTruthy();
+  });
+
+  it('starts the surprise in the phase picked in the select', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const phase = screen.getByRole('combobox', { name: 'Phase' });
+    const options = within(phase)
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'));
+    expect(options).toEqual(['departure', 'cruise']);
+    await userEvent.selectOptions(phase, 'cruise');
+    await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
+    expect(trainer.session.scenario()?.phase).toBe('cruise');
+    expect(trainer.session.phase()).toBe('cruise');
+  });
+
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
     localStorage.setItem('cpt.aircraft', second.id);
     renderPicker();
