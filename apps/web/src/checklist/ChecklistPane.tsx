@@ -1,5 +1,5 @@
 import { inFlow, takesTick } from '@cpt/core';
-import type { ChecklistState, ProcedureItem } from '@cpt/core';
+import type { ChecklistState, ControlDefinition, GuardedControl, ProcedureItem } from '@cpt/core';
 import { useEffect, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useLostProgressText, useProgressAtRisk, useSessionState, useTrainer } from '../trainer';
@@ -16,6 +16,9 @@ import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
 import { flowLength } from './useCurrentTarget';
 import { useStray } from './useStray';
+
+const guardOf = (control: ControlDefinition | undefined) =>
+  control?.kind === 'guarded' ? control.guard : undefined;
 
 /** `open` is a flow item still to do: while the flow runs, every one of them is equally next. */
 type ItemState = 'done' | 'current' | 'pending' | 'deviated' | 'open';
@@ -63,6 +66,7 @@ function CurrentDetail({
   const localize = useLocalize();
   const { session, showMe } = useTrainer();
   const [reading, setReading] = useState('');
+  const operated = item.type === 'action' || item.type === 'guard';
   return (
     <span className="checklist-item-detail">
       {!withheld && <span className="checklist-hint">{hint}</span>}
@@ -88,16 +92,12 @@ function CurrentDetail({
       {tick && (
         <button
           type="button"
-          className={`button-secondary ${item.type === 'action' ? 'checklist-verify' : 'checklist-check-off'}`}
+          className={`button-secondary ${operated ? 'checklist-verify' : 'checklist-check-off'}`}
           onClick={() =>
             session.checkOff(answerable && reading.trim() !== '' ? Number(reading) : undefined)
           }
         >
-          {item.type === 'action'
-            ? text.verify
-            : item.type === 'check'
-              ? text.checkOff
-              : text.confirm}
+          {operated ? text.verify : item.type === 'check' ? text.checkOff : text.confirm}
         </button>
       )}
     </span>
@@ -112,6 +112,7 @@ function ItemRow({
   mode,
   tick,
   lever,
+  guard,
   withheld,
   shown,
 }: {
@@ -123,6 +124,8 @@ function ItemRow({
   mode: Mode;
   tick: boolean;
   lever: boolean;
+  /** For a guard item, the guard it moves. */
+  guard: GuardedControl['guard'] | undefined;
   /** The text is left out until Show me. */
   withheld: boolean;
   /** Show me was used on this item. */
@@ -140,9 +143,19 @@ function ItemRow({
   };
   // A current action that takes no tick springs back, so it is held.
   const gesture =
-    !tick && state === 'current' ? text.gestureHold : lever ? text.gestureDrag : text.gesturePress;
+    item.type === 'guard'
+      ? guard?.legends
+        ? localize(guard.legends[item.position].act)
+        : item.position === 'open'
+          ? text.gestureGuardOpen
+          : text.gestureGuardClosed
+      : !tick && state === 'current'
+        ? text.gestureHold
+        : lever
+          ? text.gestureDrag
+          : text.gesturePress;
   const hint =
-    item.type === 'action'
+    item.type === 'action' || item.type === 'guard'
       ? format(
           mode === 'guided'
             ? tick
@@ -269,6 +282,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         mode={mode}
         tick={state === 'current' && takesTick(checklist)}
         lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
+        guard={guardOf(item.type === 'guard' ? checklist.controls[item.control] : undefined)}
         // A flow is practised from memory, so its text stays out until it is done or shown.
         withheld={
           flowRow

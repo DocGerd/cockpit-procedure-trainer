@@ -35,7 +35,7 @@ const sliders = drawn.filter(({ steps }) => steps.length > 2);
 
 const legends: Record<string, Record<string, string>> = {
   throttle: { idle: 'IDLE', full: 'FULL' },
-  trim: { 'nose-down': 'NOSE DN', neutral: 'NEUTRAL', 'nose-up': 'NOSE UP' },
+  trim: { 'nose-down': 'DOWN', 'nose-up': 'UP' },
   flapSelector: {
     'override-up': 'UP',
     '-12': '-12',
@@ -131,6 +131,21 @@ describe('CTSL notched artwork controls', () => {
       'THROTTLE',
       'FULL',
       'IDLE',
+    ]);
+    expect(svg.match(/<line\b/g)).toHaveLength(2);
+  });
+
+  it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no neutral mark', () => {
+    const trim = drawn.find(({ id }) => id === 'trim');
+    if (!trim) throw new Error('the CTSL draws no trim wheel');
+    const svg = faceSvg(trim.face);
+    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    expect(printed).toEqual(['TRIM', 'DOWN', 'UP']);
+    const { appearance } = trim.control;
+    expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
+      'TRIM',
+      'DOWN',
+      'UP',
     ]);
     expect(svg.match(/<line\b/g)).toHaveLength(2);
   });

@@ -11,6 +11,7 @@ import type {
 import { fixtureAircraft } from '../contract/fixtures';
 import { engineMonitor, fixtureDeviceAircraft } from '../devices/fixtures';
 import { STEP_MS } from '../runtime';
+import type { Session } from '../session';
 import { MAX_STEPS, walkFlight, walkProcedure } from './index';
 
 type ClockState = { readonly ms: number; readonly heldMs: number; readonly keyMs: number };
@@ -265,6 +266,22 @@ describe('walkProcedure', () => {
     expect(walk([cover])).toEqual({ ok: true });
   });
 
+  it('moves a guard for a guard item, and verifies one already in place', () => {
+    const guard = (position: 'open' | 'closed') =>
+      ({ type: 'guard', control: 'cover', position, text: text('Kappe', 'Cover') }) as const;
+    expect(walk([guard('open'), guard('open'), guard('closed')])).toEqual({ ok: true });
+  });
+
+  it('shows the finished checklist its session, and only a finished one', () => {
+    const aircraft = clockAircraft([masterOn]);
+    const seen: string[] = [];
+    const afterChecklist = (session: Session, id: string) =>
+      seen.push(`${id}:${String(session.state().controls.master)}`);
+    walkProcedure(aircraft, 'run', { afterChecklist });
+    walkProcedure(clockAircraft([{ ...masterOn, holdUntil: never }]), 'run', { afterChecklist });
+    expect(seen).toEqual(['run:on']);
+  });
+
   it('checks off confirm items', () => {
     expect(walk([{ type: 'confirm', text: text('Frei', 'Clear') }])).toEqual({ ok: true });
   });
@@ -437,6 +454,15 @@ describe('walkFlight', () => {
       ok: false,
       reason: 'no legs',
     });
+  });
+
+  it('shows each finished leg its session, in flight order', () => {
+    const seen: string[] = [];
+    walkFlight(twoLegs([ticking]), {
+      afterChecklist: (session, id) =>
+        seen.push(`${id}:${String(session.state().controls.master)}`),
+    });
+    expect(seen).toEqual(['run:on', 'then:on']);
   });
 
   it('walks the fixture aircraft flight', () => {

@@ -563,6 +563,7 @@ describe('CTSL aircraft', () => {
   it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
     const state: CtslTrainerState = {
       controls: ctslAircraft.phases[id]?.entry.controls ?? {},
+      guards: {},
       systems: entryState(id),
       devices: {},
     };
@@ -575,7 +576,7 @@ describe('CTSL aircraft', () => {
     [{ mainPowered: false, avionicsPowered: false, charging: false }, false],
   ])('lights the charge lamp only on a powered bus that is not charging: %o', (bus, lit) => {
     const systems = { ...entryState('parking'), bus };
-    expect(chargeLampLit({ controls: {}, systems, devices: {} })).toBe(lit);
+    expect(chargeLampLit({ controls: {}, guards: {}, systems, devices: {} })).toBe(lit);
   });
 
   it.each([

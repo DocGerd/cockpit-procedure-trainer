@@ -149,6 +149,24 @@ describe('compile-time reference checks', () => {
     });
   });
 
+  it('rejects a guard item on a control without a guard', () => {
+    defineAircraft({
+      ...identity,
+      ...body,
+      procedures: {
+        p: {
+          title: text,
+          type: 'normal',
+          startPhase: 'parking',
+          items: [
+            // @ts-expect-error master has no guard
+            { type: 'guard', control: 'master', position: 'open', text },
+          ],
+        },
+      },
+    });
+  });
+
   it('rejects a check that targets an unknown indicator or control', () => {
     defineAircraft({
       ...identity,

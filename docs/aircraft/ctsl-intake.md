@@ -179,8 +179,11 @@ What the trainer draws today, and where it departs from the above:
   continuous; the trainer keeps it stepped, with three unprinted trainer stops
   between the ends (low, run-up and cruise power) that drive the rpm model and the
   procedures. Cues name those stops in words, not as printed legends.
-- The trim prints TRIM, NOSE DN, NEUTRAL and NOSE UP; the aircraft prints DOWN and
-  UP.
+- The trim placard prints DOWN at the forward end and UP at the aft end, with no
+  neutral mark, as the aircraft does (#532). Its title TRIM is assumed
+  (unverified): the handbook check gives the end legends, not the title. The
+  trainer keeps neutral as a trim position because the take-off placard asks for
+  neutral trim (HB 7-20); cues name it in words, not as a printed legend.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - A provisional carb-heat pull knob stands where the figure shows the large knob.
@@ -411,7 +414,7 @@ powered and at standby)_; choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
 lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
-pin removed (Rettungsgerät entsichert) _(confirm)_; ELT armed (Notsender); passenger briefed _(confirm)_;
+pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
 **N7 Normal take-off (HB 4-3, 4-10, 4-11).** Flaps 15° (0° on pavement); carb heat
@@ -450,7 +453,7 @@ accidental ELT activation _(confirm)_.
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
 (assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
-system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
+system secured, pin in (gesichert); ELT checked and left armed (§9); chocks
 _(confirm)_.
 
 ## 7. Emergency procedures (our wording)
@@ -699,6 +702,9 @@ verifies it on D-MPGO.
     Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
     low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
     (unverified).
+    Trim legends (#532): the placard prints DOWN forward and UP aft, with no
+    neutral mark; the trainer's neutral position is unprinted. The TRIM title is
+    assumed (unverified).
 26. **Rescue handle on the bulkhead**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Today: a T-grip in a holder centred on the bulkhead between
