@@ -44,10 +44,11 @@ const indicatorArtwork = Object.entries(
   return artwork ? [{ id, indicator, artwork }] : [];
 });
 
-const urlsOf = ({ face, moving, glass }: Artwork): string[] => [
+const urlsOf = ({ face, moving, glass, guardOpen }: Artwork): string[] => [
   face,
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
   ...(glass === undefined ? [] : [glass]),
+  ...Object.values(guardOpen ?? {}),
 ];
 const used = new Set(
   [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
@@ -88,6 +89,29 @@ describe('CTSL artwork files', () => {
     };
     const findings = validateAircraft(ctslAircraft, { imageSize });
     expect(findings.filter(({ code }) => code === 'artwork-glass-size')).toEqual([]);
+  });
+});
+
+describe('CTSL rescue handle safety pin', () => {
+  const rescue = () => controlArtwork.find(({ id }) => id === 'rescueHandle')?.artwork;
+  const pinMarks = (url: string) => read(url).match(/data-pin=""/g)?.length ?? 0;
+
+  it('draws the pin in the stowed image and in no other', () => {
+    const artwork = rescue();
+    if (artwork?.moving.type !== 'positions') throw new Error('the rescue handle has positions');
+    expect(pinMarks(artwork.moving.images.stowed ?? '')).toBeGreaterThan(0);
+    expect(pinMarks(artwork.moving.images.pulled ?? '')).toBe(0);
+  });
+
+  it('swaps in a stowed image without the pin while the guard is open', () => {
+    const artwork = rescue();
+    const open = artwork?.guardOpen?.stowed;
+    if (artwork?.moving.type !== 'positions' || open === undefined) {
+      throw new Error('the rescue handle has an open-guard image for stowed');
+    }
+    expect(Object.keys(artwork.guardOpen ?? {})).toEqual(['stowed']);
+    expect(pinMarks(open)).toBe(0);
+    expect(open).not.toBe(artwork.moving.images.stowed);
   });
 });
 
