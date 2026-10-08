@@ -118,6 +118,18 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const count = deviations.length;
   const list = useRef<HTMLOListElement>(null);
 
+  // The list is the scroller, so its own box is the area the current item must sit in; a banner that
+  // appears below the list shrinks that area.
+  useEffect(() => {
+    const scroller = list.current;
+    const row = scroller?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (!scroller || !row) return;
+    const box = scroller.getBoundingClientRect();
+    const rect = row.getBoundingClientRect();
+    if (rect.top < box.top) scroller.scrollTop -= box.top - rect.top;
+    else if (rect.bottom > box.bottom) scroller.scrollTop += rect.bottom - box.bottom;
+  }, [checklist.current, count]);
+
   // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new current item.
   useEffect(() => {
     const focused = document.activeElement;
@@ -144,8 +156,6 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         </div>
       </div>
 
-      {guided && <DeviationBanner checklist={checklist} />}
-
       <ol ref={list} className="checklist-items">
         {procedure.items.map((item, index) => (
           <ItemRow
@@ -157,6 +167,8 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
           />
         ))}
       </ol>
+
+      {guided && <DeviationBanner checklist={checklist} />}
 
       <div className="checklist-footer">
         {guided && (

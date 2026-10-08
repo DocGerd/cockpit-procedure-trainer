@@ -164,6 +164,14 @@ describe('deviations per mode', () => {
     expect(stateLabels()[0]).toBe('Deviated');
   });
 
+  it('puts the Guided banner below the list so a deviation never pushes the current item', () => {
+    renderPane();
+    start(flow);
+    const status = screen.getByRole('status');
+    const list = screen.getByRole('list');
+    expect(list.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('shows the latest deviation in the Guided banner', () => {
     renderPane();
     start(flow);
@@ -398,6 +406,42 @@ describe('visibility', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
     expect(aside.scrollTop).toBe(140);
     vi.restoreAllMocks();
+  });
+});
+
+describe('scrolling the running checklist', () => {
+  const rectOf = (top: number, bottom: number) =>
+    ({ top, bottom, left: 0, right: 0, width: 0, height: bottom - top, x: 0, y: top }) as DOMRect;
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('keeps the current item inside the list, which scrolls apart from header and footer', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(0, 100);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(200, 240) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(140);
+  });
+
+  it('scrolls back up to a current item above the list', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 300;
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(100, 200);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(60, 100) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(260);
   });
 });
 
