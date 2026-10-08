@@ -144,10 +144,10 @@ function Drills({ mode }: { mode: PickerMode }) {
             aria-describedby={nextHint}
             onClick={() => run(suggestion.id)}
           >
-            {format(text.practiseNext, { title: localize(suggested.title) })}
+            {text.practiseNext}
           </button>
           <p id={nextHint} className="picker-card-text">
-            {reasons[suggestion.reason]}
+            {format(reasons[suggestion.reason], { title: localize(suggested.title) })}
           </p>
         </div>
       )}
@@ -241,17 +241,14 @@ export function Picker() {
           <h1 className="picker-title">{text.pickerTitle}</h1>
         </div>
         <div className="picker-columns">
-          <div className="picker-side">
-            <section className="picker-aircraft" aria-labelledby={aircraftHeading}>
-              <h2 id={aircraftHeading} className="picker-heading">
-                {text.aircraft}
-              </h2>
-              {aircraftRegistry.map((entry) => (
-                <AircraftChoice key={entry.id} aircraft={entry} selected={entry === aircraft} />
-              ))}
-            </section>
-            <Drills mode={mode} />
-          </div>
+          <section className="picker-aircraft" aria-labelledby={aircraftHeading}>
+            <h2 id={aircraftHeading} className="picker-heading">
+              {text.aircraft}
+            </h2>
+            {aircraftRegistry.map((entry) => (
+              <AircraftChoice key={entry.id} aircraft={entry} selected={entry === aircraft} />
+            ))}
+          </section>
           <section className="picker-procedures" aria-labelledby={procedureHeading}>
             <h2 id={procedureHeading} className="picker-heading">
               {text.procedure}
@@ -327,6 +324,7 @@ export function Picker() {
               </div>
             </div>
           </section>
+          <Drills mode={mode} />
         </div>
         <StartupNotice />
       </main>

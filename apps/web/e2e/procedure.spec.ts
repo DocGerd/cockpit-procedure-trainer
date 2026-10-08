@@ -7,6 +7,7 @@ import {
   checklistPane,
   completeProcedure,
   copy,
+  copyDe,
   deviation,
   openPicker,
   operateUnrelatedControl,
@@ -102,9 +103,11 @@ test('a completed run shows in the picker after a reload and sends nothing out',
       .getByRole('region', { name: copy.shell.procedure })
       .getByRole('button', { name: new RegExp(title) }),
   ).toContainText('Last run: 1 deviation, today');
-  await expect(
-    page.getByRole('button', { name: copy.shell.practiseNext.replace('{title}', title) }),
-  ).toBeVisible();
+  const practiseNext = page.getByRole('button', { name: copy.shell.practiseNext, exact: true });
+  await expect(practiseNext).toBeVisible();
+  await expect(practiseNext).toHaveAccessibleDescription(
+    copy.shell.practiseNextDeviations.replace('{title}', title),
+  );
 
   const origin = new URL(page.url()).origin;
   expect(
@@ -279,3 +282,22 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
     pane.getByText(copy.checklist.surpriseMatched.replace('{failure}', title.en)),
   ).toBeVisible();
 });
+
+for (const language of ['en', 'de'] as const) {
+  test(`the ${language} drills fit beside the procedures at 1920x1080 once there is history`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const run = { mode: 'practice', deviations: 1, at: 1 };
+    await page.addInitScript(
+      (history) => localStorage.setItem('cpt.history', history),
+      JSON.stringify({ [aircraft.id]: { [engineStart]: { last: run, best: run } } }),
+    );
+    await openPicker(page);
+    await selectLanguage(page, language);
+    const shell = language === 'de' ? copyDe.shell : copy.shell;
+    for (const name of [shell.practiseNext, shell.randomEmergency, shell.surpriseFailure]) {
+      await expect(page.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+    }
+  });
+}

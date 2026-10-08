@@ -260,9 +260,9 @@ describe('drills in the picker', () => {
     const region = drills();
     if (!region) throw new Error('no drills');
     const next = within(region).getByRole('button', {
-      name: `Practise next: ${second.procedures['fire']?.title.en}`,
+      name: 'Practise next',
+      description: `${second.procedures['fire']?.title.en}: not practised yet.`,
     });
-    expect(within(region).getByText('Not practised yet.')).toBeTruthy();
     await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
     await userEvent.click(next);
     expect(trainer.screen).toBe('trainer');
@@ -279,8 +279,8 @@ describe('drills in the picker', () => {
   });
 
   it.each([
-    [{ deviations: 2, other: 0 }, 'Its last run had deviations.'],
-    [{ deviations: 0, other: 0 }, 'Practised longest ago.'],
+    [{ deviations: 2, other: 0 }, 'Bravo engine fire: its last run had deviations.'],
+    [{ deviations: 0, other: 0 }, 'Bravo engine fire: practised longest ago.'],
   ])('gives the reason for the suggestion (%o)', ({ deviations, other }, reason) => {
     localStorage.setItem('cpt.aircraft', second.id);
     seed({
@@ -308,6 +308,7 @@ describe('drills in the picker', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
     expect(trainer.session.scenario()?.phase).toBe('cruise');
     expect(trainer.session.phase()).toBe('cruise');
+    expect(trainer.viewedProcedureId).toBe('descent');
   });
 
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
