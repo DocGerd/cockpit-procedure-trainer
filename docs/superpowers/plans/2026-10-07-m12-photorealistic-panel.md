@@ -121,7 +121,7 @@ Judged on screenshots of both aircraft at 1920x1080 and 3840x2160 in Guided and 
 
 **Scoring process** (settled in Tasks 2 to 7):
 
-- One scorer, the same ui-verifier agent for every task PR and for Task 8, so every score is on one calibration. An implementer gets that scorer's verdict before it reports or pushes, and is given the crops that already scored 3 as anchors.
+- One scorer, the same ui-verifier agent for the art PRs from the process change on and for Task 8, so every score is on one calibration. An implementer gets that scorer's verdict before it reports or pushes, and is given the crops that already scored 3 as anchors.
 - Self-scores are information, never the verdict: on every art PR the implementer's own scores ran above the scorer's.
 - Heading 10 is scored in two passes. Per task, on each crop, on the element's own parts alone: graded, height-scaled shadows and highlights from one gradient axis, palette tones. The comparison across elements (generic widgets beside aircraft art, backgrounds, device frames) is scored once, at Task 8, on the whole panel of each view.
 
@@ -162,7 +162,7 @@ If realism and the budget conflict, realism that lets a pilot recognise the hard
 
 ## Readings of ADR 0002 taken in this milestone
 
-- Realism that lets a pilot recognise the hardware (shape, position, state, lettering) is rank 2; finish beyond that (glare softness, texture, shadow blur) is rank 6. Perf (rank 3) therefore sits between them: it cuts finish, never recognisability.
+- Perf (rank 3) sits between recognisable realism (rank 2) and finish (rank 6), as above: it cuts finish, never recognisability.
 - A real instrument's face wording beats the 10.5 px floor for secondary captions. The floor binds primary numerals and units; a secondary caption printed small on the real instrument carries `data-lettering="secondary"` and `legibility.ts` skips it (`CONTRIBUTING.md`, Viewport matrix).
 
 ## Global constraints
@@ -330,7 +330,7 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 
 **Scope:** the milestone-end check on `develop` with all task PRs in: the rubric on both aircraft, including the cross-element heading 10 pass, then one fix wave for what fails; the absolute perf budget on an idle machine; the spec §1 success criteria and the G1 audit. What one wave does not fix is filed as issues. Parts drawn by different tasks meet only here (cutout shadows of the backgrounds beside the bezels' own shadows, the token alignment beside the device frames), so this task fixes rather than only reports.
 
-**Files:** `docs/milestones/m12-photorealistic-panel.md` (create), this plan (the process rules above), the files that own a failing element (aircraft art SVGs and `LICENSES.md`, panel-kit widgets and materials, `device-screen.css`), `apps/web/e2e/perf/` (thresholds only, if a requirement changes with owner approval), `changelog.d/<issue>.changed.md` if the fix wave changes what renders
+**Files:** `docs/milestones/m12-photorealistic-panel.md` (create), this plan (the process rules above), the files that own a failing element (aircraft art SVGs and `LICENSES.md`, panel-kit widgets and materials, the device stylesheets under `packages/device-*/src/`), `apps/web/e2e/perf/` (thresholds only, if a requirement changes with owner approval), `changelog.d/<issue>.changed.md` if the fix wave changes what renders
 
 **Dependencies:** Tasks 1–7.
 
