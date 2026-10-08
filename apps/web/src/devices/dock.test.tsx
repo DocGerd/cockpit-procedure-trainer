@@ -170,7 +170,7 @@ describe('the device dock in the tabs layout', () => {
     await userEvent.click(slot('radio'));
     const close = screen.getByRole('button', { name });
     expect(close.textContent).toBe(label);
-    expect(name.toLowerCase()).toContain(label.toLowerCase());
+    expect(close.getAttribute('aria-label')?.toLowerCase()).toContain(label.toLowerCase());
   });
 
   it('gives focus back to the slot that opened it when it empties', async () => {
