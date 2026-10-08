@@ -1,3 +1,4 @@
+import { flightLegs } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
 import { useId, useMemo, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
@@ -113,13 +114,15 @@ function Drills({ mode }: { mode: PickerMode }) {
   const nextHint = useId();
   const randomHint = useId();
   const surpriseHint = useId();
+  const flightHint = useId();
   const phaseSelect = useId();
   const suggestion = useMemo(() => practiseNext(aircraft, readHistory(aircraft.id)), [aircraft]);
   const phases = surprisePhases(aircraft);
   const [chosenPhase, setPhase] = useState<string>();
   const phase = chosenPhase !== undefined && phases.includes(chosenPhase) ? chosenPhase : phases[0];
   const suggested = suggestion && aircraft.procedures[suggestion.id];
-  if (!suggested && phase === undefined) return null;
+  const flight = flightLegs(aircraft).length > 1;
+  if (!suggested && phase === undefined && !flight) return null;
 
   const run = (id: string) => {
     trainer.setMode(mode);
@@ -148,6 +151,24 @@ function Drills({ mode }: { mode: PickerMode }) {
           </button>
           <p id={nextHint} className="picker-card-text">
             {format(reasons[suggestion.reason], { title: localize(suggested.title) })}
+          </p>
+        </div>
+      )}
+      {flight && (
+        <div className="picker-drill">
+          <button
+            type="button"
+            className="button-secondary"
+            aria-describedby={flightHint}
+            onClick={() => {
+              trainer.setMode(mode);
+              trainer.startFlight();
+            }}
+          >
+            {text.fullFlight}
+          </button>
+          <p id={flightHint} className="picker-card-text">
+            {text.fullFlightHint}
           </p>
         </div>
       )}

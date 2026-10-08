@@ -558,6 +558,84 @@ describe('deviation summary', () => {
   });
 });
 
+describe('full flight summary', () => {
+  const startFlight = () =>
+    act(() => {
+      trainer.setMode('guided');
+      trainer.startFlight();
+    });
+  const continueFlight = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Next: Follow-up' }));
+
+  it('names the leg and continues the flight from the cockpit as it stands', async () => {
+    renderPane();
+    startFlight();
+    finishFlowWithDeviations();
+    expect(screen.getByText(/· Full flight, leg 1 of 2$/)).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'The whole flight' })).toBeNull();
+    await continueFlight();
+    expect(trainer.procedureId).toBe('followUp');
+    expect(trainer.session.state().controls.avionics).toBe('on');
+    expect(trainer.flight?.results).toMatchObject([{ id: flow, deviations: 2 }]);
+  });
+
+  it('shows the leg in the header while a leg runs, and nothing outside a flight', async () => {
+    renderPane();
+    act(() => trainer.startProcedure(flow));
+    expect(screen.queryByText(/Full flight, leg/)).toBeNull();
+    startFlight();
+    expect(screen.getByText('Full flight, leg 1 of 2')).toBeTruthy();
+    finishFlowWithDeviations();
+    await continueFlight();
+    expect(screen.getByText('Full flight, leg 2 of 2')).toBeTruthy();
+  });
+
+  it('repeats a leg from the cockpit it began with', async () => {
+    renderPane();
+    startFlight();
+    finishFlowWithDeviations();
+    await continueFlight();
+    operate('master', 'off');
+    checkOff();
+    await userEvent.click(screen.getByRole('button', { name: 'Repeat this procedure' }));
+    expect(trainer.procedureId).toBe('followUp');
+    expect(trainer.session.state().controls.master).toBe('on');
+    expect(trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('sums up every leg and the whole flight after the last leg', async () => {
+    renderPane();
+    startFlight();
+    act(() => trainer.session.advance(65_000));
+    finishFlowWithDeviations();
+    await continueFlight();
+    act(() => trainer.session.advance(5_000));
+    checkOff();
+    expect(screen.getByText(/· Full flight, leg 2 of 2$/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
+    const table = within(screen.getByRole('region', { name: 'The whole flight' }));
+    const rows = table
+      .getAllByRole('row')
+      .map((row) => [...row.querySelectorAll('th, td')].map((cell) => cell.textContent));
+    expect(rows).toEqual([
+      ['Procedure', 'Deviations', 'Assists', 'Time'],
+      ['Flow', '2', '0', '1:05'],
+      ['Follow-up', '0', '0', '0:05'],
+      ['Total', '2', '0', '1:10'],
+    ]);
+  });
+
+  it('renders the German flight summary', async () => {
+    renderPane('de');
+    startFlight();
+    finishFlowWithDeviations();
+    expect(screen.getByText(/· Ganzer Flug, Abschnitt 1 von 2$/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Weiter: Follow-up (de)' }));
+    checkOff();
+    expect(screen.getByRole('region', { name: 'Der ganze Flug' })).toBeTruthy();
+  });
+});
+
 describe('surprise failure', () => {
   const note = /Surprise failure: a failure appears without warning/;
   const surprise = () => act(() => trainer.startSurprise('airborne'));
