@@ -15,15 +15,26 @@ type Messages = (typeof messages)['en'];
 
 const USED_IN_SHOWN = 3;
 
-const kindLabel = (text: Messages, kind: ControlKind): string =>
-  ({
-    toggle: text.kindToggle,
-    rotary: text.kindRotary,
-    lever: text.kindLever,
-    momentary: text.kindMomentary,
-    guarded: text.kindGuarded,
-    breaker: text.kindBreaker,
-  })[kind];
+const kindLabels = (text: Messages): Record<ControlKind, string> => ({
+  toggle: text.kindToggle,
+  rotary: text.kindRotary,
+  lever: text.kindLever,
+  momentary: text.kindMomentary,
+  guarded: text.kindGuarded,
+  breaker: text.kindBreaker,
+});
+
+/** A momentary control drawn as a travelling handle is a spring-return lever, not a push button. */
+export function kindLabel(text: Messages, control: ControlDefinition): string {
+  const appearance = control.appearance;
+  const travels =
+    appearance !== undefined &&
+    'artwork' in appearance &&
+    appearance.artwork.moving.type === 'travel';
+  return control.kind === 'momentary' && travels
+    ? text.kindSpringLever
+    : kindLabels(text)[control.kind];
+}
 
 type Use = { readonly key: string; readonly title: Text; readonly number: number };
 
@@ -225,7 +236,7 @@ export function ControlDetails({
           {localize(control.name)}
         </h2>
         <div className="modes-tags">
-          <span className="modes-tag modes-tag-kind">{kindLabel(text, control.kind)}</span>
+          <span className="modes-tag modes-tag-kind">{kindLabel(text, control)}</span>
           {views.map((view) => {
             const name = localize(view.name);
             return (
