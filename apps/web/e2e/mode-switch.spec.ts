@@ -43,7 +43,6 @@ async function expectChecklist(page: Page) {
 
 async function enterExplore(page: Page) {
   await modeButton(page, text.explore).click();
-  await page.getByRole('button', { name: text.exploreConfirm }).click();
   await expect(modeButton(page, text.explore)).toHaveAttribute('aria-pressed', 'true');
 }
 

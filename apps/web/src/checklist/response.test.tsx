@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, screen } from '@testing-library/react';
+import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderWithLanguage } from '../i18n/test-utils';
@@ -116,6 +116,9 @@ describe('a check that takes a reading', () => {
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Reading' }), '3000');
     await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
     await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    await userEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Restart' }),
+    );
     expect(screen.getByRole('spinbutton', { name: 'Reading' })).toHaveProperty('value', '');
     await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
     expect(trainer.session.checklist()?.deviations).toEqual([]);
