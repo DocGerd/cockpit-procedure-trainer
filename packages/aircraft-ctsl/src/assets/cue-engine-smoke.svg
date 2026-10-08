@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" preserveAspectRatio="xMidYMid slice">
+<defs>
+<filter id="soft" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+<filter id="softer" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="22"/></filter>
+<radialGradient id="puff"><stop offset="0" stop-color="#36393C" stop-opacity="1"/><stop offset="0.55" stop-color="#4C5054" stop-opacity="0.8"/><stop offset="1" stop-color="#6A6E72" stop-opacity="0"/></radialGradient>
+<radialGradient id="puff-light"><stop offset="0" stop-color="#7C8084" stop-opacity="0.9"/><stop offset="1" stop-color="#9A9EA2" stop-opacity="0"/></radialGradient>
+</defs>
+<rect id="cabin-haze" width="1600" height="300" fill="#6E7175" opacity="0.18"/>
+<g id="engine-smoke-haze" filter="url(#softer)" opacity="0.85">
+<ellipse cx="930" cy="160" rx="560" ry="110" fill="url(#puff-light)"/>
+<ellipse cx="600" cy="90" rx="340" ry="90" fill="url(#puff-light)"/>
+<ellipse cx="1260" cy="84" rx="360" ry="90" fill="url(#puff-light)"/>
+</g>
+<g id="engine-smoke" filter="url(#soft)">
+<ellipse cx="930" cy="212" rx="230" ry="24" fill="url(#puff)"/>
+<ellipse cx="770" cy="216" rx="120" ry="28" fill="url(#puff)"/>
+<ellipse cx="1095" cy="218" rx="130" ry="28" fill="url(#puff)"/>
+<ellipse cx="900" cy="186" rx="140" ry="36" fill="url(#puff)"/>
+<ellipse cx="985" cy="176" rx="150" ry="40" fill="url(#puff)"/>
+<ellipse cx="820" cy="152" rx="170" ry="44" fill="url(#puff)" transform="rotate(-8 820 152)"/>
+<ellipse cx="1050" cy="146" rx="180" ry="46" fill="url(#puff)" transform="rotate(8 1050 146)"/>
+<ellipse cx="700" cy="112" rx="220" ry="50" fill="url(#puff)" transform="rotate(-12 700 112)"/>
+<ellipse cx="1170" cy="104" rx="230" ry="50" fill="url(#puff)" transform="rotate(12 1170 104)"/>
+<ellipse cx="935" cy="122" rx="170" ry="48" fill="url(#puff)" opacity="0.85"/>
+<ellipse cx="560" cy="66" rx="270" ry="54" fill="url(#puff)" opacity="0.8" transform="rotate(-14 560 66)"/>
+<ellipse cx="1320" cy="60" rx="280" ry="54" fill="url(#puff)" opacity="0.8" transform="rotate(14 1320 60)"/>
+<ellipse cx="930" cy="62" rx="250" ry="50" fill="url(#puff)" opacity="0.65"/>
+</g>
+</svg>

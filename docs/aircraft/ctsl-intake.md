@@ -548,9 +548,32 @@ verifies it on D-MPGO.
     (unverified), from general knowledge of the CT Supralight: the charge lamp
     lights red and the panel prints CHARGE with it.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
-    memory before the checklist is read? Today: none; every item is read and done
-    from the list. **Answered by assumption pending owner verification** (#450
-    records the assumed memory items here).
+    memory before the checklist is read? Today: the leading steps below are memory
+    items; the rest of each procedure is read and done from the list. **Answered by
+    assumption pending owner verification** (#450). Assumed (unverified), from
+    general knowledge of light-aircraft emergency drills, where the steps that stop
+    a fire, restore or secure the engine, or commit to the landing or the rescue
+    system are flown from memory and the rest is read:
+    - E3 below 100 m: rpm below idle; no restart, land ahead.
+    - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
+      both; starter if the prop turns slower than about 200 rpm.
+    - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
+      out; pull the handle.
+    - E6: smoke or flames; fuel valve closed; throttle full until the engine
+      stops; ignition off.
+    - E8: oil pressure below the minimum; ignition off; fuel valve closed.
+    - In E6 and E8 the key comes out after the valve is closed (question 27), as
+      the first item read from the list.
+    - E7, E9 and the generator failure have no memory items: they leave time to
+      read the list.
+
+    Memory items must lead the procedure, so two questions go with this one. Many
+    drills open an engine failure with "best glide" from memory, but §7 puts best
+    glide (125 km/h, E5) after E4's restart attempt, and E3 below 100 m names only
+    the approach speed: does the club fly the glide from memory, and where in the
+    list? The safety-pin confirm (E2) is a memory item only because it sits
+    inside the leading block; does the club drill it so?
+
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
     and standby once parked, squawk 7000 from line-up and the GPS on at its map page
@@ -590,3 +613,17 @@ verifies it on D-MPGO.
     as `parking` has it. **Answered by assumption pending owner verification**
     (#468). Assumed (unverified), from the handle covering the slot and N3's order
     (fuel valve open, then key in).
+28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
+    engine bay streams over the windscreen in the outside view, and the CHT and oil
+    temperature climb past their red lines within seconds while the fire burns; both
+    clear once the valve is closed and the engine has stopped. **Answered by
+    assumption pending owner verification** (#233). Assumed (unverified), from
+    general-aviation practice: smell and smoke come first, and a fire in the engine
+    bay heats the CHT and oil sensors; the size of the rise is a trainer value.
+29. **Flap control failure cue**: what shows on the panel when the flap controller
+    fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
+    position readout on that circuit goes dark, and with the breaker reset the readout
+    stays put whatever the selector says. **Answered by assumption pending owner
+    verification** (#233). Assumed (unverified), from the overload note of E9 and the
+    wiring of §4: the readout is fed through the flap breaker, and a failed controller
+    overloads the drive until the breaker trips.

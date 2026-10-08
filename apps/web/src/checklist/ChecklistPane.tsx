@@ -10,6 +10,7 @@ import { ChecklistSelector } from './ChecklistSelector';
 import { DeviationSummary } from './DeviationSummary';
 import { FlightLeg } from './FlightLeg';
 import { useDeviationText } from './deviation-text';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
@@ -230,6 +231,29 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const [confirming, setConfirming] = useState(false);
   const atRisk = useProgressAtRisk() !== undefined;
   const restart = () => trainer.restart();
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const rows = procedure.items.map((item, index) => {
+    const shown = trainer.assisted.includes(index);
+    const state = itemState(checklist, index, guided);
+    // Upcoming items are not drawn at all, so their text is nowhere in the page.
+    if (recalling && state === 'pending') return null;
+    // Practice drills a memory item from recall: its text waits until it is done.
+    const recalled =
+      mode === 'practice' && item.memory === true && !checklist.completed.includes(index);
+    return (
+      <ItemRow
+        key={index}
+        index={index}
+        item={item}
+        state={state}
+        mode={mode}
+        tick={index === checklist.current && takesTick(checklist)}
+        lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
+        withheld={!shown && ((recalling && state === 'current') || recalled)}
+        shown={shown}
+      />
+    );
+  });
 
   // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
@@ -271,25 +295,12 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
       </div>
 
       <ol ref={list} className="checklist-items">
-        {procedure.items.map((item, index) => {
-          const shown = trainer.assisted.includes(index);
-          const state = itemState(checklist, index, guided);
-          // Upcoming items are not drawn at all, so their text is nowhere in the page.
-          if (recalling && state === 'pending') return null;
-          return (
-            <ItemRow
-              key={index}
-              index={index}
-              item={item}
-              state={state}
-              mode={mode}
-              tick={index === checklist.current && takesTick(checklist)}
-              lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
-              withheld={recalling && !shown && state === 'current'}
-              shown={shown}
-            />
-          );
-        })}
+        {memoryCount > 0 && (
+          <ItemGroup kind="memory" label={text.memoryItems}>
+            {rows.slice(0, memoryCount)}
+          </ItemGroup>
+        )}
+        {rows.slice(memoryCount)}
       </ol>
 
       {guided && <DeviationBanner checklist={checklist} reserve />}

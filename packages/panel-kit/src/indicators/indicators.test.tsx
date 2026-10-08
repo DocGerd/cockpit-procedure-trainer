@@ -212,6 +212,7 @@ describe('round gauge', () => {
     const { container } = draw(gauge, 10, { ...range, units: 'psi' });
     expect(container.querySelector('[data-units]')?.textContent).toBe('psi');
     expect(container.querySelector('[data-label]')?.textContent).toBe('L');
+    expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
   it('draws on a default range when no options are given', () => {
@@ -262,6 +263,7 @@ describe('annunciator', () => {
   it('shows its label', () => {
     const { container } = draw(annunciator, true);
     expect(container.querySelector('[data-label]')?.textContent).toBe('L');
+    expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
   const ariaLabel = (container: HTMLElement) =>
@@ -319,6 +321,14 @@ describe('digital readout', () => {
     const { container } = draw(readout, 7, { units: 'V' });
     expect(container.querySelector('[data-units]')?.textContent).toBe('V');
     expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L: 7 V');
+  });
+
+  it('stays dark for an empty string, units included', () => {
+    const { container } = draw(readout, '', { units: '°' });
+    expect(text(container)?.textContent ?? '').toBe('');
+    expect(container.querySelector('[data-units]')).toBeNull();
+    expect(container.querySelector('[data-label]')?.textContent).toBe('L');
+    expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
   it('names the value without units for assistive technology', () => {

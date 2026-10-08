@@ -46,7 +46,9 @@ export const checklistPane = (page: Page) =>
 export const progress = (page: Page) =>
   checklistPane(page).getByRole('progressbar', { name: copy.checklist.progress });
 
-const itemRow = (page: Page, index: number) => checklistPane(page).getByRole('listitem').nth(index);
+// By class, not role: a group of memory items is a listitem around its own rows.
+const itemRow = (page: Page, index: number) =>
+  checklistPane(page).locator('.checklist-item').nth(index);
 
 const mark = (row: Locator, name: string | RegExp) => row.getByRole('img', { name });
 

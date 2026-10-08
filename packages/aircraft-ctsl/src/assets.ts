@@ -22,4 +22,5 @@ export const images = {
   parkingSecuring: new URL('./assets/phase-parking-securing.svg', import.meta.url).href,
   parkingSecuringRunning: new URL('./assets/phase-parking-securing-running.svg', import.meta.url)
     .href,
+  engineSmoke: new URL('./assets/cue-engine-smoke.svg', import.meta.url).href,
 } as const;
