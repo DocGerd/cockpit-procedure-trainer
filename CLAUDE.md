@@ -84,7 +84,8 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   `./fixtures` (lint-enforced).
 - Avionics devices have no view of their own: a device installs in a panel
   slot as a live mirror and opens in the cockpit's required `dock` cell, where
-  its keys are operable; slots never operate (scaled slots miss the 44 px
+  its keys are operable; slots only mirror while `IN_SLOT_OPERATION` is off
+  in `apps/web/src/panel/slot-mode.ts` (#340; scaled slots miss the 44 px
   targets). Guided opens the target device in the dock and rings its key
   (`data-control`/`data-position` on Screen keys).
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
