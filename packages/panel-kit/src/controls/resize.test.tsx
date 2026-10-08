@@ -51,11 +51,11 @@ const legendCount = (container: HTMLElement) => container.querySelectorAll('.pk-
 const fire = () => act(() => callbacks.forEach((callback) => callback()));
 
 describe('resizing', () => {
-  it('observes the widget and stops observing on unmount', () => {
+  it('observes the widget and its position targets and stops observing on unmount', () => {
     const { unmount } = render(<Rocker {...widgetProps(toggle2)} />);
-    expect(observed).toHaveBeenCalledTimes(1);
+    expect(observed).toHaveBeenCalledTimes(2);
     unmount();
-    expect(disconnected).toHaveBeenCalled();
+    expect(disconnected).toHaveBeenCalledTimes(2);
   });
 
   it('re-measures when the observer fires and drops legends that no longer fit', () => {
