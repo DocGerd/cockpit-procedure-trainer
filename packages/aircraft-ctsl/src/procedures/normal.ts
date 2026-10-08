@@ -38,7 +38,7 @@ const confirmRunwayHeading = confirm(
   `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
 );
 
-// Intake §3.4: close the valve, then apply the brake lever.
+// Intake §3.4: close the valve, then pull the non-locking brake lever; the valve traps the pressure.
 const setParkingBrake = [
   {
     type: 'action',
@@ -50,13 +50,17 @@ const setParkingBrake = [
     type: 'action',
     control: 'brake',
     position: 'on',
-    text: text('Bremshebel ziehen', 'Brake lever on'),
+    holdUntil: (state: State) => state.systems.parkingBrakeSet,
+    text: text('Bremshebel ziehen und halten', 'Brake lever pulled and held'),
   },
   {
     type: 'check',
     target: { control: 'brake' },
-    condition: (state: State) => state.systems.parkingBrakeSet,
-    text: text('Parkbremse hält', 'Parking brake holds'),
+    condition: (state: State) => state.systems.parkingBrakeSet && !state.systems.brakeApplied,
+    text: text(
+      'Bremshebel losgelassen, Parkbremse hält',
+      'Brake lever released, parking brake holds',
+    ),
   },
 ] as const;
 
@@ -68,10 +72,10 @@ const releaseParkingBrake = [
     text: text('Rückflusshahn auf', 'Parking-brake valve open'),
   },
   {
-    type: 'action',
-    control: 'brake',
-    position: 'off',
-    text: text('Bremshebel lösen', 'Brake lever off'),
+    type: 'check',
+    target: { control: 'parkingBrakeValve' },
+    condition: (state: State) => !state.systems.parkingBrakeSet,
+    text: text('Parkbremse gelöst', 'Parking brake released'),
   },
 ] as const;
 
