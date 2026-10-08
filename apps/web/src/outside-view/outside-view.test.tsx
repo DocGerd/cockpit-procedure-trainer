@@ -149,9 +149,28 @@ describe('phase control', () => {
   describe('with a procedure running', () => {
     async function selectCruise(language?: 'de' | 'en') {
       renderStrip(language);
-      act(() => trainer.startProcedure('startUp'));
+      act(() => trainer.startProcedure('cycle'));
+      act(() => trainer.session.set('master', 'on'));
       await userEvent.selectOptions(phaseSelect(), 'cruise');
     }
+
+    it('jumps at once while nothing is done', async () => {
+      renderStrip();
+      act(() => trainer.startProcedure('cycle'));
+      await userEvent.selectOptions(phaseSelect(), 'cruise');
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBeUndefined();
+      expect(trainer.session.phase()).toBe('cruise');
+    });
+
+    it('jumps at once once the procedure is finished', async () => {
+      renderStrip();
+      act(() => trainer.startProcedure('startUp'));
+      act(() => trainer.session.set('master', 'on'));
+      await userEvent.selectOptions(phaseSelect(), 'cruise');
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.session.phase()).toBe('cruise');
+    });
 
     it('asks before jumping and changes nothing yet', async () => {
       await selectCruise();
@@ -160,10 +179,11 @@ describe('phase control', () => {
       expect(dialog.getAttribute('aria-modal')).toBe('true');
       const description = document.getElementById(dialog.getAttribute('aria-describedby') ?? '');
       expect(description?.textContent).toContain('Cruise');
+      expect(description?.textContent).toContain('Progress lost: 1 of 2 items done.');
       const title = document.getElementById(dialog.getAttribute('aria-labelledby') ?? '');
-      expect(title?.textContent).toBe('End the procedure?');
+      expect(title?.textContent).toBe('Jump to phase “Cruise”?');
       expect(trainer.session.phase()).toBe('ground');
-      expect(trainer.procedureId).toBe('startUp');
+      expect(trainer.procedureId).toBe('cycle');
       expect(phaseSelect()).toHaveProperty('value', 'ground');
     });
 
@@ -171,7 +191,7 @@ describe('phase control', () => {
       await selectCruise();
       await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
       expect(screen.queryByRole('alertdialog')).toBeNull();
-      expect(trainer.procedureId).toBe('startUp');
+      expect(trainer.procedureId).toBe('cycle');
       expect(trainer.session.phase()).toBe('ground');
     });
 
@@ -179,7 +199,7 @@ describe('phase control', () => {
       await selectCruise();
       await userEvent.keyboard('{Escape}');
       expect(screen.queryByRole('alertdialog')).toBeNull();
-      expect(trainer.procedureId).toBe('startUp');
+      expect(trainer.procedureId).toBe('cycle');
     });
 
     it('ends the procedure and loads the phase when confirmed', async () => {
@@ -212,6 +232,9 @@ describe('phase control', () => {
       await selectCruise('de');
       expect(screen.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Zur Phase springen' })).toBeTruthy();
+      expect(
+        screen.getByRole('alertdialog', { name: 'Zur Phase „Cruise (de)“ springen?' }),
+      ).toBeTruthy();
     });
 
     it('drops the question when the procedure ends meanwhile', async () => {
