@@ -136,6 +136,7 @@ describe('checklist announcements', () => {
     operate('pump', 'on');
     await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     expect(announcer()?.textContent).toBe('Procedure complete: Flow');
   });
 
@@ -157,7 +158,9 @@ describe('checklist announcements', () => {
       renderLayout();
       start('flow');
       operate('pump', 'on');
-      expect(announcer()?.textContent).toBe('Deviation: Pump operated. Not part of item 1.');
+      expect(announcer()?.textContent).toBe(
+        'Deviation: Pump operated early. It belongs to item 4, not item 1.',
+      );
       operate('master', 'on');
       expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
     });
@@ -215,7 +218,7 @@ describe('checklist announcements', () => {
       start('flow');
       operate('pump', 'on');
       expect(announcer()?.textContent).toBe(
-        'Abweichung: Pump (de) bedient. Nicht Teil von Punkt 1.',
+        'Abweichung: Pump (de) zu früh bedient. Das gehört zu Punkt 4, nicht zu Punkt 1.',
       );
     });
   });
@@ -241,6 +244,7 @@ describe('checklist announcements', () => {
     operate('pump', 'on');
     await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
     await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     await userEvent.click(screen.getByRole('button', { name: 'Next: Follow-up' }));
     expect(announcer()?.textContent).toBe('');
   });

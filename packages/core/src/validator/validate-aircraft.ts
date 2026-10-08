@@ -36,7 +36,8 @@ export type FindingCode =
   | 'cockpit-cells-overlap'
   | 'invalid-cockpit-min-width'
   | 'invalid-cockpit-dock'
-  | 'artwork-glass-size';
+  | 'artwork-glass-size'
+  | 'invalid-check-response';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -516,12 +517,21 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
+        const target = 'indicator' in item.target ? item.target.indicator : item.target.control;
         if ('indicator' in item.target) {
           if (!hasIndicator(item.target.indicator)) {
             add('unknown-target', item.target.indicator, `${where} checks an unknown indicator`);
           }
         } else {
           checkControlTarget(item.target.control, where);
+        }
+        const tolerance = item.response?.tolerance;
+        if (tolerance !== undefined && !(Number.isFinite(tolerance) && tolerance >= 0)) {
+          add(
+            'invalid-check-response',
+            target,
+            `${where} needs a finite response tolerance of at least 0`,
+          );
         }
       }
     });

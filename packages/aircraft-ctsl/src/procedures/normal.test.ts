@@ -97,6 +97,44 @@ describe('CTSL normal procedures', () => {
     expect(walkProcedure(ctslAircraft, id, { devices })).toEqual({ ok: true });
   });
 
+  it('beforeTakeoff stops at choke and carb heat, already off, until the pilot verifies each', () => {
+    const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+    const indexOf = (control: string) =>
+      items.findIndex((item) => item.type === 'action' && item.control === control);
+    const choke = indexOf('choke');
+    const carbHeat = indexOf('carbHeat');
+    expect(carbHeat).toBe(choke + 1);
+
+    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    session.startProcedure('beforeTakeoff');
+    expect(session.state().controls).toMatchObject({ choke: 'off', carbHeat: 'off' });
+    for (let at = session.checklist()?.current ?? 0; at < choke; at += 1) {
+      const item = items[at] as Item;
+      if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
+        session.set(item.control, item.position);
+      } else {
+        session.checkOff();
+      }
+    }
+    expect(session.checklist()?.current).toBe(choke);
+    session.advance(1000);
+    expect(session.checklist()?.current).toBe(choke);
+
+    session.checkOff();
+    expect(session.checklist()?.current).toBe(carbHeat);
+    session.checkOff();
+    expect(session.checklist()?.current).toBe(carbHeat + 1);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('asks for the run-up rpm as a challenge and takes the reading as the response', () => {
+    const check = (normalProcedures.beforeTakeoff.items as readonly Item[]).find(
+      (item) => item.type === 'check' && item.response !== undefined,
+    );
+    expect(check?.text.en).not.toMatch(/\d/);
+    expect(check?.text.de).not.toMatch(/\d/);
+  });
+
   it('engineStart needs its ignition BOTH step because the engine starts with the key off', () => {
     const items = normalProcedures.engineStart.items as readonly Item[];
     const toBoth = items.findIndex(

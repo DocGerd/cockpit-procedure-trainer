@@ -246,6 +246,17 @@
   flex: 1 1 auto;
 }
 
+.checklist-response {
+  inline-size: 8ch;
+  min-height: var(--size-target);
+  padding: 0 var(--space-2);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
 .checklist-footer {
   display: flex;
   flex-wrap: wrap;

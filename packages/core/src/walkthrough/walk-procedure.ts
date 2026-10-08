@@ -79,14 +79,18 @@ function performAction(
   const pressed = isPressed(definition, position);
   const stranded = pressed ? restMismatch(session, definition, item) : undefined;
   if (stranded) return stranded;
-  const released = definition?.kind === 'momentary' && !pressed;
-  const result = released
-    ? session.release(control)
-    : pressed
-      ? session.press(control, definition?.kind === 'momentary' ? undefined : position)
-      : session.set(control, position);
-  const rejected = rejection(result);
-  if (rejected) return rejected;
+  if (!pressed && session.state().controls[control] === position) {
+    session.checkOff();
+  } else {
+    const released = definition?.kind === 'momentary' && !pressed;
+    const result = released
+      ? session.release(control)
+      : pressed
+        ? session.press(control, definition?.kind === 'momentary' ? undefined : position)
+        : session.set(control, position);
+    const rejected = rejection(result);
+    if (rejected) return rejected;
+  }
 
   const held =
     item.holdUntil === undefined || advanceUntil(session, () => progressed(session, index));
@@ -106,7 +110,7 @@ function perform(
       return 'condition not met';
     }
   }
-  session.checkOff();
+  session.checkOff(item.type === 'check' ? item.response?.reading(session.state()) : undefined);
   return undefined;
 }
 

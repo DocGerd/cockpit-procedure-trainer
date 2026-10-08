@@ -64,3 +64,44 @@ describe('deviation text for device controls', () => {
     expect(describeIn('en').title(unexpected('radio.nothing'))).toBe('radio.nothing operated');
   });
 });
+
+describe('deviation text for each kind', () => {
+  const outOfOrder: Deviation = {
+    kind: 'out-of-order',
+    itemIndex: 0,
+    controlId: 'bus',
+    laterItem: 3,
+  };
+  const wrongPosition: Deviation = {
+    kind: 'wrong-position',
+    itemIndex: 0,
+    controlId: 'bus',
+    position: 'off',
+  };
+
+  it('names the later item of a control operated out of order', () => {
+    const text = describeIn('en');
+    expect(text.where(outOfOrder)).toBe('During item 1');
+    expect(text.title(outOfOrder)).toBe('Bus operated before item 4');
+    expect(text.detail(outOfOrder)).toBe('The current item was Confirm.');
+    expect(text.banner(outOfOrder)).toBe('Bus operated early. It belongs to item 4, not item 1.');
+  });
+
+  it('names where a control was left in the wrong position', () => {
+    const text = describeIn('en');
+    expect(text.where(wrongPosition)).toBe('Item 1');
+    expect(text.title(wrongPosition)).toBe('Bus left at off');
+    expect(text.detail(wrongPosition)).toBe('The item was Confirm.');
+    expect(text.banner(wrongPosition)).toBe('Bus left at off during item 1.');
+  });
+
+  it('gives the reading of an unmet check when there was one', () => {
+    const text = describeIn('de');
+    expect(text.detail({ kind: 'unmet-check', itemIndex: 0, response: 3900 })).toBe(
+      'Der angegebene Wert war 3900.',
+    );
+    expect(text.detail({ kind: 'unmet-check', itemIndex: 0 })).toBe(
+      'Der Punkt wurde abgehakt, obwohl seine Bedingung nicht erfüllt war.',
+    );
+  });
+});
