@@ -95,3 +95,27 @@ test('the CTSL full flight runs from cold and dark to securing without a deviati
     .first();
   await expect(total).toHaveText('0');
 });
+
+test('Back to selection on a leg summary asks before ending the full flight', async ({ page }) => {
+  const legs = flightLegs(aircraft);
+  const [first, second] = legs;
+  if (!first || !second) throw new Error('The demo needs two legs');
+  await openPicker(page);
+  await page.getByRole('button', { name: copy.shell.fullFlight, exact: true }).click();
+  await completeProcedure(page, first);
+  await continueWith(page, procedure(second).title.en);
+  await completeProcedure(page, second);
+  const pane = checklistPane(page);
+  const back = pane.getByRole('button', { name: copy.checklist.backToSelection });
+  await back.click();
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toContainText(`2 of ${legs.length} legs`);
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(back).toBeVisible();
+  await back.click();
+  await dialog.getByRole('button', { name: copy.checklist.backToSelection }).click();
+  await expect(
+    page.getByRole('button', { name: copy.shell.fullFlight, exact: true }),
+  ).toBeVisible();
+});
