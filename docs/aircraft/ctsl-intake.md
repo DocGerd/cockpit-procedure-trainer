@@ -43,8 +43,9 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
-laid out for the left seat (pilot in command). The trainer draws three views:
-`panel` (both upper fields), `centre` (lower centre field) and `console`.
+laid out for the left seat (pilot in command). The trainer draws four views:
+`panel` (both upper fields), `centre` (lower centre field), `console` and
+`bulkhead` (the rescue handle between the seats, behind the console).
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -105,9 +106,12 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 
 - Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
   hydraulic brake lever, Bremshebel), **THROTTLE** (idle/full, Gashebel),
-  **CHOKE** (off/on).
+  **CHOKE** (off/on). The trainer draws the console as the left seat sees its
+  flank, so forward is to the left: the throttle pushes left to full, and the
+  brake and choke pull right, toward the pilot, to on (§9, question 24).
 - **Stabilator trim wheel** (Trimmrad) with its indicator beside it; forward is
-  nose down.
+  nose down. The trainer draws the wheel's rim in its slot with the indicator
+  scale above it, nose down to the left (§9, question 24).
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
   the throttle group. Parking brake: close the valve, then apply the brake lever;
   the pressure holds until the valve is opened.
@@ -116,6 +120,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   pull knob on the console (§9).
 - **Rescue-system handle** (Rettungsgerät), on the main bulkhead between the seats,
   secured on the ground by a safety pin. Pull hard and far forward to deploy.
+  The trainer draws it in its own view, `bulkhead`, behind the console (§9,
+  question 25).
 - Not modelled: the large unlabelled knob right of the parking-brake valve (§9),
   the fire extinguisher (pocket behind the passenger seat), the fuel dipstick.
 
@@ -524,3 +530,24 @@ verifies it on D-MPGO.
     memory before the checklist is read? Today: none; every item is read and done
     from the list. **Answered by assumption pending owner verification** (#450
     records the assumed memory items here).
+24. **Console lever and trim geometry**: do BRAKE, THROTTLE and CHOKE travel
+    fore and aft, which way does each apply (brake and choke on when pulled?),
+    what handles do they carry, and where does the trim indicator sit relative to
+    the wheel? Today: three horizontal levers stacked top to bottom, drawn as the
+    left seat sees the console's flank, forward to the left; the throttle pushes
+    forward to full, the brake and choke pull aft to on; the trim wheel's rim
+    shows in a slot below the choke with its indicator scale above it, nose down
+    forward. **Answered by assumption pending owner verification** (#449).
+    Assumed (unverified), from general knowledge of the CT Supralight: the three
+    levers slide fore and aft; push is forward, so full throttle is forward and
+    the brake and choke apply when pulled toward the pilot; the trim wheel turns
+    fore and aft, forward nose down, with its indicator beside it.
+25. **Rescue handle on the bulkhead**: how high and where across the main
+    bulkhead does the handle sit, what shape is its grip, and where does the
+    safety pin go? Today: a T-grip in a holder centred on the bulkhead between
+    the two seat backs, the safety pin through the holder above the grip, the
+    holder printed RESCUE and PULL HARD. **Answered by assumption pending owner
+    verification** (#449). Assumed (unverified), from general knowledge of the CT
+    Supralight: the handle sits centred between the seats on the bulkhead behind
+    them, at about shoulder height, reached back over the shoulder; the pin goes
+    through the holder and carries a remove-before-flight flag.

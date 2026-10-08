@@ -140,9 +140,14 @@ describe('CTSL notched artwork controls', () => {
 
       let forward: Point;
       let backward: Point;
-      if (path) {
-        const [first, last] = [path[0], path[path.length - 1]] as [Point, Point];
-        [forward, backward] = last.y < first.y ? [last, first] : [first, last];
+      // A path runs along its longer axis, as panel-kit reads it; without one the taps go left or right.
+      const ends = path ? ([path[0], path[path.length - 1]] as [Point, Point]) : undefined;
+      const vertical =
+        ends !== undefined && Math.abs(ends[1].y - ends[0].y) >= Math.abs(ends[1].x - ends[0].x);
+      if (ends) {
+        const [first, last] = ends;
+        const lastAhead = vertical ? last.y < first.y : last.x > first.x;
+        [forward, backward] = lastAhead ? [last, first] : [first, last];
       } else {
         forward = { x: bounds.width * 0.95, y: bounds.height / 2 };
         backward = { x: bounds.width * 0.05, y: bounds.height / 2 };
@@ -170,7 +175,7 @@ describe('CTSL notched artwork controls', () => {
       expect(now(down ?? '')).toBeLessThan(now(here));
 
       const [from, next, previous] = [printed(here), printed(up ?? ''), printed(down ?? '')];
-      if (path) {
+      if (vertical) {
         expect(next.y).toBeLessThan(from.y);
         expect(previous.y).toBeGreaterThan(from.y);
       } else {
