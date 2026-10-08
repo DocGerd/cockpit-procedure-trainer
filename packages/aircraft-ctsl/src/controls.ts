@@ -113,12 +113,13 @@ export const controls = {
     kind: 'toggle',
     positions: ['armed', 'on'],
     initial: 'armed',
+    legends: { armed: 'ARM' },
     name: text('Notsender', 'ELT remote switch'),
     description: text(
-      'Fernschalter des Notsenders. ARMED löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
-      'Remote switch of the emergency locator transmitter. ARMED triggers on impact, ON transmits at once; the lamp shows it transmitting.',
+      'Fernschalter des Notsenders, oben ON, unten ARM. ARM löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
+      'Remote switch of the emergency locator transmitter, ON up, ARM down. ARM triggers it on impact, ON transmits at once; the lamp shows it transmitting.',
     ),
-    appearance: { widget: 'toggle' },
+    appearance: controlArtwork.elt,
   },
   flapBreaker: breakerOf(
     text('Klappensicherung', 'Flap breaker'),
@@ -134,8 +135,8 @@ export const controls = {
     initial: 'closed',
     name: text('Brandhahn', 'Fuel valve'),
     description: text(
-      'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt er den Zündschlüssel.',
-      'Slide lever for the fuel supply, up open, down closed. Closed, it covers the ignition key.',
+      'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt sein Griff das Zündschloss: der Schlüssel lässt sich weder stecken noch aus OFF drehen, nur abziehen. Abziehen geht nur bei ganz geschlossenem Brandhahn.',
+      'Slide lever for the fuel supply, up open, down closed. Closed, its handle covers the ignition key slot, so the key can neither go in nor turn out of OFF, only come out. The key comes out only with the valve fully closed.',
     ),
     appearance: controlArtwork.fuelValve,
   },
@@ -143,6 +144,7 @@ export const controls = {
     kind: 'rotary',
     positions: ['override-up', '-12', '0', '15', '30', '35', 'override-down'],
     initial: '0',
+    legends: { 'override-up': 'UP', 'override-down': 'DN' },
     name: text('Klappenwahlschalter', 'Flap selector'),
     description: text(
       'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
@@ -152,13 +154,26 @@ export const controls = {
   },
   ignition: {
     kind: 'rotary',
-    positions: ['off', 'left', 'right', 'both', 'start'],
-    initial: 'off',
+    positions: ['out', 'off', 'left', 'right', 'both', 'start'],
+    initial: 'out',
     springBack: { start: 'both' },
+    legends: {
+      out: {
+        state: text('Schlüssel abgezogen', 'key out'),
+        restore: text('Schlüssel wieder abziehen', 'Take the key out again'),
+      },
+      left: 'L',
+      right: 'R',
+    },
+    interlock: [
+      { control: 'fuelValve', at: 'closed', holds: ['out'] },
+      { control: 'fuelValve', at: 'closed', holds: ['off', 'out'] },
+      { control: 'fuelValve', at: 'open', holds: ['off', 'left', 'right', 'both', 'start'] },
+    ],
     name: text('Zündschalter', 'Ignition'),
     description: text(
-      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. START dreht das Triebwerk und springt auf BOTH zurück.',
-      'Ignition key with starter: OFF, L, R, BOTH, START. START cranks the engine and springs back to BOTH.',
+      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. Der Schlüssel wird auf OFF gesteckt und abgezogen. START dreht das Triebwerk und springt auf BOTH zurück. Gesteckt wird er bei offenem Brandhahn, abgezogen nur bei geschlossenem: dann verdeckt dessen Griff das Schloss, und der Schlüssel lässt sich nicht stecken und nicht aus OFF drehen.',
+      'Ignition key with starter: OFF, L, R, BOTH, START. The key goes in and comes out at OFF. START cranks the engine and springs back to BOTH. The key goes in with the fuel valve open and comes out only with it closed; closed, its handle covers the slot, so the key can neither go in nor turn out of OFF.',
     ),
     appearance: controlArtwork.ignition,
   },
@@ -184,18 +199,22 @@ export const controls = {
     ),
     initial: 'pulled',
   },
-  brake: pushPullOf(
-    text('Bremshebel', 'Brake lever'),
-    text(
-      'Hydraulische Bremse beider Haupträder. Mit geschlossenem Rückflusshahn wird sie zur Parkbremse.',
-      'Hydraulic brake on both main wheels. With the parking-brake valve closed it sets the parking brake.',
+  brake: {
+    kind: 'momentary',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name: text('Bremshebel', 'Brake lever'),
+    description: text(
+      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Mit geschlossenem Rückflusshahn hält der Druck als Parkbremse.',
+      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve closed the pressure holds as the parking brake.',
     ),
-    controlArtwork.brake,
-  ),
+    appearance: controlArtwork.brake,
+  },
   throttle: {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
+    legends: { runup: 'RUN-UP' },
     name: text('Gashebel', 'Throttle'),
     description: text(
       'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',
@@ -223,6 +242,7 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'neutral', 'nose-up'],
     initial: 'neutral',
+    legends: { 'nose-down': 'NOSE DN', 'nose-up': 'NOSE UP' },
     name: text('Trimmrad', 'Trim wheel'),
     description: text(
       'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
@@ -234,10 +254,11 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'open',
+    legends: { closed: 'SHUT' },
     name: text('Rückflusshahn', 'Parking-brake valve'),
     description: text(
-      'Parkbremse: Hahn schließen, dann den Bremshebel ziehen. Der Druck hält, bis der Hahn wieder öffnet.',
-      'Parking brake: close the valve, then apply the brake lever. The pressure holds until the valve opens again.',
+      'Parkbremse: Hahn schließen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder öffnet.',
+      'Parking brake: close the valve, pull and release the brake lever. The pressure holds until the valve opens again.',
     ),
     appearance: controlArtwork.parkingBrakeValve,
   },
@@ -245,6 +266,16 @@ export const controls = {
     kind: 'guarded',
     positions: ['stowed', 'pulled'],
     initial: 'stowed',
+    legends: {
+      stowed: {
+        state: text('in Ruhestellung', 'stowed'),
+        restore: text('Wieder in Ruhestellung bringen', 'Stow it again'),
+      },
+      pulled: {
+        state: text('gezogen', 'pulled'),
+        restore: text('Wieder ziehen', 'Pull it again'),
+      },
+    },
     guard: { name: text('Sicherungsstift', 'Safety pin') },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(

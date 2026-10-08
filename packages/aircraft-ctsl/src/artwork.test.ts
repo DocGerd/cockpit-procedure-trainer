@@ -44,10 +44,11 @@ const indicatorArtwork = Object.entries(
   return artwork ? [{ id, indicator, artwork }] : [];
 });
 
-const urlsOf = ({ face, moving, glass }: Artwork): string[] => [
+const urlsOf = ({ face, moving, glass, guardOpen }: Artwork): string[] => [
   face,
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
   ...(glass === undefined ? [] : [glass]),
+  ...Object.values(guardOpen ?? {}),
 ];
 const used = new Set(
   [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
@@ -91,30 +92,88 @@ describe('CTSL artwork files', () => {
   });
 });
 
+describe('CTSL rescue handle safety pin', () => {
+  const rescue = () => controlArtwork.find(({ id }) => id === 'rescueHandle')?.artwork;
+  const pinMarks = (url: string) => read(url).match(/data-pin=""/g)?.length ?? 0;
+
+  it('draws the pin in the stowed image and in no other', () => {
+    const artwork = rescue();
+    if (artwork?.moving.type !== 'positions') throw new Error('the rescue handle has positions');
+    expect(pinMarks(artwork.moving.images.stowed ?? '')).toBeGreaterThan(0);
+    expect(pinMarks(artwork.moving.images.pulled ?? '')).toBe(0);
+  });
+
+  it('swaps in a stowed image without the pin while the guard is open', () => {
+    const artwork = rescue();
+    const open = artwork?.guardOpen?.stowed;
+    if (artwork?.moving.type !== 'positions' || open === undefined) {
+      throw new Error('the rescue handle has an open-guard image for stowed');
+    }
+    expect(Object.keys(artwork.guardOpen ?? {})).toEqual(['stowed']);
+    expect(pinMarks(open)).toBe(0);
+    expect(open).not.toBe(artwork.moving.images.stowed);
+  });
+});
+
 describe('CTSL compass', () => {
-  it('turns a full card under the lubber line, so the heading reads at the top', () => {
-    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
-    expect(moving?.type).toBe('needle');
-    if (moving?.type !== 'needle') return;
+  const compassArtwork = () => {
+    const artwork = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork;
+    if (artwork?.moving.type !== 'needle') throw new Error('the compass card turns as a needle');
+    return { ...artwork, moving: artwork.moving };
+  };
+  const placedOnCard = (point: string) =>
+    Number(
+      new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(
+        read(compassArtwork().moving.image),
+      )?.[1],
+    );
+
+  it('turns the full card clockwise under the lubber line, so it slides right as the heading increases', () => {
+    const { moving } = compassArtwork();
     expect(moving.valueRange).toEqual({ min: 0, max: 360 });
-    expect(moving.angleRange).toEqual({ min: 0, max: -360 });
+    expect(moving.angleRange).toEqual({ min: 0, max: 360 });
     expect(moving.pivot).toEqual({ x: 100, y: 100 });
   });
 
   it('turns the card so heading 090 shows E at the top', () => {
-    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
-    if (moving?.type !== 'needle') throw new Error('the compass card turns as a needle');
-    const svg = read(moving.image);
-    const placed = (point: string) =>
-      Number(new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(svg)?.[1]);
+    const { moving } = compassArtwork();
     const cardTurn = (headingDeg: number) =>
       (headingDeg / moving.valueRange.max) * moving.angleRange.max;
     const atTop = (point: string, headingDeg: number) =>
-      (((placed(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
+      (((placedOnCard(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
     expect(atTop('N', 360)).toBe(true);
     expect(atTop('E', 90)).toBe(true);
     expect(atTop('S', 180)).toBe(true);
     expect(atTop('W', 270)).toBe(true);
+  });
+
+  it('prints a reversed card: the numbers increase to the left of the lubber line', () => {
+    expect(placedOnCard('3')).toBe(330);
+    expect(placedOnCard('E')).toBe(270);
+    expect(placedOnCard('33')).toBe(30);
+  });
+
+  it('shows the card only through a window at the top of an opaque housing', () => {
+    const { glass } = compassArtwork();
+    if (glass === undefined) throw new Error('the compass housing is drawn as its glass');
+    const window = /<path\b[^>]*data-window=""[^>]*\bd="M([\d.]+) ([\d.]+)/.exec(read(glass));
+    expect(window, 'a path marked data-window in the housing').not.toBeNull();
+    expect(Number(window?.[2])).toBeLessThan(100);
+  });
+
+  it('is no larger than the vertical speed indicator', () => {
+    const compass = views.panel.indicators.compass.rect;
+    const vsi = views.panel.indicators.verticalSpeed.rect;
+    expect(compass.w).toBeLessThanOrEqual(vsi.w);
+    expect(compass.h).toBeLessThanOrEqual(vsi.h);
+  });
+
+  it('sits at the top left of the right field, above the leftmost engine gauge', () => {
+    const { rect } = views.panel.indicators.compass;
+    const tachometer = views.panel.indicators.tachometer.rect;
+    expect(rect.y + rect.h).toBeLessThan(tachometer.y);
+    expect(rect.x + rect.w / 2).toBeGreaterThan(tachometer.x);
+    expect(rect.x + rect.w / 2).toBeLessThan(tachometer.x + tachometer.w);
   });
 
   it('letters the card with the cardinal points', () => {
@@ -162,8 +221,57 @@ describe('CTSL compass', () => {
   });
 });
 
+describe('CTSL warning lamps', () => {
+  const chargeLamp = () => {
+    const artwork = indicatorArtwork.find((lamp) => lamp.id === 'chargeLamp')?.artwork;
+    if (artwork?.moving.type !== 'positions')
+      throw new Error('the charge lamp draws one lens per state');
+    return { ...artwork, moving: artwork.moving };
+  };
+  const bezelRadius = (svg: string) =>
+    Number(/<circle\b[^>]*data-bezel=""[^>]*\br="([\d.]+)"/.exec(svg)?.[1]);
+
+  it('draws the charge lamp lens unlit and lit', () => {
+    expect(Object.keys(chargeLamp().moving.images).sort()).toEqual(['false', 'true']);
+  });
+
+  it('draws the charge lamp round, with no rectangular part', () => {
+    const { face, moving } = chargeLamp();
+    for (const url of [face, ...Object.values(moving.images)]) {
+      expect(read(url), fileOf(url)).not.toMatch(/<rect\b/);
+    }
+    expect(bezelRadius(read(face))).toBeGreaterThan(0);
+  });
+
+  it('prints a legend on the charge lamp that the second lamp does not carry', () => {
+    const { face, lettering } = chargeLamp();
+    expect(lettering).toEqual(['CHARGE']);
+    expect(read(face)).toContain('>CHARGE</text>');
+    const panel = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    expect(panel).not.toContain('>CHARGE</text>');
+  });
+
+  it('draws both warning lamps round at the same size', () => {
+    const { face } = chargeLamp();
+    const faceWidth = Number(sizeOf(face).width);
+    const { rect } = views.panel.indicators.chargeLamp;
+    const panel = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const second = bezelRadius(panel);
+    expect(second).toBeGreaterThan(0);
+    expect((bezelRadius(read(face)) * rect.w) / faceWidth).toBeCloseTo(second, 0);
+  });
+});
+
 describe('CTSL gauges', () => {
-  const gaugeArtwork = indicatorArtwork.filter(({ id }) => id !== 'compass');
+  const gaugeArtwork = indicatorArtwork.filter(
+    ({ id, artwork }) => id !== 'compass' && artwork.moving.type === 'needle',
+  );
 
   const scales: Record<string, { min: number; max: number }> = {
     airspeed: { min: 40, max: 300 },
@@ -236,6 +344,59 @@ describe('CTSL control artwork', () => {
     }
   });
 
+  describe('rocker switches', () => {
+    // The lit paddle (the rect filled with gradient #b) marks the selected side, which is how a pilot
+    // reads the panel (#464); the dark half is the empty side. Moving it off the active legend inverts the switch.
+    const legendY = (face: string, legend: 'ON' | 'OFF') =>
+      Number(
+        new RegExp(String.raw`<text\b[^>]* y="([\d.]+)"[^>]*>${legend}</text>`).exec(face)?.[1],
+      );
+    const paddleCentreY = (image: string) => {
+      const paddles = [...image.matchAll(/<rect\b[^>]*>/g)].filter(([rect]) =>
+        rect.includes('fill="url(#b)"'),
+      );
+      expect(paddles, 'one paddle rect filled with the paddle gradient').toHaveLength(1);
+      const rect = paddles[0]?.[0] ?? '';
+      const y = Number(/\by="([\d.]+)"/.exec(rect)?.[1]);
+      return y + Number(/\bheight="([\d.]+)"/.exec(rect)?.[1]) / 2;
+    };
+    const rockers = controlArtwork.filter(
+      ({ artwork }) =>
+        artwork.moving.type === 'positions' &&
+        Object.keys(artwork.moving.images).sort().join() === 'off,on',
+    );
+
+    it('covers the five light rockers and the avionics master', () => {
+      expect(rockers.map(({ id }) => id).sort()).toEqual(
+        [
+          'avionicsMaster',
+          'beacon',
+          'cockpitLight',
+          'intercom',
+          'landingLight',
+          'positionLights',
+        ].sort(),
+      );
+    });
+
+    it.each(['on', 'off'] as const)(
+      'draws the paddle beside the legend of the %s position',
+      (state) => {
+        for (const { id, artwork } of rockers) {
+          if (artwork.moving.type !== 'positions') continue;
+          const image = artwork.moving.images[state];
+          if (image === undefined) throw new Error(`${id} has no ${state} image`);
+          const face = read(artwork.face);
+          const [on, off] = [legendY(face, 'ON'), legendY(face, 'OFF')];
+          expect(on, `${id}: ON legend`).toBeLessThan(off);
+          const centre = paddleCentreY(read(image));
+          const nearest = Math.abs(centre - on) < Math.abs(centre - off) ? 'on' : 'off';
+          expect(nearest, `${id}: ${fileOf(image)}`).toBe(state);
+        }
+      },
+    );
+  });
+
   it('draws the controls the plan names', () => {
     const ids = controlArtwork.map(({ id }) => id);
     for (const id of [
@@ -255,8 +416,66 @@ describe('CTSL control artwork', () => {
   });
 });
 
+describe('CTSL console levers (intake §3.4)', () => {
+  // The console is drawn as the left seat sees its flank: forward, toward the centre column and the
+  // nose, is to the left, and a lever pulled toward the pilot moves right.
+  const travelOf = (id: 'brake' | 'throttle' | 'choke') => {
+    const { moving } = controlArtwork.find((entry) => entry.id === id)?.artwork ?? {};
+    if (moving?.type !== 'travel') throw new Error(`${id} slides along a travel path`);
+    return moving.path;
+  };
+  const xOf = (svg: string, legend: string) =>
+    Number(new RegExp(String.raw`<text x="([\d.]+)"[^>]*>${legend}</text>`).exec(svg)?.[1]);
+
+  it.each(['brake', 'throttle', 'choke'] as const)('slides %s horizontally', (id) => {
+    const path = travelOf(id);
+    const [first, last] = [path[0], path[path.length - 1]];
+    expect(first?.y).toBe(last?.y);
+    expect(first?.x).not.toBe(last?.x);
+  });
+
+  it('pushes the throttle forward, to the left, for full power', () => {
+    const path = travelOf('throttle');
+    expect(path[path.length - 1]?.x).toBeLessThan(path[0]?.x ?? 0);
+    const face = read(controlArtwork.find(({ id }) => id === 'throttle')?.artwork.face ?? '');
+    expect(xOf(face, 'FULL')).toBeLessThan(xOf(face, 'IDLE'));
+  });
+
+  it.each(['brake', 'choke'] as const)('pulls %s aft, to the right, to ON', (id) => {
+    const path = travelOf(id);
+    expect(path[1]?.x).toBeGreaterThan(path[0]?.x ?? 0);
+    const face = read(controlArtwork.find((entry) => entry.id === id)?.artwork.face ?? '');
+    expect(xOf(face, 'ON')).toBeGreaterThan(xOf(face, 'OFF'));
+  });
+
+  describe('trim wheel', () => {
+    const artwork = controlArtwork.find(({ id }) => id === 'trim')?.artwork;
+    const images = artwork?.moving.type === 'positions' ? artwork.moving.images : {};
+    const pointerX = (position: string) =>
+      Number(
+        /<path\b[^>]*data-pointer=""[^>]*\bd="M([\d.]+)/.exec(read(images[position] ?? ''))?.[1],
+      );
+    const wheel = (position: string) =>
+      /<path\b[^>]*data-wheel=""[^>]*\bd="([^"]+)"/.exec(read(images[position] ?? ''))?.[1];
+
+    it('turns a wheel and moves a separate indicator for each position', () => {
+      expect(Object.keys(images).sort()).toEqual(['neutral', 'nose-down', 'nose-up']);
+      const turned = ['nose-down', 'neutral', 'nose-up'].map(wheel);
+      expect(turned.every((ribs) => ribs !== undefined)).toBe(true);
+      expect(new Set(turned).size).toBe(3);
+    });
+
+    it('shows nose down forward, to the left, on the indicator', () => {
+      expect(pointerX('nose-down')).toBeLessThan(pointerX('neutral'));
+      expect(pointerX('neutral')).toBeLessThan(pointerX('nose-up'));
+      const face = read(artwork?.face ?? '');
+      expect(xOf(face, 'NOSE DN')).toBeLessThan(xOf(face, 'NOSE UP'));
+    });
+  });
+});
+
 describe('CTSL view backdrops', () => {
-  const backdrop = (id: 'panel' | 'centre' | 'console'): string =>
+  const backdrop = (id: 'panel' | 'centre' | 'console' | 'bulkhead'): string =>
     readFileSync(new URL(`./assets/${fileOf(views[id].image)}`, import.meta.url), 'utf8');
   const count = (svg: string, pattern: RegExp) => [...svg.matchAll(pattern)].length;
   const lettering = (svg: string) =>
@@ -265,45 +484,65 @@ describe('CTSL view backdrops', () => {
         `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
     );
 
-  it.each(['panel', 'centre', 'console'] as const)('uses at most one filter on %s', (id) => {
-    const svg = backdrop(id);
-    expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
-    expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'uses at most one filter on %s',
+    (id) => {
+      const svg = backdrop(id);
+      expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
+      expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+    },
+  );
+
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'paints %s with a stipple texture',
+    (id) => {
+      const svg = backdrop(id);
+      expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+      expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
+    },
+  );
+
+  it("heads the breaker block in the panel's own wording", () => {
+    const { x, y } = views.panel.controls.comBreaker.rect;
+    const header = [...backdrop('panel').matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)]
+      .filter(([, textX, textY]) => Number(textX) > x && Number(textY) <= y)
+      .map(([, , , content]) => content);
+    expect(header.join(' ')).toBe('Circuit Breakers - Push off');
   });
 
-  it.each(['panel', 'centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
-    const svg = backdrop(id);
-    expect(count(svg, /<feTurbulence\b/g)).toBe(1);
-    expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
-  });
-
-  it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
-    const expected = {
-      panel: [
-        'TAKE@90,92/30',
-        'OFF@90,130/30',
-        'LIMITS@90,292/30',
-        'COM RADIO@450,449/40',
-        'TRANSPONDER@450,609/40',
-        'GPS@1368,204/40',
-        'BREAKERS@1736,54/30',
-      ],
-      centre: [
-        'AVIONICS OFF TO START AND STOP@570,272/29',
-        '12 V@120,378/29',
-        'INTERCOM@590,384/29',
-        'AUDIO@945,384/29',
-        'FLAPS@540,550/29',
-        'HEADSET@910,490/29',
-        'IGNITION@340,886/29',
-        'BAT@930,658/29',
-        'GEN@1090,658/29',
-        'ELT@162,450/29',
-        'OPEN@110,574/29',
-        'CLOSED@110,884/29',
-      ],
-      console: [],
-    }[id];
-    expect(lettering(backdrop(id))).toEqual(expected);
-  });
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'keeps the %s lettering in place',
+    (id) => {
+      const expected = {
+        panel: [
+          'TAKE@90,92/30',
+          'OFF@90,130/30',
+          'LIMITS@90,292/30',
+          'COM RADIO@450,449/40',
+          'TRANSPONDER@450,609/40',
+          'GPS@1368,204/40',
+          'Circuit Breakers -@1736,72/30',
+          'Push off@1736,106/30',
+        ],
+        centre: [
+          'AVIONICS OFF TO START AND STOP@570,272/29',
+          '12 V@120,378/29',
+          'INTERCOM@590,384/29',
+          'AUDIO@945,384/29',
+          'FLAPS@700,550/29',
+          'HEADSET@1080,490/29',
+          'IGNITION@223,886/29',
+          'BAT@930,658/29',
+          'GEN@1090,658/29',
+          'OPEN@150,434/29',
+          'FUEL@150,494/29',
+          'VALVE@150,528/29',
+          'CLOSED@150,598/29',
+        ],
+        console: [],
+        bulkhead: [],
+      }[id];
+      expect(lettering(backdrop(id))).toEqual(expected);
+    },
+  );
 });

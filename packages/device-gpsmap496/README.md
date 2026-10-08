@@ -1,9 +1,11 @@
 # @cpt/device-gpsmap496
 
 The Garmin GPSMAP 496 as fitted to the CT Supralight's analog panel, reduced to what a
-trainer without a world outside needs: power, the backlight and the main pages. An aircraft
-installs it by id (`gpsmap496`). Its screen is made for the GPS view, where the keys are
-large enough to operate by touch. Every page shows that there is no position.
+trainer without a world outside needs: power, the backlight, the main pages and a position
+fix. An aircraft installs it by id (`gpsmap496`). Its screen opens in the device dock, where
+the keys are large enough to operate by touch. Switched on, the receiver searches for
+satellites and then has a fix; with a fix the map page shows ground speed, track and a
+schematic track-up map without map data.
 
 ## Source revision
 
@@ -21,6 +23,10 @@ Assumptions to confirm against it:
   on a short press of the power key.
 - The backlight level survives a power loss; the page does not.
 - Page and backlight keys do nothing while the unit is off.
+- The receiver finds its fix a fixed time (`ACQUIRE_MS`) after it is switched on, and loses
+  it when switched off or unpowered. The real search time depends on the sky view and on how
+  long the unit was off.
+- The map is track up: the track line points up and a marker shows north.
 
 ## Controls
 
@@ -31,9 +37,11 @@ Assumptions to confirm against it:
 
 ## Inputs
 
-None.
+- `groundSpeedKt` (knots).
+- `trackDeg` (degrees, 1 to 360).
 
-The unit is powered by the install's `powered` condition.
+Both are read only with a fix; a missing input shows dashes. The unit is powered by the
+install's `powered` condition.
 
 ## Display
 
@@ -44,8 +52,8 @@ touch targets (see `src/entry.ts`).
 
 ## Not modelled
 
-- Moving map, map display and zoom
-- Satellite reception, position, track and speed
+- Map data, zoom and map orientation: the map shows only range rings, the track line and north
+- Satellite constellation, signal strength, coordinates and GPS altitude; the fix comes after a fixed search time
 - Navigation database, airports and airspace
 - Direct-to, routes, nearest airports and waypoints
 - Weather, terrain and traffic data

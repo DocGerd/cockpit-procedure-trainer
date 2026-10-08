@@ -1,6 +1,7 @@
 import { format, useLocalize, useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
+import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 
@@ -8,18 +9,41 @@ import { ProcedureKind } from './ProcedureKind';
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, viewedProcedureId, viewProcedure } = useTrainer();
+  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist } = useTrainer();
+  const awaiting = useSessionState((snapshot) => {
+    const scenario = snapshot.scenario();
+    return scenario !== undefined && scenario.chosen === undefined;
+  });
   const procedure =
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];
   if (!procedure) return null;
   const running = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const rows = procedure.items.map((item, index) => (
+    <li key={index} className="checklist-item" data-state="reference">
+      <span className="checklist-item-row">
+        <span className="checklist-number">{index + 1}</span>
+        <span className="checklist-item-text">{localize(item.text)}</span>
+      </span>
+    </li>
+  ));
 
   return (
     <div className="checklist">
       <div className="checklist-header">
-        <ProcedureKind type={procedure.type} />
+        <ProcedureKind type={procedure.type} injected={!awaiting} />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
+        {awaiting && <p className="checklist-note">{text.surpriseNote}</p>}
         <p className="checklist-note">{text.viewOnly}</p>
+        {awaiting && procedure.type === 'emergency' && viewedProcedureId !== undefined && (
+          <button
+            type="button"
+            className="button-primary checklist-back"
+            onClick={() => takeChecklist(viewedProcedureId)}
+          >
+            {text.runChecklist}
+          </button>
+        )}
         {running && procedureId !== undefined && (
           <button
             type="button"
@@ -31,14 +55,12 @@ export function ProcedureViewer() {
         )}
       </div>
       <ol className="checklist-items">
-        {procedure.items.map((item, index) => (
-          <li key={index} className="checklist-item" data-state="reference">
-            <span className="checklist-item-row">
-              <span className="checklist-number">{index + 1}</span>
-              <span className="checklist-item-text">{localize(item.text)}</span>
-            </span>
-          </li>
-        ))}
+        {memoryCount > 0 && (
+          <ItemGroup kind="memory" label={text.memoryItems}>
+            {rows.slice(0, memoryCount)}
+          </ItemGroup>
+        )}
+        {rows.slice(memoryCount)}
       </ol>
     </div>
   );

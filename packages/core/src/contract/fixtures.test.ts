@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defineAircraft } from './define-aircraft';
+import { everyPhase } from './phase-set';
 import { STARTER_MS_TO_START, fixtureAircraft } from './fixtures';
 import type { FixtureState } from './fixtures';
 import type { Positions, Text } from './types';
@@ -80,7 +81,11 @@ describe('cockpit arrangement types', () => {
     },
     systems: { initial: {}, step: (state: object) => state },
     failures: {},
-    phases: {},
+    phases: everyPhase({
+      image: 'phase.png',
+      environment: { airspeedKt: 0, altitudeFt: 0, onGround: true },
+      entry: { controls: {}, state: {} },
+    }),
     procedures: {},
   } as const;
   const size = { width: 2, height: 1 };

@@ -1,13 +1,13 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixture, so checklist tests do not depend on the registered aircraft's content.
 
-type State = Record<string, never>;
+type State = { readonly failing: boolean };
 
 const text = (en: string): Text => ({ de: `${en} (de)`, en });
 const environment: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
-const initial: State = {};
+const initial: State = { failing: false };
 
 const toggle = (name: string) => ({
   kind: 'toggle' as const,
@@ -25,22 +25,20 @@ export const fixture: Aircraft = defineAircraft({
   indicators: {
     fuel: {
       name: text('Fuel'),
-      select: () => 'ok',
+      select: (state) => (state.systems.failing ? 'low' : 'ok'),
       appearance: { widget: 'text' },
     },
   },
   views: { main: { name: text('Main'), image: 'main.svg', controls: {} } },
-  systems: { initial, step: (state: State) => state },
+  systems: { initial, step: (_state, input) => ({ failing: input.failures.size > 0 }) },
   failures: { fire: { name: text('Fire') } },
   phases: {
-    ground: {
-      name: text('Ground'),
+    ...everyPhase({
       image: 'ground.svg',
       environment,
       entry: { controls: { master: 'off', pump: 'off', avionics: 'off' }, state: initial },
-    },
-    airborne: {
-      name: text('Airborne'),
+    }),
+    cruise: {
       image: 'airborne.svg',
       environment: { airspeedKt: 100, altitudeFt: 3000, onGround: false },
       entry: { controls: { master: 'on', pump: 'on', avionics: 'off' }, state: initial },
@@ -50,7 +48,7 @@ export const fixture: Aircraft = defineAircraft({
     flow: {
       title: text('Flow'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         {
@@ -66,14 +64,14 @@ export const fixture: Aircraft = defineAircraft({
     followUp: {
       title: text('Follow-up'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [{ type: 'action', control: 'avionics', position: 'on', text: text('Avionics on') }],
     },
     fire: {
       title: text('Fire'),
       type: 'emergency',
       failure: 'fire',
-      startPhase: 'airborne',
+      startPhase: 'cruise',
       items: [{ type: 'action', control: 'pump', position: 'off', text: text('Pump off') }],
     },
   },

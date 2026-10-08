@@ -1,2 +1,11 @@
-export { startChecklist, observeControl, observeState, checkOff } from './checklist';
-export type { ChecklistState, Deviation } from './checklist';
+export {
+  startChecklist,
+  observeControl,
+  observeState,
+  retryItem,
+  checkOff,
+  takesTick,
+  springsBack,
+  inFlow,
+} from './checklist';
+export type { ChecklistState, Deviation, DeviationKind } from './checklist';

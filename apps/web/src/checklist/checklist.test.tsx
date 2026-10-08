@@ -7,6 +7,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerLayout } from '../shell/TrainerLayout';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useSessionState, useTrainer } from '../trainer';
+import { SURPRISE_MAX_MS } from '../trainer/scenarios';
 import type { Mode, Trainer } from '../trainer';
 import { ChecklistPane, DeviationSummary, useCurrentTarget } from './index';
 import { fixture } from './test-aircraft';
@@ -103,7 +104,23 @@ describe('checklist items', () => {
     expect(screen.getByText('1 / 4')).toBeTruthy();
   });
 
-  it('gives check and confirm items a check-off button and action items none', async () => {
+  it('gives an action item a Verified button that passes a target already set', async () => {
+    renderPane();
+    start(flow);
+    operate('pump', 'on');
+    operate('master', 'on');
+    checkOff();
+    checkOff();
+    expect(trainer.session.checklist()?.current).toBe(3);
+    expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
+    expect(trainer.session.checklist()?.done).toBe(true);
+    expect(trainer.session.checklist()?.deviations.map(({ kind }) => kind)).toEqual([
+      'out-of-order',
+    ]);
+  });
+
+  it('gives check and confirm items a check-off button', async () => {
     renderPane();
     start(flow);
     expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
@@ -133,12 +150,69 @@ describe('checklist items', () => {
     expect(screen.queryByText('Emergency')).toBeNull();
   });
 
-  it('restarts the procedure from its start phase', async () => {
+  it('restarts at once when nothing is done yet', async () => {
+    renderPane();
+    start(flow);
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(stateLabels()).toEqual(['Current', 'Pending', 'Pending', 'Pending']);
+  });
+
+  it('asks before Restart discards progress and restarts from the start phase on confirm', async () => {
     renderPane();
     start(flow);
     operate('master', 'on');
     await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Restart the procedure?' });
+    expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
+    expect(stateLabels()[0]).toBe('Done');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Restart' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(stateLabels()).toEqual(['Current', 'Pending', 'Pending', 'Pending']);
+  });
+
+  it('keeps the progress when the restart is cancelled', async () => {
+    renderPane();
+    start(flow);
+    operate('master', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(stateLabels()[0]).toBe('Done');
+  });
+
+  it('asks before Restart discards a recorded deviation and counts it', async () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      `Progress lost: 0 of ${itemCount} items done, 1 deviation.`,
+    );
+  });
+
+  it.each([
+    ['en', 'Restart', 'Progress lost: 0 of ITEMS items done, 2 deviations.'],
+    ['de', 'Neu starten', 'Verlorener Fortschritt: 0 von ITEMS Punkten erledigt, 2 Abweichungen.'],
+  ] as const)('counts several deviations in %s', async (language, restart, expected) => {
+    renderPane(language);
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    await userEvent.click(screen.getByRole('button', { name: restart }));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      expected.replace('ITEMS', String(itemCount)),
+    );
+  });
+
+  it('asks in German', async () => {
+    renderPane('de');
+    start(flow);
+    operate('master', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Neu starten' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Verfahren neu starten?' });
+    expect(dialog.textContent).toContain(`1 von ${itemCount} Punkten erledigt`);
+    expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
   });
 
   it('renders the German interface', () => {
@@ -158,10 +232,18 @@ describe('deviations per mode', () => {
     expect(status.textContent).toBe('');
     operate('avionics', 'on');
     expect(screen.getByRole('status')).toBe(status);
-    expect(within(status).getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+    expect(within(status).getByText('Avionics set to ON. Return it to OFF.')).toBeTruthy();
     expect(screen.getByText('1 deviation')).toBeTruthy();
     operate('master', 'on');
     expect(stateLabels()[0]).toBe('Deviated');
+  });
+
+  it('puts the Guided banner below the list so a deviation never pushes the current item', () => {
+    renderPane();
+    start(flow);
+    const status = screen.getByRole('status');
+    const list = screen.getByRole('list');
+    expect(list.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows the latest deviation in the Guided banner', () => {
@@ -204,7 +286,56 @@ describe('deviations per mode', () => {
     checkOff();
     operate('pump', 'on');
     expect(screen.getByText('Avionics operated')).toBeTruthy();
-    expect(screen.getByText('The current item was Master on.')).toBeTruthy();
+    expect(screen.getAllByText('Master on')).toHaveLength(2);
+    expect(screen.getByText('Avionics set to ON')).toBeTruthy();
+  });
+});
+
+describe('retrying an item', () => {
+  const retry = () => screen.queryByRole('button', { name: 'Retry this item' });
+
+  it('offers a retry with a deviation of the current item and puts the cockpit back', async () => {
+    renderPane();
+    start(flow);
+    expect(retry()).toBeNull();
+    operate('avionics', 'on');
+    await userEvent.click(retry() as HTMLElement);
+    expect(trainer.session.state().controls.avionics).toBe('off');
+    expect(trainer.session.checklist()?.current).toBe(0);
+    expect(trainer.session.checklist()?.assists).toBe(1);
+    expect(screen.getByText('1 deviation')).toBeTruthy();
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+  });
+
+  it('stops saying to return a control once the pilot has put it back', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    expect(screen.getByText('Avionics set to ON. Return it to OFF.')).toBeTruthy();
+    operate('avionics', 'off');
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+  });
+
+  it('drops the retry once the item has moved on', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('master', 'on');
+    expect(retry()).toBeNull();
+  });
+
+  it('offers none in Practice, where nothing is said until the end', () => {
+    renderPane();
+    start(flow, 'practice');
+    operate('avionics', 'on');
+    expect(retry()).toBeNull();
+  });
+
+  it('speaks German', () => {
+    renderPane('de');
+    start(flow);
+    operate('avionics', 'on');
+    expect(screen.getByRole('button', { name: 'Diesen Punkt wiederholen' })).toBeTruthy();
   });
 });
 
@@ -218,12 +349,52 @@ describe('deviation summary', () => {
     expect(screen.queryByRole('button', { name: 'Restart' })).toBeNull();
   });
 
-  it('shows items completed and the deviation count', () => {
+  it('shows the time taken, the deviation count and the assists used', () => {
+    renderPane();
+    start(flow);
+    act(() => trainer.session.advance(65_000));
+    operate('avionics', 'on');
+    act(() => trainer.session.retryItem());
+    operate('master', 'on');
+    checkOff();
+    checkOff();
+    operate('pump', 'on');
+    expect(screen.getByText('Time').nextElementSibling?.textContent).toBe('1:05');
+    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('2');
+    expect(screen.getByText('Assists').nextElementSibling?.textContent).toBe('1');
+    expect(screen.queryByText('Items completed')).toBeNull();
+  });
+
+  it('counts the deviations by kind', () => {
     renderPane();
     start(flow);
     finishFlowWithDeviations();
-    expect(screen.getByText('Items completed').nextElementSibling?.textContent).toBe('4 / 4');
-    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('2');
+    const kinds = within(screen.getAllByRole('list')[0] as HTMLElement)
+      .getAllByRole('listitem')
+      .map((kind) => kind.textContent);
+    expect(kinds).toEqual(['Unexpected control1', 'Condition not met1']);
+  });
+
+  it('groups deviations of every kind', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    operate('master', 'on');
+    operate('pump', 'off');
+    checkOff();
+    checkOff();
+    checkOff();
+    const kinds = within(screen.getAllByRole('list')[0] as HTMLElement)
+      .getAllByRole('listitem')
+      .map((kind) => kind.textContent);
+    expect(kinds).toEqual([
+      'Unexpected control2',
+      'Out of order1',
+      'Wrong position1',
+      'Condition not met1',
+    ]);
+    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('5');
   });
 
   it('lists each deviation with the item it happened during', () => {
@@ -234,9 +405,71 @@ describe('deviation summary', () => {
       .getAllByRole('listitem')
       .map((row) => row.textContent);
     expect(rows).toEqual([
-      'During item 1Avionics operatedThe current item was Master on.',
-      'Item 2Fuel flowing checked off, condition not metThe item was checked off while its condition was not met.',
+      'During item 1Avionics operatedExpectedMaster onActualAvionics set to ONGo to item 1',
+      'Item 2Fuel flowing checked off, condition not metExpectedFuel flowingActualChecked off with the condition not metGo to item 2',
     ]);
+  });
+
+  it('scrolls to the item of a deviation and focuses it', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    await userEvent.click(screen.getByRole('button', { name: 'Go to item 2' }));
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    const row = scrollIntoView.mock.contexts[0] as HTMLElement;
+    expect(row.textContent).toContain('Fuel flowing');
+    expect(document.activeElement).toBe(row);
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
+  it('lists every item below the deviations, marking the deviated ones', () => {
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    const review = within(screen.getByRole('region', { name: 'The items' }));
+    const rows = review.getAllByRole('listitem');
+    expect(rows).toHaveLength(itemCount);
+    expect(rows.map((row) => within(row).getByRole('img').getAttribute('aria-label'))).toEqual([
+      'Deviated',
+      'Deviated',
+      'Done',
+      'Done',
+    ]);
+  });
+
+  it('makes Repeat the primary action when something deviated, Next otherwise', () => {
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' }).className).toContain(
+      'button-primary',
+    );
+    expect(screen.getByRole('button', { name: 'Next: Follow-up' }).className).toContain(
+      'button-secondary',
+    );
+  });
+
+  it('keeps Next the primary action when nothing deviated', () => {
+    function Clean() {
+      const checklist = useSessionState((snapshot) => snapshot.checklist());
+      if (!checklist) return null;
+      return <DeviationSummary checklist={{ ...checklist, done: true, deviations: [] }} />;
+    }
+    renderWithLanguage(
+      <TrainerProvider>
+        <Probe />
+        <Clean />
+      </TrainerProvider>,
+    );
+    start(flow);
+    expect(screen.getByRole('button', { name: 'Next: Follow-up' }).className).toContain(
+      'button-primary',
+    );
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' }).className).toContain(
+      'button-secondary',
+    );
   });
 
   it('says so when nothing deviated', () => {
@@ -279,6 +512,7 @@ describe('deviation summary', () => {
     start(flow);
     finishFlowWithDeviations();
     await userEvent.click(screen.getByRole('button', { name: 'Back to selection' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(trainer.screen).toBe('picker');
     expect(trainer.procedureId).toBeUndefined();
   });
@@ -312,7 +546,7 @@ describe('deviation summary', () => {
       </TrainerProvider>,
     );
     start(flow);
-    expect(screen.getByText('gps.power operated')).toBeTruthy();
+    expect(screen.getAllByText('gps.power operated')).toHaveLength(2);
   });
 
   it('renders the German summary', () => {
@@ -322,6 +556,196 @@ describe('deviation summary', () => {
     expect(screen.getByRole('heading', { name: 'Flow (de) abgeschlossen' })).toBeTruthy();
     expect(screen.getByText('Bei Punkt 1')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Zurück zur Auswahl' })).toBeTruthy();
+  });
+});
+
+describe('full flight summary', () => {
+  const startFlight = () =>
+    act(() => {
+      trainer.setMode('guided');
+      trainer.startFlight();
+    });
+  const continueFlight = () =>
+    userEvent.click(screen.getByRole('button', { name: 'Next: Follow-up' }));
+
+  it('names the leg and continues the flight from the cockpit as it stands', async () => {
+    renderPane();
+    startFlight();
+    finishFlowWithDeviations();
+    expect(screen.getByText(/· Full flight, leg 1 of 2$/)).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'The whole flight' })).toBeNull();
+    await continueFlight();
+    expect(trainer.procedureId).toBe('followUp');
+    expect(trainer.session.state().controls.avionics).toBe('on');
+    expect(trainer.flight?.results).toMatchObject([{ id: flow, deviations: 2 }]);
+  });
+
+  it('shows the leg in the header while a leg runs, and nothing outside a flight', async () => {
+    renderPane();
+    act(() => trainer.startProcedure(flow));
+    expect(screen.queryByText(/Full flight, leg/)).toBeNull();
+    startFlight();
+    expect(screen.getByText('Full flight, leg 1 of 2')).toBeTruthy();
+    finishFlowWithDeviations();
+    await continueFlight();
+    expect(screen.getByText('Full flight, leg 2 of 2')).toBeTruthy();
+  });
+
+  it('repeats a leg from the cockpit it began with', async () => {
+    renderPane();
+    startFlight();
+    finishFlowWithDeviations();
+    await continueFlight();
+    operate('master', 'off');
+    checkOff();
+    await userEvent.click(screen.getByRole('button', { name: 'Repeat this procedure' }));
+    expect(trainer.procedureId).toBe('followUp');
+    expect(trainer.session.state().controls.master).toBe('on');
+    expect(trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('sums up every leg and the whole flight after the last leg', async () => {
+    renderPane();
+    startFlight();
+    act(() => trainer.session.advance(65_000));
+    finishFlowWithDeviations();
+    await continueFlight();
+    act(() => trainer.session.advance(5_000));
+    checkOff();
+    expect(screen.getByText(/· Full flight, leg 2 of 2$/)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
+    const table = within(screen.getByRole('region', { name: 'The whole flight' }));
+    const rows = table
+      .getAllByRole('row')
+      .map((row) => [...row.querySelectorAll('th, td')].map((cell) => cell.textContent));
+    expect(rows).toEqual([
+      ['Procedure', 'Deviations', 'Assists', 'Time'],
+      ['Flow', '2', '0', '1:05'],
+      ['Follow-up', '0', '0', '0:05'],
+      ['Total', '2', '0', '1:10'],
+    ]);
+  });
+
+  describe('back to selection', () => {
+    const back = () => screen.getByRole('button', { name: 'Back to selection' });
+
+    it('asks before ending the flight ahead of its last leg, naming the legs flown', async () => {
+      renderPane();
+      startFlight();
+      finishFlowWithDeviations();
+      await userEvent.click(back());
+      const dialog = within(screen.getByRole('alertdialog'));
+      expect(dialog.getByText('Back to selection?')).toBeTruthy();
+      expect(dialog.getByText(/The full flight ends after 1 of 2 legs\./)).toBeTruthy();
+      expect(trainer.flight).toBeDefined();
+      await userEvent.click(dialog.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBe(flow);
+      await userEvent.click(back());
+      await userEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Back to selection' }),
+      );
+      expect(trainer.screen).toBe('picker');
+      expect(trainer.flight).toBeUndefined();
+    });
+
+    it('asks in German', async () => {
+      renderPane('de');
+      startFlight();
+      finishFlowWithDeviations();
+      await userEvent.click(screen.getByRole('button', { name: 'Zurück zur Auswahl' }));
+      const dialog = within(screen.getByRole('alertdialog'));
+      expect(dialog.getByText('Zurück zur Auswahl?')).toBeTruthy();
+      expect(dialog.getByText(/Der ganze Flug endet nach 1 von 2 Abschnitten\./)).toBeTruthy();
+      expect(dialog.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
+    });
+
+    it('acts at once after the last leg', async () => {
+      renderPane();
+      startFlight();
+      finishFlowWithDeviations();
+      await continueFlight();
+      checkOff();
+      await userEvent.click(back());
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.screen).toBe('picker');
+    });
+  });
+
+  it('renders the German flight summary', async () => {
+    renderPane('de');
+    startFlight();
+    finishFlowWithDeviations();
+    expect(screen.getByText(/· Ganzer Flug, Abschnitt 1 von 2$/)).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Weiter: Follow-up (de)' }));
+    checkOff();
+    expect(screen.getByRole('region', { name: 'Der ganze Flug' })).toBeTruthy();
+  });
+});
+
+describe('surprise failure', () => {
+  const note = /Surprise failure: a failure appears without warning/;
+  const surprise = () => act(() => trainer.startSurprise('cruise'));
+  const past = (ms: number) => act(() => trainer.session.advance(ms));
+  const runButton = () => screen.queryByRole('button', { name: 'Run this checklist' });
+
+  it('names no failure while it is pending and offers to run an emergency checklist', async () => {
+    renderPane();
+    surprise();
+    expect(screen.getByText(note)).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Fire' })).toBeNull();
+    expect(screen.queryByText('Failure injected')).toBeNull();
+    expect(runButton()).toBeNull();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    expect(runButton()).toBeTruthy();
+    expect(screen.getByText('Emergency')).toBeTruthy();
+    expect(screen.queryByText('Failure injected')).toBeNull();
+  });
+
+  it('runs the chosen checklist, then reports the time to recognise and a match', async () => {
+    renderPane();
+    surprise();
+    past(SURPRISE_MAX_MS);
+    past(2000);
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    const run = runButton();
+    if (!run) throw new Error('no run button');
+    await userEvent.click(run);
+    expect(screen.getByRole('progressbar', { name: 'Progress' })).toBeTruthy();
+    expect(screen.queryByText(note)).toBeNull();
+    operate('pump', 'off');
+    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('0:02');
+    expect(screen.getByText('Right checklist for the failure: Fire.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'New surprise failure' }));
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'cruise', failure: 'fire' });
+  });
+
+  it('says when the chosen checklist is not the one for the failure', () => {
+    renderPane();
+    surprise();
+    past(SURPRISE_MAX_MS);
+    act(() => trainer.takeChecklist('followUp'));
+    operate('avionics', 'on');
+    expect(screen.getByText('Not the checklist for the failure: Fire.')).toBeTruthy();
+  });
+
+  it('says when the checklist was chosen before the failure appeared', () => {
+    renderPane();
+    surprise();
+    act(() => trainer.takeChecklist('fire'));
+    operate('pump', 'off');
+    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('Early');
+    expect(screen.getByText(/chosen before the failure appeared/)).toBeTruthy();
+  });
+
+  it('leaves the summary of an ordinary run alone', () => {
+    renderPane();
+    start('followUp');
+    operate('avionics', 'on');
+    expect(screen.queryByText('Time to recognise')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' })).toBeTruthy();
   });
 });
 
@@ -387,17 +811,67 @@ describe('visibility', () => {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: Element,
     ) {
-      const rect = this === aside ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
+      const rect = this.tagName === 'OL' ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
       return { ...rect, left: 0, right: 0, width: 0, height: 0, x: 0, y: rect.top } as DOMRect;
     });
     await userEvent.selectOptions(
       screen.getByRole('combobox', { name: 'Show checklist' }),
       'followUp',
     );
-    expect(aside.scrollTop).toBe(0);
     await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
-    expect(aside.scrollTop).toBe(140);
+    expect(within(aside).getByRole('list').scrollTop).toBe(140);
     vi.restoreAllMocks();
+  });
+});
+
+describe('scrolling the running checklist', () => {
+  const rectOf = (top: number, bottom: number) =>
+    ({ top, bottom, left: 0, right: 0, width: 0, height: bottom - top, x: 0, y: top }) as DOMRect;
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('keeps the current item inside the list, which scrolls apart from header and footer', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(0, 100);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(200, 240) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(140);
+  });
+
+  it('scrolls back up to a current item above the list', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 300;
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(100, 200);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(60, 100) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(260);
+  });
+
+  it('leaves the list alone when the current item is already inside it', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(100, 200);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(120, 160) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(25);
   });
 });
 
@@ -473,7 +947,9 @@ describe('viewing a checklist', () => {
     expect(screen.queryByText('Deviation')).toBeNull();
     operate('avionics', 'on');
     expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
-    expect(screen.getByRole('status').textContent).toContain('Avionics operated');
+    expect(screen.getByRole('status').textContent).toContain(
+      'Avionics set to ON. Return it to OFF.',
+    );
   });
 
   it('shows no deviation notice in Practice while another checklist is read', async () => {
@@ -533,7 +1009,7 @@ describe('viewing a checklist', () => {
   it('shows the read-only view after a phase jump ends the procedure', () => {
     renderPane();
     start(flow);
-    act(() => trainer.jumpToPhase('airborne'));
+    act(() => trainer.jumpToPhase('cruise'));
     expect(trainer.procedureId).toBeUndefined();
     expect(screen.getByRole('heading', { name: 'Flow' })).toBeTruthy();
     expect(screen.queryByRole('img')).toBeNull();

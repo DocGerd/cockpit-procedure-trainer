@@ -75,7 +75,7 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
 (both `Text`), an `initial` position, an optional `appearance` and an optional
-`placard` (see [Printed labels](#printed-labels)).
+`placard` and `legends` (see [Printed labels](#printed-labels)).
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -89,6 +89,15 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
+
+Any control may declare `interlock: [{ control, at, holds }, ...]`: while the
+other control stands at `at`, the pilot cannot move this one from a position in
+`holds` to one outside it; a move is refused when any entry refuses it. The CTSL's
+fuel valve uses three: closed, it keeps the key out (`['out']`) and lets a key at
+OFF only come out (`['off', 'out']`); open, it keeps the key in
+(`['off', 'left', 'right', 'both', 'start']`). Only pilot moves are refused
+(result `locked`), and the app frame names the holding control; phase entries and
+failures move freely. The other control must be a different one.
 
 ### Indicators
 
@@ -106,6 +115,11 @@ failure ids, `environment` the phase's `airspeedKt`, `altitudeFt` and `onGround`
 `src/systems.ts` feeds them from the control positions and derives gauge values
 (`rpm`, `oilPsi`, `amps`) in the same state. Wrong operation needs no special
 code: it fails to satisfy the rules, so the engine does not start.
+
+A state field the phase sets and the pilot does not control, such as the
+heading, is copied through by `step`. When a full flight carries the cockpit
+into the next phase, the optional `carry(carried, entry)` lays such fields from
+that phase's entry state over the carried state; the demo's carries the heading.
 
 When the aircraft is split over files, the types come from `@cpt/core` and your
 own state and failure types. Declare the failure ids as a union, `type DemoFailure =
@@ -157,13 +171,15 @@ definition with one line.
 `minWidth` is the narrowest rendered width, in CSS px, at which the view stays
 legible and operable: every touch target and installed-device button at least
 `--size-target`, no placard overfull, all placards and lettering at least
-`--text-2xs`, and no two operable targets (positions of one control included)
-overlapping, each taken as its rendered box grown to at least `--size-target`
-around its centre. Space placements apart to clear an overlap; one that only a
-higher floor could clear is accepted by name in the test's `acceptedOverlaps`,
-with what a tap loses there. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
-of every registered aircraft at exactly its `minWidth`, in English and German,
-and runs those checks. To find a floor, lower `minWidth` until the test fails and
+`--text-2xs`, and no two operable targets of different controls overlapping, each
+taken as its rendered box grown to at least `--size-target` around its centre.
+Space placements apart to clear an overlap; one that only a higher floor could
+clear is accepted by name in the test's `acceptedOverlaps`, with what a tap loses
+there. The positions of one control may overlap: the panel kit clips each to the
+points nearer its own centre, and `apps/web/e2e/reach.spec.ts` taps every
+position. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view of
+every registered aircraft at exactly its `minWidth`, in English and German, and
+runs those checks. To find a floor, lower `minWidth` until the test fails and
 keep the last passing value; to confirm one, run `pnpm test:e2e floors`. Size the
 cell widths in proportion to the floors so the arrangement wastes no width.
 
@@ -180,13 +196,17 @@ every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 
-`phases` maps a phase id to `{ name, image, environment, entry }`. `image` is the
+`phases` maps every id of the shared phase set (`sharedPhases` in `@cpt/core`, which also
+names each phase) to `{ image, environment, entry }`, even a phase none of the
+aircraft's procedures starts in. Leaving one out or adding another fails `pnpm typecheck`,
+and the validator reports it as `missing-phase` or `unknown-phase`. `image` is the
 outside view. Draw it as the first-person view out of the windshield from the
 pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
 state. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
 steps the systems once from a running engine. Guards start closed unless
-`entry.guards` names them `open`. A procedure starts from its
+`entry.guards` names them `open`. A phase can also seed the state of an installed
+device (`entry.deviceStates`, see Devices). A procedure starts from its
 `startPhase` snapshot, so the snapshot must be a state the procedure's first item
 makes sense in.
 
@@ -200,6 +220,11 @@ and the disc `id="propeller-disc"` in each `imageRunning` SVG; `tools/propeller-
 checks the markers in every `packages/aircraft-*/src/assets/phase-*.svg` (running images are
 named `phase-<id>-running.svg`).
 
+A failure the pilot should see outside, such as smoke from an engine fire, is an
+`outsideCues` entry: a name, an image in the coordinate space of the phase images and
+transparent elsewhere, and a `shows(state)` condition. The outside view lays the image
+over the phase image while the condition holds, in every phase.
+
 ### Procedures
 
 `procedures` maps an id to `{ title, type, startPhase, endPhase?, items }`. A
@@ -208,8 +233,10 @@ in `failure`, which must be declared in `failures`. Each item has a `text` and o
 of:
 
 - `action`: `control` and `position` to reach, optionally `holdUntil` a condition
-  on the state. It completes by itself once the control is at the position and
-  `holdUntil` holds. The demo holds the `starter` at `'held'` until the engine runs.
+  on the state. It completes when the pilot sets the control to the position while
+  the item is current, or ticks it verified, and `holdUntil` holds; it never
+  completes just because the control already held. The demo holds the `starter` at
+  `'held'` until the engine runs.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
   state. The pilot ticks it; ticking while the condition is false is recorded as
   an `unmet-check` deviation, not refused.
@@ -217,6 +244,27 @@ of:
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.
+
+**Flows.** A `normal` procedure may open with a flow: leading `action` items marked
+`flow: true`, done from memory in any order. Each flow item ticks once its control
+holds the position (and `holdUntil` holds), including one already in place when the
+procedure starts, and the flow ends when all are ticked. While it runs, only a
+change to a control outside the flow is a deviation; it carries `duringFlow: true`,
+since it belongs to the flow rather than to one item. Repeat the flow's controls as
+ordinary items after it, so the checklist verifies them; the demo's
+`beforeLanding` does this. The validator reports `invalid-flow` for a flow item on
+an emergency procedure, one that is not an action, one after the first ordinary
+item, or one whose control no later action or control check verifies.
+
+**Memory items.** An `emergency` procedure may open with memory items: leading items
+of any kind marked `memory: true`, the immediate actions a pilot does from recall
+before reading the checklist. They complete in list order like any item. Practice
+withholds a memory item's text until it is done (Show me reveals it), and the pane
+groups the block under a "Memory items" label in every mode. A memory item done only
+after the pilot moved another control while it was due also records a
+`late-memory-item` deviation when it completes. The demo's `alternatorFailure` opens
+with one. The validator reports `invalid-memory` for a memory item on a `normal`
+procedure or after an item that is not one.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight. An
 action or check can target a device control as `<installId>.<controlId>`; see the
@@ -233,7 +281,7 @@ in-between setting, either write a `check` item with a condition on an indicator
 
 An aircraft installs an avionics unit through the optional `devices` field; see
 `docs/adding-a-device.md` for the install shape, the `<installId>.<controlId>`
-targets and device entry positions. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
+targets, device entry positions and device entry state. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
 
 ## Appearance and artwork
 
@@ -262,7 +310,7 @@ each:
   optional `stateLabels: { lit, dark }`.
 - `digital-readout`: `units` and `decimals`.
 
-**Aircraft artwork**, `{ artwork: { face, moving, glass? } }`, for image files
+**Aircraft artwork**, `{ artwork: { face, moving, glass?, guardOpen? } }`, for image files
 shipped in the package. `face` is the static image URL and `moving` is one of:
 
 - `needle`: `{ type: 'needle', image, pivot, angleRange, valueRange }`. Draw the
@@ -293,6 +341,21 @@ With `options.needleShadow: true` on a needle, the renderer casts the needle ima
 shadow down and to the right, away from the panel's light, outside the rotation, so it
 never turns toward the light; the needle image then draws no shadow of its own.
 
+`guardOpen` is an optional `{ [position]: image }` map, for a `guarded` control only, at
+the size of the face. While the guard is open, the renderer draws that image instead of
+the position's own, so a part that goes with the guard, such as the CTSL rescue handle's
+safety pin, is drawn only while it is in. A position without an entry keeps its own
+image. `checkAppearance` reports `guardOpen` on a control that is not guarded and a key
+that is not one of the control's positions.
+
+An artwork control whose box reaches over a neighbour can confine its touch target per
+position with `options.hitArea`, a map from position to a `{ left, top, width, height }`
+box in fractions of the face (`{ open: { left: 0, top: 0, width: 1, height: 0.56 } }`);
+a tap elsewhere in the box reaches the control beneath. A position without an entry
+keeps the whole box. The CTSL's open fuel
+valve takes taps only in its slot, so the key switch below stays operable; closed, its
+whole box does, as its handle covers the key slot.
+
 If an image fails to load, the control or indicator shows its generic widget
 instead. `validateAircraft` reports `artwork-glass-size` when glass and face differ in
 size, if its context reads image sizes (`imageSize`). The demo declares generic widgets
@@ -311,6 +374,23 @@ placard does: a short legend in capitals beside the control, such as `BAT`, `FUE
 - `printed: string[]` on the placement, the text the view background prints beside
   the control; when it holds visible text, the widget prints no placard of its own.
 
+Cues (the Guided banner, the debrief's Expected and Actual) name a position as the panel
+prints it: its id in capitals, which is what a generic widget prints. Where the panel
+prints something else, declare `legends: { position: legend }` on the control: a string
+is the panel's own legend, such as `left: 'L'` on the CTSL key, and must also appear in
+the control's `lettering` or `printed`. A position the panel prints nothing for, such as
+the key pulled out, takes a phrase `{ state, restore }` (both `Text`): `state` names it
+after the control ("key out"), `restore` asks to bring the control back to it ("Take the
+key out again"), and cues use their own sentence forms for it. `validateAircraft` reports
+a legend for an unknown position as `unknown-position` and an empty one as
+`missing-translation`. `apps/web/src/checklist/position-legends.test.tsx` fails when a
+position of any control would cue text the panel does not print.
+
+Generic indicator widgets print no caption: a gauge shows its scale and units, a lamp
+or readout nothing of its name. An aircraft draws the lettering into the view image and lists it in the
+placement's `printed`, as the demo does for HOURS, COMPASS, LOW VOLT and OIL PRESS. The indicator's
+name stays as its accessible name.
+
 The label must name the function: a placard or lettering of only position legends
 (`ON`, `OFF`, `OPEN`, the control's own positions) does not count. `checkPlacards` from
 `@cpt/panel-kit` reports a placed control without such a label, and
@@ -325,12 +405,13 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `validateAircraft(aircraft, { devices })` from `@cpt/core` returns a list of
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
-`missing-translation`, `phase-without-image`, `running-image-without-engine`,
-`phase-without-running-image`, `phase-without-snapshot`,
+`missing-translation`, `missing-phase`, `unknown-phase`, `phase-without-image`,
+`running-image-without-engine`, `phase-without-running-image`, `cue-without-image`,
+`phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
-`unknown-device-control`, `unplaced-device`, `invalid-install-id`,
+`unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size` and the six
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
@@ -338,15 +419,16 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. It also fails a spring-back press unless the control rests at the
+points at its item. It does a flow in the listed order, or in reverse with
+`flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
-runs it for every `normal` procedure of every registered aircraft.
+runs it for every procedure of every registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 
 - `expect(validateAircraft(aircraft, { devices })).toEqual([])`
 - `expect(walkProcedure(aircraft, id, { devices })).toEqual({ ok: true })` for each
-  procedure, emergencies included, since the app's walk-through skips them.
+  procedure, emergencies included, as the app's walk-through does.
 - Wrong-operation scenarios on a session from
   `createSession(aircraft, { devices, phase })`: press the starter with the magnetos
   off and expect the engine not to run. Use `session.set`, `press`, `release` and

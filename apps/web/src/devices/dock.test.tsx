@@ -157,6 +157,22 @@ describe('the device dock in the tabs layout', () => {
     expect(dock()?.querySelector('[data-dock-device]')).toBeNull();
   });
 
+  it.each([
+    ['en', 'Close', 'Close device'],
+    ['de', 'Schließen', 'Gerät schließen'],
+  ] as const)('prints a text label on the close button in %s', async (language, label, name) => {
+    renderWithLanguage(
+      <TrainerProvider>
+        <PanelArea />
+      </TrainerProvider>,
+      { language },
+    );
+    await userEvent.click(slot('radio'));
+    const close = screen.getByRole('button', { name });
+    expect(close.textContent).toBe(label);
+    expect(close.getAttribute('aria-label')?.toLowerCase()).toContain(label.toLowerCase());
+  });
+
   it('gives focus back to the slot that opened it when it empties', async () => {
     render();
     await userEvent.click(slot('radio'));

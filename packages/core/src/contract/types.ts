@@ -1,4 +1,12 @@
+import type { PhaseId } from './phase-set';
+
 export type Text = { readonly de: string; readonly en: string };
+
+/**
+ * A position the panel prints nothing for: `state` names it after the control ("key out"),
+ * `restore` asks to bring the control back to it ("Take the key out again").
+ */
+export type PositionPhrase = { readonly state: Text; readonly restore: Text };
 
 export type JsonValue =
   string | number | boolean | null | readonly JsonValue[] | { readonly [key: string]: JsonValue };
@@ -36,6 +44,8 @@ export type ArtworkAppearance = {
     readonly moving: MovingPart;
     /** Glass drawn above the moving part and never moved, so its glare lies over the needle; the face's size. */
     readonly glass?: string;
+    /** For a guarded control: per position, the image drawn instead of that position's own while the guard is open, so a safety pin shows in its holder only while it is in. */
+    readonly guardOpen?: { readonly [position: string]: string };
     /** The text the face image prints, so a check can see that the control is labelled. */
     readonly lettering?: readonly string[];
   };
@@ -50,12 +60,32 @@ export type Positions = { readonly [id: string]: ControlPosition };
 export type BreakerPosition = 'in' | 'pulled';
 export type GuardPosition = 'closed' | 'open';
 
+/**
+ * A mechanical lock by another control: while `control` stands at `at`, the pilot cannot move this
+ * control from a position in `holds` to one outside it, as a closed fuel valve covering the key slot
+ * keeps the key at OFF. It never moves either control, and this control stays free while it stands
+ * outside `holds`.
+ */
+export type ControlInterlock = {
+  readonly control: string;
+  readonly at: ControlPosition;
+  readonly holds: readonly string[];
+};
+
 type ControlBase = {
   readonly name: Text;
   readonly description: Text;
   /** The panel's own short function legend beside the control, such as BAT or FUEL; it does not follow the UI language. */
   readonly placard?: string;
+  /**
+   * Per position, how a cue names it where the panel does not print its id in capitals: the
+   * panel's own legend, such as L for `left`, or a phrase for a position the panel prints nothing
+   * for, such as the key pulled out.
+   */
+  readonly legends?: { readonly [position: string]: string | PositionPhrase };
   readonly appearance?: Appearance;
+  /** Every lock that applies; a move is refused when any of them refuses it. */
+  readonly interlock?: readonly ControlInterlock[];
 };
 
 export type ToggleControl = ControlBase & {
@@ -176,6 +206,11 @@ export type StepInput<F extends string = string> = {
 export type SystemsDefinition<S, F extends string = string> = {
   readonly initial: S;
   step(state: S, input: StepInput<F>): S;
+  /**
+   * Lays what a phase sets and the pilot does not control, such as the heading, from the phase's
+   * entry state over a state carried into it. Without it a carried state keeps those values.
+   */
+  carry?(carried: S, entry: S): S;
 };
 
 export type DeviceStepInput = {
@@ -279,7 +314,6 @@ export type ControlRules<CT extends ControlRecord> = string extends keyof CT
   : { readonly [K in keyof NoInfer<CT>]: PositionRules<NoInfer<CT>[K]> };
 
 export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
-  readonly name: Text;
   /** The outside view; with `imageRunning` set, the view while the engine is stopped. */
   readonly image: string;
   /** The outside view while `engineRunning` holds, with the propeller disc in place of the blade. */
@@ -293,15 +327,31 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
     readonly devices?: {
       readonly [installId: string]: { readonly [controlId: string]: ControlPosition };
     };
+    /** Fields of an install's device state laid over `device.initial` on entry, keyed by install id. */
+    readonly deviceStates?: {
+      readonly [installId: string]: { readonly [field: string]: unknown };
+    };
   };
 };
 
-type ItemBase = { readonly text: Text };
+type ItemBase = {
+  readonly text: Text;
+  /**
+   * A memory item of an emergency procedure: done at once from recall, before the checklist is
+   * read. Memory items form the procedure's leading block.
+   */
+  readonly memory?: true;
+};
 
 export type DeviceControlId = `${string}.${string}`;
 
-export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
-  (
+/**
+ * An action with `flow` belongs to the flow a normal procedure may open with: its actions are done
+ * from memory in any order, and the checklist items after the flow verify them.
+ */
+export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase & {
+  readonly flow?: true;
+} & (
     | {
         [K in ControlId<CT>]: {
           readonly type: 'action';
@@ -327,6 +377,12 @@ export type CheckItem<
   readonly target:
     { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
+  /** Lets the pilot answer with the value read; a reading off by more than the tolerance is unmet. */
+  readonly response?: {
+    readonly reading: (state: TrainerState<S>) => number;
+    readonly tolerance: number;
+    readonly unit?: Text;
+  };
 };
 
 export type ConfirmItem = ItemBase & { readonly type: 'confirm' };
@@ -350,6 +406,21 @@ export type ProcedureDefinition<
   | { readonly type: 'emergency'; readonly failure: F }
 );
 
+export type OutsideCue<S> = {
+  readonly name: Text;
+  /** Drawn in the coordinate space of the phase images, transparent where nothing shows. */
+  readonly image: string;
+  readonly shows: Condition<S>;
+};
+
+/**
+ * Every shared phase and no other; `P` is inferred from the keys an aircraft declares, so an
+ * unknown key fails to typecheck even when the phases are built apart from `defineAircraft`.
+ */
+export type PhaseRecord<D, P extends string> = string extends P
+  ? { readonly [id: string]: D }
+  : { readonly [K in P]: K extends PhaseId ? D : never } & { readonly [K in PhaseId]: D };
+
 export type AircraftDefinition<
   S,
   CT extends ControlRecord,
@@ -369,8 +440,10 @@ export type AircraftDefinition<
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   /** Whether the engine runs; selects `imageRunning` over `image` in the outside view. */
   readonly engineRunning?: Condition<S>;
+  /** Images laid over the outside view while their condition holds, such as smoke from the engine. */
+  readonly outsideCues?: { readonly [id: string]: OutsideCue<S> };
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
-  readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
+  readonly phases: PhaseRecord<PhaseDefinition<S, CT>, P>;
   readonly procedures: {
     readonly [id: string]: ProcedureDefinition<S, CT, NoInfer<I>, NoInfer<F>, NoInfer<P>>;
   };

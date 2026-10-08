@@ -8,14 +8,14 @@ and the [ADRs](adr/); this page is the short map.
 
 ## Packages
 
-| Path                     | Role                                                                                                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/core`          | Aircraft contract, systems runtime, checklist engine, validator. Plain data and pure functions: no DOM, React or assets                                           |
-| `packages/panel-kit`     | Generic GA controls and gauges, and the layer renderer for aircraft artwork. Depends on `core` only                                                               |
-| `packages/aircraft-<id>` | One aircraft each (a fictional demo aircraft and a real type). Declares controls, indicators, views, systems model, phases and procedures. Depends on `core` only |
-| `packages/device-<id>`   | One avionics unit each (logic and screen), reusable across aircraft. Imports only `core` and `panel-kit`                                                          |
-| `apps/web`               | The React app: panel, checklist pane, outside view, PWA shell, i18n, storage, styling tokens                                                                      |
-| `tools/`                 | Cross-package contract tests (boundaries, device contracts, design literals)                                                                                      |
+| Path                     | Role                                                                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/core`          | Aircraft contract with the shared phase set, systems runtime, checklist engine, validator. Plain data and pure functions: no DOM, React or assets                                                            |
+| `packages/panel-kit`     | Generic GA controls and gauges, and the layer renderer for aircraft artwork. Depends on `core` only                                                                                                          |
+| `packages/aircraft-<id>` | One aircraft each (a fictional demo aircraft and a real type). Declares controls, indicators, views, systems model, the outside view and entry of every shared phase, and procedures. Depends on `core` only |
+| `packages/device-<id>`   | One avionics unit each (logic and screen), reusable across aircraft. Imports only `core` and `panel-kit`                                                                                                     |
+| `apps/web`               | The React app: panel, checklist pane, outside view, PWA shell, i18n, storage, styling tokens                                                                                                                 |
+| `tools/`                 | Cross-package contract tests (boundaries, device contracts, design literals)                                                                                                                                 |
 
 ## Boundaries
 
@@ -29,7 +29,9 @@ Rationale: [ADR-0001](adr/0001-architecture-and-aircraft-contract.md).
 
 ## Data flow
 
-1. The pilot operates a control; the control store records the new position.
+1. The pilot operates a control; the control store records the new position, or
+   refuses the move when an interlock holds it (result `locked`): the position
+   stays, a notice names both controls, and no deviation is recorded.
 2. The systems runtime steps and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine only observes control changes and state, completes
@@ -40,7 +42,9 @@ inconsistent aircraft data.
 
 ## Persistence and network
 
-`localStorage` holds theme, language and last aircraft only (`apps/web/src/storage`);
+`localStorage` holds theme, language, last aircraft, Practice's "Hide upcoming items"
+option and a per-procedure run history
+(last and best result, validated and size-bounded) only (`apps/web/src/storage`);
 the app works without it. Everything else is in memory. The app makes no
 runtime requests beyond its own origin; the service worker precaches the app so
 it works offline. The strict CSP in `apps/web/src/csp.ts` enforces this.

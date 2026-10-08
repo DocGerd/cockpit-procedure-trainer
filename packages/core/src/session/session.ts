@@ -1,5 +1,6 @@
-import { checkOff, observeControl, observeState, startChecklist } from '../checklist';
+import { checkOff, observeControl, observeState, retryItem, startChecklist } from '../checklist';
 import type { ChecklistState } from '../checklist';
+import { phaseOrder, sharedPhases } from '../contract';
 import type {
   Aircraft,
   ControlChange,
@@ -22,6 +23,23 @@ export type SessionOptions = {
   readonly phase?: string;
 };
 
+export type SurpriseOptions = {
+  readonly phase: string;
+  readonly failure: string;
+  readonly delayMs: number;
+};
+
+/** A surprise failure: injected unannounced, then answered by the checklist the pilot chooses. */
+export type Scenario = SurpriseOptions & {
+  /** Run time at which the failure appeared; unset while it is pending. */
+  readonly injectedAtMs?: number;
+  readonly chosen?: string;
+  /** From the failure to the choice; unset when the pilot chose before it appeared. */
+  readonly recognitionMs?: number;
+  /** Whether the chosen checklist is an emergency procedure for the injected failure. */
+  readonly matched?: boolean;
+};
+
 export type SessionControlResult =
   ControlResult | { readonly applied: false; readonly reason: 'failed' };
 
@@ -34,6 +52,7 @@ export type Session = {
   status(): RuntimeStatus;
   procedureId(): string | undefined;
   checklist(): ChecklistState<unknown> | undefined;
+  scenario(): Scenario | undefined;
   set(id: string, position: string | number): SessionControlResult;
   press(id: string, position?: string | number): SessionControlResult;
   release(id: string): SessionControlResult;
@@ -41,8 +60,24 @@ export type Session = {
   closeGuard(id: string): SessionControlResult;
   jumpToPhase(id: string): void;
   startProcedure(id: string): void;
+  /** Loads the phase snapshot and injects the failure once `delayMs` of run time has passed. */
+  startSurprise(options: SurpriseOptions): void;
+  /**
+   * Starts a checklist from the cockpit as it stands: no snapshot load and no failure of its own.
+   * The first one taken during a surprise is the pilot's answer to it.
+   */
+  takeChecklist(id: string): void;
+  /**
+   * Starts a normal procedure as the next leg of a flight. In the current phase or the one right
+   * after it, the leg starts from the cockpit as it stands; otherwise from its phase snapshot.
+   */
+  startLeg(id: string): void;
+  /** Puts the cockpit and phase back as they were when the current leg began and starts it over. */
+  restartLeg(): void;
   advance(dtMs: number): void;
-  checkOff(): void;
+  checkOff(response?: number): void;
+  /** Puts the cockpit back as it was when the current item began and counts an assist. */
+  retryItem(): void;
   subscribe(listener: () => void): () => void;
 };
 
@@ -50,8 +85,7 @@ const FAILED: SessionControlResult = { applied: false, reason: 'failed' };
 
 export function createSession(aircraft: Aircraft, options: SessionOptions = {}): Session {
   const registry = options.devices ?? [];
-  const initialPhase = options.phase ?? Object.keys(aircraft.phases)[0];
-  if (initialPhase === undefined) throw new Error(`Aircraft "${aircraft.id}" has no phases`);
+  const initialPhase = options.phase ?? sharedPhases[0].id;
   const initial = entrySnapshot(aircraft, registry, initialPhase);
 
   const controls = { ...aircraft.controls, ...deviceControls(aircraft, registry) };
@@ -67,6 +101,27 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let devices: DeviceStates = initial.devices;
   let procedureId: string | undefined;
   let checklist: ChecklistState<unknown> | undefined;
+  let runMs = 0;
+  let scenario: Scenario | undefined;
+  let itemStart:
+    | {
+        readonly completed: number;
+        readonly positions: ReturnType<typeof store.positions>;
+        readonly guards: ReturnType<typeof store.guards>;
+        readonly systems: unknown;
+        readonly devices: DeviceStates;
+      }
+    | undefined;
+  let legStart:
+    | {
+        readonly id: string;
+        readonly phase: string;
+        readonly positions: ReturnType<typeof store.positions>;
+        readonly guards: ReturnType<typeof store.guards>;
+        readonly systems: unknown;
+        readonly devices: DeviceStates;
+      }
+    | undefined;
   let deviceFailure: RuntimeStatus | undefined;
   let depth = 0;
   const listeners = new Set<() => void>();
@@ -129,16 +184,36 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     }
   }
 
-  function enterPhase(id: string): void {
+  function setPhase(id: string) {
     const next = entrySnapshot(aircraft, registry, id);
     phase = id;
     environment = next.environment;
     runtime.setEnvironment(environment);
+    return next;
+  }
+
+  function enterPhase(id: string): void {
+    const next = setPhase(id);
+    if (failed()) return;
+    runtime.carry(next.systems);
+    runtime.onControlsChanged(store.positions());
+    if (runtime.status().kind === 'running') settleDevices(0);
   }
 
   function track(next: ChecklistState<unknown>): void {
     const wasDone = checklist?.done ?? false;
-    checklist = next;
+    checklist = next.done && !wasDone ? { ...next, elapsedMs: runMs } : next;
+    if (next.done) itemStart = undefined;
+    // Keyed on completions, not `current`: a flow ticks items without moving `current`.
+    else if (itemStart?.completed !== next.completed.length) {
+      itemStart = {
+        completed: next.completed.length,
+        positions: store.positions(),
+        guards: store.guards(),
+        systems: runtime.state(),
+        devices,
+      };
+    }
     const endPhase = next.procedure.endPhase;
     if (next.done && !wasDone && endPhase !== undefined) enterPhase(endPhase);
   }
@@ -147,6 +222,10 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     const snapshot = entrySnapshot(aircraft, registry, id);
     procedureId = undefined;
     checklist = undefined;
+    itemStart = undefined;
+    legStart = undefined;
+    scenario = undefined;
+    runMs = 0;
     store.load(snapshot.positions, snapshot.guards);
     failureSet.clearAll();
     runtime.setEnvironment(snapshot.environment);
@@ -156,6 +235,22 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     settleDevices(0, snapshot.devices);
     phase = id;
     environment = snapshot.environment;
+  }
+
+  function beginChecklist(id: string): void {
+    runMs = 0;
+    itemStart = undefined;
+    checklist = undefined;
+    procedureId = id;
+    track(startChecklist(procedureOf(aircraft, id), buildState(), controls));
+  }
+
+  function injectSurprise(): void {
+    if (!scenario || scenario.injectedAtMs !== undefined) return;
+    scenario = { ...scenario, injectedAtMs: runMs };
+    failureSet.inject(scenario.failure);
+    runtime.onControlsChanged(store.positions());
+    settleDevices(0);
   }
 
   store.subscribe((change: ControlChange) => {
@@ -186,6 +281,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     status,
     procedureId: () => procedureId,
     checklist: () => checklist,
+    scenario: () => scenario,
 
     set: pilot(store.set),
     press: pilot(store.press),
@@ -212,14 +308,92 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       });
     },
 
+    startSurprise(options) {
+      const { phase: id, failure, delayMs } = options;
+      if (!Object.hasOwn(aircraft.failures, failure))
+        throw new Error(`Unknown failure "${failure}"`);
+      assertDtMs(delayMs);
+      entrySnapshot(aircraft, registry, id);
+      batch(() => {
+        loadSnapshot(id);
+        scenario = { phase: id, failure, delayMs };
+      });
+    },
+
+    takeChecklist(id) {
+      const procedure = procedureOf(aircraft, id);
+      batch(() => {
+        if (scenario && scenario.chosen === undefined) {
+          const early = scenario.injectedAtMs === undefined;
+          injectSurprise();
+          const answer = scenario;
+          scenario = {
+            ...answer,
+            chosen: id,
+            matched: procedure.type === 'emergency' && procedure.failure === answer.failure,
+            ...(early ? {} : { recognitionMs: runMs - (answer.injectedAtMs ?? 0) }),
+          };
+        }
+        legStart = undefined;
+        beginChecklist(id);
+      });
+    },
+
+    startLeg(id) {
+      const procedure = procedureOf(aircraft, id);
+      if (procedure.type !== 'normal')
+        throw new Error(`Procedure "${id}" is not a normal procedure`);
+      const order: readonly string[] = phaseOrder;
+      const step = order.indexOf(procedure.startPhase) - order.indexOf(phase);
+      batch(() => {
+        // A phase no leg flies through is flown off the checklist; its snapshot stands for it.
+        if (step === 1) enterPhase(procedure.startPhase);
+        else if (step !== 0) loadSnapshot(procedure.startPhase);
+        scenario = undefined;
+        legStart = {
+          id,
+          phase,
+          positions: store.positions(),
+          guards: store.guards(),
+          systems: runtime.state(),
+          devices,
+        };
+        beginChecklist(id);
+      });
+    },
+
+    restartLeg() {
+      const start = legStart;
+      if (!start) return;
+      batch(() => {
+        checklist = undefined;
+        store.load(start.positions, start.guards);
+        setPhase(start.phase);
+        runtime.onControlsChanged(store.positions());
+        runtime.reset(start.systems);
+        deviceFailure = undefined;
+        settleDevices(0, start.devices);
+        beginChecklist(start.id);
+      });
+    },
+
     advance(dtMs) {
       if (failed()) {
         assertDtMs(dtMs);
         return;
       }
       runtime.advance(dtMs);
+      runMs += dtMs;
       dirty = true;
       try {
+        if (scenario && scenario.injectedAtMs === undefined && runMs >= scenario.delayMs) {
+          depth++;
+          try {
+            injectSurprise();
+          } finally {
+            depth--;
+          }
+        }
         if (runtime.status().kind === 'running') settleDevices(dtMs);
         if (checklist) track(observeState(checklist, buildState()));
       } finally {
@@ -228,14 +402,32 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       notify();
     },
 
-    checkOff() {
+    checkOff(response) {
       if (!checklist || failed()) return;
       try {
-        track(checkOff(checklist, buildState()));
+        track(checkOff(checklist, buildState(), response));
       } finally {
         dirty = true;
       }
       notify();
+    },
+
+    retryItem() {
+      const running = checklist;
+      const start = itemStart;
+      if (!running || running.done || !start || failed()) return;
+      batch(() => {
+        checklist = undefined;
+        try {
+          store.load(start.positions, start.guards);
+        } finally {
+          checklist = running;
+        }
+        runtime.onControlsChanged(store.positions());
+        runtime.reset(start.systems);
+        settleDevices(0, start.devices);
+        track(retryItem(running));
+      });
     },
 
     subscribe(listener) {

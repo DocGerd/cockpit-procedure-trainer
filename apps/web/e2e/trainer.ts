@@ -46,7 +46,9 @@ export const checklistPane = (page: Page) =>
 export const progress = (page: Page) =>
   checklistPane(page).getByRole('progressbar', { name: copy.checklist.progress });
 
-const itemRow = (page: Page, index: number) => checklistPane(page).getByRole('listitem').nth(index);
+// By class, not role: a group of memory items or a flow is a listitem around its own rows.
+const itemRow = (page: Page, index: number) =>
+  checklistPane(page).locator('li.checklist-item').nth(index);
 
 const mark = (row: Locator, name: string | RegExp) => row.getByRole('img', { name });
 
@@ -83,6 +85,13 @@ export async function setControl(page: Page, controlId: string, position: string
   const definition = control(controlId);
   await selectView(page, controlId);
   const name = definition.name.en;
+  if (definition.kind === 'breaker') {
+    const breaker = page.getByRole('switch', { name, exact: true });
+    if ((await breaker.getAttribute('aria-checked')) !== String(position === 'in')) {
+      await breaker.click();
+    }
+    return;
+  }
   if (definition.positions === 'continuous') {
     if (position !== 0 && position !== 1) throw new Error('A lever can only be set to an end stop');
     const slider = page.getByRole('slider', { name, exact: true });
@@ -115,26 +124,60 @@ function holdTarget(page: Page, controlId: string, position: string | number): L
         .getByRole('radio', { name: String(position), exact: true });
 }
 
+/** The move `operateUnrelatedControl` makes: out of the initial position into the first other one. */
+function unrelatedMove(controlId: string) {
+  const definition = control(controlId);
+  if (definition.positions === 'continuous') throw new Error('Use a control with named positions');
+  const to = definition.positions.find((position) => position !== definition.initial);
+  if (to === undefined) throw new Error(`"${controlId}" has only one position`);
+  return { from: definition.initial, to };
+}
+
 export const deviation = {
-  banner: (controlId: string, itemNumber: number) =>
-    copy.checklist.bannerUnexpected
-      .replace('{control}', control(controlId).name.en)
-      .replace('{n}', String(itemNumber)),
+  banner: (controlId: string) => {
+    const { from, to } = unrelatedMove(controlId);
+    return copy.checklist.bannerUnexpected
+      .replace(
+        '{stray}',
+        copy.checklist.actualSet
+          .replace('{control}', control(controlId).name.en)
+          .replace('{position}', to.toUpperCase()),
+      )
+      .replace('{back}', copy.checklist.returnTo.replace('{previous}', from.toUpperCase()));
+  },
   title: (controlId: string) =>
     copy.checklist.unexpectedTitle.replace('{control}', control(controlId).name.en),
 };
 
 /** Operate a control that the running procedure does not ask for, so it logs one deviation. */
 export async function operateUnrelatedControl(page: Page, controlId: string) {
+  await setControl(page, controlId, unrelatedMove(controlId).to);
+}
+
+/** Whether a control with named positions already rests at the position an item asks for. */
+async function isSet(page: Page, controlId: string, position: string | number) {
   const definition = control(controlId);
-  if (definition.positions === 'continuous') throw new Error('Use a control with named positions');
-  const target = definition.positions.find((position) => position !== definition.initial);
-  if (target === undefined) throw new Error(`"${controlId}" has only one position`);
-  await setControl(page, controlId, target);
+  await selectView(page, controlId);
+  if (definition.kind === 'breaker') {
+    const breaker = page.getByRole('switch', { name: definition.name.en, exact: true });
+    return (await breaker.getAttribute('aria-checked')) === String(position === 'in');
+  }
+  if (definition.positions === 'continuous') {
+    const slider = page.getByRole('slider', { name: definition.name.en, exact: true });
+    return Number(await slider.getAttribute('aria-valuenow')) === position;
+  }
+  return page
+    .getByRole('radiogroup', { name: definition.name.en, exact: true })
+    .getByRole('radio', { name: String(position), exact: true })
+    .isChecked();
 }
 
 const expectDone = (page: Page, procedureId: string, row: Locator) =>
-  expect(mark(row, /^(Done|Deviated)$/).or(summaryHeading(page, procedureId))).toBeVisible();
+  expect(
+    mark(row, /^(Done|Deviated)$/)
+      .or(summaryHeading(page, procedureId))
+      .first(),
+  ).toBeVisible();
 
 async function perform(page: Page, procedureId: string, item: ProcedureItem<unknown>, at: number) {
   const row = itemRow(page, at);
@@ -152,6 +195,8 @@ async function perform(page: Page, procedureId: string, item: ProcedureItem<unkn
     await page.keyboard.down('Enter');
     await expectDone(page, procedureId, row);
     await page.keyboard.up('Enter');
+  } else if (await isSet(page, item.control, item.position)) {
+    await row.getByRole('button', { name: copy.checklist.verify, exact: true }).click();
   } else {
     await setControl(page, item.control, item.position);
   }

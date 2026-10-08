@@ -1,6 +1,7 @@
+import { phaseName, sharedPhases } from '@cpt/core';
 import { useEffect, useId, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useSessionState, useTrainer } from '../trainer';
+import { useLeavingRisk, useSessionState, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 import './outside-view.css';
@@ -8,9 +9,10 @@ import './outside-view.css';
 export function PhaseControl() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, jumpToPhase } = useTrainer();
+  const { procedureId, jumpToPhase } = useTrainer();
   const phase = useSessionState((session) => session.phase());
   const [pending, setPending] = useState<string | undefined>();
+  const { atRisk, lost } = useLeavingRisk();
   const selectId = useId();
   const running = procedureId !== undefined;
 
@@ -19,10 +21,10 @@ export function PhaseControl() {
   }, [running]);
 
   const choose = (phaseId: string) => {
-    if (running) setPending(phaseId);
+    if (atRisk) setPending(phaseId);
     else jumpToPhase(phaseId);
   };
-  const pendingPhase = pending === undefined ? undefined : aircraft.phases[pending];
+  const pendingName = pending === undefined ? undefined : phaseName(pending);
 
   return (
     <div className="phase-control">
@@ -35,16 +37,16 @@ export function PhaseControl() {
         value={phase}
         onChange={(event) => choose(event.target.value)}
       >
-        {Object.entries(aircraft.phases).map(([id, entry]) => (
+        {sharedPhases.map(({ id, name }) => (
           <option key={id} value={id}>
-            {localize(entry.name)}
+            {localize(name)}
           </option>
         ))}
       </select>
-      {pending !== undefined && pendingPhase && (
+      {pending !== undefined && pendingName && (
         <ConfirmDialog
-          title={text.jumpTitle}
-          body={format(text.jumpBody, { phase: localize(pendingPhase.name) })}
+          title={format(text.jumpTitle, { phase: localize(pendingName) })}
+          body={`${format(text.jumpBody, { phase: localize(pendingName) })} ${lost}`}
           confirmLabel={text.jumpConfirm}
           cancelLabel={text.jumpCancel}
           onCancel={() => setPending(undefined)}

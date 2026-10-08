@@ -53,7 +53,7 @@ export const engineRunning = (state: CtslTrainerState) => state.systems.engine.r
 type Throttle = 'idle' | 'low' | 'runup' | 'cruise' | 'full';
 
 // Intake values: docs/aircraft/ctsl-intake.md §4 and §5.
-const KMH_PER_KT = 1.852;
+export const KMH_PER_KT = 1.852;
 const STARTER_LIMIT_MS = 10_000;
 const STARTER_COOLING_MS = 120_000;
 const WARM_OIL_C = 50;
@@ -103,6 +103,8 @@ const OIL_PRESSURE_COLD_EXTRA_BAR = 2;
 const COOLANT_LOSS_CHT_RISE_C = 80;
 const OIL_LOSS_TEMP_RISE_C = 50;
 const OIL_LOSS_SEIZURE_MS = 60_000;
+// Assumed (unverified), intake §9: a fire in the engine bay heats the CHT and oil sensors.
+const FIRE_HEAT_RISE_C = 60;
 const FLAP_END_SWITCH_UP_DEG = -14;
 const FLAP_END_SWITCH_DOWN_DEG = 37;
 const FLAP_DEG_PER_MS = 5 / 1000;
@@ -190,8 +192,16 @@ const settledGauges = (
   rpm: number,
   oilTempC: number,
   failures: ReadonlySet<CtslFailure>,
+  fire = false,
 ): Gauges => {
-  if (!running) return { oilPressureBar: 0, oilTempC: AMBIENT_TEMP_C, chtC: AMBIENT_TEMP_C };
+  const fireHeat = fire ? FIRE_HEAT_RISE_C : 0;
+  if (!running) {
+    return {
+      oilPressureBar: 0,
+      oilTempC: AMBIENT_TEMP_C + fireHeat,
+      chtC: AMBIENT_TEMP_C + fireHeat,
+    };
+  }
   const load = power(rpm);
   const coldness = clamp((WARM_OIL_C - oilTempC) / (WARM_OIL_C - AMBIENT_TEMP_C), 0, 1);
   const oilLoss = failures.has('oilLoss');
@@ -204,11 +214,13 @@ const settledGauges = (
     oilTempC:
       OIL_TEMP_IDLE_C +
       load * (OIL_TEMP_MAX_POWER_C - OIL_TEMP_IDLE_C) +
-      (oilLoss ? OIL_LOSS_TEMP_RISE_C : 0),
+      (oilLoss ? OIL_LOSS_TEMP_RISE_C : 0) +
+      fireHeat,
     chtC:
       CHT_IDLE_C +
       load * (CHT_MAX_POWER_C - CHT_IDLE_C) +
-      (failures.has('coolantLoss') ? load * COOLANT_LOSS_CHT_RISE_C : 0),
+      (failures.has('coolantLoss') ? load * COOLANT_LOSS_CHT_RISE_C : 0) +
+      fireHeat,
   };
 };
 
@@ -319,7 +331,8 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       ? 0
       : windmillRpm(airspeedKmh, onGround);
 
-  const settled = settledGauges(engine.running, rpm, state.oilTempC, failures);
+  const fire = failures.has('engineFire') && (valveOpen || engine.running);
+  const settled = settledGauges(engine.running, rpm, state.oilTempC, failures, fire);
   const temperatureTimeConstant = engine.running
     ? WARM_UP_TIME_CONSTANT_MS
     : COOL_DOWN_TIME_CONSTANT_MS;
@@ -327,9 +340,8 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     engine.running && failures.has('oilLoss') ? state.oilStarvedMs + dtMs : state.oilStarvedMs;
 
   const brakeApplied = on(controls, 'brake');
-  const parkingBrakeSet = !on(controls, 'parkingBrakeValve', 'closed')
-    ? false
-    : state.parkingBrakeSet || (brakeApplied && !state.brakeApplied);
+  const parkingBrakeSet =
+    on(controls, 'parkingBrakeValve', 'closed') && (state.parkingBrakeSet || brakeApplied);
 
   const consumer = (rocker: CtslControlId, breaker: CtslControlId) =>
     mainPowered && on(controls, rocker) && on(controls, breaker, 'in');
@@ -360,7 +372,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     parkingBrakeSet,
     eltTransmitting: on(controls, 'elt'),
     rescueDeployed: state.rescueDeployed || on(controls, 'rescueHandle', 'pulled'),
-    fire: failures.has('engineFire') && (valveOpen || engine.running),
+    fire,
     airspeedKmh,
     altitudeFt: environment.altitudeFt,
     verticalSpeedMs: state.verticalSpeedMs,
@@ -380,6 +392,11 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     },
   };
 };
+
+export const carry: NonNullable<SystemsDefinition<CtslState, CtslFailure>['carry']> = (
+  carried,
+  entry,
+) => ({ ...carried, headingDeg: entry.headingDeg, verticalSpeedMs: entry.verticalSpeedMs });
 
 const GROUND: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
 

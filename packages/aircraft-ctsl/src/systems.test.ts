@@ -1,11 +1,10 @@
 import { createSession, createSystemsRuntime, STEP_MS } from '@cpt/core';
-import type { ControlPosition, Environment, Session } from '@cpt/core';
+import type { ControlPosition, Environment, PhaseId, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import type { CtslFailure } from './failures';
 import { ctslAircraft } from './index';
 import { chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import type { PhaseId } from './phases';
 import { initial, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
@@ -39,6 +38,7 @@ const secondsUntil = (session: Session, done: (state: CtslState) => boolean, lim
 const readyToStart = (session: Session) => {
   session.set('battery', 'in');
   session.set('fuelValve', 'open');
+  session.set('ignition', 'off');
   session.set('ignition', 'both');
 };
 
@@ -126,6 +126,64 @@ describe('engine start', () => {
     session.press('ignition', 'start');
     advanceSeconds(session, 3);
     expect(systems(session).starter.cranking).toBe(false);
+    expect(systems(session).engine.running).toBe(false);
+  });
+
+  it('keeps the key out of the slot the closed fuel valve covers', () => {
+    const session = sessionAt('parking');
+    session.set('battery', 'in');
+    for (const position of ['off', 'left', 'right', 'both']) {
+      expect(session.set('ignition', position)).toEqual({ applied: false, reason: 'locked' });
+    }
+    expect(session.press('ignition', 'start')).toEqual({ applied: false, reason: 'locked' });
+    advanceSeconds(session, 1);
+    expect(session.state().controls.ignition).toBe('out');
+    expect(systems(session).starter.cranking).toBe(false);
+  });
+
+  it('holds the key at OFF while the closed fuel valve covers the slot', () => {
+    const session = sessionAt('holding');
+    session.set('ignition', 'off');
+    session.set('fuelValve', 'closed');
+    for (const position of ['left', 'right', 'both']) {
+      expect(session.set('ignition', position)).toEqual({ applied: false, reason: 'locked' });
+    }
+    expect(session.press('ignition', 'start')).toEqual({ applied: false, reason: 'locked' });
+    expect(session.state().controls.ignition).toBe('off');
+  });
+
+  it('frees the key once the fuel valve opens', () => {
+    const session = sessionAt('parking');
+    session.set('fuelValve', 'open');
+    expect(session.set('ignition', 'off')).toEqual({ applied: true });
+    expect(session.set('ignition', 'both')).toEqual({ applied: true });
+  });
+
+  it('closes the fuel valve with the key still on; the key then turns only to OFF and out', () => {
+    const session = sessionAt('holding');
+    expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
+    expect(session.set('ignition', 'left')).toEqual({ applied: true });
+    expect(session.set('ignition', 'off')).toEqual({ applied: true });
+    expect(session.set('ignition', 'both')).toEqual({ applied: false, reason: 'locked' });
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
+    expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
+  });
+
+  it('keeps the key in while the fuel valve is open', () => {
+    const session = sessionAt('holding');
+    for (const from of ['both', 'off']) {
+      session.set('ignition', from);
+      expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+    }
+    expect(session.state().controls.ignition).toBe('off');
+  });
+
+  it('has no ignition with the key out', () => {
+    const session = sessionAt('holding');
+    session.set('ignition', 'off');
+    session.set('fuelValve', 'closed');
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
+    advanceSeconds(session, 5);
     expect(systems(session).engine.running).toBe(false);
   });
 
@@ -474,38 +532,60 @@ describe('flaps', () => {
 });
 
 describe('parking brake', () => {
-  it('sets when the brake is applied with the valve closed, holds, and releases with the valve', () => {
+  it('brakes only while the lever is held, which springs back when released', () => {
+    const session = sessionAt('taxiIn');
+    expect(session.press('brake')).toEqual({ applied: true });
+    expect(session.state().controls.brake).toBe('on');
+    expect(systems(session).brakeApplied).toBe(true);
+    session.release('brake');
+    expect(session.state().controls.brake).toBe('off');
+    expect(systems(session).brakeApplied).toBe(false);
+  });
+
+  it('sets when the lever is pulled and released with the valve closed, and clears with the valve', () => {
     const session = sessionAt('taxiIn');
     expect(systems(session).parkingBrakeSet).toBe(false);
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
-    session.set('brake', 'on');
+    session.press('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
-    session.set('brake', 'off');
+    session.release('brake');
     advanceSeconds(session, 5);
     expect(systems(session).parkingBrakeSet).toBe(true);
     session.set('parkingBrakeValve', 'open');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the brake is applied with the valve open', () => {
+  it('sets when the valve closes while the lever is held, and holds once it is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    expect(systems(session).parkingBrakeSet).toBe(false);
+    session.set('parkingBrakeValve', 'closed');
+    expect(systems(session).parkingBrakeSet).toBe(true);
+    session.release('brake');
+    advanceSeconds(session, 5);
+    expect(systems(session).parkingBrakeSet).toBe(true);
+  });
+
+  it('does not set when the lever is pulled and released with the valve open', () => {
+    const session = sessionAt('taxiIn');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the valve closes on a brake already applied', () => {
+  it('does not set when the valve closes after the lever is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
+    session.press('brake');
+    session.release('brake');
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
   it('stays set at holding while the valve stays closed', () => {
     const session = sessionAt('holding');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
   });
 });
@@ -575,6 +655,23 @@ describe('failures', () => {
     expect(full.secondsUntil(out, 90)).toBeLessThan(cruise.secondsUntil(out, 90));
   });
 
+  it('engineFire: CHT and oil temperature climb past their red lines', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.advance(30);
+    expect(failed.state().chtC).toBeGreaterThan(CHT_RED_LINE_C);
+    expect(failed.state().oilTempC).toBeGreaterThan(OIL_TEMP_RED_LINE_C);
+  });
+
+  it('engineFire: the temperatures fall once the fire is out', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.set('fuelValve', 'closed');
+    failed.secondsUntil((state) => !state.fire, 90);
+    const out = failed.state();
+    failed.advance(10);
+    expect(failed.state().chtC).toBeLessThan(out.chtC);
+    expect(failed.state().oilTempC).toBeLessThan(out.oilTempC);
+  });
+
   it('coolantLoss: CHT climbs past the red line at cruise power', () => {
     const failed = rig('cruise', ['coolantLoss']);
     failed.advance(60);
@@ -632,6 +729,22 @@ describe('failures', () => {
     failed.advance(5);
     expect(failed.state().flaps).toEqual({ angle: driven, moving: false });
   });
+
+  it('flapControlFailure: trips the flap breaker and darkens the flap readout', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    expect(session.state().controls['flapBreaker']).toBe('pulled');
+    expect(indicators.flapReadout.select(trainerState(session))).toBe('');
+  });
+
+  it('flapControlFailure: with the breaker reset the readout holds against the selector', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    session.set('flapBreaker', 'in');
+    session.set('flapSelector', '0');
+    advanceSeconds(session, 10);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe(-12);
+  });
 });
 
 describe('entry snapshots', () => {
@@ -671,6 +784,19 @@ describe('entry snapshots', () => {
 });
 
 describe('indicators', () => {
+  it('leave the flap readout dark while its circuit has no power', () => {
+    const session = sessionAt('cruise');
+    const readout = () => indicators.flapReadout.select(trainerState(session));
+    expect(readout()).toBe(-12);
+    session.set('flapBreaker', 'pulled');
+    expect(readout()).toBe('');
+    session.set('flapBreaker', 'in');
+    session.set('battery', 'pulled');
+    session.advance(STEP_MS);
+    expect(readout()).toBe('');
+    expect(indicators.flapReadout.select(trainerState(sessionAt('parking')))).toBe('');
+  });
+
   it('follow the model after a start', () => {
     const session = coldStart();
     session.set('generator', 'in');

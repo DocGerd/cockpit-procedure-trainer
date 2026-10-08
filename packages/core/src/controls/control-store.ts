@@ -11,7 +11,7 @@ import type {
 
 export type ControlResult =
   | { readonly applied: true }
-  | { readonly applied: false; readonly reason: 'guarded' | 'unchanged' };
+  | { readonly applied: false; readonly reason: 'guarded' | 'locked' | 'unchanged' };
 
 export type ControlListener<C extends string = string> = (change: ControlChange<C>) => void;
 
@@ -31,6 +31,7 @@ export type ControlStore<C extends string = string> = {
 const APPLIED: ControlResult = { applied: true };
 const UNCHANGED: ControlResult = { applied: false, reason: 'unchanged' };
 const GUARDED: ControlResult = { applied: false, reason: 'guarded' };
+const LOCKED: ControlResult = { applied: false, reason: 'locked' };
 
 export function createControlStore<CT extends ControlRecord>(
   controls: CT,
@@ -85,6 +86,16 @@ export function createControlStore<CT extends ControlRecord>(
     return APPLIED;
   }
 
+  function locked(definition: ControlDefinition, id: string, to: ControlPosition): boolean {
+    const from = current.get(id);
+    return (definition.interlock ?? []).some(
+      ({ control, at, holds }) =>
+        current.get(control) === at &&
+        holds.some((held) => held === from) &&
+        !holds.some((held) => held === to),
+    );
+  }
+
   function springTarget(definition: ControlDefinition, at: ControlPosition): string | undefined {
     if (definition.kind === 'momentary') {
       return at === definition.positions[1] ? definition.positions[0] : undefined;
@@ -121,6 +132,7 @@ export function createControlStore<CT extends ControlRecord>(
       validate(id, definition, position);
       if (current.get(id) === position) return UNCHANGED;
       if (guards.get(id) === 'closed') return GUARDED;
+      if (locked(definition, id, position)) return LOCKED;
       return apply(id, position, 'pilot');
     },
 
@@ -131,7 +143,7 @@ export function createControlStore<CT extends ControlRecord>(
         if (position !== undefined && position !== held) {
           throw new Error(`Control "${id}" is held at ${JSON.stringify(held)}`);
         }
-        return apply(id, held, 'pilot');
+        return locked(definition, id, held) ? LOCKED : apply(id, held, 'pilot');
       }
       if (
         definition.kind === 'rotary' &&
@@ -139,7 +151,7 @@ export function createControlStore<CT extends ControlRecord>(
         definition.springBack &&
         Object.hasOwn(definition.springBack, position)
       ) {
-        return apply(id, position, 'pilot');
+        return locked(definition, id, position) ? LOCKED : apply(id, position, 'pilot');
       }
       throw new Error(`Control "${id}" cannot be pressed at ${JSON.stringify(position)}`);
     },

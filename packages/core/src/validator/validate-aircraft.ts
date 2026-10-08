@@ -1,8 +1,9 @@
-import { isPosition } from '../contract';
+import { isPhaseId, isPosition, phaseOrder } from '../contract';
 import type {
   Aircraft,
   Appearance,
   ControlDefinition,
+  ControlPosition,
   Device,
   Rect,
   Text,
@@ -14,15 +15,19 @@ export type FindingCode =
   | 'unplaced-control'
   | 'unplaced-indicator'
   | 'missing-translation'
+  | 'missing-phase'
+  | 'unknown-phase'
   | 'phase-without-image'
   | 'running-image-without-engine'
   | 'phase-without-running-image'
+  | 'cue-without-image'
   | 'phase-without-snapshot'
   | 'undeclared-failure'
   | 'unknown-position'
   | 'inexact-lever-target'
   | 'unknown-device'
   | 'unknown-device-control'
+  | 'unknown-device-state'
   | 'unplaced-device'
   | 'invalid-install-id'
   | 'control-in-device-namespace'
@@ -36,7 +41,10 @@ export type FindingCode =
   | 'cockpit-cells-overlap'
   | 'invalid-cockpit-min-width'
   | 'invalid-cockpit-dock'
-  | 'artwork-glass-size';
+  | 'artwork-glass-size'
+  | 'invalid-check-response'
+  | 'invalid-flow'
+  | 'invalid-memory';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -57,6 +65,9 @@ export type ValidationContext = {
 export function formatFinding(finding: Finding): string {
   return `${finding.aircraftId}: ${finding.code} ${finding.id}: ${finding.message}`;
 }
+
+const kindOf = (value: unknown): string =>
+  value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
 
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
@@ -212,6 +223,23 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         checkPosition(id, 'springBack key', detent);
         checkPosition(id, 'springBack value', rest);
       }
+    }
+
+    for (const [position, legend] of Object.entries(control.legends ?? {})) {
+      checkPosition(id, 'legends key', position);
+      if (typeof legend === 'string') {
+        if (isMissing(legend)) add('missing-translation', id, `legend of ${position}: empty`);
+      } else {
+        checkText(id, `legend of ${position}`, legend.state);
+        checkText(id, `restore legend of ${position}`, legend.restore);
+      }
+    }
+
+    for (const { control: by, at, holds } of control.interlock ?? []) {
+      for (const held of holds) checkPosition(id, 'interlock holds', held);
+      if (by === id) add('unknown-target', by, `the interlock of ${id} names ${id} itself`);
+      else if (hasControl(by)) checkPosition(by, `interlock of ${id}`, at);
+      else add('unknown-target', by, `the interlock of ${id} names an unknown control`);
     }
 
     const moving =
@@ -417,8 +445,18 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   }
 
+  for (const phaseId of phaseOrder) {
+    if (!hasPhase(phaseId))
+      add('missing-phase', phaseId, 'declares no entry for this shared phase');
+  }
+
+  for (const [cueId, cue] of Object.entries(aircraft.outsideCues ?? {})) {
+    checkText(cueId, 'name', cue.name);
+    if (isMissing(cue.image)) add('cue-without-image', cueId, 'declares no image');
+  }
+
   for (const [phaseId, phase] of Object.entries(aircraft.phases)) {
-    checkText(phaseId, 'name', phase.name);
+    if (!isPhaseId(phaseId)) add('unknown-phase', phaseId, 'is not a shared phase');
     if (isMissing(phase.image)) add('phase-without-image', phaseId, 'declares no image');
     if (phase.imageRunning === undefined && aircraft.engineRunning !== undefined) {
       add(
@@ -488,6 +526,35 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         );
       }
     }
+
+    for (const [installId, fields] of Object.entries(entry.deviceStates ?? {})) {
+      const install = Object.hasOwn(aircraft.devices ?? {}, installId)
+        ? aircraft.devices?.[installId]
+        : undefined;
+      if (!install) {
+        add('unknown-device', installId, `phase ${phaseId} entry seeds an unknown install`);
+        continue;
+      }
+      const device = deviceById(install.device);
+      if (!device) continue;
+      const initial = device.initial as Readonly<Record<string, unknown>>;
+      for (const [field, value] of Object.entries(fields)) {
+        const where = `phase ${phaseId} entry seeds ${installId}`;
+        if (!Object.hasOwn(initial, field)) {
+          add(
+            'unknown-device-state',
+            `${installId}.${field}`,
+            `${where} with a field ${device.id} state does not have`,
+          );
+        } else if (initial[field] !== null && kindOf(value) !== kindOf(initial[field])) {
+          add(
+            'unknown-device-state',
+            `${installId}.${field}`,
+            `${where} with a ${kindOf(value)} where ${device.id} state has a ${kindOf(initial[field])}`,
+          );
+        }
+      }
+    }
   }
 
   for (const [procedureId, procedure] of Object.entries(aircraft.procedures)) {
@@ -510,18 +577,62 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       );
     }
 
+    const verifies = (
+      later: (typeof procedure.items)[number],
+      control: string,
+      position: ControlPosition,
+    ): boolean =>
+      (later as { readonly flow?: unknown }).flow !== true &&
+      (later.type === 'action'
+        ? later.control === control && later.position === position
+        : later.type === 'check' && 'control' in later.target && later.target.control === control);
+
+    let checklistStarted = false;
+    let recallEnded = false;
     procedure.items.forEach((item, index) => {
       const where = `procedure ${procedureId} item ${index}`;
       checkText(procedureId, `item ${index} text`, item.text);
+      if ((item as { readonly flow?: unknown }).flow !== true) {
+        checklistStarted = true;
+      } else if (procedure.type !== 'normal') {
+        add('invalid-flow', procedureId, `${where} is in a flow; only a normal procedure has one`);
+      } else if (item.type !== 'action') {
+        add('invalid-flow', procedureId, `${where} is in a flow, which holds only action items`);
+      } else if (checklistStarted) {
+        add('invalid-flow', procedureId, `${where} is in a flow, which must be at the start`);
+      } else if (!procedure.items.some((later) => verifies(later, item.control, item.position))) {
+        // A flow item latches, so only a later checklist item catches its control moved back.
+        add('invalid-flow', procedureId, `${where} is in a flow, but no later item verifies it`);
+      }
+      if (item.memory !== true) {
+        recallEnded = true;
+      } else if (procedure.type !== 'emergency') {
+        add('invalid-memory', procedureId, `${where} is a memory item; only an emergency has them`);
+      } else if (recallEnded) {
+        add(
+          'invalid-memory',
+          procedureId,
+          `${where} is a memory item, which must lead the procedure`,
+        );
+      }
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
+        const target = 'indicator' in item.target ? item.target.indicator : item.target.control;
         if ('indicator' in item.target) {
           if (!hasIndicator(item.target.indicator)) {
             add('unknown-target', item.target.indicator, `${where} checks an unknown indicator`);
           }
         } else {
           checkControlTarget(item.target.control, where);
+        }
+        const tolerance = item.response?.tolerance;
+        if (tolerance !== undefined && !(Number.isFinite(tolerance) && tolerance >= 0)) {
+          add(
+            'invalid-check-response',
+            target,
+            `${where} needs a finite response tolerance of at least 0`,
+          );
         }
       }
     });

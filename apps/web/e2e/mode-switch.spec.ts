@@ -13,7 +13,9 @@ const viewports = [
 ];
 
 const modeButton = (page: Page, name: string) =>
-  page.getByRole('group', { name: text.mode }).getByRole('button', { name, exact: true });
+  name === text.explore
+    ? page.getByRole('button', { name, exact: true })
+    : page.getByRole('group', { name: text.mode }).getByRole('button', { name, exact: true });
 
 const checklistToggle = (page: Page) =>
   page.getByRole('banner').getByRole('button', { name: /^Checklist/ });
@@ -41,7 +43,6 @@ async function expectChecklist(page: Page) {
 
 async function enterExplore(page: Page) {
   await modeButton(page, text.explore).click();
-  await page.getByRole('button', { name: text.exploreConfirm }).click();
   await expect(modeButton(page, text.explore)).toHaveAttribute('aria-pressed', 'true');
 }
 
@@ -91,3 +92,24 @@ for (const viewport of viewports) {
     });
   }
 }
+
+test('switching Practice to Guided mid-run says live feedback is on', async ({ page }) => {
+  await startFromPicker(page, 'practice');
+  await expectChecklist(page);
+
+  await modeButton(page, text.guided).click();
+  const notice = page.getByRole('status').filter({ hasText: text.guidedOnNotice });
+  await expect(notice).toBeVisible();
+  await expect(modeButton(page, text.guided)).toHaveAttribute('aria-pressed', 'true');
+
+  const [noticeBox, paneBox, headerBox] = await Promise.all([
+    notice.boundingBox(),
+    checklistPane(page).boundingBox(),
+    page.getByRole('banner').boundingBox(),
+  ]);
+  if (!noticeBox || !paneBox || !headerBox) throw new Error('missing box');
+  expect(noticeBox.y + noticeBox.height, 'notice stays in the header band').toBeLessThanOrEqual(
+    paneBox.y,
+  );
+  expect(noticeBox.y, 'notice top').toBeGreaterThanOrEqual(headerBox.y);
+});

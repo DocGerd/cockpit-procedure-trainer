@@ -1,4 +1,5 @@
 import type { DeviceInstall } from '@cpt/core';
+import { KMH_PER_KT } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { deviceSlots } from './views';
 import type { ViewId } from './views';
@@ -28,6 +29,10 @@ export const devices = {
     view: 'panel',
     placement: deviceSlots.gps,
     powered: avionicsOn('gpsBreaker'),
-    inputs: {},
+    // No wind speed is modelled, so the ground speed is the airspeed and the track the heading.
+    inputs: {
+      groundSpeedKt: (state) => state.systems.airspeedKmh / KMH_PER_KT,
+      trackDeg: (state) => state.systems.headingDeg,
+    },
   },
 } as const satisfies Record<string, DeviceInstall<CtslState, ViewId>>;

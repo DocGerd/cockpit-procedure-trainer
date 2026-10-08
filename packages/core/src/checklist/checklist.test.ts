@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import type { ControlChange, Positions, ProcedureDefinition, TrainerState } from '../contract';
+import type {
+  ControlChange,
+  Positions,
+  ProcedureDefinition,
+  ProcedureItem,
+  TrainerState,
+} from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import type { FixtureState } from '../contract/fixtures';
-import { checkOff, observeControl, observeState, startChecklist } from './checklist';
+import {
+  checkOff,
+  inFlow,
+  observeControl,
+  observeState,
+  retryItem,
+  startChecklist,
+  takesTick,
+} from './checklist';
 
 function procedureOf(id: string): ProcedureDefinition<FixtureState> {
   const procedure = fixtureAircraft.procedures[id];
@@ -103,10 +117,10 @@ describe('startChecklist', () => {
     expect(begin({ ...beforeStart, items: [] }).done).toBe(true);
   });
 
-  it('completes leading action items that are already satisfied', () => {
+  it('stops at a leading action whose target already holds, for the pilot to verify', () => {
     const checklist = startChecklist(beforeStart, pumpOn, controls);
-    expect(checklist.completed).toEqual([0, 1]);
-    expect(checklist.current).toBe(2);
+    expect(checklist.completed).toEqual([]);
+    expect(checklist.current).toBe(0);
     expect(checklist.deviations).toEqual([]);
   });
 });
@@ -127,8 +141,98 @@ describe('action items', () => {
     expect(checklist.deviations).toEqual([]);
   });
 
-  it('complete from observed state alone', () => {
-    expect(observeState(begin(), masterOn).completed).toEqual([0]);
+  it('do not complete from observed state alone', () => {
+    const checklist = observeState(begin(), masterOn);
+    expect(checklist.completed).toEqual([]);
+    expect(checklist.current).toBe(0);
+  });
+
+  it('complete with a verify tick while the target already holds', () => {
+    let checklist = startChecklist(beforeStart, pumpOn, controls);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.current).toBe(1);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.completed).toEqual([0, 1]);
+    expect(checklist.current).toBe(2);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('complete when the pilot operates a target that already held', () => {
+    let checklist = startChecklist(beforeStart, masterOn, controls);
+    checklist = observeControl(checklist, position('master', 'on', 'off'), stateOf());
+    expect(checklist.current).toBe(0);
+    checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('record a wrong position for a verify tick while the target is elsewhere, and still complete', () => {
+    const checklist = checkOff(begin(), stateOf());
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.current).toBe(1);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'master', position: 'off' },
+    ]);
+  });
+
+  it('ignore a verify tick on a spring-back action', () => {
+    const checklist = atStarter();
+    expect(checklist.current).toBe(5);
+    expect(checkOff(checklist, magnetosOn)).toBe(checklist);
+  });
+
+  it('ignore a verify tick on a momentary press', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        { type: 'action', control: 'lampTest', position: 'pressed', text: { de: 'x', en: 'x' } },
+      ],
+    };
+    const checklist = startChecklist(procedure, stateOf(), controls);
+    expect(takesTick(checklist)).toBe(false);
+    expect(checkOff(checklist, stateOf())).toBe(checklist);
+  });
+
+  it('complete a holdUntil action at once on a verify tick while the target is elsewhere', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'master',
+          position: 'on',
+          holdUntil: () => false,
+          text: { de: 'x', en: 'x' },
+        },
+      ],
+    };
+    const checklist = checkOff(startChecklist(procedure, stateOf(), controls), stateOf());
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'master', position: 'off' },
+    ]);
+  });
+
+  it('with holdUntil still wait for the condition after a verify tick', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'master',
+          position: 'on',
+          holdUntil: (state: TrainerState<FixtureState>) => state.systems.volts > 0,
+          text: { de: 'x', en: 'x' },
+        },
+      ],
+    };
+    const dark = stateOf({ master: 'on' });
+    let checklist = checkOff(startChecklist(procedure, dark, controls), dark);
+    expect(checklist.done).toBe(false);
+    checklist = observeState(checklist, masterOn);
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations).toEqual([]);
   });
 
   it('with holdUntil complete only once the condition also holds', () => {
@@ -155,18 +259,29 @@ describe('action items', () => {
     expect(checklist.current).toBe(5);
   });
 
-  it('complete at once when already satisfied as they become current', () => {
+  it('stop at an item done early, recorded out of order, until the pilot verifies it', () => {
     let checklist = observeControl(
       begin(),
       position('fuelPump', 'off', 'on'),
       stateOf({ fuelPump: 'on' }),
     );
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'fuelPump' },
+      {
+        kind: 'out-of-order',
+        itemIndex: 0,
+        controlId: 'fuelPump',
+        laterItem: 1,
+        position: 'on',
+        from: 'off',
+      },
     ]);
     expect(checklist.completed).toEqual([]);
 
     checklist = observeControl(checklist, position('master', 'off', 'on'), pumpOn);
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.current).toBe(1);
+
+    checklist = checkOff(checklist, pumpOn);
     expect(checklist.completed).toEqual([0, 1]);
     expect(checklist.current).toBe(2);
     expect(checklist.deviations).toHaveLength(1);
@@ -206,11 +321,6 @@ describe('check and confirm items', () => {
     expect(checklist.deviations).toEqual([]);
   });
 
-  it('ignore checkOff while an action item is current', () => {
-    const checklist = begin();
-    expect(checkOff(checklist, stateOf())).toBe(checklist);
-  });
-
   it('finish the procedure when the last item completes', () => {
     let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), running);
     expect(checklist.current).toBe(6);
@@ -229,19 +339,180 @@ describe('deviations', () => {
       stateOf({ throttle: 0.5 }),
     );
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle' },
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle', position: 0.5, from: 0 },
     ]);
     expect(checklist.current).toBe(0);
   });
 
-  it('judge a later item target strictly against the current item', () => {
+  it('record a move of a later item target to its position as out of order', () => {
     const checklist = observeControl(
       begin(),
-      position('fuelPump', 'off', 'on'),
-      stateOf({ fuelPump: 'on' }),
+      position('ignition', 'off', 'both'),
+      stateOf({ ignition: 'both' }),
     );
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'fuelPump' },
+      {
+        kind: 'out-of-order',
+        itemIndex: 0,
+        controlId: 'ignition',
+        laterItem: 4,
+        position: 'both',
+        from: 'off',
+      },
+    ]);
+    expect(checklist.current).toBe(0);
+  });
+
+  it('record a move of a later item target to another position as unexpected', () => {
+    const checklist = observeControl(
+      begin(),
+      position('ignition', 'off', 'right'),
+      stateOf({ ignition: 'right' }),
+    );
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'ignition',
+        position: 'right',
+        from: 'off',
+      },
+    ]);
+  });
+
+  it('record a wrong position when the pilot leaves the target for another control', () => {
+    const magnetoRight = stateOf({ master: 'on', fuelPump: 'on', ignition: 'right' });
+    let checklist = checkOff(atConfirm(), pumpOn);
+    checklist = observeControl(checklist, position('ignition', 'off', 'right'), magnetoRight);
+    expect(checklist.deviations).toEqual([]);
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetoRight);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 4, controlId: 'ignition', position: 'right' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 4,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+    checklist = observeControl(checklist, position('flaps', 'takeoff', 'up'), magnetoRight);
+    expect(checklist.deviations.filter(({ kind }) => kind === 'wrong-position')).toHaveLength(1);
+    expect(checklist.current).toBe(4);
+  });
+
+  it('record no wrong position when the target is put right before moving on', () => {
+    const magnetoRight = stateOf({ master: 'on', fuelPump: 'on', ignition: 'right' });
+    let checklist = checkOff(atConfirm(), pumpOn);
+    checklist = observeControl(checklist, position('ignition', 'off', 'right'), magnetoRight);
+    checklist = observeControl(checklist, position('ignition', 'right', 'both'), magnetosOn);
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetosOn);
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'unexpected-control',
+        itemIndex: 5,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+  });
+
+  it('record no wrong position for a spring-back target released early', () => {
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const throttled = stateOf({ ...magnetosOn.controls, throttle: 0.5 }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('throttle', 0, 0.5), throttled);
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle', position: 0.5, from: 0 },
+    ]);
+    expect(checklist.current).toBe(5);
+  });
+
+  it('record a wrong position when the pilot turns a released target elsewhere', () => {
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const magnetosOff = stateOf({ ...magnetosOn.controls, ignition: 'off' }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('ignition', 'both', 'off'), magnetosOff);
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetosOff);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 5, controlId: 'ignition', position: 'off' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 5,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+  });
+
+  it('record no wrong position for a starter turned elsewhere, then cranked and released', () => {
+    const magnetosOff = stateOf({ ...magnetosOn.controls, ignition: 'off' }, magnetosOn.systems);
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'off'), magnetosOff);
+    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const throttled = stateOf({ ...magnetosOn.controls, throttle: 0.5 }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('throttle', 0, 0.5), throttled);
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle', position: 0.5, from: 0 },
+    ]);
+  });
+
+  it('record a wrong position for a target cranked and released when asked for another position', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'ignition',
+          position: 'off',
+          text: { de: 'Zündung aus', en: 'Ignition off' },
+        },
+      ],
+    };
+    let checklist = startChecklist(procedure, magnetosOn, controls);
+    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetosOn);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'ignition', position: 'both' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+  });
+
+  it('record no wrong position for a target the pilot never moved', () => {
+    const checklist = observeControl(begin(), position('flaps', 'up', 'takeoff'), stateOf());
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
     ]);
   });
 
@@ -249,7 +520,13 @@ describe('deviations', () => {
     let checklist = observeControl(begin(), position('master', 'off', 'on'), masterOn);
     checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), masterOn);
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 1, controlId: 'flaps' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 1,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
     ]);
   });
 
@@ -263,14 +540,26 @@ describe('deviations', () => {
     expect(checklist.completed).toContain(5);
     expect(checklist.current).toBe(6);
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 5,
+        controlId: 'throttle',
+        position: 0.5,
+        from: 0,
+      },
     ]);
   });
 
   it('record a pilot position change while a confirm item is current', () => {
     const checklist = observeControl(atConfirm(), position('flaps', 'up', 'landing'), pumpOn);
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 3, controlId: 'flaps' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 3,
+        controlId: 'flaps',
+        position: 'landing',
+        from: 'up',
+      },
     ]);
   });
 
@@ -279,7 +568,13 @@ describe('deviations', () => {
     checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
     checklist = observeControl(checklist, position('flaps', 'up', 'landing'), pumpOn);
     expect(checklist.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 2, controlId: 'flaps' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 2,
+        controlId: 'flaps',
+        position: 'landing',
+        from: 'up',
+      },
     ]);
   });
 
@@ -324,6 +619,40 @@ describe('deviations', () => {
     expect(checklist.completed).toEqual([0]);
     expect(checklist.current).toBe(1);
     expect(checklist.deviations).toEqual([]);
+  });
+
+  it('record a wrong digit left behind when the pilot moves on to the next digit', () => {
+    const code: ProcedureDefinition<FixtureState> = {
+      title: { de: 'Code', en: 'Code' },
+      type: 'normal',
+      startPhase: 'parked',
+      items: [
+        { type: 'action', control: 'xpdr.code1', position: '1', text: { de: 'x', en: 'x' } },
+        { type: 'action', control: 'xpdr.code2', position: '2', text: { de: 'x', en: 'x' } },
+      ],
+    };
+    let checklist = startChecklist(code, stateOf({ 'xpdr.code1': '0', 'xpdr.code2': '0' }), {});
+    checklist = observeControl(
+      checklist,
+      position('xpdr.code1', '0', '3'),
+      stateOf({ 'xpdr.code1': '3', 'xpdr.code2': '0' }),
+    );
+    checklist = observeControl(
+      checklist,
+      position('xpdr.code2', '0', '2'),
+      stateOf({ 'xpdr.code1': '3', 'xpdr.code2': '2' }),
+    );
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'xpdr.code1', position: '3' },
+      {
+        kind: 'out-of-order',
+        itemIndex: 0,
+        controlId: 'xpdr.code2',
+        laterItem: 1,
+        position: '2',
+        from: '0',
+      },
+    ]);
   });
 
   it('never record spring changes, such as a released starter', () => {
@@ -376,10 +705,16 @@ describe('one drag of a continuous control', () => {
     }
     return next;
   };
-  const throttleDeviation = { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle' };
+  const throttleDeviation = (from: number, position: number, itemIndex = 0) => ({
+    kind: 'unexpected-control',
+    itemIndex,
+    controlId: 'throttle',
+    position,
+    from,
+  });
 
   it('records one deviation for twenty successive sets', () => {
-    expect(drag(begin(), 0, 1, 20).deviations).toEqual([throttleDeviation]);
+    expect(drag(begin(), 0, 1, 20).deviations).toEqual([throttleDeviation(0, 1)]);
   });
 
   it('records again once another control changed in between', () => {
@@ -387,9 +722,15 @@ describe('one drag of a continuous control', () => {
     checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), stateOf());
     checklist = drag(checklist, 0.5, 1, 5);
     expect(checklist.deviations).toEqual([
-      throttleDeviation,
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'flaps' },
-      throttleDeviation,
+      throttleDeviation(0, 0.5),
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+      throttleDeviation(0.5, 1),
     ]);
   });
 
@@ -397,10 +738,7 @@ describe('one drag of a continuous control', () => {
     let checklist = drag(begin(), 0, 0.5, 5);
     checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
     checklist = drag(checklist, 0.5, 1, 5);
-    expect(checklist.deviations).toEqual([
-      throttleDeviation,
-      { ...throttleDeviation, itemIndex: 1 },
-    ]);
+    expect(checklist.deviations).toEqual([throttleDeviation(0, 0.5), throttleDeviation(0.5, 1, 1)]);
   });
 
   it('clears the repeating flag when the item completes', () => {
@@ -420,27 +758,148 @@ describe('one drag of a continuous control', () => {
     checklist = checkOff(checklist, pumpOn);
     checklist = drag(checklist, 0.5, 1, 5);
     expect(checklist.deviations).toEqual([
-      { ...throttleDeviation, itemIndex: 3 },
-      { ...throttleDeviation, itemIndex: 4 },
+      throttleDeviation(0, 0.5, 3),
+      throttleDeviation(0.5, 1, 4),
     ]);
   });
 });
 
+describe('a drag that ends on a later item target', () => {
+  it('records one out-of-order deviation', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        { type: 'action', control: 'master', position: 'on', text: { de: 'x', en: 'x' } },
+        { type: 'action', control: 'throttle', position: 1, text: { de: 'x', en: 'x' } },
+      ],
+    };
+    let checklist = startChecklist(procedure, stateOf(), controls);
+    for (const [from, to] of [
+      [0, 0.5],
+      [0.5, 1],
+    ] as const) {
+      checklist = observeControl(
+        checklist,
+        position('throttle', from, to),
+        stateOf({ throttle: to }),
+      );
+    }
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'out-of-order',
+        itemIndex: 0,
+        controlId: 'throttle',
+        laterItem: 1,
+        position: 1,
+        from: 0,
+      },
+    ]);
+  });
+
+  it('records one unexpected deviation for a drag that passes the later target and ends elsewhere', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        { type: 'action', control: 'master', position: 'on', text: { de: 'x', en: 'x' } },
+        { type: 'action', control: 'throttle', position: 0.5, text: { de: 'x', en: 'x' } },
+      ],
+    };
+    let checklist = startChecklist(procedure, stateOf(), controls);
+    for (const [from, to] of [
+      [0, 0.5],
+      [0.5, 0.7],
+    ] as const) {
+      checklist = observeControl(
+        checklist,
+        position('throttle', from, to),
+        stateOf({ throttle: to }),
+      );
+    }
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle', position: 0.7, from: 0 },
+    ]);
+  });
+});
+
+describe('a check with a response', () => {
+  const rpmCheck: ProcedureDefinition<FixtureState> = {
+    ...beforeStart,
+    items: [
+      {
+        type: 'check',
+        target: { indicator: 'rpm' },
+        condition: (state: TrainerState<FixtureState>) => state.systems.rpm > 500,
+        response: {
+          reading: (state: TrainerState<FixtureState>) => state.systems.rpm,
+          tolerance: 50,
+        },
+        text: { de: 'Drehzahl', en: 'Rpm' },
+      },
+    ],
+  };
+  const idling = stateOf({}, { rpm: 700 });
+  const start = () => startChecklist(rpmCheck, idling, controls);
+
+  it('completes without a deviation for a reading within tolerance', () => {
+    const checklist = checkOff(start(), idling, 740);
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('records an unmet check with the reading given when it is outside tolerance', () => {
+    const checklist = checkOff(start(), idling, 4000);
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations).toEqual([{ kind: 'unmet-check', itemIndex: 0, response: 4000 }]);
+  });
+
+  it('judges the condition alone without a reading', () => {
+    expect(checkOff(start(), idling).deviations).toEqual([]);
+    expect(checkOff(start(), stateOf({}, { rpm: 100 })).deviations).toEqual([
+      { kind: 'unmet-check', itemIndex: 0 },
+    ]);
+  });
+
+  it('keeps a reading of zero', () => {
+    expect(checkOff(start(), idling, 0).deviations).toEqual([
+      { kind: 'unmet-check', itemIndex: 0, response: 0 },
+    ]);
+  });
+
+  it('records an unmet check for a reading that is not a number', () => {
+    expect(checkOff(start(), idling, Number.NaN).deviations).toHaveLength(1);
+  });
+});
+
 describe('one operation of a held control', () => {
+  // The fixture's start detent is also the target of item 5, so pressing it early is out of order.
   const cases = [
-    ['a momentary control', 'lampTest', 'released', 'pressed', 'released'],
-    ['a spring-back detent', 'ignition', 'off', 'start', 'both'],
+    ['a momentary control', 'lampTest', 'released', 'pressed', 'released', {}],
+    [
+      'a spring-back detent',
+      'ignition',
+      'off',
+      'start',
+      'both',
+      { kind: 'out-of-order', laterItem: 5 },
+    ],
   ] as const;
 
-  for (const [name, control, initial, detent, rest] of cases) {
+  for (const [name, control, initial, detent, rest, kind] of cases) {
+    const deviation = {
+      kind: 'unexpected-control',
+      itemIndex: 0,
+      controlId: control,
+      position: detent,
+      from: initial,
+      ...kind,
+    };
+
     it(`records one deviation for the press and release of ${name}`, () => {
       const held = stateOf({ [control]: detent });
       const letGo = stateOf({ [control]: rest });
       let checklist = observeControl(begin(), position(control, initial, detent), held);
       checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
-      expect(checklist.deviations).toEqual([
-        { kind: 'unexpected-control', itemIndex: 0, controlId: control },
-      ]);
+      expect(checklist.deviations).toEqual([deviation]);
     });
 
     it(`records a second deviation for a separate press of ${name}`, () => {
@@ -450,8 +909,7 @@ describe('one operation of a held control', () => {
       checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
       checklist = observeControl(checklist, position(control, rest, detent), held);
       checklist = observeControl(checklist, position(control, detent, rest, 'spring'), letGo);
-      const deviation = { kind: 'unexpected-control', itemIndex: 0, controlId: control };
-      expect(checklist.deviations).toEqual([deviation, deviation]);
+      expect(checklist.deviations).toEqual([deviation, { ...deviation, from: rest }]);
     });
   }
 });
@@ -552,13 +1010,85 @@ describe('consecutive spring-back actions', () => {
     expect(checklist.done).toBe(true);
   });
 
-  it('still complete a rest position from state alone', () => {
+  it('need a verify tick for a rest position that already holds', () => {
     const procedure: ProcedureDefinition<FixtureState> = {
       ...beforeStart,
       items: [press('lampTest', 'released')],
     };
     const checklist = startChecklist(procedure, stateOf(), controls);
-    expect(checklist.done).toBe(true);
+    expect(checklist.done).toBe(false);
+    expect(checkOff(checklist, stateOf()).done).toBe(true);
+  });
+});
+
+describe('where a stray move left the control', () => {
+  it('records the position set and the one it came from', () => {
+    const checklist = observeControl(
+      begin(),
+      position('throttle', 0, 0.5),
+      stateOf({ throttle: 0.5 }),
+    );
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle', position: 0.5, from: 0 },
+    ]);
+  });
+
+  it('keeps the start of a drag and the end it reached', () => {
+    let checklist = begin();
+    let previous = 0;
+    for (const value of [0.2, 0.4, 0.8]) {
+      checklist = observeControl(
+        checklist,
+        position('throttle', previous, value),
+        stateOf({ throttle: value }),
+      );
+      previous = value;
+    }
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle', position: 0.8, from: 0 },
+    ]);
+  });
+
+  it('records it for an out-of-order move too', () => {
+    const checklist = observeControl(
+      begin(),
+      position('ignition', 'off', 'both'),
+      stateOf({ ignition: 'both' }),
+    );
+    expect(checklist.deviations[0]).toMatchObject({
+      kind: 'out-of-order',
+      position: 'both',
+      from: 'off',
+    });
+  });
+});
+
+describe('retryItem', () => {
+  it('clears what the pilot did on the current item and counts an assist', () => {
+    let checklist = observeControl(
+      begin(),
+      position('master', 'off', 'on'),
+      stateOf({ master: 'off' }),
+    );
+    expect(checklist.touched).toBe(true);
+    checklist = retryItem(checklist);
+    expect(checklist).toMatchObject({ operated: false, touched: false, repeating: false });
+    expect(checklist.assists).toBe(1);
+    expect(retryItem(checklist).assists).toBe(2);
+  });
+
+  it('keeps the deviations and the completed items', () => {
+    let checklist = observeControl(begin(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('throttle', 0, 1), pumpOn);
+    const retried = retryItem(checklist);
+    expect(retried.deviations).toEqual(checklist.deviations);
+    expect(retried.completed).toEqual(checklist.completed);
+    expect(retried.current).toBe(checklist.current);
+  });
+
+  it('leaves a finished checklist alone', () => {
+    const finished = { ...begin(), done: true };
+    expect(retryItem(finished)).toBe(finished);
   });
 });
 
@@ -579,5 +1109,362 @@ describe('purity', () => {
   it('returns the same checklist when nothing changes', () => {
     const checklist = begin();
     expect(observeState(checklist, stateOf())).toBe(checklist);
+  });
+});
+
+describe('a flow', () => {
+  const flowItem = (control: string, position: string): ProcedureItem<FixtureState> => ({
+    type: 'action',
+    flow: true,
+    control,
+    position,
+    text: { de: control, en: control },
+  });
+  const verify = (control: string, position: string): ProcedureItem<FixtureState> => ({
+    type: 'action',
+    control,
+    position,
+    text: { de: control, en: control },
+  });
+  const flow: ProcedureDefinition<FixtureState> = {
+    ...beforeStart,
+    items: [
+      flowItem('master', 'on'),
+      flowItem('fuelPump', 'on'),
+      flowItem('flaps', 'takeoff'),
+      verify('master', 'on'),
+      verify('fuelPump', 'on'),
+      verify('flaps', 'takeoff'),
+      verify('ignition', 'both'),
+      { type: 'confirm', text: { de: 'Frei', en: 'Clear' } },
+    ],
+  };
+  const steps = [
+    { change: position('master', 'off', 'on'), at: { master: 'on' } },
+    { change: position('fuelPump', 'off', 'on'), at: { fuelPump: 'on' } },
+    { change: position('flaps', 'up', 'takeoff'), at: { flaps: 'takeoff' } },
+  ] as const;
+  const scanned = { master: 'on', fuelPump: 'on', flaps: 'takeoff' } as const;
+  const start = (state = stateOf()) => startChecklist(flow, state, controls);
+
+  function scan(order: readonly number[]) {
+    let checklist = start();
+    let at: Positions = {};
+    for (const index of order) {
+      const step = steps[index];
+      if (!step) throw new Error(`no step ${index}`);
+      at = { ...at, ...step.at };
+      checklist = observeControl(checklist, step.change, stateOf(at));
+    }
+    return checklist;
+  }
+
+  it('starts in the flow with no tick to give', () => {
+    const checklist = start();
+    expect(inFlow(checklist)).toBe(true);
+    expect(checklist.current).toBe(0);
+    expect(takesTick(checklist)).toBe(false);
+    expect(checkOff(checklist, stateOf())).toBe(checklist);
+  });
+
+  it.each([[[0, 1, 2]], [[2, 1, 0]], [[1, 2, 0]]])(
+    'completes when every target holds, in the order %j',
+    (order) => {
+      const checklist = scan(order);
+      expect([...checklist.completed].sort()).toEqual([0, 1, 2]);
+      expect(checklist.current).toBe(3);
+      expect(inFlow(checklist)).toBe(false);
+      expect(checklist.done).toBe(false);
+      expect(checklist.deviations).toEqual([]);
+    },
+  );
+
+  it('ticks a flow item as its target is set and points at the first one still open', () => {
+    const checklist = scan([2]);
+    expect(checklist.completed).toEqual([2]);
+    expect(checklist.current).toBe(0);
+    expect(inFlow(checklist)).toBe(true);
+  });
+
+  it('leaves the checklist after it to verify the flow', () => {
+    const checklist = scan([0, 1, 2]);
+    expect(takesTick(checklist)).toBe(true);
+    const verified = checkOff(checklist, stateOf(scanned));
+    expect(verified.current).toBe(4);
+    expect(verified.deviations).toEqual([]);
+  });
+
+  it.each([[[0, 1, 2]], [[2, 1, 0]], [[2, 0, 1]]])(
+    'verifies every flow target cleanly after the order %j',
+    (order) => {
+      let checklist = scan(order);
+      for (const index of [3, 4, 5]) {
+        expect(checklist.current).toBe(index);
+        checklist = checkOff(checklist, stateOf(scanned));
+      }
+      expect(checklist.current).toBe(6);
+      expect(checklist.deviations).toEqual([]);
+    },
+  );
+
+  it('records a control change outside the flow targets as a deviation', () => {
+    const checklist = observeControl(
+      start(),
+      position('throttle', 0, 0.5),
+      stateOf({ throttle: 0.5 }),
+    );
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'throttle',
+        position: 0.5,
+        from: 0,
+        duringFlow: true,
+      },
+    ]);
+  });
+
+  it('records a later checklist target set during the flow as out of order', () => {
+    const checklist = observeControl(
+      scan([0]),
+      position('ignition', 'off', 'both'),
+      stateOf({ master: 'on', ignition: 'both' }),
+    );
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'out-of-order',
+        itemIndex: 1,
+        controlId: 'ignition',
+        laterItem: 6,
+        position: 'both',
+        from: 'off',
+        duringFlow: true,
+      },
+    ]);
+  });
+
+  it('records no deviation for a flow target moved through other positions', () => {
+    let checklist = observeControl(
+      start(),
+      position('flaps', 'up', 'landing'),
+      stateOf({ flaps: 'landing' }),
+    );
+    checklist = observeControl(
+      checklist,
+      position('master', 'off', 'on'),
+      stateOf({ master: 'on', flaps: 'landing' }),
+    );
+    expect(checklist.deviations).toEqual([]);
+    expect(checklist.completed).toEqual([0]);
+  });
+
+  it('ignores system changes outside the flow', () => {
+    const checklist = observeControl(
+      start(),
+      position('alternatorBreaker', 'in', 'pulled', 'system'),
+      stateOf({ alternatorBreaker: 'pulled' }),
+    );
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('ticks a flow item whose target already holds when the checklist starts', () => {
+    const checklist = start(stateOf({ fuelPump: 'on' }));
+    expect(checklist.completed).toEqual([1]);
+    expect(checklist.current).toBe(0);
+  });
+
+  it('is complete at once when every flow target already holds', () => {
+    const checklist = start(stateOf(scanned));
+    expect(checklist.current).toBe(3);
+    expect(inFlow(checklist)).toBe(false);
+  });
+
+  it('keeps a flow item ticked once set, and the checklist records a target left elsewhere', () => {
+    let checklist = observeControl(scan([0]), position('master', 'on', 'off'), stateOf());
+    expect(checklist.completed).toEqual([0]);
+    const left = { fuelPump: 'on', flaps: 'takeoff' } as const;
+    checklist = observeControl(
+      checklist,
+      position('fuelPump', 'off', 'on'),
+      stateOf({ fuelPump: 'on' }),
+    );
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), stateOf(left));
+    expect(checklist.current).toBe(3);
+    checklist = checkOff(checklist, stateOf(left));
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 3, controlId: 'master', position: 'off' },
+    ]);
+  });
+
+  it('ticks a flow item with holdUntil only once its condition also holds', () => {
+    const held: ProcedureDefinition<FixtureState> = {
+      ...flow,
+      items: [
+        {
+          type: 'action',
+          flow: true,
+          control: 'master',
+          position: 'on',
+          holdUntil: (state) => state.systems.busPowered,
+          text: { de: 'Hauptschalter', en: 'Master' },
+        },
+        { type: 'confirm', text: { de: 'Frei', en: 'Clear' } },
+      ],
+    };
+    let checklist = startChecklist(held, stateOf(), controls);
+    checklist = observeControl(
+      checklist,
+      position('master', 'off', 'on'),
+      stateOf({ master: 'on' }),
+    );
+    expect(checklist.current).toBe(0);
+    checklist = observeState(checklist, masterOn);
+    expect(checklist.current).toBe(1);
+  });
+
+  it('keeps a pressed momentary flow item ticked after it springs back', () => {
+    const pressed: ProcedureDefinition<FixtureState> = {
+      ...flow,
+      items: [flowItem('lampTest', 'pressed'), flowItem('master', 'on'), verify('master', 'on')],
+    };
+    let checklist = startChecklist(pressed, stateOf(), controls);
+    checklist = observeControl(
+      checklist,
+      position('lampTest', 'released', 'pressed'),
+      stateOf({ lampTest: 'pressed' }),
+    );
+    checklist = observeControl(checklist, position('lampTest', 'pressed', 'released'), stateOf());
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.current).toBe(1);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('judges a flow target moved after the flow by the checklist rules', () => {
+    const checklist = observeControl(
+      scan([0, 1, 2]),
+      position('flaps', 'takeoff', 'up'),
+      stateOf({ master: 'on', fuelPump: 'on' }),
+    );
+    expect(checklist.deviations).toEqual([
+      {
+        kind: 'unexpected-control',
+        itemIndex: 3,
+        controlId: 'flaps',
+        position: 'up',
+        from: 'takeoff',
+      },
+    ]);
+  });
+
+  it('returns the same checklist when nothing changes', () => {
+    const checklist = scan([1]);
+    expect(observeState(checklist, stateOf({ fuelPump: 'on' }))).toBe(checklist);
+  });
+});
+
+describe('purity', () => {
+  it('never alters its inputs', () => {
+    const procedure = deepFreeze({ ...beforeStart, items: [...beforeStart.items] });
+    const state = deepFreeze(masterOn);
+    const change = deepFreeze(position('master', 'off', 'on'));
+
+    const started = deepFreeze(startChecklist(procedure, stateOf(), controls));
+    const moved = deepFreeze(observeControl(started, change, state));
+    deepFreeze(observeState(moved, pumpOn));
+    deepFreeze(checkOff(moved, pumpOn));
+    expect(started.completed).toEqual([]);
+    expect(moved.completed).toEqual([0]);
+  });
+
+  it('returns the same checklist when nothing changes', () => {
+    const checklist = begin();
+    expect(observeState(checklist, stateOf())).toBe(checklist);
+  });
+});
+
+describe('memory items', () => {
+  const text = (en: string) => ({ de: en, en });
+  const drill: ProcedureDefinition<FixtureState> = {
+    ...alternatorFailure,
+    items: [
+      { type: 'action', memory: true, control: 'master', position: 'on', text: text('Master') },
+      { type: 'action', memory: true, control: 'fuelPump', position: 'on', text: text('Pump') },
+      { type: 'confirm', memory: true, text: text('Field chosen') },
+      { type: 'action', control: 'flaps', position: 'takeoff', text: text('Flaps') },
+    ],
+  };
+  const start = () => startChecklist(drill, stateOf(), controls);
+  const late = (itemIndex: number) => ({ kind: 'late-memory-item', itemIndex });
+  const stray = (checklist: ReturnType<typeof start>, at: Positions = {}) =>
+    observeControl(checklist, position('throttle', 0, 0.5), stateOf({ ...at, throttle: 0.5 }));
+
+  it('record nothing for memory items done at once, in order', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.current).toBe(3);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('record a memory item done after a stray move as late, once it is done', () => {
+    let checklist = stray(start());
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['unexpected-control']);
+    checklist = observeControl(checklist, position('master', 'off', 'on'), {
+      ...masterOn,
+      controls: { ...masterOn.controls, throttle: 0.5 },
+    });
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual([
+      'unexpected-control',
+      'late-memory-item',
+    ]);
+    expect(checklist.deviations.at(-1)).toEqual(late(0));
+  });
+
+  it('record a memory item done after a later one as out of order and late', () => {
+    let checklist = observeControl(
+      start(),
+      position('fuelPump', 'off', 'on'),
+      stateOf({ fuelPump: 'on' }),
+    );
+    checklist = observeControl(checklist, position('master', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.current).toBe(2);
+    expect(checklist.deviations).toEqual([
+      expect.objectContaining({ kind: 'out-of-order', itemIndex: 0, laterItem: 1 }),
+      late(0),
+    ]);
+  });
+
+  it('record a late confirm memory item when it is ticked', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(stray(checklist, { master: 'on', fuelPump: 'on' }), pumpOn);
+    expect(checklist.deviations.at(-1)).toEqual(late(2));
+  });
+
+  it('record a memory action verified in a wrong position as wrong, not late', () => {
+    const checklist = checkOff(start(), stateOf());
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['wrong-position']);
+  });
+
+  it('record no late item for a stray move during an ordinary item', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    checklist = stray(checklist, { master: 'on', fuelPump: 'on' });
+    checklist = observeControl(
+      checklist,
+      position('flaps', 'up', 'takeoff'),
+      stateOf({ master: 'on', fuelPump: 'on', flaps: 'takeoff', throttle: 0.5 }),
+    );
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['unexpected-control']);
+  });
+
+  it('record a retried memory item as late', () => {
+    let checklist = retryItem(stray(start()));
+    checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
+    expect(checklist.deviations.at(-1)).toEqual(late(0));
   });
 });

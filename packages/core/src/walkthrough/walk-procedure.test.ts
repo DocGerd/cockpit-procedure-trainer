@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineAircraft } from '../contract';
+import { defineAircraft, everyPhase } from '../contract';
 import type {
   Aircraft,
   ControlRecord,
@@ -10,7 +10,8 @@ import type {
 } from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import { engineMonitor, fixtureDeviceAircraft } from '../devices/fixtures';
-import { MAX_STEPS, walkProcedure } from './index';
+import { STEP_MS } from '../runtime';
+import { MAX_STEPS, walkFlight, walkProcedure } from './index';
 
 type ClockState = { readonly ms: number; readonly heldMs: number; readonly keyMs: number };
 type Items = readonly ProcedureItem<ClockState, ControlRecord, never>[];
@@ -77,19 +78,16 @@ const clockAircraft = (items: Items, step?: SystemsDefinition<ClockState>['step'
         })),
     },
     failures: {},
-    phases: {
-      start: {
-        name: text('Start', 'Start'),
-        image: 'start.png',
-        environment,
-        entry: {
-          controls: { master: 'off', button: 'rest', key: 'off', cover: 'off' },
-          state: initial,
-        },
+    phases: everyPhase({
+      image: 'start.png',
+      environment,
+      entry: {
+        controls: { master: 'off', button: 'rest', key: 'off', cover: 'off' },
+        state: initial,
       },
-    },
+    }),
     procedures: {
-      run: { title: text('Ablauf', 'Run'), type: 'normal', startPhase: 'start', items },
+      run: { title: text('Ablauf', 'Run'), type: 'normal', startPhase: 'parking', items },
     },
   }) as Aircraft;
 
@@ -132,6 +130,22 @@ describe('walkProcedure', () => {
       devices: [engineMonitor],
     });
     expect(result).toEqual({ ok: true });
+  });
+
+  it('verifies an action whose target already holds', () => {
+    const stillOn = { ...masterOn, text: text('Haupt bleibt EIN', 'Master stays ON') } as const;
+    expect(walk([masterOn, stillOn])).toEqual({ ok: true });
+  });
+
+  it('answers a check with its reading', () => {
+    const reading = {
+      type: 'check',
+      target: { control: 'master' },
+      condition: ms(500),
+      response: { reading: (state: TrainerState<ClockState>) => state.systems.ms, tolerance: 0 },
+      text: text('Zeit ablesen', 'Read the time'),
+    } as const;
+    expect(walk([masterOn, reading])).toEqual({ ok: true });
   });
 
   it('waits for a check that becomes true only after time has passed', () => {
@@ -324,6 +338,44 @@ describe('walkProcedure', () => {
     );
   });
 
+  describe('a flow', () => {
+    const flow = <T extends Items[number]>(item: T) => ({ ...item, flow: true }) as T;
+    const coverOn = {
+      type: 'action',
+      control: 'cover',
+      position: 'on',
+      text: text('Kappenschalter EIN', 'Covered switch ON'),
+    } as const;
+    const items: Items = [flow(masterOn), flow(coverOn), flow(keyBoth), masterOn, coverOn, keyBoth];
+
+    it.each(['listed', 'reversed'] as const)('walks it in the %s order', (flowOrder) => {
+      expect(walkProcedure(clockAircraft(items), 'run', { flowOrder })).toEqual({ ok: true });
+    });
+
+    // The button's hold needs the clock, which runs only with the master on.
+    const dependent: Items = [
+      flow(masterOn),
+      flow({
+        type: 'action',
+        control: 'button',
+        position: 'held',
+        holdUntil: ms(100),
+        text: text('Taste halten', 'Hold the button'),
+      }),
+      masterOn,
+    ];
+
+    it('performs the flow in the order asked for', () => {
+      const aircraft = clockAircraft(dependent);
+      expect(walkProcedure(aircraft, 'run')).toEqual({ ok: true });
+      expect(walkProcedure(aircraft, 'run', { flowOrder: 'reversed' })).toMatchObject({
+        ok: false,
+        itemIndex: 1,
+        reason: `hold condition not met within ${MAX_STEPS} steps`,
+      });
+    });
+  });
+
   it('fails a procedure without items instead of passing it', () => {
     expect(walk([])).toEqual({
       ok: false,
@@ -337,5 +389,57 @@ describe('walkProcedure', () => {
 
   it('throws for an unknown procedure', () => {
     expect(() => walkProcedure(fixtureAircraft, 'nope')).toThrow('nope');
+  });
+});
+
+describe('walkFlight', () => {
+  const ticking = {
+    type: 'check',
+    target: { control: 'master' },
+    condition: ms(5 * STEP_MS),
+    text: text('Uhr läuft', 'Clock running'),
+  } as const;
+  const twoLegs = (second: Items): Aircraft => {
+    const aircraft = clockAircraft([masterOn]);
+    return {
+      ...aircraft,
+      procedures: {
+        ...aircraft.procedures,
+        then: {
+          title: text('Danach', 'Then'),
+          type: 'normal',
+          startPhase: 'parking',
+          items: second,
+        },
+      },
+    } as Aircraft;
+  };
+
+  it('walks every leg on one session, so a leg relies on what the one before set', () => {
+    expect(walkProcedure(twoLegs([ticking]), 'then')).toMatchObject({ ok: false });
+    expect(walkFlight(twoLegs([ticking]))).toEqual({ ok: true });
+  });
+
+  it('names the leg that fails', () => {
+    const stuck = { ...ticking, condition: never };
+    expect(walkFlight(twoLegs([stuck]))).toEqual({
+      ok: false,
+      aircraft: 'clock',
+      procedure: 'then',
+      itemIndex: 0,
+      item: 'Clock running',
+      reason: 'condition not met',
+    });
+  });
+
+  it('fails an aircraft without a normal procedure instead of passing it', () => {
+    expect(walkFlight({ ...fixtureAircraft, procedures: {} })).toMatchObject({
+      ok: false,
+      reason: 'no legs',
+    });
+  });
+
+  it('walks the fixture aircraft flight', () => {
+    expect(walkFlight(fixtureAircraft)).toEqual({ ok: true });
   });
 });

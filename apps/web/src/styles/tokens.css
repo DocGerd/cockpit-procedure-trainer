@@ -111,3 +111,43 @@
   --panel-lamp-glow-blue: #cfe3ff;
   --panel-lamp-glow-white: #ffffff;
 }
+
+/* Chrome around the panel doubles on 4K screens; the panel scales itself. */
+@media (min-width: 3200px) {
+  .shell-header,
+  .picker,
+  .shell-outside-view,
+  .shell-checklist,
+  .app-footer {
+    --text-2xs: 22px;
+    --leading-2xs: 28px;
+    --text-xs: 24px;
+    --leading-xs: 32px;
+    --text-sm: 26px;
+    --leading-sm: 38px;
+    --text-md: 28px;
+    --leading-md: 44px;
+    --text-lg: 32px;
+    --leading-lg: 52px;
+    --text-xl: 40px;
+    --leading-xl: 52px;
+    --text-2xl: 48px;
+    --leading-2xl: 60px;
+    --text-3xl: 72px;
+    --leading-3xl: 80px;
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+    --space-5: 40px;
+    --space-6: 48px;
+    --space-8: 64px;
+    --space-10: 80px;
+    --space-12: 96px;
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --radius-xl: 32px;
+    --size-target: 88px;
+  }
+}

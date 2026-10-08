@@ -1,13 +1,13 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixtures, so shell tests do not depend on the registered aircraft's content.
 
-type State = Record<string, never>;
+type State = { readonly failing: boolean };
 
 const text = (en: string): Text => ({ de: `${en} (de)`, en });
 const environment: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
-const initial: State = {};
+const initial: State = { failing: false };
 
 function fixture(id: string, name: string, withFire: boolean): Aircraft {
   return defineAircraft({
@@ -30,7 +30,13 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
         description: text('Fuel pump'),
       },
     },
-    indicators: {},
+    indicators: {
+      warning: {
+        name: text('Warning'),
+        select: (state) => state.systems.failing,
+        appearance: { widget: 'text' },
+      },
+    },
     views: {
       main: { name: text('Main'), image: 'main.svg', controls: {} },
     },
@@ -39,17 +45,15 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
       views: { main: { rect: { x: 0, y: 0, w: 100, h: 100 }, minWidth: 400 } },
       dock: { rect: { x: 0, y: 100, w: 100, h: 20 }, minWidth: 100 },
     },
-    systems: { initial, step: (state: State) => state },
+    systems: { initial, step: (_state, input) => ({ failing: input.failures.size > 0 }) },
     failures: { fire: { name: text('Fire') } },
     phases: {
-      ground: {
-        name: text('Ground'),
+      ...everyPhase({
         image: 'ground.svg',
         environment,
         entry: { controls: { master: 'off', pump: 'off' }, state: initial },
-      },
+      }),
       cruise: {
-        name: text('Cruise'),
         image: 'cruise.svg',
         environment: { airspeedKt: 100, altitudeFt: 3000, onGround: false },
         entry: { controls: { master: 'on', pump: 'on' }, state: initial },
@@ -59,7 +63,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
       powerUp: {
         title: text(`${name} power up`),
         type: 'normal',
-        startPhase: 'ground',
+        startPhase: 'parking',
         items: [
           { type: 'action', control: 'master', position: 'on', text: text('Master on') },
           { type: 'action', control: 'pump', position: 'on', text: text('Pump on') },
@@ -71,7 +75,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
               title: text(`${name} engine fire`),
               type: 'emergency' as const,
               failure: 'fire',
-              startPhase: 'ground',
+              startPhase: 'parking',
               items: [{ type: 'action', control: 'pump', position: 'off', text: text('Pump off') }],
             },
           }
@@ -84,3 +88,29 @@ export const testAircraft: readonly [Aircraft, Aircraft] = [
   fixture('alpha', 'Alpha', false),
   fixture('bravo', 'Bravo', true),
 ];
+
+/** Two legs: power up while parked, then a taxi check whose phase snapshot has the master off. */
+export const flightAircraft: Aircraft = (() => {
+  const base = fixture('charlie', 'Charlie', false);
+  const taxiOut = base.phases['taxiOut'];
+  if (!taxiOut) throw new Error('The fixture has no taxiOut phase');
+  return {
+    ...base,
+    phases: {
+      ...base.phases,
+      taxiOut: {
+        ...taxiOut,
+        entry: { ...taxiOut.entry, controls: { master: 'off', pump: 'off' } },
+      },
+    },
+    procedures: {
+      ...base.procedures,
+      taxiCheck: {
+        title: text('Charlie taxi check'),
+        type: 'normal',
+        startPhase: 'taxiOut',
+        items: [{ type: 'confirm', text: text('Taxi set') }],
+      },
+    },
+  };
+})();

@@ -1,12 +1,36 @@
-import { useCurrentTarget } from '../checklist';
+import { inFlow } from '@cpt/core';
+import { flowLength, useCurrentTarget } from '../checklist';
 import { useSessionState, useTrainer } from '../trainer';
 import { targetInstall } from './target';
 
-/** The install whose device the Guided step targets; undefined in any other mode. */
+/**
+ * Whether the current step's target is cued: every step in Guided, a step shown with Show me in
+ * Practice. One Show me in a flow shows the whole flow for as long as it runs.
+ */
+export function useTargetCued(): boolean {
+  const { mode, assisted } = useTrainer();
+  const at = useSessionState((session) => {
+    const checklist = session.checklist();
+    if (!checklist) return undefined;
+    return {
+      item: checklist.current,
+      flow: inFlow(checklist) ? flowLength(checklist.procedure) : 0,
+    };
+  });
+  return (
+    mode === 'guided' ||
+    (mode === 'practice' &&
+      at !== undefined &&
+      (assisted.includes(at.item) || assisted.some((index) => index < at.flow)))
+  );
+}
+
+/** The install whose device the cued step targets; undefined when no step is cued. */
 export function useGuidedInstall(): string | undefined {
-  const { aircraft, mode } = useTrainer();
+  const { aircraft } = useTrainer();
+  const cued = useTargetCued();
   const target = useCurrentTarget();
-  return mode === 'guided' && target ? targetInstall(aircraft, target) : undefined;
+  return cued && target ? targetInstall(aircraft, target) : undefined;
 }
 
 export type GuidedKey = {
@@ -18,7 +42,8 @@ export type GuidedKey = {
 };
 
 export function useGuidedKey(): GuidedKey | undefined {
-  const { aircraft, mode } = useTrainer();
+  const { aircraft } = useTrainer();
+  const cued = useTargetCued();
   const target = useCurrentTarget();
   const position = useSessionState((session) => {
     const checklist = session.checklist();
@@ -26,7 +51,7 @@ export function useGuidedKey(): GuidedKey | undefined {
       checklist && !checklist.done ? checklist.procedure.items[checklist.current] : undefined;
     return item?.type === 'action' ? String(item.position) : undefined;
   });
-  if (mode !== 'guided' || !target || !('control' in target)) return undefined;
+  if (!cued || !target || !('control' in target)) return undefined;
   const install = targetInstall(aircraft, target);
   if (install === undefined) return undefined;
   return { install, control: target.control.slice(install.length + 1), position };

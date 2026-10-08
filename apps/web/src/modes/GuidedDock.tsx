@@ -3,7 +3,7 @@ import { useDock } from '../devices/dock-state';
 import { useSessionState } from '../trainer';
 import { useGuidedInstall } from './guided-install';
 
-/** Opens the device a Guided step targets in the dock, once per step. */
+/** Opens the device a cued step targets in the dock, once per step. */
 export function GuidedDock() {
   const dock = useDock();
   const install = useGuidedInstall();

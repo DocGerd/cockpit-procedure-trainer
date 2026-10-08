@@ -145,75 +145,6 @@ describe('trainer layout on desktop', () => {
     expect(screen.getByRole('banner').dataset.variant).toBe('trainer');
   });
 
-  describe('keeping the current item in view', () => {
-    const scrollIntoView = vi.fn();
-    let scrollTop = 0;
-
-    function stubLayout(item: { top: number; bottom: number }) {
-      const rectOf = ({ top, bottom }: { top: number; bottom: number }) =>
-        ({ top, bottom, height: bottom - top }) as DOMRect;
-      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-        this: Element,
-      ) {
-        if (this.hasAttribute('aria-current')) return rectOf(item);
-        if (this.tagName === 'ASIDE') return rectOf({ top: 100, bottom: 300 });
-        return rectOf({ top: 0, bottom: 0 });
-      });
-      const aside = screen.getByRole('complementary', { name: 'Checklist' });
-      Object.defineProperty(aside, 'scrollTop', {
-        configurable: true,
-        get: () => scrollTop,
-        set: (value: number) => {
-          scrollTop = value;
-        },
-      });
-    }
-
-    beforeEach(() => {
-      scrollTop = 0;
-      scrollIntoView.mockClear();
-      Element.prototype.scrollIntoView = scrollIntoView;
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-      Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
-    });
-
-    it('scrolls the pane, and only the pane, down to an item below its edge', async () => {
-      renderShell();
-      await startProcedure();
-      stubLayout({ top: 500, bottom: 560 });
-      act(() => {
-        trainer.session.set('master', 'on');
-      });
-      expect(scrollTop).toBe(260);
-      expect(scrollIntoView).not.toHaveBeenCalled();
-    });
-
-    it('scrolls the pane up to an item above its edge', async () => {
-      renderShell();
-      await startProcedure();
-      scrollTop = 400;
-      stubLayout({ top: 40, bottom: 90 });
-      act(() => {
-        trainer.session.set('master', 'on');
-      });
-      expect(scrollTop).toBe(340);
-    });
-
-    it('leaves the pane alone when the item is already in view', async () => {
-      renderShell();
-      await startProcedure();
-      scrollTop = 25;
-      stubLayout({ top: 150, bottom: 200 });
-      act(() => {
-        trainer.session.set('master', 'on');
-      });
-      expect(scrollTop).toBe(25);
-    });
-  });
-
   it('shows the pane without a header toggle', async () => {
     renderShell();
     await startProcedure();
@@ -236,199 +167,121 @@ describe('trainer layout on desktop', () => {
     ['a tablet', DESKTOP_MIN_WIDTH - 1],
     ['a desktop', DESKTOP_MIN_WIDTH],
     ['a wide desktop', 1920],
-  ])('header chip details on %s', (_name, width) => {
+  ])('header chips on %s', (_name, width) => {
     beforeEach(() => setWidth(width));
 
     const chip = (name: RegExp | string) =>
       within(screen.getByRole('banner')).getByRole('button', { name });
+    const picker = () => screen.queryByRole('heading', { name: 'Choose aircraft and procedure' });
+    const doItem = () => act(() => trainer.session.set('master', 'on'));
 
-    it('opens a dialog with the full aircraft name and procedure title on tap', async () => {
+    it('act in one step: no popover between the chip and its action', async () => {
       renderShell();
       await startProcedure();
+      const aircraftChip = chip(/^Aircraft/);
+      expect(aircraftChip.hasAttribute('aria-haspopup')).toBe(false);
+      expect(aircraftChip.hasAttribute('aria-expanded')).toBe(false);
+      expect(aircraftChip.getAttribute('title')).toBe(`Change aircraft: ${alpha.name.en}`);
       const title = alpha.procedures[procedureId]?.title.en ?? '';
-      const aircraftChip = chip(/^Aircraft/);
-      expect(aircraftChip.getAttribute('aria-expanded')).toBe('false');
-      expect(aircraftChip.getAttribute('aria-haspopup')).toBe('dialog');
-      expect(aircraftChip.hasAttribute('title')).toBe(false);
-      expect(screen.queryByRole('dialog')).toBeNull();
-
-      await userEvent.click(aircraftChip);
-      expect(aircraftChip.getAttribute('aria-expanded')).toBe('true');
-      const dialog = screen.getByRole('dialog', { name: 'Aircraft' });
-      expect(aircraftChip.getAttribute('aria-controls')).toBe(dialog.id);
-      expect(within(dialog).getByText(alpha.name.en)).toBeTruthy();
-
-      await userEvent.click(chip(/^Procedure/));
-      expect(aircraftChip.getAttribute('aria-expanded')).toBe('false');
-      const procedureDialog = screen.getByRole('dialog', { name: 'Procedure' });
-      expect(within(procedureDialog).getByText(title)).toBeTruthy();
-      expect(screen.getAllByRole('dialog')).toHaveLength(1);
-    });
-
-    describe('placement', () => {
-      let chipRect: DOMRect;
-      let dialogWidth: number;
-
-      const rects = (aircraftChip: HTMLElement) => {
-        const original = HTMLElement.prototype.getBoundingClientRect;
-        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
-          this: HTMLElement,
-        ) {
-          if (this.getAttribute('role') === 'dialog') return new DOMRect(0, 40, dialogWidth, 100);
-          if (this === aircraftChip) return chipRect;
-          return original.call(this);
-        });
-      };
-
-      beforeEach(() => {
-        chipRect = new DOMRect(width - 80, 0, 80, 40);
-        dialogWidth = 300;
-      });
-
-      it('mounts the dialog in its chip wrapper', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').parentElement).toBe(aircraftChip.parentElement);
-      });
-
-      it('aligns to the chip start when the dialog fits there', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        chipRect = new DOMRect(100, 0, 80, 40);
-        rects(aircraftChip);
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').dataset.placement).toBe('start');
-      });
-
-      it('aligns to the chip end when the start side would leave the window', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        rects(aircraftChip);
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').dataset.placement).toBe('end');
-      });
-
-      it('falls back to the header edge when neither chip edge fits', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        chipRect = new DOMRect(width / 2, 0, 80, 40);
-        dialogWidth = width;
-        rects(aircraftChip);
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').dataset.placement).toBe('header');
-      });
-
-      it('keeps the margin the header pads its content with', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        chipRect = new DOMRect(30, 0, 100, 40);
-        rects(aircraftChip);
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').dataset.placement).toBe('start');
-
-        await userEvent.click(aircraftChip);
-        screen.getByRole('banner').style.paddingLeft = '40px';
-        await userEvent.click(aircraftChip);
-        expect(screen.getByRole('dialog').dataset.placement).toBe('header');
-      });
-
-      it('places again on resize while open and stops listening once closed', async () => {
-        renderShell();
-        await startProcedure();
-        const aircraftChip = chip(/^Aircraft/);
-        chipRect = new DOMRect(100, 0, 80, 40);
-        rects(aircraftChip);
-        await userEvent.click(aircraftChip);
-        const dialog = screen.getByRole('dialog');
-        expect(dialog.dataset.placement).toBe('start');
-
-        chipRect = new DOMRect(width - 80, 0, 80, 40);
-        act(() => {
-          window.dispatchEvent(new Event('resize'));
-        });
-        expect(dialog.dataset.placement).toBe('end');
-
-        const remove = vi.spyOn(window, 'removeEventListener');
-        await userEvent.click(aircraftChip);
-        expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
-      });
-    });
-
-    it('closes on a second tap on the chip', async () => {
-      renderShell();
-      await startProcedure();
-      const aircraftChip = chip(/^Aircraft/);
-      await userEvent.click(aircraftChip);
+      expect(chip(/^Procedure/).getAttribute('title')).toBe(`Change procedure: ${title}`);
       await userEvent.click(aircraftChip);
       expect(screen.queryByRole('dialog')).toBeNull();
+      expect(picker()).toBeTruthy();
     });
 
-    it('closes on Escape and returns focus to the chip', async () => {
-      renderShell();
-      await startProcedure();
-      const aircraftChip = chip(/^Aircraft/);
-      await userEvent.click(aircraftChip);
-      expect(document.activeElement).toBe(screen.getByRole('dialog'));
-      await userEvent.tab();
-      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Change aircraft' }));
-      await userEvent.keyboard('{Escape}');
-      expect(screen.queryByRole('dialog')).toBeNull();
-      expect(document.activeElement).toBe(aircraftChip);
-    });
-
-    it('closes when focus leaves it', async () => {
-      renderShell();
-      await startProcedure();
-      await userEvent.click(chip(/^Aircraft/));
-      await userEvent.tab();
-      expect(screen.getByRole('dialog')).toBeTruthy();
-      await userEvent.tab();
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-
-    it('closes on a tap outside', async () => {
-      renderShell();
-      await startProcedure();
-      await userEvent.click(chip(/^Aircraft/));
-      await userEvent.click(document.body);
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-
-    it('goes back to the picker from the aircraft dialog, not from the chip itself', async () => {
-      renderShell();
-      await startProcedure();
-      await userEvent.click(chip(/^Aircraft/));
-      expect(screen.queryByRole('heading', { name: 'Choose aircraft and procedure' })).toBeNull();
-      await userEvent.click(screen.getByRole('button', { name: 'Change aircraft' }));
-      expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
-    });
-
-    it('goes back to the picker from the procedure dialog', async () => {
+    it('opens the picker from the procedure chip at once when nothing is done', async () => {
       renderShell();
       await startProcedure();
       await userEvent.click(chip(/^Procedure/));
-      await userEvent.click(screen.getByRole('button', { name: 'Change procedure' }));
-      expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(picker()).toBeTruthy();
+      expect(trainer.procedureId).toBeUndefined();
+    });
+
+    it.each([
+      ['Aircraft', 'Change aircraft'],
+      ['Procedure', 'Change procedure'],
+    ])(
+      'asks before the %s chip discards progress, naming what is lost',
+      async (eyebrow, action) => {
+        renderShell();
+        await startProcedure();
+        doItem();
+        await userEvent.click(chip(new RegExp(`^${eyebrow}`)));
+        const dialog = screen.getByRole('alertdialog', { name: `${action}?` });
+        expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
+        expect(picker()).toBeNull();
+        expect(within(dialog).getByRole('button', { name: action })).toBeTruthy();
+
+        await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+        expect(screen.queryByRole('alertdialog')).toBeNull();
+        expect(picker()).toBeNull();
+        expect(trainer.procedureId).toBe(procedureId);
+
+        await userEvent.click(chip(new RegExp(`^${eyebrow}`)));
+        await userEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', { name: action }),
+        );
+        expect(picker()).toBeTruthy();
+        expect(trainer.procedureId).toBeUndefined();
+      },
+    );
+
+    it('asks when only a deviation is recorded and counts it', async () => {
+      renderShell();
+      await startProcedure();
+      act(() => trainer.session.set('pump', 'on'));
+      await userEvent.click(chip(/^Aircraft/));
+      expect(screen.getByRole('alertdialog').textContent).toContain(
+        `0 of ${itemCount} items done, 1 deviation.`,
+      );
+    });
+
+    it('does not ask once the run is finished', async () => {
+      renderShell();
+      await startProcedure();
+      doItem();
+      act(() => trainer.session.set('pump', 'on'));
+      await userEvent.click(chip(/^Aircraft/));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(picker()).toBeTruthy();
+    });
+
+    it('asks in German', async () => {
+      renderShell();
+      await userEvent.click(screen.getByRole('button', { name: 'Deutsch' }));
+      await userEvent.click(screen.getByRole('button', { name: 'Verfahren starten' }));
+      doItem();
+      await userEvent.click(chip(/^Flugzeug/));
+      const dialog = screen.getByRole('alertdialog', { name: 'Flugzeug wechseln?' });
+      expect(dialog.textContent).toContain(`1 von ${itemCount} Punkten erledigt`);
+      expect(within(dialog).getByRole('button', { name: 'Flugzeug wechseln' })).toBeTruthy();
+      expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
     });
   });
 
-  it('lets one Escape close only a header dialog, not the checklist drawer behind it, on a tablet', async () => {
+  it('names the progress a phase jump ends in its confirm dialog', async () => {
+    setWidth(DESKTOP_MIN_WIDTH);
+    renderShell();
+    await startProcedure();
+    act(() => trainer.session.set('master', 'on'));
+    await userEvent.selectOptions(screen.getByLabelText('Start in phase'), 'cruise');
+    const dialog = screen.getByRole('alertdialog', { name: 'Jump to phase “Cruise”?' });
+    expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
+  });
+
+  it('lets one Escape close only the confirm dialog, not the checklist drawer behind it, on a tablet', async () => {
     setWidth(DESKTOP_MIN_WIDTH - 1);
     renderShell();
     await startProcedure();
+    act(() => trainer.session.set('master', 'on'));
     await userEvent.click(checklistToggle());
     await userEvent.click(
       within(screen.getByRole('banner')).getByRole('button', { name: /^Aircraft/ }),
     );
-    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByRole('alertdialog')).toBeTruthy();
     await userEvent.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();

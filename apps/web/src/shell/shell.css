@@ -11,6 +11,8 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-6);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -39,8 +41,7 @@
   flex-grow: 1;
 }
 
-.shell-eyebrow,
-.shell-detail-label {
+.shell-eyebrow {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -62,55 +63,6 @@
 
 .shell-choice-value {
   font-weight: var(--weight-medium);
-}
-
-.shell-choice-anchor {
-  position: relative;
-  display: flex;
-  min-width: var(--size-target);
-}
-
-.shell-choice-details {
-  position: absolute;
-  inset-block-start: calc(100% + var(--space-1));
-  inset-inline-start: 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-  box-sizing: border-box;
-  width: max-content;
-  max-width: calc(100vw - 2 * var(--space-6));
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 var(--space-2) var(--space-6) color-mix(in srgb, var(--color-text) 16%, transparent);
-}
-
-.shell-choice-details[data-placement='end'] {
-  inset-inline: auto 0;
-}
-
-.shell-choice-anchor:has(> .shell-choice-details[data-placement='header']) {
-  position: static;
-}
-
-.shell-choice-details[data-placement='header'] {
-  inset-block-start: 100%;
-  inset-inline-start: var(--space-6);
-}
-
-.shell-detail-label,
-.shell-detail-value {
-  margin: 0;
-}
-
-.shell-detail-value {
-  font-weight: var(--weight-medium);
-  overflow-wrap: anywhere;
 }
 
 .shell-checklist-toggle {
@@ -154,10 +106,6 @@
     flex-shrink: 0;
   }
 
-  .shell-header .shell-choice-anchor {
-    flex-shrink: 1;
-  }
-
   .shell-header .shell-choice {
     flex-shrink: 1;
     min-width: var(--size-target);
@@ -184,14 +132,6 @@
 
   .shell[data-layout='tablet'] .shell-header {
     padding-inline: var(--space-4);
-  }
-
-  .shell[data-layout='tablet'] .shell-choice-details[data-placement='header'] {
-    inset-inline-start: var(--space-4);
-  }
-
-  .shell[data-layout='tablet'] .shell-choice-details {
-    max-width: calc(100vw - 2 * var(--space-4));
   }
 
   .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name,
@@ -249,6 +189,17 @@
   min-width: 0;
 }
 
+@media (min-width: 3200px) {
+  .shell-main {
+    --shell-main-gap: var(--space-8);
+    align-self: stretch;
+  }
+
+  .shell-panel {
+    flex: 1;
+  }
+}
+
 .shell-outside-view {
   --outside-view-band-min: calc(var(--space-12) * 1.5);
   --outside-view-pull: var(--space-3);
@@ -287,6 +238,8 @@
   flex: 1 1 calc(var(--space-12) * 6);
   flex-direction: column;
   min-width: 0;
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -302,9 +255,7 @@
   contain: size;
 }
 
-.shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] .checklist-footer,
 .shell[data-layout='desktop'] .shell-checklist[data-overlay='false'] .checklist-actions,
-.shell-checklist[data-overlay='true'] .checklist-footer,
 .shell-checklist[data-overlay='true'] .checklist-actions {
   position: sticky;
   inset-block-end: 0;
@@ -336,9 +287,11 @@
   gap: var(--space-8);
   box-sizing: border-box;
   width: 100%;
-  max-width: 1080px;
+  max-width: calc(var(--space-12) * 22.5);
   margin: 0 auto;
   padding: var(--space-12) var(--space-6);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
 }
 
 .picker-intro {
@@ -370,7 +323,8 @@
   min-width: 0;
 }
 
-.picker-aircraft {
+.picker-aircraft,
+.picker-drills {
   flex: 1 1 300px;
 }
 
@@ -449,12 +403,13 @@
 
 .picker-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1) var(--space-3);
   box-sizing: border-box;
   width: 100%;
   min-height: var(--space-12);
-  padding: 0 var(--space-4);
+  padding: var(--space-2) var(--space-4);
   font: inherit;
   color: var(--color-text);
   text-align: left;
@@ -471,6 +426,18 @@
 
 .picker-row-title {
   flex-grow: 1;
+}
+
+.picker-row > .picker-meta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.picker-history {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
 }
 
 .picker-modes {
@@ -521,7 +488,99 @@
 .picker-actions {
   display: flex;
   flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+}
+
+.picker-action {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-action > p {
+  margin: 0;
+}
+
+.picker-drills {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
+  min-width: 0;
+}
+
+.picker-drill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-drill > p {
+  margin: 0;
+}
+
+.picker-surprise {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] {
+  height: 100dvh;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker {
+  flex: 1 1 auto;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+  display: grid;
+  flex: 1 1 0;
+  align-items: stretch;
+  grid-template-areas:
+    'aircraft procedures'
+    'drills procedures';
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: calc(var(--space-12) * 9);
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-aircraft {
+  grid-area: aircraft;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-procedures {
+  grid-area: procedures;
+  min-height: 0;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-drills {
+  grid-area: drills;
+  min-height: 0;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+  overflow-y: auto;
+}
+
+@media (min-width: 1400px) {
+  .shell[data-layout='desktop'][data-screen='picker'] .picker {
+    max-width: calc(var(--space-12) * 30);
+  }
+
+  .shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+    grid-template-areas: 'aircraft procedures drills';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-list {
+  flex: 1 1 0;
+  min-height: calc(var(--space-12) * 3);
+  overflow-y: auto;
 }
 
 .shell > .error-backdrop {

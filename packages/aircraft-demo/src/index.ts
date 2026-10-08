@@ -1,15 +1,16 @@
 import { defineAircraft } from '@cpt/core';
-import type { Environment, Placement } from '@cpt/core';
+import type { Environment, PhaseId, Placement } from '@cpt/core';
 import { images } from './assets';
 import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
 import {
+  carry,
   engineRunning,
   initial,
+  lampTestDone,
   lowVoltageLit,
-  oilPressureLit,
   runningFrom,
   step,
 } from './systems';
@@ -47,6 +48,7 @@ const departing = { ...idling, throttle: 1, flaps: 'takeoff' } as const;
 const cruising = { ...idling, throttle: 0.7 } as const;
 const approaching = { ...idling, throttle: 0.4, mixture: 0.8 } as const;
 const flaring = { ...idling, flaps: 'landing' } as const;
+const taxiingOut = { ...idling, throttle: 0.15 } as const;
 const taxiingIn = { ...idling, throttle: 0.15, flaps: 'landing' } as const;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
@@ -75,7 +77,7 @@ const deviceSlots = {
 const avionicsPowered = (state: DemoTrainerState) => state.systems.avionicsPowered;
 const pressureAltitude = (state: DemoTrainerState) => state.systems.altitudeFt;
 
-const facing = (phase: keyof typeof phaseHeadings, state: DemoState): DemoState => ({
+const facing = (phase: PhaseId, state: DemoState): DemoState => ({
   ...state,
   headingDeg: phaseHeadings[phase],
 });
@@ -105,10 +107,10 @@ export const demoAircraft = defineAircraft({
         tachometer: { rect: { x: 45, y: 40, w: 230, h: 230 } },
         oilPressure: { rect: { x: 330, y: 40, w: 230, h: 230 } },
         ammeter: { rect: { x: 615, y: 40, w: 230, h: 230 } },
-        hourMeter: { rect: { x: 910, y: 40, w: 220, h: 120 } },
-        compass: { rect: { x: 1140, y: 40, w: 220, h: 120 } },
-        lowVoltageLamp: { rect: { x: 915, y: 170, w: 210, h: 90 } },
-        oilPressureLamp: { rect: { x: 1150, y: 170, w: 210, h: 90 } },
+        hourMeter: { rect: { x: 933, y: 74, w: 174, h: 68 }, printed: ['HOURS'] },
+        compass: { rect: { x: 1163, y: 74, w: 174, h: 68 }, printed: ['COMPASS'] },
+        lowVoltageLamp: { rect: { x: 949, y: 189, w: 142, h: 70 }, printed: ['LOW VOLT'] },
+        oilPressureLamp: { rect: { x: 1184, y: 189, w: 142, h: 70 }, printed: ['OIL PRESS'] },
       },
     },
     console: {
@@ -141,7 +143,7 @@ export const demoAircraft = defineAircraft({
       inputs: { pressureAltitude },
     },
   },
-  systems: { initial, step },
+  systems: { initial, step, carry },
   engineRunning,
   failures: {
     alternatorFailure: {
@@ -151,28 +153,30 @@ export const demoAircraft = defineAircraft({
   },
   phases: {
     parking: {
-      name: text('Parkposition', 'Parking'),
       image: images.parking,
       imageRunning: images.parkingRunning,
       environment: ground(),
       entry: { controls: parked, state: facing('parking', initial) },
     },
+    taxiOut: {
+      image: images.taxiOut,
+      imageRunning: images.taxiOutRunning,
+      environment: ground(),
+      entry: { controls: taxiingOut, state: facing('taxiOut', runningFrom(taxiingOut)) },
+    },
     holding: {
-      name: text('Rollhalt', 'Holding point'),
       image: images.holding,
       imageRunning: images.holdingRunning,
       environment: ground(),
       entry: { controls: idling, state: facing('holding', runningFrom(idling)) },
     },
     linedUp: {
-      name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
       image: images.linedUp,
       imageRunning: images.linedUpRunning,
       environment: ground(),
       entry: { controls: linedUpControls, state: facing('linedUp', runningFrom(linedUpControls)) },
     },
     departure: {
-      name: text('Abflug', 'Departure'),
       image: images.departure,
       imageRunning: images.departureRunning,
       environment: departureEnvironment,
@@ -182,7 +186,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     cruise: {
-      name: text('Reiseflug', 'Cruise'),
       image: images.cruise,
       imageRunning: images.cruiseRunning,
       environment: cruiseEnvironment,
@@ -192,7 +195,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     approach: {
-      name: text('Anflug', 'Approach'),
       image: images.approach,
       imageRunning: images.approachRunning,
       environment: approachEnvironment,
@@ -202,7 +204,6 @@ export const demoAircraft = defineAircraft({
       },
     },
     landing: {
-      name: text('Landung', 'Landing'),
       image: images.landing,
       imageRunning: images.landingRunning,
       environment: landingEnvironment,
@@ -212,14 +213,12 @@ export const demoAircraft = defineAircraft({
       },
     },
     taxiIn: {
-      name: text('Rollen zum Vorfeld', 'Taxi in'),
       image: images.taxiIn,
       imageRunning: images.taxiInRunning,
       environment: ground(),
       entry: { controls: taxiingIn, state: facing('taxiIn', runningFrom(taxiingIn)) },
     },
     parkingSecuring: {
-      name: text('Parken und Sichern', 'Parking and securing'),
       image: images.parkingSecuring,
       imageRunning: images.parkingSecuringRunning,
       environment: ground(),
@@ -231,6 +230,7 @@ export const demoAircraft = defineAircraft({
       title: text('Triebwerk anlassen', 'Engine start'),
       type: 'normal',
       startPhase: 'parking',
+      endPhase: 'taxiOut',
       items: [
         {
           type: 'confirm',
@@ -273,10 +273,10 @@ export const demoAircraft = defineAircraft({
           type: 'action',
           control: 'annunciator',
           position: 'test',
-          holdUntil: (state) => lowVoltageLit(state) && oilPressureLit(state),
+          holdUntil: lampTestDone,
           text: text(
-            'Warnlampen auf TEST halten, bis beide leuchten',
-            'Hold the annunciator switch at TEST until both lamps light',
+            'Warnlampen auf TEST halten, bis der Lampentest durch ist',
+            'Hold the annunciator switch at TEST until the lamp test is done',
           ),
         },
         {
@@ -502,6 +502,27 @@ export const demoAircraft = defineAircraft({
       startPhase: 'approach',
       items: [
         {
+          type: 'action',
+          flow: true,
+          control: 'fuelSelector',
+          position: 'both',
+          text: text('Tankwahlschalter auf BOTH', 'Fuel selector BOTH'),
+        },
+        {
+          type: 'action',
+          flow: true,
+          control: 'mixture',
+          position: 1,
+          text: text('Gemisch fett', 'Mixture rich'),
+        },
+        {
+          type: 'action',
+          flow: true,
+          control: 'flaps',
+          position: 'takeoff',
+          text: text('Klappen auf TAKEOFF', 'Flaps TAKEOFF'),
+        },
+        {
           type: 'confirm',
           text: text(
             'Sitze verriegelt, Gurte fest, Türen verriegelt',
@@ -659,18 +680,21 @@ export const demoAircraft = defineAircraft({
       items: [
         {
           type: 'check',
+          memory: true,
           target: { indicator: 'lowVoltageLamp' },
           condition: lowVoltageLit,
           text: text('Spannungslampe leuchtet', 'Low-voltage lamp is lit'),
         },
         {
           type: 'check',
+          memory: true,
           target: { indicator: 'ammeter' },
           condition: (state) => state.systems.amps < 0,
           text: text('Amperemeter zeigt Entladung', 'Ammeter shows discharge'),
         },
         {
           type: 'action',
+          memory: true,
           control: 'alternatorBreaker',
           position: 'in',
           text: text('Generatorsicherung einmal eindrücken', 'Push the alternator breaker in once'),

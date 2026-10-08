@@ -16,10 +16,10 @@ const viewports = [
   { width: 1024, height: 768 },
 ];
 
-async function openInDock(page: Page) {
+async function openInDock(page: Page, title = procedureTitle) {
   await openPicker(page);
   await page.getByRole('button', { name: ctslAircraft.name.en }).click();
-  await page.getByRole('button', { name: procedureTitle }).click();
+  await page.getByRole('button', { name: title }).click();
   await page.getByRole('radio', { name: copy.shell.guided }).check();
   await page.getByRole('button', { name: copy.shell.startProcedure, exact: true }).click();
   await page.locator('[data-placement="gps"]').getByRole('button').click();
@@ -61,7 +61,7 @@ test('the GPSMAP 496 is operated from the device dock', async ({ page }) => {
 
   await unit.getByRole('button', { name: 'POWER', exact: true }).click();
   await expect(display).toContainText('MAP');
-  await expect(display).toContainText('NO POSITION');
+  await expect(display).toContainText('ACQUIRING');
   await unit.getByRole('button', { name: 'PAGE', exact: true }).click();
   await expect(display).toContainText('TERRAIN');
   await unit.getByRole('button', { name: 'QUIT', exact: true }).click();
@@ -70,4 +70,23 @@ test('the GPSMAP 496 is operated from the device dock', async ({ page }) => {
   await expect(display).toContainText('LIGHT 3/3');
   await unit.getByRole('button', { name: 'POWER', exact: true }).click();
   await expect(display).toHaveText('');
+});
+
+test('the GPSMAP 496 shows a position fix, ground speed and track in cruise', async ({ page }) => {
+  const descent = ctslAircraft.procedures.descent;
+  if (descent?.startPhase !== 'cruise')
+    throw new Error('The CTSL descent no longer starts in cruise');
+  const cruise = ctslAircraft.phases.cruise;
+  if (!cruise) throw new Error('The CTSL has no cruise phase');
+  const { airspeedKt } = cruise.environment;
+  const { headingDeg } = cruise.entry.state as { headingDeg: number };
+  const track = String(headingDeg).padStart(3, '0');
+  const unit = await openInDock(page, descent.title.en);
+  const mirror = page.locator('[data-placement="gps"] [data-device-mirror]');
+  await expect(mirror.locator('[data-field="speed"]')).toHaveText(`GS ${airspeedKt}KT`);
+  await expect(mirror.locator('[data-field="track"]')).toHaveText(`TRK ${track}°`);
+  await expect(mirror.locator('[data-field="map"]')).toBeVisible();
+  const display = unit.locator('[data-display]');
+  await expect(display).toContainText(`GS ${airspeedKt}KT`);
+  await expect(display.locator('[data-field="map"]')).toBeVisible();
 });

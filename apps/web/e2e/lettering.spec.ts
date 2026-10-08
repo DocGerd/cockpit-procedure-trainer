@@ -10,6 +10,7 @@ import {
   indicatorLetteringProblems,
   letteringProblems,
   openAircraft,
+  selectLanguage,
   showView,
 } from './legibility';
 
@@ -146,6 +147,39 @@ for (const aircraft of aircraftRegistry) {
   }
 }
 
+// The flap readout is dark without power, as in parking where the tests above open the CTSL,
+// so its digits are checked lit, in cruise.
+const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+const readoutView = Object.entries(ctsl?.views ?? {}).find(([, view]) =>
+  Object.hasOwn(view.indicators ?? {}, 'flapReadout'),
+)?.[0];
+
+// The widget leaves out units with too little room for them at the minimum size.
+test('ctsl prints the lit flap readout digits at the minimum size at 1920x1080', async ({
+  page,
+}) => {
+  if (!ctsl || readoutView === undefined) throw new Error('The CTSL places no flap readout');
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await openAircraft(page, ctsl, 'descent');
+  const root = await showView(page, ctsl, readoutView, 'en');
+  const readout = root.locator('[data-placement="flapReadout"] [data-widget="digital-readout"]');
+  await expect(readout).toHaveAttribute('aria-label', /: -?\d+ °$/);
+  await expect(readout.locator('[data-value]')).toHaveText(/^-?\d+$/);
+  const sizes = await readout.evaluate((svg: SVGSVGElement) => {
+    const { width, height } = svg.getBoundingClientRect();
+    const box = svg.viewBox.baseVal;
+    const scale = Math.min(width / box.width, height / box.height);
+    return [...svg.querySelectorAll('[data-value], [data-units]')].map((text) => ({
+      text: text.textContent ?? '',
+      px: Number(text.getAttribute('font-size')) * scale,
+    }));
+  });
+  expect(
+    sizes.filter(({ px }) => px < MIN_TEXT_PX - 0.5).map(({ text, px }) => `${text} ${px}px`),
+    `flap readout lettering below ${MIN_TEXT_PX - 0.5}px`,
+  ).toEqual([]);
+});
+
 const cardSizes = (svg: string) =>
   [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(([, attributes = '', text = '']) => ({
     text,
@@ -193,109 +227,32 @@ for (const aircraft of aircraftRegistry) {
 }
 
 for (const aircraft of aircraftRegistry) {
-  for (const viewport of viewports) {
-    test(`${aircraft.id} keeps gauge captions clear of the needle at ${viewport.width}x${viewport.height}`, async ({
-      page,
-    }) => {
-      await page.setViewportSize(viewport);
-      await openAircraft(page, aircraft);
-      const crossings: string[] = [];
-      for (const viewId of Object.keys(aircraft.views)) {
-        const root = await showView(page, aircraft, viewId, 'en');
-        crossings.push(
-          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
-            (gauges, { where }) =>
-              gauges.flatMap((gauge) => {
-                const sweepAttribute = gauge.getAttribute('data-sweep-end');
-                const sweepDegrees = sweepAttribute === null ? NaN : Number(sweepAttribute);
-                if (!Number.isFinite(sweepDegrees)) {
-                  throw new Error(
-                    `${where}/${gauge.getAttribute('aria-label')} has no usable data-sweep-end`,
-                  );
-                }
-                const sweepEnd = (sweepDegrees * Math.PI) / 180;
-                const label = gauge.querySelector('[data-label]');
-                const needle = gauge.querySelector('[data-needle] line');
-                if (!label || !needle) return [];
-                const number = (element: Element, name: string) =>
-                  Number(element.getAttribute(name));
-                const length = number(needle, 'y1') - number(needle, 'y2');
-                const tip = number(needle, 'y1') - length * Math.cos(sweepEnd);
-                const top = number(label, 'y') - number(label, 'font-size') / 2;
-                return top < tip + number(needle, 'stroke-width') / 2
-                  ? [`${where}/${gauge.getAttribute('aria-label')}`]
-                  : [];
-              }),
-            { where: viewId },
-          )),
-        );
+  test(`${aircraft.id} prints only fixed lettering in its indicators at 3840x2160`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 3840, height: 2160 });
+    await openAircraft(page, aircraft);
+    const printed: Record<'en' | 'de', Record<string, string>> = { en: {}, de: {} };
+    const invented: string[] = [];
+    for (const language of ['en', 'de'] as const) {
+      await selectLanguage(page, language);
+      for (const [viewId, view] of Object.entries(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, language);
+        for (const id of Object.keys(view.indicators ?? {})) {
+          const placement = root.locator(`[data-placement="${id}"]`);
+          const name = aircraft.indicators[id]?.name[language] ?? id;
+          const text = await placement.evaluate((element) => ({
+            text: element.textContent ?? '',
+            captions: element.querySelectorAll('[data-label]').length,
+          }));
+          printed[language][`${viewId}/${id}`] = text.text;
+          if (text.captions > 0 || text.text.toLowerCase().includes(name.toLowerCase())) {
+            invented.push(`${language} ${viewId}/${id}: "${text.text}"`);
+          }
+        }
       }
-      expect(crossings, 'gauge captions reaching the needle at the end of its sweep').toEqual([]);
-    });
-  }
-}
-
-const SAMPLE_STEP = 0.25;
-const CAPTION_CLEARANCE = 0.5;
-
-for (const aircraft of aircraftRegistry) {
-  for (const viewport of viewports) {
-    test(`${aircraft.id} keeps gauge captions clear of arcs, ticks and numerals at ${viewport.width}x${viewport.height}`, async ({
-      page,
-    }) => {
-      await page.setViewportSize(viewport);
-      await openAircraft(page, aircraft);
-      const crowded: string[] = [];
-      for (const viewId of Object.keys(aircraft.views)) {
-        const root = await showView(page, aircraft, viewId, 'en');
-        crowded.push(
-          ...(await root.locator('[data-widget="round-gauge"]').evaluateAll(
-            (gauges, { where, step, clearance }) =>
-              gauges.flatMap((gauge) => {
-                const label = gauge.querySelector<SVGTextElement>('[data-label]');
-                if (!label) return [];
-                const lineBox = (text: SVGTextElement) => {
-                  const { x, width } = text.getBBox();
-                  const size = Number(text.getAttribute('font-size'));
-                  return { x, width, y: Number(text.getAttribute('y')) - size / 2, height: size };
-                };
-                const box = lineBox(label);
-                const gap = (x: number, y: number) =>
-                  Math.hypot(
-                    Math.max(box.x - x, 0, x - (box.x + box.width)),
-                    Math.max(box.y - y, 0, y - (box.y + box.height)),
-                  );
-                const strokes =
-                  gauge.querySelectorAll<SVGGeometryElement>('[data-arc], [data-tick]');
-                const touchesStroke = [...strokes].some((stroke) => {
-                  const reach = Number(stroke.getAttribute('stroke-width')) / 2 + clearance;
-                  const length = stroke.getTotalLength();
-                  for (let at = 0; at <= length; at = at + step) {
-                    const point = stroke.getPointAtLength(at);
-                    if (gap(point.x, point.y) < reach) return true;
-                  }
-                  return false;
-                });
-                const touchesNumeral = [
-                  ...gauge.querySelectorAll<SVGTextElement>('[data-tick-label]'),
-                ].some((numeral) => {
-                  const other = lineBox(numeral);
-                  return (
-                    other.x < box.x + box.width + clearance &&
-                    other.x + other.width > box.x - clearance &&
-                    other.y < box.y + box.height + clearance &&
-                    other.y + other.height > box.y - clearance
-                  );
-                });
-                return touchesStroke || touchesNumeral
-                  ? [`${where}/${gauge.getAttribute('aria-label')}`]
-                  : [];
-              }),
-            { where: viewId, step: SAMPLE_STEP, clearance: CAPTION_CLEARANCE },
-          )),
-        );
-      }
-      expect(crowded, 'gauge captions touching an arc, tick or numeral').toEqual([]);
-    });
-  }
+    }
+    expect(invented, 'indicators printing their accessible name').toEqual([]);
+    expect(printed.de, 'indicator lettering that differs between languages').toEqual(printed.en);
+  });
 }

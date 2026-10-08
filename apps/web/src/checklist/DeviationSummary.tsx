@@ -1,39 +1,146 @@
-import type { ChecklistState } from '@cpt/core';
-import { useEffect, useId, useRef } from 'react';
+import type { ChecklistState, DeviationKind } from '@cpt/core';
+import { useEffect, useId, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
+import { useLeavingRisk, useSessionState, useTrainer } from '../trainer';
+import { ConfirmDialog } from '../ui';
 import { useDeviationText } from './deviation-text';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { flowLength } from './useCurrentTarget';
+
+const KINDS: readonly DeviationKind[] = [
+  'unexpected-control',
+  'out-of-order',
+  'wrong-position',
+  'unmet-check',
+  'late-memory-item',
+];
+
+const clock = (ms: number) => {
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+};
 
 export function DeviationSummary({ checklist }: { checklist: ChecklistState<unknown> }) {
   const text = useMessages(messages);
   const localize = useLocalize();
   const trainer = useTrainer();
+  const { atRisk, lost } = useLeavingRisk();
+  const [leaving, setLeaving] = useState(false);
   const describe = useDeviationText(checklist);
+  const scenario = useSessionState((snapshot) => snapshot.scenario());
+  const answer = scenario?.chosen === undefined ? undefined : scenario;
   const headingId = useId();
   const listId = useId();
+  const assistedId = useId();
+  const flightId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
+  const rows = useRef(new Map<number, HTMLElement>());
 
   useEffect(() => {
     heading.current?.focus();
   }, []);
 
-  const { aircraft, procedureId, mode } = trainer;
-  const { procedure, completed, deviations } = checklist;
+  const { aircraft, procedureId, mode, assisted, flight } = trainer;
+  const { procedure, deviations } = checklist;
   const ids = Object.keys(aircraft.procedures);
-  const nextId =
-    procedureId === undefined
+  const leg = flight?.results.length ?? 0;
+  const nextId = flight
+    ? flight.legs[leg + 1]
+    : procedureId === undefined || answer
       ? undefined
       : ids
           .slice(ids.indexOf(procedureId) + 1)
           .find((id) => aircraft.procedures[id]?.type === procedure.type);
+  const legs =
+    flight && nextId === undefined && procedureId !== undefined
+      ? [
+          ...flight.results,
+          {
+            id: procedureId,
+            deviations: deviations.length,
+            assists: checklist.assists + assisted.length,
+            elapsedMs: checklist.elapsedMs,
+          },
+        ]
+      : undefined;
+  const sum = (key: 'deviations' | 'assists' | 'elapsedMs') =>
+    legs ? legs.reduce((total, result) => total + result[key], 0) : 0;
   const next = nextId === undefined ? undefined : aircraft.procedures[nextId];
+  const kindLabels: Record<DeviationKind, string> = {
+    'unexpected-control': text.kindUnexpected,
+    'out-of-order': text.kindOutOfOrder,
+    'wrong-position': text.kindWrongPosition,
+    'unmet-check': text.kindUnmet,
+    'late-memory-item': text.kindLateMemory,
+  };
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const reviewRows = procedure.items.map((item, index) => {
+    const deviated = deviations.some(
+      (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+    );
+    return (
+      <li
+        key={index}
+        ref={(row) => {
+          if (row) rows.current.set(index, row);
+          else rows.current.delete(index);
+        }}
+        tabIndex={-1}
+        className="checklist-item"
+        data-state={deviated ? 'deviated' : 'done'}
+      >
+        <span className="checklist-item-row">
+          <span
+            className="checklist-mark"
+            role="img"
+            aria-label={deviated ? text.stateDeviated : text.stateDone}
+          >
+            {deviated ? '▲' : '✓'}
+          </span>
+          <span className="checklist-number">{index + 1}</span>
+          <span className="checklist-item-text">{localize(item.text)}</span>
+        </span>
+      </li>
+    );
+  });
+  const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
+  const flowItems = flowLength(procedure);
+  // Memory items open an abnormal procedure and a flow a normal one, so at most one group leads.
+  const lead =
+    memoryCount > 0
+      ? { kind: 'memory', label: text.memoryItems, size: memoryCount }
+      : flowItems > 0
+        ? { kind: 'flow', label: text.flowHeading, size: flowItems }
+        : undefined;
+  const goTo = (index: number) => {
+    const row = rows.current.get(index);
+    row?.focus({ preventScroll: true });
+    row?.scrollIntoView({ block: 'center' });
+  };
+  const failureName = answer && aircraft.failures[answer.failure]?.name;
+  const repeat = procedureId !== undefined && (
+    <button
+      type="button"
+      className={deviations.length > 0 ? 'button-primary' : 'button-secondary'}
+      onClick={() =>
+        answer
+          ? trainer.startSurprise(answer.phase)
+          : flight
+            ? trainer.restart()
+            : trainer.startProcedure(procedureId)
+      }
+    >
+      {answer ? text.newSurprise : text.repeatProcedure}
+    </button>
+  );
 
   return (
     <section className="checklist" aria-labelledby={headingId}>
       <div className="checklist-header">
         <div className="checklist-eyebrow">
           {localize(aircraft.name)} · {mode === 'practice' ? text.modePractice : text.modeGuided}
+          {flight && ` · ${format(text.flightLeg, { n: leg + 1, total: flight.legs.length })}`}
         </div>
         <h1 id={headingId} ref={heading} tabIndex={-1} className="checklist-title">
           {format(text.summaryTitle, { title: localize(procedure.title) })}
@@ -42,10 +149,8 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
 
       <dl className="checklist-stats">
         <div className="checklist-stat">
-          <dt className="checklist-eyebrow">{text.itemsCompleted}</dt>
-          <dd className="checklist-stat-value">
-            {completed.length} / {procedure.items.length}
-          </dd>
+          <dt className="checklist-eyebrow">{text.elapsed}</dt>
+          <dd className="checklist-stat-value">{clock(checklist.elapsedMs)}</dd>
         </div>
         <div className="checklist-stat">
           <dt className="checklist-eyebrow">{text.deviations}</dt>
@@ -53,7 +158,46 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
             {deviations.length}
           </dd>
         </div>
+        <div className="checklist-stat">
+          <dt className="checklist-eyebrow">{text.assists}</dt>
+          <dd className="checklist-stat-value">{checklist.assists + assisted.length}</dd>
+        </div>
+        {answer && (
+          <div className="checklist-stat">
+            <dt className="checklist-eyebrow">{text.recognition}</dt>
+            <dd className="checklist-stat-value">
+              {answer.recognitionMs === undefined
+                ? text.recognisedEarly
+                : clock(answer.recognitionMs)}
+            </dd>
+          </div>
+        )}
       </dl>
+
+      {answer && failureName && (
+        <p className="checklist-surprise" data-matched={answer.matched === true}>
+          {format(answer.matched ? text.surpriseMatched : text.surpriseMissed, {
+            failure: localize(failureName),
+          })}
+          {answer.recognitionMs === undefined && ` ${text.chosenEarly}`}
+        </p>
+      )}
+
+      {deviations.length > 0 && (
+        <ul className="checklist-kinds">
+          {KINDS.map((kind) => {
+            const count = deviations.filter((deviation) => deviation.kind === kind).length;
+            return (
+              count > 0 && (
+                <li key={kind} className="checklist-kind">
+                  <span>{kindLabels[kind]}</span>
+                  <span className="checklist-kind-count">{count}</span>
+                </li>
+              )
+            );
+          })}
+        </ul>
+      )}
 
       {deviations.length === 0 ? (
         <p className="checklist-all-clear">{text.allAsListed}</p>
@@ -68,7 +212,21 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
                 <div className="checklist-deviation-where">{describe.where(deviation)}</div>
                 <div className="checklist-deviation-body">
                   <div className="checklist-deviation-title">{describe.title(deviation)}</div>
-                  <div className="checklist-deviation-detail">{describe.detail(deviation)}</div>
+                  <dl className="checklist-deviation-detail">
+                    <dt>{text.expectedLabel}</dt>
+                    <dd>{describe.expected(deviation)}</dd>
+                    <dt>{text.actualLabel}</dt>
+                    <dd>{describe.actual(deviation)}</dd>
+                  </dl>
+                  <button
+                    type="button"
+                    className="checklist-deviation-link"
+                    onClick={() => goTo(deviation.duringFlow ? firstFlowItem : deviation.itemIndex)}
+                  >
+                    {deviation.duringFlow
+                      ? text.goToFlow
+                      : format(text.goToItem, { n: deviation.itemIndex + 1 })}
+                  </button>
                 </div>
               </li>
             ))}
@@ -76,28 +234,106 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
         </section>
       )}
 
+      {assisted.length > 0 && (
+        <section className="checklist-assisted" aria-labelledby={assistedId}>
+          <h2 id={assistedId} className="checklist-deviations-heading">
+            {text.assistedHeading}
+          </h2>
+          <ol className="checklist-assisted-list">
+            {assisted.map((index) => (
+              <li key={index} className="checklist-assisted-item">
+                <span className="checklist-assisted-number">
+                  {format(text.itemNumber, { n: index + 1 })}
+                </span>
+                <span>{procedure.items[index] && localize(procedure.items[index].text)}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {legs && (
+        <section className="checklist-flight" aria-labelledby={flightId}>
+          <h2 id={flightId} className="checklist-deviations-heading">
+            {text.flightHeading}
+          </h2>
+          <table className="checklist-flight-table">
+            <thead>
+              <tr>
+                <th scope="col">{text.flightProcedure}</th>
+                <th scope="col">{text.deviations}</th>
+                <th scope="col">{text.assists}</th>
+                <th scope="col">{text.elapsed}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {legs.map((result) => {
+                const title = aircraft.procedures[result.id]?.title;
+                return (
+                  <tr key={result.id}>
+                    <th scope="row">{title ? localize(title) : result.id}</th>
+                    <td data-deviated={result.deviations > 0}>{result.deviations}</td>
+                    <td>{result.assists}</td>
+                    <td>{clock(result.elapsedMs)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">{text.flightTotal}</th>
+                <td data-deviated={sum('deviations') > 0}>{sum('deviations')}</td>
+                <td>{sum('assists')}</td>
+                <td>{clock(sum('elapsedMs'))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </section>
+      )}
+
+      <section className="checklist-review" aria-label={text.itemsHeading}>
+        <ol className="checklist-review-list">
+          {lead && (
+            <ItemGroup kind={lead.kind} label={lead.label}>
+              {reviewRows.slice(0, lead.size)}
+            </ItemGroup>
+          )}
+          {reviewRows.slice(lead?.size ?? 0)}
+        </ol>
+      </section>
+
       <div className="checklist-actions">
+        {deviations.length > 0 && repeat}
         {nextId !== undefined && next && (
           <button
             type="button"
-            className="button-primary"
-            onClick={() => trainer.startProcedure(nextId)}
+            className={deviations.length > 0 ? 'button-secondary' : 'button-primary'}
+            onClick={() => (flight ? trainer.nextLeg() : trainer.startProcedure(nextId))}
           >
             {format(text.nextProcedure, { title: localize(next.title) })}
           </button>
         )}
-        {procedureId !== undefined && (
-          <button
-            type="button"
-            className="button-secondary"
-            onClick={() => trainer.startProcedure(procedureId)}
-          >
-            {text.repeatProcedure}
-          </button>
-        )}
-        <button type="button" className="chrome-button" onClick={trainer.backToPicker}>
+        {deviations.length === 0 && repeat}
+        <button
+          type="button"
+          className="chrome-button"
+          onClick={() => (atRisk ? setLeaving(true) : trainer.backToPicker())}
+        >
           {text.backToSelection}
         </button>
+        {leaving && (
+          <ConfirmDialog
+            title={text.backToSelectionTitle}
+            body={`${text.backToSelectionBody} ${lost}`}
+            confirmLabel={text.backToSelection}
+            cancelLabel={text.cancel}
+            onCancel={() => setLeaving(false)}
+            onConfirm={() => {
+              setLeaving(false);
+              trainer.backToPicker();
+            }}
+          />
+        )}
       </div>
     </section>
   );

@@ -1,4 +1,6 @@
+import type { PositionOf } from '@cpt/core';
 import { headingLabel, runway } from '../airfield';
+import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
@@ -33,12 +35,17 @@ const circuitDropWithinLimit = (state: State) =>
 const confirm = (de: string, en: string) => ({ type: 'confirm', text: text(de, en) }) as const;
 
 // Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
-const confirmRunwayHeading = confirm(
-  `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
-  `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
-);
+const checkRunwayHeading = {
+  type: 'check',
+  target: { indicator: 'compass' },
+  condition: (state: State) => state.systems.headingDeg === runway.headingDeg,
+  text: text(
+    `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
+    `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
+  ),
+} as const;
 
-// Intake §3.4: close the valve, then apply the brake lever.
+// Intake §3.4: close the valve, then pull the non-locking brake lever; the valve traps the pressure.
 const setParkingBrake = [
   {
     type: 'action',
@@ -50,13 +57,17 @@ const setParkingBrake = [
     type: 'action',
     control: 'brake',
     position: 'on',
-    text: text('Bremshebel ziehen', 'Brake lever on'),
+    holdUntil: (state: State) => state.systems.parkingBrakeSet,
+    text: text('Bremshebel ziehen und halten', 'Brake lever pulled and held'),
   },
   {
     type: 'check',
     target: { control: 'brake' },
-    condition: (state: State) => state.systems.parkingBrakeSet,
-    text: text('Parkbremse hält', 'Parking brake holds'),
+    condition: (state: State) => state.systems.parkingBrakeSet && !state.systems.brakeApplied,
+    text: text(
+      'Bremshebel losgelassen, Parkbremse hält',
+      'Brake lever released, parking brake holds',
+    ),
   },
 ] as const;
 
@@ -68,12 +79,22 @@ const releaseParkingBrake = [
     text: text('Rückflusshahn auf', 'Parking-brake valve open'),
   },
   {
-    type: 'action',
-    control: 'brake',
-    position: 'off',
-    text: text('Bremshebel lösen', 'Brake lever off'),
+    type: 'check',
+    target: { control: 'parkingBrakeValve' },
+    condition: (state: State) => !state.systems.parkingBrakeSet,
+    text: text('Parkbremse gelöst', 'Parking brake released'),
   },
 ] as const;
+
+// Assumed (unverified), intake §9 question 30: the panel scans that open a procedure as a flow,
+// top to bottom on the centre field, then down the console's lever stack and across to carb heat.
+// The checklist items after them verify them.
+const flow = <C extends keyof typeof controls>(
+  control: C,
+  position: PositionOf<(typeof controls)[C]>,
+  de: string,
+  en: string,
+) => ({ type: 'action', flow: true, control, position, text: text(de, en) }) as const;
 
 const oilPressureGreen = {
   type: 'check',
@@ -101,10 +122,9 @@ export const normalProcedures = {
       {
         type: 'action',
         control: 'ignition',
-        position: 'off',
-        text: text('Zündschalter OFF', 'Ignition OFF'),
+        position: 'out',
+        text: text('Zündschalter OFF, Schlüssel abgezogen', 'Ignition OFF, key out'),
       },
-      confirm('Zündschlüssel abgezogen', 'Key out'),
       {
         type: 'action',
         control: 'beacon',
@@ -204,10 +224,16 @@ export const normalProcedures = {
     ],
   },
   engineStart: {
-    title: text('Triebwerk anlassen und Rollen', 'Engine start and taxi'),
+    title: text('Triebwerk anlassen', 'Engine start'),
     type: 'normal',
     startPhase: 'parking',
+    endPhase: 'taxiOut',
     items: [
+      flow('avionicsMaster', 'off', 'Avionik aus', 'Avionics Master off'),
+      flow('beacon', 'on', 'Beacon ein', 'Beacon on'),
+      flow('fuelValve', 'open', 'Brandhahn offen', 'Fuel valve open'),
+      flow('battery', 'in', 'Hauptschalter (BAT) eingedrückt', 'BAT in'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       confirm('Vorflugkontrolle erledigt', 'Pre-flight check done'),
       confirm(
         'Vor dem ersten Start des Tages Propeller von Hand durchgedreht',
@@ -261,7 +287,12 @@ export const normalProcedures = {
         position: 'open',
         text: text('Brandhahn offen', 'Fuel valve open'),
       },
-      confirm('Zündschlüssel gesteckt', 'Key in'),
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'off',
+        text: text('Zündschlüssel auf OFF gesteckt', 'Key in at OFF'),
+      },
       {
         type: 'action',
         control: 'choke',
@@ -330,6 +361,29 @@ export const normalProcedures = {
         condition: flapsAt(0),
         text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
       },
+    ],
+  },
+  taxi: {
+    title: text('Rollen zum Rollhalt', 'Taxi out'),
+    type: 'normal',
+    startPhase: 'taxiOut',
+    endPhase: 'holding',
+    items: [
+      {
+        type: 'action',
+        control: 'parkingBrakeValve',
+        position: 'open',
+        text: text(
+          'Rückflusshahn auf (Ergänzung des Trainers)',
+          'Parking-brake valve open (trainer addition)',
+        ),
+      },
+      {
+        type: 'check',
+        target: { control: 'parkingBrakeValve' },
+        condition: (state: State) => !state.systems.parkingBrakeSet,
+        text: text('Parkbremse gelöst', 'Parking brake released'),
+      },
       confirm('Bremsen geprüft', 'Brakes checked'),
       confirm('Bugradsteuerung geprüft', 'Nose-wheel steering checked'),
     ],
@@ -339,12 +393,28 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'holding',
     items: [
+      flow('flapSelector', '15', 'Klappen 15°', 'Flaps 15°'),
+      flow('choke', 'off', 'Choke zurück', 'Choke off'),
+      flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
       confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
-      confirm('Transponder ein, Standby', 'Transponder on, standby'),
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'sby',
+        text: text('Transponder auf Bereitschaft', 'Transponder to standby'),
+      },
+      {
+        type: 'check',
+        target: { control: 'xpdr.mode' },
+        condition: (state: State) =>
+          state.devices.xpdr?.on === true && state.controls['xpdr.mode'] === 'sby',
+        text: text('Transponder ein, Standby', 'Transponder on, standby'),
+      },
       {
         type: 'action',
         control: 'choke',
@@ -367,7 +437,12 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: (state: State) => Math.abs(state.systems.rpm - RUNUP_RPM) <= RUNUP_RPM_TOLERANCE,
-        text: text('Drehzahl 4000 U/min', 'Rpm 4000'),
+        response: {
+          reading: (state: State) => state.systems.rpm,
+          tolerance: RUNUP_RPM_TOLERANCE,
+          unit: text('U/min', 'rpm'),
+        },
+        text: text('Drehzahl prüfen', 'Rpm check'),
       },
       oilPressureGreen,
       {
@@ -461,7 +536,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'elt',
         position: 'armed',
-        text: text('Notsender auf ARMED', 'ELT armed'),
+        text: text('Notsender auf ARM', 'ELT remote switch at ARM'),
       },
       confirm(
         'Passagier eingewiesen: Gurte, Türverriegelung, Rettungsgerät, Feuerlöscher, Notsender',
@@ -477,25 +552,7 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      confirmRunwayHeading,
-      {
-        type: 'action',
-        control: 'parkingBrakeValve',
-        position: 'open',
-        text: text(
-          'Parkbremse lösen, Rückflusshahn auf (Ergänzung des Trainers)',
-          'Release the parking brake, valve open (trainer addition)',
-        ),
-      },
-      {
-        type: 'check',
-        target: { control: 'parkingBrakeValve' },
-        condition: (state: State) => !state.systems.parkingBrakeSet,
-        text: text(
-          'Parkbremse gelöst (Ergänzung des Trainers)',
-          'Parking brake released (trainer addition)',
-        ),
-      },
+      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',
@@ -559,7 +616,7 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      confirmRunwayHeading,
+      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',
@@ -770,6 +827,9 @@ export const normalProcedures = {
     type: 'normal',
     startPhase: 'taxiIn',
     items: [
+      flow('landingLight', 'off', 'Landelicht aus', 'Landing light off'),
+      flow('flapSelector', '0', 'Klappen eingefahren (0°)', 'Flaps retracted (0°)'),
+      flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       {
         type: 'action',
         control: 'throttle',
@@ -867,7 +927,18 @@ export const normalProcedures = {
         position: 'pulled',
         text: text('Hauptschalter (BAT) ziehen', 'BAT out'),
       },
-      confirm('Zündschlüssel abgezogen', 'Key out'),
+      {
+        type: 'action',
+        control: 'fuelValve',
+        position: 'closed',
+        text: text('Brandhahn zu', 'Fuel valve closed'),
+      },
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'out',
+        text: text('Zündschlüssel abgezogen', 'Key out'),
+      },
       confirm(
         'Rettungsgerät gesichert, Sicherungsstift gesteckt',
         'Rescue system secured, safety pin in',
@@ -876,7 +947,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'elt',
         position: 'armed',
-        text: text('Notsender geprüft, bleibt auf ARMED', 'ELT checked and left armed'),
+        text: text('Notsender geprüft, bleibt auf ARM', 'ELT checked and left at ARM'),
       },
       confirm('Bremsklötze vorgelegt', 'Chocks in place'),
     ],

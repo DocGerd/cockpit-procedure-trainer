@@ -40,7 +40,7 @@ architecture that lets aircraft be added.
 | Cockpit view | 2D layered panel now. The aircraft contract carries optional 3D positions so a 3D renderer is a later milestone, not a rewrite. |
 | Behaviour | Rule-based systems model per aircraft, including failures. |
 | Modes | Guided, Practice, Free explore. |
-| Step order | Never block input. Record actions outside the current item as deviations. |
+| Step order | Never block input. Record actions outside the current item as deviations. Exception: a normal procedure may open with a flow, a set of actions done from memory in any order; inside the flow only actions outside the flow are deviations, and the checklist that follows verifies the flow (owner-approved 2026-10-08). |
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
 | Devices | HD desktop (1920x1080) first, 4K (3840x2160) second, tablet later; mouse and touch both supported. See ADR-0002. |
@@ -100,6 +100,12 @@ and description in German and English.
 | `guarded` | BRS handle | needs the guard removed first |
 | `breaker` | circuit breaker | in or pulled; a failure can trip it |
 
+Any control may declare an `interlock`: while another control stands at a
+position, this one cannot be moved from a listed position to one outside the
+list, as a closed fuel valve over the key slot keeps the key at OFF. Only pilot
+moves are refused (result `locked`); phase entries and failures move controls
+freely.
+
 ### 4.2 Indicators
 
 Gauges, lamps and readouts. Each binds to a value in the aircraft state through
@@ -145,6 +151,10 @@ reusable building blocks (electrical bus, piston-engine start logic) so an
 aircraft composes rather than rewrites them. Wrong operation needs no special
 handling: it simply fails to satisfy the rules.
 
+The systems may also declare `carry`, which lays what a phase sets and the pilot
+does not control, such as the heading, from a phase's entry state over a state
+carried into it (§4.7).
+
 ### 4.5 Failures
 
 A list of named failures the model understands (`alternatorFailure`,
@@ -152,14 +162,18 @@ A list of named failures the model understands (`alternatorFailure`,
 
 ### 4.6 Phases
 
-Parking, holding point, departure, cruise, approach and others the aircraft
-defines. A phase supplies:
+`core` owns one ordered set of phases with their German and English names:
+parking, taxi out, holding point, lined up, departure, cruise, approach,
+landing, taxi in, parking and securing. Every aircraft supplies every phase,
+even one no procedure of its own starts in; adding a phase touches `core` and
+every aircraft. For each phase the aircraft supplies:
 
 - the outside-view image,
 - environment presets (airspeed, altitude, on ground) that feed `step`, since
   nothing computes them,
 - an entry snapshot: control positions and systems state that make sense when a
-  pilot jumps straight to that phase.
+  pilot jumps straight to that phase, and optionally guard positions, device
+  control positions and device state fields.
 
 The outside-view image is the first-person view out of the windshield from the
 pilot's seat, not a third-person picture of the aircraft.
@@ -167,8 +181,15 @@ pilot's seat, not a third-person picture of the aircraft.
 A phase may also supply a second outside-view image for a running engine (a
 static propeller-disc outline in place of the stopped blade). The aircraft then
 declares an `engineRunning` condition over its state; the outside view shows
-the running image while it holds. Both fields are optional, so the contract
-version does not change.
+the running image while it holds. Both fields are optional.
+
+An aircraft may also declare outside cues: images laid over the outside view while
+a condition over its state holds, such as smoke from the engine during a fire. The
+field is optional.
+
+The contract version is 2 since #495: the shared phase set (above) made every
+phase required and removed the phase's own `name`, so an aircraft written for
+version 1 no longer validates.
 
 ### 4.7 Procedures
 
@@ -176,24 +197,62 @@ A procedure has an id, a title, a type (`normal` or `emergency`), the phase it
 starts in, optionally the phase it ends in, and its items. An emergency
 procedure names the failure to inject.
 
+Started from the picker, a procedure loads its start phase's entry snapshot,
+injects its failure if it is an emergency, and starts its checklist at once. A
+surprise failure (§5 Scenarios) starts differently: it loads a phase, injects
+one of that phase's failures unannounced after a delay, and the checklist the
+pilot then chooses starts from the cockpit as it stands, with no snapshot load
+and no failure of its own (amended in #446: recognising a failure is half the
+skill of an abnormal, and a failure announced with its checklist trains only
+the other half). In a full flight (§5 Scenarios) the first leg loads its snapshot.
+A later leg that starts in the phase the last leg ended in, or in the phase right
+after it, starts from the cockpit as the last leg left it, so a control the
+pilot set stays set, and enters its start phase without that phase's snapshot.
+A leg that skips a phase loads its snapshot: no checklist flew that phase, so
+the snapshot stands for it (amended in #479: carrying the cockpit over is what
+a flight rehearsal practises, and starting each procedure from a fresh snapshot
+hid what one procedure leaves for the next).
+
 Each item has text in both languages and one of:
 
 - **action**: a target control and the position to reach, optionally held until
   a state condition is true (starter until engine running);
 - **check**: a target indicator or control and a condition on the state, ticked
-  by the pilot;
+  by the pilot. A numeric check may also name the reading to compare and a
+  tolerance: in Practice the pilot may enter the value read, and a reading off
+  by more than the tolerance counts as an unmet check. Its text then states the
+  challenge only ("Rpm check"), not the expected value;
 - **confirm**: no target (a visual or verbal check), ticked by the pilot.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
+A normal procedure may open with a **flow**: a set of action items the pilot
+does from memory, in any order. A flow item latches once its target has held,
+and a target already in place ticks when the flow starts, also on a carried leg of
+a full flight. The checklist items that follow verify the flow (challenge, look,
+respond), so a target left elsewhere is recorded there as a wrong position.
+
+An emergency procedure may open with **memory items**: leading items of any
+kind flagged `memory`, the immediate actions done from recall before the
+checklist is read (added in #450: emergency checklists split into memory items
+and a read-and-do remainder, and a trainer drills the memory items without the
+list). They complete in order like any item; in Practice their text stays
+hidden until each is done, and the pane groups them under a "Memory items"
+label.
+
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
-needs to know which controls spring back. An action on a spring-back position
-(a momentary button's pressed position, or a rotary detent with a rest
-position) is satisfied only by a pilot press of its own: the control resting at
-that position is not enough, and each such action needs its own press. Any
-other action whose target already holds completes without one. An action with
-`holdUntil` still waits for its condition.
+needs to know which controls spring back. A checklist action (outside a flow) completes only through the
+pilot, never because its target already holds: every line of a checklist is
+looked at and answered, so a control already in place is still verified (spec
+amended in #442; the earlier rule let such items tick themselves). The pilot
+either sets the target to its position while the item is current, or ticks the
+item as verified; a verify tick while the target is elsewhere completes the
+item and records it as a wrong position. An action on a spring-back position (a
+momentary button's pressed position, or a rotary detent with a rest position)
+takes no verify tick: it is satisfied only by a pilot press of its own, and
+each such action needs its own press. An action with `holdUntil` still waits
+for its condition.
 
 ### 4.8 Appearance
 
@@ -213,6 +272,10 @@ Two sources, mixable within one aircraft:
   an optional glass layer above it that never moves, so glare lies over the
   needle. The renderer animates the moving part and can cast a needle's shadow
   from it; the same description later maps onto a 3D model.
+
+A guarded control's artwork may also name, per position, the image drawn while
+its guard is open, so a part that goes with the guard, such as a safety pin, is
+drawn only while it is in.
 
 A control with no declared appearance falls back to the generic widget for its
 kind, so a new aircraft is usable before any artwork exists.
@@ -255,21 +318,40 @@ viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
 works; nothing that needs the outside world does. No audio, no reception, no
-navigation database, no moving map. Each device states the manual revision its
+navigation database, no map data. The CTSL's GPS has a simulated position fix
+instead: seeded from line-up, or found after a short search when switched on by
+hand, with ground speed and track taken from the airspeed and heading and a
+schematic track-up map. Each device states the manual revision its
 logic follows and lists the functions it does not model.
 
 ## 5. Runtime
 
-1. The pilot operates a control; the control store records the new position.
+1. The pilot operates a control; the control store records the new position, or
+   refuses the move when an interlock holds it (result `locked`): the position
+   stays, a notice names both controls, and no
+   deviation is recorded.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
-   - an action item completes when its condition is met;
+   - an action item completes when the pilot sets its target while it is
+     current, or ticks it verified, and its `holdUntil` condition, if any, is met;
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
-     deviation; so is ticking a check whose condition is not met.
+     deviation: `out-of-order` when it sets a later action's target to that
+     action's position, else `unexpected-control`; ticking a check whose
+     condition is not met, or whose reading is off, is an `unmet-check`;
+   - moving the current action's target is never a deviation by itself, so a
+     stepped control such as a transponder digit may pass through wrong values;
+     leaving it at a position other than the target, by operating another
+     control, is a `wrong-position` (#442);
+   - while a flow runs, any of its actions may complete in any order, and an
+     action already at its target ticks at the flow's start; only a control
+     change outside the flow's targets is a deviation;
+   - a memory item that completes after a stray or out-of-order move was
+     recorded against it also records a `late-memory-item` (#450).
 5. Completing a procedure shows its deviations and, if the procedure names an
-   end phase, moves to it.
+   end phase, moves to it. In a full flight, the summary continues with the
+   next leg.
 
 The checklist engine only observes. It never blocks or alters input, which
 keeps it independent of the systems model and testable alone.
@@ -278,9 +360,21 @@ keeps it independent of the systems model and testable alone.
 
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
-| Guided | shown | current target highlighted; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
-| Practice | shown | none | recorded, summary at the end |
+| Guided | shown; a flow is a labelled group above the checklist that verifies it | current target highlighted; in a flow every open target at once, numbered in scan order; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
+| Practice | shown; a memory item's text hidden until it is done; a flow's rows blank until the flow is done; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings; in a flow one Show me shows the whole flow | recorded, summary at the end, with the assists used |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
+
+Practice's recall option and its Show me assist are settings of the mode, not a
+fourth mode, so the decisions table's "Modes" row is unchanged. A recall run
+practises the procedure from memory instead of reading it; a Show me reveals
+the current item and rings its target once, and the summary counts and lists
+each one.
+
+A flow is done from memory and in any order (§4.7), so Practice leaves its text
+out until it is done, and Guided rings all its open targets at once instead of
+one: a single ring would read as a sequence. Each ring carries the item's
+number, so the rings read as a scan path across the panel. Once the flow is
+done, the pane says that the checklist now verifies it (#453).
 
 In every mode a checklist selector in the checklist pane opens any of the
 aircraft's checklists for reading. A checklist viewed that way is a static
@@ -288,6 +382,42 @@ list of its items, independent of the running session: in Guided and Practice
 the running procedure is untouched and a button leads back to it; in Free
 explore the pane starts on the last procedure that ran, else the aircraft's
 first.
+
+### Scenarios
+
+Besides a chosen procedure, the picker offers drills (added in #446):
+
+- **Surprise failure**, always in Practice: the pilot picks a phase that has
+  emergency procedures; the session loads it with no checklist and, after a
+  random delay, injects one of the phase's failures with no banner and no title
+  naming it. Only failures that change the panel within seconds are drawn, so
+  there is always something to recognise. The pane says only that a failure will come. The pilot reads
+  checklists through the selector and runs the one they judge right; until
+  then nothing is recorded. The debrief adds the time from the failure to that
+  choice (or that it came before the failure) and whether the checklist was an
+  emergency procedure for the injected failure; a wrong checklist's run is not
+  recorded in the history. Repeat, Restart and returning from Free explore
+  start a new surprise in the same phase.
+- **Random emergency**: an emergency procedure picked at random, started as
+  from the picker in the chosen mode.
+- **Practise next**: shown once the history holds a run of the aircraft; it
+  suggests the procedure whose last run had deviations (the oldest such run
+  first), else one never run, else the one practised longest ago.
+- **Full flight** (added in #479), in the chosen mode: the aircraft's normal
+  procedures in flight order, from cold and dark to securing, each a leg. The
+  legs are the normal procedures sorted by start phase in the shared phase order (§4.6),
+  declaration order within a phase; a procedure whose start phase the flight
+  has passed (an alternative such as a short-field take-off) or that ends in an
+  earlier phase than it starts (a go-around) is not a leg. Each leg starts as
+  §4.7 says and the outside view follows its phase. Each leg's summary offers
+  the next leg; Repeat and Restart start the leg over from the cockpit it began
+  with. After the last leg, the summary adds a table of every leg with its
+  deviations, assists and time, and their totals. Each leg is recorded in the
+  history as a run of its procedure. A chosen procedure, a taken checklist, a
+  phase change, Free explore or the selection ends the flight; a runtime reset
+  starts it over. The checklist header names the running leg (leg n of m).
+  Leaving the flight by phase, Free explore or the selection before its last
+  leg is done asks first and names the legs flown.
 
 ### Screen
 
@@ -299,8 +429,12 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 
 ### Persistence
 
-`localStorage` holds language, theme and last aircraft only. Reads are guarded;
-the app works without it.
+`localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
+items" option (`cpt.recall`) and a small run history only.
+The history keeps, per aircraft and procedure, the last run (run mode, deviation
+count, date) and the best run, so the pilot and an instructor see improvement
+across sessions; it is never sent anywhere (G2). Reads are validated and
+guarded; the app works without it. The Practise next drill only reads it.
 
 ## 6. Visual design
 
@@ -366,15 +500,18 @@ parallel.
 - **Validator** (`core`, run in CI for every registered aircraft): every
   procedure target exists; every control and indicator is placed in a view;
   a cockpit arrangement, when given, places every view once without overlap;
-  every text has both languages; every phase has an image and an entry
-  snapshot; every injected failure is declared; an action on a continuous
+  every text has both languages; every aircraft declares every shared phase
+  and no other (`missing-phase`, `unknown-phase`); every phase has an image and
+  an entry snapshot; every injected failure is declared; an action on a continuous
   lever targets only 0 or 1 (`inexact-lever-target`), since a slider cannot be
   expected to land on a fraction; a declared view size is a positive, finite
   width and height (`invalid-view-size`) and no placement lies outside it
   (`placement-outside-view`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
-  a reset. A missing image falls back to a labelled placeholder rather than a
-  broken panel. `step` throwing is reported, not swallowed.
+  a reset. A missing view or outside-view image falls back to a labelled placeholder and
+  a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their
+  name only as an accessible name, not as printed lettering (§4.8); the device
+  placeholder for a device without a screen prints a short text. `step` throwing is reported, not swallowed.
 
 ## 9. Testing
 
@@ -382,7 +519,7 @@ parallel.
 |---|---|
 | Unit (Vitest) | `core`: control store, runtime tick, checklist engine, validator |
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
-| Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations |
+| Procedure walk-through (Vitest, generic) | for every aircraft and every procedure, emergencies included: starting from the phase entry snapshot, performing each item completes the procedure with no deviations, and a normal procedure's flow is done in both the listed and the reversed order; the CTSL full flight does the same with each leg from the cockpit the last one left |
 | Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout at 1920x1080 and 3840x2160; placards and lettering at the existing tablet and desktop sizes and also at 1920x1080 and 3840x2160 |
 | Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 

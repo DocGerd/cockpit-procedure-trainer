@@ -1,6 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useCurrentTarget } from '../checklist';
+import { useCurrentTarget, useFlowTargets, useStray } from '../checklist';
 import { useDock } from '../devices/dock-state';
 import { useActiveView } from '../panel/active-view';
 import { useReveal } from '../panel/panel-zoom';
@@ -8,6 +8,7 @@ import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
+import { useTargetCued } from './guided-install';
 import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
@@ -47,10 +48,18 @@ function useReducedMotion(): boolean {
   );
 }
 
-function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
-  const { aircraft } = useTrainer();
+/**
+ * Guided rings every step; Practice rings only an item the pilot had shown with Show me. A flow
+ * rings all its open targets at once, each numbered in scan order.
+ */
+function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
+  const { aircraft, mode } = useTrainer();
   const target = useCurrentTarget();
+  const flow = useFlowTargets();
+  const stray = useStray();
+  const strayBox = stray === undefined ? undefined : targetBox(rects, { control: stray });
   const item = useSessionState((session) => session.checklist()?.current);
+  const practice = mode === 'practice';
   const reducedMotion = useReducedMotion();
   const active = useActiveView();
   const latest = useRef(active);
@@ -70,17 +79,27 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
   const own = useRef(viewId);
   own.current = viewId;
   useEffect(() => {
-    if (view !== undefined && !latest.current.visible(view)) {
+    // A flow has no order, so the pilot stays on a view that still holds one of its open targets.
+    const scanning = flow.some(({ control }) => {
+      const at = targetView(aircraft, { control });
+      return at !== undefined && latest.current.visible(at);
+    });
+    if (view !== undefined && !latest.current.visible(view) && !scanning) {
       focusPending.current = true;
       latest.current.setView(view);
     } else if (latest.current.combined && view === own.current && previousView.current !== view) {
       focusPending.current = true;
     }
     previousView.current = view;
-  }, [key, item, view]);
+  }, [key, item, view, flow, aircraft]);
 
   const box = target && targetBox(rects, target);
   const shown = box !== undefined;
+  const scan = flow.flatMap(({ index, control }) => {
+    const at = targetBox(rects, { control });
+    return at ? [{ index, box: at }] : [];
+  });
+  const pulse = reducedMotion ? undefined : practice ? 'once' : 'true';
   useEffect(() => {
     if (shown && ring.current) revealRing.current(ring.current);
   }, [key, item, shown]);
@@ -97,14 +116,33 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
 
   return (
     <div ref={layer} className="modes-overlay" data-modes-overlay="">
-      {box && (
-        <div
-          ref={ring}
-          className="modes-outline"
-          data-outline="target"
-          data-pulse={reducedMotion ? undefined : 'true'}
-          style={boxStyle(box)}
-        />
+      {flow.length > 0
+        ? scan.map(({ index, box: at }) => (
+            <div
+              key={index}
+              ref={index === item ? ring : undefined}
+              className="modes-outline"
+              data-outline="target"
+              data-scan={index + 1}
+              data-pulse={pulse}
+              style={boxStyle(at)}
+            >
+              <span className="modes-scan" aria-hidden="true">
+                {index + 1}
+              </span>
+            </div>
+          ))
+        : box && (
+            <div
+              ref={ring}
+              className="modes-outline"
+              data-outline="target"
+              data-pulse={pulse}
+              style={boxStyle(box)}
+            />
+          )}
+      {strayBox && (
+        <div className="modes-outline" data-outline="stray" style={boxStyle(strayBox)} />
       )}
     </div>
   );
@@ -163,16 +201,16 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
   );
 }
 
-/** Draws the mode's accent on the panel: the Guided target, or the control selected in Free explore. */
+/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
 export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => {
   const { mode } = useTrainer();
   const store = useExploreStore();
+  const cued = useTargetCued();
 
   useEffect(() => {
     if (mode !== 'explore') store.select(undefined);
   }, [mode, store]);
 
-  if (mode === 'guided') return <GuidedOverlay viewId={viewId} rects={rects} />;
   if (mode === 'explore') return <ExploreOverlay rects={rects} />;
-  return null;
+  return cued ? <TargetOverlay viewId={viewId} rects={rects} /> : null;
 };

@@ -5,7 +5,7 @@ import { useId, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import './artwork.css';
 import { layerFraction, needleAngle, pointAlong } from './geometry';
-import type { LayerValue } from './geometry';
+import type { FaceBox, LayerValue } from './geometry';
 
 export type Artwork = ArtworkAppearance['artwork'];
 export type Size = { width: number; height: number };
@@ -13,14 +13,19 @@ export type Size = { width: number; height: number };
 type StageProps = {
   artwork: Artwork;
   value: LayerValue;
+  /** Whether the control's guard is open, which swaps in the artwork's open-guard image. */
+  guardOpen?: boolean | undefined;
   notches?: readonly string[] | undefined;
   fallback: ReactNode;
   options?: JsonObject | undefined;
   imageLabel?: string | undefined;
   renderInput?: ((size: Size | null) => ReactNode) | undefined;
+  /** Where the input lies on the face; elsewhere a tap passes through to whatever is beneath. */
+  inputBox?: FaceBox | undefined;
 };
 
 const stageStyle: CSSProperties = { position: 'relative', width: '100%' };
+const passThroughStyle: CSSProperties = { ...stageStyle, pointerEvents: 'none' };
 const faceStyle: CSSProperties = { display: 'block', width: '100%', height: 'auto' };
 const overlayStyle: CSSProperties = {
   position: 'absolute',
@@ -67,17 +72,19 @@ function shadowOffset({ width, height }: Size): string {
 export function ArtworkStage({
   artwork,
   value,
+  guardOpen,
   notches,
   fallback,
   options,
   imageLabel,
   renderInput,
+  inputBox,
 }: StageProps) {
   const [size, setSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
   const maskId = `pk-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const { face, moving, glass } = artwork;
-  const source = movingSource(moving, value);
+  const source = (guardOpen && artwork.guardOpen?.[String(value)]) || movingSource(moving, value);
   if (
     source === undefined ||
     failed.has(face) ||
@@ -93,7 +100,7 @@ export function ArtworkStage({
 
   return (
     <div
-      style={stageStyle}
+      style={inputBox ? passThroughStyle : stageStyle}
       {...(imageLabel === undefined ? {} : { role: 'img', 'aria-label': imageLabel })}
     >
       <img
@@ -162,7 +169,21 @@ export function ArtworkStage({
           onError={() => fail(glass)}
         />
       )}
-      {renderInput?.(size)}
+      {inputBox ? (
+        <div
+          className="cpt-artwork-hit"
+          style={{
+            left: `${inputBox.left * 100}%`,
+            top: `${inputBox.top * 100}%`,
+            width: `${inputBox.width * 100}%`,
+            height: `${inputBox.height * 100}%`,
+          }}
+        >
+          {renderInput?.(size)}
+        </div>
+      ) : (
+        renderInput?.(size)
+      )}
     </div>
   );
 }

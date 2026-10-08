@@ -8,6 +8,53 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.14.0] - 2026-10-08
+
+### Added
+
+- Restart, Change aircraft and Change procedure now ask before they discard a run that has items done or a deviation (and act at once otherwise); the Aircraft and Procedure header chips act in one click instead of opening a popover; every confirm dialog is titled by its action and states the progress it would lose, in English and German.
+- The picker now remembers each procedure's last and best result in the browser and shows the last run, with its deviation count and how long ago it was, beside the procedure, plus the best result when it beat the last.
+- Drills in the picker: a surprise failure appears without warning in a phase you choose, and you recognise it and run its checklist, with the time to recognise and whether you picked the right checklist in the debrief; a random emergency; and a suggestion of what to practise next from your run history.
+- Practice has an option, Hide upcoming items, that shows only the done items and a blank current line so a run is recalled rather than read; a Show me button on the current item reveals it and rings its target once (a device target opens in the dock with its key ringed), and the debrief counts each one under Assists and lists the items shown. The Reading field in the checklist pane no longer scrolls sideways or sits against the card edge in a narrow pane.
+- Emergency procedures can now open with memory items, the immediate actions done from recall before the checklist is read. The pane groups them under a Memory items label; Practice hides each one's text until it is done, and the debrief lists a memory item done only after another action as a late memory item. The demo's Alternator failure and five CT Supralight emergencies (engine failure low and with restart, rescue system, engine fire, oil loss) open with memory items; which CT Supralight steps are memory items is to be confirmed against the club's practice.
+- A normal procedure can now open with a flow: actions done from memory in any order, each ticked as its control is set, then verified by the checklist that follows. The demo aircraft's Before landing opens with one (fuel selector, mixture, flaps); only a control outside the flow counts as a deviation while it runs, and the debrief names it as made during the flow.
+- The checklist pane shows a procedure's opening flow as its own group, "Flow — any order, from memory", above the checklist that verifies it, and says when the flow is done and the checklist takes over. Guided rings every open flow target at once, each numbered as a scan path across the panel; Practice keeps the flow's text hidden until it is done, and one Show me shows the whole flow. The debrief groups the flow the same way. The CT Supralight's Engine start, Before take-off and After landing now open with a flow (assumed from general-aviation practice, to be confirmed against the handbook).
+- A "Full flight" drill flies the aircraft's normal procedures in order, from cold and dark to securing. Each procedure continues from the cockpit the last one left, so a control you set stays set, and the last summary adds a table of every procedure with its deviations, assists and time.
+- Every aircraft now offers the same phases in flight order, including a new Taxi out phase between parking and the holding point, with its own outside view. Finishing the Engine start checklist of either aircraft now moves the cockpit on to Taxi out. Aircraft packages must now declare every shared phase (contract version 2).
+- The CT Supralight GPS now works in flight: from line-up on it has a position fix and its map page shows ground speed, track and a schematic track-up map (range rings, track line, north) instead of "NO POSITION". Switched on by hand, it searches for satellites before the fix; with the avionics off or its breaker pulled it stays dark.
+
+### Changed
+
+- On the CT Supralight an engine fire now shows: smoke from the engine bay streams over the windscreen in the outside view and the CHT and oil temperature climb past their red lines, clearing once the fire is out; a flap control failure trips the flap breaker, so the flap readout goes dark, and after a reset it stays put whatever the selector says. The flap readout is also dark whenever its circuit has no power.
+- The CT Supralight cockpit is arranged as in the aircraft: the centre field with the ignition, fuel valve, flaps and BAT/GEN now hangs below the middle of the instrument panel, with the console beside it and the device dock to the left.
+- The picker keeps Mode and Start in view beside a scrolling procedure list, with a one-line explanation under Start and Explore; the phase control is labelled "Start in phase", Free explore sits apart from the Guided and Practice choices, and a notice appears when Practice switches to Guided mid-run.
+- Checklist actions no longer tick themselves when the control is already set: the pilot verifies them with a Verified tick or by operating the control; a control left at the wrong position and a later step done early are now recorded as their own deviations, and in Practice the CT Supralight run-up rpm check takes the reading the pilot enters.
+- A Guided stray action now says where the control was set and where to put it back, rings the control on the panel until it is back, and offers Retry this item, which restores the cockpit to the start of the item; the debrief shows the time taken, the assists used, the deviations by kind with expected against actual and a link to each item, and makes Repeat the primary action after a deviation; action hints name the gesture (press, press and hold, drag), and the demo's annunciator test item now needs the switch held.
+- The CT Supralight console draws BRAKE, THROTTLE and CHOKE as horizontal levers stacked top to bottom, and the trim as a wheel with its indicator beside it, nose down forward; the rescue handle moved off the console to its own view, the main bulkhead between the seats behind it.
+
+### Fixed
+
+- The checklist title and progress now stay at the top of the pane, and the whole current item, with its Check off button, stays clear of the footer on long procedures; the Guided deviation banner moved below the list so it no longer pushes the current item down.
+- The empty device dock is now dark panel hardware with a slim hint strip in both themes instead of a large white box, and its close button prints a text label ("Close" / "Schließen").
+- On 4K screens the header, checklist, mode buttons and footer now draw at twice their size, matching the panel.
+- The CT Supralight panel shows a small magnetic compass at the top left of the right field, read like the real one through a window on a reversed card; the charge warning lamp is round with a CHARGE legend, and the breaker block is headed "Circuit Breakers - Push off" as on the panel.
+- The CT Supralight centre field teaches the fuel valve and key interlock: the closed valve's handle covers the ignition key slot, and the key will not turn out of OFF until the valve is open; a refused turn shows a notice above the panel naming the fuel valve. Opened, the valve leaves the whole key switch free to turn. The Avionics Master is drawn larger than the other rockers, the ELT remote switch sits left of centre with its ON and ARM legends, the flap selector sits right of centre, and every centre-field control is at least a full touch target.
+- On 4K screens the panel frame now fills the column down to the checklist's bottom edge, with the outside view scaled up to match, so no empty band is left under the cockpit.
+- The CT Supralight rocker switches now read correctly: OFF shows the raised paddle beside the OFF legend and ON beside the ON legend, so a cold-and-dark panel has every rocker visibly off and a powered cruise shows the avionics master and beacon on.
+- The CT Supralight brake lever no longer locks: it brakes only while you hold it and springs back when you let go, by pointer or by a held key. The parking brake is set by closing the parking-brake valve, then pulling and releasing the lever, and the checklists now ask you to hold the lever, release it and check that the parking brake holds; releasing the parking brake only opens the valve.
+- The CT Supralight phases now start the way a day-VFR flight is flown: lined up with the parking brake released, flaps 15° and the rescue pin out; the intercom on while the engine runs; the transponder at ALT from line-up; the landing light on from the approach until after landing; the vertical speed indicator climbing on departure and descending on approach. The take-off checklist no longer starts by releasing a parking brake that is already off.
+- The CT Supralight now parks with the ignition key out of the lock. Engine start inserts it at OFF once the fuel valve is open, and shutdown closes the fuel valve before taking it out again, as the key comes out only with the valve fully closed. The closed valve's handle over the slot stops the key going in and holds a key at OFF, so in an engine fire or oil loss the key comes out after the valve is closed.
+- On the demo aircraft panel, every position of a multi-position switch or knob can now be tapped; the Annunciator switch's DIM position no longer lands on BRIGHT.
+- The CT Supralight "Before take-off" transponder line now asks the pilot to set the GTX 327 to standby and then checks it: ticking the line while the transponder is off, unpowered or at another mode records a deviation, instead of confirming a state the pilot never set.
+- The CT Supralight now squawks 7000 from line-up through parking and has its GPS on at the map page from line-up through taxi-in, so the transponder and GPS are alive in flight instead of showing their power-on state (squawk 2000, GPS blank). A phase can now seed device state as well as device controls.
+- The CT Supralight rescue-system safety pin is no longer drawn in its holder once it is pulled out, so a pilot checking "rescue pin out" sees the real state.
+- The CT Supralight brake and nose-wheel steering checks now sit in their own "Taxi out" procedure that starts on the taxiway, so they are done with the taxiway outside view instead of the parking position; "Engine start" ends on the taxiway and a full flight carries the cockpit from it through Taxi out to Before take-off.
+- In the full flight, a leg that carries the cockpit into the next phase now shows that phase's heading, vertical speed, altitude and airspeed, while the controls and devices the pilot set stay as they were. On the CT Supralight the compass therefore reads the runway heading at line-up, and the take-off's compass item is now a check against the compass.
+- The panel's gauges, lamps and readouts no longer print their accessible name as a caption (such as "Flap position indicator" or "ELT lamp" on the CT Supralight at 4K), so only the panel's own printed lettering shows; screen-reader names are unchanged, and the Demo aircraft now prints HOURS, COMPASS, LOW VOLT and OIL PRESS on its panel.
+- Guided cues and the debrief now name a control's position the way the panel prints it, such as L, R and ARM on the CT Supralight, and say "key out" for the ignition key pulled out, instead of the internal position names.
+- Going back to the selection from a full-flight leg summary now asks first and names the legs flown, instead of ending the flight at once.
+- Releasing a spring-back control early, such as cranking the CT Supralight starter in bursts, no longer records a wrong position for it when the pilot next moves another control, and a flow item now counts as verified only by a later item that sets its control to the same position or checks that control.
+
 ## [0.12.0] - 2026-10-08
 
 ### Added
@@ -243,7 +290,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...v0.11.0

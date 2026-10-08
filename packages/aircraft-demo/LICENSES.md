@@ -8,6 +8,8 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/view-console.svg`                   | Centre console view background                                      |
 | `src/assets/phase-parking.svg`                  | Outside view, parking                                               |
 | `src/assets/phase-parking-running.svg`          | Outside view, parking, engine running (propeller disc)              |
+| `src/assets/phase-taxi-out.svg`                 | Outside view, taxi out                                              |
+| `src/assets/phase-taxi-out-running.svg`         | Outside view, taxi out, engine running (propeller disc)             |
 | `src/assets/phase-holding.svg`                  | Outside view, holding point                                         |
 | `src/assets/phase-holding-running.svg`          | Outside view, holding point, engine running (propeller disc)        |
 | `src/assets/phase-lined-up.svg`                 | Outside view, lined up on runway                                    |

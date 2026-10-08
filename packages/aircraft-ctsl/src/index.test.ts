@@ -1,9 +1,13 @@
-import { CONTRACT_VERSION, createSession, validateAircraft } from '@cpt/core';
+import { CONTRACT_VERSION, createSession, phaseOrder, STEP_MS, validateAircraft } from '@cpt/core';
 import type { ControlDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
+import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
+import viewBulkhead from './assets/view-bulkhead.svg?raw';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
+import { controlArtwork } from './artwork';
 import { devices as installs } from './devices';
 import { ctslAircraft } from './index';
 import { chargeLampLit } from './indicators';
@@ -61,13 +65,13 @@ const expectedControls: Record<string, Expected> = {
   },
   ignition: {
     kind: 'rotary',
-    positions: ['off', 'left', 'right', 'both', 'start'],
-    initial: 'off',
+    positions: ['out', 'off', 'left', 'right', 'both', 'start'],
+    initial: 'out',
     view: 'centre',
   },
   battery: breaker('centre', 'pulled'),
   generator: breaker('centre', 'pulled'),
-  brake: offOn,
+  brake: { ...offOn, kind: 'momentary' },
   throttle: {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
@@ -92,7 +96,7 @@ const expectedControls: Record<string, Expected> = {
     kind: 'guarded',
     positions: ['stowed', 'pulled'],
     initial: 'stowed',
-    view: 'console',
+    view: 'bulkhead',
   },
 };
 
@@ -105,13 +109,14 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
   oilPressure: { widget: 'artwork', view: 'panel' },
   oilTemperature: { widget: 'artwork', view: 'panel' },
   cht: { widget: 'artwork', view: 'panel' },
-  chargeLamp: { widget: 'annunciator', view: 'panel' },
+  chargeLamp: { widget: 'artwork', view: 'panel' },
   flapReadout: { widget: 'digital-readout', view: 'centre' },
   eltLamp: { widget: 'annunciator', view: 'centre' },
 };
 
 const expectedPhases = {
   parking: { airspeedKt: 0, altitudeFt: 0, onGround: true },
+  taxiOut: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   holding: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   linedUp: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   departure: { airspeedKt: 57, altitudeFt: 200, onGround: false },
@@ -206,8 +211,8 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it('has the three views of the panel inventory', () => {
-    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console']);
+  it('has the views of the panel inventory', () => {
+    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console', 'bulkhead']);
   });
 
   it.each(Object.entries(deviceSlots))(
@@ -228,10 +233,204 @@ describe('CTSL aircraft', () => {
     expect(views).toEqual(['panel', 'panel', 'panel']);
   });
 
-  it('arranges its three views and a dock, with the panel floor at 950', () => {
-    expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual(['panel', 'centre', 'console']);
+  it('arranges its views and a dock, with the panel floor at 950', () => {
+    expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual([
+      'panel',
+      'centre',
+      'console',
+      'bulkhead',
+    ]);
     expect(ctslAircraft.cockpit?.dock).toBeDefined();
     expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBeGreaterThanOrEqual(950);
+  });
+
+  describe('cockpit arrangement (intake §3)', () => {
+    const cockpit = ctslAircraft.cockpit;
+    const panelSize = ctslAircraft.views.panel?.size;
+    const { panel, centre, console: consoleCell, bulkhead } = cockpit?.views ?? {};
+    const dock = cockpit?.dock;
+    if (!panelSize || !panel || !centre || !consoleCell || !bulkhead || !dock) {
+      throw new Error('the CTSL declares no panel size or misses a cockpit cell');
+    }
+    const right = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w;
+    const bottom = ({ rect }: { rect: { y: number; h: number } }) => rect.y + rect.h;
+    const middle = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
+
+    // The two upper fields are the full-height rects of the panel artwork.
+    const fields = [
+      ...viewPanel.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="([\d.]+)"/g),
+    ]
+      .map(([, x, w, h]) => ({ x: Number(x), w: Number(w), h: Number(h) }))
+      .filter(({ w, h }) => h >= 0.95 * panelSize.height && w < panelSize.width)
+      .filter((field, index, all) => all.findIndex(({ x }) => x === field.x) === index)
+      .sort((a, b) => a.x - b.x);
+    const [upperLeft, upperRight] = fields;
+    if (fields.length !== 2 || !upperLeft || !upperRight) {
+      throw new Error(`expected two upper fields in the panel art, found ${fields.length}`);
+    }
+    const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
+    const inCockpit = (artX: number) =>
+      panel.rect.x + (panel.rect.w - panelFit) / 2 + (artX * panelFit) / panelSize.width;
+    const junction = inCockpit((upperLeft.x + upperLeft.w + upperRight.x) / 2);
+
+    it('hangs the centre field below the panel, under the junction of the two upper fields', () => {
+      expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(middle(centre)).toBeGreaterThan(panel.rect.x + panel.rect.w / 3);
+      expect(middle(centre)).toBeLessThan(panel.rect.x + (2 * panel.rect.w) / 3);
+      expect(Math.abs(middle(centre) - junction)).toBeLessThanOrEqual(2);
+    });
+
+    it('puts the console beside the centre field, toward the right seat', () => {
+      expect(consoleCell.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(consoleCell.rect.x).toBeGreaterThanOrEqual(right(centre));
+      expect(consoleCell.rect.y).toBeLessThan(bottom(centre));
+    });
+
+    it('puts the bulkhead behind the console, in its column', () => {
+      expect(bulkhead.rect.y).toBeGreaterThanOrEqual(bottom(consoleCell));
+      expect(bulkhead.rect.x).toBe(consoleCell.rect.x);
+      expect(right(bulkhead)).toBe(right(consoleCell));
+      expect(bottom(bulkhead)).toBeLessThanOrEqual(cockpit?.size.height ?? 0);
+    });
+
+    it('keeps the dock below the panel, clear of the centre column', () => {
+      expect(dock.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
+    });
+
+    it('reaches under the radio and transponder slots with the dock', () => {
+      const { com } = deviceSlots;
+      const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
+      const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
+      expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
+    });
+  });
+
+  describe('centre field (intake §3.3)', () => {
+    // The web app's --size-target token; the centre cell renders at least its floor wide.
+    const TOUCH_TARGET_PX = 44;
+    const view = ctslAircraft.views.centre;
+    const floor = ctslAircraft.cockpit?.views.centre?.minWidth;
+    const size = view?.size;
+    if (!view?.controls || !floor || !size) throw new Error('the CTSL has no centre field');
+    const placed = view.controls;
+    const rectOf = (id: keyof typeof placed) => {
+      const rect = placed[id]?.rect;
+      if (!rect) throw new Error(`the centre field does not place ${id}`);
+      return rect;
+    };
+    const middle = (id: keyof typeof placed) => rectOf(id).x + rectOf(id).w / 2;
+
+    it.each(Object.keys(placed))('draws %s at least the touch target at the floor', (id) => {
+      const { w, h } = rectOf(id as keyof typeof placed);
+      expect(Math.min(w, h) * (floor / size.width)).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+    });
+
+    it('draws the Avionics Master larger than the other rockers', () => {
+      const master = rectOf('avionicsMaster');
+      for (const id of ['beacon', 'positionLights', 'intercom', 'cockpitLight', 'landingLight']) {
+        const rocker = rectOf(id as keyof typeof placed);
+        expect(master.w, id).toBeGreaterThan(rocker.w);
+        expect(master.h, id).toBeGreaterThan(rocker.h);
+      }
+    });
+
+    it('puts the ELT left of centre, clear of the left edge, and the flap selector right of it', () => {
+      expect(middle('elt')).toBeLessThan(size.width / 2);
+      expect(middle('elt')).toBeGreaterThan(size.width / 4);
+      expect(middle('flapSelector')).toBeGreaterThan(size.width / 2);
+      expect(rectOf('battery').x).toBeGreaterThanOrEqual(
+        rectOf('flapSelector').x + rectOf('flapSelector').w,
+      );
+    });
+
+    it('lays the closed valve handle over the key slot, and the open one clear of the key', () => {
+      const valve = rectOf('fuelValve');
+      const ignition = rectOf('ignition');
+      const slot = { x: ignition.x + ignition.w / 2, y: ignition.y + ignition.h / 2 };
+      const handle = (svg: string) => {
+        const [, x, y, w, h] =
+          /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#a\)"/.exec(
+            svg,
+          ) ?? [];
+        return { x: valve.x + Number(x), y: valve.y + Number(y), w: Number(w), h: Number(h) };
+      };
+      const covers = (part: ReturnType<typeof handle>) =>
+        slot.x > part.x && slot.x < part.x + part.w && slot.y > part.y && slot.y < part.y + part.h;
+      expect(covers(handle(valveClosed))).toBe(true);
+      expect(handle(valveOpen).y + handle(valveOpen).h).toBeLessThan(ignition.y);
+      const { options } = controlArtwork.fuelValve;
+      expect(options.hitArea).not.toHaveProperty('closed');
+      const hitBottom =
+        valve.y + (options.hitArea.open.top + options.hitArea.open.height) * valve.h;
+      expect(hitBottom).toBeLessThan(ignition.y);
+      expect(hitBottom).toBeGreaterThan(handle(valveOpen).y + handle(valveOpen).h);
+      const order = Object.keys(placed);
+      expect(order.indexOf('fuelValve')).toBeGreaterThan(order.indexOf('ignition'));
+    });
+  });
+
+  describe('centre console and bulkhead (intake §3.4)', () => {
+    // The web app's --size-target token; each cell renders at least its floor wide.
+    const TOUCH_TARGET_PX = 44;
+    // The guard's share of an open guarded placement, the handle taking the rest (panel-kit artwork.css).
+    const OPEN_GUARD_SHARE = 0.4;
+    const placedIn = (viewId: 'console' | 'bulkhead') => {
+      const view = ctslAircraft.views[viewId];
+      const floor = ctslAircraft.cockpit?.views[viewId]?.minWidth;
+      if (!view?.controls || !view.size || !floor) throw new Error(`the CTSL has no ${viewId}`);
+      const rects = Object.fromEntries(
+        Object.entries(view.controls).flatMap(([id, placement]) =>
+          placement ? [[id, placement.rect] as const] : [],
+        ),
+      );
+      return { rects, scale: floor / view.size.width };
+    };
+    const consoleView = placedIn('console');
+    const bulkheadView = placedIn('bulkhead');
+    const rectOf = (id: string) => {
+      const rect = consoleView.rects[id];
+      if (!rect) throw new Error(`the console does not place ${id}`);
+      return rect;
+    };
+    const right = (id: string) => rectOf(id).x + rectOf(id).w;
+    const bottom = (id: string) => rectOf(id).y + rectOf(id).h;
+
+    const targets = [consoleView, bulkheadView].flatMap(({ rects, scale }) =>
+      Object.entries(rects).map(([id, rect]) => [id, Math.min(rect.w, rect.h) * scale] as const),
+    );
+
+    it.each(targets)('draws %s at least the touch target at the floor', (_id, size) => {
+      expect(size).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+    });
+
+    it('opens the safety pin and the rescue handle each at least the touch target at the floor', () => {
+      const rescue = bulkheadView.rects.rescueHandle;
+      expect(rescue, 'the bulkhead places the rescue handle').toBeDefined();
+      const height = (rescue?.h ?? 0) * bulkheadView.scale;
+      expect(height * OPEN_GUARD_SHARE, 'safety pin').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+      expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+    });
+
+    it('carries the rescue handle on the bulkhead, not on the console', () => {
+      expect(Object.keys(consoleView.rects)).not.toContain('rescueHandle');
+      expect(Object.keys(bulkheadView.rects)).toEqual(['rescueHandle']);
+    });
+
+    it('stacks BRAKE, THROTTLE and CHOKE top to bottom in one column', () => {
+      expect(bottom('brake')).toBeLessThanOrEqual(rectOf('throttle').y);
+      expect(bottom('throttle')).toBeLessThanOrEqual(rectOf('choke').y);
+      expect(rectOf('throttle').x).toBe(rectOf('brake').x);
+      expect(rectOf('choke').x).toBe(rectOf('brake').x);
+    });
+
+    it('puts the trim wheel below the choke and the parking-brake valve right of the levers', () => {
+      expect(rectOf('trim').y).toBeGreaterThanOrEqual(bottom('choke'));
+      expect(rectOf('trim').x).toBeLessThan(right('choke'));
+      expect(right('trim')).toBeGreaterThan(rectOf('choke').x);
+      const levers = Math.max(right('brake'), right('throttle'), right('choke'));
+      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(levers);
+    });
   });
 
   it('stacks the radio above the transponder', () => {
@@ -240,7 +439,8 @@ describe('CTSL aircraft', () => {
   });
 
   it('lists the phases of a whole flight in flight order', () => {
-    expect(Object.keys(ctslAircraft.phases)).toEqual(Object.keys(expectedPhases));
+    expect(Object.keys(expectedPhases)).toEqual(phaseOrder);
+    expect(Object.keys(ctslAircraft.phases)).toEqual(phaseOrder);
   });
 
   it.each(Object.entries(expectedPhases))(
@@ -253,7 +453,7 @@ describe('CTSL aircraft', () => {
   it('enters parking cold, with the fuel valve closed and the parking brake set', () => {
     const parking = ctslAircraft.phases.parking;
     expect(parking?.entry.controls).toMatchObject({
-      ignition: 'off',
+      ignition: 'out',
       fuelValve: 'closed',
       battery: 'pulled',
       generator: 'pulled',
@@ -263,6 +463,28 @@ describe('CTSL aircraft', () => {
     });
     expect(entryState('parking').engine.running).toBe(false);
     expect(entryState('parking').parkingBrakeSet).toBe(true);
+  });
+
+  it('enters parking cold and dark: every rocker off, nothing powered or lit', () => {
+    const entry = ctslAircraft.phases.parking?.entry.controls as Record<string, string>;
+    const rockers = Object.entries(ctslAircraft.controls).filter(
+      ([, { kind, positions }]) => kind === 'toggle' && positions.join() === 'off,on',
+    );
+    expect(rockers.map(([id]) => id).sort()).toEqual(
+      [
+        'avionicsMaster',
+        'beacon',
+        'cockpitLight',
+        'intercom',
+        'landingLight',
+        'positionLights',
+      ].sort(),
+    );
+    for (const [id] of rockers) expect(entry[id], id).toBe('off');
+    expect(entry).toMatchObject({ ignition: 'out', fuelValve: 'closed', brake: 'off' });
+    const state = entryState('parking');
+    expect(state.bus).toEqual({ mainPowered: false, avionicsPowered: false, charging: false });
+    expect(Object.values(state.consumers).filter(Boolean)).toEqual([]);
   });
 
   it.each(Object.keys(expectedPhases).filter((id) => id !== 'parking'))(
@@ -295,6 +517,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'idle'],
+    ['taxiOut', 'low'],
     ['holding', 'idle'],
     ['departure', 'full'],
     ['cruise', 'cruise'],
@@ -308,7 +531,9 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', true],
+    ['taxiOut', false],
     ['holding', true],
+    ['linedUp', false],
     ['departure', false],
     ['cruise', false],
     ['approach', false],
@@ -321,6 +546,18 @@ describe('CTSL aircraft', () => {
       brake: 'off',
     });
     expect(entryState(id).parkingBrakeSet).toBe(set);
+  });
+
+  it('has a non-locking brake lever that every procedure only pulls and holds', () => {
+    expect(ctslAircraft.controls.brake?.kind).toBe('momentary');
+    const brakeActions = Object.values(ctslAircraft.procedures).flatMap(({ items }) =>
+      items.filter((item) => item.type === 'action' && item.control === 'brake'),
+    );
+    expect(brakeActions.length).toBeGreaterThan(0);
+    for (const item of brakeActions) {
+      expect(item.type === 'action' && item.position, item.text.en).toBe('on');
+      expect(item.text.en, item.text.en).toMatch(/held|hold/i);
+    }
   });
 
   it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
@@ -342,7 +579,9 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
+    ['taxiOut', '0'],
     ['holding', '0'],
+    ['linedUp', '15'],
     ['departure', '0'],
     ['cruise', '-12'],
     ['approach', '15'],
@@ -375,7 +614,7 @@ describe('CTSL aircraft', () => {
     expect(entryState(id).altitudeFt).toBe(0);
   });
 
-  it('declares every failure of the plan, none tripping a breaker', () => {
+  it('declares every failure of the plan, only the flap control failure tripping a breaker', () => {
     expect(Object.keys(ctslAircraft.failures)).toEqual([
       'generatorFailure',
       'engineStoppage',
@@ -384,8 +623,29 @@ describe('CTSL aircraft', () => {
       'oilLoss',
       'flapControlFailure',
     ]);
-    for (const failure of Object.values(ctslAircraft.failures))
-      expect(failure.trips).toBeUndefined();
+    expect(
+      Object.fromEntries(
+        Object.entries(ctslAircraft.failures).flatMap(([id, failure]) =>
+          failure.trips ? [[id, failure.trips]] : [],
+        ),
+      ),
+    ).toEqual({ flapControlFailure: ['flapBreaker'] });
+  });
+
+  it('shows smoke from the engine in the outside view exactly while the fire burns', () => {
+    const cues = ctslAircraft.outsideCues ?? {};
+    expect(Object.keys(cues)).toEqual(['engineSmoke']);
+    const smoke = cues['engineSmoke'];
+    const session = createSession(ctslAircraft, { devices, phase: 'cruise' });
+    expect(smoke?.shows(session.state())).toBe(false);
+    session.startProcedure('engineFire');
+    session.advance(STEP_MS);
+    expect(smoke?.shows(session.state())).toBe(true);
+    session.set('fuelValve', 'closed');
+    session.set('ignition', 'off');
+    for (let ms = 0; ms < 2000; ms += STEP_MS) session.advance(STEP_MS);
+    expect((session.state().systems as CtslState).fire).toBe(false);
+    expect(smoke?.shows(session.state())).toBe(false);
   });
 
   it('assembles the procedures of its three modules and the installs of its devices module', () => {
@@ -399,7 +659,9 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'in', 'closed'],
+    ['taxiOut', 'in', 'closed'],
     ['holding', 'in', 'closed'],
+    ['linedUp', 'out', 'open'],
     ['departure', 'out', 'open'],
     ['cruise', 'out', 'open'],
     ['approach', 'out', 'open'],
@@ -410,6 +672,112 @@ describe('CTSL aircraft', () => {
     const session = createSession(ctslAircraft, { devices, phase });
     expect(session.guards().rescueHandle).toBe(guard);
   });
+
+  it.each(Object.keys(expectedPhases))(
+    'enters %s with the cockpit light off (day VFR only)',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls.cockpitLight).toBe('off');
+      expect(entryState(id).consumers.cockpitLight).toBe(false);
+    },
+  );
+
+  it.each(Object.keys(expectedPhases).filter((id) => id !== 'parking'))(
+    'enters %s with the avionics, beacon and intercom on while the engine runs',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls).toMatchObject({
+        avionicsMaster: 'on',
+        beacon: 'on',
+        intercom: 'on',
+      });
+      expect(entryState(id).consumers).toMatchObject({ beacon: true, intercom: true });
+    },
+  );
+
+  it.each([
+    ['parking', 'off'],
+    ['taxiOut', 'off'],
+    ['holding', 'off'],
+    ['linedUp', 'off'],
+    ['departure', 'off'],
+    ['cruise', 'off'],
+    ['approach', 'on'],
+    ['landing', 'on'],
+    ['taxiIn', 'on'],
+    ['parkingSecuring', 'off'],
+  ])('enters %s with the landing light %s', (id, light) => {
+    expect(ctslAircraft.phases[id]?.entry.controls.landingLight).toBe(light);
+    expect(entryState(id).consumers.landingLight).toBe(light === 'on');
+  });
+
+  it.each(Object.keys(expectedPhases).filter((id) => !['parking', 'holding'].includes(id)))(
+    'enters %s rolling or flying, with the parking-brake valve open',
+    (id) => {
+      expect(ctslAircraft.phases[id]?.entry.controls.parkingBrakeValve).toBe('open');
+      expect(entryState(id).parkingBrakeSet).toBe(false);
+    },
+  );
+
+  it.each([
+    ['parking', 'off'],
+    ['taxiOut', 'off'],
+    ['holding', 'off'],
+    ['linedUp', 'alt'],
+    ['departure', 'alt'],
+    ['cruise', 'alt'],
+    ['approach', 'alt'],
+    ['landing', 'alt'],
+    ['taxiIn', 'alt'],
+    ['parkingSecuring', 'sby'],
+  ])('enters %s with the transponder at %s', (phase, mode) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().controls['xpdr.mode']).toBe(mode);
+  });
+
+  it.each([
+    ['parking', '2000'],
+    ['taxiOut', '2000'],
+    ['holding', '2000'],
+    ['linedUp', '7000'],
+    ['departure', '7000'],
+    ['cruise', '7000'],
+    ['approach', '7000'],
+    ['landing', '7000'],
+    ['taxiIn', '7000'],
+    ['parkingSecuring', '7000'],
+  ])('enters %s with the transponder squawking %s', (phase, squawk) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().devices.xpdr?.state).toMatchObject({ squawk });
+  });
+
+  it.each([
+    ['parking', false],
+    ['taxiOut', false],
+    ['holding', false],
+    ['linedUp', true],
+    ['departure', true],
+    ['cruise', true],
+    ['approach', true],
+    ['landing', true],
+    ['taxiIn', true],
+    ['parkingSecuring', false],
+  ])('enters %s with the GPS on and its position fixed: %s', (phase, on) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().devices.gps?.state).toMatchObject({ on, page: 'map', fix: on });
+  });
+
+  it.each([
+    ['departure', 'climbing', 1],
+    ['approach', 'descending', -1],
+  ])('enters %s %s on the vertical speed indicator', (id, _trend, sign) => {
+    expect(Math.sign(entryState(id).verticalSpeedMs)).toBe(sign);
+  });
+
+  it.each(Object.keys(expectedPhases).filter((id) => !['departure', 'approach'].includes(id)))(
+    'enters %s with a level vertical speed indicator',
+    (id) => {
+      expect(entryState(id).verticalSpeedMs).toBe(0);
+    },
+  );
 
   it('starts a session at every phase', () => {
     for (const phase of Object.keys(expectedPhases)) {
@@ -426,6 +794,7 @@ describe('declared view sizes', () => {
     panel: viewPanel,
     centre: viewCentre,
     console: viewConsole,
+    bulkhead: viewBulkhead,
   };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {

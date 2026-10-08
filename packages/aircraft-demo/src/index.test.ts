@@ -93,6 +93,7 @@ describe('demo aircraft', () => {
   it('lists the phases of a whole flight in flight order', () => {
     expect(Object.keys(demoAircraft.phases)).toEqual([
       'parking',
+      'taxiOut',
       'holding',
       'linedUp',
       'departure',
@@ -113,6 +114,19 @@ describe('demo aircraft', () => {
       expect(systems(session).engine.running).toBe(true);
     },
   );
+
+  it('enters taxiOut on taxi power with the flaps up, on the ground at rest', () => {
+    const taxiOut = demoAircraft.phases.taxiOut;
+    expect(taxiOut?.entry.controls).toMatchObject({ throttle: 0.15, flaps: 'up' });
+    expect(taxiOut?.environment).toEqual({ airspeedKt: 0, altitudeFt: 0, onGround: true });
+  });
+
+  it('ends the engine start in taxiOut, so a full flight goes on from the taxiway', () => {
+    expect(demoAircraft.procedures.engineStart).toMatchObject({
+      startPhase: 'parking',
+      endPhase: 'taxiOut',
+    });
+  });
 
   it('ends the shutdown with the controls of the cold parked aircraft and a dead bus', () => {
     const session = createSession(demoAircraft, { devices, phase: 'parkingSecuring' });
@@ -248,6 +262,19 @@ describe('demo aircraft', () => {
       expect(systems(session).amps).toBeLessThan(0);
     });
 
+    it('opens with the recognition and the breaker reset as memory items', () => {
+      const items = demoAircraft.procedures.alternatorFailure?.items ?? [];
+      expect(items.map((item) => item.memory === true)).toEqual([
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+      ]);
+    });
+
     it('stays failed after the breaker is reset', () => {
       const session = createSession(demoAircraft, { devices, phase: 'cruise' });
       session.startProcedure('alternatorFailure');
@@ -259,6 +286,43 @@ describe('demo aircraft', () => {
 
   it.each(Object.keys(demoAircraft.procedures))('walks %s with no deviations', (id) => {
     expect(walkProcedure(demoAircraft, id, { devices })).toEqual({ ok: true });
+  });
+
+  describe('the before-landing flow', () => {
+    const items = demoAircraft.procedures.beforeLanding?.items ?? [];
+    const flow = items.flatMap((item) => (item.type === 'action' && item.flow ? [item] : []));
+
+    it('opens the procedure and is verified by the checklist after it', () => {
+      expect(flow.map(({ control, position }) => [control, position])).toEqual([
+        ['fuelSelector', 'both'],
+        ['mixture', 1],
+        ['flaps', 'takeoff'],
+      ]);
+      expect(items.slice(0, flow.length)).toEqual(flow);
+      const rest = items.slice(flow.length);
+      for (const { control } of flow) {
+        const verified = rest.some(
+          (item) =>
+            (item.type === 'action' && item.control === control) ||
+            (item.type === 'check' && 'control' in item.target && item.target.control === control),
+        );
+        expect(verified, control).toBe(true);
+      }
+    });
+
+    it('needs the pilot to set its mixture and flaps targets on entry', () => {
+      const session = createSession(demoAircraft, { devices, phase: 'approach' });
+      session.startProcedure('beforeLanding');
+      expect(session.state().controls).not.toMatchObject({ mixture: 1 });
+      expect(session.state().controls).not.toMatchObject({ flaps: 'takeoff' });
+      expect(session.checklist()?.completed).toEqual([0]);
+    });
+
+    it.each(['listed', 'reversed'] as const)('walks green in the %s order', (flowOrder) => {
+      expect(walkProcedure(demoAircraft, 'beforeLanding', { devices, flowOrder })).toEqual({
+        ok: true,
+      });
+    });
   });
 
   it('has seven normal procedures and an emergency naming its failure', () => {
@@ -376,5 +440,68 @@ describe('radio section layout', () => {
         others.filter(([, other]) => other && clash(rect, other.rect)).map(([name]) => name),
       ).toEqual([]);
     }
+  });
+});
+
+describe('the annunciator test item of the engine start', () => {
+  function atAnnunciator(): Session {
+    const session = createSession(demoAircraft, { devices, phase: 'parking' });
+    session.startProcedure('engineStart');
+    session.checkOff();
+    session.checkOff();
+    for (const [control, position] of [
+      ['fuelSelector', 'both'],
+      ['mixture', 1],
+      ['battery', 'on'],
+      ['alternator', 'on'],
+    ] as const) {
+      session.set(control, position);
+    }
+    expect(session.checklist()?.current).toBe(6);
+    return session;
+  }
+
+  it('does not complete on a click', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    session.release('annunciator');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(6);
+  });
+
+  it('does not complete on a hold that is let go early', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 400);
+    session.release('annunciator');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(6);
+  });
+
+  it('completes once the switch has been held long enough', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(7);
+  });
+
+  it('starts the hold over after a release', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 400);
+    session.release('annunciator');
+    session.press('annunciator', 'test');
+    run(session, 400);
+    expect(session.checklist()?.current).toBe(6);
+  });
+});
+
+describe('the radio and transponder self-check', () => {
+  it('records an unmet check when it is ticked with the avionics off', () => {
+    const session = createSession(demoAircraft, { devices });
+    session.startProcedure('radioAndTransponder');
+    session.set('avionics', 'off');
+    session.checkOff();
+    expect(session.checklist()?.deviations).toEqual([{ kind: 'unmet-check', itemIndex: 0 }]);
   });
 });

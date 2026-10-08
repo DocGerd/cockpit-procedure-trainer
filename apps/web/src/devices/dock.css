@@ -9,9 +9,9 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-2);
-  color: var(--color-text-muted);
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border);
+  color: var(--panel-legend-muted);
+  background: var(--panel-surface);
+  border: 1px solid var(--panel-frame);
   border-radius: var(--radius-lg);
 }
 
@@ -29,11 +29,20 @@
   overflow: auto;
 }
 
+.dock[data-dock='empty'] {
+  align-items: flex-start;
+}
+
 .dock-hint {
+  box-sizing: border-box;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
   margin: 0;
-  font-size: var(--text-md);
-  line-height: var(--leading-md);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
   text-align: center;
+  background: var(--panel-face);
+  border-radius: var(--radius-sm);
 }
 
 /* The device fills the dock but never drops below its floor. */
@@ -52,4 +61,10 @@
   flex: none;
   align-self: flex-start;
   margin-left: var(--space-2);
+}
+
+.dock .dock-close {
+  color: var(--panel-legend);
+  background: var(--panel-plastic);
+  border-color: var(--panel-bezel);
 }

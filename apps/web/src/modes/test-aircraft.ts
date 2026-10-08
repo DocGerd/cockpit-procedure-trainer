@@ -1,4 +1,4 @@
-import { defineAircraft, defineDevice } from '@cpt/core';
+import { defineAircraft, defineDevice, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 import type { DeviceDisplayProps, DeviceScreenEntry, DeviceScreenProps } from '@cpt/panel-kit';
 import { createElement } from 'react';
@@ -130,29 +130,26 @@ export const fixture: Aircraft = defineAircraft({
   },
   systems: { initial, step: (state: State) => state },
   failures: {},
-  phases: {
-    ground: {
-      name: text('Ground'),
-      image: 'ground.png',
-      environment,
-      entry: {
-        controls: {
-          master: 'off',
-          pump: 'off',
-          starter: 'off',
-          unplaced: 'off',
-          cutoff: 'normal',
-          throttle: 0,
-        },
-        state: initial,
+  phases: everyPhase({
+    image: 'ground.png',
+    environment,
+    entry: {
+      controls: {
+        master: 'off',
+        pump: 'off',
+        starter: 'off',
+        unplaced: 'off',
+        cutoff: 'normal',
+        throttle: 0,
       },
+      state: initial,
     },
-  },
+  }),
   procedures: {
     start: {
       title: text('Start'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         { type: 'action', control: 'pump', position: 'on', text: text('Pump on') },
@@ -169,7 +166,7 @@ export const fixture: Aircraft = defineAircraft({
     cycle: {
       title: text('Cycle'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         { type: 'action', control: 'master', position: 'off', text: text('Master off') },
@@ -178,22 +175,46 @@ export const fixture: Aircraft = defineAircraft({
     inview: {
       title: text('In view'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff cut') },
         { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
       ],
     },
+    scan: {
+      title: text('Scan'),
+      type: 'normal',
+      startPhase: 'parking',
+      items: [
+        { type: 'action', flow: true, control: 'cutoff', position: 'cut', text: text('Cutoff') },
+        { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump') },
+        { type: 'action', flow: true, control: 'unplaced', position: 'on', text: text('Unplaced') },
+        { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff verified') },
+        { type: 'action', control: 'pump', position: 'on', text: text('Pump verified') },
+        { type: 'action', control: 'unplaced', position: 'on', text: text('Unplaced verified') },
+      ],
+    },
+    scanBack: {
+      title: text('Scan back'),
+      type: 'normal',
+      startPhase: 'parking',
+      items: [
+        { type: 'action', flow: true, control: 'throttle', position: 1, text: text('Throttle') },
+        { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump') },
+        { type: 'action', flow: true, control: 'cutoff', position: 'cut', text: text('Cutoff') },
+        { type: 'action', control: 'pump', position: 'on', text: text('Pump verified') },
+      ],
+    },
     keyless: {
       title: text('Keyless'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [{ type: 'action', control: 'com.spare', position: 'b', text: text('Spare b') }],
     },
     shutdown: {
       title: text('Shutdown'),
       type: 'normal',
-      startPhase: 'ground',
+      startPhase: 'parking',
       items: [
         { type: 'action', control: 'pump', position: 'off', text: text('Pump off') },
         {

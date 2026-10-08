@@ -10,6 +10,15 @@
   object-fit: cover;
 }
 
+.outside-view-cue {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
 .outside-view-caption {
   position: absolute;
   inset-block-end: var(--space-3);

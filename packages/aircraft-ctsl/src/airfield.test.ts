@@ -1,4 +1,4 @@
-import { createSession, STEP_MS } from '@cpt/core';
+import { createSession, flightLegs, phaseOrder, STEP_MS } from '@cpt/core';
 import type { TrainerState } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import approach from './assets/phase-approach.svg?raw';
@@ -9,6 +9,7 @@ import landing from './assets/phase-landing.svg?raw';
 import linedUp from './assets/phase-lined-up.svg?raw';
 import parkingSecuring from './assets/phase-parking-securing.svg?raw';
 import parking from './assets/phase-parking.svg?raw';
+import taxiOut from './assets/phase-taxi-out.svg?raw';
 import taxiIn from './assets/phase-taxi-in.svg?raw';
 import { phaseHeadings, runway, turn, windFromDeg } from './airfield';
 import { ctslAircraft } from './index';
@@ -18,6 +19,7 @@ import { testDevices as devices } from './test-devices';
 
 const views = {
   parking,
+  taxiOut,
   holding,
   linedUp,
   departure,
@@ -30,6 +32,7 @@ const views = {
 
 const files: Record<keyof typeof views, string> = {
   parking: 'phase-parking.svg',
+  taxiOut: 'phase-taxi-out.svg',
   holding: 'phase-holding.svg',
   linedUp: 'phase-lined-up.svg',
   departure: 'phase-departure.svg',
@@ -93,10 +96,58 @@ describe('the airfield of one flight', () => {
     expect(angle(heading('cruise') - runway.headingDeg)).toBe(180);
   });
 
-  it('vacates the runway to a taxiway at a right angle and parks on it', () => {
+  it('vacates the runway to a taxiway at a right angle, parks on it and taxies out along it', () => {
     expect([90, 270]).toContain(angle(heading('taxiIn') - runway.headingDeg));
     expect(heading('parking')).toBe(heading('taxiIn'));
+    expect(heading('taxiOut')).toBe(heading('taxiIn'));
     expect(heading('parkingSecuring')).toBe(heading('taxiIn'));
+  });
+});
+
+describe('a full flight carrying the cockpit into the next phase', () => {
+  const entryState = (id: string) => ctslAircraft.phases[id]?.entry.state as CtslState;
+  const carries = phaseOrder.slice(1).flatMap((next, index) => {
+    const leg = flightLegs(ctslAircraft).find(
+      (id) => ctslAircraft.procedures[id]?.startPhase === next,
+    );
+    return leg === undefined ? [] : [[phaseOrder[index] as string, next, leg] as const];
+  });
+
+  it('carries the line-up from holding short', () => {
+    expect(carries).toContainEqual(['holding', 'linedUp', 'takeoff']);
+  });
+
+  it.each(carries)(
+    'from %s into %s shows that phase heading, vertical speed and altitude',
+    (from, into, leg) => {
+      const session = createSession(ctslAircraft, { devices, phase: from });
+      session.set('cockpitLight', 'on');
+      const before = session.state();
+      session.startLeg(leg);
+      const state = session.state() as TrainerState<CtslState>;
+      expect(session.phase()).toBe(into);
+      expect(indicators.compass.select(state)).toBe(phaseHeadings[into]);
+      expect(state.systems.verticalSpeedMs).toBe(entryState(into).verticalSpeedMs);
+      expect(state.systems.altitudeFt).toBe(entryState(into).altitudeFt);
+      expect(state.systems.airspeedKmh).toBe(entryState(into).airspeedKmh);
+      expect(state.controls).toEqual(before.controls);
+      expect(state.devices).toEqual(before.devices);
+    },
+  );
+
+  it('keeps the engine and devices the pilot left when lined up', () => {
+    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    session.set('cockpitLight', 'on');
+    session.advance(STEP_MS);
+    const before = session.state() as TrainerState<CtslState>;
+    session.startLeg('takeoff');
+    const state = session.state() as TrainerState<CtslState>;
+    expect(indicators.compass.select(state)).toBe(runway.headingDeg);
+    expect(state.controls.cockpitLight).toBe('on');
+    expect(state.systems.consumers.cockpitLight).toBe(true);
+    expect(state.systems.oilTempC).toBe(before.systems.oilTempC);
+    expect(state.devices).toEqual(before.devices);
+    expect(session.checklist()).toMatchObject({ current: 0, completed: [], deviations: [] });
   });
 });
 

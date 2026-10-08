@@ -1,5 +1,5 @@
 import type { IndicatorWidgetProps } from '../types';
-import { MONO_ADVANCE, SANS_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
+import { MONO_ADVANCE, placeText, useRenderedMetrics } from '../controls/legibility';
 import { formatNumber, squeeze } from './geometry';
 import {
   Chamfer,
@@ -22,9 +22,7 @@ const BASELINE = 36;
 const FLOOR = 38;
 const DESCENT = 0.3;
 const LABEL_TOP = 4;
-const CAP_HEIGHT = 0.72;
 const VALUE_DESIGN = 16;
-const LABEL_DESIGN = 6;
 const UNITS_DESIGN = 7;
 export const UNITS_ROOM = 32;
 export const UNITS_GAP = 2;
@@ -66,14 +64,6 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
     height: BASELINE - LABEL_TOP,
     squeezable: true,
   });
-  const caption = placeText(metrics, {
-    design: LABEL_DESIGN,
-    room: wide,
-    chars: label.length,
-    advance: SANS_ADVANCE,
-    height: BASELINE - LABEL_TOP - 1 - CAP_HEIGHT * bare.fontSize,
-    squeezable: true,
-  });
   const unit = placeText(metrics, {
     design: UNITS_DESIGN,
     room: UNITS_ROOM,
@@ -92,8 +82,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
     squeezable: true,
   });
   const baseline = Math.min(BASELINE, FLOOR - DESCENT * bare.fontSize);
-  const showCaption = bare.show && caption.show;
-  const showUnits = units !== '' && showCaption && unit.show && withUnits.show;
+  const showUnits = text !== '' && units !== '' && unit.show && withUnits.show;
   const valueRight = showUnits ? TEXT_RIGHT - reserve : TEXT_RIGHT;
   const available = valueRight - TEXT_LEFT;
 
@@ -105,7 +94,9 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       height="100%"
       viewBox="0 0 100 40"
       role="img"
-      aria-label={units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`}
+      aria-label={
+        text === '' ? label : units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`
+      }
     >
       <Kit id={kit} use={['bezel', 'lip', 'chamfer', 'well', 'lens-glare', 'specular']}>
         <LinearGradient id={`${kit}-glass`} {...LIGHT} stops={GLASS} />
@@ -132,19 +123,6 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
         rx={WINDOW.rx}
         style={{ fill: paint(kit, 'inner') }}
       />
-      {showCaption && (
-        <text
-          data-label=""
-          x={TEXT_LEFT}
-          y={LABEL_TOP}
-          fontSize={caption.fontSize}
-          dominantBaseline="hanging"
-          style={{ fill: 'var(--panel-legend-muted)', fontFamily: 'var(--font-sans)' }}
-          {...squeeze(label, Math.floor(wide / (SANS_ADVANCE * caption.fontSize)), wide)}
-        >
-          {label}
-        </text>
-      )}
       {bare.show && (
         <text
           data-value=""

@@ -10,12 +10,12 @@ Flight Design CT Supralight flight and maintenance manual AE04300003, revision 0
 
 ## Contents
 
-- Views: `panel` (both upper fields: flight gauges, charge lamp, the three device slots, engine gauges, breaker block), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN) and `console` (brake, throttle, choke, parking-brake valve, carb heat, trim wheel, rescue-system handle).
-- Controls: eight panel breakers (COM, transponder, GPS, position lights, strobe, landing light, intercom, 12 V outlet), six rockers (Avionics Master, beacon, position lights, intercom, cockpit light, landing light), the ELT remote switch, the flap breaker, the fuel valve (Brandhahn), the flap selector with its two override positions, the ignition key with START springing back to BOTH, the BAT and GEN push-pull switches, the console levers with named notches, the parking-brake valve and the rescue handle guarded by its safety pin.
+- Views: `panel` (both upper fields: flight gauges, charge lamp, the three device slots, engine gauges, breaker block), `centre` (the lower centre field: rocker row, ELT remote, flap readout and breaker, fuel valve, flap selector, ignition key, BAT and GEN), `console` (brake, throttle and choke stacked as horizontal levers, trim wheel and indicator, parking-brake valve, carb heat) and `bulkhead` (the rescue-system handle between the seats).
+- Controls: eight panel breakers (COM, transponder, GPS, position lights, strobe, landing light, intercom, 12 V outlet), six rockers (Avionics Master, beacon, position lights, intercom, cockpit light, landing light), the ELT remote switch, the flap breaker, the fuel valve (Brandhahn), the flap selector with its two override positions, the ignition key, out of the lock when parked and inserted at OFF, with START springing back to BOTH, the BAT and GEN push-pull switches, the console levers with named notches, the parking-brake valve and the rescue handle guarded by its safety pin.
 - Carb heat is a provisional console control: the handbook names it in its checklists but shows no knob (intake §9).
 - Indicators: airspeed (km/h), altimeter (ft), vertical speed (m/s), tachometer, oil pressure (bar), oil temperature and CHT (°C), the charge warning lamp, the flap position readout and the ELT lamp. Arcs and red lines follow intake §4.3.
-- Failures: `generatorFailure`, `engineStoppage`, `engineFire`, `coolantLoss`, `oilLoss`, `flapControlFailure`.
-- Phases, in flight order: parking, holding point, lined up on the runway, departure, cruise, approach, landing, taxi in, parking and securing, with the presets of intake §5. Each outside view is drawn first-person from the left seat. All phases share the airfield of `src/airfield.ts` (runway 36): the holding point is at a right angle to it with the wind from the left, and the lined-up, departure, approach and landing phases are on the runway heading. The take-off and short take-off start lined up and open with a confirm item for the compass against the runway heading. The magnetic compass is an indicator: each phase enters facing its heading, and the card turns to show it.
+- Failures: `generatorFailure`, `engineStoppage`, `engineFire`, `coolantLoss`, `oilLoss`, `flapControlFailure`. Each shows on the panel within seconds: an engine fire also lays smoke over the outside view (`src/outside-cues.ts`) and heats the CHT and oil temperature; a flap control failure trips the flap breaker, which darkens the flap readout (both assumed, intake §9).
+- Phases, in flight order: parking, taxi out, holding point, lined up on the runway, departure, cruise, approach, landing, taxi in, parking and securing, with the presets of intake §5. Each outside view is drawn first-person from the left seat. All phases share the airfield of `src/airfield.ts` (runway 36): the holding point is at a right angle to it with the wind from the left, and the lined-up, departure, approach and landing phases are on the runway heading. The take-off and short take-off start lined up and open with a check of the compass against the runway heading. The magnetic compass is an indicator: each phase enters facing its heading, and the card turns to show it.
 - Systems: the electrical system, engine, fuel valve, flaps, brakes and every failure above. Values the intake does not give are trainer assumptions, named as constants in `src/systems.ts`.
 
 The second warning lamp of the upper-left field, the slip ball, the take-off and limits knee-board placards, the intercom panel, the jacks, the 12 V socket and the blank D-180 and autopilot breaker positions are drawn in the background and not modelled.
@@ -27,7 +27,8 @@ Normal:
 | Id              | Intake  |
 | --------------- | ------- |
 | `preflight`     | N1      |
-| `engineStart`   | N3, N5  |
+| `engineStart`   | N3      |
+| `taxi`          | N5      |
 | `beforeTakeoff` | N6, N2  |
 | `takeoff`       | N7      |
 | `shortTakeoff`  | N8      |
@@ -65,7 +66,8 @@ Avionics: `radioAndTransponder` at the holding point.
 
 ## Open questions
 
-- `takeoff` starts with releasing the parking brake (valve open, then a check that it is released). The handbook's take-off list has no such item; it is a trainer addition because the holding-point snapshot has the parking brake set (intake §9 item 18).
+- The phase start states the intake marks as assumed (intake §5): intercom, transponder mode, landing light and vertical speed per phase.
+- The transponder squawk code and the GPS state are seeded per phase (`src/phases.ts`, intake §5): squawk 7000 from lined up on, the GPS on at its map page with a position fix from lined up through taxi in; before that both stay at their power-on state (#476, #501).
 
 ## Devices
 

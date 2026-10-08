@@ -49,12 +49,19 @@ describe('createSession', () => {
     const session = createSession(fixtureAircraft);
     expect(session.phase()).toBe('parking');
     expect(session.state().systems).toBe(fixturePhase('parking').entry.state);
-    expect(createSession(fixtureAircraft, { phase: 'runup' }).state().controls.master).toBe('on');
+    expect(createSession(fixtureAircraft, { phase: 'holding' }).state().controls.master).toBe('on');
   });
 
   it('throws for an unknown start phase and for an aircraft without phases', () => {
     expect(() => createSession(fixtureAircraft, { phase: 'nowhere' })).toThrow('nowhere');
-    expect(() => createSession({ ...fixtureAircraft, phases: {} } as Aircraft)).toThrow(/phases/);
+    expect(() => createSession({ ...fixtureAircraft, phases: {} } as Aircraft)).toThrow(/parking/);
+  });
+
+  it('starts in the first shared phase whatever order the aircraft declares its phases in', () => {
+    const reversed = Object.fromEntries(Object.entries(fixtureAircraft.phases).reverse());
+    const session = createSession({ ...fixtureAircraft, phases: reversed } as Aircraft);
+    expect(Object.keys(reversed)[0]).not.toBe('parking');
+    expect(session.phase()).toBe('parking');
   });
 
   it('exposes no failures, no procedure and a running runtime at the start', () => {
@@ -135,7 +142,7 @@ describe('subscribe', () => {
     const session = createSession(fixtureAircraft);
     let calls = 0;
     session.subscribe(() => calls++);
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     expect(calls).toBe(1);
     session.startProcedure('alternatorFailure');
     expect(calls).toBe(2);
@@ -159,12 +166,12 @@ describe('subscribe', () => {
 describe('jumpToPhase', () => {
   it('loads the entry snapshot: positions, systems state and environment', () => {
     const session = createSession(fixtureAircraft);
-    session.jumpToPhase('runup');
-    const runup = fixturePhase('runup');
-    expect(session.phase()).toBe('runup');
-    expect(session.state().controls).toEqual(runup.entry.controls);
-    expect(session.state().systems).toBe(runup.entry.state);
-    expect(session.environment()).toBe(runup.environment);
+    session.jumpToPhase('holding');
+    const holding = fixturePhase('holding');
+    expect(session.phase()).toBe('holding');
+    expect(session.state().controls).toEqual(holding.entry.controls);
+    expect(session.state().systems).toBe(holding.entry.state);
+    expect(session.environment()).toBe(holding.environment);
   });
 
   it('passes the phase environment to the next step', () => {
@@ -173,8 +180,8 @@ describe('jumpToPhase', () => {
       ...fixtureAircraft,
       phases: {
         ...fixtureAircraft.phases,
-        runup: {
-          ...fixturePhase('runup'),
+        holding: {
+          ...fixturePhase('holding'),
           environment: { airspeedKt: 90, altitudeFt: 2000, onGround: false },
         },
       },
@@ -187,7 +194,7 @@ describe('jumpToPhase', () => {
       },
     } as Aircraft;
     const session = createSession(aircraft);
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     session.advance(STEP_MS);
     expect(seen).toEqual({ airspeedKt: 90, altitudeFt: 2000, onGround: false });
   });
@@ -208,19 +215,19 @@ describe('jumpToPhase', () => {
   });
 
   it('enters a phase with the guards its entry declares open', () => {
-    const runup = fixturePhase('runup');
+    const holding = fixturePhase('holding');
     const aircraft = {
       ...fixtureAircraft,
       phases: {
         ...fixtureAircraft.phases,
-        runup: { ...runup, entry: { ...runup.entry, guards: { fuelPump: 'open' } } },
+        holding: { ...holding, entry: { ...holding.entry, guards: { fuelPump: 'open' } } },
       },
     } as Aircraft;
-    const session = createSession(aircraft, { phase: 'runup' });
+    const session = createSession(aircraft, { phase: 'holding' });
     expect(session.guards().fuelPump).toBe('open');
     session.jumpToPhase('parking');
     expect(session.guards().fuelPump).toBe('closed');
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     expect(session.guards().fuelPump).toBe('open');
   });
 
@@ -228,27 +235,27 @@ describe('jumpToPhase', () => {
     const first = createSession(fixtureAircraft);
     const second = createSession(fixtureAircraft);
     disturb(first);
-    second.jumpToPhase('runup');
+    second.jumpToPhase('holding');
     second.advance(STEP_MS * 3);
-    first.jumpToPhase('runup');
-    second.jumpToPhase('runup');
+    first.jumpToPhase('holding');
+    second.jumpToPhase('holding');
     expect(fingerprint(first)).toEqual(fingerprint(second));
     expect(fingerprint(first)).toEqual(
-      fingerprint(createSession(fixtureAircraft, { phase: 'runup' })),
+      fingerprint(createSession(fixtureAircraft, { phase: 'holding' })),
     );
   });
 
   it('resets device controls and states too', () => {
     const session = createSession(fixtureDeviceAircraft, { devices: [engineMonitor] });
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     session.set('mon.page', 'electrical');
     session.advance(STEP_MS);
     expect(monitorState(session.state())?.page).toBe('electrical');
     const reference = createSession(fixtureDeviceAircraft, {
       devices: [engineMonitor],
-      phase: 'runup',
+      phase: 'holding',
     });
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     expect(session.state().controls['mon.page']).toBe('engine');
     expect(session.state().devices).toEqual(reference.state().devices);
     expect(session.state().devices.mon?.on).toBe(true);
@@ -274,7 +281,7 @@ describe('startProcedure', () => {
   });
 
   it('loads the start phase snapshot, so a run begins clean', () => {
-    const session = createSession(fixtureAircraft, { phase: 'runup' });
+    const session = createSession(fixtureAircraft, { phase: 'holding' });
     session.startProcedure('beforeStart');
     expect(session.phase()).toBe('parking');
     expect(session.state().controls).toEqual(fixturePhase('parking').entry.controls);
@@ -285,7 +292,7 @@ describe('startProcedure', () => {
   it('injects the failure of an emergency procedure, tripping its breaker without a deviation', () => {
     const session = createSession(fixtureAircraft);
     session.startProcedure('alternatorFailure');
-    expect(session.phase()).toBe('runup');
+    expect(session.phase()).toBe('holding');
     expect([...session.failures()]).toEqual(['alternatorFailure']);
     expect(session.state().controls.alternatorBreaker).toBe('pulled');
     expect(fixtureSystems(session).volts).toBe(12);
@@ -300,7 +307,35 @@ describe('startProcedure', () => {
     const checklist = session.checklist();
     expect(checklist?.done).toBe(true);
     expect(checklist?.deviations).toEqual([]);
-    expect(session.phase()).toBe('runup');
+    expect(session.phase()).toBe('holding');
+  });
+
+  it('hands the reading of a check-off to the checklist', () => {
+    const reading: Aircraft = {
+      ...fixtureAircraft,
+      procedures: {
+        read: {
+          title: { de: 'Ablesen', en: 'Read' },
+          type: 'normal',
+          startPhase: 'parking',
+          items: [
+            {
+              type: 'check',
+              target: { indicator: 'busVolts' },
+              condition: () => true,
+              response: { reading: (state) => (state.systems as FixtureState).volts, tolerance: 0 },
+              text: { de: 'Spannung', en: 'Volts' },
+            },
+          ],
+        },
+      },
+    };
+    const session = createSession(reading);
+    session.startProcedure('read');
+    session.checkOff(5);
+    expect(session.checklist()?.deviations).toEqual([
+      { kind: 'unmet-check', itemIndex: 0, response: 5 },
+    ]);
   });
 
   it('clears the failure of an earlier emergency when a normal procedure starts', () => {
@@ -309,6 +344,632 @@ describe('startProcedure', () => {
     session.startProcedure('beforeStart');
     expect(session.failures().size).toBe(0);
     expect(session.state().controls.alternatorBreaker).toBe('in');
+  });
+});
+
+describe('startSurprise', () => {
+  const surprise = { phase: 'holding', failure: 'alternatorFailure', delayMs: 3 * STEP_MS };
+
+  it('loads the phase snapshot with no procedure, no checklist and the failure pending', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    expect(session.phase()).toBe('holding');
+    expect(session.state().controls).toEqual(fixturePhase('holding').entry.controls);
+    expect(session.procedureId()).toBeUndefined();
+    expect(session.checklist()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+    expect(session.scenario()).toEqual(surprise);
+  });
+
+  it('injects the failure once the delay has passed, unannounced', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+    expect(session.state().controls.alternatorBreaker).toBe('in');
+    session.advance(STEP_MS);
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(fixtureSystems(session).volts).toBe(12);
+    expect(session.scenario()?.injectedAtMs).toBe(3 * STEP_MS);
+    expect(session.procedureId()).toBeUndefined();
+  });
+
+  it('notifies once per step, the injecting step included', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: STEP_MS });
+    let calls = 0;
+    session.subscribe(() => calls++);
+    session.advance(STEP_MS);
+    expect(calls).toBe(1);
+  });
+
+  it('throws for an unknown failure or phase or a bad delay and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.set('master', 'on');
+    const before = fingerprint(session);
+    expect(() => session.startSurprise({ ...surprise, failure: 'engineFire' })).toThrow(
+      'engineFire',
+    );
+    expect(() => session.startSurprise({ ...surprise, failure: 'toString' })).toThrow('toString');
+    expect(() => session.startSurprise({ ...surprise, phase: 'nowhere' })).toThrow('nowhere');
+    expect(() => session.startSurprise({ ...surprise, delayMs: -1 })).toThrow(RangeError);
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()).toBeUndefined();
+  });
+
+  it('is cancelled by a phase jump or a procedure start', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.jumpToPhase('holding');
+    expect(session.scenario()).toBeUndefined();
+    session.startSurprise(surprise);
+    session.startProcedure('beforeStart');
+    expect(session.scenario()).toBeUndefined();
+    for (let step = 0; step < 4; step++) session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+  });
+});
+
+describe('takeChecklist', () => {
+  const surprise = { phase: 'holding', failure: 'alternatorFailure', delayMs: STEP_MS };
+
+  it('runs the chosen checklist from the cockpit as it stands and times the recognition', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.set('throttle', 0.5);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(session.checklist()?.current).toBe(0);
+    expect(session.scenario()).toMatchObject({
+      chosen: 'alternatorFailure',
+      recognitionMs: 2 * STEP_MS,
+      matched: true,
+    });
+  });
+
+  it('records a checklist that does not match the failure, injecting nothing of its own', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    expect(session.procedureId()).toBe('beforeStart');
+    expect(session.phase()).toBe('holding');
+    expect(session.state().controls.master).toBe('on');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it("counts another failure's checklist as wrong", () => {
+    const alternator = fixtureAircraft.procedures['alternatorFailure'];
+    if (alternator?.type !== 'emergency') throw new Error('fixture lost its alternator checklist');
+    const twoFailures: Aircraft = {
+      ...fixtureAircraft,
+      failures: { ...fixtureAircraft.failures, vacuumFailure: { name: alternator.title } },
+      procedures: {
+        ...fixtureAircraft.procedures,
+        vacuumFailure: { ...alternator, failure: 'vacuumFailure' },
+      },
+    };
+    const session = createSession(twoFailures);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('vacuumFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'vacuumFailure', matched: false });
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+  });
+
+  it('injects a pending failure when the pilot chooses before it appeared', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: 10 * STEP_MS });
+    session.takeChecklist('alternatorFailure');
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    const scenario = session.scenario();
+    expect(scenario).toMatchObject({ chosen: 'alternatorFailure', matched: true });
+    expect(scenario?.injectedAtMs).toBe(0);
+    expect(scenario).not.toHaveProperty('recognitionMs');
+  });
+
+  it('times the chosen checklist from the choice', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    session.advance(STEP_MS);
+    session.checkOff();
+    session.checkOff();
+    expect(session.checklist()?.elapsedMs).toBe(STEP_MS);
+    expect(session.scenario()?.chosen).toBe('alternatorFailure');
+  });
+
+  it('keeps the first choice when another checklist is taken later', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it('starts a checklist from the cockpit as it stands outside a surprise too', () => {
+    const session = createSession(fixtureAircraft, { phase: 'holding' });
+    session.set('throttle', 0.5);
+    session.takeChecklist('beforeStart');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.scenario()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+  });
+
+  it('throws naming an unknown procedure and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    const before = fingerprint(session);
+    expect(() => session.takeChecklist('engineFire')).toThrow('engineFire');
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()?.chosen).toBeUndefined();
+  });
+});
+
+describe('flight legs', () => {
+  const ready = { type: 'confirm', text: { de: 'Bereit', en: 'Ready' } } as const;
+  const leg = (startPhase: string, items: readonly unknown[], endPhase?: string) => ({
+    title: { de: startPhase, en: startPhase },
+    type: 'normal',
+    startPhase,
+    ...(endPhase === undefined ? {} : { endPhase }),
+    items,
+  });
+  const runupEnvironment = { airspeedKt: 0, altitudeFt: 400, onGround: true };
+  const legs = {
+    ...fixtureAircraft,
+    phases: {
+      ...fixtureAircraft.phases,
+      taxiOut: { ...fixturePhase('holding'), environment: runupEnvironment },
+      cruise: fixturePhase('holding'),
+    },
+    procedures: {
+      ...fixtureAircraft.procedures,
+      toRunup: leg('parking', [ready], 'taxiOut'),
+      runupCheck: leg('taxiOut', [
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'takeoff',
+          text: { de: 'Klappen', en: 'Flaps' },
+        },
+        ready,
+      ]),
+      taxiBack: leg('parking', [ready]),
+      cruiseCheck: leg('cruise', [ready]),
+      holdingCheck: leg('holding', [ready]),
+    },
+  } as Aircraft;
+
+  it('starts a leg from the cockpit as it stands, keeping what the pilot set', () => {
+    const session = createSession(legs, { phase: 'taxiOut' });
+    session.startSurprise({ phase: 'taxiOut', failure: 'alternatorFailure', delayMs: STEP_MS });
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    expect(session.procedureId()).toBe('runupCheck');
+    expect(session.phase()).toBe('taxiOut');
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().systems).toBe(before.systems);
+    expect(session.checklist()?.current).toBe(0);
+    expect(session.scenario()).toBeUndefined();
+  });
+
+  it('enters the phase right after the current one without loading its snapshot', () => {
+    const session = createSession(legs);
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    expect(session.phase()).toBe('taxiOut');
+    expect(session.environment()).toBe(runupEnvironment);
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().controls.master).toBe('off');
+    expect(session.state().systems).toEqual(before.systems);
+  });
+
+  type Headed = FixtureState & { readonly headingDeg: number };
+  const headed = (carry: (carried: Headed, entry: Headed) => Headed) => {
+    const facing = (id: string, headingDeg: number) => {
+      const phase = legs.phases[id] ?? fixturePhase(id);
+      return {
+        ...phase,
+        entry: { ...phase.entry, state: { ...(phase.entry.state as FixtureState), headingDeg } },
+      };
+    };
+    return {
+      ...legs,
+      phases: { ...legs.phases, parking: facing('parking', 90), taxiOut: facing('taxiOut', 360) },
+      systems: {
+        initial: legs.systems.initial,
+        step: (state: Headed, input: Parameters<typeof legs.systems.step>[1]) => ({
+          ...(legs.systems.step(state, input) as FixtureState),
+          headingDeg: state.headingDeg,
+        }),
+        carry,
+      },
+    } as Aircraft;
+  };
+  const carryHeading = (carried: Headed, entry: Headed) => ({
+    ...carried,
+    headingDeg: entry.headingDeg,
+  });
+  const heading = (session: Session) => (session.state().systems as Headed).headingDeg;
+
+  it('lays the values the next phase sets over the carried state', () => {
+    const session = createSession(headed(carryHeading));
+    session.set('master', 'on');
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    const systems = session.state().systems as Headed;
+    expect(systems.headingDeg).toBe(360);
+    expect(systems.busPowered).toBe(true);
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().devices).toEqual(before.devices);
+    expect(session.checklist()).toMatchObject({ current: 0, completed: [], deviations: [] });
+  });
+
+  it('carries into the end phase when a leg is done', () => {
+    const session = createSession(headed(carryHeading));
+    session.startLeg('toRunup');
+    expect(heading(session)).toBe(90);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    expect(heading(session)).toBe(360);
+  });
+
+  it('restarts and retries a carried leg from the carried state without carrying again', () => {
+    let carries = 0;
+    const session = createSession(
+      headed((carried, entry) => {
+        carries++;
+        return carryHeading(carried, entry);
+      }),
+    );
+    session.startLeg('runupCheck');
+    const start = fingerprint(session);
+    session.set('master', 'on');
+    session.retryItem();
+    expect(fingerprint(session).state).toEqual(start.state);
+    session.set('flaps', 'takeoff');
+    session.advance(STEP_MS);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(start);
+    expect(heading(session)).toBe(360);
+    expect(carries).toBe(1);
+  });
+
+  it('fails the session, not the call, when carry throws', () => {
+    const broke = new Error('carry broke');
+    const session = createSession(
+      headed(() => {
+        throw broke;
+      }),
+    );
+    expect(() => session.startLeg('runupCheck')).not.toThrow();
+    expect(session.status()).toEqual({ kind: 'failed', error: broke });
+    expect(session.phase()).toBe('taxiOut');
+    expect(heading(session)).toBe(90);
+    expect(session.set('master', 'on')).toEqual({ applied: false, reason: 'failed' });
+
+    const hop = createSession(
+      headed(() => {
+        throw broke;
+      }),
+    );
+    hop.startLeg('toRunup');
+    expect(() => hop.checkOff()).not.toThrow();
+    expect(hop.status()).toEqual({ kind: 'failed', error: broke });
+    hop.jumpToPhase('parking');
+    expect(hop.status()).toEqual({ kind: 'running' });
+  });
+
+  it('loads the snapshot of a leg that skips a phase or goes back', () => {
+    const skipping = createSession(legs);
+    skipping.set('throttle', 0.5);
+    skipping.startLeg('cruiseCheck');
+    expect(skipping.phase()).toBe('cruise');
+    expect(skipping.state().controls.throttle).toBe(0);
+    expect(skipping.state().controls.master).toBe('on');
+
+    const back = createSession(legs, { phase: 'taxiOut' });
+    back.set('throttle', 0.5);
+    back.startLeg('taxiBack');
+    expect(back.phase()).toBe('parking');
+    expect(back.state().controls.throttle).toBe(0);
+    expect(back.procedureId()).toBe('taxiBack');
+  });
+
+  it('carries the end phase of one leg into the next', () => {
+    const session = createSession(legs);
+    session.startLeg('toRunup');
+    session.set('throttle', 0.5);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    session.startLeg('runupCheck');
+    expect(session.environment()).toBe(runupEnvironment);
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.state().controls.master).toBe('off');
+  });
+
+  it('carries the cockpit from a leg that ends in taxiOut into one that starts at holding', () => {
+    const reversed = {
+      ...legs,
+      phases: Object.fromEntries(Object.entries(legs.phases).reverse()),
+    } as Aircraft;
+    for (const aircraft of [legs, reversed]) {
+      const session = createSession(aircraft);
+      session.startLeg('toRunup');
+      session.set('throttle', 0.5);
+      session.checkOff();
+      expect(session.phase()).toBe('taxiOut');
+      session.startLeg('holdingCheck');
+      expect(session.phase()).toBe('holding');
+      expect(session.state().controls.throttle).toBe(0.5);
+      expect(session.state().controls.master).toBe('off');
+    }
+  });
+
+  it('times a leg from its own start', () => {
+    const session = createSession(legs);
+    session.advance(STEP_MS);
+    session.startLeg('taxiBack');
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.checkOff();
+    expect(session.checklist()?.elapsedMs).toBe(2 * STEP_MS);
+  });
+
+  it('restarts a leg from the cockpit and phase it began with', () => {
+    const session = createSession(legs);
+    session.set('throttle', 0.5);
+    session.startLeg('toRunup');
+    const start = fingerprint(session);
+    session.set('master', 'on');
+    session.advance(STEP_MS);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(start);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('restarts nothing outside a leg', () => {
+    const session = createSession(legs);
+    session.startLeg('toRunup');
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    const procedure = fingerprint(session);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(procedure);
+
+    session.startLeg('taxiBack');
+    session.takeChecklist('runupCheck');
+    session.set('flaps', 'takeoff');
+    const taken = fingerprint(session);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(taken);
+  });
+
+  it('throws for an unknown or an emergency procedure and changes nothing', () => {
+    const session = createSession(legs);
+    const before = fingerprint(session);
+    expect(() => session.startLeg('engineFire')).toThrow('engineFire');
+    expect(() => session.startLeg('alternatorFailure')).toThrow('alternatorFailure');
+    expect(fingerprint(session)).toEqual(before);
+  });
+});
+
+describe('seeded device state', () => {
+  type SeededState = { readonly page: string; readonly label: string };
+  const seededMonitor = defineDevice({
+    ...engineMonitor,
+    initial: { page: 'engine', label: 'plain' } as SeededState,
+    step: (state, { controls }): SeededState => ({ ...state, page: String(controls.page) }),
+  });
+  const holding = fixtureDeviceAircraft.phases.holding;
+  const seeded = {
+    ...fixtureDeviceAircraft,
+    phases: {
+      ...fixtureDeviceAircraft.phases,
+      holding: {
+        ...holding,
+        entry: { ...holding?.entry, deviceStates: { mon: { label: 'seeded' } } },
+      },
+    },
+  } as Aircraft;
+  const label = (session: Session) => (session.state().devices.mon?.state as SeededState).label;
+
+  it('applies on a jump to the phase and not on another', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    expect(label(session)).toBe('plain');
+    session.jumpToPhase('holding');
+    expect(label(session)).toBe('seeded');
+    session.jumpToPhase('parking');
+    expect(label(session)).toBe('plain');
+  });
+
+  it('applies when a procedure starts and is restored by retryItem', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    session.startProcedure('monitorElectrical');
+    expect(label(session)).toBe('seeded');
+    session.set('mon.page', 'electrical');
+    const atItem = session.state().devices;
+    session.set('mon.page', 'engine');
+    session.advance(STEP_MS);
+    expect(session.state().devices).not.toEqual(atItem);
+    session.retryItem();
+    expect(session.state().devices).toEqual(atItem);
+    expect(label(session)).toBe('seeded');
+  });
+
+  it('applies when a surprise loads the phase and stays when a checklist is taken', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    session.startSurprise({ phase: 'holding', failure: 'alternatorFailure', delayMs: STEP_MS });
+    expect(label(session)).toBe('seeded');
+    session.set('mon.page', 'electrical');
+    session.advance(STEP_MS);
+    const before = session.state().devices;
+    session.takeChecklist('monitorElectrical');
+    expect(session.state().devices).toEqual(before);
+    expect(label(session)).toBe('seeded');
+  });
+});
+
+describe('retryItem', () => {
+  it('restores the cockpit to the start of the current item and keeps the record', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    expect(session.checklist()?.current).toBe(1);
+    const atItem = session.state();
+    session.set('master', 'off');
+    session.set('throttle', 0.6);
+    expect(fixtureSystems(session).busPowered).toBe(false);
+    session.retryItem();
+    expect(session.state().controls).toEqual(atItem.controls);
+    expect(session.state().systems).toEqual(atItem.systems);
+    const checklist = session.checklist();
+    expect(checklist?.current).toBe(1);
+    expect(checklist?.completed).toEqual([0]);
+    expect(checklist?.deviations).toHaveLength(2);
+    expect(checklist?.assists).toBe(1);
+  });
+
+  it('restores open guards and leaves injected failures alone', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.openGuard('fuelPump');
+    session.retryItem();
+    expect(session.guards().fuelPump).toBe('closed');
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+  });
+
+  it('lets the item be done again after the restore', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    session.set('master', 'off');
+    session.retryItem();
+    expect(session.state().controls.master).toBe('on');
+    session.openGuard('fuelPump');
+    session.set('fuelPump', 'on');
+    expect(session.checklist()?.current).toBe(2);
+  });
+
+  it('does nothing without a running checklist', () => {
+    const session = createSession(fixtureAircraft);
+    session.set('throttle', 0.3);
+    session.retryItem();
+    expect(session.state().controls.throttle).toBe(0.3);
+  });
+
+  it('does nothing once the procedure is done', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.checkOff();
+    session.checkOff();
+    session.set('throttle', 0.3);
+    session.retryItem();
+    expect(session.state().controls.throttle).toBe(0.3);
+    expect(session.checklist()?.assists).toBe(0);
+  });
+
+  it('notifies once', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    let calls = 0;
+    session.subscribe(() => (calls += 1));
+    session.retryItem();
+    expect(calls).toBe(1);
+  });
+});
+
+describe('retryItem in a flow', () => {
+  const flowAircraft: Aircraft = {
+    ...fixtureAircraft,
+    procedures: {
+      scan: {
+        title: { de: 'Scan', en: 'Scan' },
+        type: 'normal',
+        startPhase: 'parking',
+        items: [
+          {
+            type: 'action',
+            flow: true,
+            control: 'master',
+            position: 'on',
+            text: { de: 'M', en: 'M' },
+          },
+          {
+            type: 'action',
+            flow: true,
+            control: 'flaps',
+            position: 'takeoff',
+            text: { de: 'P', en: 'P' },
+          },
+          { type: 'action', control: 'master', position: 'on', text: { de: 'M', en: 'M' } },
+        ],
+      },
+    },
+  };
+
+  it('keeps a flow item done out of order when the open one is retried', () => {
+    const session = createSession(flowAircraft);
+    session.startProcedure('scan');
+    session.set('flaps', 'takeoff');
+    expect(session.checklist()?.current).toBe(0);
+    session.set('throttle', 0.6);
+    session.retryItem();
+    expect(session.state().controls.flaps).toBe('takeoff');
+    expect(session.state().controls.throttle).toBe(0);
+    expect(session.checklist()?.completed).toEqual([1]);
+  });
+});
+
+describe('elapsed time of a procedure', () => {
+  const finish = (session: Session) => {
+    session.checkOff();
+    session.checkOff();
+  };
+
+  it('is the time advanced from the start to the last item, set when it is done', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.elapsedMs).toBe(0);
+    finish(session);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.elapsedMs).toBe(2 * STEP_MS);
+  });
+
+  it('starts over with the next run', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.advance(STEP_MS);
+    session.startProcedure('alternatorFailure');
+    finish(session);
+    expect(session.checklist()?.elapsedMs).toBe(0);
+  });
+
+  it('keeps the checklist the same object while time passes', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    const before = session.checklist();
+    session.advance(STEP_MS);
+    expect(session.checklist()).toBe(before);
   });
 });
 
@@ -351,8 +1012,8 @@ describe('the before-start walk-through', () => {
     expect(checklist?.completed).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(checklist?.deviations).toEqual([]);
 
-    expect(session.phase()).toBe('runup');
-    expect(session.environment()).toBe(fixturePhase('runup').environment);
+    expect(session.phase()).toBe('holding');
+    expect(session.environment()).toBe(fixturePhase('holding').environment);
     expect(session.state()).toEqual(before);
     expect(session.state().controls.fuelPump).toBe('on');
     expect(session.state().controls.master).toBe('on');
@@ -364,7 +1025,13 @@ describe('the before-start walk-through', () => {
     session.startProcedure('beforeStart');
     session.set('flaps', 'landing');
     expect(session.checklist()?.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'flaps' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'landing',
+        from: 'up',
+      },
     ]);
   });
 });
@@ -405,7 +1072,7 @@ describe('procedure end phase', () => {
       shutDown: {
         title: { de: 'Abstellen', en: 'Shut down' },
         type: 'emergency',
-        startPhase: 'runup',
+        startPhase: 'holding',
         endPhase: 'parking',
         failure: 'alternatorFailure',
         items: [{ type: 'confirm', text: { de: 'Bereit', en: 'Ready' } }],
@@ -430,11 +1097,11 @@ describe('procedure end phase', () => {
     const session = createSession(emergencyWithEnd);
     session.startProcedure('shutDown');
     session.checkOff();
-    session.jumpToPhase('runup');
+    session.jumpToPhase('holding');
     session.set('flaps', 'takeoff');
     session.advance(STEP_MS);
     session.checkOff();
-    expect(session.phase()).toBe('runup');
+    expect(session.phase()).toBe('holding');
   });
 
   it('stays in the phase when the procedure has no end phase', () => {
@@ -443,7 +1110,7 @@ describe('procedure end phase', () => {
     session.checkOff();
     session.checkOff();
     expect(session.checklist()?.done).toBe(true);
-    expect(session.phase()).toBe('runup');
+    expect(session.phase()).toBe('holding');
   });
 });
 
@@ -492,7 +1159,13 @@ describe('a failing device step', () => {
     expect(session.state().controls['mon.page']).toBe('electrical');
     expect(session.status()).toMatchObject({ kind: 'failed' });
     expect(session.checklist()?.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'mon.page' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'mon.page',
+        position: 'electrical',
+        from: 'engine',
+      },
     ]);
     expect(calls).toBe(1);
   });
@@ -560,10 +1233,10 @@ describe('a failing device step', () => {
       ...fixtureDeviceAircraft,
       phases: {
         ...fixtureDeviceAircraft.phases,
-        runup: {
-          ...fixtureDeviceAircraft.phases.runup,
+        holding: {
+          ...fixtureDeviceAircraft.phases.holding,
           entry: {
-            ...fixtureDeviceAircraft.phases.runup?.entry,
+            ...fixtureDeviceAircraft.phases.holding?.entry,
             devices: { mon: { page: 'electrical' } },
           },
         },
@@ -572,8 +1245,8 @@ describe('a failing device step', () => {
     const session = createSession(aircraft, { devices: [throwing] });
     let calls = 0;
     session.subscribe(() => calls++);
-    session.jumpToPhase('runup');
-    expect(session.phase()).toBe('runup');
+    session.jumpToPhase('holding');
+    expect(session.phase()).toBe('holding');
     expect(session.state().controls['mon.page']).toBe('electrical');
     expect(session.status()).toMatchObject({ kind: 'failed' });
     expect(calls).toBe(1);
@@ -649,9 +1322,9 @@ describe('notifications and errors', () => {
   it('still throws a listener error after a successful jump', () => {
     const session = createSession(fixtureAircraft);
     const calls = noisy(session);
-    expect(() => session.jumpToPhase('runup')).toThrow('listener broke');
+    expect(() => session.jumpToPhase('holding')).toThrow('listener broke');
     expect(calls()).toBe(1);
-    expect(session.phase()).toBe('runup');
+    expect(session.phase()).toBe('holding');
   });
 });
 
@@ -671,8 +1344,8 @@ describe('device state reset', () => {
     const session = create('parking');
     for (let tick = 0; tick < 5; tick++) session.advance(STEP_MS);
     session.set('master', 'on');
-    session.jumpToPhase('runup');
-    expect(session.state().devices).toEqual(create('runup').state().devices);
+    session.jumpToPhase('holding');
+    expect(session.state().devices).toEqual(create('holding').state().devices);
   });
 });
 

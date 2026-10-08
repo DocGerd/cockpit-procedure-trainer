@@ -10,6 +10,12 @@ const title: string = found;
 
 const hint = 'Select a device on the panel to operate it here.';
 
+// Pressing ALT on the first item sets the target of a later item early.
+const altItem =
+  (ctslAircraft.procedures[radioAndTransponder]?.items ?? []).findIndex(
+    (item) => item.type === 'action' && item.control === 'xpdr.mode' && item.position === 'alt',
+  ) + 1;
+
 const unit = (page: Page, device: string) =>
   dock(page).getByRole('group', { name: device, exact: true });
 const slotRing = (page: Page) => page.locator('[data-outline="target"]');
@@ -144,7 +150,9 @@ test('Practice opens and rings nothing, and lists a deviation made on a device a
     checklistPane(page)
       .getByRole('region', { name: copy.checklist.deviationsHeading })
       .getByRole('listitem'),
-  ).toContainText(copy.checklist.unexpectedTitle.replace('{control}', 'Mode'));
+  ).toContainText(
+    copy.checklist.outOfOrderTitle.replace('{control}', 'Mode').replace('{later}', String(altItem)),
+  );
 });
 
 test('Guided shows the deviation made on a device at once', async ({ page }) => {
@@ -152,7 +160,14 @@ test('Guided shows the deviation made on a device at once', async ({ page }) => 
   await slot(page, 'xpdr').getByRole('button').click();
   await unit(page, 'gtx327').getByRole('button', { name: 'ALT', exact: true }).click();
   await expect(page.getByRole('status')).toContainText(
-    copy.checklist.bannerUnexpected.replace('{control}', 'Mode').replace('{n}', '1'),
+    copy.checklist.bannerOutOfOrder
+      .replace(
+        '{stray}',
+        copy.checklist.strayEarly.replace('{control}', 'Mode').replace('{position}', 'ALT'),
+      )
+      .replace('{back}', copy.checklist.returnTo.replace('{previous}', 'OFF'))
+      .replace('{later}', String(altItem))
+      .replace('{n}', '1'),
   );
 });
 

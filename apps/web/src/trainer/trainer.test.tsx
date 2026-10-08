@@ -1,13 +1,27 @@
 // @vitest-environment jsdom
-import { STEP_MS } from '@cpt/core';
+import { phaseOrder, STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { shallowEqual, TrainerProvider, useSessionState, useTrainer } from './index';
-import { testAircraft } from './test-aircraft';
+import { readHistory } from '../storage';
+import { LanguageProvider } from '../i18n/language';
+import type { Language } from '../i18n/language';
+import {
+  shallowEqual,
+  TrainerProvider,
+  useLeavingRisk,
+  useLostProgressText,
+  useProgressAtRisk,
+  useSessionState,
+  useTrainer,
+} from './index';
+import { SURPRISE_MAX_MS } from './scenarios';
+import { flightAircraft, testAircraft } from './test-aircraft';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: (await import('./test-aircraft')).testAircraft,
-}));
+vi.mock('../aircraft-registry', async () => {
+  const { flightAircraft, testAircraft } = await import('./test-aircraft');
+  return { aircraftRegistry: [...testAircraft, flightAircraft] };
+});
 
 const [first, second] = testAircraft;
 const firstProcedure = 'powerUp';
@@ -34,7 +48,7 @@ describe('trainer store', () => {
     expect(trainer.screen).toBe('picker');
     expect(trainer.mode).toBe('guided');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.phase()).toBe(Object.keys(first.phases)[0]);
+    expect(trainer.session.phase()).toBe(phaseOrder[0]);
   });
 
   it('restores the last aircraft', () => {
@@ -304,6 +318,218 @@ describe('trainer store', () => {
   });
 });
 
+describe('surprise failure', () => {
+  const startSurprise = () => {
+    const view = renderTrainer();
+    act(() => view.result.current.trainer.selectAircraft(second.id));
+    act(() => view.result.current.trainer.startSurprise('parking'));
+    return view;
+  };
+
+  it('starts in Practice with no procedure, keeping the failure out of the viewed checklist', () => {
+    const { result } = startSurprise();
+    const { trainer, snapshot } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.viewedProcedureId).toBe('powerUp');
+    expect(snapshot.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
+    expect(snapshot.failures().size).toBe(0);
+  });
+
+  it('runs the checklist the pilot takes and follows it as the running procedure', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.viewProcedure('fire'));
+    act(() => result.current.trainer.takeChecklist('fire'));
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('fire');
+    expect(trainer.viewedProcedureId).toBe('fire');
+    expect(snapshot.scenario()).toMatchObject({ chosen: 'fire', matched: true });
+    expect([...snapshot.failures()]).toEqual(['fire']);
+  });
+
+  it('is ended by going back to the picker or into Free explore', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.backToPicker());
+    expect(result.current.snapshot.scenario()).toBeUndefined();
+    act(() => result.current.trainer.startSurprise('parking'));
+    act(() => result.current.trainer.setMode('explore'));
+    expect(result.current.snapshot.scenario()).toBeUndefined();
+  });
+
+  it.each([
+    ['restart', (trainer: ReturnType<typeof useTrainer>) => trainer.restart()],
+    ['reset', (trainer: ReturnType<typeof useTrainer>) => trainer.resetSession()],
+  ])('starts a new surprise, not the chosen checklist, on %s after the choice', (_, again) => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => again(result.current.trainer));
+    const { trainer } = result.current;
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
+    expect(trainer.session.scenario()?.chosen).toBeUndefined();
+    expect(trainer.session.failures().size).toBe(0);
+  });
+
+  it('starts a new surprise when coming back from Free explore', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => result.current.trainer.setMode('explore'));
+    act(() => result.current.trainer.setMode('guided'));
+    const { trainer } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking' });
+  });
+
+  it('ends the drill with a phase jump, so a restart runs the checklist again', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.jumpToPhase('parking'));
+    expect(result.current.trainer.surprisePhase).toBeUndefined();
+    act(() => result.current.trainer.startProcedure('powerUp'));
+    act(() => result.current.trainer.restart());
+    expect(result.current.trainer.procedureId).toBe('powerUp');
+  });
+
+  it('keeps a wrong answer out of the run history', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.session.advance(SURPRISE_MAX_MS));
+    act(() => result.current.trainer.takeChecklist('powerUp'));
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+      result.current.trainer.session.set('pump', 'on');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+    expect(readHistory(second.id)).toEqual({});
+  });
+
+  it('starts a new surprise in the same phase on reset', () => {
+    const { result } = startSurprise();
+    const before = result.current.trainer.session;
+    act(() => result.current.trainer.resetSession());
+    const { session } = result.current.trainer;
+    expect(session).not.toBe(before);
+    expect(session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
+    expect(session.procedureId()).toBeUndefined();
+  });
+});
+
+describe('full flight', () => {
+  const startFlight = (mode: 'guided' | 'practice' = 'guided') => {
+    const view = renderTrainer();
+    act(() => view.result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => view.result.current.trainer.setMode(mode));
+    act(() => view.result.current.trainer.startFlight());
+    return view;
+  };
+  const flyFirstLeg = (trainer: ReturnType<typeof useTrainer>) =>
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+
+  it('starts the first leg from its phase snapshot and lists the legs', () => {
+    const { result } = startFlight();
+    const { trainer, snapshot } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.procedureId).toBe('powerUp');
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'taxiCheck'], results: [] });
+    expect(snapshot.phase()).toBe('parking');
+    expect(snapshot.state().controls).toEqual({ master: 'off', pump: 'off' });
+  });
+
+  it('continues with the next leg from the cockpit the last one left, recording the leg', () => {
+    const { result } = startFlight();
+    act(() => result.current.trainer.session.advance(STEP_MS));
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('taxiCheck');
+    expect(trainer.lastProcedureId).toBe('taxiCheck');
+    expect(snapshot.phase()).toBe('taxiOut');
+    expect(snapshot.state().controls).toEqual({ master: 'on', pump: 'on' });
+    expect(trainer.flight?.results).toEqual([
+      { id: 'powerUp', deviations: 0, assists: 0, elapsedMs: STEP_MS },
+    ]);
+    expect(Object.keys(readHistory(flightAircraft.id))).toEqual(['powerUp']);
+  });
+
+  it("counts a leg's deviations and Show me assists, then clears them for the next leg", () => {
+    const { result } = startFlight('practice');
+    act(() => result.current.trainer.showMe());
+    act(() => {
+      const { session } = result.current.trainer;
+      session.set('pump', 'on');
+      session.set('master', 'on');
+      session.checkOff();
+    });
+    act(() => result.current.trainer.nextLeg());
+    const { trainer } = result.current;
+    expect(trainer.flight?.results[0]).toMatchObject({ deviations: 1, assists: 1 });
+    expect(trainer.assisted).toEqual([]);
+    expect(trainer.mode).toBe('practice');
+  });
+
+  it('does not move on while a leg runs or after the last leg', () => {
+    const { result } = startFlight();
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('powerUp');
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.checkOff());
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('taxiCheck');
+    expect(result.current.trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('restarts a leg from the cockpit it began with, keeping the legs before', () => {
+    const { result } = startFlight();
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.set('master', 'off'));
+    act(() => result.current.trainer.restart());
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('taxiCheck');
+    expect(snapshot.state().controls.master).toBe('on');
+    expect(snapshot.checklist()?.deviations).toEqual([]);
+    expect(trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('starts the whole flight over on reset', () => {
+    const { result } = startFlight();
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    const before = result.current.trainer.session;
+    act(() => result.current.trainer.resetSession());
+    const { trainer } = result.current;
+    expect(trainer.session).not.toBe(before);
+    expect(trainer.procedureId).toBe('powerUp');
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'taxiCheck'], results: [] });
+  });
+
+  it.each([
+    [
+      'a chosen procedure',
+      (trainer: ReturnType<typeof useTrainer>) => trainer.startProcedure('powerUp'),
+    ],
+    [
+      'a taken checklist',
+      (trainer: ReturnType<typeof useTrainer>) => trainer.takeChecklist('powerUp'),
+    ],
+    ['a phase jump', (trainer: ReturnType<typeof useTrainer>) => trainer.jumpToPhase('parking')],
+    ['Free explore', (trainer: ReturnType<typeof useTrainer>) => trainer.setMode('explore')],
+    ['the picker', (trainer: ReturnType<typeof useTrainer>) => trainer.backToPicker()],
+  ])('is ended by %s', (_, end) => {
+    const { result } = startFlight();
+    act(() => end(result.current.trainer));
+    expect(result.current.trainer.flight).toBeUndefined();
+  });
+});
+
 describe('shallowEqual', () => {
   it('compares plain objects and arrays one level deep', () => {
     const shared = {};
@@ -404,7 +630,7 @@ describe('session state', () => {
     act(() => vi.advanceTimersByTime(STEP_MS * 3));
     expect(phaseRenders).toBe(phaseBefore);
     expect(objectRenders).toBe(objectBefore);
-    expect(phase.result.current).toBe('ground');
+    expect(phase.result.current).toBe('parking');
     expect(controls.result.current).toEqual({ master: 'off' });
   });
 
@@ -474,5 +700,202 @@ describe('session state', () => {
     expect(snapshot.status()).toEqual({ kind: 'running' });
     expect(snapshot.guards()).toBe(trainer.session.guards());
     expect(snapshot.failures()).toBe(trainer.session.failures());
+  });
+});
+
+describe('progress at risk', () => {
+  const useRisk = () => ({ trainer: useTrainer(), risk: useProgressAtRisk() });
+  const renderRisk = () => renderHook(useRisk, { wrapper: TrainerProvider });
+
+  it('is nothing while no procedure runs', () => {
+    const { result } = renderRisk();
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('is nothing until an item is done or a deviation is recorded', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('counts the items done and the deviations', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    expect(result.current.risk).toEqual({ done: 1, total: 2, deviations: 0 });
+  });
+
+  it('counts a deviation although no item is done', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('pump', 'on'));
+    expect(result.current.risk).toEqual({ done: 0, total: 2, deviations: 1 });
+  });
+
+  it('is nothing once the procedure is finished', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    act(() => result.current.trainer.session.set('pump', 'on'));
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('is nothing after a phase jump ended the procedure', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    act(() => result.current.trainer.jumpToPhase('cruise'));
+    expect(result.current.risk).toBeUndefined();
+  });
+});
+
+describe('lost progress text', () => {
+  const renderText = (language: Language) =>
+    renderHook(() => ({ trainer: useTrainer(), text: useLostProgressText() }), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <LanguageProvider initial={language}>
+          <TrainerProvider>{children}</TrainerProvider>
+        </LanguageProvider>
+      ),
+    });
+  const run = (language: Language) => {
+    const { result } = renderText(language);
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    return result;
+  };
+
+  it('is empty while no progress is at risk', () => {
+    expect(renderText('en').result.current.text).toBe('');
+  });
+
+  it('counts the items done, without a deviation clause when there are none', () => {
+    expect(run('en').current.text).toBe('Progress lost: 1 of 2 items done.');
+    expect(run('de').current.text).toBe('Verlorener Fortschritt: 1 von 2 Punkten erledigt.');
+  });
+});
+
+describe('leaving risk', () => {
+  const renderLeaving = (language: Language = 'en') =>
+    renderHook(() => ({ trainer: useTrainer(), leaving: useLeavingRisk() }), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <LanguageProvider initial={language}>
+          <TrainerProvider>{children}</TrainerProvider>
+        </LanguageProvider>
+      ),
+    });
+  const flyFirstLeg = (result: ReturnType<typeof renderLeaving>['result']) => {
+    act(() => result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => result.current.trainer.startFlight());
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+      result.current.trainer.session.set('pump', 'on');
+    });
+  };
+
+  it('follows the run outside a full flight', () => {
+    const { result } = renderLeaving();
+    expect(result.current.leaving).toEqual({ atRisk: false, lost: '' });
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    expect(result.current.leaving).toEqual({
+      atRisk: true,
+      lost: 'Progress lost: 1 of 2 items done.',
+    });
+  });
+
+  it('keeps the legs flown at risk on a leg summary and at the start of the next leg', () => {
+    const { result } = renderLeaving();
+    flyFirstLeg(result);
+    expect(result.current.leaving).toEqual({
+      atRisk: true,
+      lost: 'The full flight ends after 1 of 2 legs.',
+    });
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.leaving.atRisk).toBe(true);
+  });
+
+  it('is nothing at the first leg before any work, or once the last leg is done', () => {
+    const { result } = renderLeaving();
+    act(() => result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => result.current.trainer.startFlight());
+    expect(result.current.leaving.atRisk).toBe(false);
+    flyFirstLeg(result);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.checkOff());
+    expect(result.current.leaving).toEqual({ atRisk: false, lost: '' });
+  });
+
+  it('says it in German', () => {
+    const { result } = renderLeaving('de');
+    flyFirstLeg(result);
+    expect(result.current.leaving.lost).toBe('Der ganze Flug endet nach 1 von 2 Abschnitten.');
+  });
+});
+
+describe('run history', () => {
+  const finish = (result: ReturnType<typeof renderTrainer>['result']) => {
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+    });
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+  };
+
+  it('stores aircraft, procedure, mode, deviations and date when a run completes', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.setMode('practice'));
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(readHistory(first.id)).toEqual({});
+    finish(result);
+    const deviations = result.current.snapshot.checklist()?.deviations.length;
+    const run = { mode: 'practice', deviations, at: 1_700_000_000_000 };
+    expect(readHistory(first.id)).toEqual({ [firstProcedure]: { last: run, best: run } });
+    expect(readHistory(second.id)).toEqual({});
+  });
+
+  it('stores a run once, however long the finished checklist stays open', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    const spy = vi.spyOn(Storage.prototype, 'setItem');
+    act(() => {
+      result.current.trainer.session.set('master', 'off');
+    });
+    act(() => result.current.trainer.session.advance(STEP_MS));
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('stores every completed run, including a repeat', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    vi.spyOn(Date, 'now').mockReturnValue(2_000_000_000_000);
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    expect(readHistory(first.id)[firstProcedure]?.last.at).toBe(2_000_000_000_000);
+  });
+
+  it('stores nothing for a run left unfinished or for Free explore', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+    });
+    act(() => result.current.trainer.backToPicker());
+    act(() => result.current.trainer.setMode('explore'));
+    expect(localStorage.getItem('cpt.history')).toBeNull();
+  });
+
+  it('keeps running when storage refuses the write', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(() => finish(result)).not.toThrow();
   });
 });

@@ -6,12 +6,14 @@ export const messages = defineMessages({
     dock: 'Device dock',
     dockHint: 'Select a device on the panel to operate it here.',
     dockClose: 'Close device',
+    dockCloseLabel: 'Close',
   },
   de: {
     noScreen: 'Kein Bildschirm für {device}',
     dock: 'Gerätedock',
     dockHint: 'Ein Gerät am Panel wählen, um es hier zu bedienen.',
     dockClose: 'Gerät schließen',
+    dockCloseLabel: 'Schließen',
   },
 });
 

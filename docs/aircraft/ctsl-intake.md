@@ -43,8 +43,9 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
-laid out for the left seat (pilot in command). The trainer draws three views:
-`panel` (both upper fields), `centre` (lower centre field) and `console`.
+laid out for the left seat (pilot in command). The trainer draws four views:
+`panel` (both upper fields), `centre` (lower centre field), `console` and
+`bulkhead` (the rescue handle between the seats, behind the console).
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -53,7 +54,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   VSI (drawn in the background; not an indicator).
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
-  for this variant (§9) and is drawn unlit in the background.
+  for this variant (§9) and is drawn unlit in the background. The charge lamp's
+  legend and colour are assumed (§9, question 22).
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
@@ -66,7 +68,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   then oil pressure, oil temperature and cylinder head temperature (CHT).
 - A small item at the top left next to the type name: probably the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
-  phase from the airfield of `src/airfield.ts`.
+  phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
+  assumed (§9, question 20); the type name is not printed.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -86,30 +89,45 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   labelled "Flaps", centre. To its right the flap breaker (Klappensicherung, 8 A,
   thermal), then two headset emergency jacks (background).
 - Fuel valve (Brandhahn), left: a vertical slide lever, open up, closed down.
-  When closed, its handle covers the ignition key slot.
+  When closed, its handle covers the ignition key slot. Assumed (unverified),
+  from general knowledge of the CT Supralight (#447): the slide runs straight
+  above the key switch and its handle comes down over the slot, so the key cannot
+  be turned out of OFF while the valve is closed; the valve still closes with the
+  key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
+  For the key going in and out under the handle, see the ignition key below.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
+  The key goes in and comes out at OFF, and comes out only with the fuel valve
+  fully closed (E6). Assumed (unverified), from the handle covering the slot and
+  N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
 
 ### 3.4 Centre console (view `console`)
 
 - Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
-  hydraulic brake lever, Bremshebel), **THROTTLE** (idle/full, Gashebel),
-  **CHOKE** (off/on).
+  hydraulic brake lever, Bremshebel; non-locking: it brakes only while held and
+  springs back when released, owner ruling #465), **THROTTLE** (idle/full, Gashebel),
+  **CHOKE** (off/on). The trainer draws the console as the left seat sees its
+  flank, so forward is to the left: the throttle pushes left to full, and the
+  brake and choke pull right, toward the pilot, to on (§9, question 25).
 - **Stabilator trim wheel** (Trimmrad) with its indicator beside it; forward is
-  nose down.
+  nose down. The trainer draws the wheel's rim in its slot with the indicator
+  scale above it, nose down to the left (§9, question 25).
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
-  the throttle group. Parking brake: close the valve, then apply the brake lever;
-  the pressure holds until the valve is opened.
+  the throttle group. Parking brake: close the valve, then pull and release the
+  brake lever; the valve traps the pressure, which holds until the valve is opened.
+  Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Carb heat** (Vergaservorwärmung): named in seven checklists and on the take-off
   placard, but the handbook shows no control. The trainer adds a provisional
   pull knob on the console (§9).
 - **Rescue-system handle** (Rettungsgerät), on the main bulkhead between the seats,
   secured on the ground by a safety pin. Pull hard and far forward to deploy.
+  The trainer draws it in its own view, `bulkhead`, behind the console (§9,
+  question 26).
 - Not modelled: the large unlabelled knob right of the parking-brake valve (§9),
   the fire extinguisher (pocket behind the passenger seat), the fuel dipstick.
 
@@ -239,7 +257,7 @@ derived from the limits table above, not copied markings.
   left there, the motor runs to its end switch.
 - Pitch trim: anti-tab on the stabilator, wheel on the console, neutral for
   take-off. Rudder and aileron tabs are ground-adjustable only.
-- Brakes: hydraulic, main wheels, one central lever. Parking brake as in §3.4;
+- Brakes: hydraulic, main wheels, one central non-locking lever. Parking brake as in §3.4;
   always use chocks too.
 - MTOW 472.5 kg; baggage 25 kg per side.
 
@@ -253,20 +271,38 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 
 ## 5. Phase presets
 
-| Phase id          | On ground | kt  | ft above field | Engine and settings                                                         |
-| ----------------- | --------- | --- | -------------- | --------------------------------------------------------------------------- |
-| `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set |
-| `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set  |
-| `linedUp`         | yes       | 0   | 0              | as `holding`, lined up on the runway                                        |
-| `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                  |
-| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate      |
-| `approach`        | no        | 59  | 500            | low power, flaps 15°                                                        |
-| `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare                                               |
-| `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°                                                        |
-| `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi                                     |
+| Phase id          | On ground | kt  | ft above field | Engine and settings                                                                |
+| ----------------- | --------- | --- | -------------- | ---------------------------------------------------------------------------------- |
+| `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set        |
+| `taxiOut`         | yes       | 0   | 0              | as `holding` but low power and parking brake released; oil temp a trainer estimate |
+| `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set         |
+| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ALT |
+| `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                         |
+| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate             |
+| `approach`        | no        | 59  | 500            | low power, flaps 15°, landing light on, descending                                 |
+| `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare, landing light on                                    |
+| `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°, landing light on (N15 switches it off)                       |
+| `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi, transponder standby                       |
 
-From `departure` to `parkingSecuring` the rescue safety pin is out (§4.5): it is removed
-before take-off and put back at shutdown.
+From `linedUp` to `parkingSecuring` the rescue safety pin is out (§4.5): it is removed
+at the holding point (N6) and put back at shutdown.
+
+Owner ruling 2026-10-08: a CTSL registered as an ultralight in Germany flies day VFR
+only. The cockpit light is off in every phase; Avionics Master and beacon are on
+whenever the engine runs; the landing light is not needed in cruise.
+
+Assumed (unverified), from general-aviation practice, for the running phases: the
+intercom is on whenever the engine runs (N16 switches it off); the transponder is
+off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
+at standby in `parkingSecuring`; the landing light is on from the approach until N15
+switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
+about −2 m/s in `approach`. The phase entry seeds device state as well as device
+controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
+through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
+`taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
+The GPS also starts with its position fix in those phases, so the map page shows ground
+speed and track (taken from the airspeed and heading) at once; switched on by hand it
+searches first. The fix and the ground speed and track it shows are assumed (unverified).
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -284,7 +320,7 @@ checklist names. Steps marked _(confirm)_ have no control in the trainer.
 
 **N1 Pre-flight, cabin part (HB 4-1, 4-2).** Documents on board _(confirm)_;
 controls connected and free _(confirm)_; wing bolts secured _(confirm)_; ignition
-off; key out _(confirm)_; electrical consumers off; Avionics Master off; BAT in; flaps run
+off; key out; electrical consumers off; Avionics Master off; BAT in; flaps run
 out and back to check them; BAT out; fuel valve (Brandhahn) open; doors and
 glazing checked _(confirm)_. Walk-around zones as confirm items, one each: left
 fuselage and tail; right fuselage; right wing incl. fuel quantity (sight tube or
@@ -297,7 +333,7 @@ extinguisher, ELT remote switch. Folded into N6.
 
 **N3 Engine start (HB 4-3, 4-6).** Pre-flight done _(confirm)_; parking brake set;
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
-open; key in _(confirm)_; choke as needed (cold: on); throttle idle; propeller area
+open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
 after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
 to the taxi setting (0°). Before the first start of the day turn the prop by hand;
@@ -307,10 +343,14 @@ if the aircraft rolls during start, ignition off.
 2 min, then 2500 rpm; raise rpm only above 2 bar oil pressure; ready at 50 °C oil.
 
 **N5 Taxi (HB 4-3).** Brakes checked; nose-wheel steering checked (both confirm).
+The trainer runs it as its own procedure from `taxiOut` to `holding`, so the checks happen
+with the taxiway outside view; it opens with the parking brake released (trainer addition,
+assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-transponder on, standby _(confirm)_; choke off; carb heat off; throttle to 4000 rpm; engine
+transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
+powered and at standby)_; choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
 lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
@@ -351,7 +391,8 @@ off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
 accidental ELT activation _(confirm)_.
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
-off; electrical consumers off; GEN out; ignition off; BAT out; key out _(confirm)_; rescue
+off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
+(assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
 system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
 _(confirm)_.
 
@@ -383,7 +424,7 @@ touchdown stick fully back and brake; ELT on if it has not triggered. Too high:
 S-turns.
 
 **E6 Engine fire (HB 3-2, 3-6).** Fuel valve closed at once; throttle full until
-the engine stops; ignition off; key out _(confirm)_ (the closed valve covers the key slot, so
+the engine stops; ignition off; key out (the closed valve covers the key slot, so
 this also proves the valve is fully closed); slip away from the flames while
 descending; emergency landing (E5). **Never deploy the rescue system with fire on
 board** (§8).
@@ -392,8 +433,8 @@ board** (§8).
 (**120 °C**, §8), using flaps 0–15° if speed gets low; land at the nearest
 airfield.
 
-**E8 Oil loss (HB 3-2, 3-7).** Ignition off; key out _(confirm)_; fuel valve closed;
-emergency landing (E5) at once: fire risk.
+**E8 Oil loss (HB 3-2, 3-7).** Ignition off; fuel valve closed; key out (after the
+valve, §8); emergency landing (E5) at once: fire risk.
 
 **E9 Flap control failure (HB 3-2, 3-7, 3-8, 7-13).** GEN out; BAT out; wait 3 s;
 BAT in; GEN in (safe in flight: the ignition does not need the bus). Flaps work:
@@ -417,27 +458,33 @@ get out, fire risk).
 
 ## 8. Handbook contradictions and the value used
 
-| Topic                         | Value A                                                                           | Value B                                                | Trainer uses                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                  | 120 °C (lowest)                                                                                |
-| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                        | 120 °C                                                                                         |
-| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                | 124 l                                                                                          |
-| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                    | 51 °C                                                                                          |
-| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)     | the by-flap table of §4.1; the checklist pair is flagged                                       |
-| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                             | 105 km/h (more margin over the stall)                                                          |
-| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)         | 125 km/h flaps 0° (the emergency chapter)                                                      |
-| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)             | gauge arcs as marked; speeds as listed                                                         |
-| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)         | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
-| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)       | never deploy; the fire procedure ends in an emergency landing                                  |
-| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off             | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                  | 260 km/h                                                                                       |
-| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                             | 130 °C                                                                                         |
-| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop               | GEN first, then avionics, after the engine runs                                                |
-| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4) | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
+| Topic                         | Value A                                                                           | Value B                                                         | Trainer uses                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                           | 120 °C (lowest)                                                                                |
+| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                                 | 120 °C                                                                                         |
+| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                         | 124 l                                                                                          |
+| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                             | 51 °C                                                                                          |
+| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)              | the by-flap table of §4.1; the checklist pair is flagged                                       |
+| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                                      | 105 km/h (more margin over the stall)                                                          |
+| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)                  | 125 km/h flaps 0° (the emergency chapter)                                                      |
+| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)                      | gauge arcs as marked; speeds as listed                                                         |
+| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
+| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
+| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                           | 260 km/h                                                                                       |
+| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
+| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
+| Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
+| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)          | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
 
 ## 9. Open questions for the club and instructor
 
 Each item lists the value the trainer uses until it is answered.
+
+Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
+knowledge of the CT Supralight. Each such fact is recorded beside its question as
+**assumed (unverified)**, and the implementing PR lists it, until the owner
+verifies it on D-MPGO.
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
@@ -472,7 +519,131 @@ Each item lists the value the trainer uses until it is answered.
     revision or supplement?
 17. **Climb speeds**: the climb checklist's Vx 120 / Vy 135 km/h with −12° versus
     the by-flap table; which does the club teach?
-18. **Parking brake before take-off**: the take-off list (N7) has no brake item,
-    but the holding-point snapshot has the parking brake set. The trainer's
-    `takeoff` checklist starts with releasing it (valve open, then a check that
-    it is released), marked as a trainer addition. Is that how the club teaches it?
+18. **Parking brake before take-off**: the take-off list (N7) has no brake item.
+    **Answered by the procedure order** (#466): N6 ends with the parking brake
+    released, so `linedUp` starts with it released and `takeoff` has no brake item.
+19. **Field proportions**: how wide is the lower centre column compared with the
+    two upper fields, is it centred under their junction or offset, and where does
+    the console start below it? Today: the centre column hangs below the junction
+    of the upper fields; the console sits beside it on the right, since panel,
+    centre column and console stacked do not fit one HD screen at their legibility
+    floors; the column is drawn wider than assumed below, for legibility.
+    **Answered by assumption pending owner verification** (#436). Assumed
+    (unverified), from general knowledge of the CT Supralight: the centre column
+    is centred on the junction of the two upper fields, its top at their lower
+    edge; it is narrower than either upper field; the console continues straight
+    down from it between the seats.
+20. **Compass**: panel compass with a reversed card in a narrow window, or a
+    vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
+    small round panel compass at the top left of the upper-right field, no larger
+    than the vertical speed indicator; its reversed card shows through a window at
+    the top of the housing, numbers increasing to the left. **Answered by
+    assumption pending owner verification** (#444). Assumed (unverified), from general knowledge of the CT
+    Supralight: a panel-mounted magnetic compass with a reversed card read in a
+    window, mounted in the panel (not on the windscreen frame), no larger than the
+    vertical speed indicator.
+21. **ELT remote switch legends**: what does the remote panel print beside its
+    positions (for example ON and ARM, or a TEST or RESET position), and what
+    colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
+    ON up and ARM down, its lamp beside it, red. **Answered by assumption pending
+    owner verification** (#447). Assumed (unverified), from general knowledge of
+    the CT Supralight: the remote plate prints ELT, ON (up) and ARM (down), with no
+    TEST or RESET position; the lamp lights red while the ELT transmits.
+22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
+    and in which colour does it light? Today: a round red lamp with the legend
+    CHARGE printed below it; the second lamp is round at the same size, without a
+    legend. **Answered by assumption pending owner verification** (#444). Assumed
+    (unverified), from general knowledge of the CT Supralight: the charge lamp
+    lights red and the panel prints CHARGE with it.
+23. **Memory items**: which steps of the §7 procedures does the club expect from
+    memory before the checklist is read? Today: the leading steps below are memory
+    items; the rest of each procedure is read and done from the list. **Answered by
+    assumption pending owner verification** (#450). Assumed (unverified), from
+    general knowledge of light-aircraft emergency drills, where the steps that stop
+    a fire, restore or secure the engine, or commit to the landing or the rescue
+    system are flown from memory and the rest is read:
+    - E3 below 100 m: rpm below idle; no restart, land ahead.
+    - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
+      both; starter if the prop turns slower than about 200 rpm.
+    - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
+      out; pull the handle.
+    - E6: smoke or flames; fuel valve closed; throttle full until the engine
+      stops; ignition off.
+    - E8: oil pressure below the minimum; ignition off; fuel valve closed.
+    - In E6 and E8 the key comes out after the valve is closed (question 27), as
+      the first item read from the list.
+    - E7, E9 and the generator failure have no memory items: they leave time to
+      read the list.
+
+    Memory items must lead the procedure, so two questions go with this one. Many
+    drills open an engine failure with "best glide" from memory, but §7 puts best
+    glide (125 km/h, E5) after E4's restart attempt, and E3 below 100 m names only
+    the approach speed: does the club fly the glide from memory, and where in the
+    list? The safety-pin confirm (E2) is a memory item only because it sits
+    inside the leading block; does the club drill it so?
+
+24. **Phase start states**: which switches does the club have on in each phase? Today
+    (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
+    and standby once parked, squawk 7000 from line-up and the GPS on at its map page
+    from line-up to taxi-in (#476), landing light on from the approach until N15, vertical
+    speed climbing in `departure` and descending in `approach`. No procedure step
+    switches the landing light on (N12 says "as needed"), so the approach, landing
+    and `taxiIn` entries carry it. **Answered by assumption pending owner
+    verification** (#466). Assumed (unverified), from general-aviation practice;
+    the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
+    owner's.
+25. **Console lever and trim geometry**: do BRAKE, THROTTLE and CHOKE travel
+    fore and aft, which way does each apply (brake and choke on when pulled?),
+    what handles do they carry, and where does the trim indicator sit relative to
+    the wheel? Today: three horizontal levers stacked top to bottom, drawn as the
+    left seat sees the console's flank, forward to the left; the throttle pushes
+    forward to full, the brake and choke pull aft to on; the trim wheel's rim
+    shows in a slot below the choke with its indicator scale above it, nose down
+    forward. **Answered by assumption pending owner verification** (#449).
+    Assumed (unverified), from general knowledge of the CT Supralight: the three
+    levers slide fore and aft; push is forward, so full throttle is forward and
+    the brake and choke apply when pulled toward the pilot; the trim wheel turns
+    fore and aft, forward nose down, with its indicator beside it.
+26. **Rescue handle on the bulkhead**: how high and where across the main
+    bulkhead does the handle sit, what shape is its grip, and where does the
+    safety pin go? Today: a T-grip in a holder centred on the bulkhead between
+    the two seat backs, the safety pin through the holder above the grip, the
+    holder printed RESCUE and PULL HARD. **Answered by assumption pending owner
+    verification** (#449). Assumed (unverified), from general knowledge of the CT
+    Supralight: the handle sits centred between the seats on the bulkhead behind
+    them, at about shoulder height, reached back over the shoulder; the pin goes
+    through the holder and carries a remove-before-flight flag.
+27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
+    covers the slot, and does N16 close the valve? Today: the key is out in
+    `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
+    it goes in only with the valve open, and the closed valve holds a key at OFF;
+    N16 closes the valve after BAT out so the key can come out, leaving the aircraft
+    as `parking` has it. **Answered by assumption pending owner verification**
+    (#468). Assumed (unverified), from the handle covering the slot and N3's order
+    (fuel valve open, then key in).
+28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
+    engine bay streams over the windscreen in the outside view, and the CHT and oil
+    temperature climb past their red lines within seconds while the fire burns; both
+    clear once the valve is closed and the engine has stopped. **Answered by
+    assumption pending owner verification** (#233). Assumed (unverified), from
+    general-aviation practice: smell and smoke come first, and a fire in the engine
+    bay heats the CHT and oil sensors; the size of the rise is a trainer value.
+29. **Flap control failure cue**: what shows on the panel when the flap controller
+    fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
+    position readout on that circuit goes dark, and with the breaker reset the readout
+    stays put whatever the selector says. **Answered by assumption pending owner
+    verification** (#233). Assumed (unverified), from the overload note of E9 and the
+    wiring of §4: the readout is fed through the flap breaker, and a failed controller
+    overloads the drive until the breaker trips.
+30. **Flows**: which procedures does the club open with a panel scan done from
+    memory before the checklist is read, and in which order? Today: three, each
+    verified by the §6 items that follow it. **Answered by assumption pending
+    owner verification** (#453). Assumed (unverified), from general-aviation
+    practice and the CT Supralight panel layout (§3), scanned top to bottom on the
+    centre field, then down the console's lever stack and across to carb heat:
+    - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
+      carb heat off.
+    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+      parking brake stays out of the flow, since its valve and lever go in order
+      (§3.4).
+    - N15 After landing: landing light off; flaps 0°; carb heat off.

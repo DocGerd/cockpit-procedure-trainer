@@ -16,7 +16,23 @@ export function gpsmap496Readout(state: unknown, language: keyof Text, on: boole
   if (!on || !unit.on) return de ? 'Aus' : 'Off';
   const page = PAGE_NAMES[unit.page][language];
   const level = unit.backlight + 1;
-  return de
-    ? `Seite ${page}, keine Position, Beleuchtung ${level} von ${BACKLIGHT_LEVELS}`
-    : `${page} page, no position, backlight ${level} of ${BACKLIGHT_LEVELS}`;
+  const map = unit.page === 'map';
+  const speed = map && unit.groundSpeedKt !== null ? Math.round(unit.groundSpeedKt) : null;
+  const track = map && unit.trackDeg !== null ? Math.round(unit.trackDeg) : null;
+  const parts = de
+    ? [
+        `Seite ${page}`,
+        unit.fix ? 'Position bestimmt' : 'Satellitensuche',
+        speed === null ? null : `Fahrt über Grund ${speed} Knoten`,
+        track === null ? null : `Kurs über Grund ${track} Grad`,
+        `Beleuchtung ${level} von ${BACKLIGHT_LEVELS}`,
+      ]
+    : [
+        `${page} page`,
+        unit.fix ? 'position fix' : 'acquiring satellites',
+        speed === null ? null : `ground speed ${speed} knots`,
+        track === null ? null : `track ${track} degrees`,
+        `backlight ${level} of ${BACKLIGHT_LEVELS}`,
+      ];
+  return parts.filter((part) => part !== null).join(', ');
 }

@@ -8,7 +8,9 @@ export const messages = defineMessages({
     explore: 'Free explore',
     operate: 'Operate controls',
     operateHint: 'Off: a tap shows details only',
-    exploreTitle: 'End the procedure?',
+    guidedOnNotice: 'Guided is on: the next control is highlighted and deviations show at once.',
+    lockedNotice: '{control} locked by {by}. Move {by} first.',
+    exploreTitle: 'Switch to Free explore?',
     exploreBody:
       'Free explore ends the running procedure and resets the cockpit to the start of the current phase.',
     exploreConfirm: 'Switch to Free explore',
@@ -28,6 +30,7 @@ export const messages = defineMessages({
     kindRotary: 'Rotary',
     kindLever: 'Lever',
     kindMomentary: 'Momentary',
+    kindSpringLever: 'Lever, springs back',
     kindGuarded: 'Guarded',
     kindBreaker: 'Circuit breaker',
     breakerIn: 'In',
@@ -40,7 +43,10 @@ export const messages = defineMessages({
     explore: 'Freies Erkunden',
     operate: 'Bedienelemente betätigen',
     operateHint: 'Aus: Antippen zeigt nur Details',
-    exploreTitle: 'Verfahren beenden?',
+    guidedOnNotice:
+      'Geführt ist an: das nächste Bedienelement wird hervorgehoben, Abweichungen erscheinen sofort.',
+    lockedNotice: '{control} gesperrt durch {by}. Zuerst {by} betätigen.',
+    exploreTitle: 'Zu Freiem Erkunden wechseln?',
     exploreBody:
       'Freies Erkunden beendet das laufende Verfahren und setzt das Cockpit auf den Beginn der aktuellen Flugphase zurück.',
     exploreConfirm: 'Zu Freiem Erkunden wechseln',
@@ -60,6 +66,7 @@ export const messages = defineMessages({
     kindRotary: 'Drehschalter',
     kindLever: 'Hebel',
     kindMomentary: 'Taster',
+    kindSpringLever: 'Hebel, federt zurück',
     kindGuarded: 'Mit Schutzkappe',
     kindBreaker: 'Sicherungsautomat',
     breakerIn: 'Gedrückt',

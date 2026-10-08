@@ -111,7 +111,9 @@ const boxOf = (element: HTMLElement | null) => {
 const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 const selectedTab = () => screen.getByRole('tab', { selected: true }).textContent;
 const modeButton = (name: string) =>
-  within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
+  name === 'Free explore'
+    ? screen.getByRole('button', { name })
+    : within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
 const hit = (id: string) => {
   const found = document.querySelector<HTMLElement>(`[data-hit="${id}"]`);
   if (!found) throw new Error(`no hit area for ${id}`);
@@ -121,7 +123,7 @@ const radio = (control: string, position: string) =>
   within(screen.getByRole('radiogroup', { name: control })).getByRole('radio', { name: position });
 
 describe('ModeControl', () => {
-  it('offers the three modes and marks the current one', () => {
+  it('offers Guided and Practice as segments and Free explore as a separate button', () => {
     renderTrainer();
     expect(
       within(screen.getByRole('group', { name: 'Mode' }))
@@ -130,8 +132,80 @@ describe('ModeControl', () => {
     ).toEqual([
       ['Guided', 'true'],
       ['Practice', 'false'],
-      ['Free explore', 'false'],
     ]);
+    expect(screen.getByRole('button', { name: 'Free explore' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+  });
+
+  it('marks Free explore instead of a segment while exploring', () => {
+    renderTrainer();
+    enterExplore();
+    expect(modeButton('Free explore').getAttribute('aria-pressed')).toBe('true');
+    expect(modeButton('Guided').getAttribute('aria-pressed')).toBe('false');
+    expect(modeButton('Practice').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('says live feedback is on when Practice switches to Guided mid-run', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    expect(screen.queryByRole('status')).toBeNull();
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.getByRole('status').textContent).toBe(
+      'Guided is on: the next control is highlighted and deviations show at once.',
+    );
+    expect(trainer.procedureId).toBe('start');
+  });
+
+  it('says nothing for Guided to Practice or when no procedure runs', async () => {
+    renderTrainer();
+    start('start', 'guided');
+    await userEvent.click(modeButton('Practice'));
+    expect(screen.queryByRole('status')).toBeNull();
+    act(() => {
+      trainer.backToPicker();
+    });
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('drops the notice when the mode changes again or the run ends', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    await userEvent.click(modeButton('Guided'));
+    await userEvent.click(modeButton('Practice'));
+    expect(screen.queryByRole('status')).toBeNull();
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.getByRole('status')).toBeDefined();
+    act(() => {
+      trainer.backToPicker();
+    });
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('lets the notice go by itself', () => {
+    vi.useFakeTimers();
+    try {
+      renderTrainer();
+      start('start', 'practice');
+      fireEvent.click(modeButton('Guided'));
+      expect(screen.getByRole('status')).toBeDefined();
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(screen.queryByRole('status')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('speaks the notice in German', async () => {
+    renderTrainer('de');
+    start('start', 'practice');
+    await userEvent.click(screen.getByRole('button', { name: 'Geführt' }));
+    expect(screen.getByRole('status').textContent).toBe(
+      'Geführt ist an: das nächste Bedienelement wird hervorgehoben, Abweichungen erscheinen sofort.',
+    );
   });
 
   it('switches between Guided and Practice and keeps the procedure', async () => {
@@ -156,9 +230,10 @@ describe('ModeControl', () => {
   it('asks before Free explore ends a running procedure', async () => {
     renderTrainer();
     start('start', 'practice');
+    act(() => trainer.session.set('master', 'on'));
 
     await userEvent.click(modeButton('Free explore'));
-    const dialog = screen.getByRole('alertdialog', { name: 'End the procedure?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Switch to Free explore?' });
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(trainer.mode).toBe('practice');
@@ -174,17 +249,41 @@ describe('ModeControl', () => {
     expect(trainer.procedureId).toBeUndefined();
   });
 
+  it('names the progress Free explore would end', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('master', 'on'));
+    await userEvent.click(modeButton('Free explore'));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      'Progress lost: 1 of 5 items done.',
+    );
+  });
+
+  it('ends a procedure with nothing done at once', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    await userEvent.click(modeButton('Free explore'));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(trainer.mode).toBe('explore');
+    expect(trainer.procedureId).toBeUndefined();
+  });
+
+  it('switches at once once the procedure is finished', async () => {
+    renderTrainer();
+    start('cycle', 'practice');
+    act(() => trainer.session.set('master', 'on'));
+    act(() => trainer.session.set('master', 'off'));
+    await userEvent.click(modeButton('Free explore'));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(trainer.mode).toBe('explore');
+  });
+
   it.each(['Guided', 'Practice'])(
     'restarts the last procedure when %s is chosen in Free explore',
     async (name) => {
       renderTrainer();
       start('start', 'practice');
       await userEvent.click(modeButton('Free explore'));
-      await userEvent.click(
-        within(screen.getByRole('alertdialog')).getByRole('button', {
-          name: 'Switch to Free explore',
-        }),
-      );
       await userEvent.click(modeButton(name));
       expect(trainer.mode).toBe(name.toLowerCase());
       expect(trainer.procedureId).toBe('start');
@@ -290,6 +389,71 @@ describe('Guided', () => {
       trainer.session.set('master', 'off');
     });
     expect(outline()).toBeNull();
+  });
+});
+
+describe('Guided stray control', () => {
+  const stray = () => document.querySelector<HTMLElement>('[data-outline="stray"]');
+
+  it('outlines a control the pilot moved away from the item, without a pulse', () => {
+    renderTrainer();
+    start('start', 'guided');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(boxOf(stray())).toEqual(boxOf(placement('throttle')));
+    expect(stray()?.dataset.pulse).toBeUndefined();
+    expect(outline()?.dataset.outline).toBe('target');
+  });
+
+  it('drops the outline once the control is back where it was', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('throttle', 0));
+    expect(stray()).toBeNull();
+  });
+
+  it('drops the outline when the item changes', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('master', 'on'));
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none in Practice', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none for a move made in Practice before switching to Guided', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.setMode('guided'));
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('pump', 'on'));
+    expect(boxOf(stray())).toEqual(boxOf(placement('pump')));
+  });
+
+  it('draws none after a retry has put the control back', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.retryItem());
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none for a spring-back control, even while it is held', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.press('starter'));
+    expect(trainer.session.checklist()?.deviations.at(-1)?.controlId).toBe('starter');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.release('starter'));
+    expect(stray()).toBeNull();
   });
 });
 
@@ -422,6 +586,57 @@ describe('Practice', () => {
     expect(document.querySelector('[data-modes-overlay]')).toBeNull();
     act(() => trainer.session.set('master', 'on'));
     expect(selectedTab()).toBe('Main panel');
+  });
+
+  it('rings the current target once after Show me, and only while that item is current', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.showMe());
+    const ring = outline();
+    expect(ring?.dataset.outline).toBe('target');
+    expect(ring?.dataset.pulse).toBe('once');
+    expect(boxOf(ring)).toEqual(boxOf(placement('master')));
+
+    act(() => trainer.session.set('master', 'on'));
+    expect(outline()).toBeNull();
+    expect(document.querySelector('[data-modes-overlay]')).toBeNull();
+  });
+
+  it('draws no stray ring after Show me', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.showMe());
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(trainer.session.checklist()?.deviations).toHaveLength(1);
+    expect(document.querySelector('[data-outline="stray"]')).toBeNull();
+    expect(outline()?.dataset.outline).toBe('target');
+  });
+
+  it("rings a device target's slot for Show me", () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+      trainer.session.checkOff();
+      trainer.showMe();
+    });
+    expect(boxOf(outline())).toEqual({
+      left: percent(500, 900),
+      top: '0%',
+      width: percent(400, 900),
+      height: percent(200, 250),
+    });
+  });
+
+  it('brings the target view on screen for Show me', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('master', 'on'));
+    expect(selectedTab()).toBe('Main panel');
+    act(() => trainer.showMe());
+    expect(selectedTab()).toBe('Centre console');
+    expect(boxOf(outline())).toEqual(boxOf(placement('pump')));
   });
 });
 
@@ -848,6 +1063,87 @@ describe('Guided in the combined layout', () => {
   });
 });
 
+describe('a flow', () => {
+  const outlines = () => [...document.querySelectorAll<HTMLElement>('[data-outline="target"]')];
+  const scans = () =>
+    outlines().map((ring) => [
+      ring.closest('[data-view]')?.getAttribute('data-view'),
+      ring.dataset.scan,
+      ring.textContent,
+    ]);
+  const cut = () => {
+    trainer.session.openGuard('cutoff');
+    trainer.session.set('cutoff', 'cut');
+  };
+
+  it('rings every open flow target at once with its scan number', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    expect(scans()).toEqual([
+      ['main', '1', '1'],
+      ['console', '2', '2'],
+    ]);
+    const cutoff = outlines().find((ring) => ring.dataset.scan === '1') ?? null;
+    expect(boxOf(cutoff)).toEqual(boxOf(placement('cutoff')));
+    expect(cutoff?.dataset.pulse).toBe('true');
+  });
+
+  it('clears a ring once its target holds, in any order', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    act(() => trainer.session.set('pump', 'on'));
+    expect(scans()).toEqual([['main', '1', '1']]);
+    act(() => cut());
+    expect(outlines()).toEqual([]);
+  });
+
+  it('rings only the current target once the flow is done', () => {
+    renderTrainer('en', combined);
+    start('scan', 'guided');
+    act(() => {
+      trainer.session.set('pump', 'on');
+      cut();
+      trainer.session.set('unplaced', 'on');
+    });
+    expect(trainer.session.checklist()?.current).toBe(3);
+    expect(outlines()).toHaveLength(1);
+    expect(outlines()[0]?.dataset.scan).toBeUndefined();
+    expect(boxOf(outlines()[0] ?? null)).toEqual(boxOf(placement('cutoff')));
+  });
+
+  it('stays on a tab that still holds an open flow target', () => {
+    renderTrainer();
+    start('scanBack', 'guided');
+    expect(selectedTab()).toBe('Main panel');
+    act(() => trainer.session.set('throttle', 1));
+    expect(selectedTab()).toBe('Main panel');
+    expect(scans()).toEqual([['main', '3', '3']]);
+
+    act(() => cut());
+    expect(selectedTab()).toBe('Centre console');
+  });
+
+  it('rings the whole flow in Practice after one Show me, while it lasts', () => {
+    renderTrainer('en', combined);
+    start('scan', 'practice');
+    expect(outlines()).toEqual([]);
+    act(() => trainer.showMe());
+    expect(scans()).toEqual([
+      ['main', '1', '1'],
+      ['console', '2', '2'],
+    ]);
+    expect(outlines()[0]?.dataset.pulse).toBe('once');
+
+    act(() => cut());
+    expect(scans()).toEqual([['console', '2', '2']]);
+    act(() => {
+      trainer.session.set('pump', 'on');
+      trainer.session.set('unplaced', 'on');
+    });
+    expect(outlines()).toEqual([]);
+  });
+});
+
 const dockedLayout: CockpitLayoutChoice = {
   ...combined,
   height: 700,
@@ -937,6 +1233,18 @@ describe('the device dock in the modes', () => {
     expect(dockRegion().getAttribute('data-dock')).toBe('empty');
     expect(document.querySelector('[data-outline]')).toBeNull();
     expect(document.querySelector('[data-target]')).toBeNull();
+  });
+
+  it('opens the device and rings its key for a Show me in Practice', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'practice');
+    toDeviceStep();
+    act(() => trainer.showMe());
+    expect(docked()).toBe('com');
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    const keys = [...(unit?.querySelectorAll('[data-target="true"]') ?? [])];
+    expect(keys.map((key) => key.textContent)).toEqual(['Radio page B']);
+    expect(boxOf(outline())).toEqual(boxOf(placement('com')));
   });
 
   it('docks the device of an activated slot in Free explore', async () => {

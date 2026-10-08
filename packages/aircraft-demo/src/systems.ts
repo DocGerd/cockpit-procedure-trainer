@@ -21,6 +21,8 @@ export type DemoState = {
   oilPsi: number;
   amps: number;
   engineHours: number;
+  /** How long the annunciator switch has been held at TEST with the bus powered. */
+  lampTestMs: number;
   /** Set by the phase entry; nothing turns the aircraft within a phase. */
   headingDeg: number;
 };
@@ -44,6 +46,7 @@ const AVIONICS_LOAD_AMPS = 6;
 const MS_PER_HOUR = 3_600_000;
 const LOW_VOLTS = 13;
 const LOW_OIL_PSI = 20;
+const LAMP_TEST_MS = 1000;
 
 export const initial: DemoState = {
   bus: bus.initial,
@@ -54,6 +57,7 @@ export const initial: DemoState = {
   oilPsi: 0,
   amps: 0,
   engineHours: 1204.3,
+  lampTestMs: 0,
   headingDeg: phaseHeadings.parking,
 };
 
@@ -106,10 +110,22 @@ export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
     amps: !nextBus.busPowered ? 0 : nextBus.charging ? CHARGE_AMPS : -load,
     headingDeg: state.headingDeg,
     engineHours: state.engineHours + (nextEngine.running ? dtMs / MS_PER_HOUR : 0),
+    lampTestMs:
+      controls.annunciator === 'test' && nextBus.busPowered
+        ? Math.min(state.lampTestMs + dtMs, LAMP_TEST_MS)
+        : 0,
   };
 };
 
 const lampTest = (state: DemoTrainerState) => state.controls.annunciator === 'test';
+
+export const carry: NonNullable<SystemsDefinition<DemoState, DemoFailure>['carry']> = (
+  carried,
+  entry,
+) => ({ ...carried, headingDeg: entry.headingDeg });
+
+export const lampTestDone = (state: DemoTrainerState) =>
+  state.controls.annunciator === 'test' && state.systems.lampTestMs >= LAMP_TEST_MS;
 
 export const lowVoltageLit = (state: DemoTrainerState) =>
   state.systems.bus.busPowered && (state.systems.bus.volts < LOW_VOLTS || lampTest(state));

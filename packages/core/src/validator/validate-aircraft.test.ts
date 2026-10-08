@@ -78,6 +78,13 @@ describe('validateAircraft', () => {
       only(aircraft, 'unknown-target', 'ghostSwitch');
     });
 
+    it('reports an interlock on an unknown control', () => {
+      const aircraft = withControl('ignition', {
+        interlock: [{ control: 'ghostValve', at: 'closed', holds: ['off'] }],
+      });
+      only(aircraft, 'unknown-target', 'ghostValve');
+    });
+
     it.each(['startPhase', 'endPhase'])('reports a procedure %s that does not exist', (field) => {
       const aircraft = broken({
         procedures: {
@@ -166,11 +173,6 @@ describe('validateAircraft', () => {
       expect(found[1]?.message).toContain('description');
     });
 
-    it('reports a phase name', () => {
-      const aircraft = withPhase('parking', { name: { de: 'Parkposition', en: '' } });
-      only(aircraft, 'missing-translation', 'parking');
-    });
-
     it('reports a procedure title and an item text', () => {
       const aircraft = broken({
         procedures: {
@@ -202,11 +204,38 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports an empty legend and a legend phrase without both languages', () => {
+      const aircraft = withControl('ignition', {
+        legends: {
+          off: ' ',
+          both: { state: { de: 'beide', en: '' }, restore: { de: '', en: 'Back to both' } },
+        },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.id)).toEqual(['ignition', 'ignition', 'ignition']);
+      expect(found.every((f) => f.message.includes('legend'))).toBe(true);
+    });
+
     it('reports an empty handbook revision', () => {
       const aircraft = broken({ handbookRevision: { de: '', en: 'rev 1' } });
       const found = ofCode(aircraft, 'missing-translation');
       expect(found.map((f) => f.id)).toEqual(['fixture']);
       expect(found[0]?.message).toContain('handbookRevision');
+    });
+  });
+
+  describe('the shared phase set', () => {
+    it('reports a shared phase the aircraft leaves out', () => {
+      const phases = Object.fromEntries(
+        Object.entries(fixtureAircraft.phases).filter(([id]) => id !== 'taxiOut'),
+      );
+      const finding = only(broken({ phases }), 'missing-phase', 'taxiOut');
+      expect(finding.message).toContain('shared phase');
+    });
+
+    it('reports a phase outside the shared set', () => {
+      const phases = { ...fixtureAircraft.phases, runup: fixtureAircraft.phases.holding };
+      only(broken({ phases }), 'unknown-phase', 'runup');
     });
   });
 
@@ -245,6 +274,29 @@ describe('validateAircraft', () => {
     it('reports an empty running image', () => {
       const aircraft = { ...withPhase('parking', { imageRunning: '' }), engineRunning };
       only(aircraft, 'phase-without-image', 'parking');
+    });
+  });
+
+  describe('outside cues', () => {
+    const cue = { name: { de: 'Rauch', en: 'Smoke' }, image: 'smoke.svg', shows: () => true };
+
+    it('accepts a cue with a name and an image', () => {
+      expect(validateAircraft(broken({ outsideCues: { smoke: cue } }))).toEqual([]);
+    });
+
+    it('reports a cue without an image', () => {
+      only(
+        broken({ outsideCues: { smoke: { ...cue, image: ' ' } } }),
+        'cue-without-image',
+        'smoke',
+      );
+    });
+
+    it('reports a cue name missing a language', () => {
+      const aircraft = broken({
+        outsideCues: { smoke: { ...cue, name: { de: '', en: 'Smoke' } } },
+      });
+      expect(only(aircraft, 'missing-translation', 'smoke').message).toContain('name');
     });
   });
 
@@ -346,6 +398,54 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports a legend for a position the control lacks', () => {
+      only(withControl('ignition', { legends: { half: 'H' } }), 'unknown-position', 'ignition');
+    });
+
+    it('reports an interlock on the control itself', () => {
+      const aircraft = withControl('ignition', {
+        interlock: [{ control: 'ignition', at: 'off', holds: ['off'] }],
+      });
+      only(aircraft, 'unknown-target', 'ignition');
+    });
+
+    it('accepts an interlock on known positions', () => {
+      const aircraft = withControl('ignition', {
+        interlock: [{ control: 'master', at: 'off', holds: ['off'] }],
+      });
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports an interlock position the other control does not have', () => {
+      const finding = only(
+        withControl('ignition', { interlock: [{ control: 'master', at: 'half', holds: ['off'] }] }),
+        'unknown-position',
+        'master',
+      );
+      expect(finding.message).toContain('interlock of ignition');
+    });
+
+    it('reports a position of a later interlock the control does not have', () => {
+      only(
+        withControl('ignition', {
+          interlock: [
+            { control: 'master', at: 'off', holds: ['off'] },
+            { control: 'master', at: 'on', holds: ['off', 'half'] },
+          ],
+        }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
+    it('reports an interlock holding a position the control does not have', () => {
+      only(
+        withControl('ignition', { interlock: [{ control: 'master', at: 'off', holds: ['half'] }] }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
     it('reports an artwork image key', () => {
       const aircraft = withControl('master', {
         appearance: {
@@ -356,6 +456,168 @@ describe('validateAircraft', () => {
         },
       });
       only(aircraft, 'unknown-position', 'master');
+    });
+  });
+
+  describe('invalid-check-response', () => {
+    const check = (tolerance: number) =>
+      withItems('beforeStart', [
+        {
+          type: 'check',
+          target: { indicator: 'rpm' },
+          condition: () => true,
+          response: { reading: () => 0, tolerance },
+          text,
+        },
+      ]);
+
+    it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+      'reports the tolerance %s, naming procedure and item',
+      (tolerance) => {
+        const finding = only(check(tolerance), 'invalid-check-response', 'rpm');
+        expect(finding.message).toContain('procedure beforeStart item 0');
+      },
+    );
+
+    it.each([0, 50])('accepts the tolerance %s', (tolerance) => {
+      expect(ofCode(check(tolerance), 'invalid-check-response')).toEqual([]);
+    });
+  });
+
+  describe('invalid-flow', () => {
+    const flowAction = { type: 'action', flow: true, control: 'master', position: 'on', text };
+
+    it('accepts a flow of actions at the start of a normal procedure', () => {
+      const aircraft = withItems('beforeStart', [
+        flowAction,
+        { ...flowAction, control: 'fuelPump' },
+        ...beforeStartItems,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports a flow on an emergency procedure', () => {
+      const items = fixtureAircraft.procedures.alternatorFailure?.items ?? [];
+      const finding = only(
+        withItems('alternatorFailure', [flowAction, ...items]),
+        'invalid-flow',
+        'alternatorFailure',
+      );
+      expect(finding.message).toContain('procedure alternatorFailure item 0');
+      expect(finding.message).toContain('normal');
+    });
+
+    it('reports a check in a flow', () => {
+      const check = {
+        type: 'check',
+        flow: true,
+        target: { indicator: 'rpm' },
+        condition: () => true,
+        text,
+      };
+      const finding = only(
+        withItems('beforeStart', [flowAction, check, ...beforeStartItems]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 1');
+      expect(finding.message).toContain('action');
+    });
+
+    it('reports a flow item after a checklist item', () => {
+      const finding = only(
+        withItems('beforeStart', [...beforeStartItems, flowAction]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain(`procedure beforeStart item ${beforeStartItems.length}`);
+      expect(finding.message).toContain('start');
+    });
+
+    it('reports a flow item whose control no later item verifies', () => {
+      const finding = only(
+        withItems('beforeStart', [
+          { ...flowAction, control: 'flaps', position: 'up' },
+          ...beforeStartItems,
+        ]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('verifies');
+    });
+
+    it('reports a flow item verified only by a later action at another position', () => {
+      const finding = only(
+        withItems('beforeStart', [
+          { ...flowAction, control: 'throttle', position: 0 },
+          ...beforeStartItems,
+          { type: 'action', control: 'throttle', position: 1, text },
+        ]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('verifies');
+    });
+
+    it('accepts a flow item verified by a later action at its position', () => {
+      const aircraft = withItems('beforeStart', [
+        { ...flowAction, control: 'throttle', position: 0 },
+        ...beforeStartItems,
+        { type: 'action', control: 'throttle', position: 0, text },
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('accepts a flow item verified by a later check on its control', () => {
+      const check = {
+        type: 'check',
+        target: { control: 'flaps' },
+        condition: () => true,
+        text,
+      };
+      const aircraft = withItems('beforeStart', [
+        { ...flowAction, control: 'flaps', position: 'up' },
+        ...beforeStartItems,
+        check,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+  });
+
+  describe('invalid-memory', () => {
+    const alternatorItems = fixtureAircraft.procedures.alternatorFailure?.items ?? [];
+    const recall = { type: 'confirm', memory: true, text };
+
+    it('accepts memory items of any kind leading an emergency procedure', () => {
+      const [first, ...rest] = alternatorItems;
+      const aircraft = withItems('alternatorFailure', [
+        recall,
+        { ...first, memory: true },
+        ...rest,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports a memory item on a normal procedure', () => {
+      const finding = only(
+        withItems('beforeStart', [recall, ...beforeStartItems]),
+        'invalid-memory',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+    });
+
+    it('reports a memory item after an item that is not one', () => {
+      const finding = only(
+        withItems('alternatorFailure', [...alternatorItems, recall]),
+        'invalid-memory',
+        'alternatorFailure',
+      );
+      expect(finding.message).toContain(
+        `procedure alternatorFailure item ${alternatorItems.length}`,
+      );
     });
   });
 

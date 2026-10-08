@@ -2,8 +2,11 @@ export const images = {
   panel: new URL('./assets/view-panel.svg', import.meta.url).href,
   centre: new URL('./assets/view-centre.svg', import.meta.url).href,
   console: new URL('./assets/view-console.svg', import.meta.url).href,
+  bulkhead: new URL('./assets/view-bulkhead.svg', import.meta.url).href,
   parking: new URL('./assets/phase-parking.svg', import.meta.url).href,
   parkingRunning: new URL('./assets/phase-parking-running.svg', import.meta.url).href,
+  taxiOut: new URL('./assets/phase-taxi-out.svg', import.meta.url).href,
+  taxiOutRunning: new URL('./assets/phase-taxi-out-running.svg', import.meta.url).href,
   holding: new URL('./assets/phase-holding.svg', import.meta.url).href,
   holdingRunning: new URL('./assets/phase-holding-running.svg', import.meta.url).href,
   linedUp: new URL('./assets/phase-lined-up.svg', import.meta.url).href,
@@ -21,4 +24,5 @@ export const images = {
   parkingSecuring: new URL('./assets/phase-parking-securing.svg', import.meta.url).href,
   parkingSecuringRunning: new URL('./assets/phase-parking-securing-running.svg', import.meta.url)
     .href,
+  engineSmoke: new URL('./assets/cue-engine-smoke.svg', import.meta.url).href,
 } as const;
