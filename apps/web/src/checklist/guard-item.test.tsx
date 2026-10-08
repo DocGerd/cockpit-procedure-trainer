@@ -27,11 +27,19 @@ const wrapper = ({ children }: { children: ReactNode }) => (
   </TrainerProvider>
 );
 
-const start = () =>
+const start = (procedure = 'pin') =>
   act(() => {
     trainer.setMode('guided');
-    trainer.startProcedure('pin');
+    trainer.startProcedure(procedure);
   });
+
+const renderPane = () =>
+  renderWithLanguage(
+    <TrainerProvider>
+      <Probe />
+      <ChecklistPane />
+    </TrainerProvider>,
+  );
 
 beforeEach(() => {
   localStorage.clear();
@@ -52,19 +60,22 @@ describe('a guard item', () => {
   });
 
   it('offers Verified, which records the guard left elsewhere as a wrong position', async () => {
-    renderWithLanguage(
-      <TrainerProvider>
-        <Probe />
-        <ChecklistPane />
-      </TrainerProvider>,
-    );
+    renderPane();
     start();
     expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
-    expect(screen.getByText(/verify it if it is already set/)).toBeTruthy();
+    expect(
+      screen.getByText(/Remove the safety pin, or verify it if it is already set/),
+    ).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     expect(trainer.session.checklist()?.deviations).toEqual([
       expect.objectContaining({ kind: 'wrong-position', controlId: 'rescue', position: 'closed' }),
     ]);
+  });
+
+  it('asks to open the guard when the guard declares no words of its own', () => {
+    renderPane();
+    start('cover');
+    expect(screen.getByText(/Open its guard, or verify it if it is already set/)).toBeTruthy();
   });
 
   it('counts as a use of its control in the control details', () => {

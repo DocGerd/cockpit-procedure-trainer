@@ -27,10 +27,13 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     const found = checklist?.procedure.items[deviation.itemIndex];
     return deviation.kind === 'wrong-position' && found?.type === 'guard' ? found : undefined;
   };
-  const guardName = (at: ControlPosition | undefined): Named | undefined =>
-    at === undefined
-      ? undefined
-      : { name: at === 'open' ? text.guardOpen : text.guardClosed, phrase: true };
+  const guardName = (deviation: Deviation, at: ControlPosition | undefined): Named | undefined => {
+    if (at !== 'open' && at !== 'closed') return undefined;
+    const found = definition(deviation.controlId);
+    const legend = found?.kind === 'guarded' ? found.guard.legends?.[at] : undefined;
+    const fallback = at === 'open' ? text.guardOpen : text.guardClosed;
+    return { name: legend ? localize(legend.state) : fallback, phrase: true };
+  };
   const control = (deviation: Deviation) => {
     const found = definition(deviation.controlId);
     if (found?.kind === 'guarded' && guardItem(deviation)) return localize(found.guard.name);
@@ -58,7 +61,7 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     named.phrase ? phraseTemplate : legendTemplate;
   const position = (deviation: Deviation) =>
     guardItem(deviation)
-      ? guardName(deviation.position)
+      ? guardName(deviation, deviation.position)
       : positionName(deviation.controlId, deviation.position);
   const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);
   // A spring-back control is already back by the time the pilot reads this: name the press.
@@ -71,7 +74,7 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
   };
   const target = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];
-    if (found?.type === 'guard') return guardName(found.position);
+    if (found?.type === 'guard') return guardName(deviation, found.position);
     return found?.type === 'action' ? positionName(deviation.controlId, found.position) : undefined;
   };
 

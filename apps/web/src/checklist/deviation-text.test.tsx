@@ -48,6 +48,20 @@ const aircraft: Aircraft = {
       initial: 'stowed',
       guard: { name: { de: 'Sicherungsstift', en: 'Safety pin' } },
     },
+    pinned: {
+      kind: 'guarded',
+      name: { de: 'Griff', en: 'Handle' },
+      description: { de: 'Griff', en: 'Handle' },
+      positions: ['stowed', 'pulled'],
+      initial: 'stowed',
+      guard: {
+        name: { de: 'Stift', en: 'Pin' },
+        legends: {
+          open: { state: { de: 'gezogen', en: 'removed' }, act: { de: 'ziehen', en: 'Remove' } },
+          closed: { state: { de: 'gesteckt', en: 'in' }, act: { de: 'stecken', en: 'Fit' } },
+        },
+      },
+    },
   },
   procedures: {
     flow: {
@@ -59,6 +73,12 @@ const aircraft: Aircraft = {
         {
           type: 'guard',
           control: 'rescue',
+          position: 'open',
+          text: { de: 'Stift ziehen', en: 'Pin out' },
+        },
+        {
+          type: 'guard',
+          control: 'pinned',
           position: 'open',
           text: { de: 'Stift ziehen', en: 'Pin out' },
         },
@@ -325,6 +345,18 @@ describe('deviation text for each kind', () => {
     expect(de.title(left)).toBe('Sicherungsstift in falscher Stellung gelassen: geschlossen');
     expect(de.expected(left)).toBe('Sicherungsstift: offen');
     expect(en.title({ ...unexpected('rescue'), itemIndex: 1 })).toContain('Rescue system');
+  });
+
+  it("names a guard's position in the guard's own words when it declares them", () => {
+    const left: Deviation = {
+      kind: 'wrong-position',
+      itemIndex: 2,
+      controlId: 'pinned',
+      position: 'closed',
+    };
+    expect(describeIn('en').title(left)).toBe('Pin left in a wrong position: in');
+    expect(describeIn('en').expected(left)).toBe('Pin: removed');
+    expect(describeIn('de').title(left)).toBe('Stift in falscher Stellung gelassen: gesteckt');
   });
 
   it('names a late memory item by its item in both languages', () => {

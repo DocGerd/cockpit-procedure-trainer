@@ -35,6 +35,8 @@ export const messages = defineMessages({
     confirm: 'Confirm',
     guardOpen: 'open',
     guardClosed: 'closed',
+    gestureGuardOpen: 'Open its guard',
+    gestureGuardClosed: 'Close its guard',
     restart: 'Restart',
     restartTitle: 'Restart the procedure?',
     restartBody: 'Restarting returns the cockpit to the start phase and begins at the first item.',
@@ -176,6 +178,8 @@ export const messages = defineMessages({
     confirm: 'Bestätigen',
     guardOpen: 'offen',
     guardClosed: 'geschlossen',
+    gestureGuardOpen: 'Schutz öffnen',
+    gestureGuardClosed: 'Schutz schließen',
     restart: 'Neu starten',
     restartTitle: 'Verfahren neu starten?',
     restartBody:

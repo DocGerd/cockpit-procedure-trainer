@@ -1,7 +1,7 @@
 import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Text } from '@cpt/core';
 
-// Test-only fixture: one guarded control and a procedure of one guard item.
+// Test-only fixture: a guard with its own words and one without, each with a one-item procedure.
 
 const text = (en: string): Text => ({ de: `${en} (de)`, en });
 
@@ -14,9 +14,23 @@ export const pinned: Aircraft = defineAircraft({
       kind: 'guarded',
       positions: ['stowed', 'pulled'],
       initial: 'stowed',
-      guard: { name: text('Safety pin') },
+      guard: {
+        name: text('Safety pin'),
+        legends: {
+          open: { state: text('removed'), act: text('Remove the safety pin') },
+          closed: { state: text('in'), act: text('Fit the safety pin') },
+        },
+      },
       name: text('Rescue'),
       description: text('Rescue handle'),
+    },
+    cutoff: {
+      kind: 'guarded',
+      positions: ['open', 'shut'],
+      initial: 'open',
+      guard: { name: text('Cover') },
+      name: text('Cutoff'),
+      description: text('Fuel cutoff'),
     },
   },
   indicators: {},
@@ -26,7 +40,7 @@ export const pinned: Aircraft = defineAircraft({
   phases: everyPhase({
     image: 'ground.svg',
     environment: { airspeedKt: 0, altitudeFt: 0, onGround: true },
-    entry: { controls: { rescue: 'stowed' }, state: {} },
+    entry: { controls: { rescue: 'stowed', cutoff: 'open' }, state: {} },
   }),
   procedures: {
     pin: {
@@ -34,6 +48,12 @@ export const pinned: Aircraft = defineAircraft({
       type: 'normal',
       startPhase: 'parking',
       items: [{ type: 'guard', control: 'rescue', position: 'open', text: text('Pin out') }],
+    },
+    cover: {
+      title: text('Cover'),
+      type: 'normal',
+      startPhase: 'parking',
+      items: [{ type: 'guard', control: 'cutoff', position: 'open', text: text('Cover open') }],
     },
   },
 });

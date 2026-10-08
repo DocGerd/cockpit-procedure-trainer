@@ -248,7 +248,10 @@ of:
   such as a safety pin pulled before take-off. It completes like an action: when
   the pilot moves the guard to the position while the item is current, or ticks it
   verified. Moving a guard is never a deviation, and a guard item cannot be in a
-  flow. The CTSL pulls its rescue safety pin this way.
+  flow. The CTSL pulls its rescue safety pin this way. The item's hint and a guard
+  left wrong use the guard's own words when it declares
+  `guard.legends: { open, closed }`, each `{ state, act }` ("removed", "Remove the
+  safety pin"); without them they say open and closed.
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.

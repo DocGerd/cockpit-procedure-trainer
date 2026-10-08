@@ -239,6 +239,24 @@ describe('validateAircraft', () => {
       expect(found.every((f) => f.message.includes('legend'))).toBe(true);
     });
 
+    it('reports a guard legend without both languages', () => {
+      const pin = { de: 'Stift', en: 'Pin' };
+      const aircraft = withControl('fuelPump', {
+        guard: {
+          name: pin,
+          legends: {
+            open: { state: { de: 'gezogen', en: '' }, act: pin },
+            closed: { state: pin, act: { de: '', en: 'Fit the pin' } },
+          },
+        },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.message)).toEqual([
+        expect.stringContaining('guard legend of open'),
+        expect.stringContaining('guard act of closed'),
+      ]);
+    });
+
     it('reports an empty handbook revision', () => {
       const aircraft = broken({ handbookRevision: { de: '', en: 'rev 1' } });
       const found = ofCode(aircraft, 'missing-translation');

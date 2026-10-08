@@ -5,6 +5,7 @@ import type {
   ControlDefinition,
   ControlPosition,
   Device,
+  GuardedControl,
   Rect,
   Text,
   ViewSize,
@@ -183,6 +184,16 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const checkGuardText = (id: string, guard: GuardedControl['guard']) => {
+    checkText(id, 'guard name', guard.name);
+    for (const position of ['open', 'closed'] as const) {
+      const legend = guard.legends?.[position];
+      if (!legend) continue;
+      checkText(id, `guard legend of ${position}`, legend.state);
+      checkText(id, `guard act of ${position}`, legend.act);
+    }
+  };
+
   const checkGuardTarget = (id: string, where: string, position: unknown) => {
     if (!hasControl(id) || aircraft.controls[id]?.kind !== 'guarded') {
       add('unknown-target', id, `${where} guards a control without a guard`);
@@ -214,7 +225,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   for (const [id, control] of controls) {
     checkText(id, 'name', control.name);
     checkText(id, 'description', control.description);
-    if (control.kind === 'guarded') checkText(id, 'guard name', control.guard.name);
+    if (control.kind === 'guarded') checkGuardText(id, control.guard);
 
     if (control.kind === 'breaker' && JSON.stringify(control.positions) !== '["in","pulled"]') {
       add(
@@ -427,9 +438,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       for (const [controlId, control] of Object.entries(device.controls)) {
         checkText(`${device.id}.${controlId}`, 'name', control.name);
         checkText(`${device.id}.${controlId}`, 'description', control.description);
-        if (control.kind === 'guarded') {
-          checkText(`${device.id}.${controlId}`, 'guard name', control.guard.name);
-        }
+        if (control.kind === 'guarded') checkGuardText(`${device.id}.${controlId}`, control.guard);
       }
     }
     if (!device) {

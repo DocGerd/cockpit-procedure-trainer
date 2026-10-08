@@ -290,7 +290,19 @@ export const controls = {
         restore: text('Wieder ziehen', 'Pull it again'),
       },
     },
-    guard: { name: text('Sicherungsstift', 'Safety pin') },
+    guard: {
+      name: text('Sicherungsstift', 'Safety pin'),
+      legends: {
+        open: {
+          state: text('gezogen', 'removed'),
+          act: text('Sicherungsstift ziehen', 'Remove the safety pin'),
+        },
+        closed: {
+          state: text('gesteckt', 'in'),
+          act: text('Sicherungsstift stecken', 'Fit the safety pin'),
+        },
+      },
+    },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(
       'Griff des ballistischen Rettungssystems. Am Boden mit dem Sicherungsstift gesichert; zum Auslösen kräftig und weit ziehen.',

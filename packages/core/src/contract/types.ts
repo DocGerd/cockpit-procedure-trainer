@@ -8,6 +8,9 @@ export type Text = { readonly de: string; readonly en: string };
  */
 export type PositionPhrase = { readonly state: Text; readonly restore: Text };
 
+/** A guard position in the guard's own words: `state` ("removed"), `act` the imperative to reach it ("Remove the safety pin"). */
+export type GuardPhrase = { readonly state: Text; readonly act: Text };
+
 export type JsonValue =
   string | number | boolean | null | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
@@ -116,7 +119,10 @@ export type GuardedControl = ControlBase & {
   readonly kind: 'guarded';
   readonly positions: readonly string[];
   readonly initial: string;
-  readonly guard: { readonly name: Text };
+  readonly guard: {
+    readonly name: Text;
+    readonly legends?: { readonly open: GuardPhrase; readonly closed: GuardPhrase };
+  };
 };
 
 export type BreakerControl = ControlBase & {
