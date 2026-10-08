@@ -232,9 +232,13 @@ export function observeControl<S>(
     moved && !(flowing ? flowTargets(checklist.procedure, change.id) : targets(item, change.id));
   const onTarget = item.type === 'action' && item.control === change.id;
   const touching = moved && !flowing && onTarget;
-  // A spring-back released early, such as a starter cranked in bursts, rests where it left
-  // nothing behind; a later pilot move of the target counts again.
-  const releasing = change.source === 'spring' && change.kind === 'position' && onTarget;
+  // A target held at its spring-back position and released early, such as a starter cranked in
+  // bursts, is not done yet rather than left wrong; a later pilot move of the target counts again.
+  const releasing =
+    change.source === 'spring' &&
+    change.kind === 'position' &&
+    onTarget &&
+    change.from === item.position;
   const operating = touching && item.position === change.to;
   const operated = checklist.operated || operating;
   const touched = (checklist.touched || touching) && !releasing;
