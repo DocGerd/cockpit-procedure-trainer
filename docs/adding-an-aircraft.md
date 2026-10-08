@@ -287,7 +287,7 @@ each:
   optional `stateLabels: { lit, dark }`.
 - `digital-readout`: `units` and `decimals`.
 
-**Aircraft artwork**, `{ artwork: { face, moving, glass? } }`, for image files
+**Aircraft artwork**, `{ artwork: { face, moving, glass?, guardOpen? } }`, for image files
 shipped in the package. `face` is the static image URL and `moving` is one of:
 
 - `needle`: `{ type: 'needle', image, pivot, angleRange, valueRange }`. Draw the
@@ -317,6 +317,13 @@ options: { needleShadow: true },
 With `options.needleShadow: true` on a needle, the renderer casts the needle image's
 shadow down and to the right, away from the panel's light, outside the rotation, so it
 never turns toward the light; the needle image then draws no shadow of its own.
+
+`guardOpen` is an optional `{ [position]: image }` map, for a `guarded` control only, at
+the size of the face. While the guard is open, the renderer draws that image instead of
+the position's own, so a part that goes with the guard, such as the CTSL rescue handle's
+safety pin, is drawn only while it is in. A position without an entry keeps its own
+image. `checkAppearance` reports `guardOpen` on a control that is not guarded and a key
+that is not one of the control's positions.
 
 An artwork control whose box reaches over a neighbour can confine its touch target per
 position with `options.hitArea`, a `{ left, top, width, height }` box in fractions of

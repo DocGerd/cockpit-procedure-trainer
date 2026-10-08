@@ -13,6 +13,8 @@ export type Size = { width: number; height: number };
 type StageProps = {
   artwork: Artwork;
   value: LayerValue;
+  /** Whether the control's guard is open, which swaps in the artwork's open-guard image. */
+  guardOpen?: boolean | undefined;
   notches?: readonly string[] | undefined;
   fallback: ReactNode;
   options?: JsonObject | undefined;
@@ -70,6 +72,7 @@ function shadowOffset({ width, height }: Size): string {
 export function ArtworkStage({
   artwork,
   value,
+  guardOpen,
   notches,
   fallback,
   options,
@@ -81,7 +84,7 @@ export function ArtworkStage({
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
   const maskId = `pk-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const { face, moving, glass } = artwork;
-  const source = movingSource(moving, value);
+  const source = (guardOpen && artwork.guardOpen?.[String(value)]) || movingSource(moving, value);
   if (
     source === undefined ||
     failed.has(face) ||

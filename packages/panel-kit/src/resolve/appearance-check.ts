@@ -65,6 +65,19 @@ function checkControl(id: string, control: ControlDefinition): AppearanceFinding
   if (!appearance) return undefined;
   const finding = (message: string): AppearanceFinding => ({ subject: 'control', id, message });
   if (!('widget' in appearance)) {
+    const openImages = appearance.artwork.guardOpen;
+    if (openImages !== undefined) {
+      if (control.kind !== 'guarded') {
+        return finding(`open-guard images need a guarded control, not a ${control.kind} one`);
+      }
+      const owned: readonly unknown[] = control.positions;
+      const stray = Object.keys(openImages).filter((position) => !owned.includes(position));
+      if (stray.length > 0) {
+        return finding(
+          `the open-guard images name positions the control does not have: ${list(stray)}`,
+        );
+      }
+    }
     const areas = readHitAreas(appearance.options);
     if (areas === null) {
       return finding(`the hitArea option is invalid: ${JSON.stringify(appearance.options)}`);
