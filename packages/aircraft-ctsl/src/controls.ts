@@ -256,7 +256,15 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'neutral', 'nose-up'],
     initial: 'neutral',
-    legends: { 'nose-down': 'NOSE DN', 'nose-up': 'NOSE UP' },
+    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for.
+    legends: {
+      'nose-down': 'DOWN',
+      'nose-up': 'UP',
+      neutral: {
+        state: text('neutral', 'neutral'),
+        restore: text('Wieder neutral trimmen', 'Set the trim neutral again'),
+      },
+    },
     name: text('Trimmrad', 'Trim wheel'),
     description: text(
       'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',

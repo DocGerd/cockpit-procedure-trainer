@@ -179,8 +179,11 @@ What the trainer draws today, and where it departs from the above:
   continuous; the trainer keeps it stepped, with three unprinted trainer stops
   between the ends (low, run-up and cruise power) that drive the rpm model and the
   procedures. Cues name those stops in words, not as printed legends.
-- The trim prints TRIM, NOSE DN, NEUTRAL and NOSE UP; the aircraft prints DOWN and
-  UP.
+- The trim placard prints DOWN at the forward end and UP at the aft end, with no
+  neutral mark, as the aircraft does (#532). Its title TRIM is assumed
+  (unverified): the handbook check gives the end legends, not the title. The
+  trainer keeps neutral as a trim position because the take-off placard asks for
+  neutral trim (HB 7-20); cues name it in words, not as a printed legend.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - A provisional carb-heat pull knob stands where the figure shows the large knob.
@@ -699,6 +702,9 @@ verifies it on D-MPGO.
     Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
     low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
     (unverified).
+    Trim legends (#532): the placard prints DOWN forward and UP aft, with no
+    neutral mark; the trainer's neutral position is unprinted. The TRIM title is
+    assumed (unverified).
 26. **Rescue handle on the bulkhead**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Today: a T-grip in a holder centred on the bulkhead between
