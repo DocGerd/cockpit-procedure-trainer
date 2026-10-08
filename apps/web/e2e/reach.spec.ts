@@ -1,4 +1,5 @@
-import type { Locator } from '@playwright/test';
+import { ctslAircraft } from '@cpt/aircraft-ctsl';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { priorityViewports } from './layout-probe';
@@ -56,3 +57,42 @@ for (const aircraft of aircraftRegistry) {
     });
   }
 }
+
+/** The placement whose widget answers a tap at a fraction of another placement's box. */
+async function ownerAt(page: Page, placement: string, x: number, y: number) {
+  return page.evaluate(
+    ([id, fx, fy]) => {
+      const rect = document.querySelector(`[data-placement="${id}"]`)?.getBoundingClientRect();
+      if (!rect) return null;
+      const hit = document.elementFromPoint(
+        rect.left + rect.width * Number(fx),
+        rect.top + rect.height * Number(fy),
+      );
+      return hit?.closest('[data-placement]')?.getAttribute('data-placement') ?? null;
+    },
+    [placement, x, y] as const,
+  );
+}
+
+test('the CTSL fuel valve covers the key slot only while closed and always owns its own slot', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await openAircraft(page, ctslAircraft, 'engineStart');
+  await showView(page, ctslAircraft, 'centre', 'en');
+  const valve = page.locator('[data-placement="fuelValve"] button');
+  const keyPoints = [0.2, 0.5, 0.8].flatMap((x) => [0.15, 0.5, 0.85].map((y) => [x, y] as const));
+
+  await expect(valve).toHaveAttribute('aria-label', /: closed$/i);
+  expect(await ownerAt(page, 'fuelValve', 0.5, 0.2)).toBe('fuelValve');
+  expect(await ownerAt(page, 'ignition', 0.5, 0.15)).toBe('fuelValve');
+
+  const slot = await page.locator('[data-placement="fuelValve"]').boundingBox();
+  if (!slot) throw new Error('the fuel valve is not on screen');
+  await page.mouse.click(slot.x + slot.width * 0.5, slot.y + slot.height * 0.2);
+  await expect(valve).toHaveAttribute('aria-label', /: open$/i);
+  expect(await ownerAt(page, 'fuelValve', 0.5, 0.2)).toBe('fuelValve');
+  for (const [x, y] of keyPoints) {
+    expect(await ownerAt(page, 'ignition', x, y), `key at ${x} ${y}`).toBe('ignition');
+  }
+});
