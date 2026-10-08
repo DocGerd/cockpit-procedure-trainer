@@ -66,7 +66,8 @@ export function ChecklistAnnouncer({
       const item = procedure.items[current];
       if (previous.flowing) parts.push(text.announceFlowDone);
       if (item) {
-        const withheld = mode === 'practice' && recall && !assisted.includes(current);
+        const withheld =
+          mode === 'practice' && (recall || item.memory === true) && !assisted.includes(current);
         parts.push(
           withheld
             ? format(text.announceItemWithheld, { n: current + 1, total: procedure.items.length })

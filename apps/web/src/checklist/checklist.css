@@ -458,7 +458,8 @@
 }
 
 .checklist-deviations,
-.checklist-assisted {
+.checklist-assisted,
+.checklist-flight {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -481,6 +482,56 @@
   list-style: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+
+.checklist-flight-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+/* Four columns share the narrow pane, so cells pad only between them and long names wrap. */
+.checklist-flight-table th,
+.checklist-flight-table td {
+  padding: var(--space-2) var(--space-1);
+  text-align: right;
+  border-top: 1px solid var(--color-divider);
+}
+
+.checklist-flight-table th:first-child {
+  padding-inline-start: var(--space-2);
+  text-align: left;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.checklist-flight-table :is(th, td):last-child {
+  padding-inline-end: var(--space-2);
+}
+
+.checklist-flight-table thead th {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.checklist-flight-table td {
+  font-family: var(--font-mono);
+}
+
+.checklist-flight-table tbody th {
+  font-weight: var(--weight-regular);
+}
+
+.checklist-flight-table tfoot {
+  font-weight: var(--weight-semibold);
+}
+
+.checklist-flight-table td[data-deviated='true'] {
+  color: var(--color-warning);
 }
 
 .checklist-deviation,

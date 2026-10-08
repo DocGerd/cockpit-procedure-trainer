@@ -79,6 +79,31 @@ describe('outside view', () => {
     expect(image().getAttribute('src')).toBe('landed.svg');
   });
 
+  it('lays a cue over the view exactly while its condition holds', () => {
+    renderStrip();
+    const cue = () => within(screen.getByRole('region')).queryByRole('img', { name: 'Smoke' });
+    expect(cue()).toBeNull();
+    act(() => {
+      trainer.session.set('fire', 'on');
+    });
+    expect(cue()?.getAttribute('src')).toBe('smoke.svg');
+    expect(cue()?.classList.contains('outside-view-cue')).toBe(true);
+    act(() => {
+      trainer.session.set('fire', 'off');
+    });
+    expect(cue()).toBeNull();
+  });
+
+  it('localizes the name of a cue', () => {
+    renderStrip('de');
+    act(() => {
+      trainer.session.set('fire', 'on');
+    });
+    expect(
+      within(screen.getByRole('region')).getByRole('img', { name: 'Smoke (de)' }),
+    ).toBeTruthy();
+  });
+
   it('follows a procedure into its end phase', () => {
     renderStrip();
     act(() => trainer.startProcedure('startUp'));

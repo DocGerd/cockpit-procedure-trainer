@@ -7,8 +7,9 @@ import type {
   TrainerState,
 } from '../contract';
 
+/** `late-memory-item`: a memory item done only after the pilot did something else while it was due. */
 export type DeviationKind =
-  'unexpected-control' | 'out-of-order' | 'wrong-position' | 'unmet-check';
+  'unexpected-control' | 'out-of-order' | 'wrong-position' | 'unmet-check' | 'late-memory-item';
 
 export type Deviation = {
   readonly kind: DeviationKind;
@@ -97,12 +98,27 @@ function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>
   );
 }
 
+// A stray move recorded against a memory item means the pilot did something else while it was due.
+function doneLate<S>(checklist: ChecklistState<S>, index: number): boolean {
+  return (
+    checklist.procedure.items[index]?.memory === true &&
+    checklist.deviations.some(
+      (deviation) =>
+        deviation.itemIndex === index &&
+        (deviation.kind === 'unexpected-control' || deviation.kind === 'out-of-order'),
+    )
+  );
+}
+
 function complete<S>(checklist: ChecklistState<S>, index = checklist.current): ChecklistState<S> {
   const completed = [...checklist.completed, index];
   const { length } = checklist.procedure.items;
   const open = checklist.procedure.items.findIndex((_, at) => !completed.includes(at));
   return {
     ...checklist,
+    ...(doneLate(checklist, index) && {
+      deviations: [...checklist.deviations, { kind: 'late-memory-item', itemIndex: index }],
+    }),
     current: open === -1 ? length : open,
     completed,
     operated: false,

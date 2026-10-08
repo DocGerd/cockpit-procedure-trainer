@@ -8,8 +8,9 @@ import { ConfirmDialog } from '../ui';
 import './checklist.css';
 import { ChecklistSelector } from './ChecklistSelector';
 import { DeviationSummary } from './DeviationSummary';
+import { FlightLeg } from './FlightLeg';
 import { useDeviationText } from './deviation-text';
-import { ItemGroup } from './ItemGroup';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
@@ -242,6 +243,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const [confirming, setConfirming] = useState(false);
   const atRisk = useProgressAtRisk() !== undefined;
   const restart = () => trainer.restart();
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
 
   function row(item: ProcedureItem<unknown>, index: number) {
     const shown = trainer.assisted.includes(index);
@@ -252,6 +254,9 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         : itemState(checklist, index, guided);
     // Upcoming items are not drawn at all, so their text is nowhere in the page.
     if (recalling && state === 'pending') return null;
+    // Practice drills a memory item from recall: its text waits until it is done.
+    const recalled =
+      mode === 'practice' && item.memory === true && !checklist.completed.includes(index);
     return (
       <ItemRow
         key={index}
@@ -266,12 +271,16 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         withheld={
           flowRow
             ? mode === 'practice' && flowing && !flowShown
-            : recalling && !shown && state === 'current'
+            : !shown && ((recalling && state === 'current') || recalled)
         }
         shown={shown}
       />
     );
   }
+
+  const rows = procedure.items.map(row);
+  // Memory items open an abnormal procedure and a flow a normal one, so at most one group leads.
+  const leading = memoryCount > 0 ? memoryCount : flowItems;
 
   // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
@@ -297,6 +306,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
     <div className="checklist">
       <div className="checklist-header">
         <ProcedureKind type={procedure.type} />
+        <FlightLeg />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         <div className="checklist-progress">
           <progress
@@ -312,7 +322,12 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
       </div>
 
       <ol ref={list} className="checklist-items">
-        {flowItems > 0 && (
+        {memoryCount > 0 && (
+          <ItemGroup kind="memory" label={text.memoryItems}>
+            {rows.slice(0, memoryCount)}
+          </ItemGroup>
+        )}
+        {memoryCount === 0 && flowItems > 0 && (
           <ItemGroup
             kind="flow"
             label={text.flowHeading}
@@ -340,10 +355,10 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
               )
             }
           >
-            {procedure.items.slice(0, flowItems).map(row)}
+            {rows.slice(0, flowItems)}
           </ItemGroup>
         )}
-        {procedure.items.map((item, index) => (index < flowItems ? null : row(item, index)))}
+        {rows.slice(leading)}
       </ol>
 
       {guided && <DeviationBanner checklist={checklist} reserve />}

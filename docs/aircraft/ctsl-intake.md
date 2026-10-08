@@ -109,7 +109,8 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 ### 3.4 Centre console (view `console`)
 
 - Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
-  hydraulic brake lever, Bremshebel), **THROTTLE** (idle/full, Gashebel),
+  hydraulic brake lever, Bremshebel; non-locking: it brakes only while held and
+  springs back when released, owner ruling #465), **THROTTLE** (idle/full, Gashebel),
   **CHOKE** (off/on). The trainer draws the console as the left seat sees its
   flank, so forward is to the left: the throttle pushes left to full, and the
   brake and choke pull right, toward the pilot, to on (§9, question 25).
@@ -117,8 +118,9 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   nose down. The trainer draws the wheel's rim in its slot with the indicator
   scale above it, nose down to the left (§9, question 25).
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
-  the throttle group. Parking brake: close the valve, then apply the brake lever;
-  the pressure holds until the valve is opened.
+  the throttle group. Parking brake: close the valve, then pull and release the
+  brake lever; the valve traps the pressure, which holds until the valve is opened.
+  Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Carb heat** (Vergaservorwärmung): named in seven checklists and on the take-off
   placard, but the handbook shows no control. The trainer adds a provisional
   pull knob on the console (§9).
@@ -255,7 +257,7 @@ derived from the limits table above, not copied markings.
   left there, the motor runs to its end switch.
 - Pitch trim: anti-tab on the stabilator, wheel on the console, neutral for
   take-off. Rudder and aileron tabs are ground-adjustable only.
-- Brakes: hydraulic, main wheels, one central lever. Parking brake as in §3.4;
+- Brakes: hydraulic, main wheels, one central non-locking lever. Parking brake as in §3.4;
   always use chocks too.
 - MTOW 472.5 kg; baggage 25 kg per side.
 
@@ -546,9 +548,32 @@ verifies it on D-MPGO.
     (unverified), from general knowledge of the CT Supralight: the charge lamp
     lights red and the panel prints CHARGE with it.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
-    memory before the checklist is read? Today: none; every item is read and done
-    from the list. **Answered by assumption pending owner verification** (#450
-    records the assumed memory items here).
+    memory before the checklist is read? Today: the leading steps below are memory
+    items; the rest of each procedure is read and done from the list. **Answered by
+    assumption pending owner verification** (#450). Assumed (unverified), from
+    general knowledge of light-aircraft emergency drills, where the steps that stop
+    a fire, restore or secure the engine, or commit to the landing or the rescue
+    system are flown from memory and the rest is read:
+    - E3 below 100 m: rpm below idle; no restart, land ahead.
+    - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
+      both; starter if the prop turns slower than about 200 rpm.
+    - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
+      out; pull the handle.
+    - E6: smoke or flames; fuel valve closed; throttle full until the engine
+      stops; ignition off.
+    - E8: oil pressure below the minimum; ignition off; fuel valve closed.
+    - In E6 and E8 the key comes out after the valve is closed (question 27), as
+      the first item read from the list.
+    - E7, E9 and the generator failure have no memory items: they leave time to
+      read the list.
+
+    Memory items must lead the procedure, so two questions go with this one. Many
+    drills open an engine failure with "best glide" from memory, but §7 puts best
+    glide (125 km/h, E5) after E4's restart attempt, and E3 below 100 m names only
+    the approach speed: does the club fly the glide from memory, and where in the
+    list? The safety-pin confirm (E2) is a memory item only because it sits
+    inside the leading block; does the club drill it so?
+
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
     and standby once parked, squawk 7000 from line-up and the GPS on at its map page
@@ -588,7 +613,21 @@ verifies it on D-MPGO.
     as `parking` has it. **Answered by assumption pending owner verification**
     (#468). Assumed (unverified), from the handle covering the slot and N3's order
     (fuel valve open, then key in).
-28. **Flows**: which procedures does the club open with a panel scan done from
+28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
+    engine bay streams over the windscreen in the outside view, and the CHT and oil
+    temperature climb past their red lines within seconds while the fire burns; both
+    clear once the valve is closed and the engine has stopped. **Answered by
+    assumption pending owner verification** (#233). Assumed (unverified), from
+    general-aviation practice: smell and smoke come first, and a fire in the engine
+    bay heats the CHT and oil sensors; the size of the rise is a trainer value.
+29. **Flap control failure cue**: what shows on the panel when the flap controller
+    fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
+    position readout on that circuit goes dark, and with the breaker reset the readout
+    stays put whatever the selector says. **Answered by assumption pending owner
+    verification** (#233). Assumed (unverified), from the overload note of E9 and the
+    wiring of §4: the readout is fed through the flap breaker, and a failed controller
+    overloads the drive until the breaker trips.
+30. **Flows**: which procedures does the club open with a panel scan done from
     memory before the checklist is read, and in which order? Today: three, each
     verified by the §6 items that follow it. **Answered by assumption pending
     owner verification** (#453). Assumed (unverified), from general-aviation

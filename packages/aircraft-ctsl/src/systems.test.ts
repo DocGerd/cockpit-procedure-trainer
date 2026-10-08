@@ -533,38 +533,60 @@ describe('flaps', () => {
 });
 
 describe('parking brake', () => {
-  it('sets when the brake is applied with the valve closed, holds, and releases with the valve', () => {
+  it('brakes only while the lever is held, which springs back when released', () => {
+    const session = sessionAt('taxiIn');
+    expect(session.press('brake')).toEqual({ applied: true });
+    expect(session.state().controls.brake).toBe('on');
+    expect(systems(session).brakeApplied).toBe(true);
+    session.release('brake');
+    expect(session.state().controls.brake).toBe('off');
+    expect(systems(session).brakeApplied).toBe(false);
+  });
+
+  it('sets when the lever is pulled and released with the valve closed, and clears with the valve', () => {
     const session = sessionAt('taxiIn');
     expect(systems(session).parkingBrakeSet).toBe(false);
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
-    session.set('brake', 'on');
+    session.press('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
-    session.set('brake', 'off');
+    session.release('brake');
     advanceSeconds(session, 5);
     expect(systems(session).parkingBrakeSet).toBe(true);
     session.set('parkingBrakeValve', 'open');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the brake is applied with the valve open', () => {
+  it('sets when the valve closes while the lever is held, and holds once it is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    expect(systems(session).parkingBrakeSet).toBe(false);
+    session.set('parkingBrakeValve', 'closed');
+    expect(systems(session).parkingBrakeSet).toBe(true);
+    session.release('brake');
+    advanceSeconds(session, 5);
+    expect(systems(session).parkingBrakeSet).toBe(true);
+  });
+
+  it('does not set when the lever is pulled and released with the valve open', () => {
+    const session = sessionAt('taxiIn');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the valve closes on a brake already applied', () => {
+  it('does not set when the valve closes after the lever is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
+    session.press('brake');
+    session.release('brake');
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
   it('stays set at holding while the valve stays closed', () => {
     const session = sessionAt('holding');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
   });
 });
@@ -634,6 +656,23 @@ describe('failures', () => {
     expect(full.secondsUntil(out, 90)).toBeLessThan(cruise.secondsUntil(out, 90));
   });
 
+  it('engineFire: CHT and oil temperature climb past their red lines', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.advance(30);
+    expect(failed.state().chtC).toBeGreaterThan(CHT_RED_LINE_C);
+    expect(failed.state().oilTempC).toBeGreaterThan(OIL_TEMP_RED_LINE_C);
+  });
+
+  it('engineFire: the temperatures fall once the fire is out', () => {
+    const failed = rig('cruise', ['engineFire']);
+    failed.set('fuelValve', 'closed');
+    failed.secondsUntil((state) => !state.fire, 90);
+    const out = failed.state();
+    failed.advance(10);
+    expect(failed.state().chtC).toBeLessThan(out.chtC);
+    expect(failed.state().oilTempC).toBeLessThan(out.oilTempC);
+  });
+
   it('coolantLoss: CHT climbs past the red line at cruise power', () => {
     const failed = rig('cruise', ['coolantLoss']);
     failed.advance(60);
@@ -691,6 +730,22 @@ describe('failures', () => {
     failed.advance(5);
     expect(failed.state().flaps).toEqual({ angle: driven, moving: false });
   });
+
+  it('flapControlFailure: trips the flap breaker and darkens the flap readout', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    expect(session.state().controls['flapBreaker']).toBe('pulled');
+    expect(indicators.flapReadout.select(trainerState(session))).toBe('');
+  });
+
+  it('flapControlFailure: with the breaker reset the readout holds against the selector', () => {
+    const session = sessionAt('cruise');
+    session.startProcedure('flapControlFailure');
+    session.set('flapBreaker', 'in');
+    session.set('flapSelector', '0');
+    advanceSeconds(session, 10);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe(-12);
+  });
 });
 
 describe('entry snapshots', () => {
@@ -730,6 +785,19 @@ describe('entry snapshots', () => {
 });
 
 describe('indicators', () => {
+  it('leave the flap readout dark while its circuit has no power', () => {
+    const session = sessionAt('cruise');
+    const readout = () => indicators.flapReadout.select(trainerState(session));
+    expect(readout()).toBe(-12);
+    session.set('flapBreaker', 'pulled');
+    expect(readout()).toBe('');
+    session.set('flapBreaker', 'in');
+    session.set('battery', 'pulled');
+    session.advance(STEP_MS);
+    expect(readout()).toBe('');
+    expect(indicators.flapReadout.select(trainerState(sessionAt('parking')))).toBe('');
+  });
+
   it('follow the model after a start', () => {
     const session = coldStart();
     session.set('generator', 'in');

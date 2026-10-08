@@ -170,6 +170,10 @@ declares an `engineRunning` condition over its state; the outside view shows
 the running image while it holds. Both fields are optional, so the contract
 version does not change.
 
+An aircraft may also declare outside cues: images laid over the outside view while
+a condition over its state holds, such as smoke from the engine during a fire. The
+field is optional, so the contract version does not change.
+
 ### 4.7 Procedures
 
 A procedure has an id, a title, a type (`normal` or `emergency`), the phase it
@@ -183,7 +187,14 @@ one of that phase's failures unannounced after a delay, and the checklist the
 pilot then chooses starts from the cockpit as it stands, with no snapshot load
 and no failure of its own (amended in #446: recognising a failure is half the
 skill of an abnormal, and a failure announced with its checklist trains only
-the other half).
+the other half). In a full flight (§5 Scenarios) the first leg loads its snapshot.
+A later leg that starts in the phase the last leg ended in, or in the phase right
+after it, starts from the cockpit as the last leg left it, so a control the
+pilot set stays set, and enters its start phase without that phase's snapshot.
+A leg that skips a phase loads its snapshot: no checklist flew that phase, so
+the snapshot stands for it (amended in #479: carrying the cockpit over is what
+a flight rehearsal practises, and starting each procedure from a fresh snapshot
+hid what one procedure leaves for the next).
 
 Each item has text in both languages and one of:
 
@@ -202,6 +213,14 @@ A normal procedure may open with a **flow**: a set of action items the pilot
 does from memory, in any order. The flow completes when every one of its
 targets holds; the checklist items that follow verify it (challenge, look,
 respond).
+
+An emergency procedure may open with **memory items**: leading items of any
+kind flagged `memory`, the immediate actions done from recall before the
+checklist is read (added in #450: emergency checklists split into memory items
+and a read-and-do remainder, and a trainer drills the memory items without the
+list). They complete in order like any item; in Practice their text stays
+hidden until each is done, and the pane groups them under a "Memory items"
+label.
 
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
@@ -298,9 +317,12 @@ logic follows and lists the functions it does not model.
      leaving it at a position other than the target, by operating another
      control, is a `wrong-position` (#442);
    - while a flow runs, any of its actions may complete in any order; only a
-     control change outside the flow's targets is a deviation.
+     control change outside the flow's targets is a deviation;
+   - a memory item that completes after a stray or out-of-order move was
+     recorded against it also records a `late-memory-item` (#450).
 5. Completing a procedure shows its deviations and, if the procedure names an
-   end phase, moves to it.
+   end phase, moves to it. In a full flight, the summary continues with the
+   next leg.
 
 The checklist engine only observes. It never blocks or alters input, which
 keeps it independent of the systems model and testable alone.
@@ -310,7 +332,7 @@ keeps it independent of the systems model and testable alone.
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
 | Guided | shown; a flow is a labelled group above the checklist that verifies it | current target highlighted; in a flow every open target at once, numbered in scan order; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
-| Practice | shown; a flow's rows blank until the flow is done; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings; in a flow one Show me shows the whole flow | recorded, summary at the end, with the assists used |
+| Practice | shown; a memory item's text hidden until it is done; a flow's rows blank until the flow is done; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings; in a flow one Show me shows the whole flow | recorded, summary at the end, with the assists used |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
 
 Practice's recall option and its Show me assist are settings of the mode, not a
@@ -352,6 +374,21 @@ Besides a chosen procedure, the picker offers drills (added in #446):
 - **Practise next**: shown once the history holds a run of the aircraft; it
   suggests the procedure whose last run had deviations (the oldest such run
   first), else one never run, else the one practised longest ago.
+- **Full flight** (added in #479), in the chosen mode: the aircraft's normal
+  procedures in flight order, from cold and dark to securing, each a leg. The
+  legs are the normal procedures sorted by start phase in the phase order,
+  declaration order within a phase; a procedure whose start phase the flight
+  has passed (an alternative such as a short-field take-off) or that ends in an
+  earlier phase than it starts (a go-around) is not a leg. Each leg starts as
+  §4.7 says and the outside view follows its phase. Each leg's summary offers
+  the next leg; Repeat and Restart start the leg over from the cockpit it began
+  with. After the last leg, the summary adds a table of every leg with its
+  deviations, assists and time, and their totals. Each leg is recorded in the
+  history as a run of its procedure. A chosen procedure, a taken checklist, a
+  phase change, Free explore or the selection ends the flight; a runtime reset
+  starts it over. The checklist header names the running leg (leg n of m).
+  Leaving the flight by phase, Free explore or the selection before its last
+  leg is done asks first and names the legs flown.
 
 ### Screen
 
@@ -449,7 +486,7 @@ parallel.
 |---|---|
 | Unit (Vitest) | `core`: control store, runtime tick, checklist engine, validator |
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
-| Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations |
+| Procedure walk-through (Vitest, generic) | for every aircraft and every normal procedure: starting from the phase entry snapshot, performing each item completes the procedure with no deviations; the CTSL full flight does the same with each leg from the cockpit the last one left |
 | Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout at 1920x1080 and 3840x2160; placards and lettering at the existing tablet and desktop sizes and also at 1920x1080 and 3840x2160 |
 | Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 

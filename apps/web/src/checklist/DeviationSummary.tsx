@@ -3,7 +3,7 @@ import { useEffect, useId, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
-import { ItemGroup } from './ItemGroup';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { flowLength } from './useCurrentTarget';
 
@@ -12,6 +12,7 @@ const KINDS: readonly DeviationKind[] = [
   'out-of-order',
   'wrong-position',
   'unmet-check',
+  'late-memory-item',
 ];
 
 const clock = (ms: number) => {
@@ -29,6 +30,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const headingId = useId();
   const listId = useId();
   const assistedId = useId();
+  const flightId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const rows = useRef(new Map<number, HTMLElement>());
 
@@ -36,25 +38,41 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     heading.current?.focus();
   }, []);
 
-  const { aircraft, procedureId, mode, assisted } = trainer;
+  const { aircraft, procedureId, mode, assisted, flight } = trainer;
   const { procedure, deviations } = checklist;
   const ids = Object.keys(aircraft.procedures);
-  const nextId =
-    procedureId === undefined || answer
+  const leg = flight?.results.length ?? 0;
+  const nextId = flight
+    ? flight.legs[leg + 1]
+    : procedureId === undefined || answer
       ? undefined
       : ids
           .slice(ids.indexOf(procedureId) + 1)
           .find((id) => aircraft.procedures[id]?.type === procedure.type);
+  const legs =
+    flight && nextId === undefined && procedureId !== undefined
+      ? [
+          ...flight.results,
+          {
+            id: procedureId,
+            deviations: deviations.length,
+            assists: checklist.assists + assisted.length,
+            elapsedMs: checklist.elapsedMs,
+          },
+        ]
+      : undefined;
+  const sum = (key: 'deviations' | 'assists' | 'elapsedMs') =>
+    legs ? legs.reduce((total, result) => total + result[key], 0) : 0;
   const next = nextId === undefined ? undefined : aircraft.procedures[nextId];
   const kindLabels: Record<DeviationKind, string> = {
     'unexpected-control': text.kindUnexpected,
     'out-of-order': text.kindOutOfOrder,
     'wrong-position': text.kindWrongPosition,
     'unmet-check': text.kindUnmet,
+    'late-memory-item': text.kindLateMemory,
   };
-  const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
-  const flowItems = flowLength(procedure);
-  const reviewRow = (item: (typeof procedure.items)[number], index: number) => {
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const reviewRows = procedure.items.map((item, index) => {
     const deviated = deviations.some(
       (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
     );
@@ -82,7 +100,16 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
         </span>
       </li>
     );
-  };
+  });
+  const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
+  const flowItems = flowLength(procedure);
+  // Memory items open an abnormal procedure and a flow a normal one, so at most one group leads.
+  const lead =
+    memoryCount > 0
+      ? { kind: 'memory', label: text.memoryItems, size: memoryCount }
+      : flowItems > 0
+        ? { kind: 'flow', label: text.flowHeading, size: flowItems }
+        : undefined;
   const goTo = (index: number) => {
     const row = rows.current.get(index);
     row?.focus({ preventScroll: true });
@@ -94,7 +121,11 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
       type="button"
       className={deviations.length > 0 ? 'button-primary' : 'button-secondary'}
       onClick={() =>
-        answer ? trainer.startSurprise(answer.phase) : trainer.startProcedure(procedureId)
+        answer
+          ? trainer.startSurprise(answer.phase)
+          : flight
+            ? trainer.restart()
+            : trainer.startProcedure(procedureId)
       }
     >
       {answer ? text.newSurprise : text.repeatProcedure}
@@ -106,6 +137,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
       <div className="checklist-header">
         <div className="checklist-eyebrow">
           {localize(aircraft.name)} · {mode === 'practice' ? text.modePractice : text.modeGuided}
+          {flight && ` · ${format(text.flightLeg, { n: leg + 1, total: flight.legs.length })}`}
         </div>
         <h1 id={headingId} ref={heading} tabIndex={-1} className="checklist-title">
           {format(text.summaryTitle, { title: localize(procedure.title) })}
@@ -217,16 +249,53 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
         </section>
       )}
 
+      {legs && (
+        <section className="checklist-flight" aria-labelledby={flightId}>
+          <h2 id={flightId} className="checklist-deviations-heading">
+            {text.flightHeading}
+          </h2>
+          <table className="checklist-flight-table">
+            <thead>
+              <tr>
+                <th scope="col">{text.flightProcedure}</th>
+                <th scope="col">{text.deviations}</th>
+                <th scope="col">{text.assists}</th>
+                <th scope="col">{text.elapsed}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {legs.map((result) => {
+                const title = aircraft.procedures[result.id]?.title;
+                return (
+                  <tr key={result.id}>
+                    <th scope="row">{title ? localize(title) : result.id}</th>
+                    <td data-deviated={result.deviations > 0}>{result.deviations}</td>
+                    <td>{result.assists}</td>
+                    <td>{clock(result.elapsedMs)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">{text.flightTotal}</th>
+                <td data-deviated={sum('deviations') > 0}>{sum('deviations')}</td>
+                <td>{sum('assists')}</td>
+                <td>{clock(sum('elapsedMs'))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </section>
+      )}
+
       <section className="checklist-review" aria-label={text.itemsHeading}>
         <ol className="checklist-review-list">
-          {flowItems > 0 && (
-            <ItemGroup kind="flow" label={text.flowHeading}>
-              {procedure.items.slice(0, flowItems).map(reviewRow)}
+          {lead && (
+            <ItemGroup kind={lead.kind} label={lead.label}>
+              {reviewRows.slice(0, lead.size)}
             </ItemGroup>
           )}
-          {procedure.items.map((item, index) =>
-            index < flowItems ? null : reviewRow(item, index),
-          )}
+          {reviewRows.slice(lead?.size ?? 0)}
         </ol>
       </section>
 
@@ -236,7 +305,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           <button
             type="button"
             className={deviations.length > 0 ? 'button-secondary' : 'button-primary'}
-            onClick={() => trainer.startProcedure(nextId)}
+            onClick={() => (flight ? trainer.nextLeg() : trainer.startProcedure(nextId))}
           >
             {format(text.nextProcedure, { title: localize(next.title) })}
           </button>

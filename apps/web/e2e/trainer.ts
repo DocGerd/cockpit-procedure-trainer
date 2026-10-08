@@ -46,7 +46,7 @@ export const checklistPane = (page: Page) =>
 export const progress = (page: Page) =>
   checklistPane(page).getByRole('progressbar', { name: copy.checklist.progress });
 
-// A group such as a flow is a list item of its own, so rows are counted by their class.
+// By class, not role: a group of memory items or a flow is a listitem around its own rows.
 const itemRow = (page: Page, index: number) =>
   checklistPane(page).locator('li.checklist-item').nth(index);
 

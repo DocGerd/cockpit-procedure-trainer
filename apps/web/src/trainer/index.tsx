@@ -1,4 +1,4 @@
-import { createSession, STEP_MS } from '@cpt/core';
+import { createSession, flightLegs, procedureOf, STEP_MS } from '@cpt/core';
 import type { Aircraft, Session } from '@cpt/core';
 import {
   createContext,
@@ -20,6 +20,21 @@ import { pickSurprise } from './scenarios';
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
 
+export type LegResult = {
+  readonly id: string;
+  readonly deviations: number;
+  /** Retries and Show me assists together, as the leg's debrief counts them. */
+  readonly assists: number;
+  readonly elapsedMs: number;
+};
+
+/** A full flight: the aircraft's normal procedures in order, each leg from the cockpit the last left. */
+export type Flight = {
+  readonly legs: readonly string[];
+  /** One per finished leg the pilot has moved on from; the running leg is the next. */
+  readonly results: readonly LegResult[];
+};
+
 export type Trainer = {
   aircraft: Aircraft;
   selectAircraft(id: string): void;
@@ -35,7 +50,15 @@ export type Trainer = {
   startSurprise(phase: string): void;
   /** Runs a checklist from the cockpit as it stands; during a surprise, the pilot's answer. */
   takeChecklist(id: string): void;
-  /** Starts the running procedure over, or a new surprise in the same phase during a drill. */
+  /** The full flight in progress. */
+  flight: Flight | undefined;
+  startFlight(): void;
+  /** Moves a full flight on to its next leg once the current one is done. */
+  nextLeg(): void;
+  /**
+   * Starts the running procedure over, a full-flight leg from the cockpit it began with, or a new
+   * surprise in the same phase during a drill.
+   */
   restart(): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
@@ -65,6 +88,7 @@ type TrainerState = {
   viewed: string | undefined;
   /** The phase of the surprise drill in progress, which outlives the session's own record. */
   surprisePhase: string | undefined;
+  flight: Flight | undefined;
 };
 
 function findAircraft(id: string): Aircraft | undefined {
@@ -98,6 +122,25 @@ function startSurprise(aircraft: Aircraft, session: Session, phase: string): Par
     lastProcedureId: undefined,
     viewed,
     surprisePhase: phase,
+    flight: undefined,
+  };
+}
+
+/** Starts the first leg of a full flight on the session and returns the trainer state for it. */
+function startFlight(aircraft: Aircraft, session: Session): Partial<TrainerState> {
+  const legs = flightLegs(aircraft);
+  const first = legs[0];
+  if (first === undefined) return {};
+  session.jumpToPhase(procedureOf(aircraft, first).startPhase);
+  session.startLeg(first);
+  return {
+    screen: 'trainer',
+    guidedFrom: 0,
+    assisted: [],
+    lastProcedureId: first,
+    viewed: undefined,
+    surprisePhase: undefined,
+    flight: { legs, results: [] },
   };
 }
 
@@ -116,6 +159,7 @@ function initialState(): TrainerState {
     lastProcedureId: undefined,
     viewed: undefined,
     surprisePhase: undefined,
+    flight: undefined,
   };
 }
 
@@ -183,6 +227,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           lastProcedureId: undefined,
           viewed: undefined,
           surprisePhase: undefined,
+          flight: undefined,
         });
       },
       startProcedure(id) {
@@ -194,6 +239,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           lastProcedureId: id,
           viewed: undefined,
           surprisePhase: undefined,
+          flight: undefined,
         });
       },
       startSurprise(phase) {
@@ -201,12 +247,45 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       },
       takeChecklist(id) {
         current.current.session.takeChecklist(id);
-        update({ guidedFrom: 0, assisted: [], lastProcedureId: id, viewed: undefined });
+        update({
+          guidedFrom: 0,
+          assisted: [],
+          lastProcedureId: id,
+          viewed: undefined,
+          flight: undefined,
+        });
+      },
+      startFlight() {
+        update(startFlight(current.current.aircraft, current.current.session));
+      },
+      nextLeg() {
+        const { session, flight, assisted } = current.current;
+        const checklist = session.checklist();
+        const id = session.procedureId();
+        const next = flight?.legs[flight.results.length + 1];
+        if (!flight || !checklist?.done || id === undefined || next === undefined) return;
+        const result: LegResult = {
+          id,
+          deviations: checklist.deviations.length,
+          assists: checklist.assists + assisted.length,
+          elapsedMs: checklist.elapsedMs,
+        };
+        session.startLeg(next);
+        update({
+          guidedFrom: 0,
+          assisted: [],
+          lastProcedureId: next,
+          viewed: undefined,
+          flight: { ...flight, results: [...flight.results, result] },
+        });
       },
       restart() {
-        const { aircraft, session, surprisePhase } = current.current;
+        const { aircraft, session, surprisePhase, flight } = current.current;
         const running = session.procedureId();
-        if (surprisePhase !== undefined) {
+        if (flight !== undefined) {
+          session.restartLeg();
+          update({ guidedFrom: 0, assisted: [], viewed: undefined });
+        } else if (surprisePhase !== undefined) {
           update(startSurprise(aircraft, session, surprisePhase));
         } else if (running !== undefined) {
           session.startProcedure(running);
@@ -215,12 +294,15 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
-        if (current.current.surprisePhase !== undefined) update({ surprisePhase: undefined });
+        const { surprisePhase, flight } = current.current;
+        if (surprisePhase !== undefined || flight !== undefined) {
+          update({ surprisePhase: undefined, flight: undefined });
+        }
       },
       setMode(mode) {
         if (mode === 'explore') {
           endProcedure(current.current.session);
-          update({ mode, screen: 'trainer', assisted: [], viewed: undefined });
+          update({ mode, screen: 'trainer', assisted: [], viewed: undefined, flight: undefined });
         } else if (current.current.mode !== 'explore') {
           const guidedFrom = current.current.session.checklist()?.deviations.length ?? 0;
           update({ mode, guidedFrom });
@@ -248,10 +330,12 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update({ assisted: [...assisted, checklist.current] });
       },
       resetSession() {
-        const { aircraft, session: old, surprisePhase } = current.current;
+        const { aircraft, session: old, surprisePhase, flight } = current.current;
         const running = old.procedureId();
         const fresh = newSession(aircraft, running === undefined ? old.phase() : undefined);
-        if (surprisePhase !== undefined) {
+        if (flight !== undefined) {
+          update({ ...startFlight(aircraft, fresh), session: fresh });
+        } else if (surprisePhase !== undefined) {
           update({ ...startSurprise(aircraft, fresh, surprisePhase), session: fresh });
         } else if (running === undefined) {
           update({ session: fresh });
@@ -267,6 +351,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           lastProcedureId: undefined,
           viewed: undefined,
           surprisePhase: undefined,
+          flight: undefined,
         });
       },
     };
@@ -433,4 +518,30 @@ export function useLostProgressText(): string {
     },
   );
   return `${items}, ${deviations}.`;
+}
+
+/** Leaving a full flight before its last leg is done discards the legs already flown. */
+function useFlightAtRisk(): { legs: number; total: number } | undefined {
+  const { flight } = useTrainer();
+  const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
+  if (!flight) return undefined;
+  const legs = flight.results.length + (done ? 1 : 0);
+  if (legs === 0 || legs === flight.legs.length) return undefined;
+  return { legs, total: flight.legs.length };
+}
+
+/**
+ * For the controls that leave the run (selection, phase, Free explore): whether to confirm, and
+ * the dialog's closing sentences. Restarting a leg keeps the flight, so it uses the run's risk.
+ */
+export function useLeavingRisk(): { atRisk: boolean; lost: string } {
+  const text = useMessages(messages);
+  const run = useProgressAtRisk();
+  const runLost = useLostProgressText();
+  const flight = useFlightAtRisk();
+  const flightLost = flight ? format(text.lostFlight, flight) : '';
+  return {
+    atRisk: run !== undefined || flight !== undefined,
+    lost: [runLost, flightLost].filter((part) => part !== '').join(' '),
+  };
 }

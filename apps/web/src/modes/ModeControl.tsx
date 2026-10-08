@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useLostProgressText, useProgressAtRisk, useTrainer } from '../trainer';
+import { useLeavingRisk, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { useLockNotice, useLockNoticeStore } from './lock-notice';
@@ -40,8 +40,7 @@ function LockNotice() {
 export function ModeControl() {
   const text = useMessages(messages);
   const { mode, setMode, procedureId } = useTrainer();
-  const lost = useLostProgressText();
-  const atRisk = useProgressAtRisk() !== undefined;
+  const { atRisk, lost } = useLeavingRisk();
   const [confirming, setConfirming] = useState(false);
   const [guidedOn, setGuidedOn] = useState(false);
   const running = procedureId !== undefined;
