@@ -9,6 +9,7 @@ export const messages = defineMessages({
     operate: 'Operate controls',
     operateHint: 'Off: a tap shows details only',
     guidedOnNotice: 'Guided is on: the next control is highlighted and deviations show at once.',
+    lockedNotice: '{control} locked by {by}. Move {by} first.',
     exploreTitle: 'Switch to Free explore?',
     exploreBody:
       'Free explore ends the running procedure and resets the cockpit to the start of the current phase.',
@@ -43,6 +44,7 @@ export const messages = defineMessages({
     operateHint: 'Aus: Antippen zeigt nur Details',
     guidedOnNotice:
       'Geführt ist an: das nächste Bedienelement wird hervorgehoben, Abweichungen erscheinen sofort.',
+    lockedNotice: '{control} gesperrt durch {by}. Zuerst {by} betätigen.',
     exploreTitle: 'Zu Freiem Erkunden wechseln?',
     exploreBody:
       'Freies Erkunden beendet das laufende Verfahren und setzt das Cockpit auf den Beginn der aktuellen Flugphase zurück.',

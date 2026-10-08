@@ -392,6 +392,71 @@ describe('Guided', () => {
   });
 });
 
+describe('Guided stray control', () => {
+  const stray = () => document.querySelector<HTMLElement>('[data-outline="stray"]');
+
+  it('outlines a control the pilot moved away from the item, without a pulse', () => {
+    renderTrainer();
+    start('start', 'guided');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(boxOf(stray())).toEqual(boxOf(placement('throttle')));
+    expect(stray()?.dataset.pulse).toBeUndefined();
+    expect(outline()?.dataset.outline).toBe('target');
+  });
+
+  it('drops the outline once the control is back where it was', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('throttle', 0));
+    expect(stray()).toBeNull();
+  });
+
+  it('drops the outline when the item changes', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('master', 'on'));
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none in Practice', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none for a move made in Practice before switching to Guided', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.setMode('guided'));
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('pump', 'on'));
+    expect(boxOf(stray())).toEqual(boxOf(placement('pump')));
+  });
+
+  it('draws none after a retry has put the control back', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.retryItem());
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none for a spring-back control, even while it is held', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.press('starter'));
+    expect(trainer.session.checklist()?.deviations.at(-1)?.controlId).toBe('starter');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.release('starter'));
+    expect(stray()).toBeNull();
+  });
+});
+
 describe('Guided while zoomed', () => {
   const viewport = { width: 400, height: 200 };
   const zoomVar = (name: string) =>

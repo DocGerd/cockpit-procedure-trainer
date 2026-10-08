@@ -17,7 +17,13 @@ import {
  * (one-viewport design, Decision 7).
  */
 const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<string, string>>>>> =
-  {};
+  {
+    ctsl: {
+      centre: {
+        'fuelValve and ignition': `only while the valve is closed (the floor's initial state): its handle covers the key slot (intake §3.3), so a tap there moves the valve; open, the valve takes taps only in its slot above the key`,
+      },
+    },
+  };
 
 for (const aircraft of aircraftRegistry) {
   for (const [viewId, cell] of Object.entries(aircraft.cockpit?.views ?? {})) {

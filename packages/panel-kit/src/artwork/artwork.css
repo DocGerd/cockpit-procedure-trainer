@@ -12,6 +12,11 @@
   border: 0;
 }
 
+.cpt-artwork-hit {
+  position: absolute;
+  pointer-events: auto;
+}
+
 .cpt-artwork-input:focus-visible {
   outline: 2px solid var(--panel-focus);
   outline-offset: -2px;

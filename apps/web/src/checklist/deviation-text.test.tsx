@@ -19,6 +19,21 @@ const aircraft: Aircraft = {
       positions: ['in', 'pulled'],
       initial: 'in',
     },
+    starter: {
+      kind: 'momentary',
+      name: { de: 'Anlasser', en: 'Starter' },
+      description: { de: 'Anlasser', en: 'Starter' },
+      positions: ['released', 'held'],
+      initial: 'released',
+    },
+    key: {
+      kind: 'rotary',
+      name: { de: 'Zündschalter', en: 'Key' },
+      description: { de: 'Zündschalter', en: 'Key' },
+      positions: ['off', 'on', 'start'],
+      initial: 'off',
+      springBack: { start: 'on' },
+    },
   },
   procedures: {
     flow: {
@@ -42,6 +57,12 @@ const unexpected = (controlId: string): Deviation => ({
   kind: 'unexpected-control',
   itemIndex: 0,
   controlId,
+});
+
+const stray = (controlId: string, position: string | number, from: string | number): Deviation => ({
+  ...unexpected(controlId),
+  position,
+  from,
 });
 
 function describeIn(language: 'de' | 'en') {
@@ -93,27 +114,125 @@ describe('deviation text for each kind', () => {
     const text = describeIn('en');
     expect(text.where(outOfOrder)).toBe('During item 1');
     expect(text.title(outOfOrder)).toBe('Bus operated before item 4');
-    expect(text.detail(outOfOrder)).toBe('The current item was Confirm.');
+    expect(text.expected(outOfOrder)).toBe('Confirm');
+    expect(text.actual(outOfOrder)).toBe('Bus operated before item 4');
     expect(text.banner(outOfOrder)).toBe('Bus operated early. It belongs to item 4, not item 1.');
   });
 
-  it('names a control left in the wrong position without its raw position id', () => {
+  it('refers a deviation made during the flow to the flow, not to an item', () => {
     const text = describeIn('en');
-    expect(text.where(wrongPosition)).toBe('Item 1');
-    expect(text.title(wrongPosition)).toBe('Bus left in a wrong position');
-    expect(text.detail(wrongPosition)).toBe('The item was Confirm.');
-    expect(text.banner(wrongPosition)).toBe('Bus left in a wrong position during item 1.');
-    expect(describeIn('de').title(wrongPosition)).toBe('Bus (de) in falscher Stellung gelassen');
+    const during = { ...unexpected('bus'), duringFlow: true } as const;
+    expect(text.where(during)).toBe('During the flow');
+    expect(text.expected(during)).toBe('The flow items, in any order');
+    expect(text.banner(during)).toBe('Bus operated. Not part of the flow.');
+    const early = { ...outOfOrder, duringFlow: true } as const;
+    expect(text.banner(early)).toBe('Bus operated early. It belongs to item 4, not to the flow.');
+    expect(describeIn('de').where(during)).toBe('Während des Flows');
   });
 
-  it('gives the reading of an unmet check when there was one', () => {
-    const text = describeIn('de');
-    expect(text.detail({ kind: 'unmet-check', itemIndex: 0, response: 3900 })).toBe(
-      'Der angegebene Wert war 3900.',
+  it('says how to undo a stray move during the flow, and what was pressed', () => {
+    const text = describeIn('en');
+    const moved = { ...stray('bus', 'on', 'off'), duringFlow: true } as const;
+    expect(text.banner(moved)).toBe('Bus set to ON. Not part of the flow. Return it to OFF.');
+    expect(text.banner(moved, true)).toBe('Bus operated. Not part of the flow.');
+    const early = { ...outOfOrder, position: 'on', from: 'off', duringFlow: true } as const;
+    expect(text.banner(early)).toBe(
+      'Bus set to ON early. It belongs to item 4, not to the flow. Return it to OFF.',
     );
-    expect(text.detail({ kind: 'unmet-check', itemIndex: 0 })).toBe(
-      'Der Punkt wurde abgehakt, obwohl seine Bedingung nicht erfüllt war.',
+    const press = { ...stray('starter', 'held', 'released'), duringFlow: true } as const;
+    expect(text.banner(press)).toBe('Starter pressed. Not part of the flow.');
+    expect(text.banner({ ...press, kind: 'out-of-order', laterItem: 3 })).toBe(
+      'Starter pressed early. It belongs to item 4, not to the flow.',
     );
+    expect(describeIn('de').banner(moved)).toBe(
+      'Bus (de) auf ON gestellt. Nicht Teil des Flows. Zurück auf OFF stellen.',
+    );
+  });
+
+  it('drops the return cue once the control is back', () => {
+    const text = describeIn('en');
+    expect(text.banner(stray('bus', 'on', 'off'), true)).toBe('Bus operated. Not part of item 1.');
+    const early: Deviation = { ...outOfOrder, position: 'on', from: 'off' };
+    expect(text.banner(early, true)).toBe('Bus operated early. It belongs to item 4, not item 1.');
+  });
+
+  it('names where an out-of-order move left the control and how to undo it', () => {
+    const moved: Deviation = { ...outOfOrder, position: 'on', from: 'off' };
+    const text = describeIn('en');
+    expect(text.actual(moved)).toBe('Bus set to ON, which belongs to item 4');
+    expect(text.banner(moved)).toBe(
+      'Bus set to ON early. It belongs to item 4, not item 1. Return it to OFF.',
+    );
+  });
+
+  it('names a stray spring-back press as a press, with nothing to return', () => {
+    const text = describeIn('en');
+    const press = stray('starter', 'held', 'released');
+    expect(text.banner(press)).toBe('Starter pressed. Not part of item 1.');
+    expect(text.actual(press)).toBe('Starter pressed');
+    const early: Deviation = {
+      ...outOfOrder,
+      controlId: 'starter',
+      position: 'held',
+      from: 'released',
+    };
+    expect(text.banner(early)).toBe('Starter pressed early. It belongs to item 4, not item 1.');
+    expect(text.actual(early)).toBe('Starter pressed, which belongs to item 4');
+    expect(text.banner(stray('key', 'start', 'on'))).toBe('Key pressed. Not part of item 1.');
+    expect(text.banner(stray('key', 'on', 'off'))).toBe('Key set to ON. Return it to OFF.');
+    expect(describeIn('de').banner(press)).toBe('Anlasser gedrückt. Nicht Teil von Punkt 1.');
+  });
+
+  it('names a control left in the wrong position as the panel prints the position', () => {
+    const text = describeIn('en');
+    expect(text.where(wrongPosition)).toBe('Item 1');
+    expect(text.title(wrongPosition)).toBe('Bus left at OFF');
+    expect(text.banner(wrongPosition)).toBe('Bus left at OFF during item 1.');
+    expect(text.actual(wrongPosition)).toBe('Bus left at OFF');
+    expect(describeIn('de').title(wrongPosition)).toBe('Bus (de) auf OFF gelassen');
+  });
+
+  it('keeps a stray control position without a name out of the text', () => {
+    const text = describeIn('en');
+    const unnamed: Deviation = { ...wrongPosition };
+    delete (unnamed as { position?: unknown }).position;
+    expect(text.title(unnamed)).toBe('Bus left in a wrong position');
+    expect(text.banner(unnamed)).toBe('Bus left in a wrong position during item 1.');
+  });
+
+  it('says what the checklist asked for and what was done, per kind', () => {
+    const text = describeIn('en');
+    expect(text.expected(unexpected('bus'))).toBe('Confirm');
+    expect(text.actual(stray('bus', 'on', 'off'))).toBe('Bus set to ON');
+    expect(text.actual(unexpected('bus'))).toBe('Bus operated');
+    expect(text.expected({ kind: 'unmet-check', itemIndex: 0 })).toBe('Confirm');
+    expect(text.actual({ kind: 'unmet-check', itemIndex: 0, response: 3900 })).toBe(
+      'Reading given: 3900',
+    );
+    expect(text.actual({ kind: 'unmet-check', itemIndex: 0 })).toBe(
+      'Checked off with the condition not met',
+    );
+    expect(describeIn('de').actual({ kind: 'unmet-check', itemIndex: 0, response: 3900 })).toBe(
+      'Angegebener Wert: 3900',
+    );
+  });
+
+  it('names the position a stray control was set to and the one to return it to', () => {
+    const moved = stray('bus', 'on', 'off');
+    expect(describeIn('en').banner(moved)).toBe('Bus set to ON. Return it to OFF.');
+    expect(describeIn('de').banner(moved)).toBe(
+      'Bus (de) auf ON gestellt. Zurück auf OFF stellen.',
+    );
+  });
+
+  it('gives a continuous position as a percentage', () => {
+    expect(describeIn('en').banner(stray('bus', 0.5, 0))).toBe(
+      'Bus set to 50 %. Return it to 0 %.',
+    );
+  });
+
+  it('falls back to the bare wording when the move carries no positions', () => {
+    expect(describeIn('en').banner(unexpected('bus'))).toBe('Bus operated. Not part of item 1.');
   });
 
   it('names a breaker position in the UI language', () => {
@@ -125,5 +244,8 @@ describe('deviation text for each kind', () => {
     };
     expect(describeIn('de').title(pulled)).toBe('Lampensicherung auf Gezogen gelassen');
     expect(describeIn('en').banner(pulled)).toBe('Lamp breaker left at Pulled during item 1.');
+    expect(describeIn('en').banner(stray('lampBreaker', 'pulled', 'in'))).toBe(
+      'Lamp breaker set to Pulled. Return it to In.',
+    );
   });
 });

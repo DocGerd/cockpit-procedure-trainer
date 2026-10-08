@@ -1,4 +1,4 @@
-import type { MovingPart, Point } from '@cpt/core';
+import type { JsonObject, JsonValue, MovingPart, Point } from '@cpt/core';
 
 type Needle = Extract<MovingPart, { type: 'needle' }>;
 type Segment = { from: Point; to: Point; length: number };
@@ -66,4 +66,44 @@ export function fractionNear(path: readonly Point[], target: Point): number {
     before += length;
   }
   return best.along / total;
+}
+
+/** A part of the face, as fractions of its width and height. */
+export type FaceBox = { left: number; top: number; width: number; height: number };
+
+const isObject = (value: JsonValue | undefined): value is JsonObject =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+function readFaceBox(value: JsonValue | undefined): FaceBox | null {
+  if (!isObject(value)) return null;
+  const { left, top, width, height } = value;
+  if (
+    typeof left !== 'number' ||
+    typeof top !== 'number' ||
+    typeof width !== 'number' ||
+    typeof height !== 'number'
+  ) {
+    return null;
+  }
+  const fits = (from: number, size: number) => from >= 0 && size > 0 && from + size <= 1;
+  return fits(left, width) && fits(top, height) ? { left, top, width, height } : null;
+}
+
+/**
+ * The `hitArea` option: per position, the part of the face a tap operates, where a control's
+ * moving part leaves the rest of its box to a neighbour. Null when the option is malformed.
+ */
+export function readHitAreas(
+  options: JsonObject | undefined,
+): Readonly<Record<string, FaceBox>> | null {
+  const areas = options?.hitArea;
+  if (areas === undefined) return {};
+  if (!isObject(areas)) return null;
+  const read: Record<string, FaceBox> = {};
+  for (const [position, value] of Object.entries(areas)) {
+    const box = readFaceBox(value);
+    if (box === null) return null;
+    read[position] = box;
+  }
+  return read;
 }

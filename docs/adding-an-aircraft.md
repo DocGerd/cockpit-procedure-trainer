@@ -90,6 +90,12 @@ A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
 
+Any control may declare `interlock: { control, at, holds }`: while the other
+control stands at `at`, the pilot cannot move this one away from `holds`. The
+CTSL's closed fuel valve holds the ignition key at `off` this way. Only pilot
+moves are refused (result `locked`), and the app frame names the holding control;
+phase entries and failures move freely. The other control must be a different one.
+
 ### Indicators
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
@@ -210,8 +216,10 @@ in `failure`, which must be declared in `failures`. Each item has a `text` and o
 of:
 
 - `action`: `control` and `position` to reach, optionally `holdUntil` a condition
-  on the state. It completes by itself once the control is at the position and
-  `holdUntil` holds. The demo holds the `starter` at `'held'` until the engine runs.
+  on the state. It completes when the pilot sets the control to the position while
+  the item is current, or ticks it verified, and `holdUntil` holds; it never
+  completes just because the control already held. The demo holds the `starter` at
+  `'held'` until the engine runs.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
   state. The pilot ticks it; ticking while the condition is false is recorded as
   an `unmet-check` deviation, not refused.
@@ -219,6 +227,17 @@ of:
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.
+
+**Flows.** A `normal` procedure may open with a flow: leading `action` items marked
+`flow: true`, done from memory in any order. Each flow item ticks once its control
+holds the position (and `holdUntil` holds), including one already in place when the
+procedure starts, and the flow ends when all are ticked. While it runs, only a
+change to a control outside the flow is a deviation; it carries `duringFlow: true`,
+since it belongs to the flow rather than to one item. Repeat the flow's controls as
+ordinary items after it, so the checklist verifies them; the demo's
+`beforeLanding` does this. The validator reports `invalid-flow` for a flow item on
+an emergency procedure, one that is not an action, one after the first ordinary
+item, or one whose control no later action or control check verifies.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight. An
 action or check can target a device control as `<installId>.<controlId>`; see the
@@ -295,6 +314,12 @@ With `options.needleShadow: true` on a needle, the renderer casts the needle ima
 shadow down and to the right, away from the panel's light, outside the rotation, so it
 never turns toward the light; the needle image then draws no shadow of its own.
 
+An artwork control whose box reaches over a neighbour can confine its touch target per
+position with `options.hitArea`, a `{ left, top, width, height }` box in fractions of
+the face; a tap elsewhere in the box reaches the control beneath. The CTSL's open fuel
+valve takes taps only in its slot, so the key switch below stays operable; closed, its
+whole box does, as its handle covers the key slot.
+
 If an image fails to load, the control or indicator shows its generic widget
 instead. `validateAircraft` reports `artwork-glass-size` when glass and face differ in
 size, if its context reads image sizes (`imageSize`). The demo declares generic widgets
@@ -332,7 +357,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size` and the six
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow` and the eight
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
@@ -340,7 +365,8 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. It also fails a spring-back press unless the control rests at the
+points at its item. It does a flow in the listed order, or in reverse with
+`flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
 runs it for every `normal` procedure of every registered aircraft.
 

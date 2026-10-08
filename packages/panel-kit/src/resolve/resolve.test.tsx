@@ -85,6 +85,11 @@ describe('resolveControlWidget', () => {
     fireEvent.error(face as Element);
     expect(screen.getByRole('radiogroup', { name: 'Master' })).toBeDefined();
   });
+
+  it('passes artwork options on', () => {
+    const control = toggle({ ...artwork, options: { hitArea: {} } });
+    expect(resolveControl(control).options).toEqual({ hitArea: {} });
+  });
 });
 
 describe('resolveIndicatorWidget', () => {

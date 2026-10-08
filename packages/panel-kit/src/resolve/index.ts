@@ -56,7 +56,7 @@ function artworkIndicator(appearance: Appearance, artwork: Artwork): IndicatorWi
 export function resolveControl(control: ControlDefinition): Resolved<ControlWidget> {
   const { appearance } = control;
   if (appearance && 'artwork' in appearance) {
-    return { widget: artworkControl(control, appearance.artwork), options: undefined };
+    return { widget: artworkControl(control, appearance.artwork), options: appearance.options };
   }
   return (
     (appearance && declared(controlWidgets, appearance)) ?? {
