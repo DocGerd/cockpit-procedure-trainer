@@ -36,7 +36,7 @@ export type ArtworkAppearance = {
     readonly moving: MovingPart;
     /** Glass drawn above the moving part and never moved, so its glare lies over the needle; the face's size. */
     readonly glass?: string;
-    /** On a guarded control with position images: the image drawn instead, per position, while the guard is open, as a safety pin drawn in the holder only while it is in. */
+    /** For a guarded control: per position, the image drawn instead of that position's own while the guard is open, so a safety pin shows in its holder only while it is in. */
     readonly guardOpen?: { readonly [position: string]: string };
     /** The text the face image prints, so a check can see that the control is labelled. */
     readonly lettering?: readonly string[];
