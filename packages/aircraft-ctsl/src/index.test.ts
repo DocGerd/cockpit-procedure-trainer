@@ -234,6 +234,61 @@ describe('CTSL aircraft', () => {
     expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBeGreaterThanOrEqual(950);
   });
 
+  describe('cockpit arrangement (intake §3)', () => {
+    const cockpit = ctslAircraft.cockpit;
+    const panelSize = ctslAircraft.views.panel?.size;
+    const { panel, centre, console: consoleCell } = cockpit?.views ?? {};
+    const dock = cockpit?.dock;
+    if (!panelSize || !panel || !centre || !consoleCell || !dock) {
+      throw new Error('the CTSL declares no panel size or misses a cockpit cell');
+    }
+    const right = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w;
+    const bottom = ({ rect }: { rect: { y: number; h: number } }) => rect.y + rect.h;
+    const middle = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
+
+    // The two upper fields are the full-height rects of the panel artwork.
+    const fields = [
+      ...viewPanel.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="([\d.]+)"/g),
+    ]
+      .map(([, x, w, h]) => ({ x: Number(x), w: Number(w), h: Number(h) }))
+      .filter(({ w, h }) => h >= 0.95 * panelSize.height && w < panelSize.width)
+      .filter((field, index, all) => all.findIndex(({ x }) => x === field.x) === index)
+      .sort((a, b) => a.x - b.x);
+    const [upperLeft, upperRight] = fields;
+    if (fields.length !== 2 || !upperLeft || !upperRight) {
+      throw new Error(`expected two upper fields in the panel art, found ${fields.length}`);
+    }
+    const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
+    const inCockpit = (artX: number) =>
+      panel.rect.x + (panel.rect.w - panelFit) / 2 + (artX * panelFit) / panelSize.width;
+    const junction = inCockpit((upperLeft.x + upperLeft.w + upperRight.x) / 2);
+
+    it('hangs the centre field below the panel, under the junction of the two upper fields', () => {
+      expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(middle(centre)).toBeGreaterThan(panel.rect.x + panel.rect.w / 3);
+      expect(middle(centre)).toBeLessThan(panel.rect.x + (2 * panel.rect.w) / 3);
+      expect(Math.abs(middle(centre) - junction)).toBeLessThanOrEqual(2);
+    });
+
+    it('puts the console beside the centre field, toward the right seat', () => {
+      expect(consoleCell.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(consoleCell.rect.x).toBeGreaterThanOrEqual(right(centre));
+      expect(consoleCell.rect.y).toBeLessThan(bottom(centre));
+    });
+
+    it('keeps the dock below the panel, clear of the centre column', () => {
+      expect(dock.rect.y).toBeGreaterThanOrEqual(bottom(panel));
+      expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
+    });
+
+    it('reaches under the radio and transponder slots with the dock', () => {
+      const { com } = deviceSlots;
+      const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
+      const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
+      expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
+    });
+  });
+
   it('stacks the radio above the transponder', () => {
     const { com, xpdr } = deviceSlots;
     expect(com.rect.y + com.rect.h).toBeLessThanOrEqual(xpdr.rect.y);

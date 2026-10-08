@@ -2,6 +2,7 @@ import { expect, test } from './fixtures';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { openPicker } from './trainer';
 import {
   TOUCH_TARGET_PX,
   deviceTargets,
@@ -95,7 +96,41 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
     expect(box.width, 'dock width').toBeGreaterThanOrEqual(dock.minWidth);
     const panel = await boxOf(page.locator('[data-view="panel"]'));
     expect(box.y, 'dock under the panel').toBeGreaterThanOrEqual(panel.y + panel.height);
-    expect(Math.abs(box.x - panel.x), 'dock aligned with the panel').toBeLessThanOrEqual(1);
+    // Under the panel means a docked device opens below the slots it mirrors.
+    const slots = await page.locator('[data-view="panel"] [data-slot-mirror]').all();
+    const underSlot = await Promise.all(
+      slots.map(async (slot) => {
+        const { x, width } = await boxOf(slot);
+        const overlap = Math.min(box.x + box.width, x + width) - Math.max(box.x, x);
+        return overlap >= width / 3;
+      }),
+    );
+    expect(underSlot, 'dock reaches under a device slot').toContain(true);
+    if (aircraft.cockpit?.views.centre) {
+      const centre = await boxOf(page.locator('[data-view="centre"]'));
+      expect(centre.y, 'centre field under the panel').toBeGreaterThanOrEqual(
+        panel.y + panel.height,
+      );
+      const middle = centre.x + centre.width / 2;
+      expect(middle, 'centre field under the middle of the panel').toBeGreaterThan(
+        panel.x + panel.width / 3,
+      );
+      expect(middle, 'centre field under the middle of the panel').toBeLessThan(
+        panel.x + (2 * panel.width) / 3,
+      );
+      expect(
+        box.x + box.width <= centre.x || box.x >= centre.x + centre.width,
+        'dock clear of the centre column',
+      ).toBe(true);
+      if (aircraft.cockpit?.views.console) {
+        const consoleBox = await boxOf(page.locator('[data-view="console"]'));
+        expect(
+          consoleBox.y >= centre.y + centre.height ||
+            (consoleBox.y >= panel.y + panel.height && consoleBox.x >= centre.x + centre.width),
+          'console below or beside the centre field',
+        ).toBe(true);
+      }
+    }
   }
 }
 
@@ -344,3 +379,73 @@ for (const viewport of desktops) {
     }
   });
 }
+
+// #440: the app chrome follows the panel up to 4K instead of staying at its 1080p size.
+const CHROME_SCALE_MIN = 1.5;
+type ChromeText = Readonly<Record<string, readonly [string, 'fontSize' | 'lineHeight']>>;
+
+const trainerText: ChromeText = {
+  'header brand': ['.shell-brand-name', 'fontSize'],
+  'mode button': ['.modes-segment', 'fontSize'],
+  'checklist item': ['.checklist-item-text', 'fontSize'],
+  'checklist line height': ['.checklist-item-text', 'lineHeight'],
+  footer: ['.app-footer', 'fontSize'],
+};
+
+const pickerText: ChromeText = {
+  'header brand': ['.shell-brand-name', 'fontSize'],
+  'picker title': ['.picker-title', 'fontSize'],
+  'procedure row': ['.picker-row-title', 'fontSize'],
+  footer: ['.app-footer', 'fontSize'],
+};
+
+const chromeFontSizes = async (page: Page, text: ChromeText) =>
+  new Map(
+    await Promise.all(
+      Object.entries(text).map(
+        async ([name, [selector, property]]) =>
+          [
+            name,
+            await page
+              .locator(selector)
+              .first()
+              .evaluate(
+                (element, key) => Number.parseFloat(getComputedStyle(element)[key]),
+                property,
+              ),
+          ] as const,
+      ),
+    ),
+  );
+
+const expectChromeScaled = (hd: Map<string, number>, uhd: Map<string, number>) => {
+  expect(uhd.size).toBeGreaterThan(0);
+  for (const [name, size] of uhd) {
+    const ratio = size / (hd.get(name) ?? Number.POSITIVE_INFINITY);
+    expect(ratio, name).toBeGreaterThanOrEqual(CHROME_SCALE_MIN);
+  }
+};
+
+test('the chrome text at 3840x2160 is at least 1.5 times its 1920x1080 size', async ({ page }) => {
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl);
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expectNoPageScroll(page);
+    sizes.push(await chromeFontSizes(page, trainerText));
+  }
+  const [hd, uhd] = sizes;
+  expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
+});
+
+test('the picker text at 3840x2160 is at least 1.5 times its 1920x1080 size', async ({ page }) => {
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openPicker(page);
+    sizes.push(await chromeFontSizes(page, pickerText));
+  }
+  const [hd, uhd] = sizes;
+  expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
+});

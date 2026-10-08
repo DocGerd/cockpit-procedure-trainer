@@ -133,18 +133,25 @@ validator test of every registered aircraft covers it.
 
 ## 4. Arrangements
 
-The panel with the device dock under it; the centre field and the console
-stacked on the right.
+The panel on top with the device dock under it.
 
-**CTSL**, three views and the dock:
+**CTSL**, three views and the dock (#436). As in the aircraft (intake §3), the
+centre field hangs below the junction of the panel's two upper fields. The
+console belongs below the centre field, but the stack does not fit the HD
+cockpit region at the view floors, so it sits beside the centre field on the
+right, toward the throttle hand. The dock sits left of the centre column, in
+the pilot's knee space, reaching under the left part of the radio and
+transponder slots; at its device floor it cannot move further right.
 
 ```
-+--------------------+-----------+
-| panel              | centre    |
-|                    | field     |
-+--------------------+-----------+
-| device dock        | console   |
-+--------------------+-----------+
+     +-----------------------------+
+     | panel                       |
+     |  (upper left | upper right) |
+     +-----------------------------+
++-------------+ +---------+ +-------------+
+| device dock | | centre  | | console     |
+|             | | field   | |             |
++-------------+ +---------+ +-------------+
 ```
 
 **Demo**, two views (panel, console) and the dock: the panel with the dock
@@ -188,8 +195,8 @@ The floor test owns the numbers. Constraints this design sets:
 - The CTSL panel floor is 950 px rendered width. The four breaker-row
   target-overlap acceptances of the CTSL are dropped; the panel is laid out
   and sized to have none.
-- The panel and the dock share the left column, the centre field and the
-  console stack in the right column, and all cells must reach their floors in
+- The CTSL panel spans the top; the dock, the centre field and the console
+  share the row below it (§4), and all cells must reach their floors in
   the cockpit region at HD. The dock cell must also reach the widest device
   floor, in width and height.
 - The radio stack and GPS views no longer exist, so their device-button floors

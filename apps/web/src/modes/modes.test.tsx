@@ -111,7 +111,9 @@ const boxOf = (element: HTMLElement | null) => {
 const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 const selectedTab = () => screen.getByRole('tab', { selected: true }).textContent;
 const modeButton = (name: string) =>
-  within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
+  name === 'Free explore'
+    ? screen.getByRole('button', { name })
+    : within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
 const hit = (id: string) => {
   const found = document.querySelector<HTMLElement>(`[data-hit="${id}"]`);
   if (!found) throw new Error(`no hit area for ${id}`);
@@ -121,7 +123,7 @@ const radio = (control: string, position: string) =>
   within(screen.getByRole('radiogroup', { name: control })).getByRole('radio', { name: position });
 
 describe('ModeControl', () => {
-  it('offers the three modes and marks the current one', () => {
+  it('offers Guided and Practice as segments and Free explore as a separate button', () => {
     renderTrainer();
     expect(
       within(screen.getByRole('group', { name: 'Mode' }))
@@ -130,8 +132,80 @@ describe('ModeControl', () => {
     ).toEqual([
       ['Guided', 'true'],
       ['Practice', 'false'],
-      ['Free explore', 'false'],
     ]);
+    expect(screen.getByRole('button', { name: 'Free explore' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+  });
+
+  it('marks Free explore instead of a segment while exploring', () => {
+    renderTrainer();
+    enterExplore();
+    expect(modeButton('Free explore').getAttribute('aria-pressed')).toBe('true');
+    expect(modeButton('Guided').getAttribute('aria-pressed')).toBe('false');
+    expect(modeButton('Practice').getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('says live feedback is on when Practice switches to Guided mid-run', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    expect(screen.queryByRole('status')).toBeNull();
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.getByRole('status').textContent).toBe(
+      'Guided is on: the next control is highlighted and deviations show at once.',
+    );
+    expect(trainer.procedureId).toBe('start');
+  });
+
+  it('says nothing for Guided to Practice or when no procedure runs', async () => {
+    renderTrainer();
+    start('start', 'guided');
+    await userEvent.click(modeButton('Practice'));
+    expect(screen.queryByRole('status')).toBeNull();
+    act(() => {
+      trainer.backToPicker();
+    });
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('drops the notice when the mode changes again or the run ends', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    await userEvent.click(modeButton('Guided'));
+    await userEvent.click(modeButton('Practice'));
+    expect(screen.queryByRole('status')).toBeNull();
+    await userEvent.click(modeButton('Guided'));
+    expect(screen.getByRole('status')).toBeDefined();
+    act(() => {
+      trainer.backToPicker();
+    });
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('lets the notice go by itself', () => {
+    vi.useFakeTimers();
+    try {
+      renderTrainer();
+      start('start', 'practice');
+      fireEvent.click(modeButton('Guided'));
+      expect(screen.getByRole('status')).toBeDefined();
+      act(() => {
+        vi.advanceTimersByTime(60_000);
+      });
+      expect(screen.queryByRole('status')).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('speaks the notice in German', async () => {
+    renderTrainer('de');
+    start('start', 'practice');
+    await userEvent.click(screen.getByRole('button', { name: 'Geführt' }));
+    expect(screen.getByRole('status').textContent).toBe(
+      'Geführt ist an: das nächste Bedienelement wird hervorgehoben, Abweichungen erscheinen sofort.',
+    );
   });
 
   it('switches between Guided and Practice and keeps the procedure', async () => {

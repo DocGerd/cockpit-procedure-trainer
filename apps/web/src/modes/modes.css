@@ -1,4 +1,5 @@
 .modes-control {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -30,6 +31,36 @@
 .modes-segment[aria-pressed='true'] {
   color: var(--color-on-accent);
   background: var(--color-accent);
+}
+
+.modes-explore {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.modes-notice {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-1));
+  inset-inline-end: 0;
+  z-index: 5;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--space-6));
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 var(--space-2) var(--space-6) color-mix(in srgb, var(--color-text) 16%, transparent);
+}
+
+.shell[data-layout='desktop'] .modes-notice {
+  inset-block-start: 50%;
+  inset-inline-end: calc(100% + var(--space-3));
+  max-width: calc(var(--space-12) * 11);
+  padding-block: var(--space-2);
+  transform: translateY(-50%);
 }
 
 .modes-operate {
