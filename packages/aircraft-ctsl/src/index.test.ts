@@ -259,10 +259,9 @@ describe('CTSL aircraft', () => {
       throw new Error(`expected two upper fields in the panel art, found ${fields.length}`);
     }
     const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
-    const junction =
-      panel.rect.x +
-      (panel.rect.w - panelFit) / 2 +
-      (((upperLeft.x + upperLeft.w + upperRight.x) / 2) * panelFit) / panelSize.width;
+    const inCockpit = (artX: number) =>
+      panel.rect.x + (panel.rect.w - panelFit) / 2 + (artX * panelFit) / panelSize.width;
+    const junction = inCockpit((upperLeft.x + upperLeft.w + upperRight.x) / 2);
 
     it('hangs the centre field below the panel, under the junction of the two upper fields', () => {
       expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
@@ -277,10 +276,16 @@ describe('CTSL aircraft', () => {
       expect(consoleCell.rect.y).toBeLessThan(bottom(centre));
     });
 
-    it('keeps the dock under the panel, clear of the centre column', () => {
+    it('keeps the dock below the panel, clear of the centre column', () => {
       expect(dock.rect.y).toBeGreaterThanOrEqual(bottom(panel));
       expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
-      expect(right(dock)).toBeGreaterThan(panel.rect.x);
+    });
+
+    it('reaches under the radio and transponder slots with the dock', () => {
+      const { com } = deviceSlots;
+      const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
+      const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
+      expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
     });
   });
 

@@ -95,8 +95,16 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
     expect(box.width, 'dock width').toBeGreaterThanOrEqual(dock.minWidth);
     const panel = await boxOf(page.locator('[data-view="panel"]'));
     expect(box.y, 'dock under the panel').toBeGreaterThanOrEqual(panel.y + panel.height);
-    expect(box.x, 'dock reaches under the panel').toBeLessThan(panel.x + panel.width);
-    expect(box.x + box.width, 'dock reaches under the panel').toBeGreaterThan(panel.x);
+    // Under the panel means a docked device opens below the slots it mirrors.
+    const slots = await page.locator('[data-view="panel"] [data-slot-mirror]').all();
+    const underSlot = await Promise.all(
+      slots.map(async (slot) => {
+        const { x, width } = await boxOf(slot);
+        const overlap = Math.min(box.x + box.width, x + width) - Math.max(box.x, x);
+        return overlap >= width / 3;
+      }),
+    );
+    expect(underSlot, 'dock reaches under a device slot').toContain(true);
     if (aircraft.cockpit?.views.centre) {
       const centre = await boxOf(page.locator('[data-view="centre"]'));
       expect(centre.y, 'centre field under the panel').toBeGreaterThanOrEqual(
