@@ -31,12 +31,14 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
 
   return {
     where: (deviation: Deviation) =>
-      format(
-        deviation.kind === 'unexpected-control' || deviation.kind === 'out-of-order'
-          ? text.duringItem
-          : text.itemNumber,
-        number(deviation),
-      ),
+      deviation.duringFlow
+        ? text.duringFlow
+        : format(
+            deviation.kind === 'unexpected-control' || deviation.kind === 'out-of-order'
+              ? text.duringItem
+              : text.itemNumber,
+            number(deviation),
+          ),
     title: (deviation: Deviation) => {
       switch (deviation.kind) {
         case 'unexpected-control':
@@ -57,7 +59,9 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
       switch (deviation.kind) {
         case 'unexpected-control':
         case 'out-of-order':
-          return format(text.unexpectedDetail, { item: item(deviation) });
+          return deviation.duringFlow
+            ? text.flowDetail
+            : format(text.unexpectedDetail, { item: item(deviation) });
         case 'wrong-position':
           return format(text.wrongPositionDetail, { item: item(deviation) });
         case 'unmet-check':
@@ -69,12 +73,12 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     banner: (deviation: Deviation) => {
       switch (deviation.kind) {
         case 'unexpected-control':
-          return format(text.bannerUnexpected, {
+          return format(deviation.duringFlow ? text.bannerUnexpectedFlow : text.bannerUnexpected, {
             control: control(deviation),
             ...number(deviation),
           });
         case 'out-of-order':
-          return format(text.bannerOutOfOrder, {
+          return format(deviation.duringFlow ? text.bannerOutOfOrderFlow : text.bannerOutOfOrder, {
             control: control(deviation),
             ...number(deviation),
             ...later(deviation),

@@ -214,8 +214,10 @@ in `failure`, which must be declared in `failures`. Each item has a `text` and o
 of:
 
 - `action`: `control` and `position` to reach, optionally `holdUntil` a condition
-  on the state. It completes by itself once the control is at the position and
-  `holdUntil` holds. The demo holds the `starter` at `'held'` until the engine runs.
+  on the state. It completes when the pilot sets the control to the position while
+  the item is current, or ticks it verified, and `holdUntil` holds; it never
+  completes just because the control already held. The demo holds the `starter` at
+  `'held'` until the engine runs.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
   state. The pilot ticks it; ticking while the condition is false is recorded as
   an `unmet-check` deviation, not refused.
@@ -223,6 +225,17 @@ of:
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.
+
+**Flows.** A `normal` procedure may open with a flow: leading `action` items marked
+`flow: true`, done from memory in any order. Each flow item ticks once its control
+holds the position (and `holdUntil` holds), including one already in place when the
+procedure starts, and the flow ends when all are ticked. While it runs, only a
+change to a control outside the flow is a deviation; it carries `duringFlow: true`,
+since it belongs to the flow rather than to one item. Repeat the flow's controls as
+ordinary items after it, so the checklist verifies them; the demo's
+`beforeLanding` does this. The validator reports `invalid-flow` for a flow item on
+an emergency procedure, one that is not an action, one after the first ordinary
+item, or one whose control no later action or control check verifies.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight. An
 action or check can target a device control as `<installId>.<controlId>`; see the
@@ -342,7 +355,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size` and the six
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow` and the eight
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
@@ -350,7 +363,8 @@ session from its `startPhase` snapshot, performing each item: it sets or presses
 the control for an action, advances until a check's condition holds, and ticks a
 confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
-points at its item. It also fails a spring-back press unless the control rests at the
+points at its item. It does a flow in the listed order, or in reverse with
+`flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
 runs it for every `normal` procedure of every registered aircraft.
 

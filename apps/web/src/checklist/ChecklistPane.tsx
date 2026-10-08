@@ -28,7 +28,9 @@ function itemState(
   showDeviations: boolean,
 ): ItemState {
   if (checklist.completed.includes(index)) {
-    const deviated = checklist.deviations.some((deviation) => deviation.itemIndex === index);
+    const deviated = checklist.deviations.some(
+      (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+    );
     return showDeviations && deviated ? 'deviated' : 'done';
   }
   return index === checklist.current ? 'current' : 'pending';
