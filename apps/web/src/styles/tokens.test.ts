@@ -186,3 +186,22 @@ describe('tokens.css matches the DocGerdSoft brand bundle', () => {
     });
   }
 });
+
+describe('the chrome scale on 4K screens', () => {
+  const scaled = block(/@media \(min-width: 3200px\) \{\s*\.shell-header,[^{]*\{/g);
+  const sized = /^--(text|leading|space|radius|size)-(?!pill)/;
+
+  it('overrides every size token', () => {
+    const names = [...root.keys()].filter((name) => sized.test(name));
+    expect(names.length).toBeGreaterThan(0);
+    expect([...scaled.keys()].sort()).toEqual(names.sort());
+  });
+
+  it('is at least one and a half times the base size', () => {
+    for (const [name, value] of scaled) {
+      expect(parseFloat(value) / parseFloat(root.get(name) ?? ''), name).toBeGreaterThanOrEqual(
+        1.5,
+      );
+    }
+  });
+});
