@@ -13,7 +13,9 @@ const viewports = [
 ];
 
 const modeButton = (page: Page, name: string) =>
-  page.getByRole('group', { name: text.mode }).getByRole('button', { name, exact: true });
+  name === text.explore
+    ? page.getByRole('button', { name, exact: true })
+    : page.getByRole('group', { name: text.mode }).getByRole('button', { name, exact: true });
 
 const checklistToggle = (page: Page) =>
   page.getByRole('banner').getByRole('button', { name: /^Checklist/ });
@@ -91,3 +93,12 @@ for (const viewport of viewports) {
     });
   }
 }
+
+test('switching Practice to Guided mid-run says live feedback is on', async ({ page }) => {
+  await startFromPicker(page, 'practice');
+  await expectChecklist(page);
+
+  await modeButton(page, text.guided).click();
+  await expect(page.getByRole('status').filter({ hasText: text.guidedOnNotice })).toBeVisible();
+  await expect(modeButton(page, text.guided)).toHaveAttribute('aria-pressed', 'true');
+});

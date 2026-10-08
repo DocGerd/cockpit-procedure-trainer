@@ -120,6 +120,33 @@ describe('aircraft and procedure picker', () => {
     expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
   });
 
+  it('describes what Start and Explore do, each with a one-line helper', () => {
+    renderPicker();
+    const start = screen.getByRole('button', { name: 'Start procedure' });
+    const explore = screen.getByRole('button', { name: 'Explore the cockpit' });
+    expect(start.getAttribute('aria-describedby')).toBeTruthy();
+    expect(document.getElementById(start.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
+      'Run the selected procedure in the chosen mode.',
+    );
+    expect(
+      document.getElementById(explore.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe('Look around the panel and read what each control does. No procedure runs.');
+  });
+
+  it('describes Start and Explore in German', () => {
+    renderPicker('de');
+    const explore = screen.getByRole('button', { name: 'Cockpit erkunden' });
+    expect(
+      document.getElementById(explore.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe(
+      'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
+    );
+    const start = screen.getByRole('button', { name: 'Verfahren starten' });
+    expect(document.getElementById(start.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
+      'Das gewählte Verfahren im gewählten Modus durchlaufen.',
+    );
+  });
+
   it('enters Free explore from its button', async () => {
     renderPicker();
     await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));

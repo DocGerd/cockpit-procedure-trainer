@@ -292,3 +292,43 @@ for (const language of languages) {
     }
   });
 }
+
+for (const viewport of [
+  { width: 1920, height: 1080 },
+  { width: 1920, height: 950 },
+]) {
+  test(`the CTSL picker keeps Mode and Start in view without page scroll at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+    await page.setViewportSize(viewport);
+    await openPicker(page);
+    await page.getByRole('button', { name: ctsl.name.en }).click();
+
+    const inside = async (locator: Locator, label: string) => {
+      const box = await locator.boundingBox();
+      if (!box) throw new Error(`${label} has no box`);
+      expect(box.y, `${label} top`).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height, `${label} bottom`).toBeLessThanOrEqual(viewport.height);
+    };
+    await inside(page.getByRole('group', { name: copy.shell.mode }), 'Mode');
+    await inside(
+      page.getByRole('button', { name: copy.shell.startProcedure, exact: true }),
+      'Start',
+    );
+    await inside(page.getByRole('button', { name: copy.shell.exploreCockpit }), 'Explore');
+
+    const overflow = await page.evaluate(() => {
+      const list = document.querySelector('.picker-list');
+      return {
+        page: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        list: list ? list.scrollHeight - list.clientHeight : -1,
+        listHeight: list?.clientHeight ?? 0,
+      };
+    });
+    expect(overflow.page, 'page scroll').toBeLessThanOrEqual(0);
+    expect(overflow.list, 'the list scrolls on its own').toBeGreaterThan(0);
+    expect(overflow.listHeight, 'rows the list shows').toBeGreaterThanOrEqual(6 * 44);
+  });
+}

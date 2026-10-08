@@ -93,6 +93,8 @@ export function Picker() {
   const aircraftHeading = useId();
   const procedureHeading = useId();
   const modeName = useId();
+  const startHint = useId();
+  const exploreHint = useId();
 
   const byType = (type: 'normal' | 'emergency') =>
     ids.filter((id) => aircraft.procedures[id]?.type === type);
@@ -166,21 +168,33 @@ export function Picker() {
               ))}
             </fieldset>
             <div className="picker-actions">
-              <button
-                type="button"
-                className="button-primary"
-                disabled={selected === undefined}
-                onClick={start}
-              >
-                {text.startProcedure}
-              </button>
-              <button
-                type="button"
-                className="button-secondary"
-                onClick={() => trainer.setMode('explore')}
-              >
-                {text.exploreCockpit}
-              </button>
+              <div className="picker-action">
+                <button
+                  type="button"
+                  className="button-primary"
+                  aria-describedby={startHint}
+                  disabled={selected === undefined}
+                  onClick={start}
+                >
+                  {text.startProcedure}
+                </button>
+                <p id={startHint} className="picker-card-text">
+                  {text.startHint}
+                </p>
+              </div>
+              <div className="picker-action">
+                <button
+                  type="button"
+                  className="button-secondary"
+                  aria-describedby={exploreHint}
+                  onClick={() => trainer.setMode('explore')}
+                >
+                  {text.exploreCockpit}
+                </button>
+                <p id={exploreHint} className="picker-card-text">
+                  {text.exploreHint}
+                </p>
+              </div>
             </div>
           </section>
         </div>
