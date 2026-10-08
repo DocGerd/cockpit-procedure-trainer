@@ -59,6 +59,7 @@ export const indicators = {
     name: text('Klappenstellungsanzeige', 'Flap position indicator'),
     select: (state: CtslTrainerState) =>
       flapCircuitPowered(state) ? state.systems.flaps.angle : '',
+    blink: (state: CtslTrainerState) => flapCircuitPowered(state) && state.systems.flaps.moving,
     appearance: { widget: 'digital-readout', options: { units: '°', decimals: 0 } },
   },
   eltLamp: {

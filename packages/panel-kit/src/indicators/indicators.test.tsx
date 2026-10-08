@@ -323,6 +323,22 @@ describe('digital readout', () => {
     );
     expect(crowded?.getAttribute('textLength')).toBe(String(94 - unitsReserve('V', 7) - 6));
   });
+
+  it('holds its digits steady unless told to blink', () => {
+    const { container } = draw(readout, 7, { units: 'V' });
+    expect(container.querySelector('svg')?.hasAttribute('data-blink')).toBe(false);
+    expect(container.querySelector('.pk-blink')).toBeNull();
+  });
+
+  it('blinks its digits and units, not the bezel, when told to', () => {
+    const { container } = render(
+      <DigitalReadout value={7} label="L" options={{ units: 'V' }} blink />,
+    );
+    expect(container.querySelector('svg')?.hasAttribute('data-blink')).toBe(true);
+    expect(container.querySelector('[data-value]')?.classList.contains('pk-blink')).toBe(true);
+    expect(container.querySelector('[data-units]')?.classList.contains('pk-blink')).toBe(true);
+    expect(container.querySelectorAll('.pk-blink')).toHaveLength(2);
+  });
 });
 
 describe('every indicator', () => {

@@ -132,8 +132,9 @@ describe('demo aircraft', () => {
     const session = createSession(demoAircraft, { devices, phase: 'parkingSecuring' });
     session.startProcedure('shutdownSecuring');
     for (const item of demoAircraft.procedures.shutdownSecuring?.items ?? []) {
-      if (item.type === 'action') session.set(item.control, item.position);
-      else session.checkOff();
+      if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
+        session.set(item.control, item.position);
+      } else session.checkOff();
     }
     expect(session.checklist()).toMatchObject({ done: true, deviations: [] });
     expect(session.state().controls).toMatchObject(
