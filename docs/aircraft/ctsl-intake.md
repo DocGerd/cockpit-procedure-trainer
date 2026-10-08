@@ -737,7 +737,7 @@ verifies it on D-MPGO.
     overload protection has stopped the drive (HB 7-12). The thermal flap breaker
     beside the selector can trip under sustained overload and takes a while to
     reset (HB 7-13). A failed controller is reset by switching GEN and BAT off and
-    on (HB 3-7). The trainer now blinks the readout while the drive runs, steady
+    on (HB 3-7). The trainer blinks the readout while the drive runs, steady
     once the setting is reached, and it keeps blinking while airspeed holds an
     extension off (#533). Its rate (`--panel-blink-period`) is a trainer value,
     assumed (unverified).
