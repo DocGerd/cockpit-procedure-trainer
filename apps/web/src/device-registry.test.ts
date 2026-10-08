@@ -1,4 +1,5 @@
 import { createSession } from '@cpt/core';
+import { ACQUIRE_MS } from '@cpt/device-gpsmap496';
 import { expect, it } from 'vitest';
 import { aircraftRegistry } from './aircraft-registry';
 import { deviceRegistry, deviceScreens } from './device-registry';
@@ -46,3 +47,22 @@ it.each(['parking', 'holding'] as const)(
     expect(session.state().devices.gps?.state).toMatchObject({ on: false, fix: false });
   },
 );
+
+it('gives the CTSL GPS a fix with ground speed and track after a manual switch-on and the search', () => {
+  const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+  if (!ctsl) throw new Error('CTSL is not registered');
+  const session = createSession(ctsl, { devices: deviceRegistry, phase: 'holding' });
+  session.advance(100);
+  session.press('gps.power');
+  session.advance(ACQUIRE_MS - 1000);
+  expect(session.state().devices.gps?.state).toMatchObject({ on: true, fix: false });
+  session.advance(1100);
+  const gps = session.state().devices.gps?.state as {
+    fix: boolean;
+    groundSpeedKt: number | null;
+    trackDeg: number | null;
+  };
+  expect(gps.fix).toBe(true);
+  expect(gps.groundSpeedKt).not.toBeNull();
+  expect(gps.trackDeg).not.toBeNull();
+});

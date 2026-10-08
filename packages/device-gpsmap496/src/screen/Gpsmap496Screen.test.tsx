@@ -37,15 +37,21 @@ describe('Gpsmap496Screen display', () => {
     expect(view.container.querySelector('[data-field="map"]')).not.toBeNull();
   });
 
-  it('turns the north marker with the track', () => {
+  it('turns the north marker around the ownship opposite to the track', () => {
     const north = (trackDeg: number) => {
       const { view } = show({ ...fixed, trackDeg });
-      const at = view.container.querySelector('[data-north]')?.getAttribute('transform');
+      const at = view.container.querySelector('[data-north]')?.getAttribute('transform') ?? '';
       cleanup();
-      return at;
+      const [x = Number.NaN, y = Number.NaN] = (/translate\(([^)]+)\)/.exec(at)?.[1] ?? '')
+        .split(' ')
+        .map(Number);
+      return { x, y };
     };
-    expect(north(360)).not.toBe(north(180));
-    expect(north(90)).not.toBe(north(270));
+    const ownship = { x: 50, y: 54 };
+    expect(north(360).y).toBeLessThan(ownship.y);
+    expect(north(180).y).toBeGreaterThan(ownship.y);
+    expect(north(90).x).toBeLessThan(ownship.x);
+    expect(north(270).x).toBeGreaterThan(ownship.x);
   });
 
   it('prints dashes for a reading it does not have', () => {

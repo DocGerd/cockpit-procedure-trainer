@@ -43,6 +43,9 @@ describe('gpsmap496Readout', () => {
   it('leaves out a reading the receiver does not have', () => {
     const map = { ...fixed, page: 'map', groundSpeedKt: null, trackDeg: null } as const;
     expect(gpsmap496Readout(map, 'en', true)).toBe('Map page, position fix, backlight 3 of 3');
+    expect(gpsmap496Readout(map, 'de', true)).toBe(
+      'Seite Karte, Position bestimmt, Beleuchtung 3 von 3',
+    );
   });
 
   it('names every page in both languages', () => {
