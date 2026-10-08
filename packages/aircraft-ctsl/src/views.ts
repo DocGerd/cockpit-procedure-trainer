@@ -77,7 +77,7 @@ export const views = {
       brake: at(20, 8, 440, 110),
       throttle: at(20, 130, 750, 110),
       choke: at(20, 252, 440, 110),
-      trim: at(20, 374, 520, 110),
+      trim: at(20, 374, 750, 110),
       parkingBrakeValve: at(806, 30, 180, 180),
       carbHeat: at(1022, 30, 150, 300),
     },
