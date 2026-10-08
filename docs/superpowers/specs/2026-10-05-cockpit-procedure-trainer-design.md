@@ -180,6 +180,15 @@ A procedure has an id, a title, a type (`normal` or `emergency`), the phase it
 starts in, optionally the phase it ends in, and its items. An emergency
 procedure names the failure to inject.
 
+Started from the picker, a procedure loads its start phase's entry snapshot,
+injects its failure if it is an emergency, and starts its checklist at once. A
+surprise failure (§5 Scenarios) starts differently: it loads a phase, injects
+one of that phase's failures unannounced after a delay, and the checklist the
+pilot then chooses starts from the cockpit as it stands, with no snapshot load
+and no failure of its own (amended in #446: recognising a failure is half the
+skill of an abnormal, and a failure announced with its checklist trains only
+the other half).
+
 Each item has text in both languages and one of:
 
 - **action**: a target control and the position to reach, optionally held until
@@ -321,6 +330,27 @@ the running procedure is untouched and a button leads back to it; in Free
 explore the pane starts on the last procedure that ran, else the aircraft's
 first.
 
+### Scenarios
+
+Besides a chosen procedure, the picker offers drills (added in #446):
+
+- **Surprise failure**, always in Practice: the pilot picks a phase that has
+  emergency procedures; the session loads it with no checklist and, after a
+  random delay, injects one of the phase's failures with no banner and no title
+  naming it. Only failures that change the panel within seconds are drawn, so
+  there is always something to recognise. The pane says only that a failure will come. The pilot reads
+  checklists through the selector and runs the one they judge right; until
+  then nothing is recorded. The debrief adds the time from the failure to that
+  choice (or that it came before the failure) and whether the checklist was an
+  emergency procedure for the injected failure; a wrong checklist's run is not
+  recorded in the history. Repeat, Restart and returning from Free explore
+  start a new surprise in the same phase.
+- **Random emergency**: an emergency procedure picked at random, started as
+  from the picker in the chosen mode.
+- **Practise next**: shown once the history holds a run of the aircraft; it
+  suggests the procedure whose last run had deviations (the oldest such run
+  first), else one never run, else the one practised longest ago.
+
 ### Screen
 
 Outside-view strip on top, the cockpit below, checklist pane at the side
@@ -335,7 +365,7 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 The history keeps, per aircraft and procedure, the last run (mode, deviation
 count, date) and the best run, so the pilot and an instructor see improvement
 across sessions; it is never sent anywhere (G2). Reads are validated and
-guarded; the app works without it.
+guarded; the app works without it. The Practise next drill only reads it.
 
 ## 6. Visual design
 
