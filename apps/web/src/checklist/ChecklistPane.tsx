@@ -1,7 +1,7 @@
 import type { ChecklistState, ProcedureItem } from '@cpt/core';
 import { useEffect, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useLostProgressText, useSessionState, useTrainer } from '../trainer';
+import { useLostProgressText, useProgressAtRisk, useSessionState, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import './checklist.css';
@@ -126,7 +126,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const list = useRef<HTMLOListElement>(null);
   const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
-  const atRisk = completed.length > 0 || count > 0;
+  const atRisk = useProgressAtRisk() !== undefined;
   const restart = () => {
     if (trainer.procedureId !== undefined) trainer.startProcedure(trainer.procedureId);
   };

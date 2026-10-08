@@ -55,5 +55,15 @@ export const fixture: Aircraft = defineAircraft({
       endPhase: 'landed',
       items: [{ type: 'action', control: 'master', position: 'on', text: text('Master on') }],
     },
+    cycle: {
+      title: text('Cycle'),
+      type: 'normal',
+      startPhase: 'ground',
+      endPhase: 'landed',
+      items: [
+        { type: 'action', control: 'master', position: 'on', text: text('Master on') },
+        { type: 'action', control: 'master', position: 'off', text: text('Master off') },
+      ],
+    },
   },
 });

@@ -174,6 +174,20 @@ describe('checklist items', () => {
     );
   });
 
+  it.each([
+    ['en', 'Restart', 'Progress lost: 0 of ITEMS items done, 2 deviations.'],
+    ['de', 'Neu starten', 'Verlorener Fortschritt: 0 von ITEMS Punkten erledigt, 2 Abweichungen.'],
+  ] as const)('counts several deviations in %s', async (language, restart, expected) => {
+    renderPane(language);
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    await userEvent.click(screen.getByRole('button', { name: restart }));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      expected.replace('ITEMS', String(itemCount)),
+    );
+  });
+
   it('asks in German', async () => {
     renderPane('de');
     start(flow);

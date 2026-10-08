@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useLostProgressText, useSessionState, useTrainer } from '../trainer';
+import { useLostProgressText, useProgressAtRisk, useSessionState, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 import './outside-view.css';
@@ -12,6 +12,7 @@ export function PhaseControl() {
   const phase = useSessionState((session) => session.phase());
   const [pending, setPending] = useState<string | undefined>();
   const lost = useLostProgressText();
+  const atRisk = useProgressAtRisk() !== undefined;
   const selectId = useId();
   const running = procedureId !== undefined;
 
@@ -20,7 +21,7 @@ export function PhaseControl() {
   }, [running]);
 
   const choose = (phaseId: string) => {
-    if (running) setPending(phaseId);
+    if (atRisk) setPending(phaseId);
     else jumpToPhase(phaseId);
   };
   const pendingPhase = pending === undefined ? undefined : aircraft.phases[pending];

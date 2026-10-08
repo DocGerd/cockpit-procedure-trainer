@@ -88,7 +88,6 @@ for (const viewport of viewports) {
     test('Free explore starts on the last procedure that ran', async ({ page }) => {
       await pickProcedure(page, other, 'guided');
       await page.getByRole('button', { name: modeMessages.en.explore }).click();
-      await page.getByRole('button', { name: modeMessages.en.exploreConfirm }).click();
       await openChecklist(page);
       await expect(selector(page)).toHaveValue(other);
       await expect(title(page, other)).toBeVisible();

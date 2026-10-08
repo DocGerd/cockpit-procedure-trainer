@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import { STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { LanguageProvider } from '../i18n/language';
+import type { Language } from '../i18n/language';
 import {
   shallowEqual,
   TrainerProvider,
+  useLostProgressText,
   useProgressAtRisk,
   useSessionState,
   useTrainer,
@@ -526,5 +530,31 @@ describe('progress at risk', () => {
     act(() => result.current.trainer.session.set('master', 'on'));
     act(() => result.current.trainer.jumpToPhase('cruise'));
     expect(result.current.risk).toBeUndefined();
+  });
+});
+
+describe('lost progress text', () => {
+  const renderText = (language: Language) =>
+    renderHook(() => ({ trainer: useTrainer(), text: useLostProgressText() }), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <LanguageProvider initial={language}>
+          <TrainerProvider>{children}</TrainerProvider>
+        </LanguageProvider>
+      ),
+    });
+  const run = (language: Language) => {
+    const { result } = renderText(language);
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    return result;
+  };
+
+  it('is empty while no progress is at risk', () => {
+    expect(renderText('en').result.current.text).toBe('');
+  });
+
+  it('counts the items done, without a deviation clause when there are none', () => {
+    expect(run('en').current.text).toBe('Progress lost: 1 of 2 items done.');
+    expect(run('de').current.text).toBe('Verlorener Fortschritt: 1 von 2 Punkten erledigt.');
   });
 });

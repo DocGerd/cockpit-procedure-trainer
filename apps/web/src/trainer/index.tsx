@@ -296,7 +296,7 @@ export function useProgressAtRisk(): ProgressAtRisk | undefined {
 export function useLostProgressText(): string {
   const text = useMessages(messages);
   const risk = useProgressAtRisk();
-  if (risk === undefined) return text.nothingLost;
+  if (risk === undefined) return '';
   const items = format(text.lostProgress, { done: risk.done, total: risk.total });
   if (risk.deviations === 0) return `${items}.`;
   const deviations = format(
