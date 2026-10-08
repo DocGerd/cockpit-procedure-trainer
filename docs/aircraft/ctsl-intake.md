@@ -54,7 +54,7 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
   for this variant (§9) and is drawn unlit in the background. The charge lamp's
-  legend and colour are assumed (§9, question 22).
+  legend and colour are owner-confirmed (§9, question 22).
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
@@ -65,10 +65,10 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 - GPS in its cradle in the centre (device slot).
 - Below it, four round engine gauges in a row: a larger tachometer on the left,
   then oil pressure, oil temperature and cylinder head temperature (CHT).
-- A small item at the top left next to the type name: probably the magnetic
+- A small item at the top left next to the type name: the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
   phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
-  assumed (§9, question 20); the type name is not printed.
+  owner-confirmed (§9, question 20); the type name is not printed.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -127,7 +127,7 @@ Handbook facts (checked 2026-10-08):
   wheel. Oriented by the forward ends of the legend strips and by the trim wheel
   sitting left of the throttle (HB 7-12), the order from the pilot's side outward
   is **trim wheel, choke, throttle, brake** (inferred from the figure; §9,
-  question 25).
+  questions 25 and 31).
 - **THROTTLE** (Gashebel): legend strip with FULL at the forward end and IDLE at
   the aft end, nothing between (HB 7-20). Push forward for power. At start the
   throttle opens no more than about a tenth (HB 4-6).
@@ -685,7 +685,7 @@ verifies it on D-MPGO.
     the brake and choke apply when pulled toward the pilot; the trim wheel turns
     fore and aft, forward nose down, with its indicator beside it.
     **Handbook check 2026-10-08:** answered from the handbook, with one correction;
-    the lever order is an inference for the owner to confirm. Directions:
+    the lever order is an inference for the owner to confirm (question 31). Directions:
     throttle FULL forward and IDLE aft, brake and choke OFF forward and ON aft, trim
     DOWN forward and UP aft, forward trims nose-heavy (HB 7-12, 7-19 to 7-21); the
     trim indicator sits directly beside the wheel (HB 7-12). Correction: the levers
@@ -757,7 +757,8 @@ verifies it on D-MPGO.
 
 31. **Console lever order across the console**: in which order do the levers sit
     from the pilot's side outward? The handbook figure and the trim wheel sitting
-    left of the throttle (HB 7-19, 7-12) give trim wheel, choke, throttle, brake.
+    left of the throttle (HB 7-19, 7-12) give trim wheel, choke, throttle, brake
+    (question 25's handbook check).
     The order is inferred from the figure: **assumed (unverified)** until the
     owner confirms it on D-MPGO. Today: a vertical stack on the console's flank
     (§3.4), which #534 redraws.
