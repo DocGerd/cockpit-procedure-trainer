@@ -67,8 +67,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   then oil pressure, oil temperature and cylinder head temperature (CHT).
 - A small item at the top left next to the type name: probably the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
-  phase from the airfield of `src/airfield.ts`. Its type, card sense and size, and
-  the type name's wording, are assumed (§9, question 20).
+  phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
+  assumed (§9, question 20); the type name is not printed.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -497,13 +497,12 @@ verifies it on D-MPGO.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
-    than the vertical speed indicator, with the type name "CT Supralight" printed
-    below it; its reversed card shows through a window at the top of the housing,
-    numbers increasing to the left. **Answered by assumption pending owner
-    verification** (#444). Assumed (unverified), from general knowledge of the CT
+    than the vertical speed indicator; its reversed card shows through a window at
+    the top of the housing, numbers increasing to the left. **Answered by
+    assumption pending owner verification** (#444). Assumed (unverified), from general knowledge of the CT
     Supralight: a panel-mounted magnetic compass with a reversed card read in a
     window, mounted in the panel (not on the windscreen frame), no larger than the
-    vertical speed indicator; the type name beside it reads "CT Supralight".
+    vertical speed indicator.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: the printed label "ELT" with no position legends

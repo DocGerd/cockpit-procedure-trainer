@@ -122,7 +122,6 @@
 <text x="450" y="449" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">COM RADIO</text>
 <text x="450" y="609" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">TRANSPONDER</text>
 <text x="1368" y="204" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">GPS</text>
-<text x="880" y="232" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3">CT Supralight</text>
 <text x="1736" y="72" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Circuit Breakers -</text>
 <text x="1736" y="106" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Push off</text>
 </svg>

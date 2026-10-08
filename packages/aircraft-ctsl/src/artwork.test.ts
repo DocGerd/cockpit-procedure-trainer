@@ -103,13 +103,11 @@ describe('CTSL compass', () => {
         read(compassArtwork().moving.image),
       )?.[1],
     );
-  const backdrop = () =>
-    readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
 
-  it('turns a full card under the lubber line, so the heading reads at the top', () => {
+  it('turns the full card clockwise under the lubber line, so it slides right as the heading increases', () => {
     const { moving } = compassArtwork();
     expect(moving.valueRange).toEqual({ min: 0, max: 360 });
-    expect(Math.abs(moving.angleRange.max - moving.angleRange.min)).toBe(360);
+    expect(moving.angleRange).toEqual({ min: 0, max: 360 });
     expect(moving.pivot).toEqual({ x: 100, y: 100 });
   });
 
@@ -131,11 +129,6 @@ describe('CTSL compass', () => {
     expect(placedOnCard('33')).toBe(30);
   });
 
-  it('slides the card to the right in the window as the heading increases', () => {
-    const { moving } = compassArtwork();
-    expect(moving.angleRange).toEqual({ min: 0, max: 360 });
-  });
-
   it('shows the card only through a window at the top of an opaque housing', () => {
     const { glass } = compassArtwork();
     if (glass === undefined) throw new Error('the compass housing is drawn as its glass');
@@ -151,16 +144,12 @@ describe('CTSL compass', () => {
     expect(compass.h).toBeLessThanOrEqual(vsi.h);
   });
 
-  it('sits at the top left of the right field, above the engine gauges and by the type name', () => {
+  it('sits at the top left of the right field, above the leftmost engine gauge', () => {
     const { rect } = views.panel.indicators.compass;
-    expect(rect.y + rect.h).toBeLessThan(views.panel.indicators.tachometer.rect.y);
-    const name = /<text x="([\d.]+)" y="([\d.]+)" [^>]*>CT Supralight<\/text>/.exec(backdrop());
-    expect(name, 'the type name printed on the panel').not.toBeNull();
-    const [x, y] = [Number(name?.[1]), Number(name?.[2])];
-    expect(x).toBeGreaterThanOrEqual(rect.x);
-    expect(x).toBeLessThan(rect.x + rect.w);
-    expect(y).toBeGreaterThan(rect.y + rect.h);
-    expect(y - (rect.y + rect.h)).toBeLessThan(60);
+    const tachometer = views.panel.indicators.tachometer.rect;
+    expect(rect.y + rect.h).toBeLessThan(tachometer.y);
+    expect(rect.x + rect.w / 2).toBeGreaterThan(tachometer.x);
+    expect(rect.x + rect.w / 2).toBeLessThan(tachometer.x + tachometer.w);
   });
 
   it('letters the card with the cardinal points', () => {
@@ -389,7 +378,6 @@ describe('CTSL view backdrops', () => {
         'COM RADIO@450,449/40',
         'TRANSPONDER@450,609/40',
         'GPS@1368,204/40',
-        'CT Supralight@880,232/30',
         'Circuit Breakers -@1736,72/30',
         'Push off@1736,106/30',
       ],
