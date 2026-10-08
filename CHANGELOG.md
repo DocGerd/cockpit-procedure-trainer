@@ -8,6 +8,17 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.13.0] - 2026-10-08
+
+### Changed
+
+- Generic panel controls and gauges look like real hardware: metal bezels, glass, shadows and shaded switches.
+- The CT Supralight instruments look like real gauges: metal bezels, glass glare and shadowed needles.
+- The CT Supralight switches, breakers, knobs and levers look like real hardware.
+- The CT Supralight panel reads as painted metal with shadows around its instruments.
+- Avionics units sit in shaded bezels behind glass.
+- The radio volume slider shows its position clearly against the track, and panel placards sit a shade darker beside the painted panel.
+
 ## [0.12.0] - 2026-10-07
 
 ### Added
@@ -238,7 +249,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.10.0...v0.11.0
