@@ -157,7 +157,14 @@ export const controls = {
     positions: ['out', 'off', 'left', 'right', 'both', 'start'],
     initial: 'out',
     springBack: { start: 'both' },
-    legends: { out: text('Schlüssel abgezogen', 'key out'), left: 'L', right: 'R' },
+    legends: {
+      out: {
+        state: text('Schlüssel abgezogen', 'key out'),
+        restore: text('Schlüssel wieder abziehen', 'Take the key out again'),
+      },
+      left: 'L',
+      right: 'R',
+    },
     interlock: [
       { control: 'fuelValve', at: 'closed', holds: ['out'] },
       { control: 'fuelValve', at: 'closed', holds: ['off', 'out'] },
@@ -259,7 +266,16 @@ export const controls = {
     kind: 'guarded',
     positions: ['stowed', 'pulled'],
     initial: 'stowed',
-    legends: { stowed: text('Ruhestellung', 'stowed'), pulled: text('gezogen', 'pulled') },
+    legends: {
+      stowed: {
+        state: text('in Ruhestellung', 'stowed'),
+        restore: text('Wieder in Ruhestellung bringen', 'Stow it again'),
+      },
+      pulled: {
+        state: text('gezogen', 'pulled'),
+        restore: text('Wieder ziehen', 'Pull it again'),
+      },
+    },
     guard: { name: text('Sicherungsstift', 'Safety pin') },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(

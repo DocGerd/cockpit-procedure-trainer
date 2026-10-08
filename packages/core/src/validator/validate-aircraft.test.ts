@@ -206,10 +206,13 @@ describe('validateAircraft', () => {
 
     it('reports an empty legend and a legend phrase without both languages', () => {
       const aircraft = withControl('ignition', {
-        legends: { off: ' ', both: { de: 'beide', en: '' } },
+        legends: {
+          off: ' ',
+          both: { state: { de: 'beide', en: '' }, restore: { de: '', en: 'Back to both' } },
+        },
       });
       const found = ofCode(aircraft, 'missing-translation');
-      expect(found.map((f) => f.id)).toEqual(['ignition', 'ignition']);
+      expect(found.map((f) => f.id)).toEqual(['ignition', 'ignition', 'ignition']);
       expect(found.every((f) => f.message.includes('legend'))).toBe(true);
     });
 

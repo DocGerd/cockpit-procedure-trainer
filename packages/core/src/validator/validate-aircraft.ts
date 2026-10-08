@@ -229,7 +229,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       if (typeof legend === 'string') {
         if (isMissing(legend)) add('missing-translation', id, `legend of ${position}: empty`);
       } else {
-        checkText(id, `legend of ${position}`, legend);
+        checkText(id, `legend of ${position}`, legend.state);
+        checkText(id, `restore legend of ${position}`, legend.restore);
       }
     }
 

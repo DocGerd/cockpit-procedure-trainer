@@ -54,7 +54,16 @@ export const controls = {
     kind: 'momentary',
     positions: ['released', 'held'],
     initial: 'released',
-    legends: { released: text('losgelassen', 'released'), held: text('gedrückt', 'pressed') },
+    legends: {
+      released: {
+        state: text('losgelassen', 'released'),
+        restore: text('Wieder loslassen', 'Release it'),
+      },
+      held: {
+        state: text('gedrückt', 'pressed'),
+        restore: text('Wieder drücken', 'Press it again'),
+      },
+    },
     name: text('Anlasser', 'Starter'),
     description: text(
       'Dreht das Triebwerk, solange er gedrückt wird. Braucht Bordspannung.',

@@ -1,14 +1,15 @@
 // @vitest-environment jsdom
-import { createSession } from '@cpt/core';
-import type { Aircraft, ControlDefinition, Deviation, Text } from '@cpt/core';
+import { createSession, springsBack } from '@cpt/core';
+import type { Aircraft, ControlDefinition, Deviation } from '@cpt/core';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import { deviceRegistry } from '../device-registry';
-import { LanguageProvider } from '../i18n';
+import { format, LanguageProvider } from '../i18n';
 import type { Language } from '../i18n';
 import { useDeviationText } from './deviation-text';
+import { messages } from './messages';
 
 const LEGEND_WIDGETS = new Set([
   'toggle',
@@ -26,8 +27,6 @@ const DEFAULT_WIDGET: Record<ControlDefinition['kind'], string> = {
   guarded: 'guarded-handle',
   breaker: 'circuit-breaker',
 };
-
-const isText = (value: unknown): value is Text => typeof value === 'object' && value !== null;
 
 function printedLegends(aircraft: Aircraft, id: string, control: ControlDefinition) {
   const appearance = control.appearance;
@@ -48,15 +47,6 @@ function printedLegends(aircraft: Aircraft, id: string, control: ControlDefiniti
   return new Set(lines.map((line) => line.trim()));
 }
 
-const usedControls = (aircraft: Aircraft) =>
-  new Set(
-    Object.values(aircraft.procedures).flatMap((procedure) =>
-      procedure.items.flatMap((item) =>
-        'control' in item && Object.hasOwn(aircraft.controls, item.control) ? [item.control] : [],
-      ),
-    ),
-  );
-
 function cueText(aircraft: Aircraft, language: Language) {
   const session = createSession(aircraft, { devices: deviceRegistry });
   const procedure = Object.keys(aircraft.procedures)[0];
@@ -69,10 +59,10 @@ function cueText(aircraft: Aircraft, language: Language) {
   return renderHook(() => useDeviationText(checklist), { wrapper }).result.current;
 }
 
+// Every control, not only those a procedure names: a stray move on any of them cues its positions.
 const cases = aircraftRegistry.flatMap((aircraft) =>
-  [...usedControls(aircraft)].flatMap((id) => {
-    const control = aircraft.controls[id];
-    if (!control || control.kind === 'breaker' || control.positions === 'continuous') return [];
+  Object.entries(aircraft.controls).flatMap(([id, control]) => {
+    if (control.kind === 'breaker' || control.positions === 'continuous') return [];
     return control.positions.map((position) => [aircraft.id, id, position, aircraft] as const);
   }),
 );
@@ -88,9 +78,8 @@ describe('position wording in the deviation cues', () => {
     '%s %s at %s reads as the panel prints it or as an explicit phrase',
     (_aircraftId, id, position, aircraft) => {
       const control = aircraft.controls[id] as ControlDefinition;
-      const legend: unknown = (control as { legends?: Record<string, unknown> }).legends?.[
-        position
-      ];
+      const legend = control.legends?.[position];
+      const named = control.positions === 'continuous' ? [] : control.positions;
       const deviation: Deviation = {
         kind: 'wrong-position',
         itemIndex: 0,
@@ -98,15 +87,32 @@ describe('position wording in the deviation cues', () => {
         position,
       };
       for (const language of ['en', 'de'] as const) {
-        const title = cueText(aircraft, language).title(deviation);
+        const cue = cueText(aircraft, language);
+        const title = cue.title(deviation);
         const name = control.name[language];
-        const wording =
-          language === 'en'
-            ? title.replace(`${name} left at `, '')
-            : title.replace(`${name} auf `, '').replace(/ gelassen$/, '');
-        if (isText(legend)) {
-          expect(wording).toBe(legend[language]);
+        if (typeof legend === 'object') {
+          expect(title).toBe(
+            format(messages[language].wrongPositionPhraseTitle, {
+              control: name,
+              position: legend.state[language],
+            }),
+          );
+          const other = named.find((candidate) => candidate !== position) ?? position;
+          const back = cue.banner({
+            kind: 'unexpected-control',
+            itemIndex: 0,
+            controlId: id,
+            position: other,
+            from: position,
+          });
+          if (!springsBack(control, other)) {
+            expect(back.endsWith(` ${legend.restore[language]}.`)).toBe(true);
+          }
         } else {
+          const wording =
+            language === 'en'
+              ? title.replace(`${name} left at `, '')
+              : title.replace(`${name} auf `, '').replace(/ gelassen$/, '');
           expect([...printedLegends(aircraft, id, control)]).toContain(wording);
         }
       }

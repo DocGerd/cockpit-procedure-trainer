@@ -376,11 +376,13 @@ Cues (the Guided banner, the debrief's Expected and Actual) name a position as t
 prints it: its id in capitals, which is what a generic widget prints. Where the panel
 prints something else, declare `legends: { position: legend }` on the control: a string
 is the panel's own legend, such as `left: 'L'` on the CTSL key, and must also appear in
-the control's `lettering` or `printed`; a `Text` is a phrase for a position the panel
-prints nothing for, such as the key pulled out. `validateAircraft` reports a legend for
-an unknown position as `unknown-position` and an empty one as `missing-translation`.
-`apps/web/src/checklist/position-legends.test.tsx` fails when a position of a control
-any procedure names would cue text the panel does not print.
+the control's `lettering` or `printed`. A position the panel prints nothing for, such as
+the key pulled out, takes a phrase `{ state, restore }` (both `Text`): `state` names it
+after the control ("key out"), `restore` asks to bring the control back to it ("Take the
+key out again"), and cues use their own sentence forms for it. `validateAircraft` reports
+a legend for an unknown position as `unknown-position` and an empty one as
+`missing-translation`. `apps/web/src/checklist/position-legends.test.tsx` fails when a
+position of any control would cue text the panel does not print.
 
 The label must name the function: a placard or lettering of only position legends
 (`ON`, `OFF`, `OPEN`, the control's own positions) does not count. `checkPlacards` from

@@ -7,6 +7,9 @@ import { messages } from './messages';
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 const later = (deviation: Deviation) => ({ later: (deviation.laterItem ?? 0) + 1 });
 
+/** A position as a cue names it; `restore` is set for a phrase, the imperative to bring it back. */
+type Named = { readonly name: string; readonly restore?: string };
+
 export function useDeviationText(checklist: ChecklistState<unknown> | undefined) {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -20,19 +23,26 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     const found = definition(deviation.controlId);
     return found ? localize(found.name) : (deviation.controlId ?? '');
   };
-  // A position reads as the panel prints it: its declared legend, else its id in capitals.
-  const positionName = (id: string | undefined, at: ControlPosition | undefined) => {
+  // A position reads as the panel prints it: its declared legend, else its id in capitals. A
+  // position the panel prints nothing for is a phrase, which takes its own sentence forms.
+  const positionName = (
+    id: string | undefined,
+    at: ControlPosition | undefined,
+  ): Named | undefined => {
     if (at === undefined) return undefined;
-    if (typeof at === 'number') return `${Math.round(at * 100)} %`;
+    if (typeof at === 'number') return { name: `${Math.round(at * 100)} %` };
     const found = definition(id);
     if (found?.kind === 'breaker') {
-      return at === 'in' ? panelText.breakerIn : panelText.breakerPulled;
+      return { name: at === 'in' ? panelText.breakerIn : panelText.breakerPulled };
     }
     const legend =
       found?.legends && Object.hasOwn(found.legends, at) ? found.legends[at] : undefined;
-    if (legend === undefined) return at.toUpperCase();
-    return typeof legend === 'string' ? legend : localize(legend);
+    if (legend === undefined) return { name: at.toUpperCase() };
+    if (typeof legend === 'string') return { name: legend };
+    return { name: localize(legend.state), restore: localize(legend.restore) };
   };
+  const phrased = (named: Named, legendTemplate: string, phraseTemplate: string) =>
+    named.restore === undefined ? legendTemplate : phraseTemplate;
   const position = (deviation: Deviation) => positionName(deviation.controlId, deviation.position);
   const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);
   // A spring-back control is already back by the time the pilot reads this: name the press.
@@ -68,7 +78,10 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
           const at = position(deviation);
           return at === undefined
             ? format(text.wrongPositionTitle, { control: control(deviation) })
-            : format(text.wrongPositionAtTitle, { control: control(deviation), position: at });
+            : format(phrased(at, text.wrongPositionAtTitle, text.wrongPositionPhraseTitle), {
+                control: control(deviation),
+                position: at.name,
+              });
         }
         case 'unmet-check':
           return format(text.unmetTitle, { item: item(deviation) });
@@ -85,7 +98,10 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
       const at = deviation.kind === 'wrong-position' ? target(deviation) : undefined;
       return at === undefined
         ? item(deviation)
-        : format(text.expectedAt, { control: control(deviation), position: at });
+        : format(phrased(at, text.expectedAt, text.phraseAt), {
+            control: control(deviation),
+            position: at.name,
+          });
     },
     /** What the pilot did instead. */
     actual: (deviation: Deviation) => {
@@ -96,7 +112,10 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
             return format(text.actualPressed, { control: control(deviation) });
           return at === undefined
             ? format(text.unexpectedTitle, { control: control(deviation) })
-            : format(text.actualSet, { control: control(deviation), position: at });
+            : format(phrased(at, text.actualSet, text.phraseAt), {
+                control: control(deviation),
+                position: at.name,
+              });
         case 'out-of-order':
           if (pressed(deviation)) {
             return format(text.actualPressedEarly, {
@@ -106,15 +125,18 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
           }
           return at === undefined
             ? format(text.outOfOrderTitle, { control: control(deviation), ...later(deviation) })
-            : format(text.actualSetEarly, {
+            : format(phrased(at, text.actualSetEarly, text.actualSetEarlyPhrase), {
                 control: control(deviation),
-                position: at,
+                position: at.name,
                 ...later(deviation),
               });
         case 'wrong-position':
           return at === undefined
             ? format(text.wrongPositionTitle, { control: control(deviation) })
-            : format(text.wrongPositionAtTitle, { control: control(deviation), position: at });
+            : format(phrased(at, text.wrongPositionAtTitle, text.wrongPositionPhraseTitle), {
+                control: control(deviation),
+                position: at.name,
+              });
         case 'unmet-check':
           return deviation.response === undefined
             ? text.actualUnmet
@@ -133,35 +155,47 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
         ...number(deviation),
         ...later(deviation),
       };
-      const undo =
-        !returned && at !== undefined && from !== undefined
-          ? { ...stray, position: at, previous: from }
-          : undefined;
+      const strayBanner = (template: string, bare: string, early: boolean) => {
+        if (returned || at === undefined || from === undefined) return format(bare, stray);
+        const values = { control: stray.control, position: at.name, previous: from.name };
+        const set = early
+          ? phrased(at, text.strayEarly, text.strayEarlyPhrase)
+          : phrased(at, text.actualSet, text.phraseAt);
+        return format(template, {
+          ...stray,
+          stray: format(set, values),
+          back: from.restore ?? format(text.returnTo, values),
+        });
+      };
       switch (deviation.kind) {
         case 'unexpected-control':
           if (pressed(deviation)) {
             return format(flow ? text.bannerPressedFlow : text.bannerPressed, stray);
           }
-          return undo
-            ? format(flow ? text.bannerUnexpectedFlow : text.bannerUnexpected, undo)
-            : format(flow ? text.bannerUnexpectedFlowBare : text.bannerUnexpectedBare, stray);
+          return strayBanner(
+            flow ? text.bannerUnexpectedFlow : text.bannerUnexpected,
+            flow ? text.bannerUnexpectedFlowBare : text.bannerUnexpectedBare,
+            false,
+          );
         case 'out-of-order':
           if (pressed(deviation)) {
             return format(flow ? text.bannerPressedEarlyFlow : text.bannerPressedEarly, stray);
           }
-          return undo
-            ? format(flow ? text.bannerOutOfOrderFlow : text.bannerOutOfOrder, undo)
-            : format(flow ? text.bannerOutOfOrderFlowBare : text.bannerOutOfOrderBare, stray);
+          return strayBanner(
+            flow ? text.bannerOutOfOrderFlow : text.bannerOutOfOrder,
+            flow ? text.bannerOutOfOrderFlowBare : text.bannerOutOfOrderBare,
+            true,
+          );
         case 'wrong-position':
           return at === undefined
             ? format(text.bannerWrongPosition, {
                 control: control(deviation),
                 ...number(deviation),
               })
-            : format(text.bannerWrongPositionAt, {
+            : format(phrased(at, text.bannerWrongPositionAt, text.bannerWrongPositionPhrase), {
                 control: control(deviation),
                 ...number(deviation),
-                position: at,
+                position: at.name,
               });
         case 'unmet-check':
           return format(text.bannerUnmet, number(deviation));
