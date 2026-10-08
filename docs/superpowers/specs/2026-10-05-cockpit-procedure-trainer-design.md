@@ -203,6 +203,14 @@ does from memory, in any order. The flow completes when every one of its
 targets holds; the checklist items that follow verify it (challenge, look,
 respond).
 
+An emergency procedure may open with **memory items**: leading items of any
+kind flagged `memory`, the immediate actions done from recall before the
+checklist is read (added in #450: emergency checklists split into memory items
+and a read-and-do remainder, and a trainer drills the memory items without the
+list). They complete in order like any item; in Practice their text stays
+hidden until each is done, and the pane groups them under a "Memory items"
+label.
+
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
 needs to know which controls spring back. An action completes only through the
@@ -298,7 +306,9 @@ logic follows and lists the functions it does not model.
      leaving it at a position other than the target, by operating another
      control, is a `wrong-position` (#442);
    - while a flow runs, any of its actions may complete in any order; only a
-     control change outside the flow's targets is a deviation.
+     control change outside the flow's targets is a deviation;
+   - a memory item that completes after a stray or out-of-order move was
+     recorded against it also records a `late-memory-item` (#450).
 5. Completing a procedure shows its deviations and, if the procedure names an
    end phase, moves to it.
 
@@ -310,7 +320,7 @@ keeps it independent of the systems model and testable alone.
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
 | Guided | shown | current target highlighted; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
-| Practice | shown; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings | recorded, summary at the end, with the assists used |
+| Practice | shown; a memory item's text hidden until it is done; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings | recorded, summary at the end, with the assists used |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
 
 Practice's recall option and its Show me assist are settings of the mode, not a

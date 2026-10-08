@@ -243,6 +243,16 @@ ordinary items after it, so the checklist verifies them; the demo's
 an emergency procedure, one that is not an action, one after the first ordinary
 item, or one whose control no later action or control check verifies.
 
+**Memory items.** An `emergency` procedure may open with memory items: leading items
+of any kind marked `memory: true`, the immediate actions a pilot does from recall
+before reading the checklist. They complete in list order like any item. Practice
+withholds a memory item's text until it is done (Show me reveals it), and the pane
+groups the block under a "Memory items" label in every mode. A memory item done only
+after the pilot moved another control while it was due also records a
+`late-memory-item` deviation when it completes. The demo's `alternatorFailure` opens
+with one. The validator reports `invalid-memory` for a memory item on a `normal`
+procedure or after an item that is not one.
+
 Targets are declared, not inferred, so Guided mode knows what to highlight. An
 action or check can target a device control as `<installId>.<controlId>`; see the
 device section below.
@@ -368,7 +378,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-check-response`, `invalid-flow` and the eight
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the eight
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
@@ -379,7 +389,7 @@ itemIndex, item, reason }`, so a procedure that cannot be completed as written
 points at its item. It does a flow in the listed order, or in reverse with
 `flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
-runs it for every `normal` procedure of every registered aircraft.
+runs it for every procedure of every registered aircraft.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 

@@ -1,6 +1,7 @@
 import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 
@@ -17,6 +18,15 @@ export function ProcedureViewer() {
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];
   if (!procedure) return null;
   const running = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const rows = procedure.items.map((item, index) => (
+    <li key={index} className="checklist-item" data-state="reference">
+      <span className="checklist-item-row">
+        <span className="checklist-number">{index + 1}</span>
+        <span className="checklist-item-text">{localize(item.text)}</span>
+      </span>
+    </li>
+  ));
 
   return (
     <div className="checklist">
@@ -45,14 +55,12 @@ export function ProcedureViewer() {
         )}
       </div>
       <ol className="checklist-items">
-        {procedure.items.map((item, index) => (
-          <li key={index} className="checklist-item" data-state="reference">
-            <span className="checklist-item-row">
-              <span className="checklist-number">{index + 1}</span>
-              <span className="checklist-item-text">{localize(item.text)}</span>
-            </span>
-          </li>
-        ))}
+        {memoryCount > 0 && (
+          <ItemGroup kind="memory" label={text.memoryItems}>
+            {rows.slice(0, memoryCount)}
+          </ItemGroup>
+        )}
+        {rows.slice(memoryCount)}
       </ol>
     </div>
   );

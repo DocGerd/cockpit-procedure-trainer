@@ -673,18 +673,21 @@ export const demoAircraft = defineAircraft({
       items: [
         {
           type: 'check',
+          memory: true,
           target: { indicator: 'lowVoltageLamp' },
           condition: lowVoltageLit,
           text: text('Spannungslampe leuchtet', 'Low-voltage lamp is lit'),
         },
         {
           type: 'check',
+          memory: true,
           target: { indicator: 'ammeter' },
           condition: (state) => state.systems.amps < 0,
           text: text('Amperemeter zeigt Entladung', 'Ammeter shows discharge'),
         },
         {
           type: 'action',
+          memory: true,
           control: 'alternatorBreaker',
           position: 'in',
           text: text('Generatorsicherung einmal eindrücken', 'Push the alternator breaker in once'),

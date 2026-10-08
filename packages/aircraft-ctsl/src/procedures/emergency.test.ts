@@ -76,6 +76,21 @@ describe('CTSL emergency procedures', () => {
     });
   });
 
+  // The memory items are assumed (unverified), docs/aircraft/ctsl-intake.md §9 question 23.
+  it.each([
+    ['engineFailureLow', 2],
+    ['engineFailureRestart', 5],
+    ['rescueDeployment', 5],
+    ['engineFire', 4],
+    ['oilLoss', 3],
+    ['coolantLoss', 0],
+    ['flapControlFailure', 0],
+    ['generatorFailure', 0],
+  ] as const)('%s opens with %i memory items', (id, count) => {
+    const flags = procedure(id).items.map((item) => item.memory === true);
+    expect(flags).toEqual(flags.map((_, index) => index < count));
+  });
+
   it('marks the generator failure procedure as club-authored', () => {
     expect(procedure('generatorFailure').title.en).toMatch(/club-authored/);
     expect(procedure('generatorFailure').title.de).toMatch(/Verein/);

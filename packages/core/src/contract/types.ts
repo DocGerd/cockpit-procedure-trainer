@@ -316,7 +316,14 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   };
 };
 
-type ItemBase = { readonly text: Text };
+type ItemBase = {
+  readonly text: Text;
+  /**
+   * A memory item of an emergency procedure: done at once from recall, before the checklist is
+   * read. Memory items form the procedure's leading block.
+   */
+  readonly memory?: true;
+};
 
 export type DeviceControlId = `${string}.${string}`;
 

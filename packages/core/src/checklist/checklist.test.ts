@@ -1297,3 +1297,89 @@ describe('purity', () => {
     expect(observeState(checklist, stateOf())).toBe(checklist);
   });
 });
+
+describe('memory items', () => {
+  const text = (en: string) => ({ de: en, en });
+  const drill: ProcedureDefinition<FixtureState> = {
+    ...alternatorFailure,
+    items: [
+      { type: 'action', memory: true, control: 'master', position: 'on', text: text('Master') },
+      { type: 'action', memory: true, control: 'fuelPump', position: 'on', text: text('Pump') },
+      { type: 'confirm', memory: true, text: text('Field chosen') },
+      { type: 'action', control: 'flaps', position: 'takeoff', text: text('Flaps') },
+    ],
+  };
+  const start = () => startChecklist(drill, stateOf(), controls);
+  const late = (itemIndex: number) => ({ kind: 'late-memory-item', itemIndex });
+  const stray = (checklist: ReturnType<typeof start>, at: Positions = {}) =>
+    observeControl(checklist, position('throttle', 0, 0.5), stateOf({ ...at, throttle: 0.5 }));
+
+  it('record nothing for memory items done at once, in order', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.current).toBe(3);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('record a memory item done after a stray move as late, once it is done', () => {
+    let checklist = stray(start());
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['unexpected-control']);
+    checklist = observeControl(checklist, position('master', 'off', 'on'), {
+      ...masterOn,
+      controls: { ...masterOn.controls, throttle: 0.5 },
+    });
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual([
+      'unexpected-control',
+      'late-memory-item',
+    ]);
+    expect(checklist.deviations.at(-1)).toEqual(late(0));
+  });
+
+  it('record a memory item done after a later one as out of order and late', () => {
+    let checklist = observeControl(
+      start(),
+      position('fuelPump', 'off', 'on'),
+      stateOf({ fuelPump: 'on' }),
+    );
+    checklist = observeControl(checklist, position('master', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    expect(checklist.current).toBe(2);
+    expect(checklist.deviations).toEqual([
+      expect.objectContaining({ kind: 'out-of-order', itemIndex: 0, laterItem: 1 }),
+      late(0),
+    ]);
+  });
+
+  it('record a late confirm memory item when it is ticked', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(stray(checklist, { master: 'on', fuelPump: 'on' }), pumpOn);
+    expect(checklist.deviations.at(-1)).toEqual(late(2));
+  });
+
+  it('record a memory action verified in a wrong position as wrong, not late', () => {
+    const checklist = checkOff(start(), stateOf());
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['wrong-position']);
+  });
+
+  it('record no late item for a stray move during an ordinary item', () => {
+    let checklist = observeControl(start(), position('master', 'off', 'on'), masterOn);
+    checklist = observeControl(checklist, position('fuelPump', 'off', 'on'), pumpOn);
+    checklist = checkOff(checklist, pumpOn);
+    checklist = stray(checklist, { master: 'on', fuelPump: 'on' });
+    checklist = observeControl(
+      checklist,
+      position('flaps', 'up', 'takeoff'),
+      stateOf({ master: 'on', fuelPump: 'on', flaps: 'takeoff', throttle: 0.5 }),
+    );
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations.map(({ kind }) => kind)).toEqual(['unexpected-control']);
+  });
+
+  it('record a retried memory item as late', () => {
+    let checklist = retryItem(stray(start()));
+    checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
+    expect(checklist.deviations.at(-1)).toEqual(late(0));
+  });
+});
