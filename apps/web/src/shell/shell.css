@@ -551,6 +551,13 @@
   min-height: 0;
 }
 
+.shell[data-layout='desktop'][data-screen='picker'] .picker-side {
+  min-height: 0;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+  overflow-y: auto;
+}
+
 .shell[data-layout='desktop'][data-screen='picker'] .picker-list {
   flex: 1 1 0;
   min-height: calc(var(--space-12) * 3);

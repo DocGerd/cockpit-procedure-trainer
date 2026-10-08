@@ -573,6 +573,8 @@ describe('surprise failure', () => {
     expect(runButton()).toBeNull();
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
     expect(runButton()).toBeTruthy();
+    expect(screen.getByText('Emergency')).toBeTruthy();
+    expect(screen.queryByText('Failure injected')).toBeNull();
   });
 
   it('runs the chosen checklist, then reports the time to recognise and a match', async () => {
@@ -588,7 +590,7 @@ describe('surprise failure', () => {
     expect(screen.queryByText(note)).toBeNull();
     operate('pump', 'off');
     expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('0:02');
-    expect(screen.getByText('Right checklist for the failure: Fire')).toBeTruthy();
+    expect(screen.getByText('Right checklist for the failure: Fire.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'New surprise failure' }));
     expect(trainer.procedureId).toBeUndefined();
@@ -601,7 +603,7 @@ describe('surprise failure', () => {
     past(SURPRISE_MAX_MS);
     act(() => trainer.takeChecklist('followUp'));
     operate('avionics', 'on');
-    expect(screen.getByText('Not the checklist for the failure: Fire')).toBeTruthy();
+    expect(screen.getByText('Not the checklist for the failure: Fire.')).toBeTruthy();
   });
 
   it('says when the checklist was chosen before the failure appeared', () => {
@@ -609,9 +611,8 @@ describe('surprise failure', () => {
     surprise();
     act(() => trainer.takeChecklist('fire'));
     operate('pump', 'off');
-    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe(
-      'Before the failure',
-    );
+    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('Early');
+    expect(screen.getByText(/chosen before the failure appeared/)).toBeTruthy();
   });
 
   it('leaves the summary of an ordinary run alone', () => {

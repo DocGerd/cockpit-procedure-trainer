@@ -111,6 +111,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           {format(answer.matched ? text.surpriseMatched : text.surpriseMissed, {
             failure: localize(failureName),
           })}
+          {answer.recognitionMs === undefined && ` ${text.chosenEarly}`}
         </p>
       )}
 

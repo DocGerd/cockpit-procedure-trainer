@@ -21,7 +21,7 @@ export function ProcedureViewer() {
   return (
     <div className="checklist">
       <div className="checklist-header">
-        <ProcedureKind type={procedure.type} />
+        <ProcedureKind type={procedure.type} injected={!awaiting} />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         {awaiting && <p className="checklist-note">{text.surpriseNote}</p>}
         <p className="checklist-note">{text.viewOnly}</p>

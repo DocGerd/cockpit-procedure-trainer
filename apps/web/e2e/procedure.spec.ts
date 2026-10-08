@@ -1,3 +1,4 @@
+import { SURPRISE_MAX_MS } from '../src/trainer/scenarios';
 import { control } from './content';
 import { expect, test } from './fixtures';
 import { selectLanguage } from './legibility';
@@ -7,9 +8,11 @@ import {
   completeProcedure,
   copy,
   deviation,
+  openPicker,
   operateUnrelatedControl,
   procedure,
   progress,
+  setControl,
   startProcedure,
 } from './trainer';
 
@@ -94,9 +97,14 @@ test('a completed run shows in the picker after a reload and sends nothing out',
 
   await page.reload();
   const title = procedure(engineStart).title.en;
-  await expect(page.getByRole('button', { name: new RegExp(title) })).toContainText(
-    'Last run: 1 deviation, today',
-  );
+  await expect(
+    page
+      .getByRole('region', { name: copy.shell.procedure })
+      .getByRole('button', { name: new RegExp(title) }),
+  ).toContainText('Last run: 1 deviation, today');
+  await expect(
+    page.getByRole('button', { name: copy.shell.practiseNext.replace('{title}', title) }),
+  ).toBeVisible();
 
   const origin = new URL(page.url()).origin;
   expect(
@@ -221,4 +229,47 @@ test('a summary with deviations makes Repeat primary and links each deviation to
     .getByRole('listitem');
   await expect(items.first()).toBeFocused();
   await expect(items.first()).toBeInViewport();
+});
+
+test('a surprise failure appears unannounced and the debrief times its recognition', async ({
+  page,
+}) => {
+  const failureId = 'alternatorFailure';
+  const { title } = procedure(failureId);
+  await page.clock.install();
+  await openPicker(page);
+  await page.getByRole('button', { name: copy.shell.surpriseFailure, exact: true }).click();
+  const pane = checklistPane(page);
+  await expect(pane.getByText(copy.checklist.surpriseNote)).toBeVisible();
+  await expect(page.getByRole('heading', { name: title.en })).toHaveCount(0);
+
+  await page.clock.runFor(SURPRISE_MAX_MS + 2000);
+  await expect(page.getByText(copy.checklist.failureInjected)).toHaveCount(0);
+  await pane.getByRole('combobox', { name: copy.checklist.showChecklist }).selectOption(failureId);
+  await pane.getByRole('button', { name: copy.checklist.runChecklist }).click();
+  // Toggles are moved by key: at this viewport the demo toggle's ON target covers its OFF one.
+  for (const item of procedure(failureId).items) {
+    const row = pane.locator('[aria-current="step"]');
+    await expect(row).toContainText(item.text.en);
+    if (item.type === 'check') {
+      await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+    } else if (item.type === 'confirm') {
+      await row.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
+    } else if (control(item.control).kind === 'toggle') {
+      const { positions, name } = control(item.control);
+      await page
+        .getByRole('radiogroup', { name: name.en, exact: true })
+        .getByRole('radio', { checked: true })
+        .press(Array.isArray(positions) && positions[0] === item.position ? 'Home' : 'End');
+    } else {
+      await setControl(page, item.control, item.position);
+    }
+    await expect(row.getByText(item.text.en)).toHaveCount(0);
+  }
+
+  await expect(pane.getByText(copy.checklist.allAsListed)).toBeVisible();
+  await expect(pane.getByText(copy.checklist.recognition)).toBeVisible();
+  await expect(
+    pane.getByText(copy.checklist.surpriseMatched.replace('{failure}', title.en)),
+  ).toBeVisible();
 });
