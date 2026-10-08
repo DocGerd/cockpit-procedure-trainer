@@ -585,7 +585,10 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       (later as { readonly flow?: unknown }).flow !== true &&
       (later.type === 'action'
         ? later.control === control && later.position === position
-        : later.type === 'check' && 'control' in later.target && later.target.control === control);
+        : later.type === 'check' &&
+          later.target !== undefined &&
+          'control' in later.target &&
+          later.target.control === control);
 
     let checklistStarted = false;
     let recallEnded = false;
@@ -618,13 +621,19 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {
-        const target = 'indicator' in item.target ? item.target.indicator : item.target.control;
-        if ('indicator' in item.target) {
-          if (!hasIndicator(item.target.indicator)) {
-            add('unknown-target', item.target.indicator, `${where} checks an unknown indicator`);
+        const checked = item.target;
+        const target =
+          checked === undefined
+            ? procedureId
+            : 'indicator' in checked
+              ? checked.indicator
+              : checked.control;
+        if (checked !== undefined && 'indicator' in checked) {
+          if (!hasIndicator(checked.indicator)) {
+            add('unknown-target', checked.indicator, `${where} checks an unknown indicator`);
           }
-        } else {
-          checkControlTarget(item.target.control, where);
+        } else if (checked !== undefined) {
+          checkControlTarget(checked.control, where);
         }
         const tolerance = item.response?.tolerance;
         if (tolerance !== undefined && !(Number.isFinite(tolerance) && tolerance >= 0)) {
