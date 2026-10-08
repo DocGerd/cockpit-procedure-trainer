@@ -483,10 +483,15 @@ verifies it on D-MPGO.
     it is released), marked as a trainer addition. Is that how the club teaches it?
 19. **Field proportions**: how wide is the lower centre column compared with the
     two upper fields, is it centred under their junction or offset, and where does
-    the console start below it? Today: the relative arrangement of §3 (centre
-    column low between the upper fields, console below it) with proportions chosen
-    to fit one screen. **Answered by assumption pending owner verification**
-    (#436 records the assumed proportions here).
+    the console start below it? Today: the centre column hangs below the junction
+    of the upper fields; the console sits beside it on the right, since panel,
+    centre column and console stacked do not fit one HD screen at their legibility
+    floors; the column is drawn wider than assumed below, for legibility.
+    **Answered by assumption pending owner verification** (#436). Assumed
+    (unverified), from general knowledge of the CT Supralight: the centre column
+    is centred on the junction of the two upper fields, its top at their lower
+    edge; it is narrower than either upper field; the console continues straight
+    down from it between the seats.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     round card turning under a lubber line, numbers increasing clockwise.

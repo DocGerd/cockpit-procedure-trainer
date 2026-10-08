@@ -67,12 +67,11 @@ function ChecklistToggle({
 export function TrainerLayout() {
   const text = useMessages(messages);
   const layout = useLayout();
-  const { aircraft, procedureId, viewedProcedureId } = useTrainer();
+  const { aircraft, procedureId } = useTrainer();
   const [expanded, setExpanded] = useState(false);
   const paneId = useId();
   const overlay = layout === 'tablet';
   const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
-  const current = useSessionState((snapshot) => snapshot.checklist()?.current);
   const pane = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const openedByToggle = useRef(false);
@@ -90,16 +89,6 @@ export function TrainerLayout() {
   useEffect(() => {
     if (done) setExpanded(true);
   }, [done]);
-
-  useEffect(() => {
-    const aside = pane.current;
-    const item = aside?.querySelector('[aria-current="step"]');
-    if (!aside || !item) return;
-    const box = aside.getBoundingClientRect();
-    const rect = item.getBoundingClientRect();
-    if (rect.top < box.top) aside.scrollTop -= box.top - rect.top;
-    else if (rect.bottom > box.bottom) aside.scrollTop += rect.bottom - box.bottom;
-  }, [current, showPane, viewedProcedureId]);
 
   useEffect(() => {
     if (!overlay || !expanded) return;
