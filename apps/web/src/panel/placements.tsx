@@ -108,6 +108,7 @@ export function IndicatorPlacement({
   const text = useMessages(messages);
   const localize = useLocalize();
   const value = useSessionState((s) => indicator.select(s.state()));
+  const blink = useSessionState((s) => indicator.blink?.(s.state()) ?? false);
   const { widget: Widget, options: declared } = resolveIndicator(indicator, value);
   const lamp = typeof value === 'boolean';
   const options = useMemo((): JsonObject | undefined => {
@@ -117,7 +118,12 @@ export function IndicatorPlacement({
 
   return (
     <Placement id={id} kind="indicator" box={box}>
-      <Widget value={value} label={localize(indicator.name)} {...(options ? { options } : {})} />
+      <Widget
+        value={value}
+        label={localize(indicator.name)}
+        {...(options ? { options } : {})}
+        {...(blink ? { blink } : {})}
+      />
     </Placement>
   );
 }

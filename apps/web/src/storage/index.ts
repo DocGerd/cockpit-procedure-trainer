@@ -20,7 +20,8 @@ export function writeSetting(key: SettingKey, value: string): void {
 
 export type RunMode = 'guided' | 'practice';
 export type RunRecord = { mode: RunMode; deviations: number; at: number };
-export type ProcedureHistory = { last: RunRecord; best: RunRecord };
+// Guided highlights the next control, so only Practice runs can stand as best.
+export type ProcedureHistory = { last: RunRecord; best?: RunRecord };
 type ByName<T> = Record<string, T>;
 
 const MAX_AIRCRAFT = 32;
@@ -77,8 +78,9 @@ function readAll(): ByName<ByName<ProcedureHistory>> {
       if (!isRecord(entry) || procedure.length > MAX_NAME_LENGTH) continue;
       if (Object.keys(valid).length >= MAX_PROCEDURES) break;
       const last = toRun(entry['last']);
+      if (!last) continue;
       const best = toRun(entry['best']);
-      if (last && best) valid[procedure] = { last, best };
+      valid[procedure] = best?.mode === 'practice' ? { last, best } : { last };
     }
     history[aircraft] = valid;
   }
@@ -93,10 +95,9 @@ export function recordRun(aircraft: string, procedure: string, run: RunRecord): 
   const all = readAll();
   const procedures = all[aircraft] ?? emptyMap<ProcedureHistory>();
   const previous = procedures[procedure];
-  const entry = {
-    last: run,
-    best: previous && previous.best.deviations <= run.deviations ? previous.best : run,
-  };
+  const kept = previous?.best;
+  const best = run.mode === 'practice' && !(kept && kept.deviations <= run.deviations) ? run : kept;
+  const entry: ProcedureHistory = best ? { last: run, best } : { last: run };
   const updated = withLatest(procedures, procedure, entry, MAX_PROCEDURES);
   writeSetting('history', JSON.stringify(withLatest(all, aircraft, updated, MAX_AIRCRAFT)));
 }

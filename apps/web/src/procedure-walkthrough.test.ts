@@ -56,15 +56,17 @@ describe('full-flight walk-through', () => {
     ]);
   });
 
-  // The demo is left out: its shutdown opens with a throttle check the pilot meets by closing the
-  // throttle after taxiing in, a move between legs that the walker does not make.
-  it('completes every CTSL leg from the cockpit the leg before left', () => {
-    const result = walkFlight(ctsl, { devices: deviceRegistry });
-    if (!result.ok) {
-      expect.fail(
-        `leg "${result.procedure}", item ${result.itemIndex} "${result.item}": ${result.reason}`,
-      );
-    }
-    expect(result).toEqual({ ok: true });
-  });
+  it.each(aircraftRegistry.map((aircraft) => [aircraft.id, aircraft] as const))(
+    '%s: completes every leg from the cockpit the leg before left',
+    (_id, aircraft) => {
+      const result = walkFlight(aircraft, { devices: deviceRegistry });
+      if (!result.ok) {
+        expect.fail(
+          `aircraft "${result.aircraft}", leg "${result.procedure}", item ${result.itemIndex} ` +
+            `"${result.item}": ${result.reason}`,
+        );
+      }
+      expect(result).toEqual({ ok: true });
+    },
+  );
 });

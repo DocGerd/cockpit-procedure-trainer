@@ -3,7 +3,7 @@ import { format, useLocalize, useMessages } from '../i18n';
 import { useLeavingRisk, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
-import { useLockNotice, useLockNoticeStore } from './lock-notice';
+import { lockHolder, useLockNotice, useLockNoticeStore } from './lock-notice';
 import { messages } from './messages';
 import { OperateToggle } from './OperateToggle';
 import './modes.css';
@@ -11,7 +11,7 @@ import './modes.css';
 const segments: readonly Mode[] = ['guided', 'practice'];
 const NOTICE_MS = 6000;
 
-/** Says which control holds a control whose move an interlock refused; the panel itself shows nothing. */
+/** Says which control holds a control whose move an interlock refused; the panel rings that holder. */
 function LockNotice() {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -26,9 +26,8 @@ function LockNotice() {
   }, [notice, store]);
 
   const control = notice && aircraft.controls[notice.controlId];
-  const positions = session.state().controls;
-  const lock = control?.interlock?.find((entry) => positions[entry.control] === entry.at);
-  const by = lock && aircraft.controls[lock.control];
+  const holder = notice && lockHolder(aircraft, session.state().controls, notice.controlId);
+  const by = holder === undefined ? undefined : aircraft.controls[holder];
   if (!control || !by) return null;
   return (
     <p role="status" className="modes-notice" data-notice="locked">

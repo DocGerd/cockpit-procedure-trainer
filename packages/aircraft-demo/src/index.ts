@@ -612,10 +612,10 @@ export const demoAircraft = defineAircraft({
       startPhase: 'parkingSecuring',
       items: [
         {
-          type: 'check',
-          target: { control: 'throttle' },
-          condition: (state) => state.controls.throttle === 0,
-          text: text('Leistungshebel auf Leerlauf', 'Throttle is at idle'),
+          type: 'action',
+          control: 'throttle',
+          position: 0,
+          text: text('Leistungshebel auf Leerlauf', 'Throttle idle'),
         },
         {
           type: 'action',

@@ -14,6 +14,7 @@ import {
 import type { Stop } from '../materials';
 import { readReadoutOptions } from './options';
 import { IndicatorPlaceholder } from './Placeholder';
+import './indicators.css';
 
 const VIEWBOX = { width: 100, height: 40 };
 const TEXT_RIGHT = 94;
@@ -41,7 +42,7 @@ const INNER: readonly Stop[] = [
 export const unitsReserve = (units: string, fontSize: number) =>
   Math.min(units.length * MONO_ADVANCE * fontSize, UNITS_ROOM) + UNITS_GAP;
 
-export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) {
+export function DigitalReadout({ value, label, options, blink = false }: IndicatorWidgetProps) {
   const [ref, metrics] = useRenderedMetrics(VIEWBOX);
   const kit = useMaterialId('readout');
   const config = readReadoutOptions(options);
@@ -85,11 +86,13 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
   const showUnits = text !== '' && units !== '' && unit.show && withUnits.show;
   const valueRight = showUnits ? TEXT_RIGHT - reserve : TEXT_RIGHT;
   const available = valueRight - TEXT_LEFT;
+  const digits = blink ? 'pk-blink' : undefined;
 
   return (
     <svg
       ref={ref}
       data-widget="digital-readout"
+      data-blink={blink ? '' : undefined}
       width="100%"
       height="100%"
       viewBox="0 0 100 40"
@@ -126,6 +129,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       {bare.show && (
         <text
           data-value=""
+          className={digits}
           x={valueRight}
           y={baseline}
           fontSize={bare.fontSize}
@@ -139,6 +143,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       {showUnits && (
         <text
           data-units=""
+          className={digits}
           x={TEXT_RIGHT}
           y={baseline}
           fontSize={unit.fontSize}

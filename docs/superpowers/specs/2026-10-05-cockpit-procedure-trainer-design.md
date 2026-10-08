@@ -433,8 +433,9 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 `localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
 items" option (`cpt.recall`) and a small run history only.
 The history keeps, per aircraft and procedure, the last run (run mode, deviation
-count, date) and the best run, so the pilot and an instructor see improvement
-across sessions; it is never sent anywhere (G2). Reads are validated and
+count, date) and the best Practice run (Guided shows the next control, so it
+never counts as best), so the pilot and an instructor see improvement across
+sessions; it is never sent anywhere (G2). Reads are validated and
 guarded; the app works without it. The Practise next drill only reads it.
 
 ## 6. Visual design

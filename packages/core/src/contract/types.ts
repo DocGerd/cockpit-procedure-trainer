@@ -153,6 +153,8 @@ export type IndicatorValue = number | boolean | string;
 export type IndicatorDefinition<S> = {
   readonly name: Text;
   readonly select: (state: TrainerState<S>) => IndicatorValue;
+  /** While true, a widget that can blink (the digital readout) blinks its value. */
+  readonly blink?: Condition<S>;
   readonly appearance: Appearance;
 };
 

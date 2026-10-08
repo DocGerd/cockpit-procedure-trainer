@@ -359,9 +359,6 @@ export const controlArtwork = {
     ]),
     'THROTTLE',
     'FULL',
-    'CRUISE',
-    'RUN-UP',
-    'LOW',
     'IDLE',
   ),
   carbHeat: lettered(
