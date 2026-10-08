@@ -10,6 +10,7 @@ const KINDS: readonly DeviationKind[] = [
   'out-of-order',
   'wrong-position',
   'unmet-check',
+  'late-memory-item',
 ];
 
 const clock = (ms: number) => {
@@ -47,6 +48,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     'out-of-order': text.kindOutOfOrder,
     'wrong-position': text.kindWrongPosition,
     'unmet-check': text.kindUnmet,
+    'late-memory-item': text.kindLateMemory,
   };
   const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
   const goTo = (index: number) => {

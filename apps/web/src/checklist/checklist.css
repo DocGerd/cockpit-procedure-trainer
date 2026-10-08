@@ -186,6 +186,28 @@
   gap: var(--space-3);
 }
 
+.checklist-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-block: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.checklist-group-label {
+  padding-inline: var(--space-3);
+}
+
+.checklist-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .checklist-mark {
   flex: none;
   width: var(--space-5);

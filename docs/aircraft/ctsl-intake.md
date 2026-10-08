@@ -532,9 +532,23 @@ verifies it on D-MPGO.
     (unverified), from general knowledge of the CT Supralight: the charge lamp
     lights red and the panel prints CHARGE with it.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
-    memory before the checklist is read? Today: none; every item is read and done
-    from the list. **Answered by assumption pending owner verification** (#450
-    records the assumed memory items here).
+    memory before the checklist is read? Today: the leading steps below are memory
+    items; the rest of each procedure is read and done from the list. **Answered by
+    assumption pending owner verification** (#450). Assumed (unverified), from
+    general knowledge of light-aircraft emergency drills, where the steps that stop
+    a fire, restore or secure the engine, or commit to the landing or the rescue
+    system are flown from memory and the rest is read:
+    - E3 below 100 m: rpm below idle; no restart, land ahead.
+    - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
+      both; starter if the prop turns slower than about 200 rpm.
+    - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
+      out; pull the handle.
+    - E6: smoke or flames; fuel valve closed; throttle full until the engine
+      stops; ignition off.
+    - E8: oil pressure below the minimum; ignition off; key out; fuel valve
+      closed.
+    - E7, E9 and the generator failure have no memory items: they leave time to
+      read the list.
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
     and standby once parked, landing light on from the approach until N15, vertical

@@ -248,4 +248,12 @@ describe('deviation text for each kind', () => {
       'Lamp breaker set to Pulled. Return it to In.',
     );
   });
+
+  it('names a late memory item by its item in both languages', () => {
+    const late: Deviation = { kind: 'late-memory-item', itemIndex: 0 };
+    expect(describeIn('en').where(late)).toBe('Item 1');
+    expect(describeIn('en').banner(late)).toBe('Item 1 is a memory item and was done late.');
+    expect(describeIn('de').title(late)).toBe('Bestätigen: Memory Item verspätet erledigt');
+    expect(describeIn('de').expected(late)).toBe('Bestätigen, sofort und auswendig');
+  });
 });
