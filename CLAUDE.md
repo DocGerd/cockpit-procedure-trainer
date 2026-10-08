@@ -63,9 +63,10 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - Adding an aircraft: a new `packages/aircraft-<id>`, one line in
   `apps/web/src/aircraft-registry.ts` and its workspace dependency in
   `apps/web/package.json`. Nothing else in `apps/web` changes.
-- Adding an avionics device: a new `packages/device-<id>`, its import and
-  entries in `deviceRegistry` and `deviceScreens` in
-  `apps/web/src/device-registry.ts`, and its workspace dependency in
+- Adding an avionics device: a new `packages/device-<id>`, its entry in
+  `deviceEntries` in `apps/web/src/device-registry.ts` (`deviceScreens` is
+  derived), its `unitNames` row in `apps/web/src/devices/messages.ts`, its rows
+  in `tools/device-entry.test.ts`, and its workspace dependency in
   `apps/web/package.json`; see `docs/adding-a-device.md`.
 - Outside-view images are first-person views out of the cockpit from the
   pilot's seat, never the aircraft seen from outside.
@@ -81,8 +82,11 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   (`apps/web/src/csp.ts`); every e2e spec fails on a violation via the
   `apps/web/e2e/fixtures.ts` auto fixture. Specs import `test`/`expect` from
   `./fixtures` (lint-enforced).
-- Avionics devices get their own view (like `radios`/`gps`); a device in a
-  scaled panel slot misses the 44 px touch targets.
+- Avionics devices have no view of their own: a device installs in a panel
+  slot as a live mirror and opens in the cockpit's required `dock` cell, where
+  its keys are operable; slots never operate (scaled slots miss the 44 px
+  targets). Guided opens the target device in the dock and rings its key
+  (`data-control`/`data-position` on Screen keys).
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
   `reference/` is local-only — never read it in implementation agents, never
   commit or quote it.
