@@ -301,8 +301,14 @@ keeps it independent of the systems model and testable alone.
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
 | Guided | shown | current target highlighted; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
-| Practice | shown | none | recorded, summary at the end |
+| Practice | shown; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings | recorded, summary at the end, with the assists used |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
+
+Practice's recall option and its Show me assist are settings of the mode, not a
+fourth mode, so the decisions table's "Modes" row is unchanged. A recall run
+practises the procedure from memory instead of reading it; a Show me reveals
+the current item and rings its target once, and the summary counts and lists
+each one.
 
 In every mode a checklist selector in the checklist pane opens any of the
 aircraft's checklists for reading. A checklist viewed that way is a static

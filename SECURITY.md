@@ -20,7 +20,8 @@ and common-weakness arguments) is the
   cookie.
 - **No backend to breach.** The project operates no server, API or database.
 - **Your data stays on your device.** The only persisted user data are the
-  settings theme, language and last aircraft, and a per-procedure run history
+  settings theme, language, last aircraft and Practice's "Hide upcoming items"
+  option, and a per-procedure run history
   (last and best deviation count and date), in the browser's `localStorage`;
   the service worker caches only the app's own assets. Nothing is uploaded.
 - **No analytics, telemetry or tracking.**
