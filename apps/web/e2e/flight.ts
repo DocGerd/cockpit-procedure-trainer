@@ -9,6 +9,7 @@ type Action = Extract<Item, { type: 'action' }>;
 
 /** What the page does for one item, and how long the session runs for it. */
 type Step =
+  | { readonly kind: 'preset' }
   | { readonly kind: 'confirm' }
   | { readonly kind: 'verify' }
   | { readonly kind: 'check'; readonly waitMs: number }
@@ -58,6 +59,8 @@ function shadowStep(session: Session, aircraft: Aircraft, item: Item, index: num
     session.checkOff(item.response?.reading(session.state()));
     return { kind: 'check', waitMs };
   }
+  // A flow item already in place ticks when the leg starts; the pilot has nothing to do for it.
+  if (item.flow === true && completed()) return { kind: 'preset' };
   const definition = aircraft.controls[item.control];
   const { control, position } = item;
   if (!isPressed(definition, position)) {
@@ -92,9 +95,6 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
   );
   return legs.map((id) => {
     const { items } = procedureOf(aircraft, id);
-    if (items.some((item) => item.type === 'action' && item.flow)) {
-      throw new Error(`${id} opens with a flow, which the plan does not take yet`);
-    }
     if (items.some((item) => isDeviceItem(aircraft, item))) {
       return {
         id,
@@ -219,7 +219,7 @@ const doneOrSummary = (page: Page, id: string, aircraft: Aircraft, at: number) =
   const pane = checklistPane(page);
   return expect(
     pane
-      .getByRole('listitem')
+      .locator('li.checklist-item')
       .nth(at)
       .getByRole('img', { name: /^(Done|Deviated)$/ })
       .or(
@@ -239,6 +239,7 @@ export async function flyLeg(page: Page, aircraft: Aircraft, leg: Leg) {
   for (const [at, step] of leg.steps.entries()) {
     const item = items[at];
     if (!item) throw new Error(`${leg.id} has no item ${at}`);
+    if (step.kind === 'preset') continue;
     const row = pane.locator('[aria-current="step"]');
     await expect(row, `${leg.id} item ${at + 1}`).toContainText(item.text.en);
     const verify = row.getByRole('button', { name: copy.checklist.verify, exact: true });

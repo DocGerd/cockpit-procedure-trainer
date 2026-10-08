@@ -79,7 +79,8 @@ const checkOff = () =>
     trainer.session.checkOff();
   });
 
-const rows = () => within(screen.getByRole('list')).getAllByRole('listitem');
+const rows = () =>
+  screen.getAllByRole('listitem').filter((row) => !row.classList.contains('checklist-group'));
 const states = () => rows().map((row) => within(row).getByRole('img').getAttribute('aria-label'));
 const hideOption = () => screen.getByRole('checkbox', { name: 'Hide upcoming items' });
 const showMe = () => screen.queryByRole('button', { name: 'Show me' });
@@ -212,19 +213,20 @@ describe('Practice recall', () => {
     expect(trainer.assisted).toEqual([]);
   });
 
-  it('keeps a flow done in any order readable and its open item blank', async () => {
+  it('keeps every flow row blank until the flow is done or shown', async () => {
     renderPane();
     start('practice', 'scan');
     await press(hideOption());
     operate('pump', 'on');
-    expect(states()).toEqual(['Current', 'Done']);
-    expect(screen.getByText('Pump flow')).toBeTruthy();
+    expect(states()).toEqual(['To do', 'Done']);
+    expect(screen.queryByText('Pump flow')).toBeNull();
     expect(screen.queryByText('Master flow')).toBeNull();
     expect(screen.queryByText('Master verified')).toBeNull();
 
     await press(showMe());
     expect(trainer.assisted).toEqual([0]);
     expect(screen.getByText('Master flow')).toBeTruthy();
+    expect(screen.getByText('Pump flow')).toBeTruthy();
   });
 
   it('leaves the reading unit out until Show me', async () => {
