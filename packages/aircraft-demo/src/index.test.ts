@@ -121,6 +121,13 @@ describe('demo aircraft', () => {
     expect(taxiOut?.environment).toEqual({ airspeedKt: 0, altitudeFt: 0, onGround: true });
   });
 
+  it('ends the engine start in taxiOut, so a full flight goes on from the taxiway', () => {
+    expect(demoAircraft.procedures.engineStart).toMatchObject({
+      startPhase: 'parking',
+      endPhase: 'taxiOut',
+    });
+  });
+
   it('ends the shutdown with the controls of the cold parked aircraft and a dead bus', () => {
     const session = createSession(demoAircraft, { devices, phase: 'parkingSecuring' });
     session.startProcedure('shutdownSecuring');

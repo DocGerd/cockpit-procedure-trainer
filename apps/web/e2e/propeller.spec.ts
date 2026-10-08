@@ -40,10 +40,14 @@ for (const aircraft of aircraftRegistry) {
   });
 }
 
-test('starting the engine swaps the blade for the disc', async ({ page }) => {
+test('starting the engine swaps the blade for the disc and ends on the taxiway', async ({
+  page,
+}) => {
   await startProcedure(page, 'engineStart', 'guided');
   await expectImage(page, false);
 
   await completeProcedure(page, 'engineStart');
+  await expect(page.getByLabel(copy.outsideView.phase, { exact: true })).toHaveValue('taxiOut');
+  await expect(outsideImage(page)).toHaveAttribute('src', /phase-taxi-out-running/);
   await expectImage(page, true);
 });

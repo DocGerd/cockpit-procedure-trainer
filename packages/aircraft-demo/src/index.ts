@@ -222,6 +222,7 @@ export const demoAircraft = defineAircraft({
       title: text('Triebwerk anlassen', 'Engine start'),
       type: 'normal',
       startPhase: 'parking',
+      endPhase: 'taxiOut',
       items: [
         {
           type: 'confirm',

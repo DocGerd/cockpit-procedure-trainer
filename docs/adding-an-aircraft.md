@@ -366,7 +366,7 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `validateAircraft(aircraft, { devices })` from `@cpt/core` returns a list of
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
-`missing-translation`, `phase-without-image`, `running-image-without-engine`,
+`missing-translation`, `missing-phase`, `unknown-phase`, `phase-without-image`, `running-image-without-engine`,
 `phase-without-running-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
