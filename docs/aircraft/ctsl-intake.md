@@ -283,8 +283,10 @@ intercom is on whenever the engine runs (N16 switches it off); the transponder i
 off at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach`. The squawk code and the GPS stay at their power-on state
-in every phase (#476): the phase entry presets device controls, not device state.
+about −2 m/s in `approach`. The phase entry seeds device state as well as device
+controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
+through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
+`taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -537,7 +539,8 @@ verifies it on D-MPGO.
     records the assumed memory items here).
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
-    and standby once parked, landing light on from the approach until N15, vertical
+    and standby once parked, squawk 7000 from line-up and the GPS on at its map page
+    from line-up to taxi-in (#476), landing light on from the approach until N15, vertical
     speed climbing in `departure` and descending in `approach`. No procedure step
     switches the landing light on (N12 says "as needed"), so the approach, landing
     and `taxiIn` entries carry it. **Answered by assumption pending owner

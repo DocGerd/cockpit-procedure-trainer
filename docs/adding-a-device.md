@@ -148,6 +148,11 @@ the install id, which prefixes the device's control ids:
   transponder reads `pressureAltitude`; the COM radio takes none.
 - A phase can set device controls on entry with `entry.devices`, keyed by install
   id and local control id.
+- A phase can seed device state on entry with `entry.deviceStates`, keyed by install
+  id: the named fields are laid over the device's `initial`. Each field must exist in
+  `initial` and have the type of its value there, or the validator reports
+  `unknown-device-state`. The seed is only the starting state; the device's `step`
+  runs from it, so a field the step derives from controls or power is overwritten.
 
 ## Procedure items on device controls
 
