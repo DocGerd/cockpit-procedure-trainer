@@ -236,6 +236,16 @@ describe('phase entry device state', () => {
     ]);
   });
 
+  it.each([[null], [[]], [{}]])('reports %j where the field holds a string', (value) => {
+    expect(codes(withDeviceStates({ mon: { page: value } }))).toEqual([
+      expect.objectContaining({ code: 'unknown-device-state', id: 'mon.page' }),
+    ]);
+  });
+
+  it('accepts any value for a field whose starting value is null', () => {
+    expect(codes(withDeviceStates({ mon: { reading: 'high' } }))).toEqual([]);
+  });
+
   it('reports a value of another type than the field', () => {
     expect(codes(withDeviceStates({ mon: { page: 3 } }))).toEqual([
       expect.objectContaining({ code: 'unknown-device-state', id: 'mon.page' }),

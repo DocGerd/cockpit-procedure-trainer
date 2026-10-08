@@ -61,6 +61,9 @@ export function formatFinding(finding: Finding): string {
   return `${finding.aircraftId}: ${finding.code} ${finding.id}: ${finding.message}`;
 }
 
+const kindOf = (value: unknown): string =>
+  value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
+
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
 /** A rect with finite x and y and a positive, finite w and h. */
@@ -519,11 +522,11 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
             `${installId}.${field}`,
             `${where} with a field ${device.id} state does not have`,
           );
-        } else if (initial[field] !== null && typeof value !== typeof initial[field]) {
+        } else if (initial[field] !== null && kindOf(value) !== kindOf(initial[field])) {
           add(
             'unknown-device-state',
             `${installId}.${field}`,
-            `${where} with a ${typeof value} where ${device.id} state has a ${typeof initial[field]}`,
+            `${where} with a ${kindOf(value)} where ${device.id} state has a ${kindOf(initial[field])}`,
           );
         }
       }

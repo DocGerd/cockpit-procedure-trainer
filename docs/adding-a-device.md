@@ -150,8 +150,10 @@ the install id, which prefixes the device's control ids:
   id and local control id.
 - A phase can seed device state on entry with `entry.deviceStates`, keyed by install
   id: the named fields are laid over the device's `initial`. Each field must exist in
-  `initial` and have the type of its value there, or the validator reports
-  `unknown-device-state`. The seed is only the starting state; the device's `step`
+  `initial` and have the kind (string, number, boolean, array, object) of its value
+  there, or the validator reports `unknown-device-state`; a field whose `initial` is
+  `null` accepts any value. The lay-over is shallow: a nested object such as `held` is
+  replaced, not combined. The seed is only the starting state; the device's `step`
   runs from it, so a field the step derives from controls or power is overwritten.
 
 ## Procedure items on device controls
