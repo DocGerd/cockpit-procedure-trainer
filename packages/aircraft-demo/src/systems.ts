@@ -119,6 +119,11 @@ export const step: SystemsDefinition<DemoState, DemoFailure>['step'] = (
 
 const lampTest = (state: DemoTrainerState) => state.controls.annunciator === 'test';
 
+export const carry: NonNullable<SystemsDefinition<DemoState, DemoFailure>['carry']> = (
+  carried,
+  entry,
+) => ({ ...carried, headingDeg: entry.headingDeg });
+
 export const lampTestDone = (state: DemoTrainerState) =>
   state.controls.annunciator === 'test' && state.systems.lampTestMs >= LAMP_TEST_MS;
 
