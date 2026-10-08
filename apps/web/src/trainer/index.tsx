@@ -30,6 +30,8 @@ export type Trainer = {
   startProcedure(id: string): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
+  /** Deviations from this index on were made in Guided, so only they get its live cues. */
+  guidedFrom: number;
   setMode(mode: Mode): void;
   resetSession(): void;
   backToPicker(): void;
@@ -40,6 +42,7 @@ type TrainerState = {
   aircraft: Aircraft;
   session: Session;
   mode: Mode;
+  guidedFrom: number;
   screen: TrainerScreen;
   lastProcedureId: string | undefined;
   viewed: string | undefined;
@@ -67,6 +70,7 @@ function initialState(): TrainerState {
     aircraft,
     session: newSession(aircraft),
     mode: 'guided',
+    guidedFrom: 0,
     screen: 'picker',
     lastProcedureId: undefined,
     viewed: undefined,
@@ -130,13 +134,14 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update({
           aircraft,
           session: newSession(aircraft),
+          guidedFrom: 0,
           lastProcedureId: undefined,
           viewed: undefined,
         });
       },
       startProcedure(id) {
         current.current.session.startProcedure(id);
-        update({ screen: 'trainer', lastProcedureId: id, viewed: undefined });
+        update({ screen: 'trainer', guidedFrom: 0, lastProcedureId: id, viewed: undefined });
       },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
@@ -146,14 +151,15 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           endProcedure(current.current.session);
           update({ mode, screen: 'trainer', viewed: undefined });
         } else if (current.current.mode !== 'explore') {
-          update({ mode });
+          const guidedFrom = current.current.session.checklist()?.deviations.length ?? 0;
+          update({ mode, guidedFrom });
         } else {
           const { lastProcedureId } = current.current;
           if (lastProcedureId === undefined) {
             update({ mode, screen: 'picker', viewed: undefined });
           } else {
             current.current.session.startProcedure(lastProcedureId);
-            update({ mode, screen: 'trainer', viewed: undefined });
+            update({ mode, guidedFrom: 0, screen: 'trainer', viewed: undefined });
           }
         }
       },
@@ -165,7 +171,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         } else {
           const fresh = newSession(aircraft);
           fresh.startProcedure(running);
-          update({ session: fresh });
+          update({ session: fresh, guidedFrom: 0 });
         }
       },
       backToPicker() {

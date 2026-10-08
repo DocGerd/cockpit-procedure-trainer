@@ -231,7 +231,7 @@ describe('deviations per mode', () => {
     expect(status.textContent).toBe('');
     operate('avionics', 'on');
     expect(screen.getByRole('status')).toBe(status);
-    expect(within(status).getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+    expect(within(status).getByText('Avionics set to ON. Return it to OFF.')).toBeTruthy();
     expect(screen.getByText('1 deviation')).toBeTruthy();
     operate('master', 'on');
     expect(stateLabels()[0]).toBe('Deviated');
@@ -285,7 +285,56 @@ describe('deviations per mode', () => {
     checkOff();
     operate('pump', 'on');
     expect(screen.getByText('Avionics operated')).toBeTruthy();
-    expect(screen.getByText('The current item was Master on.')).toBeTruthy();
+    expect(screen.getAllByText('Master on')).toHaveLength(2);
+    expect(screen.getByText('Avionics set to ON')).toBeTruthy();
+  });
+});
+
+describe('retrying an item', () => {
+  const retry = () => screen.queryByRole('button', { name: 'Retry this item' });
+
+  it('offers a retry with a deviation of the current item and puts the cockpit back', async () => {
+    renderPane();
+    start(flow);
+    expect(retry()).toBeNull();
+    operate('avionics', 'on');
+    await userEvent.click(retry() as HTMLElement);
+    expect(trainer.session.state().controls.avionics).toBe('off');
+    expect(trainer.session.checklist()?.current).toBe(0);
+    expect(trainer.session.checklist()?.assists).toBe(1);
+    expect(screen.getByText('1 deviation')).toBeTruthy();
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+  });
+
+  it('stops saying to return a control once the pilot has put it back', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    expect(screen.getByText('Avionics set to ON. Return it to OFF.')).toBeTruthy();
+    operate('avionics', 'off');
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+  });
+
+  it('drops the retry once the item has moved on', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('master', 'on');
+    expect(retry()).toBeNull();
+  });
+
+  it('offers none in Practice, where nothing is said until the end', () => {
+    renderPane();
+    start(flow, 'practice');
+    operate('avionics', 'on');
+    expect(retry()).toBeNull();
+  });
+
+  it('speaks German', () => {
+    renderPane('de');
+    start(flow);
+    operate('avionics', 'on');
+    expect(screen.getByRole('button', { name: 'Diesen Punkt wiederholen' })).toBeTruthy();
   });
 });
 
@@ -299,12 +348,52 @@ describe('deviation summary', () => {
     expect(screen.queryByRole('button', { name: 'Restart' })).toBeNull();
   });
 
-  it('shows items completed and the deviation count', () => {
+  it('shows the time taken, the deviation count and the assists used', () => {
+    renderPane();
+    start(flow);
+    act(() => trainer.session.advance(65_000));
+    operate('avionics', 'on');
+    act(() => trainer.session.retryItem());
+    operate('master', 'on');
+    checkOff();
+    checkOff();
+    operate('pump', 'on');
+    expect(screen.getByText('Time').nextElementSibling?.textContent).toBe('1:05');
+    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('2');
+    expect(screen.getByText('Assists').nextElementSibling?.textContent).toBe('1');
+    expect(screen.queryByText('Items completed')).toBeNull();
+  });
+
+  it('counts the deviations by kind', () => {
     renderPane();
     start(flow);
     finishFlowWithDeviations();
-    expect(screen.getByText('Items completed').nextElementSibling?.textContent).toBe('4 / 4');
-    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('2');
+    const kinds = within(screen.getAllByRole('list')[0] as HTMLElement)
+      .getAllByRole('listitem')
+      .map((kind) => kind.textContent);
+    expect(kinds).toEqual(['Unexpected control1', 'Condition not met1']);
+  });
+
+  it('groups deviations of every kind', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    operate('master', 'on');
+    operate('pump', 'off');
+    checkOff();
+    checkOff();
+    checkOff();
+    const kinds = within(screen.getAllByRole('list')[0] as HTMLElement)
+      .getAllByRole('listitem')
+      .map((kind) => kind.textContent);
+    expect(kinds).toEqual([
+      'Unexpected control2',
+      'Out of order1',
+      'Wrong position1',
+      'Condition not met1',
+    ]);
+    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('5');
   });
 
   it('lists each deviation with the item it happened during', () => {
@@ -315,9 +404,71 @@ describe('deviation summary', () => {
       .getAllByRole('listitem')
       .map((row) => row.textContent);
     expect(rows).toEqual([
-      'During item 1Avionics operatedThe current item was Master on.',
-      'Item 2Fuel flowing checked off, condition not metThe item was checked off while its condition was not met.',
+      'During item 1Avionics operatedExpectedMaster onActualAvionics set to ONGo to item 1',
+      'Item 2Fuel flowing checked off, condition not metExpectedFuel flowingActualChecked off with the condition not metGo to item 2',
     ]);
+  });
+
+  it('scrolls to the item of a deviation and focuses it', async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    await userEvent.click(screen.getByRole('button', { name: 'Go to item 2' }));
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    const row = scrollIntoView.mock.contexts[0] as HTMLElement;
+    expect(row.textContent).toContain('Fuel flowing');
+    expect(document.activeElement).toBe(row);
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
+  it('lists every item below the deviations, marking the deviated ones', () => {
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    const review = within(screen.getByRole('region', { name: 'The items' }));
+    const rows = review.getAllByRole('listitem');
+    expect(rows).toHaveLength(itemCount);
+    expect(rows.map((row) => within(row).getByRole('img').getAttribute('aria-label'))).toEqual([
+      'Deviated',
+      'Deviated',
+      'Done',
+      'Done',
+    ]);
+  });
+
+  it('makes Repeat the primary action when something deviated, Next otherwise', () => {
+    renderPane();
+    start(flow);
+    finishFlowWithDeviations();
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' }).className).toContain(
+      'button-primary',
+    );
+    expect(screen.getByRole('button', { name: 'Next: Follow-up' }).className).toContain(
+      'button-secondary',
+    );
+  });
+
+  it('keeps Next the primary action when nothing deviated', () => {
+    function Clean() {
+      const checklist = useSessionState((snapshot) => snapshot.checklist());
+      if (!checklist) return null;
+      return <DeviationSummary checklist={{ ...checklist, done: true, deviations: [] }} />;
+    }
+    renderWithLanguage(
+      <TrainerProvider>
+        <Probe />
+        <Clean />
+      </TrainerProvider>,
+    );
+    start(flow);
+    expect(screen.getByRole('button', { name: 'Next: Follow-up' }).className).toContain(
+      'button-primary',
+    );
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' }).className).toContain(
+      'button-secondary',
+    );
   });
 
   it('says so when nothing deviated', () => {
@@ -393,7 +544,7 @@ describe('deviation summary', () => {
       </TrainerProvider>,
     );
     start(flow);
-    expect(screen.getByText('gps.power operated')).toBeTruthy();
+    expect(screen.getAllByText('gps.power operated')).toHaveLength(2);
   });
 
   it('renders the German summary', () => {
@@ -604,7 +755,9 @@ describe('viewing a checklist', () => {
     expect(screen.queryByText('Deviation')).toBeNull();
     operate('avionics', 'on');
     expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
-    expect(screen.getByRole('status').textContent).toContain('Avionics operated');
+    expect(screen.getByRole('status').textContent).toContain(
+      'Avionics set to ON. Return it to OFF.',
+    );
   });
 
   it('shows no deviation notice in Practice while another checklist is read', async () => {

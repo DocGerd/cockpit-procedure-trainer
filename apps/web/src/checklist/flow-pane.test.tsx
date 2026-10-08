@@ -61,3 +61,34 @@ it('marks no flow row for a deviation made during the flow', () => {
     .map((item) => within(item).getByRole('img').getAttribute('aria-label'));
   expect(labels).toEqual(['Done', 'Done', 'Current', 'Pending']);
 });
+
+it('says how to undo a stray move in the flow and debriefs it as the flow', () => {
+  renderWithLanguage(
+    <TrainerProvider>
+      <Probe />
+      <ChecklistPane />
+    </TrainerProvider>,
+  );
+  act(() => {
+    trainer.setMode('guided');
+    trainer.startProcedure('scan');
+  });
+  operate('avionics', 'on');
+  expect(
+    screen.getByText('Avionics set to ON. Not part of the flow. Return it to OFF.'),
+  ).toBeTruthy();
+  operate('pump', 'on');
+  operate('master', 'on');
+  act(() => {
+    trainer.session.checkOff();
+    trainer.session.checkOff();
+  });
+  expect(screen.getByText('During the flow')).toBeTruthy();
+  expect(screen.getByText('The flow items, in any order')).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Go to the flow' })).toBeTruthy();
+  const review = screen.getByRole('region', { name: 'The items' });
+  const marks = within(review)
+    .getAllByRole('listitem')
+    .map((item) => within(item).getByRole('img').getAttribute('aria-label'));
+  expect(marks).toEqual(['Done', 'Done', 'Done', 'Done']);
+});

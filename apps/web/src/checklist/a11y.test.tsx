@@ -159,7 +159,7 @@ describe('checklist announcements', () => {
       start('flow');
       operate('pump', 'on');
       expect(announcer()?.textContent).toBe(
-        'Deviation: Pump operated early. It belongs to item 4, not item 1.',
+        'Deviation: Pump set to ON early. It belongs to item 4, not item 1. Return it to OFF.',
       );
       operate('master', 'on');
       expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
@@ -218,7 +218,7 @@ describe('checklist announcements', () => {
       start('flow');
       operate('pump', 'on');
       expect(announcer()?.textContent).toBe(
-        'Abweichung: Pump (de) zu früh bedient. Das gehört zu Punkt 4, nicht zu Punkt 1.',
+        'Abweichung: Pump (de) zu früh auf ON gestellt. Das gehört zu Punkt 4, nicht zu Punkt 1. Zurück auf OFF stellen.',
       );
     });
   });

@@ -5,14 +5,7 @@ import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
-import {
-  engineRunning,
-  initial,
-  lowVoltageLit,
-  oilPressureLit,
-  runningFrom,
-  step,
-} from './systems';
+import { engineRunning, initial, lampTestDone, lowVoltageLit, runningFrom, step } from './systems';
 import type { DemoFailure, DemoState, DemoTrainerState } from './systems';
 import { text } from './text';
 
@@ -273,10 +266,10 @@ export const demoAircraft = defineAircraft({
           type: 'action',
           control: 'annunciator',
           position: 'test',
-          holdUntil: (state) => lowVoltageLit(state) && oilPressureLit(state),
+          holdUntil: lampTestDone,
           text: text(
-            'Warnlampen auf TEST halten, bis beide leuchten',
-            'Hold the annunciator switch at TEST until both lamps light',
+            'Warnlampen auf TEST halten, bis der Lampentest durch ist',
+            'Hold the annunciator switch at TEST until the lamp test is done',
           ),
         },
         {
