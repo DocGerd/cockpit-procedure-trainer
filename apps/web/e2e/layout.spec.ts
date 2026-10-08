@@ -95,7 +95,33 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
     expect(box.width, 'dock width').toBeGreaterThanOrEqual(dock.minWidth);
     const panel = await boxOf(page.locator('[data-view="panel"]'));
     expect(box.y, 'dock under the panel').toBeGreaterThanOrEqual(panel.y + panel.height);
-    expect(Math.abs(box.x - panel.x), 'dock aligned with the panel').toBeLessThanOrEqual(1);
+    expect(box.x, 'dock reaches under the panel').toBeLessThan(panel.x + panel.width);
+    expect(box.x + box.width, 'dock reaches under the panel').toBeGreaterThan(panel.x);
+    if (aircraft.cockpit?.views.centre) {
+      const centre = await boxOf(page.locator('[data-view="centre"]'));
+      expect(centre.y, 'centre field under the panel').toBeGreaterThanOrEqual(
+        panel.y + panel.height,
+      );
+      const middle = centre.x + centre.width / 2;
+      expect(middle, 'centre field under the middle of the panel').toBeGreaterThan(
+        panel.x + panel.width / 3,
+      );
+      expect(middle, 'centre field under the middle of the panel').toBeLessThan(
+        panel.x + (2 * panel.width) / 3,
+      );
+      expect(
+        box.x + box.width <= centre.x || box.x >= centre.x + centre.width,
+        'dock clear of the centre column',
+      ).toBe(true);
+      if (aircraft.cockpit?.views.console) {
+        const consoleBox = await boxOf(page.locator('[data-view="console"]'));
+        expect(
+          consoleBox.y >= centre.y + centre.height ||
+            (consoleBox.y >= panel.y + panel.height && consoleBox.x >= centre.x + centre.width),
+          'console below or beside the centre field',
+        ).toBe(true);
+      }
+    }
   }
 }
 

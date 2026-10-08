@@ -18,7 +18,7 @@ Screen ids (`S1` …) are stable. The design handoff maps each drawn artboard to
 - Header: aircraft, procedure, mode, phase, language, theme (spec §5). The UAT build adds a "UAT" badge.
 - Free explore hides the procedure button; the phase control stays, because phase is global session state.
 - Outside-view strip on top.
-- Cockpit below it: the panel with the device dock (S12) under it, the centre field and console stacked on the right. View tabs only where the combined cockpit would be too small; the dock then sits below the tab panel.
+- Cockpit below it: the panel on top; under it the device dock (S12), then the aircraft's lower fields where they sit in the real cockpit (CTSL: the centre field under the junction of the upper fields, the console beside it). View tabs only where the combined cockpit would be too small; the dock then sits below the tab panel.
 - Checklist pane at the side.
 
 ### S2 Main layout, tablet
