@@ -340,6 +340,9 @@ if the aircraft rolls during start, ignition off.
 2 min, then 2500 rpm; raise rpm only above 2 bar oil pressure; ready at 50 °C oil.
 
 **N5 Taxi (HB 4-3).** Brakes checked; nose-wheel steering checked (both confirm).
+The trainer runs it as its own procedure from `taxiOut` to `holding`, so the checks happen
+with the taxiway outside view; it opens with the parking brake released (trainer addition,
+assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
