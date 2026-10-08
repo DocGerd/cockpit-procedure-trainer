@@ -40,11 +40,11 @@ Each issue holds its problem, likely files, dependencies and acceptance criteria
 
 ## Pre-flight checks
 
-**(a) P1 may not fit at today's floors.** Stacking the centre field and the console under the panel needs more height than the HD cockpit region has at the current `minWidth` values; that is why M11 put them on the right. #436 proves its arrangement with `floors.spec.ts` and `layout.spec.ts` at 1920x1080 and 1920x950, and if it does not fit, takes one of two fallbacks and states it: larger legends to lower the binding floors (the M7 Task 2 precedent), or the console beside the centre column with only the centre column under the junction.
+**(a) P1 may not fit at today's floors.** Stacking the centre field and the console under the panel needs more height than the HD cockpit region has at the current `minWidth` values; M11 put them on the right. #436 proves its arrangement with `floors.spec.ts` and `layout.spec.ts` at 1920x1080 and 1920x950, and if it does not fit, takes one of two fallbacks and states it: larger legends to lower the binding floors (the M7 Task 2 precedent), or the console beside the centre column with only the centre column under the junction.
 
 **(b) The dock stays under the panel.** The decisions table says "device dock under the panel" and `layout.spec.ts` asserts it. #436 moves the dock left or right of the centre column, still below the panel; never beside the panel.
 
-**(c) One decisions-table change, already made.** This plan's PR (#451) amends the "Step order" row, §4.7 and §5 step 4 for flows, owner-approved 2026-10-08. No task changes a decisions-table row. D, E, F, G, H, I and Q amend spec §4.7 or §5 text; each PR states the reason. Where an item sits close to a row (T7 and "Step order", T4 and "Procedures", T2 and "Modes"), the PR flags it and the milestone summary carries it to the owner.
+**(c) One decisions-table change, already made.** This plan's PR (#451) amends the "Step order" row, §4.7 and §5 step 4 for flows, owner-approved 2026-10-08. No task changes a decisions-table row. D, F, G, H, I and R amend spec §4.7 or §5 text (R the Guided and Practice rows of §5 Modes); each PR states the reason. Where an item sits close to a row (T7 and "Step order", T4 and "Procedures", T2 and "Modes"), the PR flags it and the milestone summary carries it to the owner.
 
 **(d) `ChecklistPane.tsx` is the hotspot.** B, C, D, E, F, G and R edit it; D, Q and G edit `checklist.ts` in that order. C lands first; later tasks touch different regions (restart handler, item rendering, banner, Practice option, memory mark). The second of two same-wave PRs takes the other through the train.
 
@@ -64,6 +64,7 @@ Each issue holds its problem, likely files, dependencies and acceptance criteria
 P1 (#436) ── M (#444) ── N (#447) ── O (#449)        views.ts chain; O also edits cockpit.ts
 A (#437) ─┬─ I (#443) ── H (#446)                     Picker.tsx chain
           └──────────────┘
+E (#445) ── H (#446)                                  H also waits for E (`DeviationSummary.tsx`)
 C (#438) ─┬─ B (#441)
           ├─ D (#442) ── E (#445) ── F (#448) ─┬─ G (#450)
           └──────────────┘                     └─ R (#453)
@@ -78,11 +79,11 @@ A wave is a set whose members may run in parallel: their dependencies have lande
 
 | Wave | Tasks | Shared files to watch |
 |---|---|---|
-| 1 | P1, A, C, K, L | A and L both edit `shell.css` (picker rules vs trainer grid) |
-| 2 | B, D, I, M | B and D edit different regions of `ChecklistPane.tsx` |
-| 3 | E, H, N, Q | E and H edit different actions of `DeviationSummary.tsx`; H lands after E |
+| 1 | P1, A, C, K, L | A and L both edit `shell.css` (picker rules vs trainer grid); P1 and L both edit `layout.spec.ts` |
+| 2 | B, D, I, M | B and D edit different regions of `ChecklistPane.tsx`; B and I both edit `shell/messages.ts` and may both touch `trainer/index.tsx` |
+| 3 | E, H, N, Q | E and H edit different actions of `DeviationSummary.tsx` and both may edit `session.ts`; H lands after E |
 | 4 | F, O | none |
-| 5 | G, R | different regions of `ChecklistPane.tsx` and different CTSL procedure files |
+| 5 | G, R | different regions of `ChecklistPane.tsx` and different CTSL procedure files; both edit `DeviationSummary.tsx` and `checklist/messages.ts` |
 
 ## Decisions (agent, overrulable)
 
@@ -122,7 +123,7 @@ A wave is a set whose members may run in parallel: their dependencies have lande
 ## Review focus
 
 1. P1: the arrangement matches intake §3's relative positions, the dock is under the panel, and every floor is backed by a green `floors.spec.ts` run.
-2. Panel tasks: every change is backed by intake text; nothing comes from general knowledge alone.
+2. Panel tasks: every panel fact is backed by intake text, or listed in the PR as assumed and recorded at its intake question.
 3. Engine tasks: `walk-procedure` walks every procedure of both aircraft; stepped controls stay exempt from wrong-position.
 4. No task changes a decisions-table row; flagged items reach the milestone summary.
 5. History stays in the browser (G2); no request leaves it.

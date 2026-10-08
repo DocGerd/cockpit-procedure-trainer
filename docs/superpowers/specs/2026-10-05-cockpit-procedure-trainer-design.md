@@ -187,9 +187,9 @@ Each item has text in both languages and one of:
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
 A normal procedure may open with a **flow**: a set of action items the pilot
-does from memory in a fixed panel scan, in any order. The flow completes when
-every one of its targets holds; the checklist items that follow verify it
-(challenge, look, respond).
+does from memory, in any order. The flow completes when every one of its
+targets holds; the checklist items that follow verify it (challenge, look,
+respond).
 
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
