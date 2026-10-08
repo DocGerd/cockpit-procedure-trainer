@@ -321,6 +321,8 @@ describe('CTSL control artwork', () => {
   });
 
   describe('rocker switches', () => {
+    // The lit paddle (the rect filled with gradient #b) marks the selected side, which is how a pilot
+    // reads the panel (#464); the dark half is the empty side. Moving it off the active legend inverts the switch.
     const legendY = (face: string, legend: 'ON' | 'OFF') =>
       Number(
         new RegExp(String.raw`<text\b[^>]* y="([\d.]+)"[^>]*>${legend}</text>`).exec(face)?.[1],
@@ -354,7 +356,7 @@ describe('CTSL control artwork', () => {
     });
 
     it.each(['on', 'off'] as const)(
-      'draws the paddle beside the %s legend in the %s position',
+      'draws the paddle beside the legend of the %s position',
       (state) => {
         for (const { id, artwork } of rockers) {
           if (artwork.moving.type !== 'positions') continue;
