@@ -517,6 +517,163 @@ describe('takeChecklist', () => {
   });
 });
 
+describe('flight legs', () => {
+  const ready = { type: 'confirm', text: { de: 'Bereit', en: 'Ready' } } as const;
+  const leg = (startPhase: string, items: readonly unknown[], endPhase?: string) => ({
+    title: { de: startPhase, en: startPhase },
+    type: 'normal',
+    startPhase,
+    ...(endPhase === undefined ? {} : { endPhase }),
+    items,
+  });
+  const runupEnvironment = { airspeedKt: 0, altitudeFt: 400, onGround: true };
+  const legs = {
+    ...fixtureAircraft,
+    phases: {
+      ...fixtureAircraft.phases,
+      taxiOut: { ...fixturePhase('holding'), environment: runupEnvironment },
+      cruise: fixturePhase('holding'),
+    },
+    procedures: {
+      ...fixtureAircraft.procedures,
+      toRunup: leg('parking', [ready], 'taxiOut'),
+      runupCheck: leg('taxiOut', [
+        {
+          type: 'action',
+          control: 'flaps',
+          position: 'takeoff',
+          text: { de: 'Klappen', en: 'Flaps' },
+        },
+        ready,
+      ]),
+      taxiBack: leg('parking', [ready]),
+      cruiseCheck: leg('cruise', [ready]),
+      holdingCheck: leg('holding', [ready]),
+    },
+  } as Aircraft;
+
+  it('starts a leg from the cockpit as it stands, keeping what the pilot set', () => {
+    const session = createSession(legs, { phase: 'taxiOut' });
+    session.startSurprise({ phase: 'taxiOut', failure: 'alternatorFailure', delayMs: STEP_MS });
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    expect(session.procedureId()).toBe('runupCheck');
+    expect(session.phase()).toBe('taxiOut');
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().systems).toBe(before.systems);
+    expect(session.checklist()?.current).toBe(0);
+    expect(session.scenario()).toBeUndefined();
+  });
+
+  it('enters the phase right after the current one without loading its snapshot', () => {
+    const session = createSession(legs);
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    expect(session.phase()).toBe('taxiOut');
+    expect(session.environment()).toBe(runupEnvironment);
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().controls.master).toBe('off');
+    expect(session.state().systems).toEqual(before.systems);
+  });
+
+  it('loads the snapshot of a leg that skips a phase or goes back', () => {
+    const skipping = createSession(legs);
+    skipping.set('throttle', 0.5);
+    skipping.startLeg('cruiseCheck');
+    expect(skipping.phase()).toBe('cruise');
+    expect(skipping.state().controls.throttle).toBe(0);
+    expect(skipping.state().controls.master).toBe('on');
+
+    const back = createSession(legs, { phase: 'taxiOut' });
+    back.set('throttle', 0.5);
+    back.startLeg('taxiBack');
+    expect(back.phase()).toBe('parking');
+    expect(back.state().controls.throttle).toBe(0);
+    expect(back.procedureId()).toBe('taxiBack');
+  });
+
+  it('carries the end phase of one leg into the next', () => {
+    const session = createSession(legs);
+    session.startLeg('toRunup');
+    session.set('throttle', 0.5);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    session.startLeg('runupCheck');
+    expect(session.environment()).toBe(runupEnvironment);
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.state().controls.master).toBe('off');
+  });
+
+  it('carries the cockpit from a leg that ends in taxiOut into one that starts at holding', () => {
+    const reversed = {
+      ...legs,
+      phases: Object.fromEntries(Object.entries(legs.phases).reverse()),
+    } as Aircraft;
+    for (const aircraft of [legs, reversed]) {
+      const session = createSession(aircraft);
+      session.startLeg('toRunup');
+      session.set('throttle', 0.5);
+      session.checkOff();
+      expect(session.phase()).toBe('taxiOut');
+      session.startLeg('holdingCheck');
+      expect(session.phase()).toBe('holding');
+      expect(session.state().controls.throttle).toBe(0.5);
+      expect(session.state().controls.master).toBe('off');
+    }
+  });
+
+  it('times a leg from its own start', () => {
+    const session = createSession(legs);
+    session.advance(STEP_MS);
+    session.startLeg('taxiBack');
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.checkOff();
+    expect(session.checklist()?.elapsedMs).toBe(2 * STEP_MS);
+  });
+
+  it('restarts a leg from the cockpit and phase it began with', () => {
+    const session = createSession(legs);
+    session.set('throttle', 0.5);
+    session.startLeg('toRunup');
+    const start = fingerprint(session);
+    session.set('master', 'on');
+    session.advance(STEP_MS);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(start);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('restarts nothing outside a leg', () => {
+    const session = createSession(legs);
+    session.startLeg('toRunup');
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    const procedure = fingerprint(session);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(procedure);
+
+    session.startLeg('taxiBack');
+    session.takeChecklist('runupCheck');
+    session.set('flaps', 'takeoff');
+    const taken = fingerprint(session);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(taken);
+  });
+
+  it('throws for an unknown or an emergency procedure and changes nothing', () => {
+    const session = createSession(legs);
+    const before = fingerprint(session);
+    expect(() => session.startLeg('engineFire')).toThrow('engineFire');
+    expect(() => session.startLeg('alternatorFailure')).toThrow('alternatorFailure');
+    expect(fingerprint(session)).toEqual(before);
+  });
+});
+
 describe('seeded device state', () => {
   type SeededState = { readonly page: string; readonly label: string };
   const seededMonitor = defineDevice({

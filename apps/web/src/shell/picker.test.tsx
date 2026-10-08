@@ -311,6 +311,26 @@ describe('drills in the picker', () => {
     expect(trainer.viewedProcedureId).toBe('descent');
   });
 
+  it('starts a full flight on its first leg in the chosen mode', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const region = drills();
+    if (!region) throw new Error('no drills');
+    const button = within(region).getByRole('button', {
+      name: 'Full flight',
+      description:
+        'Every normal procedure in flight order, from cold and dark to securing. Each one continues from the cockpit the last one left.',
+    });
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    await userEvent.click(button);
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBe('preflight');
+    expect(trainer.flight?.legs[0]).toBe('preflight');
+    expect(trainer.flight?.results).toEqual([]);
+  });
+
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
     localStorage.setItem('cpt.aircraft', second.id);
     renderPicker();

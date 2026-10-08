@@ -88,3 +88,29 @@ export const testAircraft: readonly [Aircraft, Aircraft] = [
   fixture('alpha', 'Alpha', false),
   fixture('bravo', 'Bravo', true),
 ];
+
+/** Two legs: power up while parked, then a taxi check whose phase snapshot has the master off. */
+export const flightAircraft: Aircraft = (() => {
+  const base = fixture('charlie', 'Charlie', false);
+  const taxiOut = base.phases['taxiOut'];
+  if (!taxiOut) throw new Error('The fixture has no taxiOut phase');
+  return {
+    ...base,
+    phases: {
+      ...base.phases,
+      taxiOut: {
+        ...taxiOut,
+        entry: { ...taxiOut.entry, controls: { master: 'off', pump: 'off' } },
+      },
+    },
+    procedures: {
+      ...base.procedures,
+      taxiCheck: {
+        title: text('Charlie taxi check'),
+        type: 'normal',
+        startPhase: 'taxiOut',
+        items: [{ type: 'confirm', text: text('Taxi set') }],
+      },
+    },
+  };
+})();

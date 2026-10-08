@@ -1,7 +1,7 @@
 import { phaseName, sharedPhases } from '@cpt/core';
 import { useEffect, useId, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useLostProgressText, useProgressAtRisk, useSessionState, useTrainer } from '../trainer';
+import { useLeavingRisk, useSessionState, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 import './outside-view.css';
@@ -12,8 +12,7 @@ export function PhaseControl() {
   const { procedureId, jumpToPhase } = useTrainer();
   const phase = useSessionState((session) => session.phase());
   const [pending, setPending] = useState<string | undefined>();
-  const lost = useLostProgressText();
-  const atRisk = useProgressAtRisk() !== undefined;
+  const { atRisk, lost } = useLeavingRisk();
   const selectId = useId();
   const running = procedureId !== undefined;
 

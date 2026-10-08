@@ -1,6 +1,6 @@
 import type { Aircraft, ControlDefinition, Device, ProcedureItem } from '../contract';
 import { deviceControls } from '../devices';
-import { procedureOf } from '../phases';
+import { flightLegs, procedureOf } from '../phases';
 import { STEP_MS } from '../runtime';
 import { createSession } from '../session';
 import type { Session, SessionControlResult } from '../session';
@@ -118,17 +118,15 @@ function perform(
   return undefined;
 }
 
-export function walkProcedure(
+/** Works the session's running checklist to its end, the way a pilot reading it would. */
+function walkChecklist(
+  session: Session,
   aircraft: Aircraft,
+  controls: Readonly<Record<string, ControlDefinition>>,
   procedureId: string,
-  options: WalkOptions = {},
+  options: WalkOptions,
 ): WalkResult {
-  const devices = options.devices ?? [];
   const procedure = procedureOf(aircraft, procedureId);
-  const controls = { ...aircraft.controls, ...deviceControls(aircraft, devices) };
-  const session = createSession(aircraft, { devices, phase: procedure.startPhase });
-  session.startProcedure(procedureId);
-
   const fail = (itemIndex: number, reason: string): WalkResult => ({
     ok: false,
     aircraft: aircraft.id,
@@ -178,6 +176,47 @@ export function walkProcedure(
   if (deviation) {
     const named = deviation.controlId === undefined ? '' : ` ${deviation.controlId}`;
     return fail(deviation.itemIndex, `${deviation.kind}${named}`);
+  }
+  return { ok: true };
+}
+
+export function walkProcedure(
+  aircraft: Aircraft,
+  procedureId: string,
+  options: WalkOptions = {},
+): WalkResult {
+  const devices = options.devices ?? [];
+  const procedure = procedureOf(aircraft, procedureId);
+  const controls = { ...aircraft.controls, ...deviceControls(aircraft, devices) };
+  const session = createSession(aircraft, { devices, phase: procedure.startPhase });
+  session.startProcedure(procedureId);
+  return walkChecklist(session, aircraft, controls, procedureId, options);
+}
+
+/** Walks the aircraft's whole flight on one session, each leg from the cockpit the last one left. */
+export function walkFlight(aircraft: Aircraft, options: WalkOptions = {}): WalkResult {
+  const devices = options.devices ?? [];
+  const legs = flightLegs(aircraft);
+  const first = legs[0];
+  if (first === undefined) {
+    return {
+      ok: false,
+      aircraft: aircraft.id,
+      procedure: '',
+      itemIndex: 0,
+      item: '',
+      reason: 'no legs',
+    };
+  }
+  const controls = { ...aircraft.controls, ...deviceControls(aircraft, devices) };
+  const session = createSession(aircraft, {
+    devices,
+    phase: procedureOf(aircraft, first).startPhase,
+  });
+  for (const id of legs) {
+    session.startLeg(id);
+    const result = walkChecklist(session, aircraft, controls, id, options);
+    if (!result.ok) return result;
   }
   return { ok: true };
 }

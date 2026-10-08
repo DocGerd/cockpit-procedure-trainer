@@ -1,6 +1,6 @@
 import { checkOff, observeControl, observeState, retryItem, startChecklist } from '../checklist';
 import type { ChecklistState } from '../checklist';
-import { sharedPhases } from '../contract';
+import { phaseOrder, sharedPhases } from '../contract';
 import type {
   Aircraft,
   ControlChange,
@@ -67,6 +67,13 @@ export type Session = {
    * The first one taken during a surprise is the pilot's answer to it.
    */
   takeChecklist(id: string): void;
+  /**
+   * Starts a normal procedure as the next leg of a flight. In the current phase or the one right
+   * after it, the leg starts from the cockpit as it stands; otherwise from its phase snapshot.
+   */
+  startLeg(id: string): void;
+  /** Puts the cockpit and phase back as they were when the current leg began and starts it over. */
+  restartLeg(): void;
   advance(dtMs: number): void;
   checkOff(response?: number): void;
   /** Puts the cockpit back as it was when the current item began and counts an assist. */
@@ -99,6 +106,16 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let itemStart:
     | {
         readonly completed: number;
+        readonly positions: ReturnType<typeof store.positions>;
+        readonly guards: ReturnType<typeof store.guards>;
+        readonly systems: unknown;
+        readonly devices: DeviceStates;
+      }
+    | undefined;
+  let legStart:
+    | {
+        readonly id: string;
+        readonly phase: string;
         readonly positions: ReturnType<typeof store.positions>;
         readonly guards: ReturnType<typeof store.guards>;
         readonly systems: unknown;
@@ -197,6 +214,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     procedureId = undefined;
     checklist = undefined;
     itemStart = undefined;
+    legStart = undefined;
     scenario = undefined;
     runMs = 0;
     store.load(snapshot.positions, snapshot.guards);
@@ -208,6 +226,14 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     settleDevices(0, snapshot.devices);
     phase = id;
     environment = snapshot.environment;
+  }
+
+  function beginChecklist(id: string): void {
+    runMs = 0;
+    itemStart = undefined;
+    checklist = undefined;
+    procedureId = id;
+    track(startChecklist(procedureOf(aircraft, id), buildState(), controls));
   }
 
   function injectSurprise(): void {
@@ -299,11 +325,46 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
             ...(early ? {} : { recognitionMs: runMs - (answer.injectedAtMs ?? 0) }),
           };
         }
-        runMs = 0;
-        itemStart = undefined;
+        legStart = undefined;
+        beginChecklist(id);
+      });
+    },
+
+    startLeg(id) {
+      const procedure = procedureOf(aircraft, id);
+      if (procedure.type !== 'normal')
+        throw new Error(`Procedure "${id}" is not a normal procedure`);
+      const order: readonly string[] = phaseOrder;
+      const step = order.indexOf(procedure.startPhase) - order.indexOf(phase);
+      batch(() => {
+        // A phase no leg flies through is flown off the checklist; its snapshot stands for it.
+        if (step === 1) enterPhase(procedure.startPhase);
+        else if (step !== 0) loadSnapshot(procedure.startPhase);
+        scenario = undefined;
+        legStart = {
+          id,
+          phase,
+          positions: store.positions(),
+          guards: store.guards(),
+          systems: runtime.state(),
+          devices,
+        };
+        beginChecklist(id);
+      });
+    },
+
+    restartLeg() {
+      const start = legStart;
+      if (!start) return;
+      batch(() => {
         checklist = undefined;
-        procedureId = id;
-        track(startChecklist(procedure, buildState(), controls));
+        store.load(start.positions, start.guards);
+        enterPhase(start.phase);
+        runtime.onControlsChanged(store.positions());
+        runtime.reset(start.systems);
+        deviceFailure = undefined;
+        settleDevices(0, start.devices);
+        beginChecklist(start.id);
       });
     },
 
