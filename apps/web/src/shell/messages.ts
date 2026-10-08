@@ -44,6 +44,8 @@ export const messages = defineMessages({
     startHint: 'Run the selected procedure in the chosen mode.',
     exploreCockpit: 'Explore the cockpit',
     exploreHint: 'Look around the panel and read what each control does. No procedure runs.',
+    historyLast: 'Last run: {result}, {when}',
+    historyBest: 'Best: {result}',
   },
   de: {
     brandName: 'Procedure Trainer',
@@ -89,5 +91,7 @@ export const messages = defineMessages({
     exploreCockpit: 'Cockpit erkunden',
     exploreHint:
       'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
+    historyLast: 'Letzter Durchlauf: {result}, {when}',
+    historyBest: 'Bestwert: {result}',
   },
 });

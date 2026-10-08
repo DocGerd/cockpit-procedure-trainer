@@ -76,6 +76,36 @@ test('Restart asks before it discards a deviation', async ({ page }) => {
   await expect(pane.getByText(copy.checklist.noDeviations)).toBeVisible();
 });
 
+test('a completed run shows in the picker after a reload and sends nothing out', async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(`${request.method()} ${request.url()}`));
+
+  await startProcedure(page, engineStart, 'guided');
+  await operateUnrelatedControl(page, unrelatedControl);
+  await completeProcedure(page, engineStart);
+  const pane = checklistPane(page);
+  await pane.getByRole('button', { name: copy.checklist.backToSelection }).click();
+  await expect(page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle })).toBeVisible();
+
+  await page.reload();
+  const title = procedure(engineStart).title.en;
+  await expect(page.getByRole('button', { name: new RegExp(title) })).toContainText(
+    'Last run: 1 deviation, today',
+  );
+
+  const origin = new URL(page.url()).origin;
+  expect(
+    requests.filter((entry) => !entry.split(' ')[1]?.startsWith(origin)),
+    'requests to other origins',
+  ).toEqual([]);
+  expect(
+    requests.filter((entry) => !entry.startsWith('GET ')),
+    'non-GET requests',
+  ).toEqual([]);
+});
+
 test.describe('changing the phase during a procedure', () => {
   const startPhase = procedure(engineStart).startPhase;
   const target = Object.entries(aircraft.phases).find(([id]) => id !== startPhase);
