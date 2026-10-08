@@ -2,7 +2,7 @@ import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { demoAircraft } from '@cpt/aircraft-demo';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { pressDevice } from './flight';
+import { guardAt, pressDevice, setGuard } from './flight';
 import { openAircraft, selectLanguage } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
 
@@ -108,6 +108,9 @@ async function advance(
     await verify.click();
   } else if (item?.type === 'action') {
     await operate(page, item.control, item.position);
+  } else if (item?.type === 'guard') {
+    if ((await guardAt(page, item.control)) === item.position) await verify.click();
+    else await setGuard(page, item.control, item.position);
   } else {
     await card.getByRole('button').last().click();
   }

@@ -183,6 +183,14 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const checkGuardTarget = (id: string, where: string, position: unknown) => {
+    if (!hasControl(id) || aircraft.controls[id]?.kind !== 'guarded') {
+      add('unknown-target', id, `${where} guards a control without a guard`);
+    } else if (position !== 'open' && position !== 'closed') {
+      add('unknown-position', id, `${where} has no guard position ${JSON.stringify(position)}`);
+    }
+  };
+
   const checkGlass = (id: string, appearance: Appearance | undefined) => {
     if (!appearance || !('artwork' in appearance) || !context.imageSize) return;
     const { face, glass } = appearance.artwork;
@@ -496,15 +504,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
     for (const [id, position] of Object.entries(entry.guards ?? {})) {
-      if (!hasControl(id) || aircraft.controls[id]?.kind !== 'guarded') {
-        add('unknown-target', id, `phase ${phaseId} entry guards a control without a guard`);
-      } else if (position !== 'open' && position !== 'closed') {
-        add(
-          'unknown-position',
-          id,
-          `phase ${phaseId} entry has no guard position ${JSON.stringify(position)}`,
-        );
-      }
+      checkGuardTarget(id, `phase ${phaseId} entry`, position);
     }
     for (const [installId, positions] of Object.entries(entry.devices ?? {})) {
       const install = Object.hasOwn(aircraft.devices ?? {}, installId)
@@ -620,6 +620,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);
+      } else if (item.type === 'guard') {
+        checkGuardTarget(item.control, where, item.position);
       } else if (item.type === 'check') {
         const checked = item.target;
         if (checked === undefined) {

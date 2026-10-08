@@ -7,8 +7,11 @@ import { messages } from './messages';
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 const later = (deviation: Deviation) => ({ later: (deviation.laterItem ?? 0) + 1 });
 
-/** A position as a cue names it; `restore` is set for a phrase, the imperative to bring it back. */
-type Named = { readonly name: string; readonly restore?: string };
+/**
+ * A position as a cue names it. A phrase takes its own sentence forms; `restore`, when set, is the
+ * imperative to bring the control back to it.
+ */
+type Named = { readonly name: string; readonly phrase?: true; readonly restore?: string };
 
 export function useDeviationText(checklist: ChecklistState<unknown> | undefined) {
   const text = useMessages(messages);
@@ -19,8 +22,18 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     checklist && id !== undefined && Object.hasOwn(checklist.controls, id)
       ? checklist.controls[id]
       : undefined;
+  // A guard item left wrong is named by its guard, such as the safety pin, not by its control.
+  const guardItem = (deviation: Deviation) => {
+    const found = checklist?.procedure.items[deviation.itemIndex];
+    return deviation.kind === 'wrong-position' && found?.type === 'guard' ? found : undefined;
+  };
+  const guardName = (at: ControlPosition | undefined): Named | undefined =>
+    at === undefined
+      ? undefined
+      : { name: at === 'open' ? text.guardOpen : text.guardClosed, phrase: true };
   const control = (deviation: Deviation) => {
     const found = definition(deviation.controlId);
+    if (found?.kind === 'guarded' && guardItem(deviation)) return localize(found.guard.name);
     return found ? localize(found.name) : (deviation.controlId ?? '');
   };
   // A position reads as the panel prints it: its declared legend, else its id in capitals. A
@@ -39,11 +52,14 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
       found?.legends && Object.hasOwn(found.legends, at) ? found.legends[at] : undefined;
     if (legend === undefined) return { name: at.toUpperCase() };
     if (typeof legend === 'string') return { name: legend };
-    return { name: localize(legend.state), restore: localize(legend.restore) };
+    return { name: localize(legend.state), phrase: true, restore: localize(legend.restore) };
   };
   const phrased = (named: Named, legendTemplate: string, phraseTemplate: string) =>
-    named.restore === undefined ? legendTemplate : phraseTemplate;
-  const position = (deviation: Deviation) => positionName(deviation.controlId, deviation.position);
+    named.phrase ? phraseTemplate : legendTemplate;
+  const position = (deviation: Deviation) =>
+    guardItem(deviation)
+      ? guardName(deviation.position)
+      : positionName(deviation.controlId, deviation.position);
   const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);
   // A spring-back control is already back by the time the pilot reads this: name the press.
   const pressed = (deviation: Deviation) =>
@@ -55,6 +71,7 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
   };
   const target = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];
+    if (found?.type === 'guard') return guardName(found.position);
     return found?.type === 'action' ? positionName(deviation.controlId, found.position) : undefined;
   };
 

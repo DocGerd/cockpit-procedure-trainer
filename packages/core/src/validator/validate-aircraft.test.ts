@@ -133,6 +133,29 @@ describe('validateAircraft', () => {
       only(aircraft, 'unknown-position', 'fuelPump');
     });
 
+    it('reports a guard item on an unknown control or a control without a guard', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'ghost', position: 'open', text },
+        { type: 'guard', control: 'master', position: 'open', text },
+      ]);
+      only(aircraft, 'unknown-target', 'ghost');
+      only(aircraft, 'unknown-target', 'master');
+    });
+
+    it('reports a guard item position other than open or closed', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'fuelPump', position: 'ajar', text },
+      ]);
+      only(aircraft, 'unknown-position', 'fuelPump');
+    });
+
+    it('reports a guard item in a flow', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'fuelPump', position: 'open', flow: true, text },
+      ]);
+      expect(ofCode(aircraft, 'invalid-flow')).toHaveLength(1);
+    });
+
     it('reports a failure that trips an unknown or non-breaker control', () => {
       const aircraft = broken({
         failures: {

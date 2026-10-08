@@ -10,7 +10,7 @@ export function useCurrentTarget(): CurrentTarget | undefined {
     const checklist = snapshot.checklist();
     if (!checklist || checklist.done) return undefined;
     const item = checklist.procedure.items[checklist.current];
-    if (item?.type === 'action') return { control: item.control };
+    if (item?.type === 'action' || item?.type === 'guard') return { control: item.control };
     if (item?.type === 'check') return item.target;
     return undefined;
   });

@@ -142,6 +142,8 @@ export type DeviceState<D = unknown> = { readonly on: boolean; readonly state: D
 
 export type TrainerState<S> = {
   readonly controls: Positions;
+  /** Per guarded control, whether its cover or pin is open. */
+  readonly guards: Readonly<Record<string, GuardPosition>>;
   readonly systems: S;
   readonly devices: Readonly<Record<string, DeviceState>>;
 };
@@ -390,8 +392,21 @@ export type CheckItem<
 
 export type ConfirmItem = ItemBase & { readonly type: 'confirm' };
 
+/**
+ * Opens or closes the guard of a guarded control, such as pulling a safety pin. It completes like
+ * an action: when the pilot moves the guard to `position`, or ticks it verified.
+ */
+export type GuardItem<CT extends ControlRecord = ControlRecord> = ItemBase &
+  {
+    [K in GuardedId<CT>]: {
+      readonly type: 'guard';
+      readonly control: K;
+      readonly position: GuardPosition;
+    };
+  }[GuardedId<CT>];
+
 export type ProcedureItem<S, CT extends ControlRecord = ControlRecord, I extends string = string> =
-  ActionItem<S, CT> | CheckItem<S, CT, I> | ConfirmItem;
+  ActionItem<S, CT> | CheckItem<S, CT, I> | ConfirmItem | GuardItem<CT>;
 
 export type ProcedureDefinition<
   S,

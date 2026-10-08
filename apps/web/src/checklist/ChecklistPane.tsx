@@ -63,6 +63,7 @@ function CurrentDetail({
   const localize = useLocalize();
   const { session, showMe } = useTrainer();
   const [reading, setReading] = useState('');
+  const operated = item.type === 'action' || item.type === 'guard';
   return (
     <span className="checklist-item-detail">
       {!withheld && <span className="checklist-hint">{hint}</span>}
@@ -88,16 +89,12 @@ function CurrentDetail({
       {tick && (
         <button
           type="button"
-          className={`button-secondary ${item.type === 'action' ? 'checklist-verify' : 'checklist-check-off'}`}
+          className={`button-secondary ${operated ? 'checklist-verify' : 'checklist-check-off'}`}
           onClick={() =>
             session.checkOff(answerable && reading.trim() !== '' ? Number(reading) : undefined)
           }
         >
-          {item.type === 'action'
-            ? text.verify
-            : item.type === 'check'
-              ? text.checkOff
-              : text.confirm}
+          {operated ? text.verify : item.type === 'check' ? text.checkOff : text.confirm}
         </button>
       )}
     </span>
@@ -142,7 +139,7 @@ function ItemRow({
   const gesture =
     !tick && state === 'current' ? text.gestureHold : lever ? text.gestureDrag : text.gesturePress;
   const hint =
-    item.type === 'action'
+    item.type === 'action' || item.type === 'guard'
       ? format(
           mode === 'guided'
             ? tick

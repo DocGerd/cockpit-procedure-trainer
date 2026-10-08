@@ -411,7 +411,7 @@ powered and at standby)_; choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
 lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
-pin removed (Rettungsgerät entsichert) _(confirm)_; ELT armed (Notsender); passenger briefed _(confirm)_;
+pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
 **N7 Normal take-off (HB 4-3, 4-10, 4-11).** Flaps 15° (0° on pavement); carb heat
@@ -450,7 +450,7 @@ accidental ELT activation _(confirm)_.
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
 (assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
-system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
+system secured, pin in (gesichert); ELT checked and left armed (§9); chocks
 _(confirm)_.
 
 ## 7. Emergency procedures (our wording)

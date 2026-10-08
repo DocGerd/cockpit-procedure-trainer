@@ -33,6 +33,8 @@ export const messages = defineMessages({
     verify: 'Verified',
     reading: 'Reading',
     confirm: 'Confirm',
+    guardOpen: 'open',
+    guardClosed: 'closed',
     restart: 'Restart',
     restartTitle: 'Restart the procedure?',
     restartBody: 'Restarting returns the cockpit to the start phase and begins at the first item.',
@@ -172,6 +174,8 @@ export const messages = defineMessages({
     verify: 'Geprüft',
     reading: 'Ablesewert',
     confirm: 'Bestätigen',
+    guardOpen: 'offen',
+    guardClosed: 'geschlossen',
     restart: 'Neu starten',
     restartTitle: 'Verfahren neu starten?',
     restartBody:
