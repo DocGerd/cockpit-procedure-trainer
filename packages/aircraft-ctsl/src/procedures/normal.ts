@@ -105,10 +105,9 @@ export const normalProcedures = {
       {
         type: 'action',
         control: 'ignition',
-        position: 'off',
-        text: text('Zündschalter OFF', 'Ignition OFF'),
+        position: 'out',
+        text: text('Zündschalter OFF, Schlüssel abgezogen', 'Ignition OFF, key out'),
       },
-      confirm('Zündschlüssel abgezogen', 'Key out'),
       {
         type: 'action',
         control: 'beacon',
@@ -265,7 +264,12 @@ export const normalProcedures = {
         position: 'open',
         text: text('Brandhahn offen', 'Fuel valve open'),
       },
-      confirm('Zündschlüssel gesteckt', 'Key in'),
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'off',
+        text: text('Zündschlüssel auf OFF gesteckt', 'Key in at OFF'),
+      },
       {
         type: 'action',
         control: 'choke',
@@ -858,7 +862,18 @@ export const normalProcedures = {
         position: 'pulled',
         text: text('Hauptschalter (BAT) ziehen', 'BAT out'),
       },
-      confirm('Zündschlüssel abgezogen', 'Key out'),
+      {
+        type: 'action',
+        control: 'fuelValve',
+        position: 'closed',
+        text: text('Brandhahn zu', 'Fuel valve closed'),
+      },
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'out',
+        text: text('Zündschlüssel abgezogen', 'Key out'),
+      },
       confirm(
         'Rettungsgerät gesichert, Sicherungsstift gesteckt',
         'Rescue system secured, safety pin in',
