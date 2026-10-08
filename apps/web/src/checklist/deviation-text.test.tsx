@@ -119,6 +119,43 @@ describe('deviation text for each kind', () => {
     expect(text.banner(outOfOrder)).toBe('Bus operated early. It belongs to item 4, not item 1.');
   });
 
+  it('refers a deviation made during the flow to the flow, not to an item', () => {
+    const text = describeIn('en');
+    const during = { ...unexpected('bus'), duringFlow: true } as const;
+    expect(text.where(during)).toBe('During the flow');
+    expect(text.expected(during)).toBe('The flow items, in any order');
+    expect(text.banner(during)).toBe('Bus operated. Not part of the flow.');
+    const early = { ...outOfOrder, duringFlow: true } as const;
+    expect(text.banner(early)).toBe('Bus operated early. It belongs to item 4, not to the flow.');
+    expect(describeIn('de').where(during)).toBe('Während des Flows');
+  });
+
+  it('says how to undo a stray move during the flow, and what was pressed', () => {
+    const text = describeIn('en');
+    const moved = { ...stray('bus', 'on', 'off'), duringFlow: true } as const;
+    expect(text.banner(moved)).toBe('Bus set to ON. Not part of the flow. Return it to OFF.');
+    expect(text.banner(moved, true)).toBe('Bus operated. Not part of the flow.');
+    const early = { ...outOfOrder, position: 'on', from: 'off', duringFlow: true } as const;
+    expect(text.banner(early)).toBe(
+      'Bus set to ON early. It belongs to item 4, not to the flow. Return it to OFF.',
+    );
+    const press = { ...stray('starter', 'held', 'released'), duringFlow: true } as const;
+    expect(text.banner(press)).toBe('Starter pressed. Not part of the flow.');
+    expect(text.banner({ ...press, kind: 'out-of-order', laterItem: 3 })).toBe(
+      'Starter pressed early. It belongs to item 4, not to the flow.',
+    );
+    expect(describeIn('de').banner(moved)).toBe(
+      'Bus (de) auf ON gestellt. Nicht Teil des Flows. Zurück auf OFF stellen.',
+    );
+  });
+
+  it('drops the return cue once the control is back', () => {
+    const text = describeIn('en');
+    expect(text.banner(stray('bus', 'on', 'off'), true)).toBe('Bus operated. Not part of item 1.');
+    const early: Deviation = { ...outOfOrder, position: 'on', from: 'off' };
+    expect(text.banner(early, true)).toBe('Bus operated early. It belongs to item 4, not item 1.');
+  });
+
   it('names where an out-of-order move left the control and how to undo it', () => {
     const moved: Deviation = { ...outOfOrder, position: 'on', from: 'off' };
     const text = describeIn('en');

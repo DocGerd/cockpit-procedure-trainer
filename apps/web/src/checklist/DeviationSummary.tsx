@@ -47,6 +47,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     'wrong-position': text.kindWrongPosition,
     'unmet-check': text.kindUnmet,
   };
+  const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
   const goTo = (index: number) => {
     const row = rows.current.get(index);
     row?.focus({ preventScroll: true });
@@ -128,9 +129,11 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
                   <button
                     type="button"
                     className="checklist-deviation-link"
-                    onClick={() => goTo(deviation.itemIndex)}
+                    onClick={() => goTo(deviation.duringFlow ? firstFlowItem : deviation.itemIndex)}
                   >
-                    {format(text.goToItem, { n: deviation.itemIndex + 1 })}
+                    {deviation.duringFlow
+                      ? text.goToFlow
+                      : format(text.goToItem, { n: deviation.itemIndex + 1 })}
                   </button>
                 </div>
               </li>
@@ -142,7 +145,9 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
       <section className="checklist-review" aria-label={text.itemsHeading}>
         <ol className="checklist-review-list">
           {procedure.items.map((item, index) => {
-            const deviated = deviations.some((deviation) => deviation.itemIndex === index);
+            const deviated = deviations.some(
+              (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+            );
             return (
               <li
                 key={index}

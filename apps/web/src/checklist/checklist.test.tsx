@@ -303,6 +303,16 @@ describe('retrying an item', () => {
     expect(trainer.session.checklist()?.current).toBe(0);
     expect(trainer.session.checklist()?.assists).toBe(1);
     expect(screen.getByText('1 deviation')).toBeTruthy();
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
+  });
+
+  it('stops saying to return a control once the pilot has put it back', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    expect(screen.getByText('Avionics set to ON. Return it to OFF.')).toBeTruthy();
+    operate('avionics', 'off');
+    expect(screen.getByText('Avionics operated. Not part of item 1.')).toBeTruthy();
   });
 
   it('drops the retry once the item has moved on', () => {
@@ -362,6 +372,28 @@ describe('deviation summary', () => {
       .getAllByRole('listitem')
       .map((kind) => kind.textContent);
     expect(kinds).toEqual(['Unexpected control1', 'Condition not met1']);
+  });
+
+  it('groups deviations of every kind', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    operate('master', 'on');
+    operate('pump', 'off');
+    checkOff();
+    checkOff();
+    checkOff();
+    const kinds = within(screen.getAllByRole('list')[0] as HTMLElement)
+      .getAllByRole('listitem')
+      .map((kind) => kind.textContent);
+    expect(kinds).toEqual([
+      'Unexpected control2',
+      'Out of order1',
+      'Wrong position1',
+      'Condition not met1',
+    ]);
+    expect(screen.getByText('Deviations').nextElementSibling?.textContent).toBe('5');
   });
 
   it('lists each deviation with the item it happened during', () => {

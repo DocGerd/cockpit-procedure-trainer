@@ -261,6 +261,43 @@ describe('demo aircraft', () => {
     expect(walkProcedure(demoAircraft, id, { devices })).toEqual({ ok: true });
   });
 
+  describe('the before-landing flow', () => {
+    const items = demoAircraft.procedures.beforeLanding?.items ?? [];
+    const flow = items.flatMap((item) => (item.type === 'action' && item.flow ? [item] : []));
+
+    it('opens the procedure and is verified by the checklist after it', () => {
+      expect(flow.map(({ control, position }) => [control, position])).toEqual([
+        ['fuelSelector', 'both'],
+        ['mixture', 1],
+        ['flaps', 'takeoff'],
+      ]);
+      expect(items.slice(0, flow.length)).toEqual(flow);
+      const rest = items.slice(flow.length);
+      for (const { control } of flow) {
+        const verified = rest.some(
+          (item) =>
+            (item.type === 'action' && item.control === control) ||
+            (item.type === 'check' && 'control' in item.target && item.target.control === control),
+        );
+        expect(verified, control).toBe(true);
+      }
+    });
+
+    it('needs the pilot to set its mixture and flaps targets on entry', () => {
+      const session = createSession(demoAircraft, { devices, phase: 'approach' });
+      session.startProcedure('beforeLanding');
+      expect(session.state().controls).not.toMatchObject({ mixture: 1 });
+      expect(session.state().controls).not.toMatchObject({ flaps: 'takeoff' });
+      expect(session.checklist()?.completed).toEqual([0]);
+    });
+
+    it.each(['listed', 'reversed'] as const)('walks green in the %s order', (flowOrder) => {
+      expect(walkProcedure(demoAircraft, 'beforeLanding', { devices, flowOrder })).toEqual({
+        ok: true,
+      });
+    });
+  });
+
   it('has seven normal procedures and an emergency naming its failure', () => {
     const procedures = Object.values(demoAircraft.procedures);
     expect(procedures.filter((procedure) => procedure.type === 'normal')).toHaveLength(7);

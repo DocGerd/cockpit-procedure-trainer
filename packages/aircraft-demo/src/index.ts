@@ -495,6 +495,27 @@ export const demoAircraft = defineAircraft({
       startPhase: 'approach',
       items: [
         {
+          type: 'action',
+          flow: true,
+          control: 'fuelSelector',
+          position: 'both',
+          text: text('Tankwahlschalter auf BOTH', 'Fuel selector BOTH'),
+        },
+        {
+          type: 'action',
+          flow: true,
+          control: 'mixture',
+          position: 1,
+          text: text('Gemisch fett', 'Mixture rich'),
+        },
+        {
+          type: 'action',
+          flow: true,
+          control: 'flaps',
+          position: 'takeoff',
+          text: text('Klappen auf TAKEOFF', 'Flaps TAKEOFF'),
+        },
+        {
           type: 'confirm',
           text: text(
             'Sitze verriegelt, Gurte fest, Türen verriegelt',

@@ -428,6 +428,24 @@ describe('Guided stray control', () => {
     expect(stray()).toBeNull();
   });
 
+  it('draws none for a move made in Practice before switching to Guided', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.setMode('guided'));
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('pump', 'on'));
+    expect(boxOf(stray())).toEqual(boxOf(placement('pump')));
+  });
+
+  it('draws none after a retry has put the control back', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.retryItem());
+    expect(stray()).toBeNull();
+  });
+
   it('draws none for a spring-back control, even while it is held', () => {
     renderTrainer();
     start('start', 'guided');

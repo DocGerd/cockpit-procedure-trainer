@@ -7,7 +7,11 @@ import type { Session, SessionControlResult } from '../session';
 
 export const MAX_STEPS = 2000;
 
-export type WalkOptions = { readonly devices?: readonly Device[] };
+export type WalkOptions = {
+  readonly devices?: readonly Device[];
+  /** The order to do a leading flow in; any order completes it. */
+  readonly flowOrder?: 'listed' | 'reversed';
+};
 
 export type WalkResult =
   | { readonly ok: true }
@@ -53,7 +57,7 @@ function rejection(result: SessionControlResult): string | undefined {
 
 function progressed(session: Session, index: number): boolean {
   const checklist = session.checklist();
-  return checklist === undefined || checklist.done || checklist.current !== index;
+  return checklist === undefined || checklist.done || checklist.completed.includes(index);
 }
 
 function advanceUntil(session: Session, done: () => boolean): boolean {
@@ -136,8 +140,7 @@ export function walkProcedure(
 
   if (procedure.items.length === 0) return fail(0, 'procedure has no items');
 
-  for (let checklist = session.checklist(); checklist && !checklist.done;) {
-    const index = checklist.current;
+  const attempt = (index: number): string | undefined => {
     const item = procedure.items[index] as Item;
     let reason: string | undefined;
     try {
@@ -149,6 +152,22 @@ export function walkProcedure(
     const status = session.status();
     if (status.kind === 'failed') reason ??= 'runtime failed';
     if (reason === undefined && !progressed(session, index)) reason = 'item did not complete';
+    return reason;
+  };
+
+  const flow = procedure.items.flatMap((item, index) =>
+    item.type === 'action' && item.flow ? [index] : [],
+  );
+  if (options.flowOrder === 'reversed') flow.reverse();
+  for (const index of flow) {
+    if (progressed(session, index)) continue;
+    const reason = attempt(index);
+    if (reason !== undefined) return fail(index, reason);
+  }
+
+  for (let checklist = session.checklist(); checklist && !checklist.done;) {
+    const index = checklist.current;
+    const reason = attempt(index);
     if (reason !== undefined) return fail(index, reason);
     checklist = session.checklist();
   }

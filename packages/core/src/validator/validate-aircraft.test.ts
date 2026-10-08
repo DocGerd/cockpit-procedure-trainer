@@ -384,6 +384,85 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('invalid-flow', () => {
+    const flowAction = { type: 'action', flow: true, control: 'master', position: 'on', text };
+
+    it('accepts a flow of actions at the start of a normal procedure', () => {
+      const aircraft = withItems('beforeStart', [
+        flowAction,
+        { ...flowAction, control: 'fuelPump' },
+        ...beforeStartItems,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports a flow on an emergency procedure', () => {
+      const items = fixtureAircraft.procedures.alternatorFailure?.items ?? [];
+      const finding = only(
+        withItems('alternatorFailure', [flowAction, ...items]),
+        'invalid-flow',
+        'alternatorFailure',
+      );
+      expect(finding.message).toContain('procedure alternatorFailure item 0');
+      expect(finding.message).toContain('normal');
+    });
+
+    it('reports a check in a flow', () => {
+      const check = {
+        type: 'check',
+        flow: true,
+        target: { indicator: 'rpm' },
+        condition: () => true,
+        text,
+      };
+      const finding = only(
+        withItems('beforeStart', [flowAction, check, ...beforeStartItems]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 1');
+      expect(finding.message).toContain('action');
+    });
+
+    it('reports a flow item after a checklist item', () => {
+      const finding = only(
+        withItems('beforeStart', [...beforeStartItems, flowAction]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain(`procedure beforeStart item ${beforeStartItems.length}`);
+      expect(finding.message).toContain('start');
+    });
+
+    it('reports a flow item whose control no later item verifies', () => {
+      const finding = only(
+        withItems('beforeStart', [
+          { ...flowAction, control: 'flaps', position: 'up' },
+          ...beforeStartItems,
+        ]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('verifies');
+    });
+
+    it('accepts a flow item verified by a later check on its control', () => {
+      const check = {
+        type: 'check',
+        target: { control: 'flaps' },
+        condition: () => true,
+        text,
+      };
+      const aircraft = withItems('beforeStart', [
+        { ...flowAction, control: 'flaps', position: 'up' },
+        ...beforeStartItems,
+        check,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+  });
+
   describe('inexact-lever-target', () => {
     const action = (control: string, position: unknown) =>
       withItems('beforeStart', [

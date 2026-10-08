@@ -112,7 +112,8 @@
 .modes-outline {
   position: absolute;
   box-sizing: border-box;
-  outline: 3px solid var(--color-accent);
+  /* The cockpit fills the viewport, so the ring grows with it. */
+  outline: max(3px, 0.3vmin) solid var(--color-accent);
   outline-offset: var(--space-1);
   border-radius: var(--radius-md);
 }

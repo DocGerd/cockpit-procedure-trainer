@@ -409,6 +409,48 @@ describe('retryItem', () => {
   });
 });
 
+describe('retryItem in a flow', () => {
+  const flowAircraft: Aircraft = {
+    ...fixtureAircraft,
+    procedures: {
+      scan: {
+        title: { de: 'Scan', en: 'Scan' },
+        type: 'normal',
+        startPhase: 'parking',
+        items: [
+          {
+            type: 'action',
+            flow: true,
+            control: 'master',
+            position: 'on',
+            text: { de: 'M', en: 'M' },
+          },
+          {
+            type: 'action',
+            flow: true,
+            control: 'flaps',
+            position: 'takeoff',
+            text: { de: 'P', en: 'P' },
+          },
+          { type: 'action', control: 'master', position: 'on', text: { de: 'M', en: 'M' } },
+        ],
+      },
+    },
+  };
+
+  it('keeps a flow item done out of order when the open one is retried', () => {
+    const session = createSession(flowAircraft);
+    session.startProcedure('scan');
+    session.set('flaps', 'takeoff');
+    expect(session.checklist()?.current).toBe(0);
+    session.set('throttle', 0.6);
+    session.retryItem();
+    expect(session.state().controls.flaps).toBe('takeoff');
+    expect(session.state().controls.throttle).toBe(0);
+    expect(session.checklist()?.completed).toEqual([1]);
+  });
+});
+
 describe('elapsed time of a procedure', () => {
   const finish = (session: Session) => {
     session.checkOff();

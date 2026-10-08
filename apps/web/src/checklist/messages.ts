@@ -47,6 +47,15 @@ export const messages = defineMessages({
     bannerOutOfOrder:
       '{control} set to {position} early. It belongs to item {later}, not item {n}. Return it to {previous}.',
     bannerOutOfOrderBare: '{control} operated early. It belongs to item {later}, not item {n}.',
+    bannerUnexpectedFlow:
+      '{control} set to {position}. Not part of the flow. Return it to {previous}.',
+    bannerUnexpectedFlowBare: '{control} operated. Not part of the flow.',
+    bannerPressedFlow: '{control} pressed. Not part of the flow.',
+    bannerOutOfOrderFlow:
+      '{control} set to {position} early. It belongs to item {later}, not to the flow. Return it to {previous}.',
+    bannerOutOfOrderFlowBare:
+      '{control} operated early. It belongs to item {later}, not to the flow.',
+    bannerPressedEarlyFlow: '{control} pressed early. It belongs to item {later}, not to the flow.',
     bannerWrongPosition: '{control} left in a wrong position during item {n}.',
     bannerWrongPositionAt: '{control} left at {position} during item {n}.',
     modeGuided: 'Guided',
@@ -62,8 +71,11 @@ export const messages = defineMessages({
     deviationsHeading: 'What differed from the checklist',
     allAsListed: 'Everything went as the checklist says.',
     duringItem: 'During item {n}',
+    duringFlow: 'During the flow',
     itemNumber: 'Item {n}',
     unexpectedTitle: '{control} operated',
+    expectedFlow: 'The flow items, in any order',
+    goToFlow: 'Go to the flow',
     unmetTitle: '{item} checked off, condition not met',
     expectedLabel: 'Expected',
     actualLabel: 'Actual',
@@ -137,6 +149,16 @@ export const messages = defineMessages({
       '{control} zu früh auf {position} gestellt. Das gehört zu Punkt {later}, nicht zu Punkt {n}. Zurück auf {previous} stellen.',
     bannerOutOfOrderBare:
       '{control} zu früh bedient. Das gehört zu Punkt {later}, nicht zu Punkt {n}.',
+    bannerUnexpectedFlow:
+      '{control} auf {position} gestellt. Nicht Teil des Flows. Zurück auf {previous} stellen.',
+    bannerUnexpectedFlowBare: '{control} bedient. Nicht Teil des Flows.',
+    bannerPressedFlow: '{control} gedrückt. Nicht Teil des Flows.',
+    bannerOutOfOrderFlow:
+      '{control} zu früh auf {position} gestellt. Das gehört zu Punkt {later}, nicht zum Flow. Zurück auf {previous} stellen.',
+    bannerOutOfOrderFlowBare:
+      '{control} zu früh bedient. Das gehört zu Punkt {later}, nicht zum Flow.',
+    bannerPressedEarlyFlow:
+      '{control} zu früh gedrückt. Das gehört zu Punkt {later}, nicht zum Flow.',
     bannerWrongPosition: '{control} bei Punkt {n} in falscher Stellung gelassen.',
     bannerWrongPositionAt: '{control} bei Punkt {n} auf {position} gelassen.',
     modeGuided: 'Geführt',
@@ -152,8 +174,11 @@ export const messages = defineMessages({
     deviationsHeading: 'Was von der Checkliste abwich',
     allAsListed: 'Alles verlief wie in der Checkliste.',
     duringItem: 'Bei Punkt {n}',
+    duringFlow: 'Während des Flows',
     itemNumber: 'Punkt {n}',
     unexpectedTitle: '{control} bedient',
+    expectedFlow: 'Die Punkte des Flows, in beliebiger Reihenfolge',
+    goToFlow: 'Zum Flow',
     unmetTitle: '{item} abgehakt, Bedingung nicht erfüllt',
     expectedLabel: 'Erwartet',
     actualLabel: 'Tatsächlich',

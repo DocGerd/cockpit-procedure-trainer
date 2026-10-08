@@ -436,7 +436,10 @@
 }
 
 .checklist-deviation-detail dd {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .checklist-deviation-link {

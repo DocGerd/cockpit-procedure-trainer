@@ -300,8 +300,13 @@ type ItemBase = { readonly text: Text };
 
 export type DeviceControlId = `${string}.${string}`;
 
-export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
-  (
+/**
+ * An action with `flow` belongs to the flow a normal procedure may open with: its actions are done
+ * from memory in any order, and the checklist items after the flow verify them.
+ */
+export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase & {
+  readonly flow?: true;
+} & (
     | {
         [K in ControlId<CT>]: {
           readonly type: 'action';

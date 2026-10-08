@@ -46,12 +46,14 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
 
   return {
     where: (deviation: Deviation) =>
-      format(
-        deviation.kind === 'unexpected-control' || deviation.kind === 'out-of-order'
-          ? text.duringItem
-          : text.itemNumber,
-        number(deviation),
-      ),
+      deviation.duringFlow
+        ? text.duringFlow
+        : format(
+            deviation.kind === 'unexpected-control' || deviation.kind === 'out-of-order'
+              ? text.duringItem
+              : text.itemNumber,
+            number(deviation),
+          ),
     title: (deviation: Deviation) => {
       switch (deviation.kind) {
         case 'unexpected-control':
@@ -70,6 +72,7 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     },
     /** What the checklist asked for where the deviation happened. */
     expected: (deviation: Deviation) => {
+      if (deviation.duringFlow) return text.expectedFlow;
       const at = deviation.kind === 'wrong-position' ? target(deviation) : undefined;
       return at === undefined
         ? item(deviation)
@@ -109,48 +112,35 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
             : format(text.actualReading, { response: deviation.response });
       }
     },
-    banner: (deviation: Deviation) => {
+    /** The live cue; once the stray control is back, it no longer says to return it. */
+    banner: (deviation: Deviation, returned = false) => {
       const at = position(deviation);
       const from = previous(deviation);
+      const flow = deviation.duringFlow === true;
+      const stray = {
+        control: control(deviation),
+        ...number(deviation),
+        ...later(deviation),
+      };
+      const undo =
+        !returned && at !== undefined && from !== undefined
+          ? { ...stray, position: at, previous: from }
+          : undefined;
       switch (deviation.kind) {
         case 'unexpected-control':
           if (pressed(deviation)) {
-            return format(text.bannerPressed, {
-              control: control(deviation),
-              ...number(deviation),
-            });
+            return format(flow ? text.bannerPressedFlow : text.bannerPressed, stray);
           }
-          return at !== undefined && from !== undefined
-            ? format(text.bannerUnexpected, {
-                control: control(deviation),
-                position: at,
-                previous: from,
-              })
-            : format(text.bannerUnexpectedBare, {
-                control: control(deviation),
-                ...number(deviation),
-              });
+          return undo
+            ? format(flow ? text.bannerUnexpectedFlow : text.bannerUnexpected, undo)
+            : format(flow ? text.bannerUnexpectedFlowBare : text.bannerUnexpectedBare, stray);
         case 'out-of-order':
           if (pressed(deviation)) {
-            return format(text.bannerPressedEarly, {
-              control: control(deviation),
-              ...number(deviation),
-              ...later(deviation),
-            });
+            return format(flow ? text.bannerPressedEarlyFlow : text.bannerPressedEarly, stray);
           }
-          return at !== undefined && from !== undefined
-            ? format(text.bannerOutOfOrder, {
-                control: control(deviation),
-                position: at,
-                previous: from,
-                ...number(deviation),
-                ...later(deviation),
-              })
-            : format(text.bannerOutOfOrderBare, {
-                control: control(deviation),
-                ...number(deviation),
-                ...later(deviation),
-              });
+          return undo
+            ? format(flow ? text.bannerOutOfOrderFlow : text.bannerOutOfOrder, undo)
+            : format(flow ? text.bannerOutOfOrderFlowBare : text.bannerOutOfOrderBare, stray);
         case 'wrong-position':
           return at === undefined
             ? format(text.bannerWrongPosition, {

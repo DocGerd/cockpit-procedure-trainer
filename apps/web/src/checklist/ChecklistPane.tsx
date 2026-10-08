@@ -12,6 +12,7 @@ import { useDeviationText } from './deviation-text';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
+import { useStray } from './useStray';
 
 type ItemState = 'done' | 'current' | 'pending' | 'deviated';
 
@@ -28,7 +29,9 @@ function itemState(
   showDeviations: boolean,
 ): ItemState {
   if (checklist.completed.includes(index)) {
-    const deviated = checklist.deviations.some((deviation) => deviation.itemIndex === index);
+    const deviated = checklist.deviations.some(
+      (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+    );
     return showDeviations && deviated ? 'deviated' : 'done';
   }
   return index === checklist.current ? 'current' : 'pending';
@@ -162,6 +165,7 @@ function DeviationBanner({
   const text = useMessages(messages);
   const { session } = useTrainer();
   const describe = useDeviationText(checklist);
+  const stray = useStray();
   const latest = checklist.deviations.at(-1);
   const retry = reserve && latest !== undefined && latest.itemIndex === checklist.current;
   return (
@@ -180,7 +184,7 @@ function DeviationBanner({
               </button>
             )}
           </div>
-          <div>{describe.banner(latest)}</div>
+          <div>{describe.banner(latest, stray === undefined)}</div>
         </div>
       )}
     </div>
