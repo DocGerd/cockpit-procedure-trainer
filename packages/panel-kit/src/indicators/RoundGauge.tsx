@@ -33,9 +33,9 @@ const NEEDLE_LENGTH = 34;
 const VIEWBOX = { width: 100, height: 100 };
 const NUMERAL_DESIGN = 5;
 const UNITS_DESIGN = 5;
-const LABEL_DESIGN = 5.5;
+const BAND_DESIGN = 5.5;
 const UNITS_Y = 66;
-const LABEL_Y = 78;
+const BAND_Y = 78;
 const FACE_RADIUS = 46;
 // The light falls from the upper left, so a needle's shadow lands below and to the right of it.
 const NEEDLE_SHADOW = { x: 1.3, y: 2.3 };
@@ -89,8 +89,8 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
   const { min, max, units, ticks, arcs } = config;
   const reading = units === '' ? formatNumber(value) : `${formatNumber(value)} ${units}`;
 
-  const captionSize = placeText(metrics, {
-    design: LABEL_DESIGN,
+  const bandSize = placeText(metrics, {
+    design: BAND_DESIGN,
     room: Infinity,
     chars: 0,
   }).fontSize;
@@ -101,8 +101,8 @@ export function RoundGauge({ value, label, options }: IndicatorWidgetProps) {
     advance: SANS_ADVANCE,
     squeezable: true,
   });
-  // Units and numerals stay above the band the caption used to take, so the dial keeps its proportions.
-  const textFloor = LABEL_Y - captionSize / 2;
+  // Units and numerals stay clear of the dial's lower band, which holds only the needle and end ticks.
+  const textFloor = BAND_Y - bandSize / 2;
   const showUnits = units !== '' && unit.show && UNITS_Y + unit.fontSize / 2 <= textFloor;
   const tickLabels = ticks.map(formatNumber);
   const numeral = placeText(metrics, {

@@ -176,10 +176,14 @@ describe('indicators on the rendered panel', () => {
           (entry) => entry.viewId === viewId,
         )) {
           const widget = document.querySelector(`[data-placement="${id}"]`);
+          if (!widget) {
+            wrong.push(`${viewId}/${id}: is not rendered`);
+            continue;
+          }
           seen += 1;
           const name = indicator.name[language];
-          if (widget?.querySelector('[data-label]')) wrong.push(`${viewId}/${id}: draws a caption`);
-          if (widget?.textContent?.toLowerCase().includes(name.toLowerCase()))
+          if (widget.querySelector('[data-label]')) wrong.push(`${viewId}/${id}: draws a caption`);
+          if (widget.textContent?.toLowerCase().includes(name.toLowerCase()))
             wrong.push(`${viewId}/${id}: prints "${name}"`);
         }
       }
