@@ -223,6 +223,7 @@ function LockOverlay({ rects }: { rects: PanelRects }) {
   );
 }
 
+/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
 function ModeOverlay({ viewId, rects }: PanelOverlayProps) {
   const { mode } = useTrainer();
   const store = useExploreStore();
@@ -236,7 +237,7 @@ function ModeOverlay({ viewId, rects }: PanelOverlayProps) {
   return cued ? <TargetOverlay viewId={viewId} rects={rects} /> : null;
 }
 
-/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
+/** The panel's accents: the mode's own, and the ring on a control holding a refused move. */
 export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => (
   <>
     <ModeOverlay viewId={viewId} rects={rects} />

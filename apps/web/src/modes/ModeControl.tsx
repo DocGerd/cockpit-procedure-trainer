@@ -11,7 +11,7 @@ import './modes.css';
 const segments: readonly Mode[] = ['guided', 'practice'];
 const NOTICE_MS = 6000;
 
-/** Says which control holds a control whose move an interlock refused; the panel itself shows nothing. */
+/** Says which control holds a control whose move an interlock refused; the panel rings that holder. */
 function LockNotice() {
   const text = useMessages(messages);
   const localize = useLocalize();
