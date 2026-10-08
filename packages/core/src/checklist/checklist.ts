@@ -16,8 +16,10 @@ export type Deviation = {
   readonly controlId?: string;
   /** For `out-of-order`: the later item whose target the pilot set. */
   readonly laterItem?: number;
-  /** For `wrong-position`: where the pilot left the target control. */
+  /** For `wrong-position`: where the pilot left the target control. For a stray move: where it ended. */
   readonly position?: ControlPosition;
+  /** For a stray move: where the control stood before the pilot moved it. */
+  readonly from?: ControlPosition;
   /** For `unmet-check`: the reading the pilot gave. */
   readonly response?: number;
 };
@@ -34,6 +36,10 @@ export type ChecklistState<S> = {
   /** The pilot moved the current action's target since it became current. */
   readonly touched: boolean;
   readonly repeating: boolean;
+  /** Time since the procedure started, until it is done. */
+  readonly elapsedMs: number;
+  /** Help the pilot took: how often the current item was retried. */
+  readonly assists: number;
 };
 
 function springsBack(definition: ControlDefinition | undefined, position: string | number) {
@@ -109,10 +115,11 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
     last !== undefined &&
     last.itemIndex === deviation.itemIndex &&
     last.controlId === deviation.controlId;
+  const named = repeat && last.from !== undefined ? { ...deviation, from: last.from } : deviation;
   return {
     ...checklist,
     repeating: true,
-    deviations: [...(repeat ? checklist.deviations.slice(0, -1) : checklist.deviations), deviation],
+    deviations: [...(repeat ? checklist.deviations.slice(0, -1) : checklist.deviations), named],
   };
 }
 
@@ -145,6 +152,8 @@ export function startChecklist<S>(
       operated: false,
       touched: false,
       repeating: false,
+      elapsedMs: 0,
+      assists: 0,
     },
     state,
   );
@@ -179,6 +188,8 @@ export function observeControl<S>(
     next = deviate(next, {
       itemIndex: checklist.current,
       controlId: change.id,
+      position: change.to,
+      from: change.from,
       ...(later === undefined
         ? { kind: 'unexpected-control' }
         : { kind: 'out-of-order', laterItem: later }),
@@ -190,8 +201,25 @@ export function observeControl<S>(
 export function observeState<S>(
   checklist: ChecklistState<S>,
   state: TrainerState<S>,
+  dtMs = 0,
 ): ChecklistState<S> {
-  return settle(checklist, state);
+  const timed =
+    dtMs > 0 && !checklist.done
+      ? { ...checklist, elapsedMs: checklist.elapsedMs + dtMs }
+      : checklist;
+  return settle(timed, state);
+}
+
+/** Starts the current item over: what the pilot did on it no longer counts, and it is an assist. */
+export function retryItem<S>(checklist: ChecklistState<S>): ChecklistState<S> {
+  if (checklist.done) return checklist;
+  return {
+    ...checklist,
+    operated: false,
+    touched: false,
+    repeating: false,
+    assists: checklist.assists + 1,
+  };
 }
 
 /**

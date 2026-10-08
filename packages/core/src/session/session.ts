@@ -1,4 +1,4 @@
-import { checkOff, observeControl, observeState, startChecklist } from '../checklist';
+import { checkOff, observeControl, observeState, retryItem, startChecklist } from '../checklist';
 import type { ChecklistState } from '../checklist';
 import type {
   Aircraft,
@@ -43,6 +43,8 @@ export type Session = {
   startProcedure(id: string): void;
   advance(dtMs: number): void;
   checkOff(response?: number): void;
+  /** Puts the cockpit back as it was when the current item began and counts an assist. */
+  retryItem(): void;
   subscribe(listener: () => void): () => void;
 };
 
@@ -67,6 +69,15 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let devices: DeviceStates = initial.devices;
   let procedureId: string | undefined;
   let checklist: ChecklistState<unknown> | undefined;
+  let itemStart:
+    | {
+        readonly item: number;
+        readonly positions: ReturnType<typeof store.positions>;
+        readonly guards: ReturnType<typeof store.guards>;
+        readonly systems: unknown;
+        readonly devices: DeviceStates;
+      }
+    | undefined;
   let deviceFailure: RuntimeStatus | undefined;
   let depth = 0;
   const listeners = new Set<() => void>();
@@ -139,6 +150,16 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   function track(next: ChecklistState<unknown>): void {
     const wasDone = checklist?.done ?? false;
     checklist = next;
+    if (next.done) itemStart = undefined;
+    else if (itemStart?.item !== next.current) {
+      itemStart = {
+        item: next.current,
+        positions: store.positions(),
+        guards: store.guards(),
+        systems: runtime.state(),
+        devices,
+      };
+    }
     const endPhase = next.procedure.endPhase;
     if (next.done && !wasDone && endPhase !== undefined) enterPhase(endPhase);
   }
@@ -147,6 +168,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     const snapshot = entrySnapshot(aircraft, registry, id);
     procedureId = undefined;
     checklist = undefined;
+    itemStart = undefined;
     store.load(snapshot.positions, snapshot.guards);
     failureSet.clearAll();
     runtime.setEnvironment(snapshot.environment);
@@ -221,7 +243,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       dirty = true;
       try {
         if (runtime.status().kind === 'running') settleDevices(dtMs);
-        if (checklist) track(observeState(checklist, buildState()));
+        if (checklist) track(observeState(checklist, buildState(), dtMs));
       } finally {
         dirty = true;
       }
@@ -236,6 +258,24 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         dirty = true;
       }
       notify();
+    },
+
+    retryItem() {
+      const running = checklist;
+      const start = itemStart;
+      if (!running || running.done || !start || failed()) return;
+      batch(() => {
+        checklist = undefined;
+        try {
+          store.load(start.positions, start.guards);
+        } finally {
+          checklist = running;
+        }
+        runtime.onControlsChanged(store.positions());
+        runtime.reset(start.systems);
+        settleDevices(0, start.devices);
+        track(retryItem(running));
+      });
     },
 
     subscribe(listener) {

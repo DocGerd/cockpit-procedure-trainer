@@ -340,6 +340,85 @@ describe('startProcedure', () => {
   });
 });
 
+describe('retryItem', () => {
+  it('restores the cockpit to the start of the current item and keeps the record', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    expect(session.checklist()?.current).toBe(1);
+    const atItem = session.state();
+    session.set('master', 'off');
+    session.set('throttle', 0.6);
+    expect(fixtureSystems(session).busPowered).toBe(false);
+    session.retryItem();
+    expect(session.state().controls).toEqual(atItem.controls);
+    expect(session.state().systems).toEqual(atItem.systems);
+    const checklist = session.checklist();
+    expect(checklist?.current).toBe(1);
+    expect(checklist?.completed).toEqual([0]);
+    expect(checklist?.deviations).toHaveLength(2);
+    expect(checklist?.assists).toBe(1);
+  });
+
+  it('restores open guards and leaves injected failures alone', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.openGuard('fuelPump');
+    session.retryItem();
+    expect(session.guards().fuelPump).toBe('closed');
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+  });
+
+  it('lets the item be done again after the restore', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    session.set('master', 'on');
+    session.set('master', 'off');
+    session.retryItem();
+    expect(session.state().controls.master).toBe('on');
+    session.openGuard('fuelPump');
+    session.set('fuelPump', 'on');
+    expect(session.checklist()?.current).toBe(2);
+  });
+
+  it('does nothing without a running checklist', () => {
+    const session = createSession(fixtureAircraft);
+    session.set('throttle', 0.3);
+    session.retryItem();
+    expect(session.state().controls.throttle).toBe(0.3);
+  });
+
+  it('does nothing once the procedure is done', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.checkOff();
+    session.checkOff();
+    session.set('throttle', 0.3);
+    session.retryItem();
+    expect(session.state().controls.throttle).toBe(0.3);
+    expect(session.checklist()?.assists).toBe(0);
+  });
+
+  it('notifies once', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    let calls = 0;
+    session.subscribe(() => (calls += 1));
+    session.retryItem();
+    expect(calls).toBe(1);
+  });
+});
+
+describe('elapsed time of a procedure', () => {
+  it('adds the advanced time while the procedure runs', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.elapsedMs).toBe(2 * STEP_MS);
+  });
+});
+
 describe('the before-start walk-through', () => {
   it('completes from parking with no deviations and ends in run-up, keeping the state', () => {
     const session = createSession(fixtureAircraft);
@@ -392,7 +471,13 @@ describe('the before-start walk-through', () => {
     session.startProcedure('beforeStart');
     session.set('flaps', 'landing');
     expect(session.checklist()?.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'flaps' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'landing',
+        from: 'up',
+      },
     ]);
   });
 });
@@ -520,7 +605,13 @@ describe('a failing device step', () => {
     expect(session.state().controls['mon.page']).toBe('electrical');
     expect(session.status()).toMatchObject({ kind: 'failed' });
     expect(session.checklist()?.deviations).toEqual([
-      { kind: 'unexpected-control', itemIndex: 0, controlId: 'mon.page' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'mon.page',
+        position: 'electrical',
+        from: 'engine',
+      },
     ]);
     expect(calls).toBe(1);
   });
