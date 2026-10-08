@@ -238,8 +238,11 @@ of:
   completes just because the control already held. The demo holds the `starter` at
   `'held'` until the engine runs.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
-  state. The pilot ticks it; ticking while the condition is false is recorded as
-  an `unmet-check` deviation, not refused.
+  state. Leave the `target` out when there is nothing to read on the panel, such
+  as smoke seen outside: Guided then rings nothing, rather than a control of a
+  later item, and the check takes no `response`. The pilot ticks it; ticking
+  while the condition is false is recorded as an `unmet-check` deviation, not
+  refused.
 - `confirm`: no target, a visual or verbal check the pilot ticks.
 
 Input is never blocked: operating a control other than the current item's is

@@ -853,10 +853,31 @@ describe('run history', () => {
     act(() => result.current.trainer.startProcedure(firstProcedure));
     expect(readHistory(first.id)).toEqual({});
     finish(result);
-    const deviations = result.current.snapshot.checklist()?.deviations.length;
-    const run = { mode: 'practice', deviations, at: 1_700_000_000_000 };
+    const run = { mode: 'practice', deviations: 0, at: 1_700_000_000_000 };
     expect(readHistory(first.id)).toEqual({ [firstProcedure]: { last: run, best: run } });
     expect(readHistory(second.id)).toEqual({});
+  });
+
+  it('stores the deviations a run recorded', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.setMode('practice'));
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+    });
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+    });
+    act(() => {
+      result.current.trainer.session.set('pump', 'off');
+    });
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+    const run = { mode: 'practice', deviations: 1, at: 1_700_000_000_000 };
+    expect(readHistory(first.id)).toEqual({ [firstProcedure]: { last: run, best: run } });
   });
 
   it('stores a run once, however long the finished checklist stays open', () => {

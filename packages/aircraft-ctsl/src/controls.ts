@@ -214,7 +214,21 @@ export const controls = {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
-    legends: { runup: 'RUN-UP' },
+    // The placard prints only FULL and IDLE; the middle stops are the trainer's own.
+    legends: {
+      low: {
+        state: text('niedrige Leistung', 'low power'),
+        restore: text('Wieder auf niedrige Leistung stellen', 'Set low power again'),
+      },
+      runup: {
+        state: text('Standprobenleistung', 'run-up power'),
+        restore: text('Wieder auf Standprobenleistung stellen', 'Set run-up power again'),
+      },
+      cruise: {
+        state: text('Reiseleistung', 'cruise power'),
+        restore: text('Wieder auf Reiseleistung stellen', 'Set cruise power again'),
+      },
+    },
     name: text('Gashebel', 'Throttle'),
     description: text(
       'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',

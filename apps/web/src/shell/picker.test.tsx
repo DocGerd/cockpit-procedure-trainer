@@ -182,8 +182,8 @@ describe('run history in the picker', () => {
     localStorage.setItem('cpt.aircraft', second.id);
     seed({
       [second.id]: {
-        powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9)) },
-        fire: { last: run(1, daysAgo(0)), best: run(1, daysAgo(0)) },
+        powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9), 'practice') },
+        fire: { last: run(1, daysAgo(0), 'practice'), best: run(1, daysAgo(0), 'practice') },
       },
     });
     renderPicker();
@@ -191,8 +191,45 @@ describe('run history in the picker', () => {
     expect(rows.find((text) => text.includes('power up'))).toContain(
       'Last run: 1 deviation, yesterday',
     );
-    expect(rows.find((text) => text.includes('power up'))).toContain('Best: 0 deviations');
-    expect(rows.join()).not.toContain('Best: 1');
+    expect(rows.find((text) => text.includes('power up'))).toContain(
+      'Best in Practice: 0 deviations',
+    );
+    expect(rows.join()).not.toContain('Best in Practice: 1');
+  });
+
+  it('never shows a Guided run as the best, even one stored before Best was Practice only', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(2, daysAgo(1), 'practice'), best: run(0, daysAgo(9)) },
+      },
+    });
+    renderPicker();
+    const row = rowFor('power up')?.textContent ?? '';
+    expect(row).toContain('Last run: 2 deviations, yesterday');
+    expect(row).not.toContain('Best');
+  });
+
+  it('shows a Practice best beside a later Guided run', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(3, daysAgo(0)), best: run(1, daysAgo(4), 'practice') },
+      },
+    });
+    renderPicker();
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 1 deviation');
+  });
+
+  it('keeps the Practice best beside a later Guided run with fewer deviations', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(0, daysAgo(0)), best: run(2, daysAgo(4), 'practice') },
+      },
+    });
+    renderPicker();
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 2 deviations');
   });
 
   it('shows nothing for a procedure without a run, or for another aircraft', () => {

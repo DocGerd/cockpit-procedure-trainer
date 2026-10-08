@@ -45,7 +45,7 @@ export const messages = defineMessages({
     exploreCockpit: 'Explore the cockpit',
     exploreHint: 'Look around the panel and read what each control does. No procedure runs.',
     historyLast: 'Last run: {result}, {when}',
-    historyBest: 'Best: {result}',
+    historyBest: 'Best in Practice: {result}',
     drills: 'Drills',
     practiseNext: 'Practise next',
     practiseNextDeviations: '{title}: its last run had deviations.',
@@ -105,7 +105,7 @@ export const messages = defineMessages({
     exploreHint:
       'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
     historyLast: 'Letzter Durchlauf: {result}, {when}',
-    historyBest: 'Bestwert: {result}',
+    historyBest: 'Bestwert im Üben: {result}',
     drills: 'Übungen',
     practiseNext: 'Als Nächstes üben',
     practiseNextDeviations: '{title}: der letzte Durchlauf hatte Abweichungen.',

@@ -258,7 +258,6 @@ export const emergencyProcedures = {
       {
         type: 'check',
         memory: true,
-        target: { control: 'fuelValve' },
         condition: (state) => state.systems.fire,
         text: text('Rauch oder Flammen am Triebwerk', 'Smoke or flames from the engine'),
       },

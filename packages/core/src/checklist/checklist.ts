@@ -149,7 +149,12 @@ function settle<S>(checklist: ChecklistState<S>, state: TrainerState<S>): Checkl
 
 function targets<S>(item: ProcedureItem<S>, id: string): boolean {
   if (item.type === 'action') return item.control === id;
-  return item.type === 'check' && 'control' in item.target && item.target.control === id;
+  return (
+    item.type === 'check' &&
+    item.target !== undefined &&
+    'control' in item.target &&
+    item.target.control === id
+  );
 }
 
 function laterItem<S>(checklist: ChecklistState<S>, change: ControlChange): number | undefined {

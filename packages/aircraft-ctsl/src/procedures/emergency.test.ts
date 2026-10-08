@@ -103,6 +103,12 @@ describe('CTSL emergency procedures', () => {
     expect(touched).toEqual([]);
   });
 
+  it('reads the smoke or flames outside, with no panel target to ring', () => {
+    const check = procedure('engineFire').items[firstCheck('engineFire')];
+    expect(check).toMatchObject({ type: 'check', memory: true });
+    expect(check).not.toHaveProperty('target');
+  });
+
   it('deploys the rescue system only after the ignition is off', () => {
     expect(actionOn('rescueDeployment', 'ignition', 'off')).toBeLessThan(
       actionOn('rescueDeployment', 'rescueHandle', 'pulled'),

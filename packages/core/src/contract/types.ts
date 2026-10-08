@@ -153,6 +153,8 @@ export type IndicatorValue = number | boolean | string;
 export type IndicatorDefinition<S> = {
   readonly name: Text;
   readonly select: (state: TrainerState<S>) => IndicatorValue;
+  /** While true, a widget that can blink (the digital readout) blinks its value. */
+  readonly blink?: Condition<S>;
   readonly appearance: Appearance;
 };
 
@@ -374,7 +376,8 @@ export type CheckItem<
   I extends string = string,
 > = ItemBase & {
   readonly type: 'check';
-  readonly target:
+  /** Left out when there is nothing to read on the panel, such as smoke seen outside. */
+  readonly target?:
     { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
   /** Lets the pilot answer with the value read; a reading off by more than the tolerance is unmet. */

@@ -217,7 +217,8 @@ Each item has text in both languages and one of:
 
 - **action**: a target control and the position to reach, optionally held until
   a state condition is true (starter until engine running);
-- **check**: a target indicator or control and a condition on the state, ticked
+- **check**: a target indicator or control, or none when there is nothing to
+  read on the panel (smoke seen outside), and a condition on the state, ticked
   by the pilot. A numeric check may also name the reading to compare and a
   tolerance: in Practice the pilot may enter the value read, and a reading off
   by more than the tolerance counts as an unmet check. Its text then states the
@@ -432,8 +433,9 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 `localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
 items" option (`cpt.recall`) and a small run history only.
 The history keeps, per aircraft and procedure, the last run (run mode, deviation
-count, date) and the best run, so the pilot and an instructor see improvement
-across sessions; it is never sent anywhere (G2). Reads are validated and
+count, date) and the best Practice run (Guided shows the next control, so it
+never counts as best), so the pilot and an instructor see improvement across
+sessions; it is never sent anywhere (G2). Reads are validated and
 guarded; the app works without it. The Practise next drill only reads it.
 
 ## 6. Visual design
