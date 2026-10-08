@@ -1,7 +1,8 @@
 import type { ChecklistState, DeviationKind } from '@cpt/core';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useSessionState, useTrainer } from '../trainer';
+import { useLeavingRisk, useSessionState, useTrainer } from '../trainer';
+import { ConfirmDialog } from '../ui';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
@@ -24,6 +25,8 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const text = useMessages(messages);
   const localize = useLocalize();
   const trainer = useTrainer();
+  const { atRisk, lost } = useLeavingRisk();
+  const [leaving, setLeaving] = useState(false);
   const describe = useDeviationText(checklist);
   const scenario = useSessionState((snapshot) => snapshot.scenario());
   const answer = scenario?.chosen === undefined ? undefined : scenario;
@@ -311,9 +314,26 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           </button>
         )}
         {deviations.length === 0 && repeat}
-        <button type="button" className="chrome-button" onClick={trainer.backToPicker}>
+        <button
+          type="button"
+          className="chrome-button"
+          onClick={() => (atRisk ? setLeaving(true) : trainer.backToPicker())}
+        >
           {text.backToSelection}
         </button>
+        {leaving && (
+          <ConfirmDialog
+            title={text.backToSelectionTitle}
+            body={`${text.backToSelectionBody} ${lost}`}
+            confirmLabel={text.backToSelection}
+            cancelLabel={text.cancel}
+            onCancel={() => setLeaving(false)}
+            onConfirm={() => {
+              setLeaving(false);
+              trainer.backToPicker();
+            }}
+          />
+        )}
       </div>
     </section>
   );

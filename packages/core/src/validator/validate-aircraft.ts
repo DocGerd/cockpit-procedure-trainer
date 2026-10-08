@@ -3,6 +3,7 @@ import type {
   Aircraft,
   Appearance,
   ControlDefinition,
+  ControlPosition,
   Device,
   Rect,
   Text,
@@ -576,10 +577,14 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       );
     }
 
-    const verifies = (later: (typeof procedure.items)[number], control: string): boolean =>
+    const verifies = (
+      later: (typeof procedure.items)[number],
+      control: string,
+      position: ControlPosition,
+    ): boolean =>
       (later as { readonly flow?: unknown }).flow !== true &&
       (later.type === 'action'
-        ? later.control === control
+        ? later.control === control && later.position === position
         : later.type === 'check' && 'control' in later.target && later.target.control === control);
 
     let checklistStarted = false;
@@ -595,7 +600,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         add('invalid-flow', procedureId, `${where} is in a flow, which holds only action items`);
       } else if (checklistStarted) {
         add('invalid-flow', procedureId, `${where} is in a flow, which must be at the start`);
-      } else if (!procedure.items.some((later) => verifies(later, item.control))) {
+      } else if (!procedure.items.some((later) => verifies(later, item.control, item.position))) {
         // A flow item latches, so only a later checklist item catches its control moved back.
         add('invalid-flow', procedureId, `${where} is in a flow, but no later item verifies it`);
       }

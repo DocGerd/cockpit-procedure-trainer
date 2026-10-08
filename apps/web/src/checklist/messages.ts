@@ -109,6 +109,9 @@ export const messages = defineMessages({
     nextProcedure: 'Next: {title}',
     repeatProcedure: 'Repeat this procedure',
     backToSelection: 'Back to selection',
+    backToSelectionTitle: 'Back to selection?',
+    backToSelectionBody: 'Going back to the selection leaves the full flight.',
+    cancel: 'Cancel',
     surpriseNote:
       'Surprise failure: a failure appears without warning. When you notice it, open its checklist here and run it.',
     runChecklist: 'Run this checklist',
@@ -248,6 +251,9 @@ export const messages = defineMessages({
     nextProcedure: 'Weiter: {title}',
     repeatProcedure: 'Verfahren wiederholen',
     backToSelection: 'Zurück zur Auswahl',
+    backToSelectionTitle: 'Zurück zur Auswahl?',
+    backToSelectionBody: 'Die Rückkehr zur Auswahl verlässt den ganzen Flug.',
+    cancel: 'Abbrechen',
     surpriseNote:
       'Überraschungsfehler: ein Fehler tritt unangekündigt auf. Sobald er bemerkt wird, hier seine Checkliste öffnen und ausführen.',
     runChecklist: 'Diese Checkliste ausführen',
