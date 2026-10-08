@@ -184,11 +184,20 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     }
   }
 
-  function enterPhase(id: string): void {
+  function setPhase(id: string) {
     const next = entrySnapshot(aircraft, registry, id);
     phase = id;
     environment = next.environment;
     runtime.setEnvironment(environment);
+    return next;
+  }
+
+  function enterPhase(id: string): void {
+    const next = setPhase(id);
+    if (failed()) return;
+    runtime.carry(next.systems);
+    runtime.onControlsChanged(store.positions());
+    if (runtime.status().kind === 'running') settleDevices(0);
   }
 
   function track(next: ChecklistState<unknown>): void {
@@ -359,7 +368,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       batch(() => {
         checklist = undefined;
         store.load(start.positions, start.guards);
-        enterPhase(start.phase);
+        setPhase(start.phase);
         runtime.onControlsChanged(store.positions());
         runtime.reset(start.systems);
         deviceFailure = undefined;

@@ -5,7 +5,15 @@ import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
-import { engineRunning, initial, lampTestDone, lowVoltageLit, runningFrom, step } from './systems';
+import {
+  carry,
+  engineRunning,
+  initial,
+  lampTestDone,
+  lowVoltageLit,
+  runningFrom,
+  step,
+} from './systems';
 import type { DemoFailure, DemoState, DemoTrainerState } from './systems';
 import { text } from './text';
 
@@ -135,7 +143,7 @@ export const demoAircraft = defineAircraft({
       inputs: { pressureAltitude },
     },
   },
-  systems: { initial, step },
+  systems: { initial, step, carry },
   engineRunning,
   failures: {
     alternatorFailure: {

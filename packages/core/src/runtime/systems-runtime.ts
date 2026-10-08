@@ -21,6 +21,8 @@ export type SystemsRuntime<S, F extends string = string> = {
   advance(dtMs: number): void;
   setEnvironment(environment: Environment): void;
   setFailures(failures: ReadonlySet<F>): void;
+  /** Applies the definition's `carry` with a phase's entry state; a throw fails like a step. */
+  carry(entry: S): void;
   reset(state: S): void;
   state(): S;
   status(): RuntimeStatus;
@@ -74,6 +76,16 @@ export function createSystemsRuntime<S, F extends string = string>(
     },
     setFailures(next) {
       failures = new Set(next);
+    },
+    carry(entry) {
+      const { carry } = systems;
+      if (status.kind === 'failed' || !carry) return;
+      try {
+        state = carry(state, entry);
+      } catch (error) {
+        status = { kind: 'failed', error };
+      }
+      notify();
     },
     reset(next) {
       state = next;

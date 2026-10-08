@@ -267,4 +267,60 @@ describe('createSystemsRuntime', () => {
     runtime.reset(initial);
     expect(runtime.state()).toBe(initial);
   });
+
+  describe('carry', () => {
+    const entry: State = { elapsedMs: 0, steps: 99, last: undefined };
+    const carrying = (carry: SystemsDefinition<State>['carry']): SystemsDefinition<State> => ({
+      ...counting,
+      ...(carry && { carry }),
+    });
+
+    it('lays the entry state over the current state without stepping, and notifies', () => {
+      const runtime = createSystemsRuntime(
+        carrying((carried, next) => ({ ...carried, steps: next.steps })),
+        { environment: ground },
+      );
+      runtime.advance(STEP_MS);
+      const listener = vi.fn();
+      runtime.subscribe(listener);
+      runtime.carry(entry);
+      expect(runtime.state()).toMatchObject({ elapsedMs: STEP_MS, steps: 99 });
+      expect(listener).toHaveBeenCalledOnce();
+    });
+
+    it('keeps the state when the definition has no carry', () => {
+      const runtime = createSystemsRuntime(counting, { environment: ground });
+      runtime.carry(entry);
+      expect(runtime.state()).toBe(initial);
+    });
+
+    it('keeps the last good state and reports failed when carry throws, without throwing', () => {
+      const boom = new Error('carry blew up');
+      const runtime = createSystemsRuntime(
+        carrying(() => {
+          throw boom;
+        }),
+        { environment: ground },
+      );
+      expect(() => runtime.carry(entry)).not.toThrow();
+      expect(runtime.state()).toBe(initial);
+      expect(runtime.status()).toEqual({ kind: 'failed', error: boom });
+    });
+
+    it('does not carry while failed', () => {
+      const carry = vi.fn((carried: State) => carried);
+      const runtime = createSystemsRuntime(
+        {
+          ...carrying(carry),
+          step: () => {
+            throw new Error('step broke');
+          },
+        },
+        { environment: ground },
+      );
+      runtime.advance(STEP_MS);
+      runtime.carry(entry);
+      expect(carry).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -393,6 +393,11 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
   };
 };
 
+export const carry: NonNullable<SystemsDefinition<CtslState, CtslFailure>['carry']> = (
+  carried,
+  entry,
+) => ({ ...carried, headingDeg: entry.headingDeg, verticalSpeedMs: entry.verticalSpeedMs });
+
 const GROUND: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
 
 const detentAngle = (selector: ControlPosition | undefined) => {
