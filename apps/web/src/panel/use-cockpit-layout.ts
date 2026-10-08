@@ -39,7 +39,8 @@ export function useCockpitRegion(
     if (!root || !element || !strip) return;
     const measure = () => {
       const style = getComputedStyle(strip);
-      const natural = Math.round(
+      // Rounded up: a fractional strip rounded down measures short of its real height.
+      const natural = Math.ceil(
         (strip.firstElementChild?.getBoundingClientRect().height ?? 0) +
           strip.offsetHeight -
           strip.clientHeight,

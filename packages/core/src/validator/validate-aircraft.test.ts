@@ -78,6 +78,13 @@ describe('validateAircraft', () => {
       only(aircraft, 'unknown-target', 'ghostSwitch');
     });
 
+    it('reports an interlock on an unknown control', () => {
+      const aircraft = withControl('ignition', {
+        interlock: { control: 'ghostValve', at: 'closed', holds: 'off' },
+      });
+      only(aircraft, 'unknown-target', 'ghostValve');
+    });
+
     it.each(['startPhase', 'endPhase'])('reports a procedure %s that does not exist', (field) => {
       const aircraft = broken({
         procedures: {
@@ -341,6 +348,37 @@ describe('validateAircraft', () => {
     it('reports a springBack value', () => {
       only(
         withControl('ignition', { springBack: { start: 'half' } }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
+    it('reports an interlock on the control itself', () => {
+      const aircraft = withControl('ignition', {
+        interlock: { control: 'ignition', at: 'off', holds: 'off' },
+      });
+      only(aircraft, 'unknown-target', 'ignition');
+    });
+
+    it('accepts an interlock on known positions', () => {
+      const aircraft = withControl('ignition', {
+        interlock: { control: 'master', at: 'off', holds: 'off' },
+      });
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports an interlock position the other control does not have', () => {
+      const finding = only(
+        withControl('ignition', { interlock: { control: 'master', at: 'half', holds: 'off' } }),
+        'unknown-position',
+        'master',
+      );
+      expect(finding.message).toContain('interlock of ignition');
+    });
+
+    it('reports an interlock holding a position the control does not have', () => {
+      only(
+        withControl('ignition', { interlock: { control: 'master', at: 'off', holds: 'half' } }),
         'unknown-position',
         'ignition',
       );

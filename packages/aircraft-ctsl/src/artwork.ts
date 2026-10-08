@@ -45,6 +45,9 @@ export const images = {
   fuelValveFace: new URL('./assets/artwork/fuel-valve-face.svg', import.meta.url).href,
   fuelValveOpen: new URL('./assets/artwork/fuel-valve-open.svg', import.meta.url).href,
   fuelValveClosed: new URL('./assets/artwork/fuel-valve-closed.svg', import.meta.url).href,
+  eltFace: new URL('./assets/artwork/elt-face.svg', import.meta.url).href,
+  eltOn: new URL('./assets/artwork/elt-on.svg', import.meta.url).href,
+  eltArmed: new URL('./assets/artwork/elt-armed.svg', import.meta.url).href,
   valveFace: new URL('./assets/artwork/valve-face.svg', import.meta.url).href,
   valveOpen: new URL('./assets/artwork/valve-open.svg', import.meta.url).href,
   valveClosed: new URL('./assets/artwork/valve-closed.svg', import.meta.url).href,
@@ -269,13 +272,20 @@ export const controlArtwork = {
   intercom: rocker(images.rockerIntercom, 'INTERCOM'),
   cockpitLight: rocker(images.rockerCockpit, 'COCKPIT'),
   landingLight: rocker(images.rockerLanding, 'LANDING'),
-  fuelValve: lettered(
-    positions(images.fuelValveFace, {
+  // Open, the handle stands up in its slot clear of the key switch below, so only the slot takes a
+  // tap; closed, the whole box does, its handle over the key slot.
+  fuelValve: {
+    ...positions(images.fuelValveFace, {
       open: images.fuelValveOpen,
       closed: images.fuelValveClosed,
     }),
-    'FUEL',
-    'VALVE',
+    options: { hitArea: { open: { left: 0, top: 0, width: 1, height: 0.56 } } },
+  },
+  elt: lettered(
+    positions(images.eltFace, { armed: images.eltArmed, on: images.eltOn }),
+    'ELT',
+    'ON',
+    'ARM',
   ),
   parkingBrakeValve: lettered(
     positions(images.valveFace, {

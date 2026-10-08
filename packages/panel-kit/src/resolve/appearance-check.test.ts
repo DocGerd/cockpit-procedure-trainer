@@ -1,4 +1,4 @@
-import type { Appearance, ControlDefinition, IndicatorValue } from '@cpt/core';
+import type { Appearance, ControlDefinition, IndicatorValue, JsonObject } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { controlWidgets } from '../controls';
 import { indicatorWidgets } from '../indicators';
@@ -145,6 +145,32 @@ describe('checkAppearance on controls', () => {
       b: toggle({ widget: 'lever' }),
     });
     expect(findings.map(({ id }) => id)).toEqual(['a', 'b']);
+  });
+
+  describe('artwork hit areas', () => {
+    const art = (hitArea: JsonObject) =>
+      toggle({
+        options: { hitArea },
+        artwork: {
+          face: 'face.png',
+          moving: { type: 'positions', images: { off: 'a.png', on: 'b.png' } },
+        },
+      });
+    const box = { left: 0, top: 0, width: 1, height: 0.5 };
+
+    it('accepts a box for a position the control has', () => {
+      expect(check({ art: art({ on: box }) })).toEqual([]);
+    });
+
+    it('reports a malformed option', () => {
+      const [finding] = check({ art: art({ on: { ...box, height: 2 } }) });
+      expect(finding?.message).toContain('hitArea option is invalid');
+    });
+
+    it('reports a position the control does not have', () => {
+      const [finding] = check({ art: art({ half: box }) });
+      expect(finding?.message).toContain('"half"');
+    });
   });
 
   it('has a fit entry for every control widget the kit provides, and no stale one', () => {

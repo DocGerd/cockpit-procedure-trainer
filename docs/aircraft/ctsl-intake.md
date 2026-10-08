@@ -88,7 +88,11 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   labelled "Flaps", centre. To its right the flap breaker (Klappensicherung, 8 A,
   thermal), then two headset emergency jacks (background).
 - Fuel valve (Brandhahn), left: a vertical slide lever, open up, closed down.
-  When closed, its handle covers the ignition key slot.
+  When closed, its handle covers the ignition key slot. Assumed (unverified),
+  from general knowledge of the CT Supralight (#447): the slide runs straight
+  above the key switch and its handle comes down over the slot, so the key cannot
+  be turned out of OFF while the valve is closed; the valve still closes with the
+  key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
@@ -255,20 +259,32 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 
 ## 5. Phase presets
 
-| Phase id          | On ground | kt  | ft above field | Engine and settings                                                         |
-| ----------------- | --------- | --- | -------------- | --------------------------------------------------------------------------- |
-| `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set |
-| `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set  |
-| `linedUp`         | yes       | 0   | 0              | as `holding`, lined up on the runway                                        |
-| `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                  |
-| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate      |
-| `approach`        | no        | 59  | 500            | low power, flaps 15°                                                        |
-| `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare                                               |
-| `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°                                                        |
-| `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi                                     |
+| Phase id          | On ground | kt  | ft above field | Engine and settings                                                                |
+| ----------------- | --------- | --- | -------------- | ---------------------------------------------------------------------------------- |
+| `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set        |
+| `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set         |
+| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ALT |
+| `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                         |
+| `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate             |
+| `approach`        | no        | 59  | 500            | low power, flaps 15°, landing light on, descending                                 |
+| `landing`         | no        | 54  | 3              | idle, flaps 30°, in the flare, landing light on                                    |
+| `taxiIn`          | yes       | 0   | 0              | low power, flaps 30°, landing light on (N15 switches it off)                       |
+| `parkingSecuring` | yes       | 0   | 0              | idle, avionics on, lights as after taxi, transponder standby                       |
 
-From `departure` to `parkingSecuring` the rescue safety pin is out (§4.5): it is removed
-before take-off and put back at shutdown.
+From `linedUp` to `parkingSecuring` the rescue safety pin is out (§4.5): it is removed
+at the holding point (N6) and put back at shutdown.
+
+Owner ruling 2026-10-08: a CTSL registered as an ultralight in Germany flies day VFR
+only. The cockpit light is off in every phase; Avionics Master and beacon are on
+whenever the engine runs; the landing light is not needed in cruise.
+
+Assumed (unverified), from general-aviation practice, for the running phases: the
+intercom is on whenever the engine runs (N16 switches it off); the transponder is
+off at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
+at standby in `parkingSecuring`; the landing light is on from the approach until N15
+switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
+about −2 m/s in `approach`. The squawk code and the GPS stay at their power-on state
+in every phase (#476): the phase entry presets device controls, not device state.
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -479,10 +495,9 @@ verifies it on D-MPGO.
     revision or supplement?
 17. **Climb speeds**: the climb checklist's Vx 120 / Vy 135 km/h with −12° versus
     the by-flap table; which does the club teach?
-18. **Parking brake before take-off**: the take-off list (N7) has no brake item,
-    but the holding-point snapshot has the parking brake set. The trainer's
-    `takeoff` checklist starts with releasing it (valve open, then a check that
-    it is released), marked as a trainer addition. Is that how the club teaches it?
+18. **Parking brake before take-off**: the take-off list (N7) has no brake item.
+    **Answered by the procedure order** (#466): N6 ends with the parking brake
+    released, so `linedUp` starts with it released and `takeoff` has no brake item.
 19. **Field proportions**: how wide is the lower centre column compared with the
     two upper fields, is it centred under their junction or offset, and where does
     the console start below it? Today: the centre column hangs below the junction
@@ -505,9 +520,11 @@ verifies it on D-MPGO.
     vertical speed indicator.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
-    colour is its lamp? Today: the printed label "ELT" with no position legends
-    and a red lamp. **Answered by assumption pending owner verification** (#447
-    records the assumed legends here).
+    colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
+    ON up and ARM down, its lamp beside it, red. **Answered by assumption pending
+    owner verification** (#447). Assumed (unverified), from general knowledge of
+    the CT Supralight: the remote plate prints ELT, ON (up) and ARM (down), with no
+    TEST or RESET position; the lamp lights red while the ELT transmits.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
@@ -518,3 +535,12 @@ verifies it on D-MPGO.
     memory before the checklist is read? Today: none; every item is read and done
     from the list. **Answered by assumption pending owner verification** (#450
     records the assumed memory items here).
+24. **Phase start states**: which switches does the club have on in each phase? Today
+    (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
+    and standby once parked, landing light on from the approach until N15, vertical
+    speed climbing in `departure` and descending in `approach`. No procedure step
+    switches the landing light on (N12 says "as needed"), so the approach, landing
+    and `taxiIn` entries carry it. **Answered by assumption pending owner
+    verification** (#466). Assumed (unverified), from general-aviation practice;
+    the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
+    owner's.

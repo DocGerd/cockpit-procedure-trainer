@@ -90,6 +90,12 @@ A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
 
+Any control may declare `interlock: { control, at, holds }`: while the other
+control stands at `at`, the pilot cannot move this one away from `holds`. The
+CTSL's closed fuel valve holds the ignition key at `off` this way. Only pilot
+moves are refused (result `locked`), and the app frame names the holding control;
+phase entries and failures move freely. The other control must be a different one.
+
 ### Indicators
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
@@ -157,13 +163,15 @@ definition with one line.
 `minWidth` is the narrowest rendered width, in CSS px, at which the view stays
 legible and operable: every touch target and installed-device button at least
 `--size-target`, no placard overfull, all placards and lettering at least
-`--text-2xs`, and no two operable targets (positions of one control included)
-overlapping, each taken as its rendered box grown to at least `--size-target`
-around its centre. Space placements apart to clear an overlap; one that only a
-higher floor could clear is accepted by name in the test's `acceptedOverlaps`,
-with what a tap loses there. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
-of every registered aircraft at exactly its `minWidth`, in English and German,
-and runs those checks. To find a floor, lower `minWidth` until the test fails and
+`--text-2xs`, and no two operable targets of different controls overlapping, each
+taken as its rendered box grown to at least `--size-target` around its centre.
+Space placements apart to clear an overlap; one that only a higher floor could
+clear is accepted by name in the test's `acceptedOverlaps`, with what a tap loses
+there. The positions of one control may overlap: the panel kit clips each to the
+points nearer its own centre, and `apps/web/e2e/reach.spec.ts` taps every
+position. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view of
+every registered aircraft at exactly its `minWidth`, in English and German, and
+runs those checks. To find a floor, lower `minWidth` until the test fails and
 keep the last passing value; to confirm one, run `pnpm test:e2e floors`. Size the
 cell widths in proportion to the floors so the arrangement wastes no width.
 
@@ -305,6 +313,12 @@ options: { needleShadow: true },
 With `options.needleShadow: true` on a needle, the renderer casts the needle image's
 shadow down and to the right, away from the panel's light, outside the rotation, so it
 never turns toward the light; the needle image then draws no shadow of its own.
+
+An artwork control whose box reaches over a neighbour can confine its touch target per
+position with `options.hitArea`, a `{ left, top, width, height }` box in fractions of
+the face; a tap elsewhere in the box reaches the control beneath. The CTSL's open fuel
+valve takes taps only in its slot, so the key switch below stays operable; closed, its
+whole box does, as its handle covers the key slot.
 
 If an image fails to load, the control or indicator shows its generic widget
 instead. `validateAircraft` reports `artwork-glass-size` when glass and face differ in

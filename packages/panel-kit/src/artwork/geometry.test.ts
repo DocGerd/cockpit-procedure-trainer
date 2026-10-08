@@ -1,6 +1,6 @@
 import type { MovingPart } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { fractionNear, layerFraction, needleAngle, pointAlong } from './geometry';
+import { fractionNear, layerFraction, needleAngle, pointAlong, readHitAreas } from './geometry';
 
 type Needle = Extract<MovingPart, { type: 'needle' }>;
 
@@ -94,5 +94,26 @@ describe('fractionNear', () => {
 
   it('is 0 for a path without length', () => {
     expect(fractionNear([{ x: 1, y: 1 }], { x: 5, y: 5 })).toBe(0);
+  });
+});
+
+describe('readHitAreas', () => {
+  const top = { left: 0, top: 0, width: 1, height: 0.5 };
+
+  it('reads a box per position, and none when the option is absent', () => {
+    expect(readHitAreas({ hitArea: { open: top } })).toEqual({ open: top });
+    expect(readHitAreas(undefined)).toEqual({});
+    expect(readHitAreas({ needleShadow: true })).toEqual({});
+  });
+
+  it.each([
+    ['not an object', { hitArea: [top] }],
+    ['a box that is not an object', { hitArea: { open: 1 } }],
+    ['a missing side', { hitArea: { open: { left: 0, top: 0, width: 1 } } }],
+    ['a box past the face', { hitArea: { open: { ...top, top: 0.6 } } }],
+    ['an empty box', { hitArea: { open: { ...top, width: 0 } } }],
+    ['a negative offset', { hitArea: { open: { ...top, left: -0.1 } } }],
+  ])('refuses %s', (_, options) => {
+    expect(readHitAreas(options)).toBeNull();
   });
 });

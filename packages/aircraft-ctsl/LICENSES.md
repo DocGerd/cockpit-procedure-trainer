@@ -68,7 +68,10 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/pushpull-pulled.svg`        | BAT and GEN switch knob, pulled                                       |
 | `src/assets/artwork/fuel-valve-face.svg`        | Fuel valve slot                                                       |
 | `src/assets/artwork/fuel-valve-open.svg`        | Fuel valve handle, open                                               |
-| `src/assets/artwork/fuel-valve-closed.svg`      | Fuel valve handle, closed                                             |
+| `src/assets/artwork/fuel-valve-closed.svg`      | Fuel valve handle, closed, over the ignition key slot                 |
+| `src/assets/artwork/elt-face.svg`               | ELT remote switch plate                                               |
+| `src/assets/artwork/elt-armed.svg`              | ELT remote switch bat, armed                                          |
+| `src/assets/artwork/elt-on.svg`                 | ELT remote switch bat, on                                             |
 | `src/assets/artwork/valve-face.svg`             | Parking-brake valve slot                                              |
 | `src/assets/artwork/valve-open.svg`             | Parking-brake valve handle, open                                      |
 | `src/assets/artwork/valve-closed.svg`           | Parking-brake valve handle, closed                                    |
