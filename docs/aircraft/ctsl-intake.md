@@ -342,7 +342,7 @@ if the aircraft rolls during start, ignition off.
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-transponder on, standby _(confirm)_; choke off; carb heat off; throttle to 4000 rpm; engine
+transponder on, standby (a check on the GTX 327 mode); choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
 lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,

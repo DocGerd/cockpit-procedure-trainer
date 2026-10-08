@@ -1,5 +1,5 @@
 import { createSession, walkProcedure } from '@cpt/core';
-import type { Aircraft, ProcedureItem } from '@cpt/core';
+import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
@@ -433,6 +433,85 @@ describe('CTSL normal procedures', () => {
       for (const k of actionsBefore(id, found.index)) {
         expect(failsWithout(id, k, found.index), `without item ${k}`).toBe(false);
       }
+    });
+  });
+
+  describe('items that state panel or device state are checks (#473)', () => {
+    const only = (id: string, texts: readonly string[]): Aircraft => {
+      const procedure = ctslAircraft.procedures[id];
+      if (!procedure) throw new Error(`no procedure ${id}`);
+      return {
+        ...ctslAircraft,
+        procedures: {
+          ...ctslAircraft.procedures,
+          [id]: {
+            ...procedure,
+            items: procedure.items.filter((item) => texts.includes(item.text.en)),
+          },
+        },
+      } as Aircraft;
+    };
+
+    const tickedAt = (aircraft: Aircraft, id: string, prepare: (session: Session) => void) => {
+      const session = createSession(aircraft, {
+        devices,
+        phase: ctslAircraft.procedures[id]?.startPhase ?? '',
+      });
+      session.startProcedure(id);
+      session.advance(100);
+      prepare(session);
+      session.checkOff();
+      return session.checklist()?.deviations ?? [];
+    };
+
+    describe('Transponder on, standby', () => {
+      const aircraft = only('beforeTakeoff', ['Transponder on, standby']);
+      const tick = (prepare: (session: Session) => void) =>
+        tickedAt(aircraft, 'beforeTakeoff', prepare);
+
+      it('is a check on the transponder mode, after an action that sets it', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        const at = items.findIndex((item) => item.text.en === 'Transponder on, standby');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'xpdr.mode' } });
+        expect(items[at - 1]).toMatchObject({
+          type: 'action',
+          control: 'xpdr.mode',
+          position: 'sby',
+        });
+      });
+
+      it('records an unmet check when ticked with the transponder off', () => {
+        expect(tick(() => {})).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      });
+
+      it('records an unmet check when ticked at standby without avionics power', () => {
+        expect(
+          tick((session) => {
+            session.set('xpdr.mode', 'sby');
+            session.set('avionicsMaster', 'off');
+            session.advance(100);
+          }),
+        ).toContainEqual(expect.objectContaining({ kind: 'unmet-check' }));
+      });
+
+      it('records an unmet check when ticked at ALT', () => {
+        expect(tick((session) => void session.set('xpdr.mode', 'alt'))).toEqual([
+          expect.objectContaining({ kind: 'unmet-check' }),
+        ]);
+      });
+
+      it('records nothing when ticked at standby with power', () => {
+        expect(tick((session) => void session.set('xpdr.mode', 'sby'))).toEqual([]);
+      });
+    });
+
+    it('leaves the altimeter and radio items as confirms, which the trainer does not model', () => {
+      const confirms = Object.values(normalProcedures).flatMap((procedure) =>
+        (procedure.items as readonly Item[]).filter((item) => item.type === 'confirm'),
+      );
+      expect(confirms.map((item) => item.text.en)).toEqual(
+        expect.arrayContaining(['Altimeter set to QNH', 'Altimeter set', 'Radio set']),
+      );
     });
   });
 });

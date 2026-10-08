@@ -2,6 +2,7 @@ import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { demoAircraft } from '@cpt/aircraft-demo';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
+import { pressDevice } from './flight';
 import { openAircraft, selectLanguage } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
 
@@ -100,8 +101,11 @@ async function advance(
   card: Locator,
   at: number,
 ) {
-  if (item?.type === 'action' && (await isSet(page, item.control, item.position))) {
-    await card.getByRole('button', { name: copy.checklist.verify, exact: true }).click();
+  const verify = card.getByRole('button', { name: copy.checklist.verify, exact: true });
+  if (item?.type === 'action' && !Object.hasOwn(ctslAircraft.controls, item.control)) {
+    await pressDevice(page, ctslAircraft, item.control, item.position, verify);
+  } else if (item?.type === 'action' && (await isSet(page, item.control, item.position))) {
+    await verify.click();
   } else if (item?.type === 'action') {
     await operate(page, item.control, item.position);
   } else {

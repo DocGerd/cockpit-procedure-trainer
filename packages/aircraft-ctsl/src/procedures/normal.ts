@@ -373,7 +373,19 @@ export const normalProcedures = {
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
       confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
-      confirm('Transponder ein, Standby', 'Transponder on, standby'),
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'sby',
+        text: text('Transponder auf Bereitschaft', 'Transponder to standby'),
+      },
+      {
+        type: 'check',
+        target: { control: 'xpdr.mode' },
+        condition: (state: State) =>
+          state.devices.xpdr?.on === true && state.controls['xpdr.mode'] === 'sby',
+        text: text('Transponder ein, Standby', 'Transponder on, standby'),
+      },
       {
         type: 'action',
         control: 'choke',
