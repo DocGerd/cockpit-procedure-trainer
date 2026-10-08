@@ -458,6 +458,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
     <ArtworkStage
       artwork={artwork}
       value={position}
+      guardOpen={control.kind === 'guarded' && props.guardOpen}
       notches={notches}
       fallback={fallback}
       options={props.options}

@@ -173,6 +173,42 @@ describe('checkAppearance on controls', () => {
     });
   });
 
+  describe('artwork open-guard images', () => {
+    const guarded = (guardOpen: Record<string, string>, kind: 'guarded' | 'toggle' = 'guarded') => {
+      const appearance: Appearance = {
+        artwork: {
+          face: 'face.png',
+          moving: { type: 'positions', images: { off: 'a.png', on: 'b.png' } },
+          guardOpen,
+        },
+      };
+      return kind === 'toggle'
+        ? toggle(appearance)
+        : ({
+            ...base,
+            kind,
+            positions: ['off', 'on'],
+            initial: 'off',
+            guard: { name: text },
+            appearance,
+          } as ControlDefinition);
+    };
+
+    it('accepts an image for a position of a guarded control', () => {
+      expect(check({ art: guarded({ off: 'open.png' }) })).toEqual([]);
+    });
+
+    it('reports an image for a position the control does not have', () => {
+      const [finding] = check({ art: guarded({ half: 'open.png' }) });
+      expect(finding?.message).toContain('"half"');
+    });
+
+    it('reports open-guard images on a control without a guard', () => {
+      const [finding] = check({ art: guarded({ off: 'open.png' }, 'toggle') });
+      expect(finding?.message).toContain('guarded');
+    });
+  });
+
   it('has a fit entry for every control widget the kit provides, and no stale one', () => {
     expect(Object.keys(controlWidgetKinds).sort()).toEqual(Object.keys(controlWidgets).sort());
   });

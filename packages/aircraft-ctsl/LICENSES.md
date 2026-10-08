@@ -103,4 +103,5 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/ignition-key-start.svg`     | Ignition key, start                                                   |
 | `src/assets/artwork/rescue-face.svg`            | Rescue handle plate on the bulkhead                                   |
 | `src/assets/artwork/rescue-stowed.svg`          | Rescue handle, stowed                                                 |
+| `src/assets/artwork/rescue-stowed-open.svg`     | Rescue handle, stowed, safety pin removed                             |
 | `src/assets/artwork/rescue-pulled.svg`          | Rescue handle, pulled                                                 |
