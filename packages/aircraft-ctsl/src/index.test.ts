@@ -372,7 +372,7 @@ describe('CTSL aircraft', () => {
   describe('centre console and bulkhead (intake §3.4)', () => {
     // The web app's --size-target token; each cell renders at least its floor wide.
     const TOUCH_TARGET_PX = 44;
-    // panel-kit opens a guard into the guard (top 40 %) and the handle (bottom 60 %) of the placement.
+    // The guard's share of an open guarded placement, the handle taking the rest (panel-kit artwork.css).
     const OPEN_GUARD_SHARE = 0.4;
     const placedIn = (viewId: 'console' | 'bulkhead') => {
       const view = ctslAircraft.views[viewId];
@@ -406,9 +406,9 @@ describe('CTSL aircraft', () => {
     it('opens the safety pin and the rescue handle each at least the touch target at the floor', () => {
       const rescue = bulkheadView.rects.rescueHandle;
       expect(rescue, 'the bulkhead places the rescue handle').toBeDefined();
-      expect((rescue?.h ?? 0) * OPEN_GUARD_SHARE * bulkheadView.scale).toBeGreaterThanOrEqual(
-        TOUCH_TARGET_PX,
-      );
+      const height = (rescue?.h ?? 0) * bulkheadView.scale;
+      expect(height * OPEN_GUARD_SHARE, 'safety pin').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+      expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
     it('carries the rescue handle on the bulkhead, not on the console', () => {
