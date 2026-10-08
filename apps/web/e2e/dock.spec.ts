@@ -38,12 +38,74 @@ test('the dock shows the operable device, swaps it and empties with the close bu
   await expect(dock(page).getByRole('group')).toHaveCount(1);
 
   const close = dock(page).getByRole('button', { name: 'Close device' });
+  await expect(close).toHaveText('Close');
   const size = await close.boundingBox();
   expect(size?.width).toBeGreaterThanOrEqual(44);
   expect(size?.height).toBeGreaterThanOrEqual(44);
   await close.click();
   await expect(dock(page)).toHaveText(hint);
   await expect(dock(page).getByRole('group')).toHaveCount(0);
+});
+
+test('the empty dock is panel hardware in both themes, with a slim hint strip', async ({
+  page,
+}) => {
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    const colours = await dock(page).evaluate((region) => {
+      const probe = document.createElement('span');
+      document.body.append(probe);
+      const resolve = (token: string) => {
+        probe.style.color = `var(${token})`;
+        return getComputedStyle(probe).color;
+      };
+      const result = {
+        background: getComputedStyle(region).backgroundColor,
+        surface: resolve('--panel-surface'),
+        strip: getComputedStyle(region.querySelector('.dock-hint') as Element).backgroundColor,
+        face: resolve('--panel-face'),
+      };
+      probe.remove();
+      return result;
+    });
+    expect(colours.background, `${theme} dock background`).toBe(colours.surface);
+    expect(colours.strip, `${theme} hint strip background`).toBe(colours.face);
+    const strip = await dock(page).getByText(hint).boundingBox();
+    expect(strip?.height, `${theme} hint strip`).toBeLessThanOrEqual(36);
+  }
+  await page.emulateMedia({ colorScheme: 'light' });
+});
+
+test('a docked device sits on the panel surface with a panel-plastic close button in both themes', async ({
+  page,
+}) => {
+  await open(page, 'xpdr');
+  await expect(dock(page).getByRole('group', { name: 'gtx327', exact: true })).toBeVisible();
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    const colours = await dock(page).evaluate((region) => {
+      const probe = document.createElement('span');
+      document.body.append(probe);
+      const resolve = (token: string) => {
+        probe.style.color = `var(${token})`;
+        return getComputedStyle(probe).color;
+      };
+      const close = region.querySelector('.dock-close') as Element;
+      const result = {
+        background: getComputedStyle(region).backgroundColor,
+        surface: resolve('--panel-surface'),
+        close: getComputedStyle(close).backgroundColor,
+        plastic: resolve('--panel-plastic'),
+      };
+      probe.remove();
+      return result;
+    });
+    expect(colours.background, `${theme} held dock background`).toBe(colours.surface);
+    expect(colours.close, `${theme} close button background`).toBe(colours.plastic);
+  }
+  await page.emulateMedia({ colorScheme: 'light' });
 });
 
 test('the docked device operates and the dock is not modal', async ({ page }) => {
