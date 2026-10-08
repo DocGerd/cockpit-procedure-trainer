@@ -41,6 +41,19 @@
   position: relative;
 }
 
+/* Where the cockpit is width-limited and the column is taller, the frame fills it around the cockpit. */
+@media (min-width: 3200px) {
+  .panel-surface[data-cockpit] {
+    display: flex;
+    flex: 1;
+  }
+
+  .panel-surface[data-cockpit] .panel-cockpit {
+    flex: none;
+    margin-block: auto;
+  }
+}
+
 .panel-surface[data-panel-surface]:focus-visible,
 .panel-cell[data-panel-surface]:focus-visible {
   outline: 2px solid var(--panel-focus);

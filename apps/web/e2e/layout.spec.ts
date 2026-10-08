@@ -449,3 +449,41 @@ test('the picker text at 3840x2160 is at least 1.5 times its 1920x1080 size', as
   const [hd, uhd] = sizes;
   expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
 });
+
+// #457: the panel frame fills the column the checklist stands beside, so no band opens under it.
+const gapsBelowPanel = async (page: Page) => {
+  const [surface, cockpit, footer] = await Promise.all([
+    boxOf(page.locator('.panel-surface[data-cockpit]')),
+    boxOf(page.locator('.panel-cockpit')),
+    boxOf(page.getByRole('contentinfo')),
+  ]);
+  return {
+    frame: footer.y - (surface.y + surface.height),
+    cockpit: footer.y - (cockpit.y + cockpit.height),
+  };
+};
+
+test('the gap under the CTSL panel at 3840x2160 is no larger, in proportion, than at 1920x1080', async ({
+  page,
+}) => {
+  const gaps: Record<'frame' | 'cockpit', number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl);
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expectNoPageScroll(page);
+    const measured = await gapsBelowPanel(page);
+    gaps.push({
+      frame: measured.frame / viewport.height,
+      cockpit: measured.cockpit / viewport.height,
+    });
+  }
+  const [hd, uhd] = gaps;
+  const pixel = 1 / 2160;
+  expect(uhd?.frame ?? Number.POSITIVE_INFINITY, 'frame gap').toBeLessThanOrEqual(
+    (hd?.frame ?? 0) + pixel,
+  );
+  expect(uhd?.cockpit ?? Number.POSITIVE_INFINITY, 'cockpit gap').toBeLessThanOrEqual(
+    (hd?.cockpit ?? 0) + pixel,
+  );
+});
