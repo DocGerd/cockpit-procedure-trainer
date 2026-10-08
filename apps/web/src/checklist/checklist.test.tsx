@@ -149,12 +149,69 @@ describe('checklist items', () => {
     expect(screen.queryByText('Emergency')).toBeNull();
   });
 
-  it('restarts the procedure from its start phase', async () => {
+  it('restarts at once when nothing is done yet', async () => {
+    renderPane();
+    start(flow);
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(stateLabels()).toEqual(['Current', 'Pending', 'Pending', 'Pending']);
+  });
+
+  it('asks before Restart discards progress and restarts from the start phase on confirm', async () => {
     renderPane();
     start(flow);
     operate('master', 'on');
     await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Restart the procedure?' });
+    expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
+    expect(stateLabels()[0]).toBe('Done');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Restart' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(stateLabels()).toEqual(['Current', 'Pending', 'Pending', 'Pending']);
+  });
+
+  it('keeps the progress when the restart is cancelled', async () => {
+    renderPane();
+    start(flow);
+    operate('master', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(stateLabels()[0]).toBe('Done');
+  });
+
+  it('asks before Restart discards a recorded deviation and counts it', async () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      `Progress lost: 0 of ${itemCount} items done, 1 deviation.`,
+    );
+  });
+
+  it.each([
+    ['en', 'Restart', 'Progress lost: 0 of ITEMS items done, 2 deviations.'],
+    ['de', 'Neu starten', 'Verlorener Fortschritt: 0 von ITEMS Punkten erledigt, 2 Abweichungen.'],
+  ] as const)('counts several deviations in %s', async (language, restart, expected) => {
+    renderPane(language);
+    start(flow);
+    operate('avionics', 'on');
+    operate('pump', 'on');
+    await userEvent.click(screen.getByRole('button', { name: restart }));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      expected.replace('ITEMS', String(itemCount)),
+    );
+  });
+
+  it('asks in German', async () => {
+    renderPane('de');
+    start(flow);
+    operate('master', 'on');
+    await userEvent.click(screen.getByRole('button', { name: 'Neu starten' }));
+    const dialog = screen.getByRole('alertdialog', { name: 'Verfahren neu starten?' });
+    expect(dialog.textContent).toContain(`1 von ${itemCount} Punkten erledigt`);
+    expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
   });
 
   it('renders the German interface', () => {

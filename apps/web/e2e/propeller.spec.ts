@@ -31,7 +31,6 @@ for (const aircraft of aircraftRegistry) {
     await page
       .getByLabel(copy.outsideView.phase, { exact: true })
       .selectOption({ label: running.name.en });
-    await page.getByRole('button', { name: copy.outsideView.jumpConfirm, exact: true }).click();
     await expectImage(page, true);
   });
 }

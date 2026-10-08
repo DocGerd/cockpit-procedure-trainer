@@ -380,6 +380,28 @@ describe('CTSL aircraft', () => {
     expect(entryState('parking').parkingBrakeSet).toBe(true);
   });
 
+  it('enters parking cold and dark: every rocker off, nothing powered or lit', () => {
+    const entry = ctslAircraft.phases.parking?.entry.controls as Record<string, string>;
+    const rockers = Object.entries(ctslAircraft.controls).filter(
+      ([, { kind, positions }]) => kind === 'toggle' && positions.join() === 'off,on',
+    );
+    expect(rockers.map(([id]) => id).sort()).toEqual(
+      [
+        'avionicsMaster',
+        'beacon',
+        'cockpitLight',
+        'intercom',
+        'landingLight',
+        'positionLights',
+      ].sort(),
+    );
+    for (const [id] of rockers) expect(entry[id], id).toBe('off');
+    expect(entry).toMatchObject({ ignition: 'off', fuelValve: 'closed', brake: 'off' });
+    const state = entryState('parking');
+    expect(state.bus).toEqual({ mainPowered: false, avionicsPowered: false, charging: false });
+    expect(Object.values(state.consumers).filter(Boolean)).toEqual([]);
+  });
+
   it.each(Object.keys(expectedPhases).filter((id) => id !== 'parking'))(
     'enters %s with the engine running',
     (id) => {
