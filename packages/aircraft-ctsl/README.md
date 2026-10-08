@@ -65,7 +65,8 @@ Avionics: `radioAndTransponder` at the holding point.
 
 ## Open questions
 
-- `takeoff` starts with releasing the parking brake (valve open, then a check that it is released). The handbook's take-off list has no such item; it is a trainer addition because the holding-point snapshot has the parking brake set (intake §9 item 18).
+- The phase start states the intake marks as assumed (intake §5): intercom, transponder mode, landing light and vertical speed per phase.
+- The transponder squawk code and the GPS start at their power-on state in every phase: a phase entry presets device controls, not device state (#476).
 
 ## Devices
 

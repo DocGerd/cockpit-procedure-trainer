@@ -26,6 +26,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const answer = scenario?.chosen === undefined ? undefined : scenario;
   const headingId = useId();
   const listId = useId();
+  const assistedId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   const rows = useRef(new Map<number, HTMLElement>());
 
@@ -33,7 +34,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     heading.current?.focus();
   }, []);
 
-  const { aircraft, procedureId, mode } = trainer;
+  const { aircraft, procedureId, mode, assisted } = trainer;
   const { procedure, deviations } = checklist;
   const ids = Object.keys(aircraft.procedures);
   const nextId =
@@ -92,7 +93,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
         </div>
         <div className="checklist-stat">
           <dt className="checklist-eyebrow">{text.assists}</dt>
-          <dd className="checklist-stat-value">{checklist.assists}</dd>
+          <dd className="checklist-stat-value">{checklist.assists + assisted.length}</dd>
         </div>
         {answer && (
           <div className="checklist-stat">
@@ -160,6 +161,24 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
                       : format(text.goToItem, { n: deviation.itemIndex + 1 })}
                   </button>
                 </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {assisted.length > 0 && (
+        <section className="checklist-assisted" aria-labelledby={assistedId}>
+          <h2 id={assistedId} className="checklist-deviations-heading">
+            {text.assistedHeading}
+          </h2>
+          <ol className="checklist-assisted-list">
+            {assisted.map((index) => (
+              <li key={index} className="checklist-assisted-item">
+                <span className="checklist-assisted-number">
+                  {format(text.itemNumber, { n: index + 1 })}
+                </span>
+                <span>{procedure.items[index] && localize(procedure.items[index].text)}</span>
               </li>
             ))}
           </ol>

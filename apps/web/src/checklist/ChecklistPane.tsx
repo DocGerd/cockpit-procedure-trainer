@@ -43,19 +43,24 @@ function CurrentDetail({
   hint,
   answerable,
   tick,
+  assist,
+  withheld,
 }: {
   item: ProcedureItem<unknown>;
   hint: string;
   answerable: boolean;
   tick: boolean;
+  assist: boolean;
+  /** The hint and the response unit name the item, so they wait for Show me too. */
+  withheld: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { session } = useTrainer();
+  const { session, showMe } = useTrainer();
   const [reading, setReading] = useState('');
   return (
     <span className="checklist-item-detail">
-      <span className="checklist-hint">{hint}</span>
+      {!withheld && <span className="checklist-hint">{hint}</span>}
       {answerable && item.type === 'check' && (
         <label className="checklist-response">
           <span className="checklist-response-label">{text.reading}</span>
@@ -67,8 +72,13 @@ function CurrentDetail({
             value={reading}
             onChange={(event) => setReading(event.target.value)}
           />
-          {item.response?.unit && <span>{localize(item.response.unit)}</span>}
+          {!withheld && item.response?.unit && <span>{localize(item.response.unit)}</span>}
         </label>
+      )}
+      {assist && (
+        <button type="button" className="button-secondary checklist-show-me" onClick={showMe}>
+          {text.showMe}
+        </button>
       )}
       {tick && (
         <button
@@ -96,6 +106,8 @@ function ItemRow({
   mode,
   tick,
   lever,
+  withheld,
+  shown,
 }: {
   index: number;
   item: ProcedureItem<unknown>;
@@ -103,6 +115,10 @@ function ItemRow({
   mode: Mode;
   tick: boolean;
   lever: boolean;
+  /** The text is left out until Show me. */
+  withheld: boolean;
+  /** Show me was used on this item. */
+  shown: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -146,10 +162,19 @@ function ItemRow({
           {glyphs[state]}
         </span>
         <span className="checklist-number">{index + 1}</span>
-        <span className="checklist-item-text">{localize(item.text)}</span>
+        <span className="checklist-item-text" data-withheld={withheld}>
+          {!withheld && localize(item.text)}
+        </span>
       </span>
       {state === 'current' && (
-        <CurrentDetail item={item} hint={hint} answerable={answerable} tick={tick} />
+        <CurrentDetail
+          item={item}
+          hint={hint}
+          answerable={answerable}
+          tick={tick}
+          assist={mode === 'practice' && !shown}
+          withheld={withheld}
+        />
       )}
     </li>
   );
@@ -198,6 +223,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const { procedure, completed, deviations } = checklist;
   const guided = mode === 'guided';
   const count = deviations.length;
+  const recalling = mode === 'practice' && trainer.recall;
   const list = useRef<HTMLOListElement>(null);
   const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
@@ -213,7 +239,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
     const rect = row.getBoundingClientRect();
     if (rect.top < box.top) scroller.scrollTop -= box.top - rect.top;
     else if (rect.bottom > box.bottom) scroller.scrollTop += rect.bottom - box.bottom;
-  }, [checklist.current, count]);
+  }, [checklist.current, count, trainer.assisted.length, trainer.recall]);
 
   // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new
   // current item; never to its Verified button, so a key press cannot pass an action unlooked.
@@ -243,22 +269,40 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
       </div>
 
       <ol ref={list} className="checklist-items">
-        {procedure.items.map((item, index) => (
-          <ItemRow
-            key={index}
-            index={index}
-            item={item}
-            state={itemState(checklist, index, guided)}
-            mode={mode}
-            tick={index === checklist.current && takesTick(checklist)}
-            lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
-          />
-        ))}
+        {procedure.items.map((item, index) => {
+          const shown = trainer.assisted.includes(index);
+          const state = itemState(checklist, index, guided);
+          // Upcoming items are not drawn at all, so their text is nowhere in the page.
+          if (recalling && state === 'pending') return null;
+          return (
+            <ItemRow
+              key={index}
+              index={index}
+              item={item}
+              state={state}
+              mode={mode}
+              tick={index === checklist.current && takesTick(checklist)}
+              lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
+              withheld={recalling && !shown && state === 'current'}
+              shown={shown}
+            />
+          );
+        })}
       </ol>
 
       {guided && <DeviationBanner checklist={checklist} reserve />}
 
       <div className="checklist-footer">
+        {mode === 'practice' && (
+          <label className="checklist-recall">
+            <input
+              type="checkbox"
+              checked={trainer.recall}
+              onChange={(event) => trainer.setRecall(event.target.checked)}
+            />
+            {text.hideUpcoming}
+          </label>
+        )}
         {guided && (
           <div className="checklist-footer-count" data-deviated={count > 0}>
             {count === 0

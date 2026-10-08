@@ -1,4 +1,4 @@
-export type SettingKey = 'theme' | 'language' | 'aircraft' | 'history';
+export type SettingKey = 'theme' | 'language' | 'aircraft' | 'history' | 'recall';
 
 const prefix = 'cpt.';
 

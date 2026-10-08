@@ -62,6 +62,55 @@ test('a Practice run shows no deviation information until the summary', async ({
   ).toContainText(deviation.title(unrelatedControl));
 });
 
+test.describe('Practice recall', () => {
+  const texts = procedure(engineStart).items.map((item) => item.text.en);
+
+  test('hiding upcoming items keeps their text out of the page and done items readable', async ({
+    page,
+  }) => {
+    await startProcedure(page, engineStart, 'practice');
+    const pane = checklistPane(page);
+    await pane.getByRole('checkbox', { name: copy.checklist.hideUpcoming }).check();
+
+    const body = page.locator('body');
+    for (const text of texts) await expect(body).not.toContainText(text);
+
+    await pane.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
+    await expect(pane.getByText(texts[0] ?? '')).toBeVisible();
+    for (const text of texts.slice(1)) await expect(body).not.toContainText(text);
+  });
+
+  test('Show me rings the current target once and adds no deviation cue', async ({ page }) => {
+    await startProcedure(page, engineStart, 'practice');
+    const pane = checklistPane(page);
+    const ring = page.locator('[data-outline="target"]');
+    await pane.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
+    await expect(ring).toHaveCount(0);
+
+    await pane.getByRole('button', { name: copy.checklist.showMe }).click();
+    await expect(ring).toBeVisible();
+    await expect(pane.getByRole('button', { name: copy.checklist.showMe })).toHaveCount(0);
+    await expect(page.getByRole('status')).toHaveCount(0);
+
+    await pane.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+    await expect(ring).toHaveCount(0);
+  });
+
+  test('the summary counts a Show me and names the item', async ({ page }) => {
+    await startProcedure(page, engineStart, 'practice');
+    const pane = checklistPane(page);
+    await pane.getByRole('button', { name: copy.checklist.showMe }).click();
+    await completeProcedure(page, engineStart);
+
+    await expect(
+      pane.getByText(copy.checklist.assists).locator('xpath=following-sibling::dd'),
+    ).toHaveText('1');
+    await expect(
+      pane.getByRole('region', { name: copy.checklist.assistedHeading }).getByRole('listitem'),
+    ).toHaveText(`${copy.checklist.itemNumber.replace('{n}', '1')}${texts[0]}`);
+  });
+});
+
 test('Restart asks before it discards a deviation', async ({ page }) => {
   await startProcedure(page, engineStart, 'guided');
   const pane = checklistPane(page);
@@ -254,7 +303,6 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   await expect(page.getByText(copy.checklist.failureInjected)).toHaveCount(0);
   await pane.getByRole('combobox', { name: copy.checklist.showChecklist }).selectOption(failureId);
   await pane.getByRole('button', { name: copy.checklist.runChecklist }).click();
-  // Toggles are moved by key: at this viewport the demo toggle's ON target covers its OFF one.
   for (const item of procedure(failureId).items) {
     const row = pane.locator('[aria-current="step"]');
     await expect(row).toContainText(item.text.en);
@@ -262,12 +310,6 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
       await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
     } else if (item.type === 'confirm') {
       await row.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
-    } else if (control(item.control).kind === 'toggle') {
-      const { positions, name } = control(item.control);
-      await page
-        .getByRole('radiogroup', { name: name.en, exact: true })
-        .getByRole('radio', { checked: true })
-        .press(Array.isArray(positions) && positions[0] === item.position ? 'Home' : 'End');
     } else {
       await setControl(page, item.control, item.position);
     }

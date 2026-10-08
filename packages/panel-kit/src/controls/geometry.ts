@@ -36,3 +36,62 @@ export function minGap(values: readonly number[]): number {
   }
   return gap;
 }
+
+export type Rect = { left: number; top: number; width: number; height: number };
+type Point = { x: number; y: number };
+export type Cell = readonly Point[];
+
+const overlaps = (a: Rect, b: Rect) =>
+  Math.min(a.left + a.width, b.left + b.width) > Math.max(a.left, b.left) &&
+  Math.min(a.top + a.height, b.top + b.height) > Math.max(a.top, b.top);
+
+/** The part of `polygon` at least as near `own` as `far`. */
+function nearer(polygon: readonly Point[], own: Point, far: Point): Point[] {
+  const middle = { x: (own.x + far.x) / 2, y: (own.y + far.y) / 2 };
+  const side = (point: Point) =>
+    (point.x - middle.x) * (own.x - far.x) + (point.y - middle.y) * (own.y - far.y);
+  const kept: Point[] = [];
+  polygon.forEach((a, index) => {
+    const b = polygon[(index + 1) % polygon.length];
+    if (b === undefined) return;
+    const sa = side(a);
+    const sb = side(b);
+    if (sa >= 0) kept.push(a);
+    if (sa >= 0 !== sb >= 0) {
+      const t = sa / (sa - sb);
+      kept.push({ x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) });
+    }
+  });
+  return kept;
+}
+
+/**
+ * Touch targets that overlap each own only the points nearer their centre than a neighbour's, so
+ * a tap on a position's centre reaches that position. Undefined: nothing to cut.
+ */
+export function hitCells(rects: readonly Rect[]): (Cell | undefined)[] {
+  const centres = rects.map(({ left, top, width, height }) => ({
+    x: left + width / 2,
+    y: top + height / 2,
+  }));
+  return rects.map((rect, index) => {
+    const own = centres[index];
+    if (own === undefined || rect.width <= 0 || rect.height <= 0) return undefined;
+    const { left, top, width, height } = rect;
+    let cell: Point[] = [
+      { x: left, y: top },
+      { x: left + width, y: top },
+      { x: left + width, y: top + height },
+      { x: left, y: top + height },
+    ];
+    let cutAny = false;
+    rects.forEach((other, otherIndex) => {
+      const far = centres[otherIndex];
+      if (far === undefined || otherIndex === index || !overlaps(rect, other)) return;
+      if (far.x === own.x && far.y === own.y) return;
+      cutAny = true;
+      cell = nearer(cell, own, far);
+    });
+    return cutAny ? cell : undefined;
+  });
+}

@@ -42,6 +42,12 @@ export type Trainer = {
   /** Deviations from this index on were made in Guided, so only they get its live cues. */
   guidedFrom: number;
   setMode(mode: Mode): void;
+  /** Whether Practice withholds the upcoming and current item text. */
+  recall: boolean;
+  setRecall(on: boolean): void;
+  /** Items of this run the pilot had shown with Show me, each once. */
+  assisted: readonly number[];
+  showMe(): void;
   resetSession(): void;
   backToPicker(): void;
   screen: TrainerScreen;
@@ -52,6 +58,8 @@ type TrainerState = {
   session: Session;
   mode: Mode;
   guidedFrom: number;
+  recall: boolean;
+  assisted: readonly number[];
   screen: TrainerScreen;
   lastProcedureId: string | undefined;
   viewed: string | undefined;
@@ -86,6 +94,7 @@ function startSurprise(aircraft: Aircraft, session: Session, phase: string): Par
     mode: 'practice',
     screen: 'trainer',
     guidedFrom: 0,
+    assisted: [],
     lastProcedureId: undefined,
     viewed,
     surprisePhase: phase,
@@ -101,6 +110,8 @@ function initialState(): TrainerState {
     session: newSession(aircraft),
     mode: 'guided',
     guidedFrom: 0,
+    recall: readSetting('recall') === 'on',
+    assisted: [],
     screen: 'picker',
     lastProcedureId: undefined,
     viewed: undefined,
@@ -168,6 +179,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           aircraft,
           session: newSession(aircraft),
           guidedFrom: 0,
+          assisted: [],
           lastProcedureId: undefined,
           viewed: undefined,
           surprisePhase: undefined,
@@ -178,6 +190,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update({
           screen: 'trainer',
           guidedFrom: 0,
+          assisted: [],
           lastProcedureId: id,
           viewed: undefined,
           surprisePhase: undefined,
@@ -188,7 +201,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       },
       takeChecklist(id) {
         current.current.session.takeChecklist(id);
-        update({ guidedFrom: 0, lastProcedureId: id, viewed: undefined });
+        update({ guidedFrom: 0, assisted: [], lastProcedureId: id, viewed: undefined });
       },
       restart() {
         const { aircraft, session, surprisePhase } = current.current;
@@ -197,7 +210,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           update(startSurprise(aircraft, session, surprisePhase));
         } else if (running !== undefined) {
           session.startProcedure(running);
-          update({ guidedFrom: 0, lastProcedureId: running, viewed: undefined });
+          update({ guidedFrom: 0, assisted: [], lastProcedureId: running, viewed: undefined });
         }
       },
       jumpToPhase(phaseId) {
@@ -207,7 +220,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       setMode(mode) {
         if (mode === 'explore') {
           endProcedure(current.current.session);
-          update({ mode, screen: 'trainer', viewed: undefined });
+          update({ mode, screen: 'trainer', assisted: [], viewed: undefined });
         } else if (current.current.mode !== 'explore') {
           const guidedFrom = current.current.session.checklist()?.deviations.length ?? 0;
           update({ mode, guidedFrom });
@@ -219,9 +232,20 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
             update({ mode, screen: 'picker', viewed: undefined });
           } else {
             session.startProcedure(lastProcedureId);
-            update({ mode, guidedFrom: 0, screen: 'trainer', viewed: undefined });
+            update({ mode, guidedFrom: 0, assisted: [], screen: 'trainer', viewed: undefined });
           }
         }
+      },
+      setRecall(on) {
+        writeSetting('recall', on ? 'on' : 'off');
+        update({ recall: on });
+      },
+      showMe() {
+        const { session: live, assisted, mode } = current.current;
+        const checklist = live.checklist();
+        if (mode !== 'practice' || !checklist || checklist.done) return;
+        if (assisted.includes(checklist.current)) return;
+        update({ assisted: [...assisted, checklist.current] });
       },
       resetSession() {
         const { aircraft, session: old, surprisePhase } = current.current;
@@ -233,7 +257,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           update({ session: fresh });
         } else {
           fresh.startProcedure(running);
-          update({ session: fresh, guidedFrom: 0 });
+          update({ session: fresh, guidedFrom: 0, assisted: [] });
         }
       },
       backToPicker() {

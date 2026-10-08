@@ -163,13 +163,15 @@ definition with one line.
 `minWidth` is the narrowest rendered width, in CSS px, at which the view stays
 legible and operable: every touch target and installed-device button at least
 `--size-target`, no placard overfull, all placards and lettering at least
-`--text-2xs`, and no two operable targets (positions of one control included)
-overlapping, each taken as its rendered box grown to at least `--size-target`
-around its centre. Space placements apart to clear an overlap; one that only a
-higher floor could clear is accepted by name in the test's `acceptedOverlaps`,
-with what a tap loses there. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view
-of every registered aircraft at exactly its `minWidth`, in English and German,
-and runs those checks. To find a floor, lower `minWidth` until the test fails and
+`--text-2xs`, and no two operable targets of different controls overlapping, each
+taken as its rendered box grown to at least `--size-target` around its centre.
+Space placements apart to clear an overlap; one that only a higher floor could
+clear is accepted by name in the test's `acceptedOverlaps`, with what a tap loses
+there. The positions of one control may overlap: the panel kit clips each to the
+points nearer its own centre, and `apps/web/e2e/reach.spec.ts` taps every
+position. Do not guess it. `apps/web/e2e/floors.spec.ts` renders every view of
+every registered aircraft at exactly its `minWidth`, in English and German, and
+runs those checks. To find a floor, lower `minWidth` until the test fails and
 keep the last passing value; to confirm one, run `pnpm test:e2e floors`. Size the
 cell widths in proportion to the floors so the arrangement wastes no width.
 
