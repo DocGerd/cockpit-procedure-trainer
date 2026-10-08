@@ -191,8 +191,10 @@ describe('run history in the picker', () => {
     expect(rows.find((text) => text.includes('power up'))).toContain(
       'Last run: 1 deviation, yesterday',
     );
-    expect(rows.find((text) => text.includes('power up'))).toContain('Best: 0 deviations');
-    expect(rows.join()).not.toContain('Best: 1');
+    expect(rows.find((text) => text.includes('power up'))).toContain(
+      'Best in Practice: 0 deviations',
+    );
+    expect(rows.join()).not.toContain('Best in Practice: 1');
   });
 
   it('never shows a Guided run as the best, even one stored before Best was Practice only', () => {
@@ -216,7 +218,7 @@ describe('run history in the picker', () => {
       },
     });
     renderPicker();
-    expect(rowFor('power up')?.textContent).toContain('Best: 1 deviation');
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 1 deviation');
   });
 
   it('keeps the Practice best beside a later Guided run with fewer deviations', () => {
@@ -227,7 +229,7 @@ describe('run history in the picker', () => {
       },
     });
     renderPicker();
-    expect(rowFor('power up')?.textContent).toContain('Best: 2 deviations');
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 2 deviations');
   });
 
   it('shows nothing for a procedure without a run, or for another aircraft', () => {
