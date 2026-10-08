@@ -34,9 +34,12 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/gauge-oil-temperature.svg`  | Gauge face, oil temperature                                           |
 | `src/assets/artwork/gauge-cht.svg`              | Gauge face, cht                                                       |
 | `src/assets/artwork/needle.svg`                 | Shared gauge needle                                                   |
-| `src/assets/artwork/compass-face.svg`           | Compass bezel and bowl                                                |
-| `src/assets/artwork/compass-card.svg`           | Compass card                                                          |
-| `src/assets/artwork/glass-compass.svg`          | Compass glass and lubber line                                         |
+| `src/assets/artwork/compass-face.svg`           | Compass bowl behind the card                                          |
+| `src/assets/artwork/compass-card.svg`           | Compass card, printed reversed                                        |
+| `src/assets/artwork/glass-compass.svg`          | Compass housing with its card window and lubber line                  |
+| `src/assets/artwork/lamp-charge-face.svg`       | Charge warning lamp bezel and legend                                  |
+| `src/assets/artwork/lamp-charge-off.svg`        | Charge warning lamp lens, unlit                                       |
+| `src/assets/artwork/lamp-charge-on.svg`         | Charge warning lamp lens, lit                                         |
 | `src/assets/artwork/rocker-beacon.svg`          | Rocker switch plate, beacon                                           |
 | `src/assets/artwork/rocker-position.svg`        | Rocker switch plate, position                                         |
 | `src/assets/artwork/rocker-intercom.svg`        | Rocker switch plate, intercom                                         |

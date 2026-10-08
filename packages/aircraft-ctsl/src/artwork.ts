@@ -13,6 +13,9 @@ export const images = {
   glassCompass: new URL('./assets/artwork/glass-compass.svg', import.meta.url).href,
   compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
   compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
+  lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
+  lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
+  lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
   rockerBeacon: new URL('./assets/artwork/rocker-beacon.svg', import.meta.url).href,
   rockerPosition: new URL('./assets/artwork/rocker-position.svg', import.meta.url).href,
   rockerIntercom: new URL('./assets/artwork/rocker-intercom.svg', import.meta.url).href,
@@ -101,7 +104,9 @@ const travel = (face: string, image: string, path: readonly Point[]): ArtworkApp
   artwork: { face, moving: { type: 'travel', image, path } },
 });
 
-// The card turns under a fixed lubber line, so the heading reads at the top.
+// A panel compass: the card is printed reversed and turns clockwise, so the numbers in the window
+// increase to the left and the card slides right as the heading increases. The glass is the opaque
+// housing, open only at the window over the top of the card.
 const compassCard: ArtworkAppearance = {
   options: { min: 0, max: 360, units: '°', decimals: 0 },
   artwork: {
@@ -110,12 +115,26 @@ const compassCard: ArtworkAppearance = {
       type: 'needle',
       image: images.compassCard,
       pivot: { x: 100, y: 100 },
-      angleRange: { min: 0, max: -360 },
+      angleRange: { min: 0, max: 360 },
       valueRange: { min: 0, max: 360 },
     },
     glass: images.glassCompass,
   },
 };
+
+export const lampArtwork = {
+  charge: {
+    options: { lamp: 'red' },
+    artwork: {
+      face: images.lampChargeFace,
+      moving: {
+        type: 'positions',
+        images: { false: images.lampChargeOff, true: images.lampChargeOn },
+      },
+      lettering: ['CHARGE'],
+    },
+  },
+} as const satisfies Record<string, ArtworkAppearance>;
 
 export const gaugeArtwork = {
   compass: compassCard,

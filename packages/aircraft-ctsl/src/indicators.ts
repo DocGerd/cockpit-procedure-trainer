@@ -1,5 +1,5 @@
 import type { IndicatorDefinition } from '@cpt/core';
-import { gaugeArtwork } from './artwork';
+import { gaugeArtwork, lampArtwork } from './artwork';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
 
@@ -50,7 +50,7 @@ export const indicators = {
   chargeLamp: {
     name: text('Ladekontrolle', 'Charge warning lamp'),
     select: chargeLampLit,
-    appearance: { widget: 'annunciator', options: { lamp: 'red' } },
+    appearance: lampArtwork.charge,
   },
   flapReadout: {
     name: text('Klappenstellungsanzeige', 'Flap position indicator'),

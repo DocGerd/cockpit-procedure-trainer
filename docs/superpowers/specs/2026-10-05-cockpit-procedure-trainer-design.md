@@ -321,8 +321,11 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 
 ### Persistence
 
-`localStorage` holds language, theme and last aircraft only. Reads are guarded;
-the app works without it.
+`localStorage` holds language, theme, last aircraft and a small run history only.
+The history keeps, per aircraft and procedure, the last run (mode, deviation
+count, date) and the best run, so the pilot and an instructor see improvement
+across sessions; it is never sent anywhere (G2). Reads are validated and
+guarded; the app works without it.
 
 ## 6. Visual design
 
