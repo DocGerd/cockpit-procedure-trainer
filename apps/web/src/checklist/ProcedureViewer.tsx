@@ -1,5 +1,5 @@
 import { format, useLocalize, useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
+import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
@@ -8,7 +8,11 @@ import { ProcedureKind } from './ProcedureKind';
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, viewedProcedureId, viewProcedure } = useTrainer();
+  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist } = useTrainer();
+  const awaiting = useSessionState((snapshot) => {
+    const scenario = snapshot.scenario();
+    return scenario !== undefined && scenario.chosen === undefined;
+  });
   const procedure =
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];
   if (!procedure) return null;
@@ -19,7 +23,17 @@ export function ProcedureViewer() {
       <div className="checklist-header">
         <ProcedureKind type={procedure.type} />
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
+        {awaiting && <p className="checklist-note">{text.surpriseNote}</p>}
         <p className="checklist-note">{text.viewOnly}</p>
+        {awaiting && procedure.type === 'emergency' && viewedProcedureId !== undefined && (
+          <button
+            type="button"
+            className="button-primary checklist-back"
+            onClick={() => takeChecklist(viewedProcedureId)}
+          >
+            {text.runChecklist}
+          </button>
+        )}
         {running && procedureId !== undefined && (
           <button
             type="button"

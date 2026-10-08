@@ -15,6 +15,7 @@ import { deviceRegistry } from '../device-registry';
 import { format, useMessages } from '../i18n';
 import { readSetting, recordRun, writeSetting } from '../storage';
 import { messages } from './messages';
+import { pickSurprise } from './scenarios';
 
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
@@ -28,6 +29,10 @@ export type Trainer = {
   viewedProcedureId: string | undefined;
   viewProcedure(id: string): void;
   startProcedure(id: string): void;
+  /** Starts a Practice run in the phase with one of its failures injected unannounced. */
+  startSurprise(phase: string): void;
+  /** Runs a checklist from the cockpit as it stands; during a surprise, the pilot's answer. */
+  takeChecklist(id: string): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
   /** Deviations from this index on were made in Guided, so only they get its live cues. */
@@ -59,7 +64,13 @@ const newSession = (aircraft: Aircraft, phase?: string) =>
   );
 
 function endProcedure(session: Session): void {
-  if (session.procedureId() !== undefined) session.jumpToPhase(session.phase());
+  if (session.procedureId() !== undefined || session.scenario() !== undefined) {
+    session.jumpToPhase(session.phase());
+  }
+}
+
+function startSurprise(aircraft: Aircraft, session: Session, phase: string): void {
+  session.startSurprise({ phase, ...pickSurprise(aircraft, phase) });
 }
 
 function initialState(): TrainerState {
@@ -143,6 +154,20 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         current.current.session.startProcedure(id);
         update({ screen: 'trainer', guidedFrom: 0, lastProcedureId: id, viewed: undefined });
       },
+      startSurprise(phase) {
+        startSurprise(current.current.aircraft, current.current.session, phase);
+        update({
+          mode: 'practice',
+          screen: 'trainer',
+          guidedFrom: 0,
+          lastProcedureId: undefined,
+          viewed: undefined,
+        });
+      },
+      takeChecklist(id) {
+        current.current.session.takeChecklist(id);
+        update({ guidedFrom: 0, lastProcedureId: id, viewed: undefined });
+      },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
       },
@@ -166,7 +191,12 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       resetSession() {
         const { aircraft, session: old } = current.current;
         const running = old.procedureId();
-        if (running === undefined) {
+        const surprise = old.scenario();
+        if (surprise !== undefined && running === undefined) {
+          const fresh = newSession(aircraft);
+          startSurprise(aircraft, fresh, surprise.phase);
+          update({ session: fresh, guidedFrom: 0 });
+        } else if (running === undefined) {
           update({ session: newSession(aircraft, old.phase()) });
         } else {
           const fresh = newSession(aircraft);
@@ -192,7 +222,7 @@ export function useTrainer(): Trainer {
 
 export type SessionSnapshot = Pick<
   Session,
-  'state' | 'guards' | 'failures' | 'checklist' | 'phase' | 'status' | 'procedureId'
+  'state' | 'guards' | 'failures' | 'checklist' | 'phase' | 'status' | 'procedureId' | 'scenario'
 >;
 
 function take(session: Session): SessionSnapshot {
@@ -203,6 +233,7 @@ function take(session: Session): SessionSnapshot {
   const phase = session.phase();
   const status = session.status();
   const procedureId = session.procedureId();
+  const scenario = session.scenario();
   return {
     state: () => state,
     guards: () => guards,
@@ -211,6 +242,7 @@ function take(session: Session): SessionSnapshot {
     phase: () => phase,
     status: () => status,
     procedureId: () => procedureId,
+    scenario: () => scenario,
   };
 }
 

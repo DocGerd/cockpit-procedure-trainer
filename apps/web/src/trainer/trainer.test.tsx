@@ -315,6 +315,56 @@ describe('trainer store', () => {
   });
 });
 
+describe('surprise failure', () => {
+  const startSurprise = () => {
+    const view = renderTrainer();
+    act(() => view.result.current.trainer.selectAircraft(second.id));
+    act(() => view.result.current.trainer.startSurprise('ground'));
+    return view;
+  };
+
+  it('starts in Practice with no procedure, keeping the failure out of the viewed checklist', () => {
+    const { result } = startSurprise();
+    const { trainer, snapshot } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.viewedProcedureId).toBe('powerUp');
+    expect(snapshot.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(snapshot.failures().size).toBe(0);
+  });
+
+  it('runs the checklist the pilot takes and follows it as the running procedure', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.viewProcedure('fire'));
+    act(() => result.current.trainer.takeChecklist('fire'));
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('fire');
+    expect(trainer.viewedProcedureId).toBe('fire');
+    expect(snapshot.scenario()).toMatchObject({ chosen: 'fire', matched: true });
+    expect([...snapshot.failures()]).toEqual(['fire']);
+  });
+
+  it('is ended by going back to the picker or into Free explore', () => {
+    const { result } = startSurprise();
+    act(() => result.current.trainer.backToPicker());
+    expect(result.current.snapshot.scenario()).toBeUndefined();
+    act(() => result.current.trainer.startSurprise('ground'));
+    act(() => result.current.trainer.setMode('explore'));
+    expect(result.current.snapshot.scenario()).toBeUndefined();
+  });
+
+  it('starts a new surprise in the same phase on reset', () => {
+    const { result } = startSurprise();
+    const before = result.current.trainer.session;
+    act(() => result.current.trainer.resetSession());
+    const { session } = result.current.trainer;
+    expect(session).not.toBe(before);
+    expect(session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(session.procedureId()).toBeUndefined();
+  });
+});
+
 describe('shallowEqual', () => {
   it('compares plain objects and arrays one level deep', () => {
     const shared = {};

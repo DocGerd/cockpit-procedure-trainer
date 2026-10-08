@@ -340,6 +340,157 @@ describe('startProcedure', () => {
   });
 });
 
+describe('startSurprise', () => {
+  const surprise = { phase: 'runup', failure: 'alternatorFailure', delayMs: 3 * STEP_MS };
+
+  it('loads the phase snapshot with no procedure, no checklist and the failure pending', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    expect(session.phase()).toBe('runup');
+    expect(session.state().controls).toEqual(fixturePhase('runup').entry.controls);
+    expect(session.procedureId()).toBeUndefined();
+    expect(session.checklist()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+    expect(session.scenario()).toEqual(surprise);
+  });
+
+  it('injects the failure once the delay has passed, unannounced', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+    expect(session.state().controls.alternatorBreaker).toBe('in');
+    session.advance(STEP_MS);
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(fixtureSystems(session).volts).toBe(12);
+    expect(session.scenario()?.injectedAtMs).toBe(3 * STEP_MS);
+    expect(session.procedureId()).toBeUndefined();
+  });
+
+  it('notifies once per step, the injecting step included', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: STEP_MS });
+    let calls = 0;
+    session.subscribe(() => calls++);
+    session.advance(STEP_MS);
+    expect(calls).toBe(1);
+  });
+
+  it('throws for an unknown failure or phase or a bad delay and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.set('master', 'on');
+    const before = fingerprint(session);
+    expect(() => session.startSurprise({ ...surprise, failure: 'engineFire' })).toThrow(
+      'engineFire',
+    );
+    expect(() => session.startSurprise({ ...surprise, failure: 'toString' })).toThrow('toString');
+    expect(() => session.startSurprise({ ...surprise, phase: 'nowhere' })).toThrow('nowhere');
+    expect(() => session.startSurprise({ ...surprise, delayMs: -1 })).toThrow(RangeError);
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()).toBeUndefined();
+  });
+
+  it('is cancelled by a phase jump or a procedure start', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.jumpToPhase('runup');
+    expect(session.scenario()).toBeUndefined();
+    session.startSurprise(surprise);
+    session.startProcedure('beforeStart');
+    expect(session.scenario()).toBeUndefined();
+    for (let step = 0; step < 4; step++) session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+  });
+});
+
+describe('takeChecklist', () => {
+  const surprise = { phase: 'runup', failure: 'alternatorFailure', delayMs: STEP_MS };
+
+  it('runs the chosen checklist from the cockpit as it stands and times the recognition', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.set('throttle', 0.5);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(session.checklist()?.current).toBe(0);
+    expect(session.scenario()).toMatchObject({
+      chosen: 'alternatorFailure',
+      recognitionMs: 2 * STEP_MS,
+      matched: true,
+    });
+  });
+
+  it('records a checklist that does not match the failure, injecting nothing of its own', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    expect(session.procedureId()).toBe('beforeStart');
+    expect(session.phase()).toBe('runup');
+    expect(session.state().controls.master).toBe('on');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it('injects a pending failure when the pilot chooses before it appeared', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: 10 * STEP_MS });
+    session.takeChecklist('alternatorFailure');
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    const scenario = session.scenario();
+    expect(scenario).toMatchObject({ chosen: 'alternatorFailure', matched: true });
+    expect(scenario?.injectedAtMs).toBe(0);
+    expect(scenario).not.toHaveProperty('recognitionMs');
+  });
+
+  it('times the chosen checklist from the choice', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    session.advance(STEP_MS);
+    session.checkOff();
+    session.checkOff();
+    expect(session.checklist()?.elapsedMs).toBe(STEP_MS);
+    expect(session.scenario()?.chosen).toBe('alternatorFailure');
+  });
+
+  it('keeps the first choice when another checklist is taken later', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it('starts a checklist from the cockpit as it stands outside a surprise too', () => {
+    const session = createSession(fixtureAircraft, { phase: 'runup' });
+    session.set('throttle', 0.5);
+    session.takeChecklist('beforeStart');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.scenario()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+  });
+
+  it('throws naming an unknown procedure and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    const before = fingerprint(session);
+    expect(() => session.takeChecklist('engineFire')).toThrow('engineFire');
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()?.chosen).toBeUndefined();
+  });
+});
+
 describe('retryItem', () => {
   it('restores the cockpit to the start of the current item and keeps the record', () => {
     const session = createSession(fixtureAircraft);
