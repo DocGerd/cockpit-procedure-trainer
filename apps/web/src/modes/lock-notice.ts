@@ -2,7 +2,7 @@ import type { Aircraft, ControlPosition, Session, SessionControlResult } from '@
 import { useSyncExternalStore } from 'react';
 import { useTrainer } from '../trainer';
 
-/** A pilot move an interlock refused; a new object on every refusal, so a repeat restarts its time. */
+/** A refused pilot move; a new object on every refusal, so a repeat restarts its time. */
 export type LockNotice = { readonly controlId: string; readonly serial: number };
 
 export type LockNoticeStore = {
