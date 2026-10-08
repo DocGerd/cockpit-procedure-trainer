@@ -57,8 +57,8 @@ function DockedDevice({ installId }: { installId: string }) {
 
 /**
  * The non-modal region that holds one operable device at a time. Placed by `place` in the combined
- * layout, and in flow below the tab panel without it. Chrome, not panel: its hint never prints on
- * the panel.
+ * layout, and in flow below the tab panel without it. Its surface is panel hardware, but its hint
+ * and close label are app text and never print on the panel.
  */
 export function Dock({ place }: { place?: DockPlace | undefined }) {
   const text = useMessages(messages);
@@ -85,7 +85,7 @@ export function Dock({ place }: { place?: DockPlace | undefined }) {
             aria-label={text.dockClose}
             onClick={dock.close}
           >
-            ×
+            {text.dockCloseLabel}
           </button>
         </>
       )}
