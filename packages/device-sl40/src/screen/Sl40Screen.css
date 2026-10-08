@@ -5,7 +5,7 @@
 }
 
 .cpt-device-sl40 input[type='range'] {
-  accent-color: var(--panel-cap-light);
+  accent-color: var(--panel-legend);
   appearance: none;
   background: transparent;
 }
@@ -32,7 +32,7 @@
   width: var(--space-4);
   height: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--panel-cap-light);
+  background: var(--panel-legend);
   border: 0;
 }
 
@@ -40,6 +40,6 @@
   width: var(--space-4);
   height: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--panel-cap-light);
+  background: var(--panel-legend);
   border: 0;
 }

@@ -83,6 +83,25 @@ describe('device stylesheets', () => {
           );
         }
       });
+
+      it('draws the volume thumb so its position stands out from the track', () => {
+        const background = (part: string) =>
+          [
+            ...css.matchAll(
+              new RegExp(`${part}\\s*\\{[^}]*background:\\s*var\\(--([\\w-]+)\\)`, 'g'),
+            ),
+          ].map(([, token = '']) => token);
+        const tracks = [...background('range-track'), ...background('runnable-track')];
+        const thumbs = [...background('slider-thumb'), ...background('range-thumb')];
+        expect(thumbs).toHaveLength(2);
+        for (const thumb of thumbs) {
+          for (const track of tracks) {
+            expect(contrast(panelHex(thumb), panelHex(track))).toBeGreaterThanOrEqual(
+              MIN_TRACK_CONTRAST,
+            );
+          }
+        }
+      });
     }
   });
 });
