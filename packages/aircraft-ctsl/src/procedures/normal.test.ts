@@ -159,7 +159,7 @@ describe('CTSL normal procedures', () => {
     expect(session.checklist()?.deviations).toEqual([]);
   });
 
-  describe('flows (assumed, intake §9 question 27)', () => {
+  describe('flows (assumed, intake §9 question 28)', () => {
     const flows = {
       engineStart: ['avionicsMaster', 'beacon', 'fuelValve', 'battery', 'carbHeat'],
       beforeTakeoff: ['flapSelector', 'choke', 'trim', 'carbHeat'],
@@ -206,6 +206,69 @@ describe('CTSL normal procedures', () => {
     expect(toBoth).toBeGreaterThanOrEqual(0);
     const result = walkProcedure(without('engineStart', toBoth), 'engineStart', { devices });
     expect(result).toMatchObject({ ok: false, reason: expect.stringMatching(/needs it at both/) });
+  });
+
+  const ignitionAt = (id: keyof typeof normalProcedures, position: string) =>
+    (normalProcedures[id].items as readonly Item[]).findIndex(
+      (item) => item.type === 'action' && item.control === 'ignition' && item.position === position,
+    );
+  const actionAt = (id: keyof typeof normalProcedures, control: string, position: string) =>
+    (normalProcedures[id].items as readonly Item[]).findIndex(
+      (item) => item.type === 'action' && item.control === control && item.position === position,
+    );
+
+  it('engineStart inserts the key, once the fuel valve is open, before turning it to BOTH', () => {
+    const keyIn = ignitionAt('engineStart', 'off');
+    expect(ctslAircraft.phases.parking?.entry.controls.ignition).toBe('out');
+    expect(keyIn).toBeGreaterThan(actionAt('engineStart', 'fuelValve', 'open'));
+    expect(keyIn).toBeLessThan(ignitionAt('engineStart', 'both'));
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
+    session.set('fuelValve', 'open');
+    expect(session.set('ignition', 'off')).toEqual({ applied: true });
+  });
+
+  it('engineStart takes the key in and round to BOTH one detent at a time, with no deviation', () => {
+    const items = normalProcedures.engineStart.items as readonly Item[];
+    const toBoth = ignitionAt('engineStart', 'both');
+    const detents = controls.ignition.positions as readonly string[];
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    session.startProcedure('engineStart');
+    for (let at = 0; at <= toBoth; at += 1) {
+      const item = items[at] as Item;
+      if (item.type !== 'action') session.checkOff();
+      else if (session.state().controls[item.control] === item.position) session.checkOff();
+      else if (item.control !== 'ignition') session.set(item.control, item.position);
+      else {
+        const from = detents.indexOf(String(session.state().controls.ignition));
+        for (const detent of detents.slice(from + 1, detents.indexOf(String(item.position)) + 1)) {
+          expect(session.set('ignition', detent), detent).toEqual({ applied: true });
+        }
+      }
+    }
+    expect(session.checklist()?.current).toBe(toBoth + 1);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('preflight confirms the key out without inserting it', () => {
+    expect(ignitionAt('preflight', 'off')).toBe(-1);
+    expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
+  });
+
+  it('shutdown closes the fuel valve before the key comes out, leaving it as parking has it', () => {
+    const valve = actionAt('shutdown', 'fuelValve', 'closed');
+    const keyOut = ignitionAt('shutdown', 'out');
+    expect(ignitionAt('shutdown', 'off')).toBeLessThan(valve);
+    expect(valve).toBeLessThan(keyOut);
+    expect(ctslAircraft.phases.parking?.entry.controls).toMatchObject({
+      fuelValve: 'closed',
+      ignition: 'out',
+    });
+    const session = createSession(ctslAircraft, { devices, phase: 'parkingSecuring' });
+    session.set('ignition', 'off');
+    expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+    session.set('fuelValve', 'closed');
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
   });
 
   it.each(['takeoff', 'shortTakeoff'] as const)(

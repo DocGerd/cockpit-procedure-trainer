@@ -28,7 +28,7 @@ const parked = {
   flapBreaker: 'in',
   fuelValve: 'closed',
   flapSelector: '0',
-  ignition: 'off',
+  ignition: 'out',
   battery: 'pulled',
   generator: 'pulled',
   brake: 'off',

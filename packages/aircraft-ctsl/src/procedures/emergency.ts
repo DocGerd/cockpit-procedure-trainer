@@ -264,10 +264,15 @@ export const emergencyProcedures = {
         position: 'off',
         text: text('Zündschalter OFF', 'Ignition OFF'),
       },
-      confirm(
-        'Schlüssel abgezogen: geht nur bei ganz geschlossenem Brandhahn',
-        'Key out: only possible with the fuel valve fully closed',
-      ),
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'out',
+        text: text(
+          'Schlüssel abgezogen: geht nur bei ganz geschlossenem Brandhahn',
+          'Key out: only possible with the fuel valve fully closed',
+        ),
+      },
       confirm(
         'Im Sinkflug von den Flammen wegschieben',
         'Slip away from the flames while descending',
@@ -335,12 +340,17 @@ export const emergencyProcedures = {
         position: 'off',
         text: text('Zündschalter OFF', 'Ignition OFF'),
       },
-      confirm('Schlüssel abgezogen', 'Key out'),
       {
         type: 'action',
         control: 'fuelValve',
         position: 'closed',
         text: text('Brandhahn zu', 'Fuel valve (Brandhahn) closed'),
+      },
+      {
+        type: 'action',
+        control: 'ignition',
+        position: 'out',
+        text: text('Schlüssel abgezogen', 'Key out'),
       },
       confirm('Sofort notlanden: Brandgefahr', 'Emergency landing at once: fire risk'),
       fieldChosen,
