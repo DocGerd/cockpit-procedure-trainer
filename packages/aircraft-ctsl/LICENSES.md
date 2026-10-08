@@ -93,6 +93,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/flap-knob-5.svg`            | Flap selector knob, detent 5                                          |
 | `src/assets/artwork/flap-knob-6.svg`            | Flap selector knob, detent 6                                          |
 | `src/assets/artwork/ignition-face.svg`          | Ignition switch dial                                                  |
+| `src/assets/artwork/ignition-key-out.svg`       | Ignition lock, key out (empty keyway)                                 |
 | `src/assets/artwork/ignition-key-off.svg`       | Ignition key, off                                                     |
 | `src/assets/artwork/ignition-key-l.svg`         | Ignition key, l                                                       |
 | `src/assets/artwork/ignition-key-r.svg`         | Ignition key, r                                                       |

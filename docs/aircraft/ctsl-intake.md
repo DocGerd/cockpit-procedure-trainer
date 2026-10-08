@@ -98,6 +98,10 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   ("up" past −12°, "down" past 35°) for the manual override.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
+  The key goes in and comes out at OFF. Assumed (unverified), from general
+  knowledge of the CT Supralight (#468): the closed valve's handle over the slot
+  stops the key going in, and lets a key at OFF come out but not turn on; with the
+  valve open the key goes in and comes out freely (§9 item 25).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
 
@@ -302,7 +306,7 @@ checklist names. Steps marked _(confirm)_ have no control in the trainer.
 
 **N1 Pre-flight, cabin part (HB 4-1, 4-2).** Documents on board _(confirm)_;
 controls connected and free _(confirm)_; wing bolts secured _(confirm)_; ignition
-off; key out _(confirm)_; electrical consumers off; Avionics Master off; BAT in; flaps run
+off; key out; electrical consumers off; Avionics Master off; BAT in; flaps run
 out and back to check them; BAT out; fuel valve (Brandhahn) open; doors and
 glazing checked _(confirm)_. Walk-around zones as confirm items, one each: left
 fuselage and tail; right fuselage; right wing incl. fuel quantity (sight tube or
@@ -315,7 +319,7 @@ extinguisher, ELT remote switch. Folded into N6.
 
 **N3 Engine start (HB 4-3, 4-6).** Pre-flight done _(confirm)_; parking brake set;
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
-open; key in _(confirm)_; choke as needed (cold: on); throttle idle; propeller area
+open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
 after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
 to the taxi setting (0°). Before the first start of the day turn the prop by hand;
@@ -369,7 +373,7 @@ off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
 accidental ELT activation _(confirm)_.
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
-off; electrical consumers off; GEN out; ignition off; BAT out; key out _(confirm)_; rescue
+off; electrical consumers off; GEN out; ignition off; BAT out; key out; rescue
 system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
 _(confirm)_.
 
@@ -544,3 +548,10 @@ verifies it on D-MPGO.
     verification** (#466). Assumed (unverified), from general-aviation practice;
     the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
     owner's.
+25. **Key and fuel valve cover**: can the key go in, or come out, while the closed
+    valve's handle covers the slot? Today: the key is out in `parking`; a closed
+    valve stops it going in and holds a key at OFF there, but lets it come out (E6);
+    with the valve open the key goes in and comes out freely, so N16 removes it
+    without closing the valve. **Answered by assumption pending owner
+    verification** (#468). Assumed (unverified), from general knowledge of the CT
+    Supralight.

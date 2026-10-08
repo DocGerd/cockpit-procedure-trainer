@@ -39,6 +39,7 @@ const secondsUntil = (session: Session, done: (state: CtslState) => boolean, lim
 const readyToStart = (session: Session) => {
   session.set('battery', 'in');
   session.set('fuelValve', 'open');
+  session.set('ignition', 'off');
   session.set('ignition', 'both');
 };
 
@@ -129,30 +130,52 @@ describe('engine start', () => {
     expect(systems(session).engine.running).toBe(false);
   });
 
-  it('holds the key at OFF while the closed fuel valve covers the slot', () => {
+  it('keeps the key out of the slot the closed fuel valve covers', () => {
     const session = sessionAt('parking');
     session.set('battery', 'in');
-    for (const position of ['left', 'right', 'both']) {
+    for (const position of ['off', 'left', 'right', 'both']) {
       expect(session.set('ignition', position)).toEqual({ applied: false, reason: 'locked' });
     }
     expect(session.press('ignition', 'start')).toEqual({ applied: false, reason: 'locked' });
     advanceSeconds(session, 1);
-    expect(session.state().controls.ignition).toBe('off');
+    expect(session.state().controls.ignition).toBe('out');
     expect(systems(session).starter.cranking).toBe(false);
+  });
+
+  it('holds the key at OFF while the closed fuel valve covers the slot', () => {
+    const session = sessionAt('holding');
+    session.set('ignition', 'off');
+    session.set('fuelValve', 'closed');
+    for (const position of ['left', 'right', 'both']) {
+      expect(session.set('ignition', position)).toEqual({ applied: false, reason: 'locked' });
+    }
+    expect(session.press('ignition', 'start')).toEqual({ applied: false, reason: 'locked' });
+    expect(session.state().controls.ignition).toBe('off');
   });
 
   it('frees the key once the fuel valve opens', () => {
     const session = sessionAt('parking');
     session.set('fuelValve', 'open');
+    expect(session.set('ignition', 'off')).toEqual({ applied: true });
     expect(session.set('ignition', 'both')).toEqual({ applied: true });
   });
 
-  it('closes the fuel valve with the key still on, and the key then turns only to OFF', () => {
+  it('closes the fuel valve with the key still on; the key then turns only to OFF and out', () => {
     const session = sessionAt('holding');
     expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
     expect(session.set('ignition', 'left')).toEqual({ applied: true });
     expect(session.set('ignition', 'off')).toEqual({ applied: true });
     expect(session.set('ignition', 'both')).toEqual({ applied: false, reason: 'locked' });
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
+    expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
+  });
+
+  it('has no ignition with the key out', () => {
+    const session = sessionAt('holding');
+    session.set('ignition', 'off');
+    session.set('ignition', 'out');
+    advanceSeconds(session, 5);
+    expect(systems(session).engine.running).toBe(false);
   });
 
   it('does not start cold without the choke', () => {

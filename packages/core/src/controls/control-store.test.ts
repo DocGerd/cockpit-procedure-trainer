@@ -361,6 +361,27 @@ describe('interlocked control', () => {
     expect(store.press('starter')).toEqual({ applied: false, reason: 'locked' });
   });
 
+  it('moves a control only later along a held list, one way', () => {
+    const store = createControlStore({
+      valve: interlocked.valve,
+      key: {
+        ...interlocked.key,
+        positions: ['out', 'off', 'on', 'start'],
+        initial: 'out',
+        interlock: { control: 'valve', at: 'closed', holds: ['off', 'out'] },
+      },
+    });
+    expect(store.set('key', 'off')).toEqual({ applied: false, reason: 'locked' });
+    store.set('valve', 'open');
+    expect(store.set('key', 'off')).toEqual({ applied: true });
+    store.set('valve', 'closed');
+    expect(store.set('key', 'on')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.press('key', 'start')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.set('key', 'out')).toEqual({ applied: true });
+    expect(store.set('key', 'off')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.positions().key).toBe('out');
+  });
+
   it('leaves systemSet and load free', () => {
     const { store } = locked();
     expect(store.systemSet('key', 'on')).toEqual({ applied: true });

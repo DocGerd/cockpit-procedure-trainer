@@ -218,7 +218,9 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
 
     if (control.interlock) {
       const { control: by, at, holds } = control.interlock;
-      checkPosition(id, 'interlock holds', holds);
+      for (const held of typeof holds === 'string' ? [holds] : holds) {
+        checkPosition(id, 'interlock holds', held);
+      }
       if (by === id) add('unknown-target', by, `the interlock of ${id} names ${id} itself`);
       else if (hasControl(by)) checkPosition(by, `interlock of ${id}`, at);
       else add('unknown-target', by, `the interlock of ${id} names an unknown control`);

@@ -64,8 +64,8 @@ const expectedControls: Record<string, Expected> = {
   },
   ignition: {
     kind: 'rotary',
-    positions: ['off', 'left', 'right', 'both', 'start'],
-    initial: 'off',
+    positions: ['out', 'off', 'left', 'right', 'both', 'start'],
+    initial: 'out',
     view: 'centre',
   },
   battery: breaker('centre', 'pulled'),
@@ -375,7 +375,7 @@ describe('CTSL aircraft', () => {
   it('enters parking cold, with the fuel valve closed and the parking brake set', () => {
     const parking = ctslAircraft.phases.parking;
     expect(parking?.entry.controls).toMatchObject({
-      ignition: 'off',
+      ignition: 'out',
       fuelValve: 'closed',
       battery: 'pulled',
       generator: 'pulled',
@@ -403,7 +403,7 @@ describe('CTSL aircraft', () => {
       ].sort(),
     );
     for (const [id] of rockers) expect(entry[id], id).toBe('off');
-    expect(entry).toMatchObject({ ignition: 'off', fuelValve: 'closed', brake: 'off' });
+    expect(entry).toMatchObject({ ignition: 'out', fuelValve: 'closed', brake: 'off' });
     const state = entryState('parking');
     expect(state.bus).toEqual({ mainPowered: false, avionicsPowered: false, charging: false });
     expect(Object.values(state.consumers).filter(Boolean)).toEqual([]);

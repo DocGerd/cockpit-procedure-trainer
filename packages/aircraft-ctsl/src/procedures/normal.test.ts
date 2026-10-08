@@ -146,6 +146,44 @@ describe('CTSL normal procedures', () => {
     expect(result).toMatchObject({ ok: false, reason: expect.stringMatching(/needs it at both/) });
   });
 
+  const ignitionAt = (id: keyof typeof normalProcedures, position: string) =>
+    (normalProcedures[id].items as readonly Item[]).findIndex(
+      (item) => item.type === 'action' && item.control === 'ignition' && item.position === position,
+    );
+  const actionAt = (id: keyof typeof normalProcedures, control: string, position: string) =>
+    (normalProcedures[id].items as readonly Item[]).findIndex(
+      (item) => item.type === 'action' && item.control === control && item.position === position,
+    );
+
+  it('engineStart inserts the key, once the fuel valve is open, before turning it to BOTH', () => {
+    const keyIn = ignitionAt('engineStart', 'off');
+    expect(ctslAircraft.phases.parking?.entry.controls.ignition).toBe('out');
+    expect(keyIn).toBeGreaterThan(actionAt('engineStart', 'fuelValve', 'open'));
+    expect(keyIn).toBeLessThan(ignitionAt('engineStart', 'both'));
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
+    session.set('fuelValve', 'open');
+    expect(session.set('ignition', 'off')).toEqual({ applied: true });
+  });
+
+  it('preflight confirms the key out without inserting it', () => {
+    expect(ignitionAt('preflight', 'off')).toBe(-1);
+    expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
+  });
+
+  it('shutdown turns the key to OFF and then takes it out, leaving it as parking has it', () => {
+    const off = ignitionAt('shutdown', 'off');
+    const out = ignitionAt('shutdown', 'out');
+    expect(off).toBeGreaterThanOrEqual(0);
+    expect(out).toBeGreaterThan(off);
+    const last = (normalProcedures.shutdown.items as readonly Item[])
+      .filter((item) => item.type === 'action' && item.control === 'ignition')
+      .at(-1);
+    expect(last?.type === 'action' && last.position).toBe(
+      ctslAircraft.phases.parking?.entry.controls.ignition,
+    );
+  });
+
   it.each(['takeoff', 'shortTakeoff'] as const)(
     'starts %s lined up with a compass check against the runway heading',
     (id) => {

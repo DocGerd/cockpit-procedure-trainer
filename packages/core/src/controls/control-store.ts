@@ -88,12 +88,11 @@ export function createControlStore<CT extends ControlRecord>(
 
   function locked(definition: ControlDefinition, id: string, to: ControlPosition): boolean {
     const lock = definition.interlock;
-    return (
-      lock !== undefined &&
-      current.get(id) === lock.holds &&
-      to !== lock.holds &&
-      current.get(lock.control) === lock.at
-    );
+    if (lock === undefined || current.get(lock.control) !== lock.at) return false;
+    const held: readonly ControlPosition[] =
+      typeof lock.holds === 'string' ? [lock.holds] : lock.holds;
+    const from = held.indexOf(current.get(id) as ControlPosition);
+    return from >= 0 && held.indexOf(to) < from;
   }
 
   function springTarget(definition: ControlDefinition, at: ControlPosition): string | undefined {

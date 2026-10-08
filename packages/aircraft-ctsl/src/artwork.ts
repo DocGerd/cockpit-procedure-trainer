@@ -69,6 +69,7 @@ export const images = {
   flapKnob5: new URL('./assets/artwork/flap-knob-5.svg', import.meta.url).href,
   flapKnob6: new URL('./assets/artwork/flap-knob-6.svg', import.meta.url).href,
   ignitionFace: new URL('./assets/artwork/ignition-face.svg', import.meta.url).href,
+  ignitionKeyOut: new URL('./assets/artwork/ignition-key-out.svg', import.meta.url).href,
   ignitionKeyOff: new URL('./assets/artwork/ignition-key-off.svg', import.meta.url).href,
   ignitionKeyL: new URL('./assets/artwork/ignition-key-l.svg', import.meta.url).href,
   ignitionKeyR: new URL('./assets/artwork/ignition-key-r.svg', import.meta.url).href,
@@ -307,6 +308,7 @@ export const controlArtwork = {
     'FLAPS',
   ),
   ignition: positions(images.ignitionFace, {
+    out: images.ignitionKeyOut,
     off: images.ignitionKeyOff,
     left: images.ignitionKeyL,
     right: images.ignitionKeyR,

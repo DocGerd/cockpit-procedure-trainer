@@ -38,17 +38,17 @@ const tapRight = (page: Page) => tap(page, 'ignition', 0.85, 0.5);
 const tapLeft = (page: Page) => tap(page, 'ignition', 0.15, 0.5);
 const tapValve = (page: Page) => tap(page, 'fuelValve', 0.5, 0.2);
 
-test('the CTSL fuel valve holds the ignition key at OFF and releases it one way', async ({
+test('the CTSL fuel valve keeps the key out, holds it at OFF and releases it one way', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await openAircraft(page, ctslAircraft, 'engineStart');
   await showView(page, ctslAircraft, 'centre', 'en');
-  await expect(key(page)).toHaveAttribute('aria-valuetext', 'off');
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'out');
 
   await tapRight(page);
   await expect(status(page)).toHaveText(notice);
-  await expect(key(page)).toHaveAttribute('aria-valuetext', 'off');
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'out');
   await expect(checklistPane(page).getByText(copy.checklist.noDeviations)).toBeVisible();
 
   const topThird = [0.2, 0.35, 0.5, 0.65, 0.8];
@@ -58,7 +58,7 @@ test('the CTSL fuel valve holds the ignition key at OFF and releases it one way'
   await expect(valve(page)).toHaveAttribute('aria-label', /: open$/i);
   for (const x of topThird) expect(await ownerAt(page, 'ignition', x, 0.15)).toBe('ignition');
 
-  for (const stop of ['left', 'right', 'both']) {
+  for (const stop of ['off', 'left', 'right', 'both']) {
     await tapRight(page);
     await expect(key(page)).toHaveAttribute('aria-valuetext', stop);
   }
@@ -83,5 +83,11 @@ test('the CTSL fuel valve holds the ignition key at OFF and releases it one way'
 
   await tapRight(page);
   await expect(key(page)).toHaveAttribute('aria-valuetext', 'off');
+  await expect(status(page)).toHaveText(notice);
+
+  await tapLeft(page);
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'out');
+  await tapRight(page);
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'out');
   await expect(status(page)).toHaveText(notice);
 });

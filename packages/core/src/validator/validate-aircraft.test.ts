@@ -384,6 +384,16 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports each held position of a set the control does not have', () => {
+      only(
+        withControl('ignition', {
+          interlock: { control: 'master', at: 'off', holds: ['off', 'half'] },
+        }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
     it('reports an artwork image key', () => {
       const aircraft = withControl('master', {
         appearance: {
