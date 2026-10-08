@@ -183,7 +183,7 @@ describe('run history in the picker', () => {
     seed({
       [second.id]: {
         powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9), 'practice') },
-        fire: { last: run(1, daysAgo(0)), best: run(1, daysAgo(0), 'practice') },
+        fire: { last: run(1, daysAgo(0), 'practice'), best: run(1, daysAgo(0), 'practice') },
       },
     });
     renderPicker();
@@ -217,6 +217,17 @@ describe('run history in the picker', () => {
     });
     renderPicker();
     expect(rowFor('power up')?.textContent).toContain('Best: 1 deviation');
+  });
+
+  it('keeps the Practice best beside a later Guided run with fewer deviations', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(0, daysAgo(0)), best: run(2, daysAgo(4), 'practice') },
+      },
+    });
+    renderPicker();
+    expect(rowFor('power up')?.textContent).toContain('Best: 2 deviations');
   });
 
   it('shows nothing for a procedure without a run, or for another aircraft', () => {

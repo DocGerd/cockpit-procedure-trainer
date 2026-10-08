@@ -91,11 +91,12 @@ function ProcedureGroup({
                     when: relativeDate(run.last.at, Date.now(), language),
                   })}
                 </span>
-                {run.best && run.best.deviations < run.last.deviations && (
-                  <span className="picker-meta">
-                    {format(text.historyBest, { result: deviationCount(run.best.deviations) })}
-                  </span>
-                )}
+                {run.best &&
+                  (run.last.mode === 'guided' || run.best.deviations < run.last.deviations) && (
+                    <span className="picker-meta">
+                      {format(text.historyBest, { result: deviationCount(run.best.deviations) })}
+                    </span>
+                  )}
               </span>
             )}
           </button>
