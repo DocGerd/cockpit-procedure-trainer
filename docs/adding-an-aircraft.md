@@ -90,11 +90,14 @@ A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
 
-Any control may declare `interlock: { control, at, holds }`: while the other
-control stands at `at`, the pilot cannot move this one away from `holds`. The
-CTSL's closed fuel valve holds the ignition key at `off` this way. Only pilot
-moves are refused (result `locked`), and the app frame names the holding control;
-phase entries and failures move freely. The other control must be a different one.
+Any control may declare `interlock: [{ control, at, holds }, ...]`: while the
+other control stands at `at`, the pilot cannot move this one from a position in
+`holds` to one outside it; a move is refused when any entry refuses it. The CTSL's
+fuel valve uses three: closed, it keeps the key out (`['out']`) and lets a key at
+OFF only come out (`['off', 'out']`); open, it keeps the key in
+(`['off', 'left', 'right', 'both', 'start']`). Only pilot moves are refused
+(result `locked`), and the app frame names the holding control; phase entries and
+failures move freely. The other control must be a different one.
 
 ### Indicators
 

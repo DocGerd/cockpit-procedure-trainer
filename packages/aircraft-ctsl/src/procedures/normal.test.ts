@@ -193,17 +193,20 @@ describe('CTSL normal procedures', () => {
     expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
   });
 
-  it('shutdown turns the key to OFF and then takes it out, leaving it as parking has it', () => {
-    const off = ignitionAt('shutdown', 'off');
-    const out = ignitionAt('shutdown', 'out');
-    expect(off).toBeGreaterThanOrEqual(0);
-    expect(out).toBeGreaterThan(off);
-    const last = (normalProcedures.shutdown.items as readonly Item[])
-      .filter((item) => item.type === 'action' && item.control === 'ignition')
-      .at(-1);
-    expect(last?.type === 'action' && last.position).toBe(
-      ctslAircraft.phases.parking?.entry.controls.ignition,
-    );
+  it('shutdown closes the fuel valve before the key comes out, leaving it as parking has it', () => {
+    const valve = actionAt('shutdown', 'fuelValve', 'closed');
+    const keyOut = ignitionAt('shutdown', 'out');
+    expect(ignitionAt('shutdown', 'off')).toBeLessThan(valve);
+    expect(valve).toBeLessThan(keyOut);
+    expect(ctslAircraft.phases.parking?.entry.controls).toMatchObject({
+      fuelValve: 'closed',
+      ignition: 'out',
+    });
+    const session = createSession(ctslAircraft, { devices, phase: 'parkingSecuring' });
+    session.set('ignition', 'off');
+    expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+    session.set('fuelValve', 'closed');
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
   });
 
   it.each(['takeoff', 'shortTakeoff'] as const)(

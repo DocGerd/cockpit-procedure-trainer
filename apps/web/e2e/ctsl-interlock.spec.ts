@@ -38,7 +38,7 @@ const tapRight = (page: Page) => tap(page, 'ignition', 0.85, 0.5);
 const tapLeft = (page: Page) => tap(page, 'ignition', 0.15, 0.5);
 const tapValve = (page: Page) => tap(page, 'fuelValve', 0.5, 0.2);
 
-test('the CTSL fuel valve keeps the key out, holds it at OFF and releases it one way', async ({
+test('the CTSL fuel valve lets the key in only open and out only closed, and holds it at OFF', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
@@ -71,6 +71,21 @@ test('the CTSL fuel valve keeps the key out, holds it at OFF and releases it one
   await expect(key(page)).toHaveAttribute('aria-valuetext', 'start');
   await page.mouse.up();
   await expect(key(page)).toHaveAttribute('aria-valuetext', 'both');
+
+  await key(page).press('Home');
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'both');
+  await expect(status(page)).toHaveText(notice);
+  for (const stop of ['right', 'left', 'off']) {
+    await tapLeft(page);
+    await expect(key(page)).toHaveAttribute('aria-valuetext', stop);
+  }
+  await tapLeft(page);
+  await expect(key(page)).toHaveAttribute('aria-valuetext', 'off');
+  await expect(status(page)).toHaveText(notice);
+  for (const stop of ['left', 'right', 'both']) {
+    await tapRight(page);
+    await expect(key(page)).toHaveAttribute('aria-valuetext', stop);
+  }
 
   await tapValve(page);
   await expect(valve(page)).toHaveAttribute('aria-label', /: closed$/i);

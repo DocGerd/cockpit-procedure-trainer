@@ -80,7 +80,7 @@ describe('validateAircraft', () => {
 
     it('reports an interlock on an unknown control', () => {
       const aircraft = withControl('ignition', {
-        interlock: { control: 'ghostValve', at: 'closed', holds: 'off' },
+        interlock: [{ control: 'ghostValve', at: 'closed', holds: ['off'] }],
       });
       only(aircraft, 'unknown-target', 'ghostValve');
     });
@@ -355,40 +355,43 @@ describe('validateAircraft', () => {
 
     it('reports an interlock on the control itself', () => {
       const aircraft = withControl('ignition', {
-        interlock: { control: 'ignition', at: 'off', holds: 'off' },
+        interlock: [{ control: 'ignition', at: 'off', holds: ['off'] }],
       });
       only(aircraft, 'unknown-target', 'ignition');
     });
 
     it('accepts an interlock on known positions', () => {
       const aircraft = withControl('ignition', {
-        interlock: { control: 'master', at: 'off', holds: 'off' },
+        interlock: [{ control: 'master', at: 'off', holds: ['off'] }],
       });
       expect(validateAircraft(aircraft)).toEqual([]);
     });
 
     it('reports an interlock position the other control does not have', () => {
       const finding = only(
-        withControl('ignition', { interlock: { control: 'master', at: 'half', holds: 'off' } }),
+        withControl('ignition', { interlock: [{ control: 'master', at: 'half', holds: ['off'] }] }),
         'unknown-position',
         'master',
       );
       expect(finding.message).toContain('interlock of ignition');
     });
 
-    it('reports an interlock holding a position the control does not have', () => {
+    it('reports a position of a later interlock the control does not have', () => {
       only(
-        withControl('ignition', { interlock: { control: 'master', at: 'off', holds: 'half' } }),
+        withControl('ignition', {
+          interlock: [
+            { control: 'master', at: 'off', holds: ['off'] },
+            { control: 'master', at: 'on', holds: ['off', 'half'] },
+          ],
+        }),
         'unknown-position',
         'ignition',
       );
     });
 
-    it('reports each held position of a set the control does not have', () => {
+    it('reports an interlock holding a position the control does not have', () => {
       only(
-        withControl('ignition', {
-          interlock: { control: 'master', at: 'off', holds: ['off', 'half'] },
-        }),
+        withControl('ignition', { interlock: [{ control: 'master', at: 'off', holds: ['half'] }] }),
         'unknown-position',
         'ignition',
       );

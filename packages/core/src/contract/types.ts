@@ -52,14 +52,14 @@ export type GuardPosition = 'closed' | 'open';
 
 /**
  * A mechanical lock by another control: while `control` stands at `at`, the pilot cannot move this
- * control out of `holds`. A list of positions is one way: the control moves only later in it, as
- * the cover of a closed fuel valve lets the key come out of OFF but neither turn on nor go back in.
- * It never moves either control, and the other control stays free while this one is elsewhere.
+ * control from a position in `holds` to one outside it, as a closed fuel valve covering the key slot
+ * keeps the key at OFF. It never moves either control, and this control stays free while it stands
+ * outside `holds`.
  */
 export type ControlInterlock = {
   readonly control: string;
   readonly at: ControlPosition;
-  readonly holds: string | readonly string[];
+  readonly holds: readonly string[];
 };
 
 type ControlBase = {
@@ -68,7 +68,8 @@ type ControlBase = {
   /** The panel's own short function legend beside the control, such as BAT or FUEL; it does not follow the UI language. */
   readonly placard?: string;
   readonly appearance?: Appearance;
-  readonly interlock?: ControlInterlock;
+  /** Every lock that applies; a move is refused when any of them refuses it. */
+  readonly interlock?: readonly ControlInterlock[];
 };
 
 export type ToggleControl = ControlBase & {

@@ -860,6 +860,12 @@ export const normalProcedures = {
       },
       {
         type: 'action',
+        control: 'fuelValve',
+        position: 'closed',
+        text: text('Brandhahn zu', 'Fuel valve closed'),
+      },
+      {
+        type: 'action',
         control: 'ignition',
         position: 'out',
         text: text('Zündschlüssel abgezogen', 'Key out'),

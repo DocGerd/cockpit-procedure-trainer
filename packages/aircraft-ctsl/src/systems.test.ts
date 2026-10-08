@@ -170,10 +170,20 @@ describe('engine start', () => {
     expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
   });
 
+  it('keeps the key in while the fuel valve is open', () => {
+    const session = sessionAt('holding');
+    for (const from of ['both', 'off']) {
+      session.set('ignition', from);
+      expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+    }
+    expect(session.state().controls.ignition).toBe('off');
+  });
+
   it('has no ignition with the key out', () => {
     const session = sessionAt('holding');
     session.set('ignition', 'off');
-    session.set('ignition', 'out');
+    session.set('fuelValve', 'closed');
+    expect(session.set('ignition', 'out')).toEqual({ applied: true });
     advanceSeconds(session, 5);
     expect(systems(session).engine.running).toBe(false);
   });
