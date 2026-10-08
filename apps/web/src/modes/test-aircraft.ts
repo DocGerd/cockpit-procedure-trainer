@@ -184,6 +184,19 @@ export const fixture: Aircraft = defineAircraft({
         { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
       ],
     },
+    scan: {
+      title: text('Scan'),
+      type: 'normal',
+      startPhase: 'ground',
+      items: [
+        { type: 'action', flow: true, control: 'cutoff', position: 'cut', text: text('Cutoff') },
+        { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump') },
+        { type: 'action', flow: true, control: 'unplaced', position: 'on', text: text('Unplaced') },
+        { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff verified') },
+        { type: 'action', control: 'pump', position: 'on', text: text('Pump verified') },
+        { type: 'action', control: 'unplaced', position: 'on', text: text('Unplaced verified') },
+      ],
+    },
     keyless: {
       title: text('Keyless'),
       type: 'normal',

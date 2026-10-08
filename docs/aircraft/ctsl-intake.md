@@ -544,3 +544,15 @@ verifies it on D-MPGO.
     verification** (#466). Assumed (unverified), from general-aviation practice;
     the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
     owner's.
+25. **Flows**: which procedures does the club open with a panel scan done from
+    memory before the checklist is read, and in which order? Today: three, each
+    verified by the §6 items that follow it. **Answered by assumption pending
+    owner verification** (#453). Assumed (unverified), from general-aviation
+    practice and the CT Supralight panel layout (§3), scanned top to bottom on the
+    centre field, then the console:
+    - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
+      carb heat off.
+    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+      parking brake stays out of the flow, since its valve and lever go in order
+      (§3.4).
+    - N15 After landing: landing light off; flaps 0°; carb heat off.

@@ -300,8 +300,8 @@ keeps it independent of the systems model and testable alone.
 
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
-| Guided | shown | current target highlighted; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
-| Practice | shown; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings | recorded, summary at the end, with the assists used |
+| Guided | shown; a flow is a labelled group above the checklist that verifies it | current target highlighted; in a flow every open target at once, numbered in scan order; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
+| Practice | shown; a flow's rows blank until the flow is done; with the option "Hide upcoming items" only done items, the current line blank (recall instead of read-and-do) | none, except the target a "Show me" assist rings; in a flow one Show me shows the whole flow | recorded, summary at the end, with the assists used |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
 
 Practice's recall option and its Show me assist are settings of the mode, not a
@@ -309,6 +309,12 @@ fourth mode, so the decisions table's "Modes" row is unchanged. A recall run
 practises the procedure from memory instead of reading it; a Show me reveals
 the current item and rings its target once, and the summary counts and lists
 each one.
+
+A flow is done from memory and in any order (§4.7), so Practice leaves its text
+out until it is done, and Guided rings all its open targets at once instead of
+one: a single ring would read as a sequence. Each ring carries the item's
+number, so the rings read as a scan path across the panel. Once the flow is
+done, the pane says that the checklist now verifies it (#453).
 
 In every mode a checklist selector in the checklist pane opens any of the
 aircraft's checklists for reading. A checklist viewed that way is a static

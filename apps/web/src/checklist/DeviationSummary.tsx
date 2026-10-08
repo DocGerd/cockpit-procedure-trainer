@@ -3,7 +3,9 @@ import { useEffect, useId, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
+import { ItemGroup } from './ItemGroup';
 import { messages } from './messages';
+import { flowLength } from './useCurrentTarget';
 
 const KINDS: readonly DeviationKind[] = [
   'unexpected-control',
@@ -49,6 +51,36 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     'unmet-check': text.kindUnmet,
   };
   const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
+  const flowItems = flowLength(procedure);
+  const reviewRow = (item: (typeof procedure.items)[number], index: number) => {
+    const deviated = deviations.some(
+      (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+    );
+    return (
+      <li
+        key={index}
+        ref={(row) => {
+          if (row) rows.current.set(index, row);
+          else rows.current.delete(index);
+        }}
+        tabIndex={-1}
+        className="checklist-item"
+        data-state={deviated ? 'deviated' : 'done'}
+      >
+        <span className="checklist-item-row">
+          <span
+            className="checklist-mark"
+            role="img"
+            aria-label={deviated ? text.stateDeviated : text.stateDone}
+          >
+            {deviated ? '▲' : '✓'}
+          </span>
+          <span className="checklist-number">{index + 1}</span>
+          <span className="checklist-item-text">{localize(item.text)}</span>
+        </span>
+      </li>
+    );
+  };
   const goTo = (index: number) => {
     const row = rows.current.get(index);
     row?.focus({ preventScroll: true });
@@ -163,35 +195,14 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
 
       <section className="checklist-review" aria-label={text.itemsHeading}>
         <ol className="checklist-review-list">
-          {procedure.items.map((item, index) => {
-            const deviated = deviations.some(
-              (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
-            );
-            return (
-              <li
-                key={index}
-                ref={(row) => {
-                  if (row) rows.current.set(index, row);
-                  else rows.current.delete(index);
-                }}
-                tabIndex={-1}
-                className="checklist-item"
-                data-state={deviated ? 'deviated' : 'done'}
-              >
-                <span className="checklist-item-row">
-                  <span
-                    className="checklist-mark"
-                    role="img"
-                    aria-label={deviated ? text.stateDeviated : text.stateDone}
-                  >
-                    {deviated ? '▲' : '✓'}
-                  </span>
-                  <span className="checklist-number">{index + 1}</span>
-                  <span className="checklist-item-text">{localize(item.text)}</span>
-                </span>
-              </li>
-            );
-          })}
+          {flowItems > 0 && (
+            <ItemGroup kind="flow" label={text.flowHeading}>
+              {procedure.items.slice(0, flowItems).map(reviewRow)}
+            </ItemGroup>
+          )}
+          {procedure.items.map((item, index) =>
+            index < flowItems ? null : reviewRow(item, index),
+          )}
         </ol>
       </section>
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useCurrentTarget, useStray } from '../checklist';
+import { useCurrentTarget, useFlowTargets, useStray } from '../checklist';
 import { useDock } from '../devices/dock-state';
 import { useActiveView } from '../panel/active-view';
 import { useReveal } from '../panel/panel-zoom';
@@ -48,10 +48,14 @@ function useReducedMotion(): boolean {
   );
 }
 
-/** Guided rings every step; Practice rings only an item the pilot had shown with Show me. */
+/**
+ * Guided rings every step; Practice rings only an item the pilot had shown with Show me. A flow
+ * rings all its open targets at once, each numbered in scan order.
+ */
 function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
   const { aircraft, mode } = useTrainer();
   const target = useCurrentTarget();
+  const flow = useFlowTargets();
   const stray = useStray();
   const strayBox = stray === undefined ? undefined : targetBox(rects, { control: stray });
   const item = useSessionState((session) => session.checklist()?.current);
@@ -86,6 +90,11 @@ function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
 
   const box = target && targetBox(rects, target);
   const shown = box !== undefined;
+  const scan = flow.flatMap(({ index, control }) => {
+    const at = targetBox(rects, { control });
+    return at ? [{ index, box: at }] : [];
+  });
+  const pulse = reducedMotion ? undefined : practice ? 'once' : 'true';
   useEffect(() => {
     if (shown && ring.current) revealRing.current(ring.current);
   }, [key, item, shown]);
@@ -102,15 +111,31 @@ function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
 
   return (
     <div ref={layer} className="modes-overlay" data-modes-overlay="">
-      {box && (
-        <div
-          ref={ring}
-          className="modes-outline"
-          data-outline="target"
-          data-pulse={reducedMotion ? undefined : practice ? 'once' : 'true'}
-          style={boxStyle(box)}
-        />
-      )}
+      {flow.length > 0
+        ? scan.map(({ index, box: at }) => (
+            <div
+              key={index}
+              ref={index === item ? ring : undefined}
+              className="modes-outline"
+              data-outline="target"
+              data-scan={index + 1}
+              data-pulse={pulse}
+              style={boxStyle(at)}
+            >
+              <span className="modes-scan" aria-hidden="true">
+                {index + 1}
+              </span>
+            </div>
+          ))
+        : box && (
+            <div
+              ref={ring}
+              className="modes-outline"
+              data-outline="target"
+              data-pulse={pulse}
+              style={boxStyle(box)}
+            />
+          )}
       {strayBox && (
         <div className="modes-outline" data-outline="stray" style={boxStyle(strayBox)} />
       )}

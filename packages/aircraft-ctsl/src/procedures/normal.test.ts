@@ -50,17 +50,36 @@ type Item = ProcedureItem<unknown>;
 
 const procedures = Object.entries(ctslAircraft.procedures).filter(([id]) => id in normalProcedures);
 
-const without = (id: string, index: number): Aircraft => {
+const isFlow = (item: Item) => item.type === 'action' && item.flow === true;
+
+// A flow item sets what a later action sets again, so the two stand or fall together.
+const twins = (items: readonly Item[], index: number) => {
+  const action = items[index];
+  if (action?.type !== 'action') return [index];
+  return items.flatMap((item, i) =>
+    i === index ||
+    (isFlow(item) &&
+      item.type === 'action' &&
+      item.control === action.control &&
+      item.position === action.position)
+      ? [i]
+      : [],
+  );
+};
+
+const withoutItems = (id: string, indices: readonly number[]): Aircraft => {
   const procedure = ctslAircraft.procedures[id];
   if (!procedure) throw new Error(`no procedure ${id}`);
   return {
     ...ctslAircraft,
     procedures: {
       ...ctslAircraft.procedures,
-      [id]: { ...procedure, items: procedure.items.filter((_, i) => i !== index) },
+      [id]: { ...procedure, items: procedure.items.filter((_, i) => !indices.includes(i)) },
     },
   } as Aircraft;
 };
+
+const without = (id: string, index: number): Aircraft => withoutItems(id, [index]);
 
 const checksOf = (id: string) =>
   (ctslAircraft.procedures[id]?.items ?? [])
@@ -70,12 +89,18 @@ const checksOf = (id: string) =>
 const actionsBefore = (id: string, index: number) =>
   (ctslAircraft.procedures[id]?.items ?? [])
     .map((item, i) => ({ item: item as Item, i }))
-    .filter(({ item, i }) => item.type === 'action' && i < index)
+    .filter(({ item, i }) => item.type === 'action' && !isFlow(item) && i < index)
     .map(({ i }) => i);
 
 const failsAt = (aircraft: Aircraft, id: string, index: number) => {
   const result = walkProcedure(aircraft, id, { devices });
   return !result.ok && result.itemIndex === index && result.reason === 'condition not met';
+};
+
+/** Whether the check at `check` fails once the action at `action`, with its flow twin, is gone. */
+const failsWithout = (id: string, action: number, check: number) => {
+  const removed = twins((ctslAircraft.procedures[id]?.items ?? []) as readonly Item[], action);
+  return failsAt(withoutItems(id, removed), id, check - removed.length);
 };
 
 describe('CTSL normal procedures', () => {
@@ -101,7 +126,9 @@ describe('CTSL normal procedures', () => {
   it('beforeTakeoff stops at choke and carb heat, already off, until the pilot verifies each', () => {
     const items = normalProcedures.beforeTakeoff.items as readonly Item[];
     const indexOf = (control: string) =>
-      items.findIndex((item) => item.type === 'action' && item.control === control);
+      items.findIndex(
+        (item) => !isFlow(item) && item.type === 'action' && item.control === control,
+      );
     const choke = indexOf('choke');
     const carbHeat = indexOf('carbHeat');
     expect(carbHeat).toBe(choke + 1);
@@ -109,7 +136,11 @@ describe('CTSL normal procedures', () => {
     const session = createSession(ctslAircraft, { devices, phase: 'holding' });
     session.startProcedure('beforeTakeoff');
     expect(session.state().controls).toMatchObject({ choke: 'off', carbHeat: 'off' });
-    for (let at = session.checklist()?.current ?? 0; at < choke; at += 1) {
+    for (
+      let at = session.checklist()?.current ?? 0;
+      at < choke;
+      at = session.checklist()?.current ?? choke
+    ) {
       const item = items[at] as Item;
       if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
         session.set(item.control, item.position);
@@ -126,6 +157,37 @@ describe('CTSL normal procedures', () => {
     session.checkOff();
     expect(session.checklist()?.current).toBe(carbHeat + 1);
     expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  describe('flows (assumed, intake §9 question 25)', () => {
+    const flows = {
+      engineStart: ['avionicsMaster', 'beacon', 'fuelValve', 'battery', 'carbHeat'],
+      beforeTakeoff: ['flapSelector', 'choke', 'trim', 'carbHeat'],
+      afterLanding: ['landingLight', 'flapSelector', 'carbHeat'],
+    } as const;
+
+    it('opens only the procedures where a panel scan comes first with a flow', () => {
+      const opening = Object.entries(normalProcedures)
+        .filter(([, procedure]) => isFlow(procedure.items[0] as Item))
+        .map(([id]) => id)
+        .sort();
+      expect(opening).toEqual(Object.keys(flows).sort());
+    });
+
+    it.each(Object.entries(flows))('%s scans its controls in panel order', (id, controls) => {
+      const items = normalProcedures[id as keyof typeof flows].items as readonly Item[];
+      const flow = items.filter(isFlow);
+      expect(flow.map((item) => item.type === 'action' && item.control)).toEqual(controls);
+    });
+
+    it.each(Object.keys(flows))('%s leaves part of its flow to do at the start', (id) => {
+      const procedure = ctslAircraft.procedures[id];
+      if (!procedure) throw new Error(`no procedure ${id}`);
+      const session = createSession(ctslAircraft, { devices, phase: procedure.startPhase });
+      session.startProcedure(id);
+      const flow = procedure.items.filter((item) => isFlow(item as Item));
+      expect(session.checklist()?.completed.length).toBeLessThan(flow.length);
+    });
   });
 
   it('asks for the run-up rpm as a challenge and takes the reading as the response', () => {
@@ -201,9 +263,7 @@ describe('CTSL normal procedures', () => {
     );
 
     it.each(cases)('%s item %i "%s" fails without it', (id, index) => {
-      const establishing = actionsBefore(id, index).filter((k) =>
-        failsAt(without(id, k), id, index - 1),
-      );
+      const establishing = actionsBefore(id, index).filter((k) => failsWithout(id, k, index));
       expect(establishing.length).toBeGreaterThan(0);
     });
   });
@@ -221,7 +281,7 @@ describe('CTSL normal procedures', () => {
       const session = createSession(ctslAircraft, { devices, phase: procedure.startPhase });
       expect(found.item.condition(session.state())).toBe(true);
       for (const k of actionsBefore(id, found.index)) {
-        expect(failsAt(without(id, k), id, found.index - 1), `without item ${k}`).toBe(false);
+        expect(failsWithout(id, k, found.index), `without item ${k}`).toBe(false);
       }
     });
   });
