@@ -377,9 +377,8 @@ export const controlArtwork = {
       'nose-up': images.trimWheelNoseUp,
     }),
     'TRIM',
-    'NOSE DN',
-    'NEUTRAL',
-    'NOSE UP',
+    'DOWN',
+    'UP',
   ),
   rescueHandle: lettered(
     {

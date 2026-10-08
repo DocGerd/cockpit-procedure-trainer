@@ -469,7 +469,7 @@ describe('CTSL console levers (intake §3.4)', () => {
       expect(pointerX('nose-down')).toBeLessThan(pointerX('neutral'));
       expect(pointerX('neutral')).toBeLessThan(pointerX('nose-up'));
       const face = read(artwork?.face ?? '');
-      expect(xOf(face, 'NOSE DN')).toBeLessThan(xOf(face, 'NOSE UP'));
+      expect(xOf(face, 'DOWN')).toBeLessThan(xOf(face, 'UP'));
     });
   });
 });
