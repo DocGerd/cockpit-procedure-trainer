@@ -43,7 +43,7 @@ export function ProcedureViewer() {
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         {awaiting && <p className="checklist-note">{text.surpriseNote}</p>}
         <p className="checklist-note">{text.viewOnly}</p>
-        {awaiting && procedure.type === 'emergency' && viewedProcedureId !== undefined && (
+        {awaiting && viewedProcedureId !== undefined && (
           <button
             type="button"
             className="button-primary checklist-back"

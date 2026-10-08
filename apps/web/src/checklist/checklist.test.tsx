@@ -705,17 +705,42 @@ describe('surprise failure', () => {
     expect(screen.getByText(note)).toBeTruthy();
   });
 
-  it('names no failure while it is pending and offers to run an emergency checklist', async () => {
+  it('names no failure while it is pending and offers to run any checklist', async () => {
     renderPane();
     surprise();
     expect(screen.getByText(note)).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Fire' })).toBeNull();
     expect(screen.queryByText('Failure injected')).toBeNull();
     expect(runButton()).toBeNull();
-    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    const selector = screen.getByRole('combobox', { name: 'Show checklist' });
+    await userEvent.selectOptions(selector, 'fire');
     expect(runButton()).toBeTruthy();
     expect(screen.getByText('Emergency')).toBeTruthy();
     expect(screen.queryByText('Failure injected')).toBeNull();
+    await userEvent.selectOptions(selector, 'followUp');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(runButton()).toBeTruthy();
+  });
+
+  it('runs a normal checklist picked in the viewer and reports it as the wrong one', async () => {
+    renderPane();
+    surprise();
+    past(SURPRISE_MAX_MS);
+    await userEvent.selectOptions(
+      screen.getByRole('combobox', { name: 'Show checklist' }),
+      'followUp',
+    );
+    const run = runButton();
+    if (!run) throw new Error('no run button');
+    await userEvent.click(run);
+    expect(trainer.procedureId).toBe('followUp');
+    expect(trainer.session.scenario()).toMatchObject({ chosen: 'followUp', matched: false });
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    expect(runButton()).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /^Back to/ }));
+    operate('avionics', 'on');
+    const verdict = screen.getByText('Not the checklist for the failure: Fire.');
+    expect(verdict.getAttribute('data-matched')).toBe('false');
   });
 
   it('runs the chosen checklist, then reports the time to recognise and a match', async () => {
