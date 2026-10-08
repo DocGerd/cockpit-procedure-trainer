@@ -16,7 +16,15 @@ export function ProcedureViewer() {
   });
   const procedure =
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];
-  if (!procedure) return null;
+  if (!procedure) {
+    return awaiting ? (
+      <div className="checklist">
+        <div className="checklist-header">
+          <p className="checklist-note">{text.surpriseNote}</p>
+        </div>
+      </div>
+    ) : null;
+  }
   const running = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
   const rows = procedure.items.map((item, index) => (

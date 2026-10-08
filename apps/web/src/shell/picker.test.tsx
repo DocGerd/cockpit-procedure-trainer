@@ -345,7 +345,7 @@ describe('drills in the picker', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
     expect(trainer.session.scenario()?.phase).toBe('cruise');
     expect(trainer.session.phase()).toBe('cruise');
-    expect(trainer.viewedProcedureId).toBe('descent');
+    expect(trainer.viewedProcedureId).toBeUndefined();
   });
 
   it('starts a full flight on its first leg in the chosen mode', async () => {

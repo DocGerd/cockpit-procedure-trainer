@@ -377,6 +377,10 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   const pane = checklistPane(page);
   await expect(pane.getByText(copy.checklist.surpriseNote)).toBeVisible();
   await expect(page.getByRole('heading', { name: title.en })).toHaveCount(0);
+  const selector = pane.getByRole('combobox', { name: copy.checklist.showChecklist });
+  await expect(selector).toHaveValue('');
+  await expect(pane.getByRole('heading')).toHaveCount(0);
+  await expect(pane.getByRole('listitem')).toHaveCount(0);
   const lowVolt = aircraft.indicators['lowVoltageLamp']?.name.en ?? 'LOW VOLT';
   const lamp = page.locator(`[data-widget="annunciator"][aria-label^="${lowVolt}"]`);
   await expect(lamp).toHaveAttribute('data-lit', 'false');

@@ -3,6 +3,7 @@ import { defineMessages } from '../i18n';
 export const messages = defineMessages({
   en: {
     showChecklist: 'Show checklist',
+    chooseChecklist: 'Choose a checklist',
     groupNormal: 'Normal',
     groupEmergency: 'Emergency',
     runningSuffix: 'running',
@@ -139,6 +140,7 @@ export const messages = defineMessages({
   },
   de: {
     showChecklist: 'Checkliste anzeigen',
+    chooseChecklist: 'Checkliste wählen',
     groupNormal: 'Normal',
     groupEmergency: 'Notfall',
     runningSuffix: 'läuft',
