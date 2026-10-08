@@ -35,16 +35,16 @@
 <rect x="1160" y="340" width="416" height="14" rx="6" fill="url(#ps)"/>
 <path d="M1874 48.8h4.5V674.8H1612.5v-10.8H1874z" fill="#000000" fill-opacity="0.2"/><path d="M1874 44h2.5V670H1610.5v-6H1874z" fill="#000000" fill-opacity="0.4"/>
 <rect x="1598" y="28" width="276" height="636" rx="10" fill="url(#gp)"/>
-<circle cx="1736.6" cy="137.5" r="21" fill="#000000" fill-opacity="0.5"/>
-<circle cx="1736" cy="135" r="20" fill="url(#kn)"/>
-<circle cx="1824.6" cy="137.5" r="21" fill="#000000" fill-opacity="0.5"/>
-<circle cx="1824" cy="135" r="20" fill="url(#kn)"/>
+<circle cx="1736.6" cy="183.5" r="21" fill="#000000" fill-opacity="0.5"/>
+<circle cx="1736" cy="181" r="20" fill="url(#kn)"/>
+<circle cx="1824.6" cy="183.5" r="21" fill="#000000" fill-opacity="0.5"/>
+<circle cx="1824" cy="181" r="20" fill="url(#kn)"/>
 <rect x="566" y="28" width="118" height="78" rx="10" fill="url(#rf)"/><rect x="566" y="28" width="118" height="78" rx="10" fill="url(#gr)"/><path d="M569 96V38A7 7 0 0 1 576 31H674" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="6"/><path d="M567.7 96V38A8.4 8.4 0 0 1 576 29.7H674" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="3.3"/><path d="M566.7 96V38A9.3 9.3 0 0 1 576 28.7H674" fill="none" stroke="#000000" stroke-opacity="0.5" stroke-width="1.3"/><path d="M684.6 37.4V96.6A10 10 0 0 1 674.6 106.6H575.4" fill="none" stroke="#5A6068" stroke-opacity="0.9" stroke-width="2.4"/><path d="M565.4 96.6V37.4A10 10 0 0 1 575.4 27.4H674.6" fill="none" stroke="#050506" stroke-width="2.4"/><path d="M563 96.6V37.4A12.4 12.4 0 0 1 575.4 25H674.6" fill="none" stroke="#4E535A" stroke-opacity="0.7" stroke-width="1.4"/>
 <rect x="694" y="28" width="118" height="78" rx="10" fill="url(#rf)"/><rect x="694" y="28" width="118" height="78" rx="10" fill="url(#gr)"/><path d="M697 96V38A7 7 0 0 1 704 31H802" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="6"/><path d="M695.7 96V38A8.4 8.4 0 0 1 704 29.7H802" fill="none" stroke="#000000" stroke-opacity="0.3" stroke-width="3.3"/><path d="M694.7 96V38A9.3 9.3 0 0 1 704 28.7H802" fill="none" stroke="#000000" stroke-opacity="0.5" stroke-width="1.3"/><path d="M812.6 37.4V96.6A10 10 0 0 1 802.6 106.6H703.4" fill="none" stroke="#5A6068" stroke-opacity="0.9" stroke-width="2.4"/><path d="M693.4 96.6V37.4A10 10 0 0 1 703.4 27.4H802.6" fill="none" stroke="#050506" stroke-width="2.4"/><path d="M691 96.6V37.4A12.4 12.4 0 0 1 703.4 25H802.6" fill="none" stroke="#4E535A" stroke-opacity="0.7" stroke-width="1.4"/>
-<circle cx="754" cy="69" r="31" fill="#000000" fill-opacity="0.5"/>
-<circle cx="753" cy="67" r="30" fill="url(#an)"/>
-<circle cx="753" cy="67" r="22" fill="url(#ln)" stroke="#050506" stroke-width="2"/>
-<path d="M737 62 A18 18 0 0 1 756 50" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="2.5"/>
+<circle cx="753.8" cy="59.8" r="22.8" fill="#000000" fill-opacity="0.5"/>
+<circle data-bezel="" cx="753" cy="58" r="22" fill="url(#an)"/>
+<circle cx="753" cy="58" r="16" fill="url(#ln)" stroke="#050506" stroke-width="1.5"/>
+<path d="M741.5 54.5 A12 12 0 0 1 755 46" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="2.2"/>
 <path d="M402 222 Q475 262 548 222" fill="none" stroke="#0E0F11" stroke-width="30" stroke-linecap="round"/>
 <path d="M402 222 Q475 262 548 222" fill="none" stroke="#2C3036" stroke-width="21" stroke-linecap="round"/>
 <path d="M402 222 Q475 262 548 222" transform="translate(0 -6)" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="3" stroke-linecap="round"/>
@@ -53,7 +53,7 @@
 <path d="M145.7 200a124.3 124.3 0 1 0 248.6 0a124.3 124.3 0 1 0 -248.6 0zM171 200a99 99 0 1 0 198 0a99 99 0 1 0 -198 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M384.6 112a90.4 90.4 0 1 0 180.8 0a90.4 90.4 0 1 0 -180.8 0zM403 112a72 72 0 1 0 144 0a72 72 0 1 0 -144 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M560.7 225a124.3 124.3 0 1 0 248.6 0a124.3 124.3 0 1 0 -248.6 0zM586 225a99 99 0 1 0 198 0a99 99 0 1 0 -198 0z" fill="url(#sd)" fill-rule="evenodd"/>
-<path d="M837.2 175a163.9 163.9 0 1 0 327.7 0a163.9 163.9 0 1 0 -327.7 0zM870.5 175a130.5 130.5 0 1 0 261 0a130.5 130.5 0 1 0 -261 0z" fill="url(#sd)" fill-rule="evenodd"/>
+<path d="M868.2 115a84.8 84.8 0 1 0 169.6 0a84.8 84.8 0 1 0 -169.6 0zM885.5 115a67.5 67.5 0 1 0 135 0a67.5 67.5 0 1 0 -135 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M857.7 470a124.3 124.3 0 1 0 248.6 0a124.3 124.3 0 1 0 -248.6 0zM883 470a99 99 0 1 0 198 0a99 99 0 1 0 -198 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M1091.6 470a90.4 90.4 0 1 0 180.8 0a90.4 90.4 0 1 0 -180.8 0zM1110 470a72 72 0 1 0 144 0a72 72 0 1 0 -144 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M1256.6 470a90.4 90.4 0 1 0 180.8 0a90.4 90.4 0 1 0 -180.8 0zM1275 470a72 72 0 1 0 144 0a72 72 0 1 0 -144 0z" fill="url(#sd)" fill-rule="evenodd"/>
@@ -122,5 +122,7 @@
 <text x="450" y="449" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">COM RADIO</text>
 <text x="450" y="609" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">TRANSPONDER</text>
 <text x="1368" y="204" font-family="Helvetica, Arial, sans-serif" font-size="40" font-weight="bold" fill="#A3A7AC" text-anchor="middle">GPS</text>
-<text x="1736" y="54" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3" text-anchor="middle">BREAKERS</text>
+<text x="880" y="232" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3">CT Supralight</text>
+<text x="1736" y="72" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Circuit Breakers -</text>
+<text x="1736" y="106" font-family="Helvetica, Arial, sans-serif" font-size="30" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Push off</text>
 </svg>
