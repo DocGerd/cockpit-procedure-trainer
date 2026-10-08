@@ -31,12 +31,25 @@ export function deviceControls(aircraft: Aircraft, registry: readonly Device[]):
   return controls;
 }
 
-export function initialDeviceStates(aircraft: Aircraft, registry: readonly Device[]): DeviceStates {
+export function initialDeviceStates(
+  aircraft: Aircraft,
+  registry: readonly Device[],
+  phaseId?: string,
+): DeviceStates {
+  if (phaseId !== undefined && !Object.hasOwn(aircraft.phases, phaseId)) {
+    throw new Error(`Unknown phase "${phaseId}"`);
+  }
+  const seeds =
+    (phaseId === undefined ? undefined : aircraft.phases[phaseId]?.entry.deviceStates) ?? {};
   return Object.fromEntries(
-    installs(aircraft).map(([installId, install]) => [
-      installId,
-      { on: false, state: deviceOf(registry, installId, install.device).initial },
-    ]),
+    installs(aircraft).map(([installId, install]) => {
+      const { initial } = deviceOf(registry, installId, install.device);
+      const seed = Object.hasOwn(seeds, installId) ? seeds[installId] : undefined;
+      return [
+        installId,
+        { on: false, state: seed ? { ...(initial as object), ...seed } : initial },
+      ];
+    }),
   );
 }
 

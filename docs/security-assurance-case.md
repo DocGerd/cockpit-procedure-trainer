@@ -6,14 +6,14 @@ design and common weaknesses. Companion: [`architecture.md`](architecture.md).
 
 ## 1. Claims
 
-| #   | Claim                                                                                                                                                                             |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | The project owns no server-side attack surface: no backend, API, database or accounts.                                                                                            |
-| C2  | No user data leaves the device. The app persists only theme, language, last aircraft and a per-procedure run history (last and best deviation count and date), in `localStorage`. |
-| C3  | The app loads only its own assets and makes no runtime request to a third-party origin; the browser enforces this with a strict CSP.                                              |
-| C4  | The shipped bytes correspond to the reviewed source: `main` is built by CI and served by GitHub Pages.                                                                            |
-| C5  | Third-party code is declared in a lockfile, monitored and updated.                                                                                                                |
-| C6  | Failure is safe: a missing `localStorage` or image disables persistence or shows a placeholder, never corrupts the trainer.                                                       |
+| #   | Claim                                                                                                                                                                                                                      |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | The project owns no server-side attack surface: no backend, API, database or accounts.                                                                                                                                     |
+| C2  | No user data leaves the device. The app persists only theme, language, last aircraft, Practice's "Hide upcoming items" option and a per-procedure run history (last and best deviation count and date), in `localStorage`. |
+| C3  | The app loads only its own assets and makes no runtime request to a third-party origin; the browser enforces this with a strict CSP.                                                                                       |
+| C4  | The shipped bytes correspond to the reviewed source: `main` is built by CI and served by GitHub Pages.                                                                                                                     |
+| C5  | Third-party code is declared in a lockfile, monitored and updated.                                                                                                                                                         |
+| C6  | Failure is safe: a missing `localStorage` or image disables persistence or shows a placeholder, never corrupts the trainer.                                                                                                |
 
 Not claimed: flight-safety authority (training aid only, the handbook is
 authoritative) and protection against a compromised device or browser.

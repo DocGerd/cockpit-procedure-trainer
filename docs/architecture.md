@@ -40,7 +40,8 @@ inconsistent aircraft data.
 
 ## Persistence and network
 
-`localStorage` holds theme, language, last aircraft and a per-procedure run history
+`localStorage` holds theme, language, last aircraft, Practice's "Hide upcoming items"
+option and a per-procedure run history
 (last and best result, validated and size-bounded) only (`apps/web/src/storage`);
 the app works without it. Everything else is in memory. The app makes no
 runtime requests beyond its own origin; the service worker precaches the app so

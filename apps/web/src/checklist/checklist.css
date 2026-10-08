@@ -165,7 +165,7 @@
   flex-direction: column;
   gap: var(--space-1);
   min-height: calc(var(--space-12) * 2);
-  overflow-y: auto;
+  overflow: hidden auto;
   margin: 0;
   padding: var(--space-2);
   list-style: none;
@@ -242,6 +242,7 @@
 
 .checklist-item-detail {
   display: flex;
+  min-inline-size: 0;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
@@ -257,6 +258,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-inline-size: 0;
+  max-inline-size: 100%;
   color: var(--color-text-secondary);
 }
 
@@ -265,7 +268,8 @@
 }
 
 .checklist-response-input {
-  inline-size: 8ch;
+  flex: 0 1 8ch;
+  min-inline-size: 4ch;
   min-height: var(--size-target);
   padding: 0 var(--space-2);
   font: inherit;
@@ -287,6 +291,23 @@
 
 .checklist-footer .chrome-button {
   margin-inline-start: auto;
+}
+
+.checklist-recall {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-target);
+  color: var(--color-text-secondary);
+}
+
+.checklist-show-me {
+  min-height: var(--size-target);
+}
+
+.checklist-item-text[data-withheld='true'] {
+  min-height: var(--leading-lg);
+  border-bottom: 1px dashed var(--color-text-muted);
 }
 
 .checklist-footer-count {
@@ -374,7 +395,8 @@
   color: var(--color-text-secondary);
 }
 
-.checklist-deviations {
+.checklist-deviations,
+.checklist-assisted {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -389,7 +411,8 @@
   letter-spacing: var(--tracking-tight);
 }
 
-.checklist-deviation-list {
+.checklist-deviation-list,
+.checklist-assisted-list {
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -398,18 +421,21 @@
   border-radius: var(--radius-lg);
 }
 
-.checklist-deviation {
+.checklist-deviation,
+.checklist-assisted-item {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   padding: var(--space-3) var(--space-4);
 }
 
-.checklist-deviation + .checklist-deviation {
+.checklist-deviation + .checklist-deviation,
+.checklist-assisted-item + .checklist-assisted-item {
   border-top: 1px solid var(--color-divider);
 }
 
-.checklist-deviation-where {
+.checklist-deviation-where,
+.checklist-assisted-number {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);

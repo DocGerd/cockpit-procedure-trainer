@@ -693,6 +693,36 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
+    ['parking', '2000'],
+    ['holding', '2000'],
+    ['linedUp', '7000'],
+    ['departure', '7000'],
+    ['cruise', '7000'],
+    ['approach', '7000'],
+    ['landing', '7000'],
+    ['taxiIn', '7000'],
+    ['parkingSecuring', '7000'],
+  ])('enters %s with the transponder squawking %s', (phase, squawk) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().devices.xpdr?.state).toMatchObject({ squawk });
+  });
+
+  it.each([
+    ['parking', false],
+    ['holding', false],
+    ['linedUp', true],
+    ['departure', true],
+    ['cruise', true],
+    ['approach', true],
+    ['landing', true],
+    ['taxiIn', true],
+    ['parkingSecuring', false],
+  ])('enters %s with the GPS on: %s', (phase, on) => {
+    const session = createSession(ctslAircraft, { devices, phase });
+    expect(session.state().devices.gps?.state).toMatchObject({ on, page: 'map' });
+  });
+
+  it.each([
     ['departure', 'climbing', 1],
     ['approach', 'descending', -1],
   ])('enters %s %s on the vertical speed indicator', (id, _trend, sign) => {
