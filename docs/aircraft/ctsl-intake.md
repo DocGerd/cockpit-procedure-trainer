@@ -93,6 +93,7 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
   key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
+  For the key going in and out under the handle, see the ignition key below.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.

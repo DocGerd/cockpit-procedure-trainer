@@ -166,6 +166,28 @@ describe('CTSL normal procedures', () => {
     expect(session.set('ignition', 'off')).toEqual({ applied: true });
   });
 
+  it('engineStart takes the key in and round to BOTH one detent at a time, with no deviation', () => {
+    const items = normalProcedures.engineStart.items as readonly Item[];
+    const toBoth = ignitionAt('engineStart', 'both');
+    const detents = controls.ignition.positions as readonly string[];
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    session.startProcedure('engineStart');
+    for (let at = 0; at <= toBoth; at += 1) {
+      const item = items[at] as Item;
+      if (item.type !== 'action') session.checkOff();
+      else if (session.state().controls[item.control] === item.position) session.checkOff();
+      else if (item.control !== 'ignition') session.set(item.control, item.position);
+      else {
+        const from = detents.indexOf(String(session.state().controls.ignition));
+        for (const detent of detents.slice(from + 1, detents.indexOf(String(item.position)) + 1)) {
+          expect(session.set('ignition', detent), detent).toEqual({ applied: true });
+        }
+      }
+    }
+    expect(session.checklist()?.current).toBe(toBoth + 1);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
   it('preflight confirms the key out without inserting it', () => {
     expect(ignitionAt('preflight', 'off')).toBe(-1);
     expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
