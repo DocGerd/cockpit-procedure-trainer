@@ -78,6 +78,7 @@ export const images = {
   ignitionKeyStart: new URL('./assets/artwork/ignition-key-start.svg', import.meta.url).href,
   rescueFace: new URL('./assets/artwork/rescue-face.svg', import.meta.url).href,
   rescueStowed: new URL('./assets/artwork/rescue-stowed.svg', import.meta.url).href,
+  rescueStowedOpen: new URL('./assets/artwork/rescue-stowed-open.svg', import.meta.url).href,
   rescuePulled: new URL('./assets/artwork/rescue-pulled.svg', import.meta.url).href,
 } as const;
 
@@ -344,10 +345,15 @@ export const controlArtwork = {
     'TRIM',
   ),
   rescueHandle: lettered(
-    positions(images.rescueFace, {
-      stowed: images.rescueStowed,
-      pulled: images.rescuePulled,
-    }),
+    {
+      artwork: {
+        ...positions(images.rescueFace, {
+          stowed: images.rescueStowed,
+          pulled: images.rescuePulled,
+        }).artwork,
+        guardOpen: { stowed: images.rescueStowedOpen },
+      },
+    },
     'RESCUE',
   ),
 } as const satisfies Record<string, ArtworkAppearance>;
