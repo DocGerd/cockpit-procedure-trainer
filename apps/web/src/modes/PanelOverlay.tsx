@@ -8,6 +8,7 @@ import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
+import { useTargetCued } from './guided-install';
 import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
@@ -47,12 +48,14 @@ function useReducedMotion(): boolean {
   );
 }
 
-function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
-  const { aircraft } = useTrainer();
+/** Guided rings every step; Practice rings only an item the pilot had shown with Show me. */
+function TargetOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
+  const { aircraft, mode } = useTrainer();
   const target = useCurrentTarget();
   const stray = useStray();
   const strayBox = stray === undefined ? undefined : targetBox(rects, { control: stray });
   const item = useSessionState((session) => session.checklist()?.current);
+  const practice = mode === 'practice';
   const reducedMotion = useReducedMotion();
   const active = useActiveView();
   const latest = useRef(active);
@@ -104,7 +107,7 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
           ref={ring}
           className="modes-outline"
           data-outline="target"
-          data-pulse={reducedMotion ? undefined : 'true'}
+          data-pulse={reducedMotion ? undefined : practice ? 'once' : 'true'}
           style={boxStyle(box)}
         />
       )}
@@ -168,16 +171,16 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
   );
 }
 
-/** Draws the mode's accent on the panel: the Guided target, or the control selected in Free explore. */
+/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
 export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => {
   const { mode } = useTrainer();
   const store = useExploreStore();
+  const cued = useTargetCued();
 
   useEffect(() => {
     if (mode !== 'explore') store.select(undefined);
   }, [mode, store]);
 
-  if (mode === 'guided') return <GuidedOverlay viewId={viewId} rects={rects} />;
   if (mode === 'explore') return <ExploreOverlay rects={rects} />;
-  return null;
+  return cued ? <TargetOverlay viewId={viewId} rects={rects} /> : null;
 };
