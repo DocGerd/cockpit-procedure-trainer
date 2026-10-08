@@ -1,3 +1,4 @@
+import { sharedPhases } from '@cpt/core';
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
@@ -23,9 +24,13 @@ for (const aircraft of aircraftRegistry) {
     await openAircraft(page, aircraft, 'engineStart');
     await expectImage(page, false);
 
-    const running = Object.values(aircraft.phases).find(({ entry }) =>
-      aircraft.engineRunning?.({ controls: entry.controls, systems: entry.state, devices: {} }),
-    );
+    const running = sharedPhases.find(({ id }) => {
+      const entry = aircraft.phases[id]?.entry;
+      return (
+        entry !== undefined &&
+        aircraft.engineRunning?.({ controls: entry.controls, systems: entry.state, devices: {} })
+      );
+    });
     if (!running)
       throw new Error(`${aircraft.id} has no phase that starts with the engine running`);
     await page
@@ -35,10 +40,14 @@ for (const aircraft of aircraftRegistry) {
   });
 }
 
-test('starting the engine swaps the blade for the disc', async ({ page }) => {
+test('starting the engine swaps the blade for the disc and ends on the taxiway', async ({
+  page,
+}) => {
   await startProcedure(page, 'engineStart', 'guided');
   await expectImage(page, false);
 
   await completeProcedure(page, 'engineStart');
+  await expect(page.getByLabel(copy.outsideView.phase, { exact: true })).toHaveValue('taxiOut');
+  await expect(outsideImage(page)).toHaveAttribute('src', /phase-taxi-out-running/);
   await expectImage(page, true);
 });

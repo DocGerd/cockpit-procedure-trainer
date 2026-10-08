@@ -152,8 +152,11 @@ A list of named failures the model understands (`alternatorFailure`,
 
 ### 4.6 Phases
 
-Parking, holding point, departure, cruise, approach and others the aircraft
-defines. A phase supplies:
+`core` owns one ordered set of phases with their German and English names:
+parking, taxi out, holding point, lined up, departure, cruise, approach,
+landing, taxi in, parking and securing. Every aircraft supplies every phase,
+even one no procedure of its own starts in; adding a phase touches `core` and
+every aircraft. For each phase the aircraft supplies:
 
 - the outside-view image,
 - environment presets (airspeed, altitude, on ground) that feed `step`, since
@@ -376,7 +379,7 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   first), else one never run, else the one practised longest ago.
 - **Full flight** (added in #479), in the chosen mode: the aircraft's normal
   procedures in flight order, from cold and dark to securing, each a leg. The
-  legs are the normal procedures sorted by start phase in the phase order,
+  legs are the normal procedures sorted by start phase in the shared phase order (§4.6),
   declaration order within a phase; a procedure whose start phase the flight
   has passed (an alternative such as a short-field take-off) or that ends in an
   earlier phase than it starts (a go-around) is not a leg. Each leg starts as
@@ -470,8 +473,9 @@ parallel.
 - **Validator** (`core`, run in CI for every registered aircraft): every
   procedure target exists; every control and indicator is placed in a view;
   a cockpit arrangement, when given, places every view once without overlap;
-  every text has both languages; every phase has an image and an entry
-  snapshot; every injected failure is declared; an action on a continuous
+  every text has both languages; every aircraft declares every shared phase
+  and no other (`missing-phase`, `unknown-phase`); every phase has an image and
+  an entry snapshot; every injected failure is declared; an action on a continuous
   lever targets only 0 or 1 (`inexact-lever-target`), since a slider cannot be
   expected to land on a fraction; a declared view size is a positive, finite
   width and height (`invalid-view-size`) and no placement lies outside it

@@ -1,10 +1,9 @@
-import type { ControlId, Environment, PhaseDefinition, PositionOf } from '@cpt/core';
+import type { ControlId, Environment, PhaseDefinition, PhaseId, PositionOf } from '@cpt/core';
 import { phaseHeadings } from './airfield';
 import { images } from './assets';
 import type { controls } from './controls';
 import { initial, runningFrom } from './systems';
 import type { CtslState } from './systems';
-import { text } from './text';
 
 type Controls = typeof controls;
 type EntryControls = { readonly [K in ControlId<Controls>]: PositionOf<Controls[K]> };
@@ -53,6 +52,9 @@ const holdingShort = {
 
 const rolling = { ...holdingShort, parkingBrakeValve: 'open' } as const;
 
+// Trainer estimate: taxiing on low power, warm as at the holding point (intake §5).
+const taxiingOut = { ...rolling, throttle: 'low' } as const;
+
 // Intake §6 N6 ends at the holding point with flaps 15° and the brake released.
 const linedUpOnRunway = { ...rolling, flapSelector: '15' } as const;
 const departing = { ...rolling, throttle: 'full', flapSelector: '0' } as const;
@@ -87,28 +89,31 @@ const cruiseEnvironment: Environment = { airspeedKt: 108, altitudeFt: 2500, onGr
 const approachEnvironment: Environment = { airspeedKt: 59, altitudeFt: 500, onGround: false };
 const landingEnvironment: Environment = { airspeedKt: 54, altitudeFt: 3, onGround: false };
 
-const facing = (phase: keyof typeof phaseHeadings, state: CtslState): CtslState => ({
+const facing = (phase: PhaseId, state: CtslState): CtslState => ({
   ...state,
   headingDeg: phaseHeadings[phase],
 });
 
 export const phases = {
   parking: {
-    name: text('Parkposition', 'Parking'),
     image: images.parking,
     imageRunning: images.parkingRunning,
     environment: ground(),
     entry: { controls: parked, state: facing('parking', initial) },
   },
+  taxiOut: {
+    image: images.taxiOut,
+    imageRunning: images.taxiOutRunning,
+    environment: ground(),
+    entry: { controls: taxiingOut, state: facing('taxiOut', runningFrom(taxiingOut)) },
+  },
   holding: {
-    name: text('Rollhalt', 'Holding point'),
     image: images.holding,
     imageRunning: images.holdingRunning,
     environment: ground(),
     entry: { controls: holdingShort, state: facing('holding', runningFrom(holdingShort)) },
   },
   linedUp: {
-    name: text('Auf der Piste ausgerichtet', 'Lined up on the runway'),
     image: images.linedUp,
     imageRunning: images.linedUpRunning,
     environment: ground(),
@@ -121,7 +126,6 @@ export const phases = {
     },
   },
   departure: {
-    name: text('Abflug', 'Departure'),
     image: images.departure,
     imageRunning: images.departureRunning,
     environment: departureEnvironment,
@@ -137,7 +141,6 @@ export const phases = {
     },
   },
   cruise: {
-    name: text('Reiseflug', 'Cruise'),
     image: images.cruise,
     imageRunning: images.cruiseRunning,
     environment: cruiseEnvironment,
@@ -150,7 +153,6 @@ export const phases = {
     },
   },
   approach: {
-    name: text('Anflug', 'Approach'),
     image: images.approach,
     imageRunning: images.approachRunning,
     environment: approachEnvironment,
@@ -166,7 +168,6 @@ export const phases = {
     },
   },
   landing: {
-    name: text('Landung', 'Landing'),
     image: images.landing,
     imageRunning: images.landingRunning,
     environment: landingEnvironment,
@@ -179,7 +180,6 @@ export const phases = {
     },
   },
   taxiIn: {
-    name: text('Rollen zum Vorfeld', 'Taxi in'),
     image: images.taxiIn,
     imageRunning: images.taxiInRunning,
     environment: ground(),
@@ -192,7 +192,6 @@ export const phases = {
     },
   },
   parkingSecuring: {
-    name: text('Parken und Sichern', 'Parking and securing'),
     image: images.parkingSecuring,
     imageRunning: images.parkingSecuringRunning,
     environment: ground(),
@@ -204,6 +203,4 @@ export const phases = {
       deviceStates: squawking,
     },
   },
-} as const satisfies Record<keyof typeof phaseHeadings, PhaseDefinition<CtslState, Controls>>;
-
-export type PhaseId = keyof typeof phases;
+} as const satisfies Record<PhaseId, PhaseDefinition<CtslState, Controls>>;

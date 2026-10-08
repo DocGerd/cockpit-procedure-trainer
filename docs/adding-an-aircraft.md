@@ -191,7 +191,10 @@ every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 
-`phases` maps a phase id to `{ name, image, environment, entry }`. `image` is the
+`phases` maps every id of the shared phase set (`sharedPhases` in `@cpt/core`, which also
+names each phase) to `{ image, environment, entry }`, even a phase none of the
+aircraft's procedures starts in. Leaving one out or adding another fails `pnpm typecheck`,
+and the validator reports it as `missing-phase` or `unknown-phase`. `image` is the
 outside view. Draw it as the first-person view out of the windshield from the
 pilot's seat, never as a third-person picture of the aircraft. `entry` is the snapshot a pilot gets when jumping to the phase:
 `entry.controls` holds a position for every control, and `entry.state` is a systems
@@ -378,8 +381,9 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `validateAircraft(aircraft, { devices })` from `@cpt/core` returns a list of
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
-`missing-translation`, `phase-without-image`, `running-image-without-engine`,
-`phase-without-running-image`, `cue-without-image`, `phase-without-snapshot`,
+`missing-translation`, `missing-phase`, `unknown-phase`, `phase-without-image`,
+`running-image-without-engine`, `phase-without-running-image`, `cue-without-image`,
+`phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,

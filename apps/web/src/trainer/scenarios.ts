@@ -1,4 +1,4 @@
-import { createSession, STEP_MS } from '@cpt/core';
+import { createSession, phaseOrder, STEP_MS } from '@cpt/core';
 import type { Aircraft, Session } from '@cpt/core';
 import { deviceRegistry } from '../device-registry';
 import type { ProcedureHistory } from '../storage';
@@ -60,11 +60,9 @@ function surpriseFailures(aircraft: Aircraft, phase: string): string[] {
   return [...new Set(failures)].filter((failure) => showsCue(aircraft, phase, failure));
 }
 
-/** The phases a surprise can start in, in the aircraft's order. */
+/** The phases a surprise can start in, in flight order. */
 export function surprisePhases(aircraft: Aircraft): string[] {
-  return Object.keys(aircraft.phases).filter(
-    (phase) => surpriseFailures(aircraft, phase).length > 0,
-  );
+  return phaseOrder.filter((phase) => surpriseFailures(aircraft, phase).length > 0);
 }
 
 /** One of the phase's surprise failures, each equally likely, and a delay on the step grid. */

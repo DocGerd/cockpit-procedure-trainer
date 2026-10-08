@@ -52,7 +52,7 @@ export const fixtureDeviceAircraft = {
     monitorElectrical: {
       title: text('Monitor prüfen', 'Check the monitor'),
       type: 'normal',
-      startPhase: 'runup',
+      startPhase: 'holding',
       items: [
         {
           type: 'action',

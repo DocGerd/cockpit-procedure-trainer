@@ -3,6 +3,8 @@ export const images = {
   console: new URL('./assets/view-console.svg', import.meta.url).href,
   parking: new URL('./assets/phase-parking.svg', import.meta.url).href,
   parkingRunning: new URL('./assets/phase-parking-running.svg', import.meta.url).href,
+  taxiOut: new URL('./assets/phase-taxi-out.svg', import.meta.url).href,
+  taxiOutRunning: new URL('./assets/phase-taxi-out-running.svg', import.meta.url).href,
   holding: new URL('./assets/phase-holding.svg', import.meta.url).href,
   holdingRunning: new URL('./assets/phase-holding-running.svg', import.meta.url).href,
   linedUp: new URL('./assets/phase-lined-up.svg', import.meta.url).href,

@@ -274,6 +274,7 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | Phase id          | On ground | kt  | ft above field | Engine and settings                                                                |
 | ----------------- | --------- | --- | -------------- | ---------------------------------------------------------------------------------- |
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set        |
+| `taxiOut`         | yes       | 0   | 0              | as `holding` but low power and parking brake released; oil temp a trainer estimate |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set         |
 | `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ALT |
 | `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                         |
@@ -292,7 +293,7 @@ whenever the engine runs; the landing light is not needed in cruise.
 
 Assumed (unverified), from general-aviation practice, for the running phases: the
 intercom is on whenever the engine runs (N16 switches it off); the transponder is
-off at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
+off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
 about −2 m/s in `approach`. The phase entry seeds device state as well as device

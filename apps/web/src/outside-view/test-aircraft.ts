@@ -1,4 +1,4 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Text } from '@cpt/core';
 
 // Test-only fixture, so these tests do not depend on a registered aircraft's content.
@@ -40,22 +40,19 @@ export const fixture: Aircraft = defineAircraft({
   },
   failures: {},
   phases: {
-    ground: {
-      name: text('Ground'),
+    ...everyPhase({
       image: 'ground.svg',
       imageRunning: 'ground-running.svg',
       environment,
       entry: { controls: { master: 'off', fire: 'off' }, state: initial },
-    },
+    }),
     cruise: {
-      name: text('Cruise'),
       image: 'cruise.svg',
       imageRunning: 'cruise-running.svg',
       environment,
       entry: { controls: { master: 'on', fire: 'off' }, state: initial },
     },
-    landed: {
-      name: text('Landed'),
+    taxiIn: {
       image: 'landed.svg',
       environment,
       entry: { controls: { master: 'off', fire: 'off' }, state: initial },
@@ -65,15 +62,15 @@ export const fixture: Aircraft = defineAircraft({
     startUp: {
       title: text('Start up'),
       type: 'normal',
-      startPhase: 'ground',
-      endPhase: 'landed',
+      startPhase: 'parking',
+      endPhase: 'taxiIn',
       items: [{ type: 'action', control: 'master', position: 'on', text: text('Master on') }],
     },
     cycle: {
       title: text('Cycle'),
       type: 'normal',
-      startPhase: 'ground',
-      endPhase: 'landed',
+      startPhase: 'parking',
+      endPhase: 'taxiIn',
       items: [
         { type: 'action', control: 'master', position: 'on', text: text('Master on') },
         { type: 'action', control: 'master', position: 'off', text: text('Master off') },

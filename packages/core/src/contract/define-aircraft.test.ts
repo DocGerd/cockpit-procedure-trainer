@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
-import { CONTRACT_VERSION, defineAircraft } from './index';
+import { CONTRACT_VERSION, defineAircraft, everyPhase } from './index';
 import type {
   Aircraft,
   ArtworkAppearance,
@@ -47,7 +47,6 @@ const select = (state: TrainerState<State>) => state.systems.on;
 const systems = { initial, step: (state: State) => state };
 const lamp = { name: text, select, appearance: { widget: 'lamp' } } as const;
 const phase = {
-  name: text,
   image: 'parking.png',
   environment,
   entry: { controls: { master: 'off', cb: 'in' }, state: initial },
@@ -63,7 +62,7 @@ const body = {
   views: { main: view },
   systems,
   failures: { alt: { name: text, trips: ['cb'] } },
-  phases: { parking: phase },
+  phases: everyPhase(phase),
   procedures: {},
 } as const;
 
@@ -109,12 +108,10 @@ describe('compile-time reference checks', () => {
       ...identity,
       ...body,
       controls: { master: toggle, cb: breaker, ignition: rotary },
-      phases: {
-        parking: {
-          ...phase,
-          entry: { controls: { master: 'off', cb: 'in', ignition: 'start' }, state: initial },
-        },
-      },
+      phases: everyPhase({
+        ...phase,
+        entry: { controls: { master: 'off', cb: 'in', ignition: 'start' }, state: initial },
+      }),
       procedures: {
         p: {
           title: text,
@@ -170,6 +167,16 @@ describe('compile-time reference checks', () => {
         },
       },
     });
+  });
+
+  it('rejects phases that leave out a shared phase or add another', () => {
+    const all = everyPhase(phase);
+    const missing: Omit<typeof all, 'taxiOut'> = all;
+    // @ts-expect-error taxiOut is missing
+    defineAircraft({ ...identity, ...body, phases: missing });
+    const extra = { ...everyPhase(phase), runup: phase };
+    // @ts-expect-error runup is not a shared phase
+    defineAircraft({ ...identity, ...body, phases: extra });
   });
 
   it('rejects a procedure that names an unknown phase', () => {
@@ -292,6 +299,7 @@ describe('compile-time reference checks', () => {
       ...identity,
       ...body,
       phases: {
+        ...everyPhase(phase),
         parking: {
           ...phase,
           entry: {
@@ -323,6 +331,7 @@ describe('compile-time position checks', () => {
       ...identity,
       ...body,
       phases: {
+        ...everyPhase(phase),
         parking: {
           ...phase,
           entry: {
@@ -381,12 +390,10 @@ describe('compile-time position checks', () => {
         // @ts-expect-error 'strat' is not a detent
         ignition: { ...rotary, springBack: { strat: 'both' } },
       },
-      phases: {
-        parking: {
-          ...phase,
-          entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
-        },
-      },
+      phases: everyPhase({
+        ...phase,
+        entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
+      }),
     });
     defineAircraft({
       ...identity,
@@ -397,12 +404,10 @@ describe('compile-time position checks', () => {
         // @ts-expect-error 'bothh' is not a detent
         ignition: { ...rotary, springBack: { start: 'bothh' } },
       },
-      phases: {
-        parking: {
-          ...phase,
-          entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
-        },
-      },
+      phases: everyPhase({
+        ...phase,
+        entry: { controls: { master: 'off', cb: 'in', ignition: 'off' }, state: initial },
+      }),
     });
   });
 

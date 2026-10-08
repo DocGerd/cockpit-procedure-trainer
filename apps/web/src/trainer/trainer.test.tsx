@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { STEP_MS } from '@cpt/core';
+import { phaseOrder, STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -48,7 +48,7 @@ describe('trainer store', () => {
     expect(trainer.screen).toBe('picker');
     expect(trainer.mode).toBe('guided');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.phase()).toBe(Object.keys(first.phases)[0]);
+    expect(trainer.session.phase()).toBe(phaseOrder[0]);
   });
 
   it('restores the last aircraft', () => {
@@ -322,7 +322,7 @@ describe('surprise failure', () => {
   const startSurprise = () => {
     const view = renderTrainer();
     act(() => view.result.current.trainer.selectAircraft(second.id));
-    act(() => view.result.current.trainer.startSurprise('ground'));
+    act(() => view.result.current.trainer.startSurprise('parking'));
     return view;
   };
 
@@ -333,7 +333,7 @@ describe('surprise failure', () => {
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
     expect(trainer.viewedProcedureId).toBe('powerUp');
-    expect(snapshot.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(snapshot.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(snapshot.failures().size).toBe(0);
   });
 
@@ -352,7 +352,7 @@ describe('surprise failure', () => {
     const { result } = startSurprise();
     act(() => result.current.trainer.backToPicker());
     expect(result.current.snapshot.scenario()).toBeUndefined();
-    act(() => result.current.trainer.startSurprise('ground'));
+    act(() => result.current.trainer.startSurprise('parking'));
     act(() => result.current.trainer.setMode('explore'));
     expect(result.current.snapshot.scenario()).toBeUndefined();
   });
@@ -368,7 +368,7 @@ describe('surprise failure', () => {
     const { trainer } = result.current;
     expect(trainer.procedureId).toBeUndefined();
     expect(trainer.mode).toBe('practice');
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(trainer.session.scenario()?.chosen).toBeUndefined();
     expect(trainer.session.failures().size).toBe(0);
   });
@@ -383,12 +383,12 @@ describe('surprise failure', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking' });
   });
 
   it('ends the drill with a phase jump, so a restart runs the checklist again', () => {
     const { result } = startSurprise();
-    act(() => result.current.trainer.jumpToPhase('ground'));
+    act(() => result.current.trainer.jumpToPhase('parking'));
     expect(result.current.trainer.surprisePhase).toBeUndefined();
     act(() => result.current.trainer.startProcedure('powerUp'));
     act(() => result.current.trainer.restart());
@@ -413,7 +413,7 @@ describe('surprise failure', () => {
     act(() => result.current.trainer.resetSession());
     const { session } = result.current.trainer;
     expect(session).not.toBe(before);
-    expect(session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(session.procedureId()).toBeUndefined();
   });
 });
@@ -437,8 +437,8 @@ describe('full flight', () => {
     const { trainer, snapshot } = result.current;
     expect(trainer.screen).toBe('trainer');
     expect(trainer.procedureId).toBe('powerUp');
-    expect(trainer.flight).toEqual({ legs: ['powerUp', 'cruiseCheck'], results: [] });
-    expect(snapshot.phase()).toBe('ground');
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'taxiCheck'], results: [] });
+    expect(snapshot.phase()).toBe('parking');
     expect(snapshot.state().controls).toEqual({ master: 'off', pump: 'off' });
   });
 
@@ -448,9 +448,9 @@ describe('full flight', () => {
     flyFirstLeg(result.current.trainer);
     act(() => result.current.trainer.nextLeg());
     const { trainer, snapshot } = result.current;
-    expect(trainer.procedureId).toBe('cruiseCheck');
-    expect(trainer.lastProcedureId).toBe('cruiseCheck');
-    expect(snapshot.phase()).toBe('cruise');
+    expect(trainer.procedureId).toBe('taxiCheck');
+    expect(trainer.lastProcedureId).toBe('taxiCheck');
+    expect(snapshot.phase()).toBe('taxiOut');
     expect(snapshot.state().controls).toEqual({ master: 'on', pump: 'on' });
     expect(trainer.flight?.results).toEqual([
       { id: 'powerUp', deviations: 0, assists: 0, elapsedMs: STEP_MS },
@@ -482,7 +482,7 @@ describe('full flight', () => {
     act(() => result.current.trainer.nextLeg());
     act(() => result.current.trainer.session.checkOff());
     act(() => result.current.trainer.nextLeg());
-    expect(result.current.trainer.procedureId).toBe('cruiseCheck');
+    expect(result.current.trainer.procedureId).toBe('taxiCheck');
     expect(result.current.trainer.flight?.results).toHaveLength(1);
   });
 
@@ -493,7 +493,7 @@ describe('full flight', () => {
     act(() => result.current.trainer.session.set('master', 'off'));
     act(() => result.current.trainer.restart());
     const { trainer, snapshot } = result.current;
-    expect(trainer.procedureId).toBe('cruiseCheck');
+    expect(trainer.procedureId).toBe('taxiCheck');
     expect(snapshot.state().controls.master).toBe('on');
     expect(snapshot.checklist()?.deviations).toEqual([]);
     expect(trainer.flight?.results).toHaveLength(1);
@@ -508,7 +508,7 @@ describe('full flight', () => {
     const { trainer } = result.current;
     expect(trainer.session).not.toBe(before);
     expect(trainer.procedureId).toBe('powerUp');
-    expect(trainer.flight).toEqual({ legs: ['powerUp', 'cruiseCheck'], results: [] });
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'taxiCheck'], results: [] });
   });
 
   it.each([
@@ -520,7 +520,7 @@ describe('full flight', () => {
       'a taken checklist',
       (trainer: ReturnType<typeof useTrainer>) => trainer.takeChecklist('powerUp'),
     ],
-    ['a phase jump', (trainer: ReturnType<typeof useTrainer>) => trainer.jumpToPhase('ground')],
+    ['a phase jump', (trainer: ReturnType<typeof useTrainer>) => trainer.jumpToPhase('parking')],
     ['Free explore', (trainer: ReturnType<typeof useTrainer>) => trainer.setMode('explore')],
     ['the picker', (trainer: ReturnType<typeof useTrainer>) => trainer.backToPicker()],
   ])('is ended by %s', (_, end) => {
@@ -630,7 +630,7 @@ describe('session state', () => {
     act(() => vi.advanceTimersByTime(STEP_MS * 3));
     expect(phaseRenders).toBe(phaseBefore);
     expect(objectRenders).toBe(objectBefore);
-    expect(phase.result.current).toBe('ground');
+    expect(phase.result.current).toBe('parking');
     expect(controls.result.current).toEqual({ master: 'off' });
   });
 

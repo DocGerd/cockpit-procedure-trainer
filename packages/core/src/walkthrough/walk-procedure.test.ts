@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineAircraft } from '../contract';
+import { defineAircraft, everyPhase } from '../contract';
 import type {
   Aircraft,
   ControlRecord,
@@ -78,19 +78,16 @@ const clockAircraft = (items: Items, step?: SystemsDefinition<ClockState>['step'
         })),
     },
     failures: {},
-    phases: {
-      start: {
-        name: text('Start', 'Start'),
-        image: 'start.png',
-        environment,
-        entry: {
-          controls: { master: 'off', button: 'rest', key: 'off', cover: 'off' },
-          state: initial,
-        },
+    phases: everyPhase({
+      image: 'start.png',
+      environment,
+      entry: {
+        controls: { master: 'off', button: 'rest', key: 'off', cover: 'off' },
+        state: initial,
       },
-    },
+    }),
     procedures: {
-      run: { title: text('Ablauf', 'Run'), type: 'normal', startPhase: 'start', items },
+      run: { title: text('Ablauf', 'Run'), type: 'normal', startPhase: 'parking', items },
     },
   }) as Aircraft;
 
@@ -408,7 +405,12 @@ describe('walkFlight', () => {
       ...aircraft,
       procedures: {
         ...aircraft.procedures,
-        then: { title: text('Danach', 'Then'), type: 'normal', startPhase: 'start', items: second },
+        then: {
+          title: text('Danach', 'Then'),
+          type: 'normal',
+          startPhase: 'parking',
+          items: second,
+        },
       },
     } as Aircraft;
   };
