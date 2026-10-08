@@ -117,18 +117,24 @@ Judged on screenshots of both aircraft at 1920x1080 and 3840x2160 in Guided and 
 - **2** convincing: at a glance the element reads as the real material and form.
 - **3** photographic: at that crop it could pass for a photograph of the hardware.
 
-**Bar.** An element passes when every applicable visual heading scores at least 2 and their mean is at least 2.5, and every pass/fail heading (6, 8, 9, 11) passes. Lettering passes only at 10.5 px or more rendered (`MIN_TEXT_PX` minus 0.5, as `lettering.spec.ts` measures) at 1920x1080. The verdict lists every element's scores and every failure.
+**Bar.** An element passes when every applicable visual heading scores at least 2 and their mean is at least 2.5, and every pass/fail heading (6, 8, 9, 11) passes. Lettering passes only at 10.5 px or more rendered (`MIN_TEXT_PX` minus 0.5, as `lettering.spec.ts` measures) at 1920x1080; a secondary caption marked `data-lettering="secondary"` is exempt (Readings below). The verdict lists every element's scores and every failure.
+
+**Scoring process** (settled in Tasks 2 to 7):
+
+- One scorer, the same ui-verifier agent for the art PRs from the process change on and for Task 8, so every score is on one calibration. An implementer gets that scorer's verdict before it reports or pushes, and is given the crops that already scored 3 as anchors.
+- Self-scores are information, never the verdict: on every art PR the implementer's own scores ran above the scorer's.
+- Heading 10 is scored in two passes. Per task, on each crop, on the element's own parts alone: graded, height-scaled shadows and highlights from one gradient axis, palette tones. The comparison across elements (generic widgets beside aircraft art, backgrounds, device frames) is scored once, at Task 8, on the whole panel of each view.
 
 1. **Bezel depth.** Every bezel shows a lit edge up-left, a shaded edge down-right, a chamfer and a reversed inner lip, and reads as machined metal.
 2. **Glass glare.** Every glass-covered face (gauges, compass, lamp lenses, device screens) shows one soft reflection up-left and a crisp rim highlight; glare never hides a numeral or a legend.
 3. **Cast shadow.** Every raised part casts a soft shadow down-right onto what is beneath it; every recess shows its inner shadow on the lit side.
 4. **Panel texture.** At 4K a fine stipple is visible on every panel surface (none is one flat fill); at 1920x1080 no surface shows coarse noise or stepped gradient bands.
 5. **Needle.** Every needle shows its stem, hub screw and a shadow that never points toward the light and shows its height above the dial; the compass card shows its shadow.
-6. **Lettering** (pass/fail). All printed lettering, gauge faces included, renders at 10.5 px or more at 1920x1080; `lettering.spec.ts` and `placards.spec.ts` pass.
+6. **Lettering** (pass/fail). All printed lettering, gauge faces included, renders at 10.5 px or more at 1920x1080, except secondary captions marked `data-lettering="secondary"`; `lettering.spec.ts` and `placards.spec.ts` pass.
 7. **State at a glance.** Every two- and multi-position control shows its position without hovering: pressed and raised rocker ends, pulled breaker band, lever and knob positions.
 8. **No status colours** (pass/fail) on the panel; lit lamps only in lamp colours.
 9. **Touch targets** (pass/fail). 44 px targets intact; artwork changes never move a hit region (`placards.spec.ts` touch checks, `touch.test.tsx`).
-10. **One light, one palette.** Compared with the reference specimens, every element has its lit edges up-left, its shadows down-right at the reference strength and its materials in the palette's tones; no element is a flat fill next to a shaded neighbour (milestone end only; mid-milestone, unfinished parts are listed, not failed).
+10. **One light, one palette.** Compared with the reference specimens, every element has its lit edges up-left, its shadows down-right at the reference strength and its materials in the palette's tones; no element is a flat fill next to a shaded neighbour. Per task it is scored on the element's own parts; across elements only at Task 8 (Scoring process).
 11. **Self-drawn** (pass/fail). Every new or changed image has its `LICENSES.md` row and no traced manufacturer artwork (G1).
 12. **Material.** Every part reads as its material through the photoreal devices of its kind: anodised metal, moulded plastic, printed dial, printed or engraved placard, painted panel.
 
@@ -151,6 +157,13 @@ These are requirements; each task's PR reports its own numbers against them, tak
 - **P4 Payload.** All artwork and view-background SVGs of one aircraft together stay at or below three times the harness's recorded baseline, so the offline precache stays small.
 
 If realism and the budget conflict, realism that lets a pilot recognise the hardware (shape, position, state, lettering) is ADR rank 2 and wins; finish beyond that (glare softness, texture, shadow blur) is rank 6 and gives way. The PR names what it gave up.
+
+**Interim rule under load.** The budget is absolute, and only an idle machine gives absolute numbers (`CONTRIBUTING.md`, Checks). While parallel agents load the machine, a task PR passes P2 by alternating base and PR runs, three rounds, medians of each: it passes when in every round the PR's show sample is at most 4 ms above the base's, or at most 25 ms (three quarters of the budget). The delta guards against noise; the 25 ms bound keeps a PR from cutting finish to beat noise on a view far inside the budget. P1, P3 and P4 stay absolute. Task 8 runs the absolute budget once on an idle machine.
+
+## Readings of ADR 0002 taken in this milestone
+
+- Perf (rank 3) sits between recognisable realism (rank 2) and finish (rank 6), as above: it cuts finish, never recognisability.
+- A real instrument's face wording beats the 10.5 px floor for secondary captions. The floor binds primary numerals and units; a secondary caption printed small on the real instrument carries `data-lettering="secondary"` and `legibility.ts` skips it (`CONTRIBUTING.md`, Viewport matrix).
 
 ## Global constraints
 
@@ -315,14 +328,14 @@ Tasks 2, 3, 4 and 6 run in parallel after Task 1. Their files are disjoint excep
 
 **Issue:** #396
 
-**Scope:** the milestone-end check: the rubric on both aircraft, the perf budget, the spec §1 success criteria and the G1 audit. Out of scope: fixing what it finds (filed as issues).
+**Scope:** the milestone-end check on `develop` with all task PRs in: the rubric on both aircraft, including the cross-element heading 10 pass, then one fix wave for what fails; the absolute perf budget on an idle machine; the spec §1 success criteria and the G1 audit. What one wave does not fix is filed as issues. Parts drawn by different tasks meet only here (cutout shadows of the backgrounds beside the bezels' own shadows, the token alignment beside the device frames), so this task fixes rather than only reports.
 
-**Files:** `docs/milestones/m12-photorealistic-panel.md` (create), `apps/web/e2e/perf/` (thresholds only, if a requirement changes with owner approval)
+**Files:** `docs/milestones/m12-photorealistic-panel.md` (create), this plan (the process rules above), the files that own a failing element (aircraft art SVGs and `LICENSES.md`, panel-kit widgets and materials, the device stylesheets under `packages/device-*/src/`), `apps/web/e2e/perf/` (thresholds only, if a requirement changes with owner approval), `changelog.d/<issue>.changed.md` if the fix wave changes what renders
 
 **Dependencies:** Tasks 1–7.
 
-- [ ] **Step 1:** `ui-verifier` against the full rubric, both aircraft, 1920x1080, 3840x2160, 1024x768, light and dark chrome, Guided, Practice and Free explore; failures become issues in this milestone.
-- [ ] **Step 2:** `pnpm test:perf` on the built app; the milestone note records the numbers against P1–P4.
+- [ ] **Step 1:** `ui-verifier` against the full rubric, both aircraft, 1920x1080, 3840x2160, 1024x768, light and dark chrome, Guided, Practice and Free explore, plus the cross-element heading 10 pass per view; one fix wave in the owning files, re-scored; what still fails becomes an issue in this milestone.
+- [ ] **Step 2:** `pnpm test:perf` on the built app after the fix wave, on an idle machine (absolute budget, not the interim rule); the milestone note records the numbers against P1–P4.
 - [ ] **Step 3: Spec §1 success criteria,** walked in the built app: pick an aircraft and a procedure, operate every control, see deviations; wrong operation behaves as the aircraft would (starter with magnetos off); adding an aircraft still touches no `apps/web` file beyond its registry line and workspace dependency; the app installs and works offline (`offline.spec.ts`).
 - [ ] **Step 4:** G1 audit: every image in every aircraft and device package has a licence row; none is traced.
 

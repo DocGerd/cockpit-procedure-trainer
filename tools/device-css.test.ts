@@ -48,6 +48,11 @@ describe('device stylesheets', () => {
 
   describe.each(stylesheets)('%s', (path) => {
     const css = readFileSync(resolve(repoRoot, path), 'utf8');
+    const background = (part: string) =>
+      [
+        ...css.matchAll(new RegExp(`${part}\\s*\\{[^}]*background:\\s*var\\(--([\\w-]+)\\)`, 'g')),
+      ].map(([, token = '']) => token);
+    const tracks = [...background('range-track'), ...background('runnable-track')];
 
     it('styles a range input exactly when its screen renders one', () => {
       expect(css.includes("input[type='range']")).toBe(rendersRange(path));
@@ -72,15 +77,23 @@ describe('device stylesheets', () => {
       });
 
       it('draws the volume track so it stands out from the screen', () => {
-        const tracks = [
-          ...css.matchAll(/range-track\s*\{[^}]*background:\s*var\(--([\w-]+)\)/g),
-          ...css.matchAll(/runnable-track\s*\{[^}]*background:\s*var\(--([\w-]+)\)/g),
-        ];
         expect(tracks).toHaveLength(2);
-        for (const [, token = ''] of tracks) {
+        for (const token of tracks) {
           expect(contrast(panelHex(token), panelHex('panel-screen'))).toBeGreaterThanOrEqual(
             MIN_TRACK_CONTRAST,
           );
+        }
+      });
+
+      it('draws the volume thumb so its position stands out from the track', () => {
+        const thumbs = [...background('slider-thumb'), ...background('range-thumb')];
+        expect(thumbs).toHaveLength(2);
+        for (const thumb of thumbs) {
+          for (const track of tracks) {
+            expect(contrast(panelHex(thumb), panelHex(track))).toBeGreaterThanOrEqual(
+              MIN_TRACK_CONTRAST,
+            );
+          }
         }
       });
     }

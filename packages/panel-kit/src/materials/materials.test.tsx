@@ -85,6 +85,8 @@ describe('the brief', () => {
     expect(lightest(finish.plastic)).toBe('plastic-light');
     expect(finish.plastic.at(-1)?.[1]).toBe('plastic-shade');
     expect(lightest(finish.screw)).toBe('screw-light');
+    expect(lightest(finish.aluminium)).toBe('legend-muted');
+    expect(finish.aluminium.at(-1)?.[1]).toBe('cap');
   });
 
   it('draws a bezel ring with at least four stops: lit, base, deep, shade', () => {

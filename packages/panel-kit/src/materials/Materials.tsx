@@ -11,6 +11,7 @@ export type Material =
   | 'screen'
   | 'legend'
   | 'legend-muted'
+  | 'cap'
   | 'needle'
   | 'lamp-off'
   | 'shadow'
@@ -209,8 +210,8 @@ export const finish = {
   ],
   /** A brushed aluminium placard plate, brighter towards the light. */
   aluminium: [
-    [0, 'screw-light'],
-    [1, 'legend-muted'],
+    [0, 'legend-muted'],
+    [1, 'cap'],
   ],
 } as const satisfies Record<string, readonly Stop[]>;
 
