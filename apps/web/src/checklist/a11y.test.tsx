@@ -77,7 +77,7 @@ describe('checklist focus', () => {
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Confirm' }));
   });
 
-  it('moves focus to the current item when it has no button', async () => {
+  it('moves focus to the current item when it has no check-off button', async () => {
     renderLayout();
     start('flow');
     operate('master', 'on');
