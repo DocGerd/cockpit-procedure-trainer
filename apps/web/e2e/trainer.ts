@@ -115,22 +115,30 @@ function holdTarget(page: Page, controlId: string, position: string | number): L
         .getByRole('radio', { name: String(position), exact: true });
 }
 
+/** The move `operateUnrelatedControl` makes: out of the initial position into the first other one. */
+function unrelatedMove(controlId: string) {
+  const definition = control(controlId);
+  if (definition.positions === 'continuous') throw new Error('Use a control with named positions');
+  const to = definition.positions.find((position) => position !== definition.initial);
+  if (to === undefined) throw new Error(`"${controlId}" has only one position`);
+  return { from: definition.initial, to };
+}
+
 export const deviation = {
-  banner: (controlId: string, itemNumber: number) =>
-    copy.checklist.bannerUnexpected
+  banner: (controlId: string) => {
+    const { from, to } = unrelatedMove(controlId);
+    return copy.checklist.bannerUnexpected
       .replace('{control}', control(controlId).name.en)
-      .replace('{n}', String(itemNumber)),
+      .replace('{position}', to.toUpperCase())
+      .replace('{previous}', from.toUpperCase());
+  },
   title: (controlId: string) =>
     copy.checklist.unexpectedTitle.replace('{control}', control(controlId).name.en),
 };
 
 /** Operate a control that the running procedure does not ask for, so it logs one deviation. */
 export async function operateUnrelatedControl(page: Page, controlId: string) {
-  const definition = control(controlId);
-  if (definition.positions === 'continuous') throw new Error('Use a control with named positions');
-  const target = definition.positions.find((position) => position !== definition.initial);
-  if (target === undefined) throw new Error(`"${controlId}" has only one position`);
-  await setControl(page, controlId, target);
+  await setControl(page, controlId, unrelatedMove(controlId).to);
 }
 
 /** Whether a control with named positions already rests at the position an item asks for. */
@@ -148,7 +156,11 @@ async function isSet(page: Page, controlId: string, position: string | number) {
 }
 
 const expectDone = (page: Page, procedureId: string, row: Locator) =>
-  expect(mark(row, /^(Done|Deviated)$/).or(summaryHeading(page, procedureId))).toBeVisible();
+  expect(
+    mark(row, /^(Done|Deviated)$/)
+      .or(summaryHeading(page, procedureId))
+      .first(),
+  ).toBeVisible();
 
 async function perform(page: Page, procedureId: string, item: ProcedureItem<unknown>, at: number) {
   const row = itemRow(page, at);

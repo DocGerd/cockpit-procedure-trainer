@@ -971,20 +971,6 @@ describe('where a stray move left the control', () => {
   });
 });
 
-describe('elapsed time', () => {
-  it('adds the time of each step until the procedure is done', () => {
-    let checklist = observeState(begin(), stateOf(), 250);
-    checklist = observeState(checklist, stateOf(), 250);
-    expect(checklist.elapsedMs).toBe(500);
-    const done = observeState({ ...checklist, current: 99, done: true }, stateOf(), 250);
-    expect(done.elapsedMs).toBe(500);
-  });
-
-  it('starts at zero', () => {
-    expect(begin().elapsedMs).toBe(0);
-  });
-});
-
 describe('retryItem', () => {
   it('clears what the pilot did on the current item and counts an assist', () => {
     let checklist = observeControl(

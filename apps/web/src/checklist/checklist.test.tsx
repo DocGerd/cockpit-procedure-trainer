@@ -341,9 +341,7 @@ describe('deviation summary', () => {
   it('shows the time taken, the deviation count and the assists used', () => {
     renderPane();
     start(flow);
-    for (let elapsed = 0; elapsed < 65_000; elapsed += STEP_MS) {
-      act(() => trainer.session.advance(STEP_MS));
-    }
+    act(() => trainer.session.advance(65_000));
     operate('avionics', 'on');
     act(() => trainer.session.retryItem());
     operate('master', 'on');

@@ -5,14 +5,7 @@ import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
-import {
-  engineRunning,
-  initial,
-  lampTestDone,
-  lowVoltageLit,
-  runningFrom,
-  step,
-} from './systems';
+import { engineRunning, initial, lampTestDone, lowVoltageLit, runningFrom, step } from './systems';
 import type { DemoFailure, DemoState, DemoTrainerState } from './systems';
 import { text } from './text';
 

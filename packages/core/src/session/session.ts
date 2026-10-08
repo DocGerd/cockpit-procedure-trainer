@@ -69,6 +69,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let devices: DeviceStates = initial.devices;
   let procedureId: string | undefined;
   let checklist: ChecklistState<unknown> | undefined;
+  let runMs = 0;
   let itemStart:
     | {
         readonly item: number;
@@ -149,7 +150,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
   function track(next: ChecklistState<unknown>): void {
     const wasDone = checklist?.done ?? false;
-    checklist = next;
+    checklist = next.done && !wasDone ? { ...next, elapsedMs: runMs } : next;
     if (next.done) itemStart = undefined;
     else if (itemStart?.item !== next.current) {
       itemStart = {
@@ -169,6 +170,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     procedureId = undefined;
     checklist = undefined;
     itemStart = undefined;
+    runMs = 0;
     store.load(snapshot.positions, snapshot.guards);
     failureSet.clearAll();
     runtime.setEnvironment(snapshot.environment);
@@ -240,10 +242,11 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         return;
       }
       runtime.advance(dtMs);
+      runMs += dtMs;
       dirty = true;
       try {
         if (runtime.status().kind === 'running') settleDevices(dtMs);
-        if (checklist) track(observeState(checklist, buildState(), dtMs));
+        if (checklist) track(observeState(checklist, buildState()));
       } finally {
         dirty = true;
       }

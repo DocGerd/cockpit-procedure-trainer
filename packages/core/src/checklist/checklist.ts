@@ -36,7 +36,7 @@ export type ChecklistState<S> = {
   /** The pilot moved the current action's target since it became current. */
   readonly touched: boolean;
   readonly repeating: boolean;
-  /** Time since the procedure started, until it is done. */
+  /** How long the run took; the session sets it when the procedure is done, and it is 0 before. */
   readonly elapsedMs: number;
   /** Help the pilot took: how often the current item was retried. */
   readonly assists: number;
@@ -201,13 +201,8 @@ export function observeControl<S>(
 export function observeState<S>(
   checklist: ChecklistState<S>,
   state: TrainerState<S>,
-  dtMs = 0,
 ): ChecklistState<S> {
-  const timed =
-    dtMs > 0 && !checklist.done
-      ? { ...checklist, elapsedMs: checklist.elapsedMs + dtMs }
-      : checklist;
-  return settle(timed, state);
+  return settle(checklist, state);
 }
 
 /** Starts the current item over: what the pilot did on it no longer counts, and it is an assist. */

@@ -410,12 +410,37 @@ describe('retryItem', () => {
 });
 
 describe('elapsed time of a procedure', () => {
-  it('adds the advanced time while the procedure runs', () => {
+  const finish = (session: Session) => {
+    session.checkOff();
+    session.checkOff();
+  };
+
+  it('is the time advanced from the start to the last item, set when it is done', () => {
     const session = createSession(fixtureAircraft);
-    session.startProcedure('beforeStart');
+    session.startProcedure('alternatorFailure');
     session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.checklist()?.elapsedMs).toBe(0);
+    finish(session);
     session.advance(STEP_MS);
     expect(session.checklist()?.elapsedMs).toBe(2 * STEP_MS);
+  });
+
+  it('starts over with the next run', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('alternatorFailure');
+    session.advance(STEP_MS);
+    session.startProcedure('alternatorFailure');
+    finish(session);
+    expect(session.checklist()?.elapsedMs).toBe(0);
+  });
+
+  it('keeps the checklist the same object while time passes', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    const before = session.checklist();
+    session.advance(STEP_MS);
+    expect(session.checklist()).toBe(before);
   });
 });
 
