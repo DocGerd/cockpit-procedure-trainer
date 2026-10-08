@@ -338,7 +338,12 @@ for (const language of ['en', 'de'] as const) {
     await openPicker(page);
     await selectLanguage(page, language);
     const shell = language === 'de' ? copyDe.shell : copy.shell;
-    for (const name of [shell.practiseNext, shell.randomEmergency, shell.surpriseFailure]) {
+    for (const name of [
+      shell.practiseNext,
+      shell.fullFlight,
+      shell.randomEmergency,
+      shell.surpriseFailure,
+    ]) {
       await expect(page.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
     }
   });

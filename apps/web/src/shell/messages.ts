@@ -56,6 +56,9 @@ export const messages = defineMessages({
     surprisePhase: 'Phase',
     surpriseFailure: 'Surprise failure',
     surpriseHint: 'In Practice: recognise an unannounced failure.',
+    fullFlight: 'Full flight',
+    fullFlightHint:
+      'Every normal procedure in flight order, from cold and dark to securing. Each one continues from the cockpit the last one left.',
   },
   de: {
     brandName: 'Procedure Trainer',
@@ -113,5 +116,8 @@ export const messages = defineMessages({
     surprisePhase: 'Phase',
     surpriseFailure: 'Überraschungsfehler',
     surpriseHint: 'Im Modus Üben: einen unangekündigten Fehler erkennen.',
+    fullFlight: 'Ganzer Flug',
+    fullFlightHint:
+      'Alle Normalverfahren in der Reihenfolge des Flugs, vom kalten Cockpit bis zum Sichern. Jedes setzt mit dem Cockpit fort, wie das vorige es hinterlassen hat.',
   },
 });

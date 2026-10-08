@@ -10,7 +10,8 @@ import type {
 } from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import { engineMonitor, fixtureDeviceAircraft } from '../devices/fixtures';
-import { MAX_STEPS, walkProcedure } from './index';
+import { STEP_MS } from '../runtime';
+import { MAX_STEPS, walkFlight, walkProcedure } from './index';
 
 type ClockState = { readonly ms: number; readonly heldMs: number; readonly keyMs: number };
 type Items = readonly ProcedureItem<ClockState, ControlRecord, never>[];
@@ -391,5 +392,52 @@ describe('walkProcedure', () => {
 
   it('throws for an unknown procedure', () => {
     expect(() => walkProcedure(fixtureAircraft, 'nope')).toThrow('nope');
+  });
+});
+
+describe('walkFlight', () => {
+  const ticking = {
+    type: 'check',
+    target: { control: 'master' },
+    condition: ms(5 * STEP_MS),
+    text: text('Uhr läuft', 'Clock running'),
+  } as const;
+  const twoLegs = (second: Items): Aircraft => {
+    const aircraft = clockAircraft([masterOn]);
+    return {
+      ...aircraft,
+      procedures: {
+        ...aircraft.procedures,
+        then: { title: text('Danach', 'Then'), type: 'normal', startPhase: 'start', items: second },
+      },
+    } as Aircraft;
+  };
+
+  it('walks every leg on one session, so a leg relies on what the one before set', () => {
+    expect(walkProcedure(twoLegs([ticking]), 'then')).toMatchObject({ ok: false });
+    expect(walkFlight(twoLegs([ticking]))).toEqual({ ok: true });
+  });
+
+  it('names the leg that fails', () => {
+    const stuck = { ...ticking, condition: never };
+    expect(walkFlight(twoLegs([stuck]))).toEqual({
+      ok: false,
+      aircraft: 'clock',
+      procedure: 'then',
+      itemIndex: 0,
+      item: 'Clock running',
+      reason: 'condition not met',
+    });
+  });
+
+  it('fails an aircraft without a normal procedure instead of passing it', () => {
+    expect(walkFlight({ ...fixtureAircraft, procedures: {} })).toMatchObject({
+      ok: false,
+      reason: 'no legs',
+    });
+  });
+
+  it('walks the fixture aircraft flight', () => {
+    expect(walkFlight(fixtureAircraft)).toEqual({ ok: true });
   });
 });

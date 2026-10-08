@@ -90,3 +90,26 @@ export const testAircraft: readonly [Aircraft, Aircraft] = [
   fixture('alpha', 'Alpha', false),
   fixture('bravo', 'Bravo', true),
 ];
+
+/** Two legs: power up on the ground, then a cruise check whose phase snapshot has the master off. */
+export const flightAircraft: Aircraft = (() => {
+  const base = fixture('charlie', 'Charlie', false);
+  const cruise = base.phases['cruise'];
+  if (!cruise) throw new Error('The fixture has no cruise phase');
+  return {
+    ...base,
+    phases: {
+      ...base.phases,
+      cruise: { ...cruise, entry: { ...cruise.entry, controls: { master: 'off', pump: 'off' } } },
+    },
+    procedures: {
+      ...base.procedures,
+      cruiseCheck: {
+        title: text('Charlie cruise check'),
+        type: 'normal',
+        startPhase: 'cruise',
+        items: [{ type: 'confirm', text: text('Cruise set') }],
+      },
+    },
+  };
+})();

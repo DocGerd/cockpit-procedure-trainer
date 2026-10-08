@@ -15,11 +15,12 @@ import {
   useTrainer,
 } from './index';
 import { SURPRISE_MAX_MS } from './scenarios';
-import { testAircraft } from './test-aircraft';
+import { flightAircraft, testAircraft } from './test-aircraft';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: (await import('./test-aircraft')).testAircraft,
-}));
+vi.mock('../aircraft-registry', async () => {
+  const { flightAircraft, testAircraft } = await import('./test-aircraft');
+  return { aircraftRegistry: [...testAircraft, flightAircraft] };
+});
 
 const [first, second] = testAircraft;
 const firstProcedure = 'powerUp';
@@ -413,6 +414,118 @@ describe('surprise failure', () => {
     expect(session).not.toBe(before);
     expect(session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
     expect(session.procedureId()).toBeUndefined();
+  });
+});
+
+describe('full flight', () => {
+  const startFlight = (mode: 'guided' | 'practice' = 'guided') => {
+    const view = renderTrainer();
+    act(() => view.result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => view.result.current.trainer.setMode(mode));
+    act(() => view.result.current.trainer.startFlight());
+    return view;
+  };
+  const flyFirstLeg = (trainer: ReturnType<typeof useTrainer>) =>
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+    });
+
+  it('starts the first leg from its phase snapshot and lists the legs', () => {
+    const { result } = startFlight();
+    const { trainer, snapshot } = result.current;
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.procedureId).toBe('powerUp');
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'cruiseCheck'], results: [] });
+    expect(snapshot.phase()).toBe('ground');
+    expect(snapshot.state().controls).toEqual({ master: 'off', pump: 'off' });
+  });
+
+  it('continues with the next leg from the cockpit the last one left, recording the leg', () => {
+    const { result } = startFlight();
+    act(() => result.current.trainer.session.advance(STEP_MS));
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('cruiseCheck');
+    expect(trainer.lastProcedureId).toBe('cruiseCheck');
+    expect(snapshot.phase()).toBe('cruise');
+    expect(snapshot.state().controls).toEqual({ master: 'on', pump: 'on' });
+    expect(trainer.flight?.results).toEqual([
+      { id: 'powerUp', deviations: 0, assists: 0, elapsedMs: STEP_MS },
+    ]);
+    expect(Object.keys(readHistory(flightAircraft.id))).toEqual(['powerUp']);
+  });
+
+  it("counts a leg's deviations and Show me assists, then clears them for the next leg", () => {
+    const { result } = startFlight('practice');
+    act(() => result.current.trainer.showMe());
+    act(() => {
+      const { session } = result.current.trainer;
+      session.set('pump', 'on');
+      session.set('master', 'on');
+      session.checkOff();
+    });
+    act(() => result.current.trainer.nextLeg());
+    const { trainer } = result.current;
+    expect(trainer.flight?.results[0]).toMatchObject({ deviations: 1, assists: 1 });
+    expect(trainer.assisted).toEqual([]);
+    expect(trainer.mode).toBe('practice');
+  });
+
+  it('does not move on while a leg runs or after the last leg', () => {
+    const { result } = startFlight();
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('powerUp');
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.checkOff());
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('cruiseCheck');
+    expect(result.current.trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('restarts a leg from the cockpit it began with, keeping the legs before', () => {
+    const { result } = startFlight();
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    act(() => result.current.trainer.session.set('master', 'off'));
+    act(() => result.current.trainer.restart());
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('cruiseCheck');
+    expect(snapshot.state().controls.master).toBe('on');
+    expect(snapshot.checklist()?.deviations).toEqual([]);
+    expect(trainer.flight?.results).toHaveLength(1);
+  });
+
+  it('starts the whole flight over on reset', () => {
+    const { result } = startFlight();
+    flyFirstLeg(result.current.trainer);
+    act(() => result.current.trainer.nextLeg());
+    const before = result.current.trainer.session;
+    act(() => result.current.trainer.resetSession());
+    const { trainer } = result.current;
+    expect(trainer.session).not.toBe(before);
+    expect(trainer.procedureId).toBe('powerUp');
+    expect(trainer.flight).toEqual({ legs: ['powerUp', 'cruiseCheck'], results: [] });
+  });
+
+  it.each([
+    [
+      'a chosen procedure',
+      (trainer: ReturnType<typeof useTrainer>) => trainer.startProcedure('powerUp'),
+    ],
+    [
+      'a taken checklist',
+      (trainer: ReturnType<typeof useTrainer>) => trainer.takeChecklist('powerUp'),
+    ],
+    ['a phase jump', (trainer: ReturnType<typeof useTrainer>) => trainer.jumpToPhase('ground')],
+    ['Free explore', (trainer: ReturnType<typeof useTrainer>) => trainer.setMode('explore')],
+    ['the picker', (trainer: ReturnType<typeof useTrainer>) => trainer.backToPicker()],
+  ])('is ended by %s', (_, end) => {
+    const { result } = startFlight();
+    act(() => end(result.current.trainer));
+    expect(result.current.trainer.flight).toBeUndefined();
   });
 });
 

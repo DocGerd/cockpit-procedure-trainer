@@ -406,7 +406,8 @@
 }
 
 .checklist-deviations,
-.checklist-assisted {
+.checklist-assisted,
+.checklist-flight {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -429,6 +430,46 @@
   list-style: none;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+}
+
+.checklist-flight-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--color-border);
+}
+
+.checklist-flight-table th,
+.checklist-flight-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: right;
+  border-top: 1px solid var(--color-divider);
+}
+
+.checklist-flight-table th:first-child {
+  text-align: left;
+}
+
+.checklist-flight-table thead th {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}
+
+.checklist-flight-table td {
+  font-family: var(--font-mono);
+}
+
+.checklist-flight-table tbody th {
+  font-weight: var(--weight-regular);
+}
+
+.checklist-flight-table tfoot {
+  font-weight: var(--weight-semibold);
+}
+
+.checklist-flight-table td[data-deviated='true'] {
+  color: var(--color-warning);
 }
 
 .checklist-deviation,
