@@ -185,14 +185,17 @@ export const controls = {
     ),
     initial: 'pulled',
   },
-  brake: pushPullOf(
-    text('Bremshebel', 'Brake lever'),
-    text(
-      'Hydraulische Bremse beider Haupträder. Mit geschlossenem Rückflusshahn wird sie zur Parkbremse.',
-      'Hydraulic brake on both main wheels. With the parking-brake valve closed it sets the parking brake.',
+  brake: {
+    kind: 'momentary',
+    positions: ['off', 'on'],
+    initial: 'off',
+    name: text('Bremshebel', 'Brake lever'),
+    description: text(
+      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Mit geschlossenem Rückflusshahn hält der Druck als Parkbremse.',
+      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve closed the pressure holds as the parking brake.',
     ),
-    controlArtwork.brake,
-  ),
+    appearance: controlArtwork.brake,
+  },
   throttle: {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
@@ -237,8 +240,8 @@ export const controls = {
     initial: 'open',
     name: text('Rückflusshahn', 'Parking-brake valve'),
     description: text(
-      'Parkbremse: Hahn schließen, dann den Bremshebel ziehen. Der Druck hält, bis der Hahn wieder öffnet.',
-      'Parking brake: close the valve, then apply the brake lever. The pressure holds until the valve opens again.',
+      'Parkbremse: Hahn schließen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder öffnet.',
+      'Parking brake: close the valve, pull and release the brake lever. The pressure holds until the valve opens again.',
     ),
     appearance: controlArtwork.parkingBrakeValve,
   },

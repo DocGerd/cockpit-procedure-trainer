@@ -27,11 +27,15 @@ const expected = [
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
-  engineStart: ['Parking brake holds', 'All breakers in', 'Flap readout shows 0°'],
+  engineStart: [
+    'Brake lever released, parking brake holds',
+    'All breakers in',
+    'Flap readout shows 0°',
+  ],
   takeoff: ['Flap readout shows 15°'],
   shortTakeoff: ['Flap readout shows 15°'],
   beforeTakeoff: [
-    'Parking brake holds',
+    'Brake lever released, parking brake holds',
     'Oil pressure in the green',
     'Oil temperature below the red line',
     'Cylinder head temperature in the green',
@@ -111,7 +115,13 @@ describe('CTSL normal procedures', () => {
     expect(session.state().controls).toMatchObject({ choke: 'off', carbHeat: 'off' });
     for (let at = session.checklist()?.current ?? 0; at < choke; at += 1) {
       const item = items[at] as Item;
-      if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
+      if (item.type === 'action' && ctslAircraft.controls[item.control]?.kind === 'momentary') {
+        session.press(item.control);
+        session.release(item.control);
+      } else if (
+        item.type === 'action' &&
+        session.state().controls[item.control] !== item.position
+      ) {
         session.set(item.control, item.position);
       } else {
         session.checkOff();
@@ -126,6 +136,73 @@ describe('CTSL normal procedures', () => {
     session.checkOff();
     expect(session.checklist()?.current).toBe(carbHeat + 1);
     expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  describe('parking brake in shutdown, in the intake order', () => {
+    const items = normalProcedures.shutdown.items as readonly Item[];
+    const valve = items.findIndex(
+      (item) =>
+        item.type === 'action' &&
+        item.control === 'parkingBrakeValve' &&
+        item.position === 'closed',
+    );
+
+    const atValve = () => {
+      const session = createSession(ctslAircraft, { devices, phase: 'parkingSecuring' });
+      session.startProcedure('shutdown');
+      for (let at = 0; at < valve; at += 1) {
+        const item = items[at] as Item;
+        if (item.type === 'action') session.set(item.control, item.position);
+        else session.checkOff();
+      }
+      expect(session.checklist()?.current).toBe(valve);
+      session.set('parkingBrakeValve', 'closed');
+      return session;
+    };
+
+    it('closes the valve, holds the lever, then checks the lever released', () => {
+      expect(items.slice(valve, valve + 3).map((item) => item.text.en)).toEqual([
+        'Parking-brake valve closed',
+        'Brake lever pulled and held',
+        'Brake lever released, parking brake holds',
+      ]);
+    });
+
+    it('completes the lever item with the lever held', () => {
+      const session = atValve();
+      expect(session.checklist()?.current).toBe(valve + 1);
+      session.press('brake');
+      expect(session.checklist()?.current).toBe(valve + 2);
+    });
+
+    it('fails the hold check while the lever is still held', () => {
+      const session = atValve();
+      session.press('brake');
+      session.checkOff();
+      expect(session.checklist()?.deviations).toHaveLength(1);
+    });
+
+    it('passes the hold check once the lever springs back', () => {
+      const session = atValve();
+      session.press('brake');
+      session.release('brake');
+      expect(session.state().controls.brake).toBe('off');
+      session.checkOff();
+      expect(session.checklist()?.current).toBe(valve + 3);
+      expect(session.checklist()?.deviations).toEqual([]);
+    });
+  });
+
+  it('releases the parking brake at the valve alone and checks it is off', () => {
+    const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+    const open = items.findIndex(
+      (item) =>
+        item.type === 'action' && item.control === 'parkingBrakeValve' && item.position === 'open',
+    );
+    expect(items.slice(open).map((item) => item.text.en)).toEqual([
+      'Parking-brake valve open',
+      'Parking brake released',
+    ]);
   });
 
   it('asks for the run-up rpm as a challenge and takes the reading as the response', () => {
