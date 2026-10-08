@@ -439,6 +439,11 @@ get out, fire risk).
 
 Each item lists the value the trainer uses until it is answered.
 
+Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
+knowledge of the CT Supralight. Each such fact is recorded beside its question as
+**assumed (unverified)**, and the implementing PR lists it, until the owner
+verifies it on D-MPGO.
+
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
@@ -480,16 +485,18 @@ Each item lists the value the trainer uses until it is answered.
     two upper fields, is it centred under their junction or offset, and where does
     the console start below it? Uses the relative arrangement of §3 (centre column
     low between the upper fields, console below it) with proportions chosen to fit
-    one screen (#436).
+    one screen. **Answered by assumption pending owner verification** (#436).
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Uses a
     round card turning under a lubber line, numbers increasing clockwise.
+    **Answered by assumption pending owner verification** (#444).
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Uses the printed label "ELT" with no position legends and
-    a red lamp.
+    a red lamp. **Answered by assumption pending owner verification** (#447).
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Uses an unlabelled red lamp.
+    **Answered by assumption pending owner verification** (#444).
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Uses none: every item is read and done
-    from the list.
+    from the list. **Answered by assumption pending owner verification** (#450).

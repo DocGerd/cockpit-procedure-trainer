@@ -40,7 +40,7 @@ architecture that lets aircraft be added.
 | Cockpit view | 2D layered panel now. The aircraft contract carries optional 3D positions so a 3D renderer is a later milestone, not a rewrite. |
 | Behaviour | Rule-based systems model per aircraft, including failures. |
 | Modes | Guided, Practice, Free explore. |
-| Step order | Never block input. Record actions outside the current item as deviations. |
+| Step order | Never block input. Record actions outside the current item as deviations. Exception: a normal procedure may open with a flow, a set of actions done from memory in any order; inside the flow only actions outside the flow are deviations, and the checklist that follows verifies the flow (owner-approved 2026-10-08). |
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
 | Devices | HD desktop (1920x1080) first, 4K (3840x2160) second, tablet later; mouse and touch both supported. See ADR-0002. |
@@ -186,6 +186,11 @@ Each item has text in both languages and one of:
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
+A normal procedure may open with a **flow**: a set of action items the pilot
+does from memory in a fixed panel scan, in any order. The flow completes when
+every one of its targets holds; the checklist items that follow verify it
+(challenge, look, respond).
+
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
 needs to know which controls spring back. An action on a spring-back position
@@ -268,6 +273,8 @@ logic follows and lists the functions it does not model.
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
      deviation; so is ticking a check whose condition is not met.
+   - while a flow runs, any of its actions may complete in any order; only a
+     control change outside the flow's targets is a deviation.
 5. Completing a procedure shows its deviations and, if the procedure names an
    end phase, moves to it.
 

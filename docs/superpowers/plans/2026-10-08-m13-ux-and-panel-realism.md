@@ -28,9 +28,13 @@
 | E Deviation feedback and debrief | #445 | T6/H7, T8a/H11, H9a, H9b | web, core | 3 |
 | H Scenario sessions | #446 | T4, T12, T9 | core, web | 3 |
 | N CTSL centre field | #447 | P2, P7 | aircraft | 3 |
+| Q Flow contract and engine | #452 | T5 | core | 3 |
 | F Practice recall and assists | #448 | T2 | web | 4 |
 | O CTSL console | #449 | P3, P4, P8c | aircraft | 4 |
-| G Memory-item contract | #450 | T3a | core, web | 5 |
+| G Memory items, CTSL included | #450 | T3a, T3b | core, web, aircraft | 5 |
+| R Flows in the trainer, CTSL flows | #453 | T5 | web, aircraft | 5 |
+
+P5b and P8b are part of #444 (M), P6 of #447 (N), T3b of #450 (G) and the P1 proportions of #436, under the owner's ruling on missing panel facts (see Owner answers).
 
 Each issue holds its problem, likely files, dependencies and acceptance criteria; the issue is the task's brief. Group letters follow the triage, so J is missing (see Excluded).
 
@@ -40,16 +44,16 @@ Each issue holds its problem, likely files, dependencies and acceptance criteria
 
 **(b) The dock stays under the panel.** The decisions table says "device dock under the panel" and `layout.spec.ts` asserts it. #436 moves the dock left or right of the centre column, still below the panel; never beside the panel.
 
-**(c) Spec text amendments are not decisions-table changes.** D, E, F, G, H and I amend spec §4.7 or §5 text; each PR states the reason. The decisions-table rows stay as written. Where an item sits close to a row (T7 and "Step order", T4 and "Procedures", T2 and "Modes"), the PR flags it and the milestone summary carries it to the owner.
+**(c) One decisions-table change, already made.** This plan's PR (#451) amends the "Step order" row, §4.7 and §5 step 4 for flows, owner-approved 2026-10-08. No task changes a decisions-table row. D, E, F, G, H, I and Q amend spec §4.7 or §5 text; each PR states the reason. Where an item sits close to a row (T7 and "Step order", T4 and "Procedures", T2 and "Modes"), the PR flags it and the milestone summary carries it to the owner.
 
-**(d) `ChecklistPane.tsx` is the hotspot.** B, C, D, E, F and G edit it. C lands first; later tasks touch different regions (restart handler, item rendering, banner, Practice option, memory mark). The second of two same-wave PRs takes the other through the train.
+**(d) `ChecklistPane.tsx` is the hotspot.** B, C, D, E, F, G and R edit it; D, Q and G edit `checklist.ts` in that order. C lands first; later tasks touch different regions (restart handler, item rendering, banner, Practice option, memory mark). The second of two same-wave PRs takes the other through the train.
 
 ## Global constraints
 
 - Everything in the M12 plan's Global constraints applies: base `develop`, one issue per PR with `Closes #<n>`, a fragment or a `No changelog:` line, separate-agent review via `pr-selfreview`, `merge-train`, tests first, the CONTRIBUTING Checks chain before every push.
 - An issue's **Files** list is its likely allowlist; a task that needs another file names it and why in the PR.
 - Colours, type and spacing from `apps/web/src/styles/tokens.css` only; no brand or status colour on the panel; every control keeps its printed label (`printed-labels.test.tsx`); a placard never names a trainer view.
-- Panel facts come from `docs/aircraft/ctsl-intake.md` only, paraphrased; `reference/` is never read.
+- Panel facts come from `docs/aircraft/ctsl-intake.md`, paraphrased; where it lacks one, general knowledge of the CT Supralight, listed in the PR description and recorded in the intake as **assumed (unverified)** (owner ruling 2026-10-08). `reference/` is never read.
 - Panel art follows the M12 art-direction brief and must score at least 2 on every applicable heading of the M12 rubric (`ui-verifier`).
 - Comments only where the code cannot say it; no measured figure in a comment.
 - Every PR that changes what the app renders gets a `ui-verifier` pass (1920x1080, plus 3840x2160 for L and P1).
@@ -61,8 +65,10 @@ P1 (#436) ── M (#444) ── N (#447) ── O (#449)        views.ts chain;
 A (#437) ─┬─ I (#443) ── H (#446)                     Picker.tsx chain
           └──────────────┘
 C (#438) ─┬─ B (#441)
-          ├─ D (#442) ── E (#445) ── F (#448) ── G (#450)
-          └──────────────┘
+          ├─ D (#442) ── E (#445) ── F (#448) ─┬─ G (#450)
+          └──────────────┘                     └─ R (#453)
+D (#442) ── Q (#452) ─┬─ G (#450)                     checklist.ts chain
+                      └─ R (#453)
 K (#439), L (#440)                                     independent
 ```
 
@@ -74,23 +80,25 @@ A wave is a set whose members may run in parallel: their dependencies have lande
 |---|---|---|
 | 1 | P1, A, C, K, L | A and L both edit `shell.css` (picker rules vs trainer grid) |
 | 2 | B, D, I, M | B and D edit different regions of `ChecklistPane.tsx` |
-| 3 | E, H, N | E and H edit different actions of `DeviationSummary.tsx`; H lands after E |
+| 3 | E, H, N, Q | E and H edit different actions of `DeviationSummary.tsx`; H lands after E |
 | 4 | F, O | none |
-| 5 | G | none |
+| 5 | G, R | different regions of `ChecklistPane.tsx` and different CTSL procedure files |
 
 ## Decisions (agent, overrulable)
 
-- **P1 is no-gate, scoped to relative arrangement.** The decisions-table row "Cockpit layout" requires one viewport and a dock under the panel, nothing about field positions; the M11 summary records today's arrangement as an agent decision the owner may overrule. Intake §3 states the relative arrangement (centre column low between the upper fields, console below it), so that much is backed; exact proportions are not, and are intake question 19. The dock remains a required cell; the implementer picks its side.
+- **P1 is no-gate.** The decisions-table row "Cockpit layout" requires one viewport and a dock under the panel, nothing about field positions; the M11 summary records today's arrangement as an agent decision the owner may overrule. Intake §3 states the relative arrangement (centre column low between the upper fields, console below it); the proportions are an assumption under the owner's ruling (intake question 19). The dock remains a required cell under the panel; the implementer picks its side of the centre column.
 - **P1 lands before M, N and O.** All four change the CTSL cockpit's geometry, and M, N, O share `views.ts` (O also `cockpit.ts`); one at a time keeps each rubric pass meaningful.
-- **Intake-gated items get questions, not issues.** P5b (compass card sense), P6 (ELT legends), P8b (charge-lamp legend) and T3b (which CTSL items are memory items) cannot be built without facts the intake lacks; they are intake §9 questions 20 to 23. A private photo session of D-MPGO, uncommitted, would settle most of them.
+- **Missing panel facts are folded into the existing issues.** P5b and P8b join #444 (they are on the panel view), P6 joins #447 (centre field), T3b joins #450 (memory items). Each acceptance list requires the assumption to be named in the PR and recorded in the intake.
+- **Flows split into two issues.** #452 (contract, engine, validator, demo flow) and #453 (pane, Guided scan path, debrief, CTSL flows) split cleanly at the package boundary; #452 follows D on `checklist.ts`, and #453 follows F on `ChecklistPane.tsx`.
 - **H9b moves into E.** The triage gated the "hold the annunciator switch at TEST" item on the intake, but that item belongs to the demo aircraft, our own fictional content with no intake; so it needs no external fact and is part of #445.
 - **T2 is an option inside Practice.** The three modes stay as the decisions table lists them; only the §5 Practice row text changes.
 - **Milestone name.** "M13 UX and panel realism", following the `M<n> <title>` convention of earlier milestones.
 
-## Awaiting owner (decisions table)
+## Owner answers (2026-10-08)
 
-- **T5 Flow vs checklist.** An any-order flow section followed by the checklist (AC 120-71B). It needs a carve-out from the "Step order" row ("never block input; record actions outside the current item as deviations"). Not filed.
-- **T11 Scoring or exam mode.** Spec §1 lists it as out of scope and the "Modes" row has three modes. Cheap once D, F, G and I exist. Not filed.
+- **T5 Flow vs checklist: add flows.** A normal procedure may open with a flow done from memory in any order, verified by the checklist that follows (AC 120-71B). The decisions-table "Step order" row, §4.7 and §5 step 4 are amended in this plan's PR, owner-approved 2026-10-08. Issues #452 and #453.
+- **T11 Scoring or exam mode: declined.** It stays out of scope (spec §1, "Modes" row). Not filed.
+- **Missing panel facts: use best knowledge.** Agents may use general aviation knowledge of the CT Supralight where the intake is silent, flag every such fact in the PR description, and record it in `docs/aircraft/ctsl-intake.md` as **assumed (unverified)**. Intake questions 19 to 23 stay open, marked answered by assumption pending owner verification.
 
 ## Excluded
 
@@ -99,13 +107,13 @@ A wave is a set whose members may run in parallel: their dependencies have lande
 
 ## Intake questions added
 
-`docs/aircraft/ctsl-intake.md` §9, each with the value the trainer uses until answered:
+`docs/aircraft/ctsl-intake.md` §9, each with the value the trainer uses today and the issue that answers it by assumption, pending owner verification:
 
-19. Field proportions and the console's start (P1).
-20. Compass type, card sense, size and mount (P5b).
-21. ELT remote switch legends and lamp colour (P6).
-22. Charge lamp legend and colour (P8b).
-23. Which emergency steps are memory items (T3b).
+19. Field proportions and the console's start (P1, #436).
+20. Compass type, card sense, size and mount (P5b, #444).
+21. ELT remote switch legends and lamp colour (P6, #447).
+22. Charge lamp legend and colour (P8b, #444).
+23. Which emergency steps are memory items (T3b, #450).
 
 ## Related open issues
 
