@@ -17,6 +17,7 @@ export type FindingCode =
   | 'phase-without-image'
   | 'running-image-without-engine'
   | 'phase-without-running-image'
+  | 'cue-without-image'
   | 'phase-without-snapshot'
   | 'undeclared-failure'
   | 'unknown-position'
@@ -429,6 +430,11 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         add('unknown-target', id, `failure ${failureId} trips a control that is not a breaker`);
       }
     }
+  }
+
+  for (const [cueId, cue] of Object.entries(aircraft.outsideCues ?? {})) {
+    checkText(cueId, 'name', cue.name);
+    if (isMissing(cue.image)) add('cue-without-image', cueId, 'declares no image');
   }
 
   for (const [phaseId, phase] of Object.entries(aircraft.phases)) {

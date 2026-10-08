@@ -359,7 +359,7 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `missing-translation`, `phase-without-image`, `running-image-without-engine`,
-`phase-without-running-image`, `phase-without-snapshot`,
+`phase-without-running-image`, `cue-without-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
