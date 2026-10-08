@@ -37,7 +37,8 @@ export type FindingCode =
   | 'invalid-cockpit-min-width'
   | 'invalid-cockpit-dock'
   | 'artwork-glass-size'
-  | 'invalid-check-response';
+  | 'invalid-check-response'
+  | 'invalid-flow';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -511,9 +512,19 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       );
     }
 
+    let checklistStarted = false;
     procedure.items.forEach((item, index) => {
       const where = `procedure ${procedureId} item ${index}`;
       checkText(procedureId, `item ${index} text`, item.text);
+      if ((item as { readonly flow?: unknown }).flow !== true) {
+        checklistStarted = true;
+      } else if (procedure.type !== 'normal') {
+        add('invalid-flow', procedureId, `${where} is in a flow; only a normal procedure has one`);
+      } else if (item.type !== 'action') {
+        add('invalid-flow', procedureId, `${where} is in a flow, which holds only action items`);
+      } else if (checklistStarted) {
+        add('invalid-flow', procedureId, `${where} is in a flow, which must be at the start`);
+      }
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);
       } else if (item.type === 'check') {

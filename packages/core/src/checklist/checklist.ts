@@ -50,11 +50,26 @@ function currentItem<S>(checklist: ChecklistState<S>): ProcedureItem<S> | undefi
   return checklist.done ? undefined : checklist.procedure.items[checklist.current];
 }
 
+type FlowItem<S> = Extract<ProcedureItem<S>, { type: 'action' }>;
+
+function isFlowItem<S>(item: ProcedureItem<S> | undefined): item is FlowItem<S> {
+  return item?.type === 'action' && item.flow === true;
+}
+
+/** Whether the procedure's opening flow is still running; its actions then complete in any order. */
+export function inFlow<S>(checklist: ChecklistState<S>): boolean {
+  return isFlowItem(currentItem(checklist));
+}
+
+function flowTargets<S>(procedure: ProcedureDefinition<S>, id: string): boolean {
+  return procedure.items.some((item) => isFlowItem(item) && item.control === id);
+}
+
 /** Whether the current item takes a tick: a check, a confirm, or an action the pilot may verify. */
 export function takesTick<S>(checklist: ChecklistState<S>): boolean {
   const item = currentItem(checklist);
   if (item?.type !== 'action') return item !== undefined;
-  return !springsBack(checklist.controls[item.control], item.position);
+  return !item.flow && !springsBack(checklist.controls[item.control], item.position);
 }
 
 function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>): boolean {
@@ -67,20 +82,37 @@ function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>
   );
 }
 
-function complete<S>(checklist: ChecklistState<S>): ChecklistState<S> {
-  const next = checklist.current + 1;
+function complete<S>(checklist: ChecklistState<S>, index = checklist.current): ChecklistState<S> {
+  const completed = [...checklist.completed, index];
+  const { length } = checklist.procedure.items;
+  const open = checklist.procedure.items.findIndex((_, at) => !completed.includes(at));
   return {
     ...checklist,
-    current: next,
-    completed: [...checklist.completed, checklist.current],
+    current: open === -1 ? length : open,
+    completed,
     operated: false,
     touched: false,
     repeating: false,
-    done: next >= checklist.procedure.items.length,
+    done: open === -1,
   };
 }
 
+// A flow item stays ticked once its target held; the checklist after the flow verifies it.
+function settleFlow<S>(checklist: ChecklistState<S>, state: TrainerState<S>): ChecklistState<S> {
+  return checklist.procedure.items.reduce(
+    (next, item, index) =>
+      isFlowItem(item) &&
+      !next.completed.includes(index) &&
+      state.controls[item.control] === item.position &&
+      (item.holdUntil?.(state) ?? true)
+        ? complete(next, index)
+        : next,
+    checklist,
+  );
+}
+
 function settle<S>(checklist: ChecklistState<S>, state: TrainerState<S>): ChecklistState<S> {
+  if (inFlow(checklist)) return settleFlow(checklist, state);
   return actionSatisfied(checklist, state) ? complete(checklist) : checklist;
 }
 
@@ -158,10 +190,13 @@ export function observeControl<S>(
   const item = currentItem(checklist);
   if (!item) return checklist;
   const moved = change.source === 'pilot' && change.kind === 'position';
+  const flowing = inFlow(checklist);
   // Moves on the target itself are never deviations, so a stepped control such as a
   // transponder digit may pass through wrong values; only the position left behind counts.
-  const deviating = moved && !targets(item, change.id);
-  const touching = moved && item.type === 'action' && item.control === change.id;
+  // In a flow every flow target is the target, and no position is left behind.
+  const deviating =
+    moved && !(flowing ? flowTargets(checklist.procedure, change.id) : targets(item, change.id));
+  const touching = moved && !flowing && item.type === 'action' && item.control === change.id;
   const operating = touching && item.position === change.to;
   const operated = checklist.operated || operating;
   const touched = checklist.touched || touching;

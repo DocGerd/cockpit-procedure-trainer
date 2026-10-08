@@ -1,8 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import type { ControlChange, Positions, ProcedureDefinition, TrainerState } from '../contract';
+import type {
+  ControlChange,
+  Positions,
+  ProcedureDefinition,
+  ProcedureItem,
+  TrainerState,
+} from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import type { FixtureState } from '../contract/fixtures';
-import { checkOff, observeControl, observeState, startChecklist, takesTick } from './checklist';
+import {
+  checkOff,
+  inFlow,
+  observeControl,
+  observeState,
+  startChecklist,
+  takesTick,
+} from './checklist';
 
 function procedureOf(id: string): ProcedureDefinition<FixtureState> {
   const procedure = fixtureAircraft.procedures[id];
@@ -827,6 +840,195 @@ describe('consecutive spring-back actions', () => {
     const checklist = startChecklist(procedure, stateOf(), controls);
     expect(checklist.done).toBe(false);
     expect(checkOff(checklist, stateOf()).done).toBe(true);
+  });
+});
+
+describe('a flow', () => {
+  const flowItem = (control: string, position: string): ProcedureItem<FixtureState> => ({
+    type: 'action',
+    flow: true,
+    control,
+    position,
+    text: { de: control, en: control },
+  });
+  const verify = (control: string, position: string): ProcedureItem<FixtureState> => ({
+    type: 'action',
+    control,
+    position,
+    text: { de: control, en: control },
+  });
+  const flow: ProcedureDefinition<FixtureState> = {
+    ...beforeStart,
+    items: [
+      flowItem('master', 'on'),
+      flowItem('fuelPump', 'on'),
+      flowItem('flaps', 'takeoff'),
+      verify('master', 'on'),
+      verify('fuelPump', 'on'),
+      verify('flaps', 'takeoff'),
+      verify('ignition', 'both'),
+      { type: 'confirm', text: { de: 'Frei', en: 'Clear' } },
+    ],
+  };
+  const steps = [
+    { change: position('master', 'off', 'on'), at: { master: 'on' } },
+    { change: position('fuelPump', 'off', 'on'), at: { fuelPump: 'on' } },
+    { change: position('flaps', 'up', 'takeoff'), at: { flaps: 'takeoff' } },
+  ] as const;
+  const scanned = { master: 'on', fuelPump: 'on', flaps: 'takeoff' } as const;
+  const start = (state = stateOf()) => startChecklist(flow, state, controls);
+
+  function scan(order: readonly number[]) {
+    let checklist = start();
+    let at: Positions = {};
+    for (const index of order) {
+      const step = steps[index];
+      if (!step) throw new Error(`no step ${index}`);
+      at = { ...at, ...step.at };
+      checklist = observeControl(checklist, step.change, stateOf(at));
+    }
+    return checklist;
+  }
+
+  it('starts in the flow with no tick to give', () => {
+    const checklist = start();
+    expect(inFlow(checklist)).toBe(true);
+    expect(checklist.current).toBe(0);
+    expect(takesTick(checklist)).toBe(false);
+    expect(checkOff(checklist, stateOf())).toBe(checklist);
+  });
+
+  it.each([[[0, 1, 2]], [[2, 1, 0]], [[1, 2, 0]]])(
+    'completes when every target holds, in the order %j',
+    (order) => {
+      const checklist = scan(order);
+      expect([...checklist.completed].sort()).toEqual([0, 1, 2]);
+      expect(checklist.current).toBe(3);
+      expect(inFlow(checklist)).toBe(false);
+      expect(checklist.done).toBe(false);
+      expect(checklist.deviations).toEqual([]);
+    },
+  );
+
+  it('ticks a flow item as its target is set and points at the first one still open', () => {
+    const checklist = scan([2]);
+    expect(checklist.completed).toEqual([2]);
+    expect(checklist.current).toBe(0);
+    expect(inFlow(checklist)).toBe(true);
+  });
+
+  it('leaves the checklist after it to verify the flow', () => {
+    const checklist = scan([0, 1, 2]);
+    expect(takesTick(checklist)).toBe(true);
+    const verified = checkOff(checklist, stateOf(scanned));
+    expect(verified.current).toBe(4);
+    expect(verified.deviations).toEqual([]);
+  });
+
+  it('records a control change outside the flow targets as a deviation', () => {
+    const checklist = observeControl(
+      start(),
+      position('throttle', 0, 0.5),
+      stateOf({ throttle: 0.5 }),
+    );
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle' },
+    ]);
+  });
+
+  it('records a later checklist target set during the flow as out of order', () => {
+    const checklist = observeControl(
+      scan([0]),
+      position('ignition', 'off', 'both'),
+      stateOf({ master: 'on', ignition: 'both' }),
+    );
+    expect(checklist.deviations).toEqual([
+      { kind: 'out-of-order', itemIndex: 1, controlId: 'ignition', laterItem: 6 },
+    ]);
+  });
+
+  it('records no deviation for a flow target moved through other positions', () => {
+    let checklist = observeControl(
+      start(),
+      position('flaps', 'up', 'landing'),
+      stateOf({ flaps: 'landing' }),
+    );
+    checklist = observeControl(
+      checklist,
+      position('master', 'off', 'on'),
+      stateOf({ master: 'on', flaps: 'landing' }),
+    );
+    expect(checklist.deviations).toEqual([]);
+    expect(checklist.completed).toEqual([0]);
+  });
+
+  it('ignores system changes outside the flow', () => {
+    const checklist = observeControl(
+      start(),
+      position('alternatorBreaker', 'in', 'pulled', 'system'),
+      stateOf({ alternatorBreaker: 'pulled' }),
+    );
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('ticks a flow item whose target already holds when the checklist starts', () => {
+    const checklist = start(stateOf({ fuelPump: 'on' }));
+    expect(checklist.completed).toEqual([1]);
+    expect(checklist.current).toBe(0);
+  });
+
+  it('is complete at once when every flow target already holds', () => {
+    const checklist = start(stateOf(scanned));
+    expect(checklist.current).toBe(3);
+    expect(inFlow(checklist)).toBe(false);
+  });
+
+  it('keeps a flow item ticked once set, and the checklist records a target left elsewhere', () => {
+    let checklist = observeControl(scan([0]), position('master', 'on', 'off'), stateOf());
+    expect(checklist.completed).toEqual([0]);
+    const left = { fuelPump: 'on', flaps: 'takeoff' } as const;
+    checklist = observeControl(
+      checklist,
+      position('fuelPump', 'off', 'on'),
+      stateOf({ fuelPump: 'on' }),
+    );
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), stateOf(left));
+    expect(checklist.current).toBe(3);
+    checklist = checkOff(checklist, stateOf(left));
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 3, controlId: 'master', position: 'off' },
+    ]);
+  });
+
+  it('ticks a flow item with holdUntil only once its condition also holds', () => {
+    const held: ProcedureDefinition<FixtureState> = {
+      ...flow,
+      items: [
+        {
+          type: 'action',
+          flow: true,
+          control: 'master',
+          position: 'on',
+          holdUntil: (state) => state.systems.busPowered,
+          text: { de: 'Hauptschalter', en: 'Master' },
+        },
+        { type: 'confirm', text: { de: 'Frei', en: 'Clear' } },
+      ],
+    };
+    let checklist = startChecklist(held, stateOf(), controls);
+    checklist = observeControl(
+      checklist,
+      position('master', 'off', 'on'),
+      stateOf({ master: 'on' }),
+    );
+    expect(checklist.current).toBe(0);
+    checklist = observeState(checklist, masterOn);
+    expect(checklist.current).toBe(1);
+  });
+
+  it('returns the same checklist when nothing changes', () => {
+    const checklist = scan([1]);
+    expect(observeState(checklist, stateOf({ fuelPump: 'on' }))).toBe(checklist);
   });
 });
 
