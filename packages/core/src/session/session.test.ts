@@ -340,6 +340,229 @@ describe('startProcedure', () => {
   });
 });
 
+describe('startSurprise', () => {
+  const surprise = { phase: 'runup', failure: 'alternatorFailure', delayMs: 3 * STEP_MS };
+
+  it('loads the phase snapshot with no procedure, no checklist and the failure pending', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    expect(session.phase()).toBe('runup');
+    expect(session.state().controls).toEqual(fixturePhase('runup').entry.controls);
+    expect(session.procedureId()).toBeUndefined();
+    expect(session.checklist()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+    expect(session.scenario()).toEqual(surprise);
+  });
+
+  it('injects the failure once the delay has passed, unannounced', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+    expect(session.state().controls.alternatorBreaker).toBe('in');
+    session.advance(STEP_MS);
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(fixtureSystems(session).volts).toBe(12);
+    expect(session.scenario()?.injectedAtMs).toBe(3 * STEP_MS);
+    expect(session.procedureId()).toBeUndefined();
+  });
+
+  it('notifies once per step, the injecting step included', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: STEP_MS });
+    let calls = 0;
+    session.subscribe(() => calls++);
+    session.advance(STEP_MS);
+    expect(calls).toBe(1);
+  });
+
+  it('throws for an unknown failure or phase or a bad delay and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.set('master', 'on');
+    const before = fingerprint(session);
+    expect(() => session.startSurprise({ ...surprise, failure: 'engineFire' })).toThrow(
+      'engineFire',
+    );
+    expect(() => session.startSurprise({ ...surprise, failure: 'toString' })).toThrow('toString');
+    expect(() => session.startSurprise({ ...surprise, phase: 'nowhere' })).toThrow('nowhere');
+    expect(() => session.startSurprise({ ...surprise, delayMs: -1 })).toThrow(RangeError);
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()).toBeUndefined();
+  });
+
+  it('is cancelled by a phase jump or a procedure start', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.jumpToPhase('runup');
+    expect(session.scenario()).toBeUndefined();
+    session.startSurprise(surprise);
+    session.startProcedure('beforeStart');
+    expect(session.scenario()).toBeUndefined();
+    for (let step = 0; step < 4; step++) session.advance(STEP_MS);
+    expect(session.failures().size).toBe(0);
+  });
+});
+
+describe('takeChecklist', () => {
+  const surprise = { phase: 'runup', failure: 'alternatorFailure', delayMs: STEP_MS };
+
+  it('runs the chosen checklist from the cockpit as it stands and times the recognition', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.set('throttle', 0.5);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    expect(session.checklist()?.current).toBe(0);
+    expect(session.scenario()).toMatchObject({
+      chosen: 'alternatorFailure',
+      recognitionMs: 2 * STEP_MS,
+      matched: true,
+    });
+  });
+
+  it('records a checklist that does not match the failure, injecting nothing of its own', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    expect(session.procedureId()).toBe('beforeStart');
+    expect(session.phase()).toBe('runup');
+    expect(session.state().controls.master).toBe('on');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it("counts another failure's checklist as wrong", () => {
+    const alternator = fixtureAircraft.procedures['alternatorFailure'];
+    if (alternator?.type !== 'emergency') throw new Error('fixture lost its alternator checklist');
+    const twoFailures: Aircraft = {
+      ...fixtureAircraft,
+      failures: { ...fixtureAircraft.failures, vacuumFailure: { name: alternator.title } },
+      procedures: {
+        ...fixtureAircraft.procedures,
+        vacuumFailure: { ...alternator, failure: 'vacuumFailure' },
+      },
+    };
+    const session = createSession(twoFailures);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('vacuumFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'vacuumFailure', matched: false });
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+  });
+
+  it('injects a pending failure when the pilot chooses before it appeared', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise({ ...surprise, delayMs: 10 * STEP_MS });
+    session.takeChecklist('alternatorFailure');
+    expect([...session.failures()]).toEqual(['alternatorFailure']);
+    const scenario = session.scenario();
+    expect(scenario).toMatchObject({ chosen: 'alternatorFailure', matched: true });
+    expect(scenario?.injectedAtMs).toBe(0);
+    expect(scenario).not.toHaveProperty('recognitionMs');
+  });
+
+  it('times the chosen checklist from the choice', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.advance(STEP_MS);
+    session.takeChecklist('alternatorFailure');
+    session.advance(STEP_MS);
+    session.checkOff();
+    session.checkOff();
+    expect(session.checklist()?.elapsedMs).toBe(STEP_MS);
+    expect(session.scenario()?.chosen).toBe('alternatorFailure');
+  });
+
+  it('keeps the first choice when another checklist is taken later', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    session.takeChecklist('alternatorFailure');
+    expect(session.procedureId()).toBe('alternatorFailure');
+    expect(session.scenario()).toMatchObject({ chosen: 'beforeStart', matched: false });
+  });
+
+  it('starts a checklist from the cockpit as it stands outside a surprise too', () => {
+    const session = createSession(fixtureAircraft, { phase: 'runup' });
+    session.set('throttle', 0.5);
+    session.takeChecklist('beforeStart');
+    expect(session.state().controls.throttle).toBe(0.5);
+    expect(session.scenario()).toBeUndefined();
+    expect(session.failures().size).toBe(0);
+  });
+
+  it('throws naming an unknown procedure and changes nothing', () => {
+    const session = createSession(fixtureAircraft);
+    session.startSurprise(surprise);
+    const before = fingerprint(session);
+    expect(() => session.takeChecklist('engineFire')).toThrow('engineFire');
+    expect(fingerprint(session)).toEqual(before);
+    expect(session.scenario()?.chosen).toBeUndefined();
+  });
+});
+
+describe('seeded device state', () => {
+  type SeededState = { readonly page: string; readonly label: string };
+  const seededMonitor = defineDevice({
+    ...engineMonitor,
+    initial: { page: 'engine', label: 'plain' } as SeededState,
+    step: (state, { controls }): SeededState => ({ ...state, page: String(controls.page) }),
+  });
+  const runup = fixtureDeviceAircraft.phases.runup;
+  const seeded = {
+    ...fixtureDeviceAircraft,
+    phases: {
+      ...fixtureDeviceAircraft.phases,
+      runup: { ...runup, entry: { ...runup?.entry, deviceStates: { mon: { label: 'seeded' } } } },
+    },
+  } as Aircraft;
+  const label = (session: Session) => (session.state().devices.mon?.state as SeededState).label;
+
+  it('applies on a jump to the phase and not on another', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    expect(label(session)).toBe('plain');
+    session.jumpToPhase('runup');
+    expect(label(session)).toBe('seeded');
+    session.jumpToPhase('parking');
+    expect(label(session)).toBe('plain');
+  });
+
+  it('applies when a procedure starts and is restored by retryItem', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    session.startProcedure('monitorElectrical');
+    expect(label(session)).toBe('seeded');
+    session.set('mon.page', 'electrical');
+    const atItem = session.state().devices;
+    session.set('mon.page', 'engine');
+    session.advance(STEP_MS);
+    expect(session.state().devices).not.toEqual(atItem);
+    session.retryItem();
+    expect(session.state().devices).toEqual(atItem);
+    expect(label(session)).toBe('seeded');
+  });
+
+  it('applies when a surprise loads the phase and stays when a checklist is taken', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    session.startSurprise({ phase: 'runup', failure: 'alternatorFailure', delayMs: STEP_MS });
+    expect(label(session)).toBe('seeded');
+    session.set('mon.page', 'electrical');
+    session.advance(STEP_MS);
+    const before = session.state().devices;
+    session.takeChecklist('monitorElectrical');
+    expect(session.state().devices).toEqual(before);
+    expect(label(session)).toBe('seeded');
+  });
+});
+
 describe('retryItem', () => {
   it('restores the cockpit to the start of the current item and keeps the record', () => {
     const session = createSession(fixtureAircraft);

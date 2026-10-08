@@ -23,6 +23,7 @@ export type FindingCode =
   | 'inexact-lever-target'
   | 'unknown-device'
   | 'unknown-device-control'
+  | 'unknown-device-state'
   | 'unplaced-device'
   | 'invalid-install-id'
   | 'control-in-device-namespace'
@@ -60,6 +61,9 @@ export type ValidationContext = {
 export function formatFinding(finding: Finding): string {
   return `${finding.aircraftId}: ${finding.code} ${finding.id}: ${finding.message}`;
 }
+
+const kindOf = (value: unknown): string =>
+  value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value;
 
 const isMissing = (value: unknown): boolean => typeof value !== 'string' || value.trim() === '';
 
@@ -497,6 +501,35 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
           `phase ${phaseId} entry`,
           position,
         );
+      }
+    }
+
+    for (const [installId, fields] of Object.entries(entry.deviceStates ?? {})) {
+      const install = Object.hasOwn(aircraft.devices ?? {}, installId)
+        ? aircraft.devices?.[installId]
+        : undefined;
+      if (!install) {
+        add('unknown-device', installId, `phase ${phaseId} entry seeds an unknown install`);
+        continue;
+      }
+      const device = deviceById(install.device);
+      if (!device) continue;
+      const initial = device.initial as Readonly<Record<string, unknown>>;
+      for (const [field, value] of Object.entries(fields)) {
+        const where = `phase ${phaseId} entry seeds ${installId}`;
+        if (!Object.hasOwn(initial, field)) {
+          add(
+            'unknown-device-state',
+            `${installId}.${field}`,
+            `${where} with a field ${device.id} state does not have`,
+          );
+        } else if (initial[field] !== null && kindOf(value) !== kindOf(initial[field])) {
+          add(
+            'unknown-device-state',
+            `${installId}.${field}`,
+            `${where} with a ${kindOf(value)} where ${device.id} state has a ${kindOf(initial[field])}`,
+          );
+        }
       }
     }
   }

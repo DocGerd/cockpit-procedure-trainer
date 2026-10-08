@@ -115,6 +115,9 @@ A wave is a set whose members may run in parallel: their dependencies have lande
 21. ELT remote switch legends and lamp colour (P6, #447).
 22. Charge lamp legend and colour (P8b, #444).
 23. Which emergency steps are memory items (T3b, #450).
+24. Which switches are on at the start of each phase (#466).
+25. Console lever travel and sense, and the trim wheel and indicator (P3, P8c, #449).
+26. Rescue handle position, grip and safety pin on the bulkhead (P4, #449).
 
 ## Related open issues
 

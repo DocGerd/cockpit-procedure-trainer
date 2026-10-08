@@ -417,6 +417,16 @@
   color: var(--color-text-secondary);
 }
 
+.checklist-surprise {
+  margin: 0;
+  padding: var(--space-4) var(--space-5) 0;
+  font-weight: var(--weight-medium);
+}
+
+.checklist-surprise[data-matched='false'] {
+  color: var(--color-warning);
+}
+
 .checklist-deviations,
 .checklist-assisted {
   display: flex;

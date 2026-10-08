@@ -392,8 +392,66 @@ describe('CTSL control artwork', () => {
   });
 });
 
+describe('CTSL console levers (intake §3.4)', () => {
+  // The console is drawn as the left seat sees its flank: forward, toward the centre column and the
+  // nose, is to the left, and a lever pulled toward the pilot moves right.
+  const travelOf = (id: 'brake' | 'throttle' | 'choke') => {
+    const { moving } = controlArtwork.find((entry) => entry.id === id)?.artwork ?? {};
+    if (moving?.type !== 'travel') throw new Error(`${id} slides along a travel path`);
+    return moving.path;
+  };
+  const xOf = (svg: string, legend: string) =>
+    Number(new RegExp(String.raw`<text x="([\d.]+)"[^>]*>${legend}</text>`).exec(svg)?.[1]);
+
+  it.each(['brake', 'throttle', 'choke'] as const)('slides %s horizontally', (id) => {
+    const path = travelOf(id);
+    const [first, last] = [path[0], path[path.length - 1]];
+    expect(first?.y).toBe(last?.y);
+    expect(first?.x).not.toBe(last?.x);
+  });
+
+  it('pushes the throttle forward, to the left, for full power', () => {
+    const path = travelOf('throttle');
+    expect(path[path.length - 1]?.x).toBeLessThan(path[0]?.x ?? 0);
+    const face = read(controlArtwork.find(({ id }) => id === 'throttle')?.artwork.face ?? '');
+    expect(xOf(face, 'FULL')).toBeLessThan(xOf(face, 'IDLE'));
+  });
+
+  it.each(['brake', 'choke'] as const)('pulls %s aft, to the right, to ON', (id) => {
+    const path = travelOf(id);
+    expect(path[1]?.x).toBeGreaterThan(path[0]?.x ?? 0);
+    const face = read(controlArtwork.find((entry) => entry.id === id)?.artwork.face ?? '');
+    expect(xOf(face, 'ON')).toBeGreaterThan(xOf(face, 'OFF'));
+  });
+
+  describe('trim wheel', () => {
+    const artwork = controlArtwork.find(({ id }) => id === 'trim')?.artwork;
+    const images = artwork?.moving.type === 'positions' ? artwork.moving.images : {};
+    const pointerX = (position: string) =>
+      Number(
+        /<path\b[^>]*data-pointer=""[^>]*\bd="M([\d.]+)/.exec(read(images[position] ?? ''))?.[1],
+      );
+    const wheel = (position: string) =>
+      /<path\b[^>]*data-wheel=""[^>]*\bd="([^"]+)"/.exec(read(images[position] ?? ''))?.[1];
+
+    it('turns a wheel and moves a separate indicator for each position', () => {
+      expect(Object.keys(images).sort()).toEqual(['neutral', 'nose-down', 'nose-up']);
+      const turned = ['nose-down', 'neutral', 'nose-up'].map(wheel);
+      expect(turned.every((ribs) => ribs !== undefined)).toBe(true);
+      expect(new Set(turned).size).toBe(3);
+    });
+
+    it('shows nose down forward, to the left, on the indicator', () => {
+      expect(pointerX('nose-down')).toBeLessThan(pointerX('neutral'));
+      expect(pointerX('neutral')).toBeLessThan(pointerX('nose-up'));
+      const face = read(artwork?.face ?? '');
+      expect(xOf(face, 'NOSE DN')).toBeLessThan(xOf(face, 'NOSE UP'));
+    });
+  });
+});
+
 describe('CTSL view backdrops', () => {
-  const backdrop = (id: 'panel' | 'centre' | 'console'): string =>
+  const backdrop = (id: 'panel' | 'centre' | 'console' | 'bulkhead'): string =>
     readFileSync(new URL(`./assets/${fileOf(views[id].image)}`, import.meta.url), 'utf8');
   const count = (svg: string, pattern: RegExp) => [...svg.matchAll(pattern)].length;
   const lettering = (svg: string) =>
@@ -402,17 +460,23 @@ describe('CTSL view backdrops', () => {
         `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
     );
 
-  it.each(['panel', 'centre', 'console'] as const)('uses at most one filter on %s', (id) => {
-    const svg = backdrop(id);
-    expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
-    expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
-  });
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'uses at most one filter on %s',
+    (id) => {
+      const svg = backdrop(id);
+      expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
+      expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+    },
+  );
 
-  it.each(['panel', 'centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
-    const svg = backdrop(id);
-    expect(count(svg, /<feTurbulence\b/g)).toBe(1);
-    expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
-  });
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'paints %s with a stipple texture',
+    (id) => {
+      const svg = backdrop(id);
+      expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+      expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
+    },
+  );
 
   it("heads the breaker block in the panel's own wording", () => {
     const { x, y } = views.panel.controls.comBreaker.rect;
@@ -422,35 +486,39 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers - Push off');
   });
 
-  it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
-    const expected = {
-      panel: [
-        'TAKE@90,92/30',
-        'OFF@90,130/30',
-        'LIMITS@90,292/30',
-        'COM RADIO@450,449/40',
-        'TRANSPONDER@450,609/40',
-        'GPS@1368,204/40',
-        'Circuit Breakers -@1736,72/30',
-        'Push off@1736,106/30',
-      ],
-      centre: [
-        'AVIONICS OFF TO START AND STOP@570,272/29',
-        '12 V@120,378/29',
-        'INTERCOM@590,384/29',
-        'AUDIO@945,384/29',
-        'FLAPS@700,550/29',
-        'HEADSET@1080,490/29',
-        'IGNITION@223,886/29',
-        'BAT@930,658/29',
-        'GEN@1090,658/29',
-        'OPEN@150,434/29',
-        'FUEL@150,494/29',
-        'VALVE@150,528/29',
-        'CLOSED@150,598/29',
-      ],
-      console: [],
-    }[id];
-    expect(lettering(backdrop(id))).toEqual(expected);
-  });
+  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
+    'keeps the %s lettering in place',
+    (id) => {
+      const expected = {
+        panel: [
+          'TAKE@90,92/30',
+          'OFF@90,130/30',
+          'LIMITS@90,292/30',
+          'COM RADIO@450,449/40',
+          'TRANSPONDER@450,609/40',
+          'GPS@1368,204/40',
+          'Circuit Breakers -@1736,72/30',
+          'Push off@1736,106/30',
+        ],
+        centre: [
+          'AVIONICS OFF TO START AND STOP@570,272/29',
+          '12 V@120,378/29',
+          'INTERCOM@590,384/29',
+          'AUDIO@945,384/29',
+          'FLAPS@700,550/29',
+          'HEADSET@1080,490/29',
+          'IGNITION@223,886/29',
+          'BAT@930,658/29',
+          'GEN@1090,658/29',
+          'OPEN@150,434/29',
+          'FUEL@150,494/29',
+          'VALVE@150,528/29',
+          'CLOSED@150,598/29',
+        ],
+        console: [],
+        bulkhead: [],
+      }[id];
+      expect(lettering(backdrop(id))).toEqual(expected);
+    },
+  );
 });

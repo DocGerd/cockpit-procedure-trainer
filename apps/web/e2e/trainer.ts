@@ -85,6 +85,13 @@ export async function setControl(page: Page, controlId: string, position: string
   const definition = control(controlId);
   await selectView(page, controlId);
   const name = definition.name.en;
+  if (definition.kind === 'breaker') {
+    const breaker = page.getByRole('switch', { name, exact: true });
+    if ((await breaker.getAttribute('aria-checked')) !== String(position === 'in')) {
+      await breaker.click();
+    }
+    return;
+  }
   if (definition.positions === 'continuous') {
     if (position !== 0 && position !== 1) throw new Error('A lever can only be set to an end stop');
     const slider = page.getByRole('slider', { name, exact: true });
@@ -147,6 +154,10 @@ export async function operateUnrelatedControl(page: Page, controlId: string) {
 async function isSet(page: Page, controlId: string, position: string | number) {
   const definition = control(controlId);
   await selectView(page, controlId);
+  if (definition.kind === 'breaker') {
+    const breaker = page.getByRole('switch', { name: definition.name.en, exact: true });
+    return (await breaker.getAttribute('aria-checked')) === String(position === 'in');
+  }
   if (definition.positions === 'continuous') {
     const slider = page.getByRole('slider', { name: definition.name.en, exact: true });
     return Number(await slider.getAttribute('aria-valuenow')) === position;

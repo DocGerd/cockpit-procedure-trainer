@@ -74,7 +74,7 @@ const gtx327StandIn = defineDevice({
     },
     ...Object.fromEntries(gtx327Keys.map(([id, de, en]) => [id, momentary(text(de, en))])),
   },
-  initial: {},
+  initial: { squawk: '2000' },
   step: (state) => state,
 });
 
@@ -88,7 +88,7 @@ const gpsmap496StandIn = defineDevice({
     page: momentary(text('Seite', 'Page')),
     quit: momentary(text('Zurück', 'Quit')),
   },
-  initial: {},
+  initial: { on: false, page: 'map' },
   step: (state) => state,
 });
 

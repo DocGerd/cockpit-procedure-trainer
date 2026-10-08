@@ -305,6 +305,10 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
     readonly devices?: {
       readonly [installId: string]: { readonly [controlId: string]: ControlPosition };
     };
+    /** Fields of an install's device state laid over `device.initial` on entry, keyed by install id. */
+    readonly deviceStates?: {
+      readonly [installId: string]: { readonly [field: string]: unknown };
+    };
   };
 };
 

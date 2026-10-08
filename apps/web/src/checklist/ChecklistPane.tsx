@@ -229,9 +229,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
   const atRisk = useProgressAtRisk() !== undefined;
-  const restart = () => {
-    if (trainer.procedureId !== undefined) trainer.startProcedure(trainer.procedureId);
-  };
+  const restart = () => trainer.restart();
   const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
   const rows = procedure.items.map((item, index) => {
     const shown = trainer.assisted.includes(index);
@@ -333,7 +331,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         {confirming && (
           <ConfirmDialog
             title={text.restartTitle}
-            body={`${text.restartBody} ${lost}`}
+            body={`${trainer.surprisePhase === undefined ? text.restartBody : text.restartSurpriseBody} ${lost}`}
             confirmLabel={text.restart}
             cancelLabel={text.restartCancel}
             onCancel={() => setConfirming(false)}

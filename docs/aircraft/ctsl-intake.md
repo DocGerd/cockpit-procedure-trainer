@@ -43,8 +43,9 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
-laid out for the left seat (pilot in command). The trainer draws three views:
-`panel` (both upper fields), `centre` (lower centre field) and `console`.
+laid out for the left seat (pilot in command). The trainer draws four views:
+`panel` (both upper fields), `centre` (lower centre field), `console` and
+`bulkhead` (the rescue handle between the seats, behind the console).
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -105,9 +106,12 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 
 - Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
   hydraulic brake lever, Bremshebel), **THROTTLE** (idle/full, Gashebel),
-  **CHOKE** (off/on).
+  **CHOKE** (off/on). The trainer draws the console as the left seat sees its
+  flank, so forward is to the left: the throttle pushes left to full, and the
+  brake and choke pull right, toward the pilot, to on (§9, question 25).
 - **Stabilator trim wheel** (Trimmrad) with its indicator beside it; forward is
-  nose down.
+  nose down. The trainer draws the wheel's rim in its slot with the indicator
+  scale above it, nose down to the left (§9, question 25).
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
   the throttle group. Parking brake: close the valve, then apply the brake lever;
   the pressure holds until the valve is opened.
@@ -116,6 +120,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   pull knob on the console (§9).
 - **Rescue-system handle** (Rettungsgerät), on the main bulkhead between the seats,
   secured on the ground by a safety pin. Pull hard and far forward to deploy.
+  The trainer draws it in its own view, `bulkhead`, behind the console (§9,
+  question 26).
 - Not modelled: the large unlabelled knob right of the parking-brake valve (§9),
   the fire extinguisher (pocket behind the passenger seat), the fuel dipstick.
 
@@ -283,8 +289,10 @@ intercom is on whenever the engine runs (N16 switches it off); the transponder i
 off at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach`. The squawk code and the GPS stay at their power-on state
-in every phase (#476): the phase entry presets device controls, not device state.
+about −2 m/s in `approach`. The phase entry seeds device state as well as device
+controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
+through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
+`taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -559,10 +567,32 @@ verifies it on D-MPGO.
 
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
-    and standby once parked, landing light on from the approach until N15, vertical
+    and standby once parked, squawk 7000 from line-up and the GPS on at its map page
+    from line-up to taxi-in (#476), landing light on from the approach until N15, vertical
     speed climbing in `departure` and descending in `approach`. No procedure step
     switches the landing light on (N12 says "as needed"), so the approach, landing
     and `taxiIn` entries carry it. **Answered by assumption pending owner
     verification** (#466). Assumed (unverified), from general-aviation practice;
     the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
     owner's.
+25. **Console lever and trim geometry**: do BRAKE, THROTTLE and CHOKE travel
+    fore and aft, which way does each apply (brake and choke on when pulled?),
+    what handles do they carry, and where does the trim indicator sit relative to
+    the wheel? Today: three horizontal levers stacked top to bottom, drawn as the
+    left seat sees the console's flank, forward to the left; the throttle pushes
+    forward to full, the brake and choke pull aft to on; the trim wheel's rim
+    shows in a slot below the choke with its indicator scale above it, nose down
+    forward. **Answered by assumption pending owner verification** (#449).
+    Assumed (unverified), from general knowledge of the CT Supralight: the three
+    levers slide fore and aft; push is forward, so full throttle is forward and
+    the brake and choke apply when pulled toward the pilot; the trim wheel turns
+    fore and aft, forward nose down, with its indicator beside it.
+26. **Rescue handle on the bulkhead**: how high and where across the main
+    bulkhead does the handle sit, what shape is its grip, and where does the
+    safety pin go? Today: a T-grip in a holder centred on the bulkhead between
+    the two seat backs, the safety pin through the holder above the grip, the
+    holder printed RESCUE and PULL HARD. **Answered by assumption pending owner
+    verification** (#449). Assumed (unverified), from general knowledge of the CT
+    Supralight: the handle sits centred between the seats on the bulkhead behind
+    them, at about shoulder height, reached back over the shoulder; the pin goes
+    through the holder and carries a remove-before-flight flag.

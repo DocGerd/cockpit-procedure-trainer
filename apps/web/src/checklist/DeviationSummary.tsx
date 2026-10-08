@@ -1,7 +1,7 @@
 import type { ChecklistState, DeviationKind } from '@cpt/core';
 import { useEffect, useId, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
+import { useSessionState, useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
@@ -24,6 +24,8 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const localize = useLocalize();
   const trainer = useTrainer();
   const describe = useDeviationText(checklist);
+  const scenario = useSessionState((snapshot) => snapshot.scenario());
+  const answer = scenario?.chosen === undefined ? undefined : scenario;
   const headingId = useId();
   const listId = useId();
   const assistedId = useId();
@@ -38,7 +40,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const { procedure, deviations } = checklist;
   const ids = Object.keys(aircraft.procedures);
   const nextId =
-    procedureId === undefined
+    procedureId === undefined || answer
       ? undefined
       : ids
           .slice(ids.indexOf(procedureId) + 1)
@@ -87,13 +89,16 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     row?.focus({ preventScroll: true });
     row?.scrollIntoView({ block: 'center' });
   };
+  const failureName = answer && aircraft.failures[answer.failure]?.name;
   const repeat = procedureId !== undefined && (
     <button
       type="button"
       className={deviations.length > 0 ? 'button-primary' : 'button-secondary'}
-      onClick={() => trainer.startProcedure(procedureId)}
+      onClick={() =>
+        answer ? trainer.startSurprise(answer.phase) : trainer.startProcedure(procedureId)
+      }
     >
-      {text.repeatProcedure}
+      {answer ? text.newSurprise : text.repeatProcedure}
     </button>
   );
 
@@ -123,7 +128,26 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           <dt className="checklist-eyebrow">{text.assists}</dt>
           <dd className="checklist-stat-value">{checklist.assists + assisted.length}</dd>
         </div>
+        {answer && (
+          <div className="checklist-stat">
+            <dt className="checklist-eyebrow">{text.recognition}</dt>
+            <dd className="checklist-stat-value">
+              {answer.recognitionMs === undefined
+                ? text.recognisedEarly
+                : clock(answer.recognitionMs)}
+            </dd>
+          </div>
+        )}
       </dl>
+
+      {answer && failureName && (
+        <p className="checklist-surprise" data-matched={answer.matched === true}>
+          {format(answer.matched ? text.surpriseMatched : text.surpriseMissed, {
+            failure: localize(failureName),
+          })}
+          {answer.recognitionMs === undefined && ` ${text.chosenEarly}`}
+        </p>
+      )}
 
       {deviations.length > 0 && (
         <ul className="checklist-kinds">
