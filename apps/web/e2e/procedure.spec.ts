@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test';
 import { control } from './content';
 import { expect, test } from './fixtures';
 import { selectLanguage } from './legibility';
@@ -270,4 +271,29 @@ test('a summary with deviations makes Repeat primary and links each deviation to
     .getByRole('listitem');
   await expect(items.first()).toBeFocused();
   await expect(items.first()).toBeInViewport();
+});
+
+test.describe('the Alternator failure opens with its memory items', () => {
+  const alternatorFailure = 'alternatorFailure';
+  const memory = procedure(alternatorFailure).items.filter((item) => item.memory === true);
+  const group = (page: Page) =>
+    checklistPane(page).getByRole('list', { name: copy.checklist.memoryItems });
+
+  test('grouped in Guided, where they are worked in order', async ({ page }) => {
+    await startProcedure(page, alternatorFailure, 'guided');
+    const rows = group(page).getByRole('listitem');
+    await expect(rows).toHaveCount(memory.length);
+    await expect(rows.first()).toContainText(memory[0]?.text.en ?? '');
+
+    await rows.first().getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+    await expect(rows.nth(1).getByRole('img', { name: copy.checklist.stateCurrent })).toBeVisible();
+  });
+
+  test('blank in Practice until done', async ({ page }) => {
+    await startProcedure(page, alternatorFailure, 'practice');
+    await expect(group(page).getByRole('listitem')).toHaveCount(memory.length);
+    for (const item of memory) {
+      await expect(checklistPane(page).getByText(item.text.en)).toHaveCount(0);
+    }
+  });
 });

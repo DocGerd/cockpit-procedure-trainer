@@ -549,6 +549,14 @@ verifies it on D-MPGO.
       closed.
     - E7, E9 and the generator failure have no memory items: they leave time to
       read the list.
+
+    Memory items must lead the procedure, so two questions go with this one. Many
+    drills open an engine failure with "best glide" from memory, but §7 puts best
+    glide (125 km/h, E5) after E4's restart attempt, and E3 below 100 m names only
+    the approach speed: does the club fly the glide from memory, and where in the
+    list? The safety-pin confirm (E2) and key out (E8) are memory items only
+    because they sit inside the leading block; does the club drill them so?
+
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
     and standby once parked, landing light on from the approach until N15, vertical

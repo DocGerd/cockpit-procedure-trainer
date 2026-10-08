@@ -3,6 +3,7 @@ import { useEffect, useId, useRef } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
+import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 
 const KINDS: readonly DeviationKind[] = [
@@ -50,6 +51,36 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
     'unmet-check': text.kindUnmet,
     'late-memory-item': text.kindLateMemory,
   };
+  const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
+  const reviewRows = procedure.items.map((item, index) => {
+    const deviated = deviations.some(
+      (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
+    );
+    return (
+      <li
+        key={index}
+        ref={(row) => {
+          if (row) rows.current.set(index, row);
+          else rows.current.delete(index);
+        }}
+        tabIndex={-1}
+        className="checklist-item"
+        data-state={deviated ? 'deviated' : 'done'}
+      >
+        <span className="checklist-item-row">
+          <span
+            className="checklist-mark"
+            role="img"
+            aria-label={deviated ? text.stateDeviated : text.stateDone}
+          >
+            {deviated ? '▲' : '✓'}
+          </span>
+          <span className="checklist-number">{index + 1}</span>
+          <span className="checklist-item-text">{localize(item.text)}</span>
+        </span>
+      </li>
+    );
+  });
   const firstFlowItem = procedure.items.findIndex((item) => item.type === 'action' && item.flow);
   const goTo = (index: number) => {
     const row = rows.current.get(index);
@@ -165,35 +196,12 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
 
       <section className="checklist-review" aria-label={text.itemsHeading}>
         <ol className="checklist-review-list">
-          {procedure.items.map((item, index) => {
-            const deviated = deviations.some(
-              (deviation) => deviation.itemIndex === index && !deviation.duringFlow,
-            );
-            return (
-              <li
-                key={index}
-                ref={(row) => {
-                  if (row) rows.current.set(index, row);
-                  else rows.current.delete(index);
-                }}
-                tabIndex={-1}
-                className="checklist-item"
-                data-state={deviated ? 'deviated' : 'done'}
-              >
-                <span className="checklist-item-row">
-                  <span
-                    className="checklist-mark"
-                    role="img"
-                    aria-label={deviated ? text.stateDeviated : text.stateDone}
-                  >
-                    {deviated ? '▲' : '✓'}
-                  </span>
-                  <span className="checklist-number">{index + 1}</span>
-                  <span className="checklist-item-text">{localize(item.text)}</span>
-                </span>
-              </li>
-            );
-          })}
+          {memoryCount > 0 && (
+            <ItemGroup kind="memory" label={text.memoryItems}>
+              {reviewRows.slice(0, memoryCount)}
+            </ItemGroup>
+          )}
+          {reviewRows.slice(memoryCount)}
         </ol>
       </section>
 

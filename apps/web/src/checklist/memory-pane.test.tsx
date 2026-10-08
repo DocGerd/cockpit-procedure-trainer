@@ -104,3 +104,22 @@ it('debriefs a memory item done late as its own deviation', () => {
   expect(screen.getByText('Pump off, at once from memory')).toBeTruthy();
   expect(screen.getByText('Done only after another action')).toBeTruthy();
 });
+
+it('marks the memory items in the Free explore reference', () => {
+  start('explore');
+  const group = screen.getByRole('list', { name: 'Memory items' });
+  expect(within(group).getAllByRole('listitem')).toHaveLength(2);
+  expect(within(group).queryByText('Master off')).toBeNull();
+});
+
+it('marks the memory items in the debrief item list', () => {
+  start('practice');
+  operate('pump', 'off');
+  checkOff();
+  operate('master', 'off');
+  expect(trainer.session.checklist()?.done).toBe(true);
+  const group = screen.getByRole('list', { name: 'Memory items' });
+  expect(within(group).getByText('Pump off')).toBeTruthy();
+  expect(within(group).getByText('Mayday call')).toBeTruthy();
+  expect(within(group).queryByText('Master off')).toBeNull();
+});
