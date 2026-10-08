@@ -80,10 +80,16 @@ function shadowStep(session: Session, aircraft: Aircraft, item: Item, index: num
 const isDeviceItem = (aircraft: Aircraft, item: Item): item is Action =>
   item.type === 'action' && !Object.hasOwn(aircraft.controls, item.control);
 
+const readsDevice = (aircraft: Aircraft, item: Item) =>
+  item.type === 'check' &&
+  'control' in item.target &&
+  !Object.hasOwn(aircraft.controls, item.target.control);
+
 /**
  * The aircraft's full flight, played first on a session in this process: it times each check
- * and hold, which the page cannot tell. Device controls run only in the page, so a leg of
- * device items is taken there as it comes, its checks met at once.
+ * and hold, which the page cannot tell. Device controls run only in the page. A leg of nothing
+ * but device items is taken there as it comes, its checks met at once; in a leg that also moves
+ * the aircraft's own controls, only the device action and the check on a device control are.
  */
 export function flightPlan(aircraft: Aircraft): readonly Leg[] {
   const legs = flightLegs(aircraft);
@@ -95,7 +101,10 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
   );
   return legs.map((id) => {
     const { items } = procedureOf(aircraft, id);
-    if (items.some((item) => isDeviceItem(aircraft, item))) {
+    const onlyDevices =
+      items.some((item) => isDeviceItem(aircraft, item)) &&
+      !items.some((item) => item.type === 'action' && !isDeviceItem(aircraft, item));
+    if (onlyDevices) {
       return {
         id,
         steps: items.map((item): Step => {
@@ -106,7 +115,17 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
       };
     }
     shadow.startLeg(id);
-    const steps = items.map((item, index) => shadowStep(shadow, aircraft, item, index));
+    const steps = items.map((item, index): Step => {
+      if (isDeviceItem(aircraft, item)) {
+        shadow.checkOff();
+        return { kind: 'device', control: item.control, position: item.position };
+      }
+      if (readsDevice(aircraft, item)) {
+        shadow.checkOff();
+        return { kind: 'check', waitMs: 0 };
+      }
+      return shadowStep(shadow, aircraft, item, index);
+    });
     if (!shadow.checklist()?.done) throw new Error(`the shadow did not finish ${id}`);
     return { id, steps };
   });
@@ -193,7 +212,7 @@ async function setPosition(page: Page, aircraft: Aircraft, id: string, position:
 }
 
 /** Presses a device key in the dock, or verifies a selection key that is already selected. */
-async function pressDevice(
+export async function pressDevice(
   page: Page,
   aircraft: Aircraft,
   control: string,
