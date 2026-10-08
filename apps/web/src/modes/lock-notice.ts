@@ -66,7 +66,9 @@ export function lockHolder(
   controlId: string,
 ): string | undefined {
   const lock = aircraft.controls[controlId]?.interlock?.find(
-    (entry) => positions[entry.control] === entry.at,
+    (entry) =>
+      positions[entry.control] === entry.at &&
+      entry.holds.some((held) => held === positions[controlId]),
   );
   return lock && aircraft.controls[lock.control] ? lock.control : undefined;
 }
