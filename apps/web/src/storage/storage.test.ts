@@ -63,6 +63,12 @@ describe('run history', () => {
     });
   });
 
+  it('keeps the Practice best when a later Practice run is worse', () => {
+    recordRun('alpha', 'start', run(0, 100, 'practice'));
+    recordRun('alpha', 'start', run(2, 200, 'practice'));
+    expect(readHistory('alpha')['start']?.best).toEqual(run(0, 100, 'practice'));
+  });
+
   it('keeps the date of the first run that reached the best count', () => {
     recordRun('alpha', 'start', run(0, 100, 'practice'));
     recordRun('alpha', 'start', run(0, 200, 'practice'));
