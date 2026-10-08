@@ -34,7 +34,7 @@ const drawn: Drawn[] = Object.entries(ctsl.controls).flatMap(([id, control]) => 
 const sliders = drawn.filter(({ steps }) => steps.length > 2);
 
 const legends: Record<string, Record<string, string>> = {
-  throttle: { idle: 'IDLE', low: 'LOW', runup: 'RUN-UP', cruise: 'CRUISE', full: 'FULL' },
+  throttle: { idle: 'IDLE', full: 'FULL' },
   trim: { 'nose-down': 'NOSE DN', neutral: 'NEUTRAL', 'nose-up': 'NOSE UP' },
   flapSelector: {
     'override-up': 'UP',
@@ -120,6 +120,21 @@ describe('CTSL notched artwork controls', () => {
     }
   });
 
+  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
+    const throttle = drawn.find(({ id }) => id === 'throttle');
+    if (!throttle) throw new Error('the CTSL draws no throttle');
+    const svg = faceSvg(throttle.face);
+    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
+    const { appearance } = throttle.control;
+    expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
+      'THROTTLE',
+      'FULL',
+      'IDLE',
+    ]);
+    expect(svg.match(/<line\b/g)).toHaveLength(2);
+  });
+
   it('rolls the trim wheel from a tap a touch target in from either end of its rim', () => {
     const entry = sliders.find(({ id }) => id === 'trim');
     if (!entry) throw new Error('the CTSL draws no trim wheel');
@@ -200,13 +215,29 @@ describe('CTSL notched artwork controls', () => {
       expect(now(up ?? '')).toBeGreaterThan(now(here));
       expect(now(down ?? '')).toBeLessThan(now(here));
 
-      const [from, next, previous] = [printed(here), printed(up ?? ''), printed(down ?? '')];
-      if (vertical) {
-        expect(next.y).toBeLessThan(from.y);
-        expect(previous.y).toBeGreaterThan(from.y);
-      } else {
-        expect(next.x).toBeGreaterThan(from.x);
-        expect(previous.x).toBeLessThan(from.x);
+      // The nearest printed stops either side of here; a flap arc is only monotonic locally, and the
+      // throttle's middle stops print nothing.
+      const value = now(here);
+      const marked = steps
+        .filter((position) => legends[id]?.[position] !== undefined)
+        .map((position) => ({ position, value: now(position) }));
+      const above = marked
+        .filter((stop) => stop.value > value)
+        .sort((a, b) => a.value - b.value)[0];
+      const below = marked
+        .filter((stop) => stop.value < value)
+        .sort((a, b) => b.value - a.value)[0];
+      if (!above || !below) throw new Error(`${id} prints no legend on one side of ${here}`);
+      const pairs = legends[id]?.[here]
+        ? [
+            [here, above.position],
+            [below.position, here],
+          ]
+        : [[below.position, above.position]];
+      for (const [from = '', to = ''] of pairs) {
+        const [low, high] = [printed(from), printed(to)];
+        if (vertical) expect(high.y, `${from} to ${to}`).toBeLessThan(low.y);
+        else expect(high.x, `${from} to ${to}`).toBeGreaterThan(low.x);
       }
     },
   );
