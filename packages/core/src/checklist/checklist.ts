@@ -20,6 +20,11 @@ export type Deviation = {
   readonly position?: ControlPosition;
   /** For `unmet-check`: the reading the pilot gave. */
   readonly response?: number;
+  /**
+   * Made while the opening flow ran, which has no order: the deviation belongs to the flow, and
+   * `itemIndex` is only the first flow item still open at the time.
+   */
+  readonly duringFlow?: true;
 };
 
 export type ChecklistState<S> = {
@@ -214,6 +219,7 @@ export function observeControl<S>(
     next = deviate(next, {
       itemIndex: checklist.current,
       controlId: change.id,
+      ...(flowing && { duringFlow: true }),
       ...(later === undefined
         ? { kind: 'unexpected-control' }
         : { kind: 'out-of-order', laterItem: later }),

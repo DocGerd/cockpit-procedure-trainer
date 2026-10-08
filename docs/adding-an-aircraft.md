@@ -224,11 +224,12 @@ recorded as an `unexpected-control` deviation.
 `flow: true`, done from memory in any order. Each flow item ticks once its control
 holds the position (and `holdUntil` holds), including one already in place when the
 procedure starts, and the flow ends when all are ticked. While it runs, only a
-change to a control outside the flow is a deviation. Repeat the flow's controls as
+change to a control outside the flow is a deviation; it carries `duringFlow: true`,
+since it belongs to the flow rather than to one item. Repeat the flow's controls as
 ordinary items after it, so the checklist verifies them; the demo's
 `beforeLanding` does this. The validator reports `invalid-flow` for a flow item on
-an emergency procedure, one that is not an action, or one after the first ordinary
-item.
+an emergency procedure, one that is not an action, one after the first ordinary
+item, or one whose control no later action or control check verifies.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight. An
 action or check can target a device control as `<installId>.<controlId>`; see the
@@ -342,7 +343,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-flow` and the six
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow` and the eight
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real

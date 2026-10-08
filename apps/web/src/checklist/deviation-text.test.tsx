@@ -97,6 +97,17 @@ describe('deviation text for each kind', () => {
     expect(text.banner(outOfOrder)).toBe('Bus operated early. It belongs to item 4, not item 1.');
   });
 
+  it('refers a deviation made during the flow to the flow, not to an item', () => {
+    const text = describeIn('en');
+    const during = { ...unexpected('bus'), duringFlow: true } as const;
+    expect(text.where(during)).toBe('During the flow');
+    expect(text.detail(during)).toBe('The flow was still open.');
+    expect(text.banner(during)).toBe('Bus operated. Not part of the flow.');
+    const early = { ...outOfOrder, duringFlow: true } as const;
+    expect(text.banner(early)).toBe('Bus operated early. It belongs to item 4, not to the flow.');
+    expect(describeIn('de').where(during)).toBe('Während des Flows');
+  });
+
   it('names a control left in the wrong position without its raw position id', () => {
     const text = describeIn('en');
     expect(text.where(wrongPosition)).toBe('Item 1');

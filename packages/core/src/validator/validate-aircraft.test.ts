@@ -433,6 +433,34 @@ describe('validateAircraft', () => {
       expect(finding.message).toContain(`procedure beforeStart item ${beforeStartItems.length}`);
       expect(finding.message).toContain('start');
     });
+
+    it('reports a flow item whose control no later item verifies', () => {
+      const finding = only(
+        withItems('beforeStart', [
+          { ...flowAction, control: 'flaps', position: 'up' },
+          ...beforeStartItems,
+        ]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('verifies');
+    });
+
+    it('accepts a flow item verified by a later check on its control', () => {
+      const check = {
+        type: 'check',
+        target: { control: 'flaps' },
+        condition: () => true,
+        text,
+      };
+      const aircraft = withItems('beforeStart', [
+        { ...flowAction, control: 'flaps', position: 'up' },
+        ...beforeStartItems,
+        check,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
   });
 
   describe('inexact-lever-target', () => {
