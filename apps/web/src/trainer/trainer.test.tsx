@@ -326,13 +326,13 @@ describe('surprise failure', () => {
     return view;
   };
 
-  it('starts in Practice with no procedure, keeping the failure out of the viewed checklist', () => {
+  it('starts in Practice with no procedure and no checklist shown', () => {
     const { result } = startSurprise();
     const { trainer, snapshot } = result.current;
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.viewedProcedureId).toBe('powerUp');
+    expect(trainer.viewedProcedureId).toBeUndefined();
     expect(snapshot.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(snapshot.failures().size).toBe(0);
   });
@@ -371,6 +371,7 @@ describe('surprise failure', () => {
     expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
     expect(trainer.session.scenario()?.chosen).toBeUndefined();
     expect(trainer.session.failures().size).toBe(0);
+    expect(trainer.viewedProcedureId).toBeUndefined();
   });
 
   it('starts a new surprise when coming back from Free explore', () => {

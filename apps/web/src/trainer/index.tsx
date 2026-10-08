@@ -110,17 +110,13 @@ function endProcedure(session: Session): void {
 /** Starts a surprise on the session and returns the trainer state for it. */
 function startSurprise(aircraft: Aircraft, session: Session, phase: string): Partial<TrainerState> {
   session.startSurprise({ phase, ...pickSurprise(aircraft, phase) });
-  // The pane opens on the phase's own normal checklist, which names no failure.
-  const viewed = Object.entries(aircraft.procedures).find(
-    ([, procedure]) => procedure.type === 'normal' && procedure.startPhase === phase,
-  )?.[0];
   return {
     mode: 'practice',
     screen: 'trainer',
     guidedFrom: 0,
     assisted: [],
     lastProcedureId: undefined,
-    viewed,
+    viewed: undefined,
     surprisePhase: phase,
     flight: undefined,
   };
@@ -199,9 +195,12 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   const known = Object.keys(state.aircraft.procedures);
-  const viewedProcedureId = [state.viewed, procedureId, state.lastProcedureId, known[0]].find(
-    (id) => id !== undefined && known.includes(id),
-  );
+  // A surprise shows no checklist until the pilot picks one, so none can prime the answer.
+  const candidates =
+    state.surprisePhase === undefined
+      ? [state.viewed, procedureId, state.lastProcedureId, known[0]]
+      : [state.viewed, procedureId];
+  const viewedProcedureId = candidates.find((id) => id !== undefined && known.includes(id));
 
   const trainer = useMemo<Trainer>(() => {
     const update = (next: Partial<TrainerState>) => {

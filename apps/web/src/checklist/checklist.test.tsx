@@ -689,6 +689,22 @@ describe('surprise failure', () => {
   const past = (ms: number) => act(() => trainer.session.advance(ms));
   const runButton = () => screen.queryByRole('button', { name: 'Run this checklist' });
 
+  it('opens with no checklist shown until the pilot picks one', async () => {
+    renderPane();
+    act(() => trainer.startProcedure('followUp'));
+    surprise();
+    const selector = screen.getByRole<HTMLSelectElement>('combobox', { name: 'Show checklist' });
+    expect(selector.value).toBe('');
+    expect(within(selector).getByRole('option', { name: 'Choose a checklist' })).toBeTruthy();
+    expect(screen.queryByRole('heading')).toBeNull();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    expect(screen.queryByText('Read-only view. Nothing here is checked off.')).toBeNull();
+    expect(screen.getByText(note)).toBeTruthy();
+    await userEvent.selectOptions(selector, 'followUp');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    expect(screen.getByText(note)).toBeTruthy();
+  });
+
   it('names no failure while it is pending and offers to run an emergency checklist', async () => {
     renderPane();
     surprise();
