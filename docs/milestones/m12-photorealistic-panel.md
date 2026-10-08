@@ -47,7 +47,7 @@ Re-score of the changed crops after the wave: the powered docked COM 2.75 and de
 
 ### Performance budget (absolute, idle machine)
 
-`pnpm test:perf` on the tree after the fix wave, load average 0.48 at the start (no other browser test running). 1024x768, CPU throttled 4x, median (min to max) of nine samples.
+`pnpm test:perf` on the tree after the fix wave, load average 0.48 at the start and 1.69 at the end (a scorer's build may have overlapped; both under the idle bar of 2). 1024x768, CPU throttled 4x, median (min to max) of nine samples.
 
 | Aircraft, view      | P1 needle frame (budget 4 ms) | P2 view switch (budget 33 ms) | Resize (information) | P3 filter uses |
 | ------------------- | ----------------------------- | ----------------------------- | -------------------- | -------------- |
