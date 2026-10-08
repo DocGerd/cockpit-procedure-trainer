@@ -531,6 +531,29 @@ describe('validateAircraft', () => {
       expect(finding.message).toContain('verifies');
     });
 
+    it('reports a flow item verified only by a later action at another position', () => {
+      const finding = only(
+        withItems('beforeStart', [
+          { ...flowAction, control: 'throttle', position: 0 },
+          ...beforeStartItems,
+          { type: 'action', control: 'throttle', position: 1, text },
+        ]),
+        'invalid-flow',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+      expect(finding.message).toContain('verifies');
+    });
+
+    it('accepts a flow item verified by a later action at its position', () => {
+      const aircraft = withItems('beforeStart', [
+        { ...flowAction, control: 'throttle', position: 0 },
+        ...beforeStartItems,
+        { type: 'action', control: 'throttle', position: 0, text },
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
     it('accepts a flow item verified by a later check on its control', () => {
       const check = {
         type: 'check',

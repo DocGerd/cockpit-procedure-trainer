@@ -418,6 +418,91 @@ describe('deviations', () => {
     ]);
   });
 
+  it('record no wrong position for a spring-back target released early', () => {
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const throttled = stateOf({ ...magnetosOn.controls, throttle: 0.5 }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('throttle', 0, 0.5), throttled);
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle', position: 0.5, from: 0 },
+    ]);
+    expect(checklist.current).toBe(5);
+  });
+
+  it('record a wrong position when the pilot turns a released target elsewhere', () => {
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const magnetosOff = stateOf({ ...magnetosOn.controls, ignition: 'off' }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('ignition', 'both', 'off'), magnetosOff);
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetosOff);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 5, controlId: 'ignition', position: 'off' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 5,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+  });
+
+  it('record no wrong position for a starter turned elsewhere, then cranked and released', () => {
+    const magnetosOff = stateOf({ ...magnetosOn.controls, ignition: 'off' }, magnetosOn.systems);
+    let checklist = observeControl(atStarter(), position('ignition', 'both', 'off'), magnetosOff);
+    checklist = observeControl(checklist, position('ignition', 'off', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    const throttled = stateOf({ ...magnetosOn.controls, throttle: 0.5 }, magnetosOn.systems);
+    checklist = observeControl(checklist, position('throttle', 0, 0.5), throttled);
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 5, controlId: 'throttle', position: 0.5, from: 0 },
+    ]);
+  });
+
+  it('record a wrong position for a target cranked and released when asked for another position', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'ignition',
+          position: 'off',
+          text: { de: 'Zündung aus', en: 'Ignition off' },
+        },
+      ],
+    };
+    let checklist = startChecklist(procedure, magnetosOn, controls);
+    checklist = observeControl(checklist, position('ignition', 'both', 'start'), cranking);
+    checklist = observeControl(
+      checklist,
+      position('ignition', 'start', 'both', 'spring'),
+      magnetosOn,
+    );
+    checklist = observeControl(checklist, position('flaps', 'up', 'takeoff'), magnetosOn);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'ignition', position: 'both' },
+      {
+        kind: 'unexpected-control',
+        itemIndex: 0,
+        controlId: 'flaps',
+        position: 'takeoff',
+        from: 'up',
+      },
+    ]);
+  });
+
   it('record no wrong position for a target the pilot never moved', () => {
     const checklist = observeControl(begin(), position('flaps', 'up', 'takeoff'), stateOf());
     expect(checklist.deviations).toEqual([
