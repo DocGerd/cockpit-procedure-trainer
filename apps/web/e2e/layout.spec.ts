@@ -348,23 +348,27 @@ for (const viewport of desktops) {
 // #440: the app chrome follows the panel up to 4K instead of staying at its 1080p size.
 const CHROME_SCALE_MIN = 1.5;
 const chromeText = {
-  'header brand': '.shell-brand-name',
-  'mode button': '.modes-segment',
-  'checklist item': '.checklist-item-text',
-  footer: '.app-footer',
-};
+  'header brand': ['.shell-brand-name', 'fontSize'],
+  'mode button': ['.modes-segment', 'fontSize'],
+  'checklist item': ['.checklist-item-text', 'fontSize'],
+  'checklist line height': ['.checklist-item-text', 'lineHeight'],
+  footer: ['.app-footer', 'fontSize'],
+} as const;
 
 const chromeFontSizes = async (page: Page) =>
   new Map(
     await Promise.all(
       Object.entries(chromeText).map(
-        async ([name, selector]) =>
+        async ([name, [selector, property]]) =>
           [
             name,
             await page
               .locator(selector)
               .first()
-              .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
+              .evaluate(
+                (element, key) => Number.parseFloat(getComputedStyle(element)[key]),
+                property,
+              ),
           ] as const,
       ),
     ),
