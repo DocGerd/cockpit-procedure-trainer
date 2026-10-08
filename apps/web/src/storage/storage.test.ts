@@ -64,9 +64,37 @@ describe('run history', () => {
   });
 
   it('keeps the date of the first run that reached the best count', () => {
+    recordRun('alpha', 'start', run(0, 100, 'practice'));
+    recordRun('alpha', 'start', run(0, 200, 'practice'));
+    expect(readHistory('alpha')['start']?.best?.at).toBe(100);
+  });
+
+  it('counts only Practice runs as best, since Guided shows the next control', () => {
     recordRun('alpha', 'start', run(0, 100));
-    recordRun('alpha', 'start', run(0, 200));
-    expect(readHistory('alpha')['start']?.best.at).toBe(100);
+    expect(readHistory('alpha')).toEqual({ start: { last: run(0, 100) } });
+    recordRun('alpha', 'start', run(2, 200, 'practice'));
+    recordRun('alpha', 'start', run(0, 300));
+    expect(readHistory('alpha')).toEqual({
+      start: { last: run(0, 300), best: run(2, 200, 'practice') },
+    });
+  });
+
+  it('still loads a stored record whose best is a Guided run, without that best', () => {
+    localStorage.setItem(
+      'cpt.history',
+      JSON.stringify({
+        alpha: {
+          start: { last: run(2, 200, 'practice'), best: run(0, 100) },
+          fire: { last: run(1, 300), best: run(1, 300, 'practice') },
+        },
+      }),
+    );
+    expect(readHistory('alpha')).toEqual({
+      start: { last: run(2, 200, 'practice') },
+      fire: { last: run(1, 300), best: run(1, 300, 'practice') },
+    });
+    recordRun('alpha', 'start', run(3, 400, 'practice'));
+    expect(readHistory('alpha')['start']?.best).toEqual(run(3, 400, 'practice'));
   });
 
   it('keeps aircraft and procedures apart', () => {
@@ -88,7 +116,7 @@ describe('run history', () => {
   });
 
   it('drops entries that are malformed and keeps the valid ones', () => {
-    const good = { last: run(1, 100), best: run(1, 100) };
+    const good = { last: run(1, 100), best: run(1, 100, 'practice') };
     localStorage.setItem(
       'cpt.history',
       JSON.stringify({
@@ -99,12 +127,17 @@ describe('run history', () => {
           badMode: { last: { mode: 'explore', deviations: 1, at: 1 }, best: run(1, 1) },
           hugeDate: { last: run(1, 1e308), best: run(1, 100) },
           beyondDate: { last: run(1, 8.64e15 + 1), best: run(1, 100) },
+          text: { last: { mode: 'guided', deviations: '0', at: 1 }, best: run(1, 100) },
           noBest: { last: run(1, 100) },
-          text: { last: run(1, 100), best: { mode: 'guided', deviations: '0', at: 1 } },
+          badBest: { last: run(1, 100), best: { mode: 'practice', deviations: '0', at: 1 } },
         },
       }),
     );
-    expect(readHistory('alpha')).toEqual({ good });
+    expect(readHistory('alpha')).toEqual({
+      good,
+      noBest: { last: run(1, 100) },
+      badBest: { last: run(1, 100) },
+    });
   });
 
   it('trims a stored map that is larger than the history ever grows', () => {
