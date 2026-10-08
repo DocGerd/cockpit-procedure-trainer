@@ -138,6 +138,10 @@
   animation: modes-pulse 1.6s ease-out infinite;
 }
 
+.modes-outline[data-pulse='once'] {
+  animation: modes-pulse 1.6s ease-out;
+}
+
 @keyframes modes-pulse {
   0% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 70%, transparent);
@@ -150,6 +154,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .modes-outline[data-pulse='true'] {
+    animation: none;
+  }
+
+  .modes-outline[data-pulse='once'] {
     animation: none;
   }
 }

@@ -23,7 +23,7 @@ export function ChecklistAnnouncer({
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { mode } = useTrainer();
+  const { mode, recall, assisted } = useTrainer();
   const checklist = useSessionState((snapshot) => snapshot.checklist());
   const [message, setMessage] = useState('');
   const seen = useRef<Seen | undefined>(undefined);
@@ -54,12 +54,15 @@ export function ChecklistAnnouncer({
     } else if (!done && current !== previous.current) {
       const item = procedure.items[current];
       if (item) {
+        const withheld = mode === 'practice' && recall && !assisted.includes(current);
         parts.push(
-          format(text.announceItem, {
-            n: current + 1,
-            total: procedure.items.length,
-            text: localize(item.text),
-          }),
+          withheld
+            ? format(text.announceItemWithheld, { n: current + 1, total: procedure.items.length })
+            : format(text.announceItem, {
+                n: current + 1,
+                total: procedure.items.length,
+                text: localize(item.text),
+              }),
         );
       }
     }
@@ -76,6 +79,9 @@ export function ChecklistAnnouncer({
     deviations,
     announceDeviations,
     guided,
+    mode,
+    recall,
+    assisted,
     describe,
     text,
     localize,

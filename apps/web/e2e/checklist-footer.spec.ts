@@ -2,7 +2,7 @@ import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { demoAircraft } from '@cpt/aircraft-demo';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { openAircraft } from './legibility';
+import { openAircraft, selectLanguage } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
 
 const cases = [
@@ -101,7 +101,7 @@ async function advance(
   } else if (item?.type === 'action') {
     await operate(page, item.control, item.position);
   } else {
-    await card.getByRole('button').click();
+    await card.getByRole('button').last().click();
   }
   await expect
     .poll(
@@ -224,3 +224,43 @@ for (const aircraft of [ctslAircraft, demoAircraft]) {
     await expect(pane.locator('[aria-current="step"]')).toBeInViewport({ ratio: 1 });
   });
 }
+
+test('the Practice Reading field stays inside the card and the pane never scrolls sideways', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const entry = Object.entries(ctslAircraft.procedures).find(([, procedure]) =>
+    procedure.items.some((item) => item.type === 'check' && item.response !== undefined),
+  );
+  if (!entry) throw new Error('no CTSL procedure has a reading');
+  const [id, procedure] = entry;
+  await openAircraft(page, ctslAircraft, id);
+  await page.getByRole('button', { name: 'Practice', exact: true }).click();
+
+  const pane = checklistPane(page);
+  const card = pane.locator('[aria-current="step"]');
+  const field = card.locator('.checklist-response');
+  for (let step = 0; step < procedure.items.length && (await field.count()) === 0; step++) {
+    const at = Number(await card.locator('.checklist-number').innerText());
+    await advance(page, procedure.items[at - 1], card, at);
+  }
+  await selectLanguage(page, 'de');
+  await expect(field).toBeVisible();
+
+  const overflow = await pane.evaluate((root) =>
+    [root, ...root.querySelectorAll<HTMLElement>('*')]
+      .filter((element) => element.scrollWidth > element.clientWidth + 1)
+      .map((element) => element.className || element.tagName),
+  );
+  expect(overflow, 'elements wider inside than outside').toEqual([]);
+
+  const [cardBox, fieldBox, padding] = await Promise.all([
+    card.boundingBox(),
+    field.boundingBox(),
+    card.evaluate((element) => parseFloat(getComputedStyle(element).paddingRight)),
+  ]);
+  if (!cardBox || !fieldBox) throw new Error('no boxes');
+  expect(fieldBox.x + fieldBox.width, 'field right edge').toBeLessThanOrEqual(
+    cardBox.x + cardBox.width - padding + SUBPIXEL,
+  );
+});

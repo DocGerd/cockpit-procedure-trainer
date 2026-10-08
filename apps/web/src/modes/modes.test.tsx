@@ -587,6 +587,47 @@ describe('Practice', () => {
     act(() => trainer.session.set('master', 'on'));
     expect(selectedTab()).toBe('Main panel');
   });
+
+  it('rings the current target once after Show me, and only while that item is current', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.showMe());
+    const ring = outline();
+    expect(ring?.dataset.outline).toBe('target');
+    expect(ring?.dataset.pulse).toBe('once');
+    expect(boxOf(ring)).toEqual(boxOf(placement('master')));
+
+    act(() => trainer.session.set('master', 'on'));
+    expect(outline()).toBeNull();
+    expect(document.querySelector('[data-modes-overlay]')).toBeNull();
+  });
+
+  it("rings a device target's slot for Show me", () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => {
+      trainer.session.set('master', 'on');
+      trainer.session.set('pump', 'on');
+      trainer.session.checkOff();
+      trainer.showMe();
+    });
+    expect(boxOf(outline())).toEqual({
+      left: percent(500, 900),
+      top: '0%',
+      width: percent(400, 900),
+      height: percent(200, 250),
+    });
+  });
+
+  it('brings the target view on screen for Show me', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('master', 'on'));
+    expect(selectedTab()).toBe('Main panel');
+    act(() => trainer.showMe());
+    expect(selectedTab()).toBe('Centre console');
+    expect(boxOf(outline())).toEqual(boxOf(placement('pump')));
+  });
 });
 
 describe('input is never blocked', () => {
