@@ -21,6 +21,21 @@ export type TransponderState = {
 
 const text = (de: string, en: string): Text => ({ de, en });
 
+// The unit prints no word for a key at rest or pressed, so cues name both in words.
+const keyLegends = {
+  released: {
+    state: text('losgelassen', 'released'),
+    restore: text('Wieder loslassen', 'Release it'),
+  },
+  pressed: {
+    state: text('gedrückt', 'pressed'),
+    restore: text('Wieder drücken', 'Press it again'),
+  },
+} as const;
+
+// The display prints the code's digits; no key prints one.
+const digitLegends = Object.fromEntries(DIGITS.map((digit) => [digit, digit]));
+
 const isMode = (value: unknown): value is TransponderMode => MODES.some((mode) => mode === value);
 
 const isDigit = (value: unknown): value is string => DIGITS.some((digit) => digit === value);
@@ -30,6 +45,7 @@ const digit = <const First extends (typeof DIGITS)[number]>(index: number, first
     kind: 'rotary',
     positions: DIGITS,
     initial: first,
+    legends: digitLegends,
     name: text(`Squawk-Ziffer ${index}`, `Squawk digit ${index}`),
     description: text(
       `Stellt die Ziffer ${index} des Transpondercodes ein.`,
@@ -84,6 +100,7 @@ export const transponderDevice = defineDevice({
       kind: 'momentary',
       positions: ['released', 'pressed'],
       initial: 'released',
+      legends: keyLegends,
       name: text('Ident', 'Ident'),
       description: text(
         'Löst die zeitlich begrenzte Identifizierung aus.',

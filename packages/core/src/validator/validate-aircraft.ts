@@ -113,6 +113,20 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const checkLegends = (id: string, control: ControlDefinition) => {
+    for (const [position, legend] of Object.entries(control.legends ?? {})) {
+      if (!isPosition(control, position)) {
+        add('unknown-position', id, `legends key: "${position}" is not a position of ${id}`);
+      }
+      if (typeof legend === 'string') {
+        if (isMissing(legend)) add('missing-translation', id, `legend of ${position}: empty`);
+      } else {
+        checkText(id, `legend of ${position}`, legend.state);
+        checkText(id, `restore legend of ${position}`, legend.restore);
+      }
+    }
+  };
+
   const checkActionStop = (
     id: string,
     where: string,
@@ -244,15 +258,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
-    for (const [position, legend] of Object.entries(control.legends ?? {})) {
-      checkPosition(id, 'legends key', position);
-      if (typeof legend === 'string') {
-        if (isMissing(legend)) add('missing-translation', id, `legend of ${position}: empty`);
-      } else {
-        checkText(id, `legend of ${position}`, legend.state);
-        checkText(id, `restore legend of ${position}`, legend.restore);
-      }
-    }
+    checkLegends(id, control);
 
     for (const { control: by, at, holds } of control.interlock ?? []) {
       for (const held of holds) checkPosition(id, 'interlock holds', held);
@@ -439,6 +445,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         checkText(`${device.id}.${controlId}`, 'name', control.name);
         checkText(`${device.id}.${controlId}`, 'description', control.description);
         if (control.kind === 'guarded') checkGuardText(`${device.id}.${controlId}`, control.guard);
+        checkLegends(`${device.id}.${controlId}`, control);
       }
     }
     if (!device) {
