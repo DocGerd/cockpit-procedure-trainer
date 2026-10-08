@@ -369,7 +369,21 @@ export const normalProcedures = {
     startPhase: 'taxiOut',
     endPhase: 'holding',
     items: [
-      ...releaseParkingBrake,
+      {
+        type: 'action',
+        control: 'parkingBrakeValve',
+        position: 'open',
+        text: text(
+          'Rückflusshahn auf (Ergänzung des Trainers)',
+          'Parking-brake valve open (trainer addition)',
+        ),
+      },
+      {
+        type: 'check',
+        target: { control: 'parkingBrakeValve' },
+        condition: (state: State) => !state.systems.parkingBrakeSet,
+        text: text('Parkbremse gelöst', 'Parking brake released'),
+      },
       confirm('Bremsen geprüft', 'Brakes checked'),
       confirm('Bugradsteuerung geprüft', 'Nose-wheel steering checked'),
     ],
