@@ -15,7 +15,7 @@ const NOTICE_MS = 6000;
 function LockNotice() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft } = useTrainer();
+  const { aircraft, session } = useTrainer();
   const store = useLockNoticeStore();
   const notice = useLockNotice();
 
@@ -26,7 +26,9 @@ function LockNotice() {
   }, [notice, store]);
 
   const control = notice && aircraft.controls[notice.controlId];
-  const by = control?.interlock && aircraft.controls[control.interlock.control];
+  const positions = session.state().controls;
+  const lock = control?.interlock?.find((entry) => positions[entry.control] === entry.at);
+  const by = lock && aircraft.controls[lock.control];
   if (!control || !by) return null;
   return (
     <p role="status" className="modes-notice" data-notice="locked">
