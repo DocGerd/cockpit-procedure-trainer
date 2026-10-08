@@ -1,3 +1,4 @@
+import { createSession } from '@cpt/core';
 import { expect, it } from 'vitest';
 import { aircraftRegistry } from './aircraft-registry';
 import { deviceRegistry, deviceScreens } from './device-registry';
@@ -14,4 +15,14 @@ it('registers every device an aircraft installs', () => {
     Object.values(aircraft.devices ?? {}).map((install) => install.device),
   );
   expect(installed.filter((id) => !ids.has(id))).toEqual([]);
+});
+
+it('enters the CTSL cruise phase squawking 7000 at ALT with the GPS on its map page', () => {
+  const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+  if (!ctsl) throw new Error('CTSL is not registered');
+  const session = createSession(ctsl, { devices: deviceRegistry, phase: 'cruise' });
+  session.advance(100);
+  expect(session.state().controls['xpdr.mode']).toBe('alt');
+  expect(session.state().devices.xpdr?.state).toMatchObject({ mode: 'alt', squawk: '7000' });
+  expect(session.state().devices.gps?.state).toMatchObject({ on: true, page: 'map' });
 });

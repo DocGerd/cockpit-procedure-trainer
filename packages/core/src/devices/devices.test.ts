@@ -88,6 +88,44 @@ describe('initialDeviceStates', () => {
       mon: { on: false, state: engineMonitor.initial },
     });
   });
+
+  describe('with a phase that seeds device state', () => {
+    const seeded = (deviceStates: unknown): Aircraft => {
+      const runup = fixtureDeviceAircraft.phases.runup;
+      return {
+        ...fixtureDeviceAircraft,
+        phases: {
+          ...fixtureDeviceAircraft.phases,
+          runup: { ...runup, entry: { ...runup?.entry, deviceStates } },
+        },
+      } as Aircraft;
+    };
+
+    it('lays the seeded fields over the starting state, leaving the rest', () => {
+      const aircraft = seeded({ mon: { reading: 7 } });
+      expect(initialDeviceStates(aircraft, devices, 'runup')).toEqual({
+        mon: { on: false, state: { page: 'engine', reading: 7 } },
+      });
+    });
+
+    it('starts a phase that seeds nothing in the starting state', () => {
+      const aircraft = seeded({ mon: { reading: 7 } });
+      expect(initialDeviceStates(aircraft, devices, 'parking')).toEqual({
+        mon: { on: false, state: engineMonitor.initial },
+      });
+    });
+
+    it('does not change the device definition', () => {
+      initialDeviceStates(seeded({ mon: { reading: 7 } }), devices, 'runup');
+      expect(engineMonitor.initial).toEqual({ page: 'engine', reading: null });
+    });
+
+    it('throws for an unknown phase', () => {
+      expect(() => initialDeviceStates(fixtureDeviceAircraft, devices, 'nowhere')).toThrow(
+        /nowhere/,
+      );
+    });
+  });
 });
 
 describe('stepDevices', () => {
