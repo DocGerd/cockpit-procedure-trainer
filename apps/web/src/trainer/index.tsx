@@ -15,6 +15,7 @@ import { deviceRegistry } from '../device-registry';
 import { format, useMessages } from '../i18n';
 import { readSetting, recordRun, writeSetting } from '../storage';
 import { messages } from './messages';
+import { pickSurprise } from './scenarios';
 
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
@@ -25,9 +26,17 @@ export type Trainer = {
   session: Session;
   procedureId: string | undefined;
   lastProcedureId: string | undefined;
+  /** The phase of the surprise drill in progress. */
+  surprisePhase: string | undefined;
   viewedProcedureId: string | undefined;
   viewProcedure(id: string): void;
   startProcedure(id: string): void;
+  /** Starts a Practice run in the phase with one of its failures injected unannounced. */
+  startSurprise(phase: string): void;
+  /** Runs a checklist from the cockpit as it stands; during a surprise, the pilot's answer. */
+  takeChecklist(id: string): void;
+  /** Starts the running procedure over, or a new surprise in the same phase during a drill. */
+  restart(): void;
   jumpToPhase(phaseId: string): void;
   mode: Mode;
   /** Deviations from this index on were made in Guided, so only they get its live cues. */
@@ -54,6 +63,8 @@ type TrainerState = {
   screen: TrainerScreen;
   lastProcedureId: string | undefined;
   viewed: string | undefined;
+  /** The phase of the surprise drill in progress, which outlives the session's own record. */
+  surprisePhase: string | undefined;
 };
 
 function findAircraft(id: string): Aircraft | undefined {
@@ -67,7 +78,27 @@ const newSession = (aircraft: Aircraft, phase?: string) =>
   );
 
 function endProcedure(session: Session): void {
-  if (session.procedureId() !== undefined) session.jumpToPhase(session.phase());
+  if (session.procedureId() !== undefined || session.scenario() !== undefined) {
+    session.jumpToPhase(session.phase());
+  }
+}
+
+/** Starts a surprise on the session and returns the trainer state for it. */
+function startSurprise(aircraft: Aircraft, session: Session, phase: string): Partial<TrainerState> {
+  session.startSurprise({ phase, ...pickSurprise(aircraft, phase) });
+  // The pane opens on the phase's own normal checklist, which names no failure.
+  const viewed = Object.entries(aircraft.procedures).find(
+    ([, procedure]) => procedure.type === 'normal' && procedure.startPhase === phase,
+  )?.[0];
+  return {
+    mode: 'practice',
+    screen: 'trainer',
+    guidedFrom: 0,
+    assisted: [],
+    lastProcedureId: undefined,
+    viewed,
+    surprisePhase: phase,
+  };
 }
 
 function initialState(): TrainerState {
@@ -84,6 +115,7 @@ function initialState(): TrainerState {
     screen: 'picker',
     lastProcedureId: undefined,
     viewed: undefined,
+    surprisePhase: undefined,
   };
 }
 
@@ -109,7 +141,9 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
       const done = checklist?.done ?? false;
       const id = session.procedureId();
       const { aircraft, mode } = current.current;
-      if (checklist && done && !wasDone && id !== undefined && mode !== 'explore') {
+      // A wrong answer to a surprise ran against another checklist's failure: no run of its own.
+      const wrongAnswer = session.scenario()?.matched === false;
+      if (checklist && done && !wasDone && id !== undefined && mode !== 'explore' && !wrongAnswer) {
         recordRun(aircraft.id, id, {
           mode,
           deviations: checklist.deviations.length,
@@ -148,6 +182,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           assisted: [],
           lastProcedureId: undefined,
           viewed: undefined,
+          surprisePhase: undefined,
         });
       },
       startProcedure(id) {
@@ -158,10 +193,29 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           assisted: [],
           lastProcedureId: id,
           viewed: undefined,
+          surprisePhase: undefined,
         });
+      },
+      startSurprise(phase) {
+        update(startSurprise(current.current.aircraft, current.current.session, phase));
+      },
+      takeChecklist(id) {
+        current.current.session.takeChecklist(id);
+        update({ guidedFrom: 0, assisted: [], lastProcedureId: id, viewed: undefined });
+      },
+      restart() {
+        const { aircraft, session, surprisePhase } = current.current;
+        const running = session.procedureId();
+        if (surprisePhase !== undefined) {
+          update(startSurprise(aircraft, session, surprisePhase));
+        } else if (running !== undefined) {
+          session.startProcedure(running);
+          update({ guidedFrom: 0, assisted: [], lastProcedureId: running, viewed: undefined });
+        }
       },
       jumpToPhase(phaseId) {
         current.current.session.jumpToPhase(phaseId);
+        if (current.current.surprisePhase !== undefined) update({ surprisePhase: undefined });
       },
       setMode(mode) {
         if (mode === 'explore') {
@@ -171,11 +225,13 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           const guidedFrom = current.current.session.checklist()?.deviations.length ?? 0;
           update({ mode, guidedFrom });
         } else {
-          const { lastProcedureId } = current.current;
-          if (lastProcedureId === undefined) {
+          const { aircraft, session, lastProcedureId, surprisePhase } = current.current;
+          if (surprisePhase !== undefined) {
+            update(startSurprise(aircraft, session, surprisePhase));
+          } else if (lastProcedureId === undefined) {
             update({ mode, screen: 'picker', viewed: undefined });
           } else {
-            current.current.session.startProcedure(lastProcedureId);
+            session.startProcedure(lastProcedureId);
             update({ mode, guidedFrom: 0, assisted: [], screen: 'trainer', viewed: undefined });
           }
         }
@@ -192,19 +248,26 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update({ assisted: [...assisted, checklist.current] });
       },
       resetSession() {
-        const { aircraft, session: old } = current.current;
+        const { aircraft, session: old, surprisePhase } = current.current;
         const running = old.procedureId();
-        if (running === undefined) {
-          update({ session: newSession(aircraft, old.phase()) });
+        const fresh = newSession(aircraft, running === undefined ? old.phase() : undefined);
+        if (surprisePhase !== undefined) {
+          update({ ...startSurprise(aircraft, fresh, surprisePhase), session: fresh });
+        } else if (running === undefined) {
+          update({ session: fresh });
         } else {
-          const fresh = newSession(aircraft);
           fresh.startProcedure(running);
           update({ session: fresh, guidedFrom: 0, assisted: [] });
         }
       },
       backToPicker() {
         endProcedure(current.current.session);
-        update({ screen: 'picker', lastProcedureId: undefined, viewed: undefined });
+        update({
+          screen: 'picker',
+          lastProcedureId: undefined,
+          viewed: undefined,
+          surprisePhase: undefined,
+        });
       },
     };
   }, [state, procedureId, viewedProcedureId]);
@@ -220,7 +283,7 @@ export function useTrainer(): Trainer {
 
 export type SessionSnapshot = Pick<
   Session,
-  'state' | 'guards' | 'failures' | 'checklist' | 'phase' | 'status' | 'procedureId'
+  'state' | 'guards' | 'failures' | 'checklist' | 'phase' | 'status' | 'procedureId' | 'scenario'
 >;
 
 function take(session: Session): SessionSnapshot {
@@ -231,6 +294,7 @@ function take(session: Session): SessionSnapshot {
   const phase = session.phase();
   const status = session.status();
   const procedureId = session.procedureId();
+  const scenario = session.scenario();
   return {
     state: () => state,
     guards: () => guards,
@@ -239,6 +303,7 @@ function take(session: Session): SessionSnapshot {
     phase: () => phase,
     status: () => status,
     procedureId: () => procedureId,
+    scenario: () => scenario,
   };
 }
 

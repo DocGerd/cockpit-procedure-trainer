@@ -243,6 +243,86 @@ describe('run history in the picker', () => {
   });
 });
 
+describe('drills in the picker', () => {
+  const run = (deviations: number, at: number) => ({ mode: 'practice', deviations, at });
+  const seed = (history: unknown) => localStorage.setItem('cpt.history', JSON.stringify(history));
+  const drills = () => screen.queryByRole('region', { name: 'Drills' });
+
+  it('offers nothing for an aircraft without history or emergency procedures', () => {
+    renderPicker();
+    expect(drills()).toBeNull();
+  });
+
+  it('suggests what to practise next from the history and starts it in the chosen mode', async () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({ [second.id]: { powerUp: { last: run(0, 100), best: run(0, 100) } } });
+    renderPicker();
+    const region = drills();
+    if (!region) throw new Error('no drills');
+    const next = within(region).getByRole('button', {
+      name: 'Practise next',
+      description: `${second.procedures['fire']?.title.en}: not practised yet.`,
+    });
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    await userEvent.click(next);
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBe('fire');
+  });
+
+  it('starts a random emergency procedure', async () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    renderPicker();
+    await userEvent.click(screen.getByRole('button', { name: 'Random emergency' }));
+    expect(trainer.procedureId).toBe('fire');
+    expect(trainer.mode).toBe('guided');
+  });
+
+  it.each([
+    [{ deviations: 2, other: 0 }, 'Bravo engine fire: its last run had deviations.'],
+    [{ deviations: 0, other: 0 }, 'Bravo engine fire: practised longest ago.'],
+  ])('gives the reason for the suggestion (%o)', ({ deviations, other }, reason) => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(other, 300), best: run(other, 300) },
+        fire: { last: run(deviations, 100), best: run(deviations, 100) },
+      },
+    });
+    renderPicker();
+    const region = drills();
+    if (!region) throw new Error('no drills');
+    expect(within(region).getByText(reason)).toBeTruthy();
+  });
+
+  it('starts the surprise in the phase picked in the select', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const phase = screen.getByRole('combobox', { name: 'Phase' });
+    const options = within(phase)
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'));
+    expect(options).toEqual(['departure', 'cruise']);
+    await userEvent.selectOptions(phase, 'cruise');
+    await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
+    expect(trainer.session.scenario()?.phase).toBe('cruise');
+    expect(trainer.session.phase()).toBe('cruise');
+    expect(trainer.viewedProcedureId).toBe('descent');
+  });
+
+  it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    renderPicker();
+    expect(screen.getByRole('combobox', { name: 'Phase' })).toHaveProperty('value', 'ground');
+    await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
+    expect(trainer.screen).toBe('trainer');
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+  });
+});
+
 describe('picker card text in German', () => {
   it('shows every registry aircraft with its own German name and handbook revision', () => {
     real.use = true;

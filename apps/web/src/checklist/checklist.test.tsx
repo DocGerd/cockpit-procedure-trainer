@@ -7,6 +7,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerLayout } from '../shell/TrainerLayout';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useSessionState, useTrainer } from '../trainer';
+import { SURPRISE_MAX_MS } from '../trainer/scenarios';
 import type { Mode, Trainer } from '../trainer';
 import { ChecklistPane, DeviationSummary, useCurrentTarget } from './index';
 import { fixture } from './test-aircraft';
@@ -554,6 +555,72 @@ describe('deviation summary', () => {
     expect(screen.getByRole('heading', { name: 'Flow (de) abgeschlossen' })).toBeTruthy();
     expect(screen.getByText('Bei Punkt 1')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Zurück zur Auswahl' })).toBeTruthy();
+  });
+});
+
+describe('surprise failure', () => {
+  const note = /Surprise failure: a failure appears without warning/;
+  const surprise = () => act(() => trainer.startSurprise('airborne'));
+  const past = (ms: number) => act(() => trainer.session.advance(ms));
+  const runButton = () => screen.queryByRole('button', { name: 'Run this checklist' });
+
+  it('names no failure while it is pending and offers to run an emergency checklist', async () => {
+    renderPane();
+    surprise();
+    expect(screen.getByText(note)).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Fire' })).toBeNull();
+    expect(screen.queryByText('Failure injected')).toBeNull();
+    expect(runButton()).toBeNull();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    expect(runButton()).toBeTruthy();
+    expect(screen.getByText('Emergency')).toBeTruthy();
+    expect(screen.queryByText('Failure injected')).toBeNull();
+  });
+
+  it('runs the chosen checklist, then reports the time to recognise and a match', async () => {
+    renderPane();
+    surprise();
+    past(SURPRISE_MAX_MS);
+    past(2000);
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Show checklist' }), 'fire');
+    const run = runButton();
+    if (!run) throw new Error('no run button');
+    await userEvent.click(run);
+    expect(screen.getByRole('progressbar', { name: 'Progress' })).toBeTruthy();
+    expect(screen.queryByText(note)).toBeNull();
+    operate('pump', 'off');
+    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('0:02');
+    expect(screen.getByText('Right checklist for the failure: Fire.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Next/ })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'New surprise failure' }));
+    expect(trainer.procedureId).toBeUndefined();
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'airborne', failure: 'fire' });
+  });
+
+  it('says when the chosen checklist is not the one for the failure', () => {
+    renderPane();
+    surprise();
+    past(SURPRISE_MAX_MS);
+    act(() => trainer.takeChecklist('followUp'));
+    operate('avionics', 'on');
+    expect(screen.getByText('Not the checklist for the failure: Fire.')).toBeTruthy();
+  });
+
+  it('says when the checklist was chosen before the failure appeared', () => {
+    renderPane();
+    surprise();
+    act(() => trainer.takeChecklist('fire'));
+    operate('pump', 'off');
+    expect(screen.getByText('Time to recognise').nextElementSibling?.textContent).toBe('Early');
+    expect(screen.getByText(/chosen before the failure appeared/)).toBeTruthy();
+  });
+
+  it('leaves the summary of an ordinary run alone', () => {
+    renderPane();
+    start('followUp');
+    operate('avionics', 'on');
+    expect(screen.queryByText('Time to recognise')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Repeat this procedure' })).toBeTruthy();
   });
 });
 
