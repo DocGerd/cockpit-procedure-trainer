@@ -11,6 +11,7 @@ export type Material =
   | 'screen'
   | 'legend'
   | 'legend-muted'
+  | 'cap'
   | 'needle'
   | 'lamp-off'
   | 'shadow'
