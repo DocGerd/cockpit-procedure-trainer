@@ -21,7 +21,11 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const artworkOf = (moving: MovingPart): Artwork => ({ face: 'face.png', moving });
+const artworkOf = (moving: MovingPart, guardOpen?: Artwork['guardOpen']): Artwork => ({
+  face: 'face.png',
+  moving,
+  ...(guardOpen ? { guardOpen } : {}),
+});
 
 const needle: MovingPart = {
   type: 'needle',
@@ -379,6 +383,7 @@ function renderControl(
   position: string | number,
   guardOpen = false,
   options?: JsonObject,
+  openImages?: Artwork['guardOpen'],
 ) {
   const handlers: Handlers = {
     onSet: vi.fn<(position: ControlPosition) => void>(),
@@ -394,7 +399,7 @@ function renderControl(
       guardOpen={guardOpen}
       label="Control"
       positionLabels={{ a: 'Alpha', b: 'Beta' }}
-      artwork={artworkOf(moving)}
+      artwork={artworkOf(moving, openImages)}
       fallback={fallback}
       {...(options ? { options } : {})}
       {...handlers}
@@ -457,6 +462,19 @@ describe('ArtworkControl', () => {
     expect(open.onSet).toHaveBeenCalledWith('b');
     fireEvent.keyDown(screen.getByRole('button', { name: 'Control: Alpha' }), { key: 'Escape' });
     expect(open.onCloseGuard).toHaveBeenCalledTimes(1);
+  });
+
+  it('draws the open-guard image of the position only while the guard is open', () => {
+    const openImages = { a: 'a-open.png' };
+    const shown = (guardOpen: boolean, position: string) => {
+      const view = renderControl(guarded, switchImages, position, guardOpen, undefined, openImages);
+      const hrefs = layers().map((layer) => layer.getAttribute('href'));
+      view.unmount();
+      return hrefs;
+    };
+    expect(shown(false, 'a')).toEqual(['a.png']);
+    expect(shown(true, 'a')).toEqual(['a-open.png']);
+    expect(shown(true, 'b')).toEqual(['b.png']);
   });
 
   it('presses on pointer down and releases on pointer up for a momentary control', () => {

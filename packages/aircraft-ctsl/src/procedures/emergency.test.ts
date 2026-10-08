@@ -82,7 +82,7 @@ describe('CTSL emergency procedures', () => {
     ['engineFailureRestart', 5],
     ['rescueDeployment', 5],
     ['engineFire', 4],
-    ['oilLoss', 4],
+    ['oilLoss', 3],
     ['coolantLoss', 0],
     ['flapControlFailure', 0],
     ['generatorFailure', 0],
@@ -138,6 +138,7 @@ describe('CTSL emergency procedures', () => {
         ['fuelValve', 'closed'],
         ['throttle', 'full'],
         ['ignition', 'off'],
+        ['ignition', 'out'],
       ],
     ],
     [
@@ -145,6 +146,7 @@ describe('CTSL emergency procedures', () => {
       [
         ['ignition', 'off'],
         ['fuelValve', 'closed'],
+        ['ignition', 'out'],
       ],
     ],
     ['engineFailureLow', flareShutdown],
@@ -153,6 +155,21 @@ describe('CTSL emergency procedures', () => {
     const indices = steps.map(([control, position]) => actionOn(id, control, position));
     expect(indices).toEqual([...indices].sort((a, b) => a - b));
     expect(new Set(indices).size).toBe(indices.length);
+  });
+
+  it.each(['engineFire', 'oilLoss'])('%s cannot take the key out before the valve closes', (id) => {
+    const valve = actionOn(id, 'fuelValve', 'closed');
+    const keyOut = actionOn(id, 'ignition', 'out');
+    const swapped = withProcedure(id, (original) => ({
+      ...original,
+      items: original.items.map((item, at) =>
+        at === valve ? original.items[keyOut] : at === keyOut ? original.items[valve] : item,
+      ),
+    }));
+    expect(walkProcedure(swapped, id, { devices })).toMatchObject({
+      ok: false,
+      reason: 'control locked',
+    });
   });
 
   it.each([

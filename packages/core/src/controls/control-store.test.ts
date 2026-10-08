@@ -306,7 +306,7 @@ describe('interlocked control', () => {
       positions: ['off', 'on', 'start'],
       initial: 'off',
       springBack: { start: 'on' },
-      interlock: { control: 'valve', at: 'closed', holds: 'off' },
+      interlock: [{ control: 'valve', at: 'closed', holds: ['off'] }],
     },
   } as const satisfies ControlRecord;
 
@@ -355,10 +355,35 @@ describe('interlocked control', () => {
         kind: 'momentary',
         positions: ['released', 'held'],
         initial: 'released',
-        interlock: { control: 'valve', at: 'closed', holds: 'released' },
+        interlock: [{ control: 'valve', at: 'closed', holds: ['released'] }],
       },
     });
     expect(store.press('starter')).toEqual({ applied: false, reason: 'locked' });
+  });
+
+  it('keeps the control within a held set and applies every lock', () => {
+    const store = createControlStore({
+      valve: interlocked.valve,
+      key: {
+        ...interlocked.key,
+        positions: ['out', 'off', 'on', 'start'],
+        initial: 'off',
+        interlock: [
+          { control: 'valve', at: 'closed', holds: ['out'] },
+          { control: 'valve', at: 'closed', holds: ['off', 'out'] },
+          { control: 'valve', at: 'open', holds: ['off', 'on', 'start'] },
+        ],
+      },
+    });
+    expect(store.set('key', 'on')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.set('key', 'out')).toEqual({ applied: true });
+    expect(store.set('key', 'off')).toEqual({ applied: false, reason: 'locked' });
+    store.set('valve', 'open');
+    expect(store.set('key', 'on')).toEqual({ applied: true });
+    expect(store.set('key', 'out')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.set('key', 'off')).toEqual({ applied: true });
+    expect(store.set('key', 'out')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.positions().key).toBe('off');
   });
 
   it('leaves systemSet and load free', () => {

@@ -17,7 +17,7 @@ vi.mock('../aircraft-registry', async () => {
       ...fixture.controls,
       starter: {
         ...fixture.controls.starter,
-        interlock: { control: 'master', at: 'off', holds: 'off' },
+        interlock: [{ control: 'master', at: 'off', holds: ['off'] }],
       },
     },
   } as unknown as Aircraft;
