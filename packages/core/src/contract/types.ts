@@ -71,6 +71,12 @@ type ControlBase = {
   readonly description: Text;
   /** The panel's own short function legend beside the control, such as BAT or FUEL; it does not follow the UI language. */
   readonly placard?: string;
+  /**
+   * Per position, how a cue names it where the panel does not print its id in capitals: the
+   * panel's own legend, such as L for `left`, or a phrase for a position the panel prints nothing
+   * for, such as the key pulled out.
+   */
+  readonly legends?: { readonly [position: string]: string | Text };
   readonly appearance?: Appearance;
   /** Every lock that applies; a move is refused when any of them refuses it. */
   readonly interlock?: readonly ControlInterlock[];

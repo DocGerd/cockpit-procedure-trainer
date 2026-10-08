@@ -204,6 +204,15 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports an empty legend and a legend phrase without both languages', () => {
+      const aircraft = withControl('ignition', {
+        legends: { off: ' ', both: { de: 'beide', en: '' } },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.id)).toEqual(['ignition', 'ignition']);
+      expect(found.every((f) => f.message.includes('legend'))).toBe(true);
+    });
+
     it('reports an empty handbook revision', () => {
       const aircraft = broken({ handbookRevision: { de: '', en: 'rev 1' } });
       const found = ofCode(aircraft, 'missing-translation');
@@ -384,6 +393,10 @@ describe('validateAircraft', () => {
         'unknown-position',
         'ignition',
       );
+    });
+
+    it('reports a legend for a position the control lacks', () => {
+      only(withControl('ignition', { legends: { half: 'H' } }), 'unknown-position', 'ignition');
     });
 
     it('reports an interlock on the control itself', () => {

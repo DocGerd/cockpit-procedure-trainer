@@ -75,7 +75,7 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
 (both `Text`), an `initial` position, an optional `appearance` and an optional
-`placard` (see [Printed labels](#printed-labels)).
+`placard` and `legends` (see [Printed labels](#printed-labels)).
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -371,6 +371,16 @@ placard does: a short legend in capitals beside the control, such as `BAT`, `FUE
 - `lettering: string[]` on the `artwork`, the text the face image prints.
 - `printed: string[]` on the placement, the text the view background prints beside
   the control; when it holds visible text, the widget prints no placard of its own.
+
+Cues (the Guided banner, the debrief's Expected and Actual) name a position as the panel
+prints it: its id in capitals, which is what a generic widget prints. Where the panel
+prints something else, declare `legends: { position: legend }` on the control: a string
+is the panel's own legend, such as `left: 'L'` on the CTSL key, and must also appear in
+the control's `lettering` or `printed`; a `Text` is a phrase for a position the panel
+prints nothing for, such as the key pulled out. `validateAircraft` reports a legend for
+an unknown position as `unknown-position` and an empty one as `missing-translation`.
+`apps/web/src/checklist/position-legends.test.tsx` fails when a position of a control
+any procedure names would cue text the panel does not print.
 
 The label must name the function: a placard or lettering of only position legends
 (`ON`, `OFF`, `OPEN`, the control's own positions) does not count. `checkPlacards` from

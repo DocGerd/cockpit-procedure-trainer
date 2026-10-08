@@ -20,14 +20,18 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     const found = definition(deviation.controlId);
     return found ? localize(found.name) : (deviation.controlId ?? '');
   };
-  // A position reads as the panel prints it: its id in capitals, in the aircraft's own wording.
+  // A position reads as the panel prints it: its declared legend, else its id in capitals.
   const positionName = (id: string | undefined, at: ControlPosition | undefined) => {
     if (at === undefined) return undefined;
     if (typeof at === 'number') return `${Math.round(at * 100)} %`;
-    if (definition(id)?.kind === 'breaker') {
+    const found = definition(id);
+    if (found?.kind === 'breaker') {
       return at === 'in' ? panelText.breakerIn : panelText.breakerPulled;
     }
-    return at.toUpperCase();
+    const legend =
+      found?.legends && Object.hasOwn(found.legends, at) ? found.legends[at] : undefined;
+    if (legend === undefined) return at.toUpperCase();
+    return typeof legend === 'string' ? legend : localize(legend);
   };
   const position = (deviation: Deviation) => positionName(deviation.controlId, deviation.position);
   const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);

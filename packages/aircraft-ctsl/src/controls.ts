@@ -113,6 +113,7 @@ export const controls = {
     kind: 'toggle',
     positions: ['armed', 'on'],
     initial: 'armed',
+    legends: { armed: 'ARM' },
     name: text('Notsender', 'ELT remote switch'),
     description: text(
       'Fernschalter des Notsenders, oben ON, unten ARM. ARM löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
@@ -143,6 +144,7 @@ export const controls = {
     kind: 'rotary',
     positions: ['override-up', '-12', '0', '15', '30', '35', 'override-down'],
     initial: '0',
+    legends: { 'override-up': 'UP', 'override-down': 'DN' },
     name: text('Klappenwahlschalter', 'Flap selector'),
     description: text(
       'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
@@ -155,6 +157,7 @@ export const controls = {
     positions: ['out', 'off', 'left', 'right', 'both', 'start'],
     initial: 'out',
     springBack: { start: 'both' },
+    legends: { out: text('Schlüssel abgezogen', 'key out'), left: 'L', right: 'R' },
     interlock: [
       { control: 'fuelValve', at: 'closed', holds: ['out'] },
       { control: 'fuelValve', at: 'closed', holds: ['off', 'out'] },
@@ -204,6 +207,7 @@ export const controls = {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
+    legends: { runup: 'RUN-UP' },
     name: text('Gashebel', 'Throttle'),
     description: text(
       'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',
@@ -231,6 +235,7 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'neutral', 'nose-up'],
     initial: 'neutral',
+    legends: { 'nose-down': 'NOSE DN', 'nose-up': 'NOSE UP' },
     name: text('Trimmrad', 'Trim wheel'),
     description: text(
       'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
@@ -242,6 +247,7 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'open',
+    legends: { closed: 'SHUT' },
     name: text('Rückflusshahn', 'Parking-brake valve'),
     description: text(
       'Parkbremse: Hahn schließen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder öffnet.',
@@ -253,6 +259,7 @@ export const controls = {
     kind: 'guarded',
     positions: ['stowed', 'pulled'],
     initial: 'stowed',
+    legends: { stowed: text('Ruhestellung', 'stowed'), pulled: text('gezogen', 'pulled') },
     guard: { name: text('Sicherungsstift', 'Safety pin') },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(
