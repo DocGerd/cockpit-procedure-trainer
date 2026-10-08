@@ -512,6 +512,7 @@ describe('deviation summary', () => {
     start(flow);
     finishFlowWithDeviations();
     await userEvent.click(screen.getByRole('button', { name: 'Back to selection' }));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(trainer.screen).toBe('picker');
     expect(trainer.procedureId).toBeUndefined();
   });
@@ -623,6 +624,40 @@ describe('full flight summary', () => {
       ['Follow-up', '0', '0', '0:05'],
       ['Total', '2', '0', '1:10'],
     ]);
+  });
+
+  describe('back to selection', () => {
+    const back = () => screen.getByRole('button', { name: 'Back to selection' });
+
+    it('asks before ending the flight ahead of its last leg, naming the legs flown', async () => {
+      renderPane();
+      startFlight();
+      finishFlowWithDeviations();
+      await userEvent.click(back());
+      const dialog = within(screen.getByRole('alertdialog'));
+      expect(dialog.getByText(/The full flight ends after 1 of 2 legs\./)).toBeTruthy();
+      expect(trainer.flight).toBeDefined();
+      await userEvent.click(dialog.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.procedureId).toBe(flow);
+      await userEvent.click(back());
+      await userEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Back to selection' }),
+      );
+      expect(trainer.screen).toBe('picker');
+      expect(trainer.flight).toBeUndefined();
+    });
+
+    it('acts at once after the last leg', async () => {
+      renderPane();
+      startFlight();
+      finishFlowWithDeviations();
+      await continueFlight();
+      checkOff();
+      await userEvent.click(back());
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(trainer.screen).toBe('picker');
+    });
   });
 
   it('renders the German flight summary', async () => {
