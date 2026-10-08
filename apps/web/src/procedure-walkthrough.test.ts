@@ -14,8 +14,12 @@ describe('procedure walk-through', () => {
     expect(normalProcedures.length).toBeGreaterThan(0);
   });
 
-  it.each(normalProcedures)('%s: %s completes with no deviations', (_aircraft, id, aircraft) => {
-    const result = walkProcedure(aircraft, id, { devices: deviceRegistry });
+  it.each(
+    normalProcedures.flatMap((walk) =>
+      (['listed', 'reversed'] as const).map((order) => [...walk, order] as const),
+    ),
+  )('%s: %s completes with its flow %s', (_aircraft, id, aircraft, flowOrder) => {
+    const result = walkProcedure(aircraft, id, { devices: deviceRegistry, flowOrder });
     if (!result.ok) {
       expect.fail(
         `aircraft "${result.aircraft}", procedure "${result.procedure}", item ${result.itemIndex} ` +
