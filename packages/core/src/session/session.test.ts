@@ -578,8 +578,8 @@ describe('flight legs', () => {
     expect(session.state().systems).toEqual(before.systems);
   });
 
-  it('lays the values the next phase sets over the carried state', () => {
-    type Headed = FixtureState & { readonly headingDeg: number };
+  type Headed = FixtureState & { readonly headingDeg: number };
+  const headed = (carry: (carried: Headed, entry: Headed) => Headed) => {
     const facing = (id: string, headingDeg: number) => {
       const phase = legs.phases[id] ?? fixturePhase(id);
       return {
@@ -587,7 +587,7 @@ describe('flight legs', () => {
         entry: { ...phase.entry, state: { ...(phase.entry.state as FixtureState), headingDeg } },
       };
     };
-    const headed = {
+    return {
       ...legs,
       phases: { ...legs.phases, parking: facing('parking', 90), taxiOut: facing('taxiOut', 360) },
       systems: {
@@ -596,10 +596,18 @@ describe('flight legs', () => {
           ...(legs.systems.step(state, input) as FixtureState),
           headingDeg: state.headingDeg,
         }),
-        carry: (carried: Headed, entry: Headed) => ({ ...carried, headingDeg: entry.headingDeg }),
+        carry,
       },
     } as Aircraft;
-    const session = createSession(headed);
+  };
+  const carryHeading = (carried: Headed, entry: Headed) => ({
+    ...carried,
+    headingDeg: entry.headingDeg,
+  });
+  const heading = (session: Session) => (session.state().systems as Headed).headingDeg;
+
+  it('lays the values the next phase sets over the carried state', () => {
+    const session = createSession(headed(carryHeading));
     session.set('master', 'on');
     session.set('throttle', 0.5);
     const before = session.state();
@@ -609,6 +617,62 @@ describe('flight legs', () => {
     expect(systems.busPowered).toBe(true);
     expect(session.state().controls).toEqual(before.controls);
     expect(session.state().devices).toEqual(before.devices);
+    expect(session.checklist()).toMatchObject({ current: 0, completed: [], deviations: [] });
+  });
+
+  it('carries into the end phase when a leg is done', () => {
+    const session = createSession(headed(carryHeading));
+    session.startLeg('toRunup');
+    expect(heading(session)).toBe(90);
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    expect(heading(session)).toBe(360);
+  });
+
+  it('restarts and retries a carried leg from the carried state without carrying again', () => {
+    let carries = 0;
+    const session = createSession(
+      headed((carried, entry) => {
+        carries++;
+        return carryHeading(carried, entry);
+      }),
+    );
+    session.startLeg('runupCheck');
+    const start = fingerprint(session);
+    session.set('master', 'on');
+    session.retryItem();
+    expect(fingerprint(session).state).toEqual(start.state);
+    session.set('flaps', 'takeoff');
+    session.advance(STEP_MS);
+    session.restartLeg();
+    expect(fingerprint(session)).toEqual(start);
+    expect(heading(session)).toBe(360);
+    expect(carries).toBe(1);
+  });
+
+  it('fails the session, not the call, when carry throws', () => {
+    const broke = new Error('carry broke');
+    const session = createSession(
+      headed(() => {
+        throw broke;
+      }),
+    );
+    expect(() => session.startLeg('runupCheck')).not.toThrow();
+    expect(session.status()).toEqual({ kind: 'failed', error: broke });
+    expect(session.phase()).toBe('taxiOut');
+    expect(heading(session)).toBe(90);
+    expect(session.set('master', 'on')).toEqual({ applied: false, reason: 'failed' });
+
+    const hop = createSession(
+      headed(() => {
+        throw broke;
+      }),
+    );
+    hop.startLeg('toRunup');
+    expect(() => hop.checkOff()).not.toThrow();
+    expect(hop.status()).toEqual({ kind: 'failed', error: broke });
+    hop.jumpToPhase('parking');
+    expect(hop.status()).toEqual({ kind: 'running' });
   });
 
   it('loads the snapshot of a leg that skips a phase or goes back', () => {

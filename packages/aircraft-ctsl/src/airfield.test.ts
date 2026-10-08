@@ -147,6 +147,7 @@ describe('a full flight carrying the cockpit into the next phase', () => {
     expect(state.systems.consumers.cockpitLight).toBe(true);
     expect(state.systems.oilTempC).toBe(before.systems.oilTempC);
     expect(state.devices).toEqual(before.devices);
+    expect(session.checklist()).toMatchObject({ current: 0, completed: [], deviations: [] });
   });
 });
 
