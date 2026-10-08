@@ -20,7 +20,7 @@ Visible in the app:
 For contributors and the test suite:
 
 - **Spec and docs for the dock** (#381, for #346): main spec decisions row, §4.3, §4.9 and Modes; one-viewport spec §1 to §5, §7 and new §4a; design brief S1, S2, S8 and S12.
-- **Viewport matrix** (#406, for #355). `layout.spec.ts` runs one row per registered aircraft at 1920x1080, 1920x950, 3840x2160, 1024x768 and 768x1024, checking the layout and strip state against the production rule and an `expectedStates` table, floors, no page scroll, the footer, 44 px targets, panel colours and lettering. The CTSL indicator-face rows are `test.fail` with a pointer to #391, so they fail once the M12 art fixes them and the entry has to go. `CONTRIBUTING.md` documents the matrix.
+- **Viewport matrix** (#406, for #355). `layout.spec.ts` runs one row per registered aircraft at 1920x1080, 1920x950, 3840x2160, 1024x768 and 768x1024, checking the layout and strip state against the production rule and an `expectedStates` table, floors, no page scroll, the footer, 44 px targets, panel colours and lettering. The CTSL indicator-face rows were `test.fail` until M12 #391 (#423) fixed the 1920x1080 rows; two tablet rows remain, tracked in #420. `CONTRIBUTING.md` documents the matrix.
 - **`docs/adding-a-device.md` matches the code** (#405, for #404): `deviceEntries`, `unitNames`, the device-entry test tables, `readout(state, language, on)`.
 - **Contract tests**: `tools/device-entry.test.ts` (every device's entry, mirror aspect and lettering, floors) and `apps/web/src/device-keys.test.tsx` (every Screen key carries `data-control`, and `data-position` where it stands for one position).
 - Also in this release, outside the milestone: M12 #398, #401 and #402 (see above), and the OpenSSF silver learnings in `CLAUDE.md` (#380).
@@ -57,16 +57,15 @@ The dock PRs (#384, #386, #387, #397, #400) superseded two `CLAUDE.md` rules in 
 
 1. **Spec open question 1** is struck through as decided by #399 (strip folds, then hides, before tabs; 72 px minimum band). Confirm the wording and the band.
 2. **Fidelity spike #360** (how much system logic to simulate, how to show wrong actions) is still open and unmilestoned: a spec decision for you.
-3. **Indicator-face lettering below 10.5 px** on the CTSL is pre-existing, now caught by the matrix's `test.fail` rows, and is fixed by M12 #391 (also #297).
-4. **ADR-0002 reading for M12**: hardware-recognisable realism counts as rank 2 (Training UX); finish beyond what makes the hardware recognisable counts as rank 6. Confirm before the M12 art tasks trade against it.
-5. **What "photorealistic" means for M12**: the art is judged against a rubric the agents wrote (plan `docs/superpowers/plans/2026-10-07-m12-photorealistic-panel.md`, "Rubric for the ui-verifier"): each visual heading is scored 0 (absent) to 3 (could pass for a photograph) on crops at device scale factor 2, and an element passes when every heading scores at least 2 ("convincing: at a glance it reads as the real material") and the mean is at least 2.5. The furthest examples on `develop` are the demo panel and console backgrounds (#402: the implementer's self-scores are 2.75 to 3.0 on four headings, the independent ui-verifier gave 2.25 to 2.5 per crop, at or below the bar) and the CTSL airspeed indicator with its glass above the needle (#401, no recorded score; the plan says the ui-verifier scored the spike's airspeed specimen below the bar). Is that level what you mean by "photorealistic", or should the bar be raised before the remaining M12 PRs land?
-6. **Demo at 1920x950 is combined by a few pixels of panel slack** (#411): any chrome change flips it to the folded strip. Accept the knife edge, or give the demo room?
-7. **No priority viewport exercises the folded strip** (#412): the folded state is covered only by the strip-height steps, not by the matrix's full checks.
-8. **Tablet checklist overlay** (#414, from the #410 review): at 1024x768 with a long procedure the overlay's footer sits below the fold.
-9. **Demo dead space under the console** at 1920x1080 (#397): accept as the cost of the dock cell, or ask for a demo centre field.
-10. **Stale milestone text**: `docs/milestones/m8-polish-hardening.md` still describes the old radios and GPS views (noted in #387); it is a historical record, so it is left as is unless you want a note added.
-11. **Spec drift on the dock** (#415, from the release review): the one-viewport spec §3 and §8, the main spec §4.3 and `docs/adding-an-aircraft.md` still describe the dock cell as optional; a docs fix that changes no decision.
-12. **Backlog**: #340 (operable in-slot devices, `slotMode()` prepared) and #354 (keyboard route, dropped by the accessibility ranking).
+3. **Indicator-face lettering below 10.5 px** on the CTSL is pre-existing, now caught by the matrix's `test.fail` rows, and was fixed at 1920x1080 by M12 #391 (also #297); the tablet sizes remain as #420, listed in the M12 summary.
+4. **ADR-0002 reading for M12 and what "photorealistic" means for M12**: both are now answered by M12's results and asked in `docs/milestones/m12-photorealistic-panel.md` (open questions 1 and 2).
+5. **Demo at 1920x950 is combined by a few pixels of panel slack** (#411): any chrome change flips it to the folded strip. Accept the knife edge, or give the demo room?
+6. **No priority viewport exercises the folded strip** (#412): the folded state is covered only by the strip-height steps, not by the matrix's full checks.
+7. **Tablet checklist overlay** (#414, from the #410 review): at 1024x768 with a long procedure the overlay's footer sits below the fold.
+8. **Demo dead space under the console** at 1920x1080 (#397): accept as the cost of the dock cell, or ask for a demo centre field.
+9. **Stale milestone text**: `docs/milestones/m8-polish-hardening.md` still describes the old radios and GPS views (noted in #387); it is a historical record, so it is left as is unless you want a note added.
+10. **Spec drift on the dock** (#415, from the release review): the one-viewport spec §3 and §8, the main spec §4.3 and `docs/adding-an-aircraft.md` still describe the dock cell as optional; a docs fix that changes no decision.
+11. **Backlog**: #340 (operable in-slot devices, `slotMode()` prepared) and #354 (keyboard route, dropped by the accessibility ranking).
 
 Follow-ups filed at this release, without milestone: #411, #412, #414 and #415.
 
