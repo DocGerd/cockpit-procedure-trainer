@@ -323,7 +323,8 @@
   min-width: 0;
 }
 
-.picker-aircraft {
+.picker-aircraft,
+.picker-drills {
   flex: 1 1 300px;
 }
 
@@ -502,6 +503,31 @@
   margin: 0;
 }
 
+.picker-drills {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.picker-drill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-drill > p {
+  margin: 0;
+}
+
+.picker-surprise {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .shell[data-layout='desktop'][data-screen='picker'] {
   height: 100dvh;
 }
@@ -514,13 +540,41 @@
   display: grid;
   flex: 1 1 0;
   align-items: stretch;
+  grid-template-areas:
+    'aircraft procedures'
+    'drills procedures';
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: calc(var(--space-12) * 9);
 }
 
+.shell[data-layout='desktop'][data-screen='picker'] .picker-aircraft {
+  grid-area: aircraft;
+}
+
 .shell[data-layout='desktop'][data-screen='picker'] .picker-procedures {
+  grid-area: procedures;
   min-height: 0;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-drills {
+  grid-area: drills;
+  min-height: 0;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+  overflow-y: auto;
+}
+
+@media (min-width: 1400px) {
+  .shell[data-layout='desktop'][data-screen='picker'] .picker {
+    max-width: calc(var(--space-12) * 30);
+  }
+
+  .shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+    grid-template-areas: 'aircraft procedures drills';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
 }
 
 .shell[data-layout='desktop'][data-screen='picker'] .picker-list {

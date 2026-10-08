@@ -208,6 +208,51 @@ describe('phase entry device positions', () => {
   });
 });
 
+describe('phase entry device state', () => {
+  const withDeviceStates = (deviceStates: unknown): Aircraft => {
+    const parking = fixtureDeviceAircraft.phases.parking;
+    return {
+      ...fixtureDeviceAircraft,
+      phases: {
+        ...fixtureDeviceAircraft.phases,
+        parking: { ...parking, entry: { ...parking?.entry, deviceStates } },
+      },
+    } as Aircraft;
+  };
+
+  it('accepts a field the device state has, of the same type', () => {
+    expect(codes(withDeviceStates({ mon: { page: 'electrical', reading: 3 } }))).toEqual([]);
+  });
+
+  it('reports an install the aircraft does not have', () => {
+    expect(codes(withDeviceStates({ gps: { page: 'engine' } }))).toEqual([
+      expect.objectContaining({ code: 'unknown-device', id: 'gps' }),
+    ]);
+  });
+
+  it('reports a field the device state does not have', () => {
+    expect(codes(withDeviceStates({ mon: { volume: 3 } }))).toEqual([
+      expect.objectContaining({ code: 'unknown-device-state', id: 'mon.volume' }),
+    ]);
+  });
+
+  it.each([[null], [[]], [{}]])('reports %j where the field holds a string', (value) => {
+    expect(codes(withDeviceStates({ mon: { page: value } }))).toEqual([
+      expect.objectContaining({ code: 'unknown-device-state', id: 'mon.page' }),
+    ]);
+  });
+
+  it('accepts any value for a field whose starting value is null', () => {
+    expect(codes(withDeviceStates({ mon: { reading: 'high' } }))).toEqual([]);
+  });
+
+  it('reports a value of another type than the field', () => {
+    expect(codes(withDeviceStates({ mon: { page: 3 } }))).toEqual([
+      expect.objectContaining({ code: 'unknown-device-state', id: 'mon.page' }),
+    ]);
+  });
+});
+
 describe('inexact-lever-target on a device control', () => {
   const gain = {
     kind: 'lever',

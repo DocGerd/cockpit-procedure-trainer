@@ -73,6 +73,10 @@ const pinOut = { rescueHandle: 'open' } as const;
 // Assumed (unverified): ALT from line-up until after landing, standby once taxied in.
 const transponder = (mode: 'alt' | 'sby') => ({ xpdr: { mode } });
 
+// Assumed (unverified): the German VFR code squawked from line-up, the GPS on with its map page.
+const squawking = { xpdr: { squawk: '7000' } };
+const navigating = { ...squawking, gps: { on: true, page: 'map' } };
+
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
 const CLIMB_MS = 3;
 const APPROACH_DESCENT_MS = -2;
@@ -113,6 +117,7 @@ export const phases = {
       state: facing('linedUp', runningFrom(linedUpOnRunway)),
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   departure: {
@@ -128,6 +133,7 @@ export const phases = {
       },
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   cruise: {
@@ -140,6 +146,7 @@ export const phases = {
       state: facing('cruise', runningFrom(cruising, cruiseEnvironment)),
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   approach: {
@@ -155,6 +162,7 @@ export const phases = {
       },
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   landing: {
@@ -167,6 +175,7 @@ export const phases = {
       state: facing('landing', runningFrom(flaring, landingEnvironment)),
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   taxiIn: {
@@ -179,6 +188,7 @@ export const phases = {
       state: facing('taxiIn', runningFrom(taxiingIn)),
       guards: pinOut,
       devices: transponder('alt'),
+      deviceStates: navigating,
     },
   },
   parkingSecuring: {
@@ -191,6 +201,7 @@ export const phases = {
       state: facing('parkingSecuring', runningFrom(securing)),
       guards: pinOut,
       devices: transponder('sby'),
+      deviceStates: squawking,
     },
   },
 } as const satisfies Record<keyof typeof phaseHeadings, PhaseDefinition<CtslState, Controls>>;

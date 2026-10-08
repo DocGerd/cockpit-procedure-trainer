@@ -58,8 +58,10 @@ export const images = {
   handleThrottle: new URL('./assets/artwork/handle-throttle.svg', import.meta.url).href,
   leverCarbFace: new URL('./assets/artwork/lever-carb-face.svg', import.meta.url).href,
   handleCarb: new URL('./assets/artwork/handle-carb.svg', import.meta.url).href,
-  leverTrimFace: new URL('./assets/artwork/lever-trim-face.svg', import.meta.url).href,
-  handleTrim: new URL('./assets/artwork/handle-trim.svg', import.meta.url).href,
+  trimWheelFace: new URL('./assets/artwork/trim-wheel-face.svg', import.meta.url).href,
+  trimWheelNoseDown: new URL('./assets/artwork/trim-wheel-nose-down.svg', import.meta.url).href,
+  trimWheelNeutral: new URL('./assets/artwork/trim-wheel-neutral.svg', import.meta.url).href,
+  trimWheelNoseUp: new URL('./assets/artwork/trim-wheel-nose-up.svg', import.meta.url).href,
   flapSelectorFace: new URL('./assets/artwork/flap-selector-face.svg', import.meta.url).href,
   flapKnob0: new URL('./assets/artwork/flap-knob-0.svg', import.meta.url).href,
   flapKnob1: new URL('./assets/artwork/flap-knob-1.svg', import.meta.url).href,
@@ -240,9 +242,11 @@ const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
 });
-const brakeSlide = [
-  { x: 70, y: 110 },
-  { x: 70, y: 300 },
+// The console is drawn as the left seat sees its flank: forward is to the left, so a lever pushed
+// forward slides left and one pulled toward the pilot slides right.
+const pullSlide = [
+  { x: 232, y: 76 },
+  { x: 392, y: 76 },
 ] as const;
 
 export const controlArtwork = {
@@ -317,12 +321,12 @@ export const controlArtwork = {
   }),
   battery: pushPull,
   generator: pushPull,
-  brake: lettered(travel(images.leverBrakeFace, images.handleBrake, brakeSlide), 'BRAKE'),
-  choke: lettered(travel(images.leverChokeFace, images.handleBrake, brakeSlide), 'CHOKE'),
+  brake: lettered(travel(images.leverBrakeFace, images.handleBrake, pullSlide), 'BRAKE'),
+  choke: lettered(travel(images.leverChokeFace, images.handleBrake, pullSlide), 'CHOKE'),
   throttle: lettered(
     travel(images.leverThrottleFace, images.handleThrottle, [
-      { x: 34, y: 300 },
-      { x: 34, y: 110 },
+      { x: 712, y: 76 },
+      { x: 232, y: 76 },
     ]),
     'THROTTLE',
   ),
@@ -334,10 +338,11 @@ export const controlArtwork = {
     'CARB HEAT',
   ),
   trim: lettered(
-    travel(images.leverTrimFace, images.handleTrim, [
-      { x: 44, y: 70 },
-      { x: 44, y: 210 },
-    ]),
+    positions(images.trimWheelFace, {
+      'nose-down': images.trimWheelNoseDown,
+      neutral: images.trimWheelNeutral,
+      'nose-up': images.trimWheelNoseUp,
+    }),
     'TRIM',
   ),
   rescueHandle: lettered(

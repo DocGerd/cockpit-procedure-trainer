@@ -22,6 +22,23 @@ export type SessionOptions = {
   readonly phase?: string;
 };
 
+export type SurpriseOptions = {
+  readonly phase: string;
+  readonly failure: string;
+  readonly delayMs: number;
+};
+
+/** A surprise failure: injected unannounced, then answered by the checklist the pilot chooses. */
+export type Scenario = SurpriseOptions & {
+  /** Run time at which the failure appeared; unset while it is pending. */
+  readonly injectedAtMs?: number;
+  readonly chosen?: string;
+  /** From the failure to the choice; unset when the pilot chose before it appeared. */
+  readonly recognitionMs?: number;
+  /** Whether the chosen checklist is an emergency procedure for the injected failure. */
+  readonly matched?: boolean;
+};
+
 export type SessionControlResult =
   ControlResult | { readonly applied: false; readonly reason: 'failed' };
 
@@ -34,6 +51,7 @@ export type Session = {
   status(): RuntimeStatus;
   procedureId(): string | undefined;
   checklist(): ChecklistState<unknown> | undefined;
+  scenario(): Scenario | undefined;
   set(id: string, position: string | number): SessionControlResult;
   press(id: string, position?: string | number): SessionControlResult;
   release(id: string): SessionControlResult;
@@ -41,6 +59,13 @@ export type Session = {
   closeGuard(id: string): SessionControlResult;
   jumpToPhase(id: string): void;
   startProcedure(id: string): void;
+  /** Loads the phase snapshot and injects the failure once `delayMs` of run time has passed. */
+  startSurprise(options: SurpriseOptions): void;
+  /**
+   * Starts a checklist from the cockpit as it stands: no snapshot load and no failure of its own.
+   * The first one taken during a surprise is the pilot's answer to it.
+   */
+  takeChecklist(id: string): void;
   advance(dtMs: number): void;
   checkOff(response?: number): void;
   /** Puts the cockpit back as it was when the current item began and counts an assist. */
@@ -70,6 +95,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let procedureId: string | undefined;
   let checklist: ChecklistState<unknown> | undefined;
   let runMs = 0;
+  let scenario: Scenario | undefined;
   let itemStart:
     | {
         readonly completed: number;
@@ -171,6 +197,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     procedureId = undefined;
     checklist = undefined;
     itemStart = undefined;
+    scenario = undefined;
     runMs = 0;
     store.load(snapshot.positions, snapshot.guards);
     failureSet.clearAll();
@@ -181,6 +208,14 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     settleDevices(0, snapshot.devices);
     phase = id;
     environment = snapshot.environment;
+  }
+
+  function injectSurprise(): void {
+    if (!scenario || scenario.injectedAtMs !== undefined) return;
+    scenario = { ...scenario, injectedAtMs: runMs };
+    failureSet.inject(scenario.failure);
+    runtime.onControlsChanged(store.positions());
+    settleDevices(0);
   }
 
   store.subscribe((change: ControlChange) => {
@@ -211,6 +246,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     status,
     procedureId: () => procedureId,
     checklist: () => checklist,
+    scenario: () => scenario,
 
     set: pilot(store.set),
     press: pilot(store.press),
@@ -237,6 +273,40 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       });
     },
 
+    startSurprise(options) {
+      const { phase: id, failure, delayMs } = options;
+      if (!Object.hasOwn(aircraft.failures, failure))
+        throw new Error(`Unknown failure "${failure}"`);
+      assertDtMs(delayMs);
+      entrySnapshot(aircraft, registry, id);
+      batch(() => {
+        loadSnapshot(id);
+        scenario = { phase: id, failure, delayMs };
+      });
+    },
+
+    takeChecklist(id) {
+      const procedure = procedureOf(aircraft, id);
+      batch(() => {
+        if (scenario && scenario.chosen === undefined) {
+          const early = scenario.injectedAtMs === undefined;
+          injectSurprise();
+          const answer = scenario;
+          scenario = {
+            ...answer,
+            chosen: id,
+            matched: procedure.type === 'emergency' && procedure.failure === answer.failure,
+            ...(early ? {} : { recognitionMs: runMs - (answer.injectedAtMs ?? 0) }),
+          };
+        }
+        runMs = 0;
+        itemStart = undefined;
+        checklist = undefined;
+        procedureId = id;
+        track(startChecklist(procedure, buildState(), controls));
+      });
+    },
+
     advance(dtMs) {
       if (failed()) {
         assertDtMs(dtMs);
@@ -246,6 +316,14 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       runMs += dtMs;
       dirty = true;
       try {
+        if (scenario && scenario.injectedAtMs === undefined && runMs >= scenario.delayMs) {
+          depth++;
+          try {
+            injectSurprise();
+          } finally {
+            depth--;
+          }
+        }
         if (runtime.status().kind === 'running') settleDevices(dtMs);
         if (checklist) track(observeState(checklist, buildState()));
       } finally {

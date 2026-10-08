@@ -197,7 +197,8 @@ pilot's seat, never as a third-person picture of the aircraft. `entry` is the sn
 `entry.controls` holds a position for every control, and `entry.state` is a systems
 state. Derive the state instead of writing it out; the demo's `runningFrom(controls)`
 steps the systems once from a running engine. Guards start closed unless
-`entry.guards` names them `open`. A procedure starts from its
+`entry.guards` names them `open`. A phase can also seed the state of an installed
+device (`entry.deviceStates`, see Devices). A procedure starts from its
 `startPhase` snapshot, so the snapshot must be a state the procedure's first item
 makes sense in.
 
@@ -257,7 +258,7 @@ in-between setting, either write a `check` item with a condition on an indicator
 
 An aircraft installs an avionics unit through the optional `devices` field; see
 `docs/adding-a-device.md` for the install shape, the `<installId>.<controlId>`
-targets and device entry positions. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
+targets, device entry positions and device entry state. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
 
 ## Appearance and artwork
 
@@ -358,7 +359,7 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `missing-translation`, `phase-without-image`, `running-image-without-engine`,
 `phase-without-running-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
-`unknown-device-control`, `unplaced-device`, `invalid-install-id`,
+`unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
 `artwork-glass-size`, `invalid-check-response`, `invalid-flow` and the eight
 `cockpit` codes above. `formatFinding` prints one.

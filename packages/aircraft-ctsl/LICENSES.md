@@ -7,6 +7,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/view-panel.svg`                     | Panel view background (both upper fields)                             |
 | `src/assets/view-centre.svg`                    | Lower centre field view background                                    |
 | `src/assets/view-console.svg`                   | Centre console view background                                        |
+| `src/assets/view-bulkhead.svg`                  | Main bulkhead view background, between the seats                      |
 | `src/assets/phase-parking.svg`                  | Outside view, parking                                                 |
 | `src/assets/phase-parking-running.svg`          | Outside view, parking, engine running (propeller disc)                |
 | `src/assets/phase-holding.svg`                  | Outside view, holding point                                           |
@@ -75,15 +76,17 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/valve-face.svg`             | Parking-brake valve slot                                              |
 | `src/assets/artwork/valve-open.svg`             | Parking-brake valve handle, open                                      |
 | `src/assets/artwork/valve-closed.svg`           | Parking-brake valve handle, closed                                    |
-| `src/assets/artwork/lever-brake-face.svg`       | Console lever plate, brake                                            |
-| `src/assets/artwork/lever-choke-face.svg`       | Console lever plate, choke                                            |
-| `src/assets/artwork/lever-throttle-face.svg`    | Console lever plate, throttle                                         |
-| `src/assets/artwork/handle-brake.svg`           | Console lever handle, brake                                           |
-| `src/assets/artwork/handle-throttle.svg`        | Console lever handle, throttle                                        |
+| `src/assets/artwork/lever-brake-face.svg`       | Console lever slot, brake, horizontal                                 |
+| `src/assets/artwork/lever-choke-face.svg`       | Console lever slot, choke, horizontal                                 |
+| `src/assets/artwork/lever-throttle-face.svg`    | Console lever slot, throttle, horizontal                              |
+| `src/assets/artwork/handle-brake.svg`           | Console lever grip, brake and choke                                   |
+| `src/assets/artwork/handle-throttle.svg`        | Console lever grip, throttle                                          |
 | `src/assets/artwork/lever-carb-face.svg`        | Console lever plate, carb                                             |
 | `src/assets/artwork/handle-carb.svg`            | Console lever handle, carb                                            |
-| `src/assets/artwork/lever-trim-face.svg`        | Console lever plate, trim                                             |
-| `src/assets/artwork/handle-trim.svg`            | Console lever handle, trim                                            |
+| `src/assets/artwork/trim-wheel-face.svg`        | Trim wheel slot and indicator scale                                   |
+| `src/assets/artwork/trim-wheel-nose-down.svg`   | Trim wheel and indicator pointer, nose down                           |
+| `src/assets/artwork/trim-wheel-neutral.svg`     | Trim wheel and indicator pointer, neutral                             |
+| `src/assets/artwork/trim-wheel-nose-up.svg`     | Trim wheel and indicator pointer, nose up                             |
 | `src/assets/artwork/flap-selector-face.svg`     | Flap selector dial                                                    |
 | `src/assets/artwork/flap-knob-0.svg`            | Flap selector knob, detent 0                                          |
 | `src/assets/artwork/flap-knob-1.svg`            | Flap selector knob, detent 1                                          |
@@ -99,6 +102,6 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/ignition-key-r.svg`         | Ignition key, r                                                       |
 | `src/assets/artwork/ignition-key-both.svg`      | Ignition key, both                                                    |
 | `src/assets/artwork/ignition-key-start.svg`     | Ignition key, start                                                   |
-| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate                                                   |
+| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate on the bulkhead                                   |
 | `src/assets/artwork/rescue-stowed.svg`          | Rescue handle, stowed                                                 |
 | `src/assets/artwork/rescue-pulled.svg`          | Rescue handle, pulled                                                 |

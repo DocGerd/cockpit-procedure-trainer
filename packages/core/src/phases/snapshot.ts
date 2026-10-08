@@ -33,7 +33,7 @@ export function entrySnapshot(
     guards: phase.entry.guards ?? {},
     systems: phase.entry.state,
     environment: phase.environment,
-    devices: initialDeviceStates(aircraft, registry),
+    devices: initialDeviceStates(aircraft, registry, phaseId),
   };
 }
 
