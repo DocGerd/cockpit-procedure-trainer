@@ -327,6 +327,12 @@ export type CheckItem<
   readonly target:
     { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
+  /** Lets the pilot answer with the value read; a reading off by more than the tolerance is unmet. */
+  readonly response?: {
+    readonly reading: (state: TrainerState<S>) => number;
+    readonly tolerance: number;
+    readonly unit?: Text;
+  };
 };
 
 export type ConfirmItem = ItemBase & { readonly type: 'confirm' };

@@ -73,13 +73,32 @@ async function operate(page: Page, controlId: string, position: string | number)
   }
 }
 
+async function isSet(page: Page, controlId: string, position: string | number) {
+  const name = ctslAircraft.controls[controlId]?.name.en;
+  if (name === undefined) throw new Error(`no control ${controlId}`);
+  const radio = page.getByRole('radiogroup', { name, exact: true }).getByRole('radio', {
+    name: String(position),
+    exact: true,
+  });
+  const slider = page.getByRole('slider', { name, exact: true });
+  if ((await radio.count()) > 0) return radio.isChecked();
+  if ((await slider.count()) > 0) {
+    return (await slider.getAttribute('aria-valuetext')) === String(position);
+  }
+  return (
+    (await page.getByRole('button', { name: `${name}: ${position}`, exact: true }).count()) > 0
+  );
+}
+
 async function advance(
   page: Page,
   item: (typeof longestNormal)[1]['items'][number] | undefined,
   card: Locator,
   at: number,
 ) {
-  if (item?.type === 'action') {
+  if (item?.type === 'action' && (await isSet(page, item.control, item.position))) {
+    await card.getByRole('button', { name: copy.checklist.verify, exact: true }).click();
+  } else if (item?.type === 'action') {
     await operate(page, item.control, item.position);
   } else {
     await card.getByRole('button').click();

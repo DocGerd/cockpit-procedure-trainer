@@ -367,7 +367,12 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: (state: State) => Math.abs(state.systems.rpm - RUNUP_RPM) <= RUNUP_RPM_TOLERANCE,
-        text: text('Drehzahl 4000 U/min', 'Rpm 4000'),
+        response: {
+          reading: (state: State) => state.systems.rpm,
+          tolerance: RUNUP_RPM_TOLERANCE,
+          unit: text('U/min', 'rpm'),
+        },
+        text: text('Drehzahl prüfen', 'Rpm check'),
       },
       oilPressureGreen,
       {

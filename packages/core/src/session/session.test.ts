@@ -303,6 +303,34 @@ describe('startProcedure', () => {
     expect(session.phase()).toBe('runup');
   });
 
+  it('hands the reading of a check-off to the checklist', () => {
+    const reading: Aircraft = {
+      ...fixtureAircraft,
+      procedures: {
+        read: {
+          title: { de: 'Ablesen', en: 'Read' },
+          type: 'normal',
+          startPhase: 'parking',
+          items: [
+            {
+              type: 'check',
+              target: { indicator: 'busVolts' },
+              condition: () => true,
+              response: { reading: (state) => (state.systems as FixtureState).volts, tolerance: 0 },
+              text: { de: 'Spannung', en: 'Volts' },
+            },
+          ],
+        },
+      },
+    };
+    const session = createSession(reading);
+    session.startProcedure('read');
+    session.checkOff(5);
+    expect(session.checklist()?.deviations).toEqual([
+      { kind: 'unmet-check', itemIndex: 0, response: 5 },
+    ]);
+  });
+
   it('clears the failure of an earlier emergency when a normal procedure starts', () => {
     const session = createSession(fixtureAircraft);
     session.startProcedure('alternatorFailure');

@@ -359,6 +359,31 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('invalid-check-response', () => {
+    const check = (tolerance: number) =>
+      withItems('beforeStart', [
+        {
+          type: 'check',
+          target: { indicator: 'rpm' },
+          condition: () => true,
+          response: { reading: () => 0, tolerance },
+          text,
+        },
+      ]);
+
+    it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+      'reports the tolerance %s, naming procedure and item',
+      (tolerance) => {
+        const finding = only(check(tolerance), 'invalid-check-response', 'rpm');
+        expect(finding.message).toContain('procedure beforeStart item 0');
+      },
+    );
+
+    it.each([0, 50])('accepts the tolerance %s', (tolerance) => {
+      expect(ofCode(check(tolerance), 'invalid-check-response')).toEqual([]);
+    });
+  });
+
   describe('inexact-lever-target', () => {
     const action = (control: string, position: unknown) =>
       withItems('beforeStart', [

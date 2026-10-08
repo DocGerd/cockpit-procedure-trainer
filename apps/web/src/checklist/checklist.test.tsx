@@ -103,7 +103,23 @@ describe('checklist items', () => {
     expect(screen.getByText('1 / 4')).toBeTruthy();
   });
 
-  it('gives check and confirm items a check-off button and action items none', async () => {
+  it('gives an action item a Verified button that passes a target already set', async () => {
+    renderPane();
+    start(flow);
+    operate('pump', 'on');
+    operate('master', 'on');
+    checkOff();
+    checkOff();
+    expect(trainer.session.checklist()?.current).toBe(3);
+    expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
+    expect(trainer.session.checklist()?.done).toBe(true);
+    expect(trainer.session.checklist()?.deviations.map(({ kind }) => kind)).toEqual([
+      'out-of-order',
+    ]);
+  });
+
+  it('gives check and confirm items a check-off button', async () => {
     renderPane();
     start(flow);
     expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();

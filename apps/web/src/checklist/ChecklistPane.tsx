@@ -1,3 +1,4 @@
+import { takesTick } from '@cpt/core';
 import type { ChecklistState, ProcedureItem } from '@cpt/core';
 import { useEffect, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
@@ -33,20 +34,74 @@ function itemState(
   return index === checklist.current ? 'current' : 'pending';
 }
 
+// Mounted only while its row is current, so a typed reading ends with the row's turn.
+function CurrentDetail({
+  item,
+  hint,
+  answerable,
+  tick,
+}: {
+  item: ProcedureItem<unknown>;
+  hint: string;
+  answerable: boolean;
+  tick: boolean;
+}) {
+  const text = useMessages(messages);
+  const localize = useLocalize();
+  const { session } = useTrainer();
+  const [reading, setReading] = useState('');
+  return (
+    <span className="checklist-item-detail">
+      <span className="checklist-hint">{hint}</span>
+      {answerable && item.type === 'check' && (
+        <label className="checklist-response">
+          <span className="checklist-response-label">{text.reading}</span>
+          <input
+            type="number"
+            inputMode="decimal"
+            className="checklist-response-input"
+            aria-label={text.reading}
+            value={reading}
+            onChange={(event) => setReading(event.target.value)}
+          />
+          {item.response?.unit && <span>{localize(item.response.unit)}</span>}
+        </label>
+      )}
+      {tick && (
+        <button
+          type="button"
+          className={`button-secondary ${item.type === 'action' ? 'checklist-verify' : 'checklist-check-off'}`}
+          onClick={() =>
+            session.checkOff(answerable && reading.trim() !== '' ? Number(reading) : undefined)
+          }
+        >
+          {item.type === 'action'
+            ? text.verify
+            : item.type === 'check'
+              ? text.checkOff
+              : text.confirm}
+        </button>
+      )}
+    </span>
+  );
+}
+
 function ItemRow({
   index,
   item,
   state,
   mode,
+  tick,
 }: {
   index: number;
   item: ProcedureItem<unknown>;
   state: ItemState;
   mode: Mode;
+  tick: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { session } = useTrainer();
+  const answerable = item.type === 'check' && item.response !== undefined && mode === 'practice';
   const labels: Record<ItemState, string> = {
     done: text.stateDone,
     current: text.stateCurrent,
@@ -56,10 +111,16 @@ function ItemRow({
   const hint =
     item.type === 'action'
       ? mode === 'guided'
-        ? text.hintActionGuided
-        : text.hintActionPractice
+        ? tick
+          ? text.hintVerifyGuided
+          : text.hintActionGuided
+        : tick
+          ? text.hintVerifyPractice
+          : text.hintActionPractice
       : item.type === 'check'
-        ? text.hintCheck
+        ? answerable
+          ? text.hintResponse
+          : text.hintCheck
         : text.hintConfirm;
 
   return (
@@ -77,18 +138,7 @@ function ItemRow({
         <span className="checklist-item-text">{localize(item.text)}</span>
       </span>
       {state === 'current' && (
-        <span className="checklist-item-detail">
-          <span className="checklist-hint">{hint}</span>
-          {item.type !== 'action' && (
-            <button
-              type="button"
-              className="button-secondary checklist-check-off"
-              onClick={() => session.checkOff()}
-            >
-              {item.type === 'check' ? text.checkOff : text.confirm}
-            </button>
-          )}
-        </span>
+        <CurrentDetail item={item} hint={hint} answerable={answerable} tick={tick} />
       )}
     </li>
   );
@@ -142,12 +192,13 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
     else if (rect.bottom > box.bottom) scroller.scrollTop += rect.bottom - box.bottom;
   }, [checklist.current, count]);
 
-  // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new current item.
+  // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new
+  // current item; never to its Verified button, so a key press cannot pass an action unlooked.
   useEffect(() => {
     const focused = document.activeElement;
     if (focused && focused !== document.body && focused.isConnected) return;
     const row = list.current?.querySelector<HTMLElement>('[aria-current="step"]');
-    (row?.querySelector<HTMLElement>('button') ?? row)?.focus();
+    (row?.querySelector<HTMLElement>('.checklist-check-off') ?? row)?.focus();
   }, [checklist.current]);
 
   return (
@@ -176,6 +227,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
             item={item}
             state={itemState(checklist, index, guided)}
             mode={mode}
+            tick={index === checklist.current && takesTick(checklist)}
           />
         ))}
       </ol>

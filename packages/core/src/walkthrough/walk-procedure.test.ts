@@ -134,6 +134,22 @@ describe('walkProcedure', () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it('verifies an action whose target already holds', () => {
+    const stillOn = { ...masterOn, text: text('Haupt bleibt EIN', 'Master stays ON') } as const;
+    expect(walk([masterOn, stillOn])).toEqual({ ok: true });
+  });
+
+  it('answers a check with its reading', () => {
+    const reading = {
+      type: 'check',
+      target: { control: 'master' },
+      condition: ms(500),
+      response: { reading: (state: TrainerState<ClockState>) => state.systems.ms, tolerance: 0 },
+      text: text('Zeit ablesen', 'Read the time'),
+    } as const;
+    expect(walk([masterOn, reading])).toEqual({ ok: true });
+  });
+
   it('waits for a check that becomes true only after time has passed', () => {
     const wait = {
       type: 'check',
