@@ -1,9 +1,9 @@
-import type { Session, SessionControlResult } from '@cpt/core';
+import type { Aircraft, ControlPosition, Session, SessionControlResult } from '@cpt/core';
 import { useSyncExternalStore } from 'react';
 import { useTrainer } from '../trainer';
 
 /** A pilot move an interlock refused; a new object on every refusal, so a repeat restarts its time. */
-export type LockNotice = { readonly controlId: string };
+export type LockNotice = { readonly controlId: string; readonly serial: number };
 
 export type LockNoticeStore = {
   get(): LockNotice | undefined;
@@ -15,6 +15,7 @@ export type LockNoticeStore = {
 
 function createLockNoticeStore(): LockNoticeStore {
   let notice: LockNotice | undefined;
+  let serial = 0;
   const listeners = new Set<() => void>();
   const update = (next: LockNotice | undefined) => {
     if (next === notice) return;
@@ -30,7 +31,7 @@ function createLockNoticeStore(): LockNoticeStore {
       };
     },
     report(controlId, result) {
-      if (!result.applied && result.reason === 'locked') update({ controlId });
+      if (!result.applied && result.reason === 'locked') update({ controlId, serial: ++serial });
       else if (result.applied) update(undefined);
     },
     clear: () => update(undefined),
@@ -56,4 +57,16 @@ export function useLockNoticeStore(): LockNoticeStore {
 export function useLockNotice(): LockNotice | undefined {
   const store = useLockNoticeStore();
   return useSyncExternalStore(store.subscribe, store.get);
+}
+
+/** The control whose position holds `controlId` where it is, if an interlock does. */
+export function lockHolder(
+  aircraft: Pick<Aircraft, 'controls'>,
+  positions: Readonly<Record<string, ControlPosition>>,
+  controlId: string,
+): string | undefined {
+  const lock = aircraft.controls[controlId]?.interlock?.find(
+    (entry) => positions[entry.control] === entry.at,
+  );
+  return lock && aircraft.controls[lock.control] ? lock.control : undefined;
 }

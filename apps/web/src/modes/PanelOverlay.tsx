@@ -9,6 +9,7 @@ import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
 import { useTargetCued } from './guided-install';
+import { lockHolder, useLockNotice } from './lock-notice';
 import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
@@ -201,8 +202,28 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
   );
 }
 
-/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
-export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => {
+/** Rings the control that holds a refused move, next to it, while the header names it. */
+function LockOverlay({ rects }: { rects: PanelRects }) {
+  const { aircraft, session } = useTrainer();
+  const notice = useLockNotice();
+  const reducedMotion = useReducedMotion();
+  const holder = notice && lockHolder(aircraft, session.state().controls, notice.controlId);
+  const box = holder === undefined ? undefined : targetBox(rects, { control: holder });
+  if (!notice || !box) return null;
+  return (
+    <div className="modes-overlay" data-modes-overlay="">
+      <div
+        key={notice.serial}
+        className="modes-outline"
+        data-outline="lock"
+        data-pulse={reducedMotion ? undefined : 'once'}
+        style={boxStyle(box)}
+      />
+    </div>
+  );
+}
+
+function ModeOverlay({ viewId, rects }: PanelOverlayProps) {
   const { mode } = useTrainer();
   const store = useExploreStore();
   const cued = useTargetCued();
@@ -213,4 +234,12 @@ export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, 
 
   if (mode === 'explore') return <ExploreOverlay rects={rects} />;
   return cued ? <TargetOverlay viewId={viewId} rects={rects} /> : null;
-};
+}
+
+/** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
+export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => (
+  <>
+    <ModeOverlay viewId={viewId} rects={rects} />
+    <LockOverlay rects={rects} />
+  </>
+);
