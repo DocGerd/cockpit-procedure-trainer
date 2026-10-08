@@ -110,10 +110,11 @@ drawn on the canvas.
 
 ## Panel hardware
 
-The colours of the generic panel widgets: hardware, not brand. They do not
-change with the theme, so both columns repeat the value. The neutrals come from
-the generic GA panel on the design canvas; the lit lamp colours are not drawn
-there. Aircraft artwork brings its own colours and does not use these.
+The colours of the generic panel widgets and the blink of a readout: hardware,
+not brand. They do not change with the theme, so both columns repeat the value.
+The neutrals come from the generic GA panel on the design canvas; the lit lamp
+colours are not drawn there. Aircraft artwork brings its own colours and does
+not use these.
 
 | Token                     | Light     | Dark      | Use                                 |
 | ------------------------- | --------- | --------- | ----------------------------------- |
@@ -155,6 +156,7 @@ there. Aircraft artwork brings its own colours and does not use these.
 | `--panel-lamp-glow-green` | `#C4F5CF` | `#C4F5CF` | hot core of a lit green lamp        |
 | `--panel-lamp-glow-blue`  | `#CFE3FF` | `#CFE3FF` | hot core of a lit blue lamp         |
 | `--panel-lamp-glow-white` | `#FFFFFF` | `#FFFFFF` | hot core of a lit white lamp        |
+| `--panel-blink-period`    | `1s`      | `1s`      | on-off cycle of a blinking readout  |
 
 ## Delta mark
 

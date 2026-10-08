@@ -1,0 +1,17 @@
+.pk-blink {
+  animation: pk-blink var(--panel-blink-period) steps(1, end) infinite;
+}
+
+@keyframes pk-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Without the blink the digits stay dimmed, so a moving drive still reads apart from a settled one. */
+@media (prefers-reduced-motion: reduce) {
+  .pk-blink {
+    animation: none;
+    opacity: 0.5;
+  }
+}
