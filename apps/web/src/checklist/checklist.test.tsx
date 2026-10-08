@@ -635,6 +635,7 @@ describe('full flight summary', () => {
       finishFlowWithDeviations();
       await userEvent.click(back());
       const dialog = within(screen.getByRole('alertdialog'));
+      expect(dialog.getByText('Back to selection?')).toBeTruthy();
       expect(dialog.getByText(/The full flight ends after 1 of 2 legs\./)).toBeTruthy();
       expect(trainer.flight).toBeDefined();
       await userEvent.click(dialog.getByRole('button', { name: 'Cancel' }));
@@ -646,6 +647,17 @@ describe('full flight summary', () => {
       );
       expect(trainer.screen).toBe('picker');
       expect(trainer.flight).toBeUndefined();
+    });
+
+    it('asks in German', async () => {
+      renderPane('de');
+      startFlight();
+      finishFlowWithDeviations();
+      await userEvent.click(screen.getByRole('button', { name: 'Zurück zur Auswahl' }));
+      const dialog = within(screen.getByRole('alertdialog'));
+      expect(dialog.getByText('Zurück zur Auswahl?')).toBeTruthy();
+      expect(dialog.getByText(/Der ganze Flug endet nach 1 von 2 Abschnitten\./)).toBeTruthy();
+      expect(dialog.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
     });
 
     it('acts at once after the last leg', async () => {
