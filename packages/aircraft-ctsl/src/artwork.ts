@@ -9,6 +9,8 @@ export const images = {
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
+  glassGauge: new URL('./assets/artwork/glass-gauge.svg', import.meta.url).href,
+  glassCompass: new URL('./assets/artwork/glass-compass.svg', import.meta.url).href,
   compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
   compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   rockerBeacon: new URL('./assets/artwork/rocker-beacon.svg', import.meta.url).href,
@@ -77,7 +79,7 @@ const needle = (
   options: JsonObject,
   angleRange = { min: -135, max: 135 },
 ): ArtworkAppearance => ({
-  options: { ...valueRange, ...options },
+  options: { ...valueRange, needleShadow: true, ...options },
   artwork: {
     face,
     moving: {
@@ -87,6 +89,7 @@ const needle = (
       angleRange,
       valueRange,
     },
+    glass: images.glassGauge,
   },
 });
 
@@ -110,6 +113,7 @@ const compassCard: ArtworkAppearance = {
       angleRange: { min: 0, max: -360 },
       valueRange: { min: 0, max: 360 },
     },
+    glass: images.glassCompass,
   },
 };
 

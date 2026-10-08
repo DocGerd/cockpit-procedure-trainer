@@ -1,8 +1,10 @@
 // @ts-expect-error aircraft-ctsl declares no node types; its manifest belongs to the scaffold
 import { readdirSync, readFileSync } from 'node:fs';
+import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { images } from './artwork';
+import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
 import { deviceSlots, views } from './views';
@@ -42,9 +44,10 @@ const indicatorArtwork = Object.entries(
   return artwork ? [{ id, indicator, artwork }] : [];
 });
 
-const urlsOf = ({ face, moving }: Artwork): string[] => [
+const urlsOf = ({ face, moving, glass }: Artwork): string[] => [
   face,
   ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
+  ...(glass === undefined ? [] : [glass]),
 ];
 const used = new Set(
   [...controlArtwork, ...indicatorArtwork].flatMap(({ artwork }) => urlsOf(artwork).map(fileOf)),
@@ -66,7 +69,7 @@ describe('CTSL artwork files', () => {
     );
   });
 
-  it('keeps a moving image the size of its face, with explicit pixel dimensions', () => {
+  it('keeps every moving and glass image the size of its face, with explicit pixel dimensions', () => {
     for (const { id, artwork } of [...controlArtwork, ...indicatorArtwork]) {
       const face = sizeOf(artwork.face);
       expect(face.width, id).toBeDefined();
@@ -75,6 +78,16 @@ describe('CTSL artwork files', () => {
         expect(sizeOf(url), `${id}: ${fileOf(url)}`).toEqual(face);
       }
     }
+  });
+
+  it('passes the validator glass size check with sizes read from the files', () => {
+    const imageSize = (url: string) => {
+      if (!shipped.includes(fileOf(url))) return undefined;
+      const { width, height } = sizeOf(url);
+      return { width: Number(width), height: Number(height) };
+    };
+    const findings = validateAircraft(ctslAircraft, { imageSize });
+    expect(findings.filter(({ code }) => code === 'artwork-glass-size')).toEqual([]);
   });
 });
 
@@ -239,5 +252,58 @@ describe('CTSL control artwork', () => {
     ]) {
       expect(ids, id).toContain(id);
     }
+  });
+});
+
+describe('CTSL view backdrops', () => {
+  const backdrop = (id: 'panel' | 'centre' | 'console'): string =>
+    readFileSync(new URL(`./assets/${fileOf(views[id].image)}`, import.meta.url), 'utf8');
+  const count = (svg: string, pattern: RegExp) => [...svg.matchAll(pattern)].length;
+  const lettering = (svg: string) =>
+    [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(
+      ([, attributes = '', text]) =>
+        `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
+    );
+
+  it.each(['panel', 'centre', 'console'] as const)('uses at most one filter on %s', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
+    expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+  });
+
+  it.each(['panel', 'centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+    expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
+  });
+
+  it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
+    const expected = {
+      panel: [
+        'TAKE@90,92/30',
+        'OFF@90,130/30',
+        'LIMITS@90,292/30',
+        'COM RADIO@450,449/40',
+        'TRANSPONDER@450,609/40',
+        'GPS@1368,204/40',
+        'BREAKERS@1736,54/30',
+      ],
+      centre: [
+        'AVIONICS OFF TO START AND STOP@570,272/29',
+        '12 V@120,378/29',
+        'INTERCOM@590,384/29',
+        'AUDIO@945,384/29',
+        'FLAPS@540,550/29',
+        'HEADSET@910,490/29',
+        'IGNITION@340,886/29',
+        'BAT@930,658/29',
+        'GEN@1090,658/29',
+        'ELT@162,450/29',
+        'OPEN@110,574/29',
+        'CLOSED@110,884/29',
+      ],
+      console: [],
+    }[id];
+    expect(lettering(backdrop(id))).toEqual(expected);
   });
 });

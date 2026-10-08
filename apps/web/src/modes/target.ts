@@ -25,6 +25,21 @@ export function targetView(
   return install === undefined ? undefined : aircraft.devices?.[install]?.view;
 }
 
+/** The install holding a device control target; undefined for a control a view places itself. */
+export function targetInstall(
+  aircraft: Pick<Aircraft, 'views' | 'devices'>,
+  target: CurrentTarget,
+): string | undefined {
+  if ('indicator' in target) return undefined;
+  if (Object.values(aircraft.views).some((view) => view.controls?.[target.control])) {
+    return undefined;
+  }
+  const install = installOf(target.control);
+  return install !== undefined && Object.hasOwn(aircraft.devices ?? {}, install)
+    ? install
+    : undefined;
+}
+
 /** The target's box in a view's rects; a device control only has its install's box. */
 export function targetBox(rects: PanelRects, target: CurrentTarget): PanelBox | undefined {
   if ('indicator' in target) return rects.indicators[target.indicator];

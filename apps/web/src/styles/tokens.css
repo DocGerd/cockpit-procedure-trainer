@@ -75,9 +75,9 @@
   --panel-surface: #26282c;
   --panel-frame: #3b4046;
   --panel-face: #0b0c0e;
-  --panel-dial: #131518;
-  --panel-bezel: #5e646b;
-  --panel-bezel-dark: #2a2e33;
+  --panel-dial: #121316;
+  --panel-bezel: #34383e;
+  --panel-bezel-dark: #1c1e22;
   --panel-cap: #8c9199;
   --panel-cap-light: #c2c7cd;
   --panel-legend: #eceef1;
@@ -95,4 +95,19 @@
   --panel-arc-red: #d8483c;
   --panel-arc-white: #eceef1;
   --panel-focus: #ffffff;
+  --panel-metal-light: #6b717a;
+  --panel-metal-shade: #0b0c0e;
+  --panel-shadow: #000000;
+  --panel-glare: #ffffff;
+  --panel-plastic: #2e3136;
+  --panel-plastic-light: #5e646c;
+  --panel-plastic-shade: #08090a;
+  --panel-screw: #4a4f56;
+  --panel-screw-light: #a4aab2;
+  --panel-screw-shade: #1a1c1f;
+  --panel-lamp-glow-amber: #ffe3a8;
+  --panel-lamp-glow-red: #ffc2b8;
+  --panel-lamp-glow-green: #c4f5cf;
+  --panel-lamp-glow-blue: #cfe3ff;
+  --panel-lamp-glow-white: #ffffff;
 }

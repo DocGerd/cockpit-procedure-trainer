@@ -44,7 +44,7 @@ architecture that lets aircraft be added.
 | Procedures | Normal and emergency (failure injection). |
 | Languages | German and English, for UI and aircraft content. |
 | Devices | HD desktop (1920x1080) first, 4K (3840x2160) second, tablet later; mouse and touch both supported. See ADR-0002. |
-| Cockpit layout | On desktop the whole cockpit shows in one viewport, arranged as from the left seat; tabs only where the combined cockpit would fall below the touch-target or lettering minimum. Designed for 1920x1080, verified at 1920x1080 and 3840x2160. See `2026-10-06-one-viewport-cockpit-design.md`. |
+| Cockpit layout | On desktop the whole cockpit shows in one viewport: the aircraft's views (panel, console and, where it has one, a centre field), plus one non-modal device dock under the panel that holds one avionics device at a time. Each device slot in the panel is a live read-only mirror; activating it docks the operable device. Tabs only where the combined cockpit would fall below the touch-target or lettering minimum. Designed for 1920x1080, verified at 1920x1080 and 3840x2160. See `2026-10-06-one-viewport-cockpit-design.md`. |
 | Hosting | Static site on GitHub Pages, installable and offline-capable (PWA). Production at the site root, UAT under `/uat/`. |
 | Branching | Gitflow: `develop` is the default branch and the base of every PR; `main` holds released state only. Agents merge PRs into `develop` and never merge into `main`. |
 | Environments | Production is built from `main`, UAT from `develop`. UAT carries a noindex meta tag and a "UAT" badge in the app frame. |
@@ -123,9 +123,10 @@ A view may declare a `size`, a positive width and height with its origin at 0,0,
 as the coordinate space of its placements. Without one the renderer uses an SVG's `viewBox` or a raster image's natural
 size, and the extent of the placements while neither is known yet. When a size is declared, every placement must lie inside it.
 
-An optional cockpit arrangement places every view in one left-seat layout and
-states, per view, the narrowest rendered width at which it stays legible and
-operable. The web app shows the arrangement when every view reaches that width
+An optional cockpit arrangement places every view in one layout and states,
+per view, the narrowest rendered width at which it stays legible and operable.
+It may also place a device dock, outside the views, for the avionics devices
+(§4.9). The web app shows the arrangement when every view reaches that width
 and tabs otherwise (`2026-10-06-one-viewport-cockpit-design.md`).
 
 ### 4.4 Systems model
@@ -207,10 +208,11 @@ Two sources, mixable within one aircraft:
   cap colour. The kit covers typical GA hardware and is the placeholder until
   an aircraft has its own artwork.
 - **Aircraft artwork**: image files shipped in the aircraft package, described
-  as layers: a static face and the moving part (needle with pivot and angle
-  range, switch states as one image per position, lever travel as a path). The
-  renderer animates the layers; the same description later maps onto a 3D
-  model.
+  as layers: a static face, the moving part (needle with pivot and angle
+  range, switch states as one image per position, lever travel as a path) and
+  an optional glass layer above it that never moves, so glare lies over the
+  needle. The renderer animates the moving part and can cast a needle's shadow
+  from it; the same description later maps onto a 3D model.
 
 A control with no declared appearance falls back to the generic widget for its
 kind, so a new aircraft is usable before any artwork exists.
@@ -229,13 +231,27 @@ A device package has two parts:
   `step` function, the same shape as the aircraft systems model. It models
   power-up, modes, value entry (frequency, squawk code, pressure setting),
   active/standby swap, and page navigation.
-- **Screen** (depends on `panel-kit`): draws the display and bezel from the
-  device state.
+- **Screen** (depends on `panel-kit`): draws the operable display and bezel
+  from the device state. The device also exports a read-only **Display** sized
+  for its slot, a **readout** (a short text of what the display shows) and a
+  **floor**, the smallest size at which its Screen keeps every button at the
+  touch-target size.
 
-An aircraft installs a device by id: where it sits in a view, which electrical
+An aircraft installs a device by id: its slot in a view, which electrical
 bus powers it, and which aircraft values it receives (altitude for a
 transponder, engine values for a monitor). Procedure items can target device
 controls and test device state ("Transponder: 7000, ALT").
+
+Where it sits in a view: the slot is a small panel region that shows a live
+read-only mirror of the device (its Display, labelled with the unit name and
+carrying its readout as accessible name). Activating the slot opens the
+operable Screen in the **device dock**, one non-modal region under the panel
+that holds one device at a time; activating another slot swaps it, and a close
+button empties it. The dock starts empty with a hint, which is chrome text and
+never on the panel. The Screen is rendered at its floor size or larger. A pure
+rule `slotMode()` decides whether a slot mirrors or is itself operable; in this
+version it always returns mirror, which keeps in-slot operation on large
+viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
 works; nothing that needs the outside world does. No audio, no reception, no
@@ -262,7 +278,7 @@ keeps it independent of the systems model and testable alone.
 
 | Mode | Checklist | Highlight | Deviations |
 |---|---|---|---|
-| Guided | shown | current target highlighted, view switches to it | recorded, shown immediately |
+| Guided | shown | current target highlighted; for a device target the slot is ringed and the device opens in the dock, no view switch | recorded, shown immediately |
 | Practice | shown | none | recorded, summary at the end |
 | Free explore | view-only reference; any checklist can be opened, nothing is ticked | none | none; tapping a control shows name and purpose instead of operating it, with a toggle to operate freely |
 
@@ -277,9 +293,9 @@ first.
 
 Outside-view strip on top, the cockpit below, checklist pane at the side
 (collapsible on narrow screens). On desktop the cockpit shows every view at
-once in the aircraft's left-seat arrangement; where that would make any view
+once, with the device dock under the panel; where that would make any view
 too small to read and operate, it falls back to one view at a time with view
-tabs. Header: aircraft, procedure, mode, phase, language, theme.
+tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase, language, theme.
 
 ### Persistence
 
@@ -466,7 +482,7 @@ parallel.
 Ticket numbers are spec ids, not GitHub issue numbers.
 
 **M7 One-viewport cockpit**
-48. Whole cockpit in one desktop viewport, as from the left seat; view tabs only on small screens
+48. Whole cockpit in one desktop viewport; view tabs only on small screens
 
 **Later: 3D**
 43. 3D renderer on the same aircraft data

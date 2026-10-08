@@ -23,6 +23,7 @@ import { SANS_ADVANCE } from '../controls/legibility';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
 import type { IndicatorWidget } from '../types';
+import { normalisedMarkup, paintProblems } from '../materials/paint-check';
 
 afterEach(cleanup);
 
@@ -133,8 +134,8 @@ describe('round gauge', () => {
 
   it('draws the needle in the needle token', () => {
     const { container } = draw(gauge, 20, range);
-    const needle = container.querySelector('[data-needle] line') as SVGElement;
-    expect(needle.style.stroke).toBe('var(--panel-needle)');
+    const blade = container.querySelector('[data-needle] [data-blade]') as SVGElement;
+    expect(blade.style.fill).toBe('var(--panel-needle)');
   });
 
   it('clamps an arc to the range and drops an arc wholly outside it', () => {
@@ -219,18 +220,13 @@ describe('round gauge', () => {
     expect(container.querySelector('[data-placeholder]')).toBeNull();
   });
 
-  it('takes all its colours from panel tokens', () => {
-    const { container } = draw(gauge, 20, {
-      ...range,
-      arcs: [{ from: 10, to: 30, colour: 'red' }],
-    });
-    const paints = [...container.querySelectorAll<SVGElement>('*')].flatMap((node) => [
-      node.style.fill,
-      node.style.stroke,
-    ]);
-    const used = paints.filter((paint) => paint !== '' && paint !== 'none');
-    expect(used.length).toBeGreaterThan(0);
-    for (const paint of used) expect(paint).toMatch(/^var\(--panel-[a-z-]+\)$/);
+  it('gives each gauge its own material ids', () => {
+    const first = draw(gauge, 20, range).container;
+    const second = draw(gauge, 20, range).container;
+    const ids = (container: HTMLElement) =>
+      [...container.querySelectorAll('[id]')].map((node) => node.id);
+    expect(ids(first).length).toBeGreaterThan(0);
+    expect(ids(first).filter((id) => ids(second).includes(id))).toEqual([]);
   });
 });
 
@@ -375,10 +371,28 @@ describe('every indicator', () => {
   ];
 
   it.each(cases)('%s renders the same output for the same props', (_id, Widget, value, options) => {
-    const first = draw(Widget, value, options).container.innerHTML;
+    const first = normalisedMarkup(draw(Widget, value, options).container);
     cleanup();
-    const second = draw(Widget, value, options).container.innerHTML;
+    const second = normalisedMarkup(draw(Widget, value, options).container);
     expect(second).toBe(first);
+  });
+
+  it.each([
+    ...cases,
+    ['dark annunciator', annunciator, false, { lamp: 'blue' }] as const,
+    [
+      'gauge with every arc',
+      gauge,
+      20,
+      { ...range, arcs: [{ from: 10, to: 30, colour: 'red' }] },
+    ] as const,
+  ])('%s takes every paint from panel tokens and no filter', (_id, Widget, value, options) => {
+    const { container } = draw(Widget, value, options);
+    expect(paintProblems(container)).toEqual([]);
+    const shaded = [...container.querySelectorAll<SVGElement>('svg *')].filter((node) =>
+      node.style.fill.startsWith('url('),
+    );
+    expect(shaded.length).toBeGreaterThan(2);
   });
 
   it.each(cases)('%s keeps no state between renders', (_id, Widget, value, options) => {
@@ -586,11 +600,31 @@ describe('legibility', () => {
       placeAt(px, px);
       const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
       const label = container.querySelector('[data-label]');
-      const needle = container.querySelector('[data-needle] line');
+      const bladeNode = container.querySelector('[data-needle] [data-blade]');
+      const shadowNode = container.querySelector('[data-needle-shadow] path');
+      const outline = Number(bladeNode?.getAttribute('stroke-width') ?? 0) / 2;
+      const castDown = Number(
+        /translate\(\S+ (\S+)\)/.exec(
+          container
+            .querySelector('[data-needle-shadow]')
+            ?.parentElement?.getAttribute('transform') ?? '',
+        )?.[1] ?? 0,
+      );
+      expect(castDown).toBeGreaterThan(0);
       const size = Number(label?.getAttribute('font-size'));
-      const needleLength = Number(needle?.getAttribute('y1')) - Number(needle?.getAttribute('y2'));
-      const needleStroke = Number(needle?.getAttribute('stroke-width'));
-      const tip = polar(SWEEP_END, needleLength).y + needleStroke / 2;
+      // How far below the centre the tip of a needle-shaped path reaches at the end of the sweep.
+      const lowest = (path: Element | null) => {
+        const points = [
+          ...(path?.getAttribute('d') ?? '').matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g),
+        ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
+        expect(points.length).toBeGreaterThanOrEqual(3);
+        const end = Math.min(...points.map(({ y }) => y));
+        const halfWidth = Math.max(
+          ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),
+        );
+        return polar(SWEEP_END, CENTRE - end).y + halfWidth;
+      };
+      const tip = Math.max(lowest(bladeNode) + outline, lowest(shadowNode) + castDown);
       expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(tip);
     },
   );

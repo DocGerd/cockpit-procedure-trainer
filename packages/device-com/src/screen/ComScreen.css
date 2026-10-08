@@ -4,7 +4,7 @@
 }
 
 .cpt-device-com input[type='range'] {
-  accent-color: var(--panel-cap-light);
+  accent-color: var(--panel-legend);
   appearance: none;
   background: transparent;
 }
@@ -12,14 +12,16 @@
 .cpt-device-com input[type='range']::-webkit-slider-runnable-track {
   height: var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--panel-bezel);
+  background: var(--panel-metal-light);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--panel-shadow) 60%, transparent);
   border: 0;
 }
 
 .cpt-device-com input[type='range']::-moz-range-track {
   height: var(--space-2);
   border-radius: var(--radius-pill);
-  background: var(--panel-bezel);
+  background: var(--panel-metal-light);
+  box-shadow: inset 0 1px 1px color-mix(in srgb, var(--panel-shadow) 60%, transparent);
   border: 0;
 }
 
@@ -29,7 +31,7 @@
   width: var(--space-4);
   height: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--panel-cap-light);
+  background: var(--panel-legend);
   border: 0;
 }
 
@@ -37,6 +39,6 @@
   width: var(--space-4);
   height: var(--space-4);
   border-radius: var(--radius-pill);
-  background: var(--panel-cap-light);
+  background: var(--panel-legend);
   border: 0;
 }

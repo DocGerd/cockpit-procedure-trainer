@@ -3,8 +3,11 @@ import { printsText } from '@cpt/panel-kit';
 import { Fragment, useCallback, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, RefObject } from 'react';
 import { DeviceLayer } from '../devices/DeviceLayer';
+import { Dock } from '../devices/Dock';
+import { DockProvider, useDock } from '../devices/dock-state';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
 import { useLocalize, useMessages } from '../i18n';
+import { GuidedDock } from '../modes/GuidedDock';
 import { PanelOverlay } from '../modes/PanelOverlay';
 import { useTrainer } from '../trainer';
 import { ActiveViewContext } from './active-view';
@@ -284,6 +287,7 @@ function CombinedCockpit({
               gate={gate}
             />
           ))}
+          <Dock place={layout.dock} />
         </div>
       </TouchGateContext.Provider>
       <span id={`${panelId}-keys`} hidden>
@@ -306,6 +310,7 @@ function TabbedCockpit({
   const panelId = useId();
   const text = useMessages(messages);
   const zoom = useZoomState(`${aircraft.id}/${active.viewId}`);
+  const dock = useDock();
 
   const resetZoom = () => {
     zoom.reset();
@@ -332,6 +337,7 @@ function TabbedCockpit({
         className="panel-surface"
         data-panel-surface=""
         data-view={active.viewId}
+        data-dock-below={dock?.available ? '' : undefined}
         onKeyDown={zoomKeyHandler(zoom.zoom, zoom.apply)}
       >
         <TouchGateContext.Provider value={gate}>
@@ -341,6 +347,7 @@ function TabbedCockpit({
           {text.zoomKeys}
         </span>
       </div>
+      <Dock />
     </PanelZoomContext.Provider>
   );
 }
@@ -360,13 +367,19 @@ export function PanelArea({ layout = TABS, frame }: PanelAreaProps) {
   const fallback = useRef<HTMLDivElement>(null);
   const ref = frame ?? fallback;
 
+  const dockAvailable =
+    layout.kind === 'combined' ? layout.dock !== undefined : aircraft.cockpit?.dock !== undefined;
+
   return (
     <ActiveViewContext.Provider value={active}>
-      {layout.kind === 'combined' ? (
-        <CombinedCockpit layout={layout} frame={ref} gate={gate} />
-      ) : (
-        <TabbedCockpit active={active} frame={ref} gate={gate} />
-      )}
+      <DockProvider available={dockAvailable}>
+        <GuidedDock />
+        {layout.kind === 'combined' ? (
+          <CombinedCockpit layout={layout} frame={ref} gate={gate} />
+        ) : (
+          <TabbedCockpit active={active} frame={ref} gate={gate} />
+        )}
+      </DockProvider>
     </ActiveViewContext.Provider>
   );
 }

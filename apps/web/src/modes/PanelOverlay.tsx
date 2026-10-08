@@ -1,13 +1,14 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCurrentTarget } from '../checklist';
+import { useDock } from '../devices/dock-state';
 import { useActiveView } from '../panel/active-view';
 import { useReveal } from '../panel/panel-zoom';
 import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
-import { installOf, targetBox, targetKey, targetView } from './target';
+import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
 export type PanelOverlayProps = { viewId: string; rects: PanelRects };
@@ -62,7 +63,9 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
   revealRing.current = reveal;
 
   const key = target && targetKey(target);
-  const view = target && targetView(aircraft, target);
+  const inDock = useDock()?.available === true && target && targetInstall(aircraft, target);
+  // A device that opens in the dock needs no view of its own, so the pilot's view stays.
+  const view = target && !inDock ? targetView(aircraft, target) : undefined;
   const previousView = useRef(view);
   const own = useRef(viewId);
   own.current = viewId;

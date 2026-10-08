@@ -15,6 +15,14 @@ export type CombinedCell = {
   readonly fitWidth: number;
 };
 
+/** The device dock's cell in the combined layout, in CSS px from the top-left of the cockpit box. */
+export type CombinedDock = {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
+};
+
 export type CockpitLayoutChoice =
   | { readonly kind: 'tabs' }
   | {
@@ -23,6 +31,8 @@ export type CockpitLayoutChoice =
       readonly width: number;
       readonly height: number;
       readonly cells: readonly CombinedCell[];
+      /** Absent when the arrangement declares no dock. */
+      readonly dock?: CombinedDock;
     };
 
 const TABS: CockpitLayoutChoice = { kind: 'tabs' };
@@ -30,8 +40,9 @@ const TABS: CockpitLayoutChoice = { kind: 'tabs' };
 const positive = (value: number) => Number.isFinite(value) && value > 0;
 
 /**
- * Combined when every view, contain-fit in its cell at the arrangement's uniform scale, is at least
- * as wide as its declared floor; tabs otherwise. Pure arithmetic: nothing is rendered to decide.
+ * Combined when every view, contain-fit in its cell at the arrangement's uniform scale, and the
+ * dock, if declared, is at least as wide as its declared floor; tabs otherwise. Pure arithmetic:
+ * nothing is rendered to decide.
  */
 export function chooseLayout(
   aircraft: Pick<Aircraft, 'cockpit' | 'views'>,
@@ -64,11 +75,73 @@ export function chooseLayout(
       fitWidth,
     });
   }
+
+  let dock: CombinedDock | undefined;
+  if (cockpit.dock !== undefined) {
+    const cell = cockpit.dock;
+    if (!isUsableRect(cell.rect)) return TABS;
+    const width = cell.rect.w * scale;
+    if (!(width >= cell.minWidth)) return TABS;
+    dock = {
+      left: cell.rect.x * scale,
+      top: cell.rect.y * scale,
+      width,
+      height: cell.rect.h * scale,
+    };
+  }
   return {
     kind: 'combined',
     scale,
     width: cockpit.size.width * scale,
     height: cockpit.size.height * scale,
     cells,
+    ...(dock && { dock }),
   };
+}
+
+/** The outside-view strip as the page lays it out unfolded, and what folding it may take, in CSS px. */
+export type OutsideStrip = {
+  /** The strip's full height, borders included. */
+  readonly natural: number;
+  /** The least height the strip folds to before it hides. */
+  readonly min: number;
+  /** How far the folded strip is pulled toward the cockpit, closing part of the gap between them. */
+  readonly pull: number;
+  /** The gap between the strip and the cockpit, which a hidden strip gives up as well. */
+  readonly gap: number;
+};
+
+/** How the outside-view strip gives room to the cockpit, and the height the cockpit region gains. */
+export type OutsideFold =
+  | { readonly kind: 'folded'; readonly band: number; readonly gain: number }
+  | { readonly kind: 'hidden'; readonly gain: number };
+
+/**
+ * How the outside-view strip gives up room so the cockpit reaches combined: folded by just as much
+ * as it needs down to the strip's minimum, hidden when even that is not enough, and undefined when
+ * the cockpit is combined with the strip whole or not even a hidden strip makes it so. `region` is
+ * the cockpit region the whole strip leaves, so the answer never depends on the strip's own
+ * current height. Found by asking `chooseLayout`, which keeps the two rules in step.
+ */
+export function outsideViewFold(
+  aircraft: Pick<Aircraft, 'cockpit' | 'views'>,
+  region: CockpitRegion,
+  strip: OutsideStrip,
+): OutsideFold | undefined {
+  if (!(strip.natural > 0) || chooseLayout(aircraft, region).kind === 'combined') return undefined;
+  const gives = (gain: number) =>
+    chooseLayout(aircraft, { width: region.width, height: region.height + gain }).kind ===
+    'combined';
+  let low = strip.pull + 1;
+  let high = strip.natural - strip.min + strip.pull;
+  if (strip.natural > strip.min && gives(high)) {
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (gives(middle)) high = middle;
+      else low = middle + 1;
+    }
+    return { kind: 'folded', band: strip.natural - (low - strip.pull), gain: low };
+  }
+  const hidden = strip.natural + strip.gap;
+  return gives(hidden) ? { kind: 'hidden', gain: hidden } : undefined;
 }

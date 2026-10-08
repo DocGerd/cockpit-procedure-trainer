@@ -8,6 +8,25 @@ const stylesheets = globSync('packages/device-*/src/**/*.css', { cwd: repoRoot }
 const colourDeclaration = /(?:^|[\s;{}])(?:color|background|accent-color):\s*([^;}]+)/g;
 const declaresColour = /(?<![\w-])(?:color|background|accent-color)\s*:/;
 
+const tokens = readFileSync(resolve(repoRoot, 'apps/web/src/styles/tokens.css'), 'utf8');
+const panelHex = (name: string): string => {
+  const hex = new RegExp(`--${name}:\\s*#([0-9a-f]{6})`, 'i').exec(tokens)?.[1];
+  if (hex === undefined) throw new Error(`tokens.css has no --${name}`);
+  return hex;
+};
+const luminance = (hex: string): number => {
+  const [r = 0, g = 0, b = 0] = [0, 2, 4].map((at) => {
+    const channel = parseInt(hex.slice(at, at + 2), 16) / 255;
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a: string, b: string): number => {
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return ((high ?? 0) + 0.05) / ((low ?? 0) + 0.05);
+};
+const MIN_TRACK_CONTRAST = 3;
+
 // A stylesheet must style the range input when a screen next to it renders one.
 const rendersRange = (stylesheet: string): boolean => {
   const dir = resolve(repoRoot, dirname(stylesheet));
@@ -29,6 +48,11 @@ describe('device stylesheets', () => {
 
   describe.each(stylesheets)('%s', (path) => {
     const css = readFileSync(resolve(repoRoot, path), 'utf8');
+    const background = (part: string) =>
+      [
+        ...css.matchAll(new RegExp(`${part}\\s*\\{[^}]*background:\\s*var\\(--([\\w-]+)\\)`, 'g')),
+      ].map(([, token = '']) => token);
+    const tracks = [...background('range-track'), ...background('runnable-track')];
 
     it('styles a range input exactly when its screen renders one', () => {
       expect(css.includes("input[type='range']")).toBe(rendersRange(path));
@@ -50,6 +74,27 @@ describe('device stylesheets', () => {
         expect(css).toContain('::-moz-range-thumb {');
         expect(css).toContain('::-webkit-slider-runnable-track {');
         expect(css).toContain('::-moz-range-track {');
+      });
+
+      it('draws the volume track so it stands out from the screen', () => {
+        expect(tracks).toHaveLength(2);
+        for (const token of tracks) {
+          expect(contrast(panelHex(token), panelHex('panel-screen'))).toBeGreaterThanOrEqual(
+            MIN_TRACK_CONTRAST,
+          );
+        }
+      });
+
+      it('draws the volume thumb so its position stands out from the track', () => {
+        const thumbs = [...background('slider-thumb'), ...background('range-thumb')];
+        expect(thumbs).toHaveLength(2);
+        for (const thumb of thumbs) {
+          for (const track of tracks) {
+            expect(contrast(panelHex(thumb), panelHex(track))).toBeGreaterThanOrEqual(
+              MIN_TRACK_CONTRAST,
+            );
+          }
+        }
       });
     }
   });

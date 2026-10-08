@@ -115,31 +115,46 @@ change with the theme, so both columns repeat the value. The neutrals come from
 the generic GA panel on the design canvas; the lit lamp colours are not drawn
 there. Aircraft artwork brings its own colours and does not use these.
 
-| Token                  | Light     | Dark      | Use                                 |
-| ---------------------- | --------- | --------- | ----------------------------------- |
-| `--panel-surface`      | `#26282C` | `#26282C` | panel ground                        |
-| `--panel-frame`        | `#3B4046` | `#3B4046` | panel frame, group rules            |
-| `--panel-face`         | `#0B0C0E` | `#0B0C0E` | instrument case, switch body, label |
-| `--panel-dial`         | `#131518` | `#131518` | gauge dial                          |
-| `--panel-bezel`        | `#5E646B` | `#5E646B` | bezel ring, outlines                |
-| `--panel-bezel-dark`   | `#2A2E33` | `#2A2E33` | inner ring, needle hub              |
-| `--panel-cap`          | `#8C9199` | `#8C9199` | switch cap, knob                    |
-| `--panel-cap-light`    | `#C2C7CD` | `#C2C7CD` | raised face of a cap                |
-| `--panel-legend`       | `#ECEEF1` | `#ECEEF1` | legends, ticks                      |
-| `--panel-legend-muted` | `#969CA4` | `#969CA4` | units, secondary legends            |
-| `--panel-needle`       | `#FFFFFF` | `#FFFFFF` | needle                              |
-| `--panel-screen`       | `#050607` | `#050607` | display glass, unpowered screen     |
-| `--panel-lamp-off`     | `#1B1E22` | `#1B1E22` | unlit annunciator                   |
-| `--panel-lamp-amber`   | `#F0A830` | `#F0A830` | lit amber annunciator               |
-| `--panel-lamp-red`     | `#E5483C` | `#E5483C` | lit red annunciator                 |
-| `--panel-lamp-green`   | `#3FBF5F` | `#3FBF5F` | lit green annunciator               |
-| `--panel-lamp-blue`    | `#4A90E2` | `#4A90E2` | lit blue annunciator                |
-| `--panel-lamp-white`   | `#F4F5F7` | `#F4F5F7` | lit white annunciator               |
-| `--panel-arc-green`    | `#3FA35B` | `#3FA35B` | gauge arc, normal range             |
-| `--panel-arc-yellow`   | `#E0B43A` | `#E0B43A` | gauge arc, caution range            |
-| `--panel-arc-red`      | `#D8483C` | `#D8483C` | gauge arc, limit                    |
-| `--panel-arc-white`    | `#ECEEF1` | `#ECEEF1` | gauge arc, flap range               |
-| `--panel-focus`        | `#FFFFFF` | `#FFFFFF` | keyboard focus ring on the panel    |
+| Token                     | Light     | Dark      | Use                                 |
+| ------------------------- | --------- | --------- | ----------------------------------- |
+| `--panel-surface`         | `#26282C` | `#26282C` | panel ground                        |
+| `--panel-frame`           | `#3B4046` | `#3B4046` | panel frame, group rules            |
+| `--panel-face`            | `#0B0C0E` | `#0B0C0E` | instrument case, switch body, label |
+| `--panel-dial`            | `#121316` | `#121316` | gauge dial                          |
+| `--panel-bezel`           | `#34383E` | `#34383E` | bezel ring, outlines                |
+| `--panel-bezel-dark`      | `#1C1E22` | `#1C1E22` | inner ring, needle hub              |
+| `--panel-cap`             | `#8C9199` | `#8C9199` | switch cap, knob                    |
+| `--panel-cap-light`       | `#C2C7CD` | `#C2C7CD` | raised face of a cap                |
+| `--panel-legend`          | `#ECEEF1` | `#ECEEF1` | legends, ticks                      |
+| `--panel-legend-muted`    | `#969CA4` | `#969CA4` | units, secondary legends            |
+| `--panel-needle`          | `#FFFFFF` | `#FFFFFF` | needle                              |
+| `--panel-screen`          | `#050607` | `#050607` | display glass, unpowered screen     |
+| `--panel-lamp-off`        | `#1B1E22` | `#1B1E22` | unlit annunciator                   |
+| `--panel-lamp-amber`      | `#F0A830` | `#F0A830` | lit amber annunciator               |
+| `--panel-lamp-red`        | `#E5483C` | `#E5483C` | lit red annunciator                 |
+| `--panel-lamp-green`      | `#3FBF5F` | `#3FBF5F` | lit green annunciator               |
+| `--panel-lamp-blue`       | `#4A90E2` | `#4A90E2` | lit blue annunciator                |
+| `--panel-lamp-white`      | `#F4F5F7` | `#F4F5F7` | lit white annunciator               |
+| `--panel-arc-green`       | `#3FA35B` | `#3FA35B` | gauge arc, normal range             |
+| `--panel-arc-yellow`      | `#E0B43A` | `#E0B43A` | gauge arc, caution range            |
+| `--panel-arc-red`         | `#D8483C` | `#D8483C` | gauge arc, limit                    |
+| `--panel-arc-white`       | `#ECEEF1` | `#ECEEF1` | gauge arc, flap range               |
+| `--panel-focus`           | `#FFFFFF` | `#FFFFFF` | keyboard focus ring on the panel    |
+| `--panel-metal-light`     | `#6B717A` | `#6B717A` | lit side of a metal bezel or cap    |
+| `--panel-metal-shade`     | `#0B0C0E` | `#0B0C0E` | shaded side of a metal bezel or cap |
+| `--panel-shadow`          | `#000000` | `#000000` | cast and recess shadows, by opacity |
+| `--panel-glare`           | `#FFFFFF` | `#FFFFFF` | glass glare, by opacity             |
+| `--panel-plastic`         | `#2E3136` | `#2E3136` | moulded switch plastic              |
+| `--panel-plastic-light`   | `#5E646C` | `#5E646C` | lit edge of moulded plastic         |
+| `--panel-plastic-shade`   | `#08090A` | `#08090A` | shaded edge of moulded plastic      |
+| `--panel-screw`           | `#4A4F56` | `#4A4F56` | black-oxide screw head              |
+| `--panel-screw-light`     | `#A4AAB2` | `#A4AAB2` | lit side of a screw head            |
+| `--panel-screw-shade`     | `#1A1C1F` | `#1A1C1F` | shaded side of a screw head         |
+| `--panel-lamp-glow-amber` | `#FFE3A8` | `#FFE3A8` | hot core of a lit amber lamp        |
+| `--panel-lamp-glow-red`   | `#FFC2B8` | `#FFC2B8` | hot core of a lit red lamp          |
+| `--panel-lamp-glow-green` | `#C4F5CF` | `#C4F5CF` | hot core of a lit green lamp        |
+| `--panel-lamp-glow-blue`  | `#CFE3FF` | `#CFE3FF` | hot core of a lit blue lamp         |
+| `--panel-lamp-glow-white` | `#FFFFFF` | `#FFFFFF` | hot core of a lit white lamp        |
 
 ## Delta mark
 

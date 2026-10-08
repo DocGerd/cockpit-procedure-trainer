@@ -4,7 +4,14 @@ import type { Aircraft } from '@cpt/core';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
-import { MIN_TEXT_PX, fitViewAt, letteringProblems, openAircraft, showView } from './legibility';
+import {
+  MIN_TEXT_PX,
+  fitViewAt,
+  indicatorLetteringProblems,
+  letteringProblems,
+  openAircraft,
+  showView,
+} from './legibility';
 
 const viewports = [
   { width: 768, height: 1024 },
@@ -13,6 +20,9 @@ const viewports = [
   { width: 1920, height: 1080 },
   { width: 3840, height: 2160 },
 ];
+
+// The priority viewports are covered by the viewport matrix in layout.spec.ts.
+const extraViewport = { width: 1440, height: 900 };
 
 const source = (url: string) => readFileSync(fileURLToPath(url), 'utf8');
 
@@ -100,8 +110,27 @@ for (const aircraft of aircraftRegistry) {
     expect(clashes).toEqual([]);
   });
 
-  for (const viewport of viewports) {
-    test(`${aircraft.id} prints control lettering at the minimum size at ${viewport.width}x${viewport.height}`, async ({
+  test(`${aircraft.id} prints control lettering at the minimum size at ${extraViewport.width}x${extraViewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(extraViewport);
+    await openAircraft(page, aircraft);
+    for (const viewId of Object.keys(aircraft.views)) {
+      const root = await showView(page, aircraft, viewId, 'en');
+      expect(
+        await letteringProblems(root, aircraft, viewId),
+        `lettering below ${MIN_TEXT_PX - 0.5}px`,
+      ).toEqual([]);
+    }
+  });
+}
+
+// From 1920x1080 up only (HD first): below it the small gauges render too small to letter at all.
+const gaugeViewports = viewports.filter(({ width }) => width >= 1920);
+
+for (const aircraft of aircraftRegistry) {
+  for (const viewport of gaugeViewports) {
+    test(`${aircraft.id} prints gauge face lettering at the minimum size at ${viewport.width}x${viewport.height}`, async ({
       page,
     }) => {
       await page.setViewportSize(viewport);
@@ -109,8 +138,8 @@ for (const aircraft of aircraftRegistry) {
       for (const viewId of Object.keys(aircraft.views)) {
         const root = await showView(page, aircraft, viewId, 'en');
         expect(
-          await letteringProblems(root, aircraft, viewId),
-          `lettering below ${MIN_TEXT_PX - 0.5}px`,
+          await indicatorLetteringProblems(root, aircraft, viewId),
+          `gauge lettering below ${MIN_TEXT_PX - 0.5}px`,
         ).toEqual([]);
       }
     });

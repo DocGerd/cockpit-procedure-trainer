@@ -93,6 +93,14 @@
   -webkit-touch-callout: none;
 }
 
+/* The empty dock below the tab panel takes its share of the viewport; a docked device scrolls. */
+.panel-surface[data-dock-below] .panel-stage {
+  --panel-reserve: calc(
+    var(--space-4) + 3px + var(--space-6) + var(--space-2) + var(--space-4) +
+      var(--dock-empty-height)
+  );
+}
+
 .panel-stage[data-fit='cell'] {
   flex: none;
   width: min(100%, calc(var(--cell-height) * 1px * var(--panel-ratio)));

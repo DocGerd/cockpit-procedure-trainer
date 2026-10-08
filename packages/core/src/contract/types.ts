@@ -34,6 +34,8 @@ export type ArtworkAppearance = {
   readonly artwork: {
     readonly face: string;
     readonly moving: MovingPart;
+    /** Glass drawn above the moving part and never moved, so its glare lies over the needle; the face's size. */
+    readonly glass?: string;
     /** The text the face image prints, so a check can see that the control is labelled. */
     readonly lettering?: readonly string[];
   };
@@ -154,6 +156,8 @@ export type CockpitLayout<V extends string> = {
   /** The arrangement's coordinate space, origin 0,0. Its unit is the author's; only proportions matter. */
   readonly size: ViewSize;
   readonly views: { readonly [K in V]: CockpitCell };
+  /** Where the device dock sits; its `minWidth` is at least the widest device floor. Not a view. */
+  readonly dock: CockpitCell;
 };
 
 export type Environment = {

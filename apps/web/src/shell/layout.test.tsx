@@ -54,6 +54,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -85,7 +86,7 @@ describe('the cockpit layout', () => {
     ['tablet', DESKTOP_MIN_WIDTH - 1],
   ])('is combined once the region reaches the floors, on a %s shell', async (_, width) => {
     setWidth(width);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(layoutOf()).toBe('combined');
@@ -95,11 +96,11 @@ describe('the cockpit layout', () => {
 
   it('falls back to tabs when the region shrinks below a floor', async () => {
     setWidth(DESKTOP_MIN_WIDTH);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(layoutOf()).toBe('combined');
-    stubRegion(399, 400);
+    stubRegion(399, 500);
     act(() => {
       window.dispatchEvent(new Event('resize'));
     });
@@ -108,7 +109,7 @@ describe('the cockpit layout', () => {
 
   it('keeps the checklist beside the cockpit in both', async () => {
     setWidth(DESKTOP_MIN_WIDTH);
-    stubRegion(400, 400);
+    stubRegion(400, 500);
     renderShell();
     await startProcedure();
     expect(screen.getByRole('complementary', { name: 'Checklist' })).toBeTruthy();
@@ -262,6 +263,101 @@ describe('trainer layout on desktop', () => {
       const procedureDialog = screen.getByRole('dialog', { name: 'Procedure' });
       expect(within(procedureDialog).getByText(title)).toBeTruthy();
       expect(screen.getAllByRole('dialog')).toHaveLength(1);
+    });
+
+    describe('placement', () => {
+      let chipRect: DOMRect;
+      let dialogWidth: number;
+
+      const rects = (aircraftChip: HTMLElement) => {
+        const original = HTMLElement.prototype.getBoundingClientRect;
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+          this: HTMLElement,
+        ) {
+          if (this.getAttribute('role') === 'dialog') return new DOMRect(0, 40, dialogWidth, 100);
+          if (this === aircraftChip) return chipRect;
+          return original.call(this);
+        });
+      };
+
+      beforeEach(() => {
+        chipRect = new DOMRect(width - 80, 0, 80, 40);
+        dialogWidth = 300;
+      });
+
+      it('mounts the dialog in its chip wrapper', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').parentElement).toBe(aircraftChip.parentElement);
+      });
+
+      it('aligns to the chip start when the dialog fits there', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        chipRect = new DOMRect(100, 0, 80, 40);
+        rects(aircraftChip);
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').dataset.placement).toBe('start');
+      });
+
+      it('aligns to the chip end when the start side would leave the window', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        rects(aircraftChip);
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').dataset.placement).toBe('end');
+      });
+
+      it('falls back to the header edge when neither chip edge fits', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        chipRect = new DOMRect(width / 2, 0, 80, 40);
+        dialogWidth = width;
+        rects(aircraftChip);
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').dataset.placement).toBe('header');
+      });
+
+      it('keeps the margin the header pads its content with', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        chipRect = new DOMRect(30, 0, 100, 40);
+        rects(aircraftChip);
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').dataset.placement).toBe('start');
+
+        await userEvent.click(aircraftChip);
+        screen.getByRole('banner').style.paddingLeft = '40px';
+        await userEvent.click(aircraftChip);
+        expect(screen.getByRole('dialog').dataset.placement).toBe('header');
+      });
+
+      it('places again on resize while open and stops listening once closed', async () => {
+        renderShell();
+        await startProcedure();
+        const aircraftChip = chip(/^Aircraft/);
+        chipRect = new DOMRect(100, 0, 80, 40);
+        rects(aircraftChip);
+        await userEvent.click(aircraftChip);
+        const dialog = screen.getByRole('dialog');
+        expect(dialog.dataset.placement).toBe('start');
+
+        chipRect = new DOMRect(width - 80, 0, 80, 40);
+        act(() => {
+          window.dispatchEvent(new Event('resize'));
+        });
+        expect(dialog.dataset.placement).toBe('end');
+
+        const remove = vi.spyOn(window, 'removeEventListener');
+        await userEvent.click(aircraftChip);
+        expect(remove).toHaveBeenCalledWith('resize', expect.any(Function));
+      });
     });
 
     it('closes on a second tap on the chip', async () => {

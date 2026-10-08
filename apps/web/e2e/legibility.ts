@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Aircraft } from '@cpt/core';
+import type { Aircraft, Appearance } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { clearanceProblems } from './clearance';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
@@ -182,6 +182,23 @@ export async function deviceTargets(root: Locator): Promise<string[]> {
     .map(({ label, size }) => `device button ${label} ${size.toFixed(1)}px`);
 }
 
+/** Every operable target of a placed control, artwork included, at least the touch target. */
+export async function controlTargets(root: Locator): Promise<string[]> {
+  const targets = await root
+    .locator('[data-kind="control"] :is(button, [role="slider"])')
+    .evaluateAll((elements) =>
+      elements.flatMap((element) => {
+        const { width, height } = element.getBoundingClientRect();
+        if (width === 0) return [];
+        const placement = element.closest('[data-placement]')?.getAttribute('data-placement');
+        return [{ placement: placement ?? '', size: Math.min(width, height) }];
+      }),
+    );
+  return targets
+    .filter(({ size }) => size < TOUCH_TARGET_PX - TOLERANCE_PX)
+    .map(({ placement, size }) => `control ${placement} target ${size.toFixed(1)}px`);
+}
+
 /** The finding for overlapping targets of one placement (`a`) or of two (`a and b`, sorted). */
 export const overlapProblem = (viewId: string, placements: string) =>
   `${viewId}: touch targets of ${placements} overlap`;
@@ -250,33 +267,31 @@ function tooSmall(svg: string, scale: number) {
     .map(({ text, size }) => `${text} ${(size * scale).toFixed(1)}px`);
 }
 
-const faces = (aircraft: Aircraft, viewId: string) =>
-  Object.keys(aircraft.views[viewId]?.controls ?? {}).flatMap((id) => {
-    const appearance = aircraft.controls[id]?.appearance;
+type FaceKind = 'controls' | 'indicators';
+
+// Indicator faces: captions marked data-lettering="secondary" are exempt from the floor (ADR 0002, realism).
+const withoutSecondary = (svg: string) =>
+  svg.replace(/<text\b[^>]*data-lettering="secondary"[^>]*>[^<]*<\/text>/g, '');
+
+const faces = (aircraft: Aircraft, viewId: string, kind: FaceKind) => {
+  const definitions: Readonly<Record<string, { appearance?: Appearance } | undefined>> =
+    kind === 'controls' ? aircraft.controls : aircraft.indicators;
+  return Object.keys(aircraft.views[viewId]?.[kind] ?? {}).flatMap((id) => {
+    const appearance = definitions[id]?.appearance;
     return appearance && 'artwork' in appearance ? [{ id, face: appearance.artwork.face }] : [];
   });
+};
 
-/** Backdrop and face lettering at the size the view renders, and each face's aspect. */
-export async function letteringProblems(
+/** Lettering and aspect of each face of `kind` at the size the view renders it. */
+async function faceProblems(
   root: Locator,
   aircraft: Aircraft,
   viewId: string,
+  kind: FaceKind,
 ): Promise<string[]> {
-  const view = aircraft.views[viewId];
-  if (!view) return [`${viewId} is not a view`];
   const problems: string[] = [];
-  const background = await root
-    .locator('.panel-image')
-    .first()
-    .evaluate((image) => image.getBoundingClientRect().width);
-  const backdrop = source(view.image);
-  problems.push(
-    ...tooSmall(backdrop, background / viewBoxWidth(backdrop)).map(
-      (label) => `${viewId}: ${label}`,
-    ),
-  );
-  for (const { id, face } of faces(aircraft, viewId)) {
-    const svg = source(face);
+  for (const { id, face } of faces(aircraft, viewId, kind)) {
+    const svg = kind === 'indicators' ? withoutSecondary(source(face)) : source(face);
     const { width: rendered, height } = await root
       .locator(`[data-placement="${id}"] img`)
       .first()
@@ -296,6 +311,31 @@ export async function letteringProblems(
   }
   return problems;
 }
+
+/** Backdrop and control face lettering at the size the view renders, and each face's aspect. */
+export async function letteringProblems(
+  root: Locator,
+  aircraft: Aircraft,
+  viewId: string,
+): Promise<string[]> {
+  const view = aircraft.views[viewId];
+  if (!view) return [`${viewId} is not a view`];
+  const background = await root
+    .locator('.panel-image')
+    .first()
+    .evaluate((image) => image.getBoundingClientRect().width);
+  const backdrop = source(view.image);
+  return [
+    ...tooSmall(backdrop, background / viewBoxWidth(backdrop)).map(
+      (label) => `${viewId}: ${label}`,
+    ),
+    ...(await faceProblems(root, aircraft, viewId, 'controls')),
+  ];
+}
+
+/** Indicator face lettering at the size the view renders, and each face's aspect. */
+export const indicatorLetteringProblems = (root: Locator, aircraft: Aircraft, viewId: string) =>
+  faceProblems(root, aircraft, viewId, 'indicators');
 
 // Tall enough that the stage is bound by its width alone, never by the viewport height.
 const TALL_VIEWPORT_PX = 4000;
@@ -357,6 +397,7 @@ export async function legibilityProblems(
     ...(await placardProblems(root, aircraft, viewId)),
     ...(await letteringProblems(root, aircraft, viewId)),
     ...(await deviceTargets(root)),
+    ...(await controlTargets(root)),
     ...(await targetOverlaps(root, viewId)),
   ];
 }

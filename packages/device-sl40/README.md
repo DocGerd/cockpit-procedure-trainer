@@ -20,6 +20,13 @@ manual revision. The owner is asked to name the revision to follow.
 Channels are 25 kHz apart from 118.000 to 136.975 MHz. The unit is powered by the install's
 `powered` condition. It takes no inputs.
 
+## Display
+
+`sl40ScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot
+(its bezel is lettered COM), a `readout` of what the display shows in German and English,
+and the `floor`: the smallest frame size at which the operable screen keeps full
+touch targets (see `src/entry.ts`).
+
 ## Not modelled
 
 - Audio and the effect of the volume setting

@@ -130,7 +130,7 @@ ids pulled when the failure is injected; the validator rejects an id that is not
 is `{ rect: { x, y, w, h } }` in the coordinate space of the view's background: an
 SVG's `viewBox`, or a raster image's natural size. `position3d` and `orientation`
 are optional and the 2D renderer ignores them. Every control and every indicator
-must be placed in at least one view. The demo has a `panel`, a `console` and an `avionics` view.
+must be placed in at least one view. The demo has a `panel` and a `console` view.
 
 A view may also declare `size: { width, height }`, the coordinate space of its
 placements with the origin at 0,0. The panel uses it in preference to the image's
@@ -172,7 +172,11 @@ The validator reports a `size` that is not a positive, finite width and height a
 a non-view as `unknown-cockpit-view`, a cell without a finite `rect` (positive `w` and
 `h`) as `invalid-cockpit-cell-rect`, a cell outside `size` as `cockpit-cell-outside`,
 overlapping cells as `cockpit-cells-overlap` and a `minWidth` that is not a positive,
-finite number as `invalid-cockpit-min-width`.
+finite number as `invalid-cockpit-min-width`. The required `dock` cell (same shape as a
+view cell, held beside `views`, not in it) reports a missing cell, a malformed `rect` or
+`minWidth`, a cell outside `size` and an overlap with a view cell as
+`invalid-cockpit-dock`. The dock must be at least as wide and as tall as the floor of
+every installed device, which `aircraft-validation.test.ts` checks.
 
 ### Phases
 
@@ -258,8 +262,8 @@ each:
   optional `stateLabels: { lit, dark }`.
 - `digital-readout`: `units` and `decimals`.
 
-**Aircraft artwork**, `{ artwork: { face, moving } }`, for image files shipped in
-the package. `face` is the static image URL and `moving` is one of:
+**Aircraft artwork**, `{ artwork: { face, moving, glass? } }`, for image files
+shipped in the package. `face` is the static image URL and `moving` is one of:
 
 - `needle`: `{ type: 'needle', image, pivot, angleRange, valueRange }`. Draw the
   needle image at 0 degrees, at the size of the face, with `pivot` in its pixels. The renderer rotates it
@@ -272,8 +276,27 @@ the package. `face` is the static image URL and `moving` is one of:
   size of the face with its handle at the first path point; the renderer slides it
   along the polyline `path` by the lever value.
 
+`glass` is an optional image at the size of the face, drawn above the moving part and
+never moved: the glass glare and rim reflection of an instrument go there, so they lie
+over the needle. The renderer stacks the three layers for a gauge like this:
+
+```ts
+artwork: {
+  face: images.gaugeAirspeed, // bezel, dial, markings and lettering
+  moving: { type: 'needle', image: images.needle, pivot, angleRange, valueRange },
+  glass: images.glassGauge, // glare, rim highlight and hub cap, above the needle
+},
+options: { needleShadow: true },
+```
+
+With `options.needleShadow: true` on a needle, the renderer casts the needle image's
+shadow down and to the right, away from the panel's light, outside the rotation, so it
+never turns toward the light; the needle image then draws no shadow of its own.
+
 If an image fails to load, the control or indicator shows its generic widget
-instead. The demo declares generic widgets only.
+instead. `validateAircraft` reports `artwork-glass-size` when glass and face differ in
+size, if its context reads image sizes (`imageSize`). The demo declares generic widgets
+only.
 
 ### Printed labels
 
@@ -306,7 +329,8 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `phase-without-running-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unplaced-device`, `invalid-install-id`,
-`control-in-device-namespace`, `invalid-view-size`, `placement-outside-view` and the six
+`control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
+`artwork-glass-size` and the six
 `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real

@@ -1,6 +1,6 @@
 import { defineAircraft, defineDevice } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
-import type { DeviceScreenProps } from '@cpt/panel-kit';
+import type { DeviceDisplayProps, DeviceScreenEntry, DeviceScreenProps } from '@cpt/panel-kit';
 import { createElement } from 'react';
 
 // Test-only fixtures, so mode tests do not depend on the registered aircraft's content.
@@ -31,6 +31,13 @@ export const radio = defineDevice({
       name: text('Page'),
       description: text('Selects the page.'),
     },
+    spare: {
+      kind: 'rotary',
+      positions: ['a', 'b'],
+      initial: 'a',
+      name: text('Spare'),
+      description: text('Has no key on the screen.'),
+    },
   },
   initial: {},
   step: (state) => state,
@@ -39,10 +46,22 @@ export const radio = defineDevice({
 export function RadioScreen({ send }: DeviceScreenProps) {
   return createElement(
     'button',
-    { type: 'button', onClick: () => send('page', 'set', 'b') },
+    {
+      type: 'button',
+      'data-control': 'page',
+      'data-position': 'b',
+      onClick: () => send('page', 'set', 'b'),
+    },
     'Radio page B',
   );
 }
+
+export const radioEntry: DeviceScreenEntry = {
+  Screen: RadioScreen,
+  Display: ({ on }: DeviceDisplayProps) => createElement('output', null, on ? 'on' : ''),
+  readout: () => 'Radio page A',
+  floor: { width: 100, height: 50 },
+};
 
 export const fixture: Aircraft = defineAircraft({
   id: 'modes-fixture',
@@ -164,6 +183,12 @@ export const fixture: Aircraft = defineAircraft({
         { type: 'action', control: 'cutoff', position: 'cut', text: text('Cutoff cut') },
         { type: 'action', control: 'throttle', position: 1, text: text('Throttle full') },
       ],
+    },
+    keyless: {
+      title: text('Keyless'),
+      type: 'normal',
+      startPhase: 'ground',
+      items: [{ type: 'action', control: 'com.spare', position: 'b', text: text('Spare b') }],
     },
     shutdown: {
       title: text('Shutdown'),

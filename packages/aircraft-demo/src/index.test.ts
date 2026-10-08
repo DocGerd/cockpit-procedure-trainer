@@ -7,12 +7,13 @@ import {
 } from '@cpt/core';
 import type { ControlKind, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import viewAvionics from './assets/view-avionics.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
 import { demoAircraft } from './index';
 import type { DemoState } from './systems';
 import { testDevices as devices } from './test-devices';
+
+type Rect = { x: number; y: number; w: number; h: number };
 
 const CONTROL_KINDS: readonly ControlKind[] = [
   'toggle',
@@ -59,10 +60,11 @@ describe('demo aircraft', () => {
     expect(validateAircraft(demoAircraft, { devices })).toEqual([]);
   });
 
-  it('arranges every view in the cockpit', () => {
+  it('arranges every view in the cockpit and places a dock', () => {
     expect(Object.keys(demoAircraft.cockpit?.views ?? {}).sort()).toEqual(
       Object.keys(demoAircraft.views).sort(),
     );
+    expect(demoAircraft.cockpit?.dock).toBeDefined();
   });
 
   it('uses every control kind and springs one rotary detent back', () => {
@@ -82,8 +84,8 @@ describe('demo aircraft', () => {
     }
   });
 
-  it('has three views and phases for the parked, taxiing and flying situations', () => {
-    expect(Object.keys(demoAircraft.views)).toHaveLength(3);
+  it('has a panel and a console and phases for the parked, taxiing and flying situations', () => {
+    expect(Object.keys(demoAircraft.views)).toEqual(['panel', 'console']);
     expect(Object.keys(demoAircraft.phases).length).toBeGreaterThanOrEqual(3);
     for (const phase of Object.values(demoAircraft.phases)) expect(phase.image).not.toBe('');
   });
@@ -319,7 +321,6 @@ describe('declared view sizes', () => {
   const sources: Record<string, string> = {
     panel: viewPanel,
     console: viewConsole,
-    avionics: viewAvionics,
   };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {
@@ -328,20 +329,52 @@ describe('declared view sizes', () => {
     expect([x, y]).toEqual([0, 0]);
     expect(demoAircraft.views[id]?.size).toEqual({ width, height });
   });
+
+  it.each(Object.keys(sources))('view %s uses at most one filter, for its texture', (id) => {
+    const source = sources[id] ?? '';
+    expect(source.match(/<filter\b/g)?.length ?? 0).toBeLessThanOrEqual(1);
+    expect(source.match(/filter="url\(/g)?.length ?? 0).toBeLessThanOrEqual(1);
+  });
+
+  it('keeps the RADIO legend and both slot recesses where the devices sit', () => {
+    expect(viewPanel).toMatch(/<text x="106" y="696" [^>]*font-size="30"[^>]*>RADIO<\/text>/);
+    for (const x of [184, 724]) {
+      expect(viewPanel).toContain(`<rect x="${x}" y="598" width="540" height="162" rx="10"`);
+    }
+  });
 });
 
-describe('radio stack layout', () => {
-  const rect = (id: string) => {
-    const placement = demoAircraft.devices?.[id]?.placement.rect;
-    if (!placement) throw new Error(`no placement for ${id}`);
-    return placement;
-  };
+describe('radio section layout', () => {
+  const panel = demoAircraft.views.panel;
+  const slots = Object.entries(demoAircraft.devices ?? {}).map(
+    ([id, install]) => [id, install.placement.rect] as const,
+  );
+  const clash = (a: Rect, b: Rect) =>
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
-  it('stacks the two screens vertically in one view', () => {
-    const radio = rect('radio');
-    const xpdr = rect('xpdr');
-    expect(demoAircraft.devices?.radio?.view).toBe(demoAircraft.devices?.xpdr?.view);
-    expect(radio.y + radio.h).toBeLessThanOrEqual(xpdr.y);
-    expect(radio.x).toBe(xpdr.x);
+  it('installs every device in the panel', () => {
+    for (const install of Object.values(demoAircraft.devices ?? {})) {
+      expect(install.view).toBe('panel');
+    }
+  });
+
+  it('sets the two slots side by side in one row', () => {
+    const [[, radio], [, xpdr]] = slots as [(typeof slots)[number], (typeof slots)[number]];
+    expect(radio.x + radio.w).toBeLessThanOrEqual(xpdr.x);
+    expect(radio.y).toBe(xpdr.y);
+  });
+
+  it('keeps each slot inside the panel and clear of every control and indicator', () => {
+    const others = [
+      ...Object.entries(panel?.controls ?? {}),
+      ...Object.entries(panel?.indicators ?? {}),
+    ];
+    for (const [id, rect] of slots) {
+      expect(rect.x + rect.w, `${id} right`).toBeLessThanOrEqual(panel?.size?.width ?? 0);
+      expect(rect.y + rect.h, `${id} bottom`).toBeLessThanOrEqual(panel?.size?.height ?? 0);
+      expect(
+        others.filter(([, other]) => other && clash(rect, other.rect)).map(([name]) => name),
+      ).toEqual([]);
+    }
   });
 });

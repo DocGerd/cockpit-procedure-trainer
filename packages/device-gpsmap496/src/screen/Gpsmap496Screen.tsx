@@ -1,21 +1,10 @@
 import { useHold } from '@cpt/panel-kit';
 import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
-import { BACKLIGHT_LEVELS } from '../logic';
-import type { Gpsmap496Page, Gpsmap496State } from '../logic';
+import { BACKLIGHT_LEVELS, PAGE_NAMES } from '../logic';
+import type { Gpsmap496State } from '../logic';
+import { glow } from '../glow';
 import './Gpsmap496Screen.css';
-
-const PAGE_NAMES: Readonly<Record<Gpsmap496Page, string>> = {
-  map: 'MAP',
-  terrain: 'TERRAIN',
-  route: 'ACTIVE ROUTE',
-  info: 'INFORMATION',
-};
-
-const LEVEL_MIX = ['40%', '70%', '100%'] as const;
-
-const glow = (level: number): string =>
-  `color-mix(in srgb, var(--panel-legend) ${LEVEL_MIX[level] ?? '100%'}, var(--panel-screen))`;
 
 const screenStyle: CSSProperties = {
   display: 'grid',
@@ -66,7 +55,12 @@ type Send = DeviceScreenProps['send'];
 function Key({ name, control, send }: { name: string; control: string; send: Send }) {
   const hold = useHold(() => send(control, 'release'));
   return (
-    <button type="button" style={buttonStyle} {...hold.handlers(() => send(control, 'press'))}>
+    <button
+      type="button"
+      style={buttonStyle}
+      data-control={control}
+      {...hold.handlers(() => send(control, 'press'))}
+    >
       {name}
     </button>
   );
@@ -85,7 +79,7 @@ export function Gpsmap496Screen({ on, state, send }: DeviceScreenProps) {
       >
         {lit && (
           <>
-            <span style={pageStyle}>{PAGE_NAMES[unit.page]}</span>
+            <span style={pageStyle}>{PAGE_NAMES[unit.page].en.toUpperCase()}</span>
             <span>NO POSITION</span>
             <span style={legendStyle}>{`LIGHT ${unit.backlight + 1}/${BACKLIGHT_LEVELS}`}</span>
           </>

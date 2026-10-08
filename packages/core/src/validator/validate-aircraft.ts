@@ -1,5 +1,13 @@
 import { isPosition } from '../contract';
-import type { Aircraft, ControlDefinition, Device, Rect, Text, ViewSize } from '../contract';
+import type {
+  Aircraft,
+  Appearance,
+  ControlDefinition,
+  Device,
+  Rect,
+  Text,
+  ViewSize,
+} from '../contract';
 
 export type FindingCode =
   | 'unknown-target'
@@ -26,7 +34,9 @@ export type FindingCode =
   | 'invalid-cockpit-cell-rect'
   | 'cockpit-cell-outside'
   | 'cockpit-cells-overlap'
-  | 'invalid-cockpit-min-width';
+  | 'invalid-cockpit-min-width'
+  | 'invalid-cockpit-dock'
+  | 'artwork-glass-size';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -35,8 +45,12 @@ export type Finding = {
   readonly message: string;
 };
 
+export type ImageSize = { readonly width: number; readonly height: number };
+
 export type ValidationContext = {
   readonly devices?: readonly Device[];
+  /** The pixel size of an image URL, where the caller can read it; artwork sizes are checked only then. */
+  readonly imageSize?: (url: string) => ImageSize | undefined;
   readonly [extension: string]: unknown;
 };
 
@@ -158,6 +172,23 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const checkGlass = (id: string, appearance: Appearance | undefined) => {
+    if (!appearance || !('artwork' in appearance) || !context.imageSize) return;
+    const { face, glass } = appearance.artwork;
+    if (glass === undefined) return;
+    const faceSize = context.imageSize(face);
+    const glassSize = context.imageSize(glass);
+    if (!faceSize || !glassSize) return;
+    if (faceSize.width !== glassSize.width || faceSize.height !== glassSize.height) {
+      const format = ({ width, height }: ImageSize) => `${width}x${height}`;
+      add(
+        'artwork-glass-size',
+        id,
+        `glass is ${format(glassSize)}, its face ${format(faceSize)}; both must match`,
+      );
+    }
+  };
+
   checkText(aircraft.id, 'name', aircraft.name);
   checkText(aircraft.id, 'handbookRevision', aircraft.handbookRevision);
 
@@ -193,6 +224,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
+    checkGlass(id, control.appearance);
+
     const placed = views.some(([, view]) => view.controls && Object.hasOwn(view.controls, id));
     if (!placed) add('unplaced-control', id, 'is not placed in any view');
 
@@ -203,12 +236,15 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
 
   for (const [id, indicator] of indicators) {
     checkText(id, 'name', indicator.name);
+    checkGlass(id, indicator.appearance);
     const placed = views.some(([, view]) => view.indicators && Object.hasOwn(view.indicators, id));
     if (!placed) add('unplaced-indicator', id, 'is not placed in any view');
   }
 
   const isLength = (value: unknown) =>
     typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const overlaps = (a: Rect, b: Rect) =>
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   const sizes = new Map<string, ViewSize | undefined>();
   const declaredSize = (viewId: string, size: unknown) => {
     if (size === undefined) return undefined;
@@ -250,8 +286,13 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   }
 
   if (aircraft.cockpit !== undefined) {
-    const { size: cockpitSize, views: cells } = aircraft.cockpit as {
+    const {
+      size: cockpitSize,
+      views: cells,
+      dock,
+    } = aircraft.cockpit as {
       size?: unknown;
+      dock?: { rect?: Rect; minWidth?: unknown } | null;
       views?: Readonly<Record<string, { rect?: Rect; minWidth?: unknown } | null | undefined>>;
     };
     const { width, height } = (cockpitSize ?? {}) as { width?: unknown; height?: unknown };
@@ -296,11 +337,35 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         }
       }
     }
+    if (dock === undefined) {
+      add('invalid-cockpit-dock', 'dock', 'the cockpit arrangement needs a dock cell');
+    } else {
+      const dockRect = isUsableRect(dock?.rect) ? dock?.rect : undefined;
+      const flawed = (reason: string) => add('invalid-cockpit-dock', 'dock', reason);
+      if (!isLength(dock?.minWidth)) flawed('minWidth must be a positive, finite number');
+      if (!dockRect) {
+        flawed('rect needs a finite x and y and a positive, finite w and h');
+      } else {
+        if (
+          bounds &&
+          (dockRect.x < 0 ||
+            dockRect.y < 0 ||
+            dockRect.x + dockRect.w > bounds.width ||
+            dockRect.y + dockRect.h > bounds.height)
+        ) {
+          flawed(`dock lies outside the ${bounds.width}x${bounds.height} arrangement`);
+        }
+        for (const [viewId, cell] of placed) {
+          const other = isUsableRect(cell?.rect) ? cell?.rect : undefined;
+          if (other && overlaps(dockRect, other)) flawed(`dock overlaps the cell of ${viewId}`);
+        }
+      }
+    }
     placed.forEach(([firstId, first], index) => {
       for (const [secondId, second] of placed.slice(index + 1)) {
         const a = isUsableRect(first?.rect) ? first?.rect : undefined;
         const b = isUsableRect(second?.rect) ? second?.rect : undefined;
-        if (a && b && a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) {
+        if (a && b && overlaps(a, b)) {
           add(
             'cockpit-cells-overlap',
             firstId,

@@ -22,7 +22,8 @@ the `gh attestation` command, signed in.
       --source-ref refs/heads/main \
       --deny-self-hosted-runners
 
-A successful run prints the matching attestation. If it fails, read the error:
+Exit code 0 means the file verified; gh may print nothing when its output is
+not a terminal. If it fails, read the error:
 a missing sign-in or network problem is not a verdict on the file, but a file
 that does not verify must not be used.
 

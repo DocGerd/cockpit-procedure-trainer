@@ -1,6 +1,6 @@
 import type { Aircraft } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { chooseLayout } from './cockpit-layout';
+import { chooseLayout, outsideViewFold } from './cockpit-layout';
 
 const text = { de: 'x', en: 'x' };
 
@@ -89,5 +89,95 @@ describe('chooseLayout', () => {
 
   it('judges the height too: a short region lowers the scale', () => {
     expect(chooseLayout(aircraft, { width: 4000, height: 150 })).toMatchObject({ scale: 1.5 });
+  });
+
+  describe('the device dock', () => {
+    // The dock sits under the views, so the arrangement grows to 400 x 150.
+    const docked = (dock: unknown, width = 400): Pick<Aircraft, 'cockpit' | 'views'> =>
+      ({
+        views: aircraft.views,
+        cockpit: { ...aircraft.cockpit, size: { width, height: 150 }, dock },
+      }) as unknown as Pick<Aircraft, 'cockpit' | 'views'>;
+    const dock = { rect: { x: 0, y: 100, w: 400, h: 50 }, minWidth: 400 };
+
+    it('places the dock like a cell, scaled with the arrangement', () => {
+      expect(chooseLayout(docked(dock), { width: 800, height: 300 })).toMatchObject({
+        kind: 'combined',
+        scale: 2,
+        dock: { left: 0, top: 200, width: 800, height: 100 },
+      });
+    });
+
+    it('is tabs when the dock is one CSS px short of its floor', () => {
+      expect(chooseLayout(docked(dock), { width: 400, height: 150 }).kind).toBe('combined');
+      expect(chooseLayout(docked(dock), { width: 399, height: 150 }).kind).toBe('tabs');
+    });
+
+    it('is tabs, without throwing, for a dock with a malformed rect', () => {
+      const broken = { rect: { x: 0, y: 100, w: NaN, h: 50 }, minWidth: 100 };
+      expect(chooseLayout(docked(broken), { width: 400, height: 150 }).kind).toBe('tabs');
+      expect(chooseLayout(docked({ minWidth: 100 }), { width: 400, height: 150 }).kind).toBe(
+        'tabs',
+      );
+    });
+
+    it('has no dock field when the arrangement declares none', () => {
+      const layout = chooseLayout(aircraft, { width: 400, height: 100 });
+      expect(layout.kind === 'combined' && 'dock' in layout).toBe(false);
+    });
+  });
+});
+
+describe('outsideViewFold', () => {
+  const strip = { natural: 100, min: 40, pull: 10, gap: 16 };
+  const wide = 400;
+  const room = (height: number, width = wide) => ({ width, height });
+  const combinedWith = (height: number, gain: number) =>
+    chooseLayout(aircraft, room(height + gain)).kind === 'combined';
+
+  it('leaves the strip whole while the cockpit is combined', () => {
+    expect(outsideViewFold(aircraft, room(100), strip)).toBeUndefined();
+  });
+
+  it('folds the strip by only as much as the cockpit needs', () => {
+    const fold = outsideViewFold(aircraft, room(80), strip);
+    expect(fold).toEqual({ kind: 'folded', band: 90, gain: 20 });
+    expect(combinedWith(80, 20)).toBe(true);
+    expect(combinedWith(80, 19)).toBe(false);
+  });
+
+  it('folds the strip down to its minimum when that is exactly enough', () => {
+    expect(outsideViewFold(aircraft, room(30), strip)).toEqual({
+      kind: 'folded',
+      band: 40,
+      gain: 70,
+    });
+  });
+
+  it('hides the strip, with its gap, when its minimum is not enough', () => {
+    expect(outsideViewFold(aircraft, room(29), strip)).toEqual({ kind: 'hidden', gain: 116 });
+    expect(outsideViewFold(aircraft, room(-16), strip)).toEqual({ kind: 'hidden', gain: 116 });
+  });
+
+  it('hides a strip that is no taller than its minimum when that makes the cockpit combined', () => {
+    const short = { natural: 40, min: 40, pull: 10, gap: 16 };
+    expect(outsideViewFold(aircraft, room(80), short)).toEqual({ kind: 'hidden', gain: 56 });
+  });
+
+  it('leaves the strip whole when not even hiding it makes the cockpit combined', () => {
+    expect(outsideViewFold(aircraft, room(-17), strip)).toBeUndefined();
+  });
+
+  it('leaves the strip whole when the width is what falls short', () => {
+    expect(outsideViewFold(aircraft, room(80, wide - 1), strip)).toBeUndefined();
+  });
+
+  it('leaves the strip whole when none is measured', () => {
+    const none = { natural: 0, min: 40, pull: 10, gap: 16 };
+    expect(outsideViewFold(aircraft, room(80), none)).toBeUndefined();
+  });
+
+  it('leaves the strip whole for an aircraft without an arrangement', () => {
+    expect(outsideViewFold({ views: aircraft.views }, room(80), strip)).toBeUndefined();
   });
 });
