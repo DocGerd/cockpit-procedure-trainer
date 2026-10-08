@@ -2,24 +2,8 @@
 import type { IndicatorValue, JsonObject } from '@cpt/core';
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Annunciator } from './Annunciator';
 import { DigitalReadout, UNITS_ROOM, unitsReserve } from './DigitalReadout';
-import {
-  angleAt,
-  ARC_RADIUS,
-  ARC_STROKE,
-  arcEndRoom,
-  CAPTION_GAP,
-  CENTRE,
-  polar,
-  squeeze,
-  SWEEP_END,
-  SWEEP_START,
-  TICK_GAP,
-  TICK_OUTER,
-  TICK_STROKE,
-} from './geometry';
-import { SANS_ADVANCE } from '../controls/legibility';
+import { angleAt, polar, squeeze, SWEEP_END, SWEEP_START } from './geometry';
 import { defaultIndicatorWidget, indicatorWidgets } from './index';
 import { MAX_DECIMALS, MAX_TICKS } from './options';
 import type { IndicatorWidget } from '../types';
@@ -198,20 +182,9 @@ describe('round gauge', () => {
     ).toBe('25');
   });
 
-  it('squeezes a long label and leaves a short one alone', () => {
-    const Gauge = gauge;
-    const long = render(<Gauge label={'W'.repeat(40)} value={1} />);
-    expect(long.container.querySelector('[data-label]')?.hasAttribute('textLength')).toBe(true);
-    cleanup();
-    expect(draw(gauge, 1).container.querySelector('[data-label]')?.hasAttribute('textLength')).toBe(
-      false,
-    );
-  });
-
-  it('shows units and label', () => {
+  it('shows its units', () => {
     const { container } = draw(gauge, 10, { ...range, units: 'psi' });
     expect(container.querySelector('[data-units]')?.textContent).toBe('psi');
-    expect(container.querySelector('[data-label]')?.textContent).toBe('L');
     expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
@@ -260,9 +233,9 @@ describe('annunciator', () => {
     expect(lampFill(container)).toBe('var(--panel-lamp-amber)');
   });
 
-  it('shows its label', () => {
+  it('is named by its label and prints no text', () => {
     const { container } = draw(annunciator, true);
-    expect(container.querySelector('[data-label]')?.textContent).toBe('L');
+    expect(container.querySelectorAll('text')).toHaveLength(0);
     expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
@@ -291,16 +264,6 @@ describe('annunciator', () => {
     expect(off?.style.stroke).toBe('none');
     expect(Number(off?.getAttribute('stroke-width'))).toBe(0);
   });
-
-  it('squeezes a long label and leaves a short one alone', () => {
-    const Lamp = annunciator;
-    const long = render(<Lamp label={'W'.repeat(30)} value />);
-    expect(long.container.querySelector('[data-label]')?.hasAttribute('textLength')).toBe(true);
-    cleanup();
-    expect(
-      draw(annunciator, true).container.querySelector('[data-label]')?.hasAttribute('textLength'),
-    ).toBe(false);
-  });
 });
 
 describe('digital readout', () => {
@@ -327,7 +290,6 @@ describe('digital readout', () => {
     const { container } = draw(readout, '', { units: '°' });
     expect(text(container)?.textContent ?? '').toBe('');
     expect(container.querySelector('[data-units]')).toBeNull();
-    expect(container.querySelector('[data-label]')?.textContent).toBe('L');
     expect(container.querySelector('svg')?.getAttribute('aria-label')).toBe('L');
   });
 
@@ -360,16 +322,6 @@ describe('digital readout', () => {
       '[data-value]',
     );
     expect(crowded?.getAttribute('textLength')).toBe(String(94 - unitsReserve('V', 7) - 6));
-  });
-
-  it('squeezes a long label and leaves a short one alone', () => {
-    const Readout = readout;
-    const long = render(<Readout label={'W'.repeat(40)} value="x" />);
-    expect(long.container.querySelector('[data-label]')?.hasAttribute('textLength')).toBe(true);
-    cleanup();
-    expect(
-      draw(readout, 'x').container.querySelector('[data-label]')?.hasAttribute('textLength'),
-    ).toBe(false);
   });
 });
 
@@ -457,7 +409,7 @@ describe('invalid options', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { container } = draw(Widget, value, options);
     expect(container.querySelector('[data-placeholder]')).not.toBeNull();
-    expect(container.querySelector('[data-label]')?.textContent).toBe('L');
+    expect(container.querySelectorAll('text')).toHaveLength(0);
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
   });
@@ -468,38 +420,6 @@ describe('invalid options', () => {
     expect(draw(gauge, Number.NaN).container.querySelector('[data-placeholder]')).not.toBeNull();
     cleanup();
     expect(draw(annunciator, 3).container.querySelector('[data-placeholder]')).not.toBeNull();
-  });
-});
-
-describe('arcEndRoom', () => {
-  const inner = ARC_RADIUS - ARC_STROKE / 2;
-  const end = polar(SWEEP_END, inner);
-  const outerEnd = polar(SWEEP_END, ARC_RADIUS + ARC_STROKE / 2);
-
-  it('is unbounded for a band wholly below the arc ends', () => {
-    expect(arcEndRoom(outerEnd.y, outerEnd.y + 5, 1)).toBe(Infinity);
-    expect(arcEndRoom(outerEnd.y + 1, outerEnd.y + 6, 1)).toBe(Infinity);
-  });
-
-  it('is the chord between the inner arc ends for a band that reaches them', () => {
-    expect(arcEndRoom(end.y - 3, end.y + 3, 0)).toBeCloseTo(2 * (end.x - CENTRE));
-    expect(arcEndRoom(end.y, outerEnd.y - 0.1, 0)).toBeCloseTo(2 * (end.x - CENTRE));
-  });
-
-  it('does not narrow further for a band extending below the arc end', () => {
-    expect(arcEndRoom(end.y - 3, end.y + 20, 1)).toBeCloseTo(arcEndRoom(end.y - 3, end.y, 1));
-  });
-
-  it('widens with a band that stops above the arc end', () => {
-    const high = arcEndRoom(end.y - 12, end.y - 6, 0);
-    expect(high).toBeCloseTo(2 * Math.sqrt(inner ** 2 - (end.y - 6 - CENTRE) ** 2));
-    expect(high).toBeGreaterThan(arcEndRoom(end.y - 12, end.y, 0));
-  });
-
-  it('takes the gap off both sides', () => {
-    expect(arcEndRoom(end.y - 3, end.y + 3, 0) - arcEndRoom(end.y - 3, end.y + 3, 2)).toBeCloseTo(
-      4,
-    );
   });
 });
 
@@ -550,7 +470,6 @@ const named = (Widget: IndicatorWidget, value: IndicatorValue, options?: JsonObj
 const present = (container: HTMLElement) => ({
   numerals: container.querySelectorAll('[data-tick-label]').length > 0,
   units: container.querySelector('[data-units]') !== null,
-  label: container.querySelector('[data-label]') !== null,
 });
 
 const renderedPx = (element: Element | null, scale: number) =>
@@ -559,29 +478,35 @@ const renderedPx = (element: Element | null, scale: number) =>
 describe('legibility', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  const gaugeOptions = { ...range, units: 'psi', ticks: [10, 15, 20, 25, 30] };
-
   it.each([
-    [48, { numerals: false, units: false, label: false }],
-    [80, { numerals: false, units: false, label: false }],
-    [96, { numerals: false, units: true, label: false }],
-    [112, { numerals: false, units: true, label: true }],
-    [128, { numerals: true, units: true, label: true }],
-    [208, { numerals: true, units: true, label: true }],
-  ])(
-    'a gauge at %i px keeps what fits, dropping numerals, then units; the caption only when it does not fit',
-    (px, expected) => {
-      placeAt(px, px);
-      expect(present(named(gauge, 17, gaugeOptions).container)).toEqual(expected);
+    ['round-gauge', gauge, 17, { ...range, units: 'psi' }],
+    ['annunciator', annunciator, true, { lamp: 'red' }],
+    ['digital-readout', readout, 87, { units: 'kt' }],
+    ['a placeholder', gauge, 'text', undefined],
+  ] as const)(
+    '%s never prints its accessible name, however large it renders',
+    (_id, Widget, value, options) => {
+      placeAt(2000, 2000);
+      const { container } = named(Widget, value, options);
+      expect(container.querySelector('[data-label]')).toBeNull();
+      expect(container.textContent).not.toContain('Airspeed');
+      expect(container.querySelector('svg')?.getAttribute('aria-label')).toContain('Airspeed');
     },
   );
 
-  const longGauge = (px: number) => {
+  const gaugeOptions = { ...range, units: 'psi', ticks: [10, 15, 20, 25, 30] };
+
+  it.each([
+    [48, { numerals: false, units: false }],
+    [80, { numerals: false, units: false }],
+    [96, { numerals: false, units: true }],
+    [112, { numerals: false, units: true }],
+    [128, { numerals: true, units: true }],
+    [208, { numerals: true, units: true }],
+  ])('a gauge at %i px keeps what fits, dropping numerals, then units', (px, expected) => {
     placeAt(px, px);
-    const Gauge = gauge;
-    return render(<Gauge value={17} label="Oil pressure" options={{ ...gaugeOptions, arcs: [] }} />)
-      .container;
-  };
+    expect(present(named(gauge, 17, gaugeOptions).container)).toEqual(expected);
+  });
 
   it('never shows a gauge numeral without its units', () => {
     for (const px of [48, 64, 80, 96, 112, 128, 160, 208, 320]) {
@@ -592,88 +517,11 @@ describe('legibility', () => {
     }
   });
 
-  it('keeps numerals and units when only the caption is dropped', () => {
-    expect(present(longGauge(126))).toEqual({ numerals: true, units: true, label: false });
-  });
-
   it.each([48, 80, 128, 208])('renders every gauge text at 11 px or more at %i px', (px) => {
     placeAt(px, px);
     const { container } = named(gauge, 17, gaugeOptions);
     for (const text of container.querySelectorAll('text')) {
       expect(renderedPx(text, px / 100)).toBeGreaterThanOrEqual(11 - 1e-9);
-    }
-  });
-
-  it.each([112, 126, 160, 208])(
-    'keeps the caption clear of the needle at either end of the sweep at %i px',
-    (px) => {
-      placeAt(px, px);
-      const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
-      const label = container.querySelector('[data-label]');
-      const bladeNode = container.querySelector('[data-needle] [data-blade]');
-      const shadowNode = container.querySelector('[data-needle-shadow] path');
-      const outline = Number(bladeNode?.getAttribute('stroke-width') ?? 0) / 2;
-      const castDown = Number(
-        /translate\(\S+ (\S+)\)/.exec(
-          container
-            .querySelector('[data-needle-shadow]')
-            ?.parentElement?.getAttribute('transform') ?? '',
-        )?.[1] ?? 0,
-      );
-      expect(castDown).toBeGreaterThan(0);
-      const size = Number(label?.getAttribute('font-size'));
-      // How far below the centre the tip of a needle-shaped path reaches at the end of the sweep.
-      const lowest = (path: Element | null) => {
-        const points = [
-          ...(path?.getAttribute('d') ?? '').matchAll(/[ML](-?[\d.]+) (-?[\d.]+)/g),
-        ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
-        expect(points.length).toBeGreaterThanOrEqual(3);
-        const end = Math.min(...points.map(({ y }) => y));
-        const halfWidth = Math.max(
-          ...points.filter(({ y }) => y === end).map(({ x }) => Math.abs(x - CENTRE)),
-        );
-        return polar(SWEEP_END, CENTRE - end).y + halfWidth;
-      };
-      const tip = Math.max(lowest(bladeNode) + outline, lowest(shadowNode) + castDown);
-      expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(tip);
-    },
-  );
-
-  it.each([160, 208, 320])(
-    'keeps a long caption between the arc ends and below the end ticks at %i px',
-    (px) => {
-      const label = longGauge(px).querySelector('[data-label]');
-      expect(label).not.toBeNull();
-      const size = Number(label?.getAttribute('font-size'));
-      const length = Number(
-        label?.getAttribute('textLength') ?? 'Oil pressure'.length * SANS_ADVANCE * size,
-      );
-      const arcEnd = polar(SWEEP_END, ARC_RADIUS - ARC_STROKE / 2);
-      expect(length / 2 + CAPTION_GAP).toBeLessThanOrEqual(arcEnd.x - 50);
-      const tickLow = polar(SWEEP_END, TICK_OUTER).y + TICK_STROKE / 2;
-      expect(Number(label?.getAttribute('y')) - size / 2).toBeGreaterThanOrEqual(
-        tickLow + TICK_GAP,
-      );
-    },
-  );
-
-  it.each([96, 126])('drops a long caption it cannot fit between the arc ends at %i px', (px) => {
-    expect(longGauge(px).querySelector('[data-label]')).toBeNull();
-  });
-
-  it('keeps the caption inside the dial and below the numerals and units', () => {
-    for (const px of [112, 126, 160, 208]) {
-      placeAt(px, px);
-      const { container } = named(gauge, 17, { ...gaugeOptions, units: 'psi' });
-      const label = container.querySelector('[data-label]');
-      const size = Number(label?.getAttribute('font-size'));
-      const top = Number(label?.getAttribute('y')) - size / 2;
-      expect(top + size).toBeLessThanOrEqual(96);
-      for (const text of container.querySelectorAll('[data-tick-label], [data-units]')) {
-        const half = Number(text.getAttribute('font-size')) / 2;
-        expect(Number(text.getAttribute('y')) + half).toBeLessThanOrEqual(top);
-      }
-      cleanup();
     }
   });
 
@@ -685,26 +533,15 @@ describe('legibility', () => {
     expect(svg?.getAttribute('aria-valuetext')).toBe('17 psi');
   });
 
-  it('keeps an annunciator label legible or drops it', () => {
-    placeAt(80, 40);
-    const label = draw(annunciator, true).container.querySelector('[data-label]');
-    expect(renderedPx(label, 0.8)).toBeGreaterThanOrEqual(11 - 1e-9);
-    cleanup();
-    placeAt(48, 24);
-    const long = render(<Annunciator label="Master caution" value />);
-    expect(long.container.querySelector('[data-label]')).toBeNull();
-    expect(long.container.querySelector('svg')?.getAttribute('aria-label')).toBe('Master caution');
-  });
-
-  it('drops readout label and units before the value as the readout shrinks', () => {
+  it('drops the readout text, units with it, once the minimum size no longer fits', () => {
     const shown = (px: number) => {
       placeAt(px, px * 0.4);
       const { container } = named(readout, 87, { units: 'kt' });
       return { value: container.querySelector('[data-value]') !== null, ...present(container) };
     };
-    expect(shown(48)).toMatchObject({ value: true, units: false, label: false });
+    expect(shown(24)).toMatchObject({ value: false, units: false });
     cleanup();
-    expect(shown(80)).toMatchObject({ value: true, units: true, label: true });
+    expect(shown(48)).toMatchObject({ value: true, units: true });
   });
 });
 

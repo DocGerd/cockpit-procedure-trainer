@@ -66,7 +66,7 @@ export const views = {
     },
     indicators: {
       eltLamp: at(458, 431, 100, 64),
-      flapReadout: at(580, 400, 240, 110),
+      flapReadout: at(580, 400, 240, 110, 'FLAPS'),
     },
   },
   console: {
