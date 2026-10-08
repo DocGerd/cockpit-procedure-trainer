@@ -602,6 +602,16 @@ describe('Practice', () => {
     expect(document.querySelector('[data-modes-overlay]')).toBeNull();
   });
 
+  it('draws no stray ring after Show me', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.showMe());
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(trainer.session.checklist()?.deviations).toHaveLength(1);
+    expect(document.querySelector('[data-outline="stray"]')).toBeNull();
+    expect(outline()?.dataset.outline).toBe('target');
+  });
+
   it("rings a device target's slot for Show me", () => {
     renderTrainer();
     start('start', 'practice');
@@ -1142,6 +1152,18 @@ describe('the device dock in the modes', () => {
     expect(dockRegion().getAttribute('data-dock')).toBe('empty');
     expect(document.querySelector('[data-outline]')).toBeNull();
     expect(document.querySelector('[data-target]')).toBeNull();
+  });
+
+  it('opens the device and rings its key for a Show me in Practice', () => {
+    renderTrainer('en', dockedLayout);
+    start('start', 'practice');
+    toDeviceStep();
+    act(() => trainer.showMe());
+    expect(docked()).toBe('com');
+    const unit = document.querySelector<HTMLElement>('[data-dock-device="com"]');
+    const keys = [...(unit?.querySelectorAll('[data-target="true"]') ?? [])];
+    expect(keys.map((key) => key.textContent)).toEqual(['Radio page B']);
+    expect(boxOf(outline())).toEqual(boxOf(placement('com')));
   });
 
   it('docks the device of an activated slot in Free explore', async () => {

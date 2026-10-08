@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import type { Aircraft } from '@cpt/core';
 import { act, cleanup, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,9 +9,40 @@ import type { Mode, Trainer } from '../trainer';
 import { ChecklistAnnouncer } from './ChecklistAnnouncer';
 import { ChecklistPane } from './index';
 
-vi.mock('../aircraft-registry', async () => ({
-  aircraftRegistry: [(await import('./test-aircraft')).fixture],
-}));
+vi.mock('../aircraft-registry', async () => {
+  const { fixture } = await import('./test-aircraft');
+  const text = (en: string) => ({ de: `${en} (de)`, en });
+  const scan = {
+    title: text('Scan'),
+    type: 'normal',
+    startPhase: 'ground',
+    items: [
+      { type: 'action', flow: true, control: 'master', position: 'on', text: text('Master flow') },
+      { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump flow') },
+      { type: 'action', control: 'master', position: 'on', text: text('Master verified') },
+      { type: 'action', control: 'pump', position: 'on', text: text('Pump verified') },
+    ],
+  };
+  const reading = {
+    title: text('Reading'),
+    type: 'normal',
+    startPhase: 'ground',
+    items: [
+      {
+        type: 'check',
+        target: { indicator: 'fuel' },
+        condition: () => true,
+        response: { reading: () => 4000, tolerance: 100, unit: text('rpm') },
+        text: text('Rpm check'),
+      },
+    ],
+  };
+  return {
+    aircraftRegistry: [
+      { ...fixture, procedures: { ...fixture.procedures, scan, reading } } as unknown as Aircraft,
+    ],
+  };
+});
 
 const flow = 'flow';
 const texts = ['Master on', 'Fuel flowing', 'Walk-around done', 'Pump on'];
@@ -30,10 +62,10 @@ function renderPane() {
   );
 }
 
-function start(mode: Mode) {
+function start(mode: Mode, procedure = flow) {
   act(() => {
     trainer.setMode(mode);
-    trainer.startProcedure(flow);
+    trainer.startProcedure(procedure);
   });
 }
 
@@ -158,12 +190,51 @@ describe('Practice recall', () => {
     expect(showMe()).toBeTruthy();
   });
 
-  it('keeps the deviation banner off in Practice', async () => {
+  it('clears the Show me assists when the session resets or Free explore starts', async () => {
     renderPane();
     start('practice');
-    operate('avionics', 'on');
     await press(showMe());
-    expect(screen.queryByRole('status')).toBeNull();
+    act(() => trainer.resetSession());
+    expect(trainer.assisted).toEqual([]);
+    await press(showMe());
+    act(() => trainer.setMode('explore'));
+    expect(trainer.assisted).toEqual([]);
+  });
+
+  it('records a Show me only for a running Practice item', () => {
+    renderPane();
+    start('guided');
+    act(() => trainer.showMe());
+    expect(trainer.assisted).toEqual([]);
+    start('practice', 'followUp');
+    operate('avionics', 'on');
+    act(() => trainer.showMe());
+    expect(trainer.assisted).toEqual([]);
+  });
+
+  it('keeps a flow done in any order readable and its open item blank', async () => {
+    renderPane();
+    start('practice', 'scan');
+    await press(hideOption());
+    operate('pump', 'on');
+    expect(states()).toEqual(['Current', 'Done']);
+    expect(screen.getByText('Pump flow')).toBeTruthy();
+    expect(screen.queryByText('Master flow')).toBeNull();
+    expect(screen.queryByText('Master verified')).toBeNull();
+
+    await press(showMe());
+    expect(trainer.assisted).toEqual([0]);
+    expect(screen.getByText('Master flow')).toBeTruthy();
+  });
+
+  it('leaves the reading unit out until Show me', async () => {
+    renderPane();
+    start('practice', 'reading');
+    await press(hideOption());
+    expect(screen.getByRole('spinbutton', { name: 'Reading' })).toBeTruthy();
+    expect(screen.queryByText('rpm')).toBeNull();
+    await press(showMe());
+    expect(screen.getByText('rpm')).toBeTruthy();
   });
 
   it('announces a withheld item by its number only', () => {

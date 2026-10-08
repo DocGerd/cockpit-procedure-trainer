@@ -8,6 +8,7 @@ import type { PanelBox, PanelRects } from '../panel/rects';
 import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
+import { useTargetCued } from './guided-install';
 import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
@@ -172,15 +173,14 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
 
 /** Draws the mode's accent on the panel: a step target, or the control selected in Free explore. */
 export const PanelOverlay: (props: PanelOverlayProps) => ReactNode = ({ viewId, rects }) => {
-  const { mode, assisted } = useTrainer();
+  const { mode } = useTrainer();
   const store = useExploreStore();
-  const item = useSessionState((session) => session.checklist()?.current);
+  const cued = useTargetCued();
 
   useEffect(() => {
     if (mode !== 'explore') store.select(undefined);
   }, [mode, store]);
 
-  if (mode === 'practice' && (item === undefined || !assisted.includes(item))) return null;
-  if (mode !== 'explore') return <TargetOverlay viewId={viewId} rects={rects} />;
-  return <ExploreOverlay rects={rects} />;
+  if (mode === 'explore') return <ExploreOverlay rects={rects} />;
+  return cued ? <TargetOverlay viewId={viewId} rects={rects} /> : null;
 };

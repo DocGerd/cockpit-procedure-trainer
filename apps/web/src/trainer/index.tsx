@@ -185,10 +185,11 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update({ recall: on });
       },
       showMe() {
-        const { session: live, assisted } = current.current;
-        const item = live.checklist()?.current;
-        if (item === undefined || assisted.includes(item)) return;
-        update({ assisted: [...assisted, item] });
+        const { session: live, assisted, mode } = current.current;
+        const checklist = live.checklist();
+        if (mode !== 'practice' || !checklist || checklist.done) return;
+        if (assisted.includes(checklist.current)) return;
+        update({ assisted: [...assisted, checklist.current] });
       },
       resetSession() {
         const { aircraft, session: old } = current.current;

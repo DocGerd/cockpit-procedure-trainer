@@ -44,12 +44,15 @@ function CurrentDetail({
   answerable,
   tick,
   assist,
+  withheld,
 }: {
   item: ProcedureItem<unknown>;
-  hint: string | undefined;
+  hint: string;
   answerable: boolean;
   tick: boolean;
   assist: boolean;
+  /** The hint and the response unit name the item, so they wait for Show me too. */
+  withheld: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -57,7 +60,7 @@ function CurrentDetail({
   const [reading, setReading] = useState('');
   return (
     <span className="checklist-item-detail">
-      {hint !== undefined && <span className="checklist-hint">{hint}</span>}
+      {!withheld && <span className="checklist-hint">{hint}</span>}
       {answerable && item.type === 'check' && (
         <label className="checklist-response">
           <span className="checklist-response-label">{text.reading}</span>
@@ -69,7 +72,7 @@ function CurrentDetail({
             value={reading}
             onChange={(event) => setReading(event.target.value)}
           />
-          {item.response?.unit && <span>{localize(item.response.unit)}</span>}
+          {!withheld && item.response?.unit && <span>{localize(item.response.unit)}</span>}
         </label>
       )}
       {assist && (
@@ -166,10 +169,11 @@ function ItemRow({
       {state === 'current' && (
         <CurrentDetail
           item={item}
-          hint={withheld ? undefined : hint}
+          hint={hint}
           answerable={answerable}
           tick={tick}
           assist={mode === 'practice' && !shown}
+          withheld={withheld}
         />
       )}
     </li>
