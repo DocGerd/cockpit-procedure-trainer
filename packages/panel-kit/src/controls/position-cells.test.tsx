@@ -43,4 +43,11 @@ describe.each([
     expect(radios.length).toBeGreaterThan(1);
     expect(clips.every((clip) => clip.startsWith('polygon('))).toBe(true);
   });
+
+  it('are clipped in percent of their own box, which a zoomed panel does not scale', () => {
+    render(<Widget {...widgetProps(control)} />);
+    const clips = screen.getAllByRole('radio').map((radio) => radio.style.clipPath);
+    expect(clips.join(' ')).toContain('%');
+    expect(clips.join(' ')).not.toContain('px');
+  });
 });

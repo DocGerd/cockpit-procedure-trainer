@@ -31,8 +31,11 @@ function stepFor(key: string, direction: Direction): number | undefined {
   return undefined;
 }
 
-// Rendered lengths read back from the DOM, not design values.
-const MEASURED = 'px';
+/**
+ * The rects are viewport coordinates, which a zoomed panel scales, so the polygon is written in
+ * percent of the target's own box, which the scale leaves unchanged.
+ */
+const percent = (length: number, whole: number) => `${(length / whole) * 100}%`;
 
 function clipPaths(buttons: readonly (HTMLButtonElement | null)[]): (string | undefined)[] {
   const rects = buttons.map((button) => button?.getBoundingClientRect());
@@ -40,8 +43,8 @@ function clipPaths(buttons: readonly (HTMLButtonElement | null)[]): (string | un
   return cells.map((cell, index) => {
     const rect = rects[index];
     if (cell === undefined || rect === undefined) return undefined;
-    const points = cell.map(({ x, y }) =>
-      [x - rect.left, y - rect.top].map((length) => `${length}${MEASURED}`).join(' '),
+    const points = cell.map(
+      ({ x, y }) => `${percent(x - rect.left, rect.width)} ${percent(y - rect.top, rect.height)}`,
     );
     return `polygon(${points.join(', ')})`;
   });
