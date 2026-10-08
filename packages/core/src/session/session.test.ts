@@ -340,6 +340,47 @@ describe('startProcedure', () => {
   });
 });
 
+describe('seeded device state', () => {
+  type SeededState = { readonly page: string; readonly label: string };
+  const seededMonitor = defineDevice({
+    ...engineMonitor,
+    initial: { page: 'engine', label: 'plain' } as SeededState,
+    step: (state, { controls }): SeededState => ({ ...state, page: String(controls.page) }),
+  });
+  const runup = fixtureDeviceAircraft.phases.runup;
+  const seeded = {
+    ...fixtureDeviceAircraft,
+    phases: {
+      ...fixtureDeviceAircraft.phases,
+      runup: { ...runup, entry: { ...runup?.entry, deviceStates: { mon: { label: 'seeded' } } } },
+    },
+  } as Aircraft;
+  const label = (session: Session) => (session.state().devices.mon?.state as SeededState).label;
+
+  it('applies on a jump to the phase and not on another', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    expect(label(session)).toBe('plain');
+    session.jumpToPhase('runup');
+    expect(label(session)).toBe('seeded');
+    session.jumpToPhase('parking');
+    expect(label(session)).toBe('plain');
+  });
+
+  it('applies when a procedure starts and is restored by retryItem', () => {
+    const session = createSession(seeded, { devices: [seededMonitor] });
+    session.startProcedure('monitorElectrical');
+    expect(label(session)).toBe('seeded');
+    session.set('mon.page', 'electrical');
+    const atItem = session.state().devices;
+    session.set('mon.page', 'engine');
+    session.advance(STEP_MS);
+    expect(session.state().devices).not.toEqual(atItem);
+    session.retryItem();
+    expect(session.state().devices).toEqual(atItem);
+    expect(label(session)).toBe('seeded');
+  });
+});
+
 describe('retryItem', () => {
   it('restores the cockpit to the start of the current item and keeps the record', () => {
     const session = createSession(fixtureAircraft);
