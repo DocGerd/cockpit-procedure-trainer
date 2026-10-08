@@ -1,14 +1,39 @@
 import { useEffect, useState } from 'react';
-import { useMessages } from '../i18n';
+import { format, useLocalize, useMessages } from '../i18n';
 import { useLostProgressText, useProgressAtRisk, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
+import { useLockNotice, useLockNoticeStore } from './lock-notice';
 import { messages } from './messages';
 import { OperateToggle } from './OperateToggle';
 import './modes.css';
 
 const segments: readonly Mode[] = ['guided', 'practice'];
 const NOTICE_MS = 6000;
+
+/** Says which control holds a control whose move an interlock refused; the panel itself shows nothing. */
+function LockNotice() {
+  const text = useMessages(messages);
+  const localize = useLocalize();
+  const { aircraft } = useTrainer();
+  const store = useLockNoticeStore();
+  const notice = useLockNotice();
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => store.clear(), NOTICE_MS);
+    return () => clearTimeout(timer);
+  }, [notice, store]);
+
+  const control = notice && aircraft.controls[notice.controlId];
+  const by = control?.interlock && aircraft.controls[control.interlock.control];
+  if (!control || !by) return null;
+  return (
+    <p role="status" className="modes-notice" data-notice="locked">
+      {format(text.lockedNotice, { control: localize(control.name), by: localize(by.name) })}
+    </p>
+  );
+}
 
 export function ModeControl() {
   const text = useMessages(messages);
@@ -62,10 +87,12 @@ export function ModeControl() {
       >
         {text.explore}
       </button>
-      {guidedOn && (
+      {guidedOn ? (
         <p role="status" className="modes-notice">
           {text.guidedOnNotice}
         </p>
+      ) : (
+        <LockNotice />
       )}
       {mode === 'explore' && <OperateToggle />}
       {confirming && (

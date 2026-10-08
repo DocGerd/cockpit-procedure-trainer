@@ -1,10 +1,11 @@
-import type { Session } from '@cpt/core';
+import type { Session, SessionControlResult } from '@cpt/core';
 import type { ControlWidgetProps } from '@cpt/panel-kit';
 import { useCallback, useMemo } from 'react';
 import { useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { useExploreStore } from './explore-state';
 import type { ExploreStore } from './explore-state';
+import { lockNoticeStore } from './lock-notice';
 
 export type PanelInput = Pick<
   ControlWidgetProps,
@@ -18,8 +19,9 @@ function panelInput(
   controlId: string,
 ): PanelInput {
   const operates = () => mode !== 'explore' || explore.get().operate;
-  const operate = (action: () => void) => {
-    if (operates()) action();
+  const notices = lockNoticeStore(session);
+  const operate = (action: () => SessionControlResult) => {
+    if (operates()) notices.report(controlId, action());
     else explore.select(controlId);
   };
   return {
@@ -27,10 +29,9 @@ function panelInput(
       operate(() => session.set(controlId, position));
     },
     onPress: (position) => {
-      operate(() => {
-        if (position === undefined) session.press(controlId);
-        else session.press(controlId, position);
-      });
+      operate(() =>
+        position === undefined ? session.press(controlId) : session.press(controlId, position),
+      );
     },
     // A hold that began while operating must still end, or the control stays held.
     onRelease: () => {

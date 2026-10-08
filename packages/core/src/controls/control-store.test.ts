@@ -297,6 +297,79 @@ describe('guarded control', () => {
   });
 });
 
+describe('interlocked control', () => {
+  const interlocked = {
+    valve: { ...base, kind: 'toggle', positions: ['open', 'closed'], initial: 'closed' },
+    key: {
+      ...base,
+      kind: 'rotary',
+      positions: ['off', 'on', 'start'],
+      initial: 'off',
+      springBack: { start: 'on' },
+      interlock: { control: 'valve', at: 'closed', holds: 'off' },
+    },
+  } as const satisfies ControlRecord;
+
+  const locked = () => {
+    const store = createControlStore(interlocked);
+    const changes: ControlChange[] = [];
+    store.subscribe((change) => changes.push(change));
+    return { store, changes };
+  };
+
+  it('refuses set away from the held position while the other control is there', () => {
+    const { store, changes } = locked();
+    expect(store.set('key', 'on')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.positions().key).toBe('off');
+    expect(changes).toEqual([]);
+  });
+
+  it('refuses press onto a spring detent away from the held position', () => {
+    const { store } = locked();
+    expect(store.press('key', 'start')).toEqual({ applied: false, reason: 'locked' });
+    expect(store.positions().key).toBe('off');
+  });
+
+  it('frees the control once the other control leaves', () => {
+    const { store } = locked();
+    store.set('valve', 'open');
+    expect(store.set('key', 'on')).toEqual({ applied: true });
+  });
+
+  it('lets the other control move while this one stands elsewhere, and this one return', () => {
+    const { store } = locked();
+    store.set('valve', 'open');
+    store.set('key', 'on');
+    expect(store.set('valve', 'closed')).toEqual({ applied: true });
+    expect(store.press('key', 'start')).toEqual({ applied: true });
+    expect(store.release('key')).toEqual({ applied: true });
+    expect(store.set('key', 'off')).toEqual({ applied: true });
+    expect(store.set('key', 'on')).toEqual({ applied: false, reason: 'locked' });
+  });
+
+  it('refuses a momentary press as well', () => {
+    const store = createControlStore({
+      ...interlocked,
+      starter: {
+        ...base,
+        kind: 'momentary',
+        positions: ['released', 'held'],
+        initial: 'released',
+        interlock: { control: 'valve', at: 'closed', holds: 'released' },
+      },
+    });
+    expect(store.press('starter')).toEqual({ applied: false, reason: 'locked' });
+  });
+
+  it('leaves systemSet and load free', () => {
+    const { store } = locked();
+    expect(store.systemSet('key', 'on')).toEqual({ applied: true });
+    store.load({ key: 'off', valve: 'closed' });
+    store.load({ key: 'on' });
+    expect(store.positions().key).toBe('on');
+  });
+});
+
 describe('systemSet', () => {
   it('moves a control and emits a system change', () => {
     const { store, changes } = setup();

@@ -5,6 +5,7 @@ import type {
   IndicatorValue,
   JsonObject,
 } from '@cpt/core';
+import { readHitAreas } from '../artwork/geometry';
 import { controlWidgets } from '../controls';
 import { indicatorWidgets } from '../indicators';
 import {
@@ -61,8 +62,19 @@ const typeOf = (value: IndicatorValue): ValueType =>
 
 function checkControl(id: string, control: ControlDefinition): AppearanceFinding | undefined {
   const { appearance } = control;
-  if (!appearance || !('widget' in appearance)) return undefined;
+  if (!appearance) return undefined;
   const finding = (message: string): AppearanceFinding => ({ subject: 'control', id, message });
+  if (!('widget' in appearance)) {
+    const areas = readHitAreas(appearance.options);
+    if (areas === null) {
+      return finding(`the hitArea option is invalid: ${JSON.stringify(appearance.options)}`);
+    }
+    const positions: readonly unknown[] = Array.isArray(control.positions) ? control.positions : [];
+    const unknown = Object.keys(areas).filter((position) => !positions.includes(position));
+    return unknown.length > 0
+      ? finding(`the hitArea option names positions the control does not have: ${list(unknown)}`)
+      : undefined;
+  }
   const { widget } = appearance;
   if (!Object.hasOwn(controlWidgets, widget)) {
     return finding(

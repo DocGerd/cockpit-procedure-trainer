@@ -115,10 +115,10 @@ export const controls = {
     initial: 'armed',
     name: text('Notsender', 'ELT remote switch'),
     description: text(
-      'Fernschalter des Notsenders. ARMED löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
-      'Remote switch of the emergency locator transmitter. ARMED triggers on impact, ON transmits at once; the lamp shows it transmitting.',
+      'Fernschalter des Notsenders, oben ON, unten ARM. ARM löst bei einem Aufprall aus, ON sendet sofort; die Lampe zeigt das Senden.',
+      'Remote switch of the emergency locator transmitter, ON up, ARM down. ARM triggers it on impact, ON transmits at once; the lamp shows it transmitting.',
     ),
-    appearance: { widget: 'toggle' },
+    appearance: controlArtwork.elt,
   },
   flapBreaker: breakerOf(
     text('Klappensicherung', 'Flap breaker'),
@@ -134,8 +134,8 @@ export const controls = {
     initial: 'closed',
     name: text('Brandhahn', 'Fuel valve'),
     description: text(
-      'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt er den Zündschlüssel.',
-      'Slide lever for the fuel supply, up open, down closed. Closed, it covers the ignition key.',
+      'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt sein Griff das Zündschloss: der Schlüssel lässt sich nicht aus OFF drehen.',
+      'Slide lever for the fuel supply, up open, down closed. Closed, its handle covers the ignition key slot, so the key cannot leave OFF.',
     ),
     appearance: controlArtwork.fuelValve,
   },
@@ -155,10 +155,11 @@ export const controls = {
     positions: ['off', 'left', 'right', 'both', 'start'],
     initial: 'off',
     springBack: { start: 'both' },
+    interlock: { control: 'fuelValve', at: 'closed', holds: 'off' },
     name: text('Zündschalter', 'Ignition'),
     description: text(
-      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. START dreht das Triebwerk und springt auf BOTH zurück.',
-      'Ignition key with starter: OFF, L, R, BOTH, START. START cranks the engine and springs back to BOTH.',
+      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. START dreht das Triebwerk und springt auf BOTH zurück. Bei geschlossenem Brandhahn verdeckt dessen Griff das Schloss: der Schlüssel bleibt auf OFF.',
+      'Ignition key with starter: OFF, L, R, BOTH, START. START cranks the engine and springs back to BOTH. With the fuel valve closed its handle covers the slot: the key stays at OFF.',
     ),
     appearance: controlArtwork.ignition,
   },
