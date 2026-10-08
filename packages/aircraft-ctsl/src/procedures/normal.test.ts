@@ -25,6 +25,8 @@ const expected = [
   ['shutdown', 'parkingSecuring', undefined],
 ] as const;
 
+const runwayHeadingCheck = `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`;
+
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
@@ -34,8 +36,8 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Flap readout shows 0°',
   ],
   taxi: ['Parking brake released'],
-  takeoff: ['Flap readout shows 15°'],
-  shortTakeoff: ['Flap readout shows 15°'],
+  takeoff: [runwayHeadingCheck, 'Flap readout shows 15°'],
+  shortTakeoff: [runwayHeadingCheck, 'Flap readout shows 15°'],
   beforeTakeoff: [
     'Brake lever released, parking brake holds',
     'Oil pressure in the green',
@@ -381,7 +383,11 @@ describe('CTSL normal procedures', () => {
     'starts %s lined up with a compass check against the runway heading',
     (id) => {
       const first = normalProcedures[id].items[0] as Item;
-      expect(first.type).toBe('confirm');
+      if (first.type !== 'check') throw new Error(`${id} opens with a ${first.type}`);
+      expect(first.target).toEqual({ indicator: 'compass' });
+      const facing = (phase: string) => createSession(ctslAircraft, { devices, phase }).state();
+      expect(first.condition(facing('linedUp'))).toBe(true);
+      expect(first.condition(facing('holding'))).toBe(false);
       expect(first.text.en).toContain(headingLabel(runway.headingDeg));
       expect(first.text.en).toContain(`runway ${runway.designator}`);
       expect(first.text.de).toContain(headingLabel(runway.headingDeg));

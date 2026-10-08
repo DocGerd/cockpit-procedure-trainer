@@ -116,6 +116,11 @@ failure ids, `environment` the phase's `airspeedKt`, `altitudeFt` and `onGround`
 (`rpm`, `oilPsi`, `amps`) in the same state. Wrong operation needs no special
 code: it fails to satisfy the rules, so the engine does not start.
 
+A state field the phase sets and the pilot does not control, such as the
+heading, is copied through by `step`. When a full flight carries the cockpit
+into the next phase, the optional `carry(carried, entry)` lays such fields from
+that phase's entry state over the carried state; the demo's carries the heading.
+
 When the aircraft is split over files, the types come from `@cpt/core` and your
 own state and failure types. Declare the failure ids as a union, `type DemoFailure =
 'alternatorFailure'`, and type the step as `SystemsDefinition<DemoState,

@@ -35,10 +35,15 @@ const circuitDropWithinLimit = (state: State) =>
 const confirm = (de: string, en: string) => ({ type: 'confirm', text: text(de, en) }) as const;
 
 // Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
-const confirmRunwayHeading = confirm(
-  `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
-  `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
-);
+const checkRunwayHeading = {
+  type: 'check',
+  target: { indicator: 'compass' },
+  condition: (state: State) => state.systems.headingDeg === runway.headingDeg,
+  text: text(
+    `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
+    `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
+  ),
+} as const;
 
 // Intake §3.4: close the valve, then pull the non-locking brake lever; the valve traps the pressure.
 const setParkingBrake = [
@@ -521,7 +526,7 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      confirmRunwayHeading,
+      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',
@@ -585,7 +590,7 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      confirmRunwayHeading,
+      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',

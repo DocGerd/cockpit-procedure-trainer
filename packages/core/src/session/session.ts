@@ -189,6 +189,11 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     phase = id;
     environment = next.environment;
     runtime.setEnvironment(environment);
+    if (runtime.status().kind !== 'running') return;
+    const { carry } = aircraft.systems;
+    if (carry) runtime.reset(carry(runtime.state(), next.systems));
+    runtime.onControlsChanged(store.positions());
+    if (runtime.status().kind === 'running') settleDevices(0);
   }
 
   function track(next: ChecklistState<unknown>): void {

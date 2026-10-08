@@ -578,6 +578,39 @@ describe('flight legs', () => {
     expect(session.state().systems).toEqual(before.systems);
   });
 
+  it('lays the values the next phase sets over the carried state', () => {
+    type Headed = FixtureState & { readonly headingDeg: number };
+    const facing = (id: string, headingDeg: number) => {
+      const phase = legs.phases[id] ?? fixturePhase(id);
+      return {
+        ...phase,
+        entry: { ...phase.entry, state: { ...(phase.entry.state as FixtureState), headingDeg } },
+      };
+    };
+    const headed = {
+      ...legs,
+      phases: { ...legs.phases, parking: facing('parking', 90), taxiOut: facing('taxiOut', 360) },
+      systems: {
+        initial: legs.systems.initial,
+        step: (state: Headed, input: Parameters<typeof legs.systems.step>[1]) => ({
+          ...(legs.systems.step(state, input) as FixtureState),
+          headingDeg: state.headingDeg,
+        }),
+        carry: (carried: Headed, entry: Headed) => ({ ...carried, headingDeg: entry.headingDeg }),
+      },
+    } as Aircraft;
+    const session = createSession(headed);
+    session.set('master', 'on');
+    session.set('throttle', 0.5);
+    const before = session.state();
+    session.startLeg('runupCheck');
+    const systems = session.state().systems as Headed;
+    expect(systems.headingDeg).toBe(360);
+    expect(systems.busPowered).toBe(true);
+    expect(session.state().controls).toEqual(before.controls);
+    expect(session.state().devices).toEqual(before.devices);
+  });
+
   it('loads the snapshot of a leg that skips a phase or goes back', () => {
     const skipping = createSession(legs);
     skipping.set('throttle', 0.5);
