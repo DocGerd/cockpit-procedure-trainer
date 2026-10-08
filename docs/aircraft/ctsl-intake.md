@@ -89,7 +89,7 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   thermal), then two headset emergency jacks (background). The readout blinks
   while the drive runs to the selected setting and shows steady once there; if it
   keeps blinking while the flaps extend, the drive's overload protection has
-  stopped it, and the pilot slows down (HB 7-12). The trainer shows it steady.
+  stopped it (HB 7-12). The trainer shows it steady.
 - Fuel valve (Brandhahn), left: a vertical slide lever, open up (HB 4-3), closed
   down. When closed, its handle covers the ignition key slot (HB 3-6); the valve is
   shaped so the key can hardly be operated past it (HB 4-6). Assumed (unverified),
@@ -114,8 +114,7 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 
 ### 3.4 Centre console (view `console`)
 
-Handbook facts (checked 2026-10-08 against HB 3-4, 4-6, 7-5, 7-10, 7-12, 7-13,
-7-19 to 7-21 and 8-1):
+Handbook facts (checked 2026-10-08):
 
 - **Engine control unit** (Motorbedieneinheit): on top of the centre console,
   just aft of the lower centre field, reachable from both seats but laid out for
@@ -565,9 +564,9 @@ verifies it on D-MPGO.
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
 12. **Trim wheel position**: left of the throttle (text) or below the choke
-    (photo)? Uses below the choke. **Handbook check 2026-10-08:** answered from the handbook. Both are
-    true: the figure is a top view with forward to the left, so its bottom slot is
-    the pilot-side one, and the trim wheel is left of the throttle with the choke
+    (photo)? Uses below the choke. **Handbook check 2026-10-08:** answered by inference from the
+    handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
+    read as a top view with forward to the left: its bottom slot is then the pilot-side one, and the trim wheel is left of the throttle with the choke
     between them (HB 7-12, 7-19; §3.4).
 13. **Cockpit-light switch**: present on the panel but absent from the wiring
     diagram. Modelled as a main-bus consumer.
@@ -674,7 +673,8 @@ verifies it on D-MPGO.
     levers slide fore and aft; push is forward, so full throttle is forward and
     the brake and choke apply when pulled toward the pilot; the trim wheel turns
     fore and aft, forward nose down, with its indicator beside it.
-    **Handbook check 2026-10-08:** answered from the handbook, with one correction. Directions:
+    **Handbook check 2026-10-08:** answered from the handbook, with one correction;
+    the lever order is an inference for the owner to confirm. Directions:
     throttle FULL forward and IDLE aft, brake and choke OFF forward and ON aft, trim
     DOWN forward and UP aft, forward trims nose-heavy (HB 7-12, 7-19 to 7-21); the
     trim indicator sits directly beside the wheel (HB 7-12). Correction: the levers
@@ -691,7 +691,7 @@ verifies it on D-MPGO.
     them, at about shoulder height, reached back over the shoulder; the pin goes
     through the holder and carries a remove-before-flight flag.
     **Handbook check 2026-10-08:** answered from the handbook; the assumption is wrong on
-    height and direction. The handle is on the centre console between the seats,
+    height and reach, and it gave no pull direction. The handle is on the centre console between the seats,
     at the main bulkhead, low at the console's aft end (HB 3-4, 7-13, 4-5), and is
     pulled forward, hard, to the stop (HB 3-4). The pin secures the release lever
     itself (HB 8-1). Grip shape and the pin's flag are not given.
