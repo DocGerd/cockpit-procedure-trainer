@@ -12,7 +12,9 @@ import {
 import type { ReactNode } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { deviceRegistry } from '../device-registry';
+import { format, useMessages } from '../i18n';
 import { readSetting, writeSetting } from '../storage';
+import { messages } from './messages';
 
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
@@ -274,4 +276,34 @@ export function useSessionState<T>(
   };
 
   return useSyncExternalStore(store.subscribe, getSelection);
+}
+
+export type ProgressAtRisk = { done: number; total: number; deviations: number };
+
+export function useProgressAtRisk(): ProgressAtRisk | undefined {
+  const { procedureId } = useTrainer();
+  return useSessionState((snapshot) => {
+    const checklist = snapshot.checklist();
+    if (procedureId === undefined || checklist === undefined || checklist.done) return undefined;
+    const done = checklist.completed.length;
+    const deviations = checklist.deviations.length;
+    if (done === 0 && deviations === 0) return undefined;
+    return { done, total: checklist.procedure.items.length, deviations };
+  });
+}
+
+// The closing sentence of every confirm dialog that discards a run, so each says what it costs.
+export function useLostProgressText(): string {
+  const text = useMessages(messages);
+  const risk = useProgressAtRisk();
+  if (risk === undefined) return text.nothingLost;
+  const items = format(text.lostProgress, { done: risk.done, total: risk.total });
+  if (risk.deviations === 0) return `${items}.`;
+  const deviations = format(
+    risk.deviations === 1 ? text.lostDeviationOne : text.lostDeviationOther,
+    {
+      count: risk.deviations,
+    },
+  );
+  return `${items}, ${deviations}.`;
 }

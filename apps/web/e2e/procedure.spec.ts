@@ -55,6 +55,27 @@ test('a Practice run shows no deviation information until the summary', async ({
   ).toContainText(deviation.title(unrelatedControl));
 });
 
+test('Restart asks before it discards a deviation', async ({ page }) => {
+  await startProcedure(page, engineStart, 'guided');
+  const pane = checklistPane(page);
+  await operateUnrelatedControl(page, unrelatedControl);
+  await expect(pane.getByText(copy.checklist.noDeviations)).toHaveCount(0);
+
+  await pane.getByRole('button', { name: copy.checklist.restart, exact: true }).click();
+  const dialog = page.getByRole('alertdialog', { name: copy.checklist.restartTitle });
+  await expect(dialog).toContainText('1 deviation');
+  await dialog.getByRole('button', { name: copy.checklist.restartCancel }).click();
+  await expect(pane.getByText(copy.checklist.noDeviations)).toHaveCount(0);
+
+  await pane.getByRole('button', { name: copy.checklist.restart, exact: true }).click();
+  await page
+    .getByRole('alertdialog')
+    .getByRole('button', { name: copy.checklist.restart, exact: true })
+    .click();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await expect(pane.getByText(copy.checklist.noDeviations)).toBeVisible();
+});
+
 test.describe('changing the phase during a procedure', () => {
   const startPhase = procedure(engineStart).startPhase;
   const target = Object.entries(aircraft.phases).find(([id]) => id !== startPhase);
@@ -69,7 +90,11 @@ test.describe('changing the phase during a procedure', () => {
     await page
       .getByLabel(copy.outsideView.phase, { exact: true })
       .selectOption({ label: targetPhase.name.en });
-    await expect(page.getByRole('alertdialog', { name: copy.outsideView.jumpTitle })).toBeVisible();
+    await expect(
+      page.getByRole('alertdialog', {
+        name: copy.outsideView.jumpTitle.replace('{phase}', targetPhase.name.en),
+      }),
+    ).toBeVisible();
   });
 
   test('Cancel keeps the procedure and the phase', async ({ page }) => {

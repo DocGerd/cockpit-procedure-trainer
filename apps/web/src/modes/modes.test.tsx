@@ -232,7 +232,8 @@ describe('ModeControl', () => {
     start('start', 'practice');
 
     await userEvent.click(modeButton('Free explore'));
-    const dialog = screen.getByRole('alertdialog', { name: 'End the procedure?' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Switch to Free explore?' });
+    expect(dialog.textContent).toContain('No items are done yet');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(trainer.mode).toBe('practice');
@@ -246,6 +247,16 @@ describe('ModeControl', () => {
     );
     expect(trainer.mode).toBe('explore');
     expect(trainer.procedureId).toBeUndefined();
+  });
+
+  it('names the progress Free explore would end', async () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('master', 'on'));
+    await userEvent.click(modeButton('Free explore'));
+    expect(screen.getByRole('alertdialog').textContent).toContain(
+      'Progress lost: 1 of 5 items done.',
+    );
   });
 
   it.each(['Guided', 'Practice'])(

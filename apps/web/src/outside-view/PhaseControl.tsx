@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useSessionState, useTrainer } from '../trainer';
+import { useLostProgressText, useSessionState, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 import './outside-view.css';
@@ -11,6 +11,7 @@ export function PhaseControl() {
   const { aircraft, procedureId, jumpToPhase } = useTrainer();
   const phase = useSessionState((session) => session.phase());
   const [pending, setPending] = useState<string | undefined>();
+  const lost = useLostProgressText();
   const selectId = useId();
   const running = procedureId !== undefined;
 
@@ -43,8 +44,8 @@ export function PhaseControl() {
       </select>
       {pending !== undefined && pendingPhase && (
         <ConfirmDialog
-          title={text.jumpTitle}
-          body={format(text.jumpBody, { phase: localize(pendingPhase.name) })}
+          title={format(text.jumpTitle, { phase: localize(pendingPhase.name) })}
+          body={`${format(text.jumpBody, { phase: localize(pendingPhase.name) })} ${lost}`}
           confirmLabel={text.jumpConfirm}
           cancelLabel={text.jumpCancel}
           onCancel={() => setPending(undefined)}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMessages } from '../i18n';
-import { useTrainer } from '../trainer';
+import { useLostProgressText, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
@@ -13,6 +13,7 @@ const NOTICE_MS = 6000;
 export function ModeControl() {
   const text = useMessages(messages);
   const { mode, setMode, procedureId } = useTrainer();
+  const lost = useLostProgressText();
   const [confirming, setConfirming] = useState(false);
   const [guidedOn, setGuidedOn] = useState(false);
   const running = procedureId !== undefined;
@@ -69,7 +70,7 @@ export function ModeControl() {
       {confirming && (
         <ConfirmDialog
           title={text.exploreTitle}
-          body={text.exploreBody}
+          body={`${text.exploreBody} ${lost}`}
           confirmLabel={text.exploreConfirm}
           cancelLabel={text.exploreCancel}
           onCancel={() => setConfirming(false)}

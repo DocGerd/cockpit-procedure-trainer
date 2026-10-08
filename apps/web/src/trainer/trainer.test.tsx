@@ -2,7 +2,13 @@
 import { STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { shallowEqual, TrainerProvider, useSessionState, useTrainer } from './index';
+import {
+  shallowEqual,
+  TrainerProvider,
+  useProgressAtRisk,
+  useSessionState,
+  useTrainer,
+} from './index';
 import { testAircraft } from './test-aircraft';
 
 vi.mock('../aircraft-registry', async () => ({
@@ -474,5 +480,51 @@ describe('session state', () => {
     expect(snapshot.status()).toEqual({ kind: 'running' });
     expect(snapshot.guards()).toBe(trainer.session.guards());
     expect(snapshot.failures()).toBe(trainer.session.failures());
+  });
+});
+
+describe('progress at risk', () => {
+  const useRisk = () => ({ trainer: useTrainer(), risk: useProgressAtRisk() });
+  const renderRisk = () => renderHook(useRisk, { wrapper: TrainerProvider });
+
+  it('is nothing while no procedure runs', () => {
+    const { result } = renderRisk();
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('is nothing until an item is done or a deviation is recorded', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('counts the items done and the deviations', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    expect(result.current.risk).toEqual({ done: 1, total: 2, deviations: 0 });
+  });
+
+  it('counts a deviation although no item is done', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('pump', 'on'));
+    expect(result.current.risk).toEqual({ done: 0, total: 2, deviations: 1 });
+  });
+
+  it('is nothing once the procedure is finished', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    act(() => result.current.trainer.session.set('pump', 'on'));
+    expect(result.current.risk).toBeUndefined();
+  });
+
+  it('is nothing after a phase jump ended the procedure', () => {
+    const { result } = renderRisk();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    act(() => result.current.trainer.jumpToPhase('cruise'));
+    expect(result.current.risk).toBeUndefined();
   });
 });

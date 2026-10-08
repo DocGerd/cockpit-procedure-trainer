@@ -1,12 +1,12 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
 import { ModeControl } from '../modes/ModeControl';
 import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
-import { useTrainer } from '../trainer';
-import { choosePlacement } from './choice-position';
+import { useLostProgressText, useProgressAtRisk, useTrainer } from '../trainer';
+import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
 
 function BrandMark() {
@@ -18,149 +18,65 @@ function BrandMark() {
   );
 }
 
-function HeaderChoice({
-  eyebrow,
-  value,
-  action,
-  open,
-  onToggle,
-  onClose,
-  onChange,
-}: {
-  eyebrow: string;
-  value: string;
-  action: string;
-  open: boolean;
-  onToggle(): void;
-  onClose(): void;
-  onChange(): void;
-}) {
-  const anchor = useRef<HTMLDivElement>(null);
-  const chip = useRef<HTMLButtonElement>(null);
-  const dialog = useRef<HTMLDivElement>(null);
-  const dialogId = useId();
-  const labelId = useId();
-  const close = useRef(onClose);
-  close.current = onClose;
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!(event.target instanceof Node) || !anchor.current?.contains(event.target)) {
-        close.current();
-      }
-    };
-    // Capture phase: the dialog is the topmost layer, so Escape must not reach the checklist drawer.
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.stopPropagation();
-      if (anchor.current?.contains(document.activeElement)) chip.current?.focus();
-      close.current();
-    };
-    document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown, true);
-      document.removeEventListener('keydown', onKeyDown, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (open) dialog.current?.focus();
-  }, [open]);
-
-  // The dialog hangs under its chip; it flips to the chip's end edge or the header edge only to stay on screen.
-  useLayoutEffect(() => {
-    const element = dialog.current;
-    if (!open || !element) return;
-    const place = () => {
-      const header = anchor.current?.parentElement;
-      const margin = header ? parseFloat(getComputedStyle(header).paddingLeft) || 0 : 0;
-      const chipBox = chip.current?.getBoundingClientRect();
-      if (!chipBox) return;
-      element.dataset.placement = choosePlacement(
-        chipBox,
-        element.getBoundingClientRect().width,
-        window.innerWidth,
-        margin,
-      );
-    };
-    place();
-    window.addEventListener('resize', place);
-    return () => window.removeEventListener('resize', place);
-  }, [open]);
-
-  return (
-    <div
-      ref={anchor}
-      className="shell-choice-anchor"
-      onBlur={(event) => {
-        const next = event.relatedTarget;
-        if (open && next instanceof Node && !anchor.current?.contains(next)) onClose();
-      }}
-    >
-      <button
-        ref={chip}
-        type="button"
-        className="chrome-button shell-choice"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-controls={open ? dialogId : undefined}
-        onClick={onToggle}
-      >
-        <span className="shell-eyebrow">{eyebrow}</span>{' '}
-        <span className="shell-choice-value">{value}</span>
-      </button>
-      {open && (
-        <div
-          ref={dialog}
-          id={dialogId}
-          role="dialog"
-          aria-labelledby={labelId}
-          tabIndex={-1}
-          className="shell-choice-details"
-        >
-          <p id={labelId} className="shell-detail-label">
-            {eyebrow}
-          </p>
-          <p className="shell-detail-value">{value}</p>
-          <button type="button" className="chrome-button" onClick={onChange}>
-            {action}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 type Choice = 'aircraft' | 'procedure';
 
 function TrainerChoices() {
   const text = useMessages(messages);
   const localize = useLocalize();
   const { aircraft, procedureId, backToPicker } = useTrainer();
-  const [open, setOpen] = useState<Choice>();
+  const risk = useProgressAtRisk();
+  const lost = useLostProgressText();
+  const [pending, setPending] = useState<Choice>();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
-  const choice = (kind: Choice) => ({
-    open: open === kind,
-    onToggle: () => setOpen((current) => (current === kind ? undefined : kind)),
-    onClose: () => setOpen(undefined),
-    onChange: backToPicker,
-  });
+  const choose = (kind: Choice) => {
+    if (risk === undefined) backToPicker();
+    else setPending(kind);
+  };
+  const chips: { kind: Choice; eyebrow: string; value: string; action: string }[] = [
+    {
+      kind: 'aircraft',
+      eyebrow: text.aircraft,
+      value: localize(aircraft.name),
+      action: text.changeAircraft,
+    },
+    ...(procedure
+      ? [
+          {
+            kind: 'procedure' as const,
+            eyebrow: text.procedure,
+            value: localize(procedure.title),
+            action: text.changeProcedure,
+          },
+        ]
+      : []),
+  ];
+  const asking = chips.find((chip) => chip.kind === pending);
+  const body = pending === 'procedure' ? text.changeProcedureBody : text.changeAircraftBody;
   return (
     <>
-      <HeaderChoice
-        eyebrow={text.aircraft}
-        value={localize(aircraft.name)}
-        action={text.changeAircraft}
-        {...choice('aircraft')}
-      />
-      {procedure && (
-        <HeaderChoice
-          eyebrow={text.procedure}
-          value={localize(procedure.title)}
-          action={text.changeProcedure}
-          {...choice('procedure')}
+      {chips.map(({ kind, eyebrow, value, action }) => (
+        <button
+          key={kind}
+          type="button"
+          className="chrome-button shell-choice"
+          title={`${action}: ${value}`}
+          onClick={() => choose(kind)}
+        >
+          <span className="shell-eyebrow">{eyebrow}</span>{' '}
+          <span className="shell-choice-value">{value}</span>
+        </button>
+      ))}
+      {asking && (
+        <ConfirmDialog
+          title={`${asking.action}?`}
+          body={`${body} ${lost}`}
+          confirmLabel={asking.action}
+          cancelLabel={text.cancel}
+          onCancel={() => setPending(undefined)}
+          onConfirm={() => {
+            setPending(undefined);
+            backToPicker();
+          }}
         />
       )}
     </>

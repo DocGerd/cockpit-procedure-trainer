@@ -160,8 +160,9 @@ describe('phase control', () => {
       expect(dialog.getAttribute('aria-modal')).toBe('true');
       const description = document.getElementById(dialog.getAttribute('aria-describedby') ?? '');
       expect(description?.textContent).toContain('Cruise');
+      expect(description?.textContent).toContain('No items are done yet');
       const title = document.getElementById(dialog.getAttribute('aria-labelledby') ?? '');
-      expect(title?.textContent).toBe('End the procedure?');
+      expect(title?.textContent).toBe('Jump to Cruise?');
       expect(trainer.session.phase()).toBe('ground');
       expect(trainer.procedureId).toBe('startUp');
       expect(phaseSelect()).toHaveProperty('value', 'ground');
@@ -212,6 +213,7 @@ describe('phase control', () => {
       await selectCruise('de');
       expect(screen.getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
       expect(screen.getByRole('button', { name: 'Zur Phase springen' })).toBeTruthy();
+      expect(screen.getByRole('alertdialog', { name: 'Sprung zu Cruise (de)?' })).toBeTruthy();
     });
 
     it('drops the question when the procedure ends meanwhile', async () => {
