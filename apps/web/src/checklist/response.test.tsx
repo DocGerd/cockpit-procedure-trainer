@@ -15,6 +15,13 @@ vi.mock('../aircraft-registry', async () => {
         ...fixture,
         controls: {
           ...fixture.controls,
+          throttle: {
+            kind: 'lever',
+            positions: 'continuous',
+            initial: 0,
+            name: { de: 'Gashebel', en: 'Throttle' },
+            description: { de: 'Gashebel', en: 'Throttle' },
+          },
           lampTest: {
             kind: 'momentary',
             positions: ['released', 'pressed'],
@@ -34,6 +41,32 @@ vi.mock('../aircraft-registry', async () => {
                 control: 'lampTest',
                 position: 'pressed',
                 text: { de: 'Lampentest', en: 'Lamp test' },
+              },
+            ],
+          },
+          drag: {
+            title: { de: 'Ziehen', en: 'Drag' },
+            type: 'normal',
+            startPhase: 'ground',
+            items: [
+              {
+                type: 'action',
+                control: 'throttle',
+                position: 1,
+                text: { de: 'Gashebel voll', en: 'Throttle full' },
+              },
+            ],
+          },
+          flip: {
+            title: { de: 'Schalten', en: 'Flip' },
+            type: 'normal',
+            startPhase: 'ground',
+            items: [
+              {
+                type: 'action',
+                control: 'master',
+                position: 'on',
+                text: { de: 'Hauptschalter ein', en: 'Master on' },
               },
             ],
           },
@@ -64,12 +97,13 @@ function Probe() {
   return null;
 }
 
-function start(mode: Mode, procedure = 'reading') {
+function start(mode: Mode, procedure = 'reading', language: 'de' | 'en' = 'en') {
   renderWithLanguage(
     <TrainerProvider>
       <Probe />
       <ChecklistPane />
     </TrainerProvider>,
+    { language },
   );
   act(() => {
     trainer.setMode(mode);
@@ -137,6 +171,41 @@ describe('a spring-back press', () => {
     cleanup();
     start('guided', 'press');
     expect(screen.queryByRole('button', { name: 'Verified' })).toBeNull();
-    expect(screen.getByText('Highlighted on the panel. Operate it to continue.')).toBeTruthy();
+    expect(
+      screen.getByText('Highlighted on the panel. Press and hold it to continue.'),
+    ).toBeTruthy();
+  });
+});
+
+describe('the gesture an action hint names', () => {
+  it('says press for a switch, in both modes', () => {
+    start('guided', 'flip');
+    expect(
+      screen.getByText('Highlighted on the panel. Press it, or verify it if it is already set.'),
+    ).toBeTruthy();
+    cleanup();
+    start('practice', 'flip');
+    expect(
+      screen.getByText('Press it on the panel, or verify it if it is already set.'),
+    ).toBeTruthy();
+  });
+
+  it('says press and hold for a control that springs back', () => {
+    start('practice', 'press');
+    expect(screen.getByText('Press and hold it on the panel to continue.')).toBeTruthy();
+  });
+
+  it('says drag for a lever', () => {
+    start('guided', 'drag');
+    expect(
+      screen.getByText('Highlighted on the panel. Drag it, or verify it if it is already set.'),
+    ).toBeTruthy();
+  });
+
+  it('speaks German', () => {
+    start('guided', 'press', 'de');
+    expect(
+      screen.getByText('Auf der Tafel hervorgehoben. Gedrückt halten, um fortzufahren.'),
+    ).toBeTruthy();
   });
 });

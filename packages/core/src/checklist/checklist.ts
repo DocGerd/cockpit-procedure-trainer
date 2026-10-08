@@ -16,10 +16,17 @@ export type Deviation = {
   readonly controlId?: string;
   /** For `out-of-order`: the later item whose target the pilot set. */
   readonly laterItem?: number;
-  /** For `wrong-position`: where the pilot left the target control. */
+  /** For `wrong-position`: where the pilot left the target control. For a stray move: where it ended. */
   readonly position?: ControlPosition;
+  /** For a stray move: where the control stood before the pilot moved it. */
+  readonly from?: ControlPosition;
   /** For `unmet-check`: the reading the pilot gave. */
   readonly response?: number;
+  /**
+   * Made while the opening flow ran, which has no order: the deviation belongs to the flow, and
+   * `itemIndex` is only the first flow item still open at the time.
+   */
+  readonly duringFlow?: true;
 };
 
 export type ChecklistState<S> = {
@@ -34,9 +41,17 @@ export type ChecklistState<S> = {
   /** The pilot moved the current action's target since it became current. */
   readonly touched: boolean;
   readonly repeating: boolean;
+  /** How long the run took; the session sets it when the procedure is done, and it is 0 before. */
+  readonly elapsedMs: number;
+  /** Help the pilot took, such as a retried item. */
+  readonly assists: number;
 };
 
-function springsBack(definition: ControlDefinition | undefined, position: string | number) {
+/** Whether the control returns from this position by itself, so the pilot presses and holds it. */
+export function springsBack(
+  definition: ControlDefinition | undefined,
+  position: ControlPosition,
+): boolean {
   if (definition?.kind === 'momentary') return position === definition.positions[1];
   return (
     definition?.kind === 'rotary' &&
@@ -50,11 +65,26 @@ function currentItem<S>(checklist: ChecklistState<S>): ProcedureItem<S> | undefi
   return checklist.done ? undefined : checklist.procedure.items[checklist.current];
 }
 
+type FlowItem<S> = Extract<ProcedureItem<S>, { type: 'action' }>;
+
+function isFlowItem<S>(item: ProcedureItem<S> | undefined): item is FlowItem<S> {
+  return item?.type === 'action' && item.flow === true;
+}
+
+/** Whether the procedure's opening flow is still running; its actions then complete in any order. */
+export function inFlow<S>(checklist: ChecklistState<S>): boolean {
+  return isFlowItem(currentItem(checklist));
+}
+
+function flowTargets<S>(procedure: ProcedureDefinition<S>, id: string): boolean {
+  return procedure.items.some((item) => isFlowItem(item) && item.control === id);
+}
+
 /** Whether the current item takes a tick: a check, a confirm, or an action the pilot may verify. */
 export function takesTick<S>(checklist: ChecklistState<S>): boolean {
   const item = currentItem(checklist);
   if (item?.type !== 'action') return item !== undefined;
-  return !springsBack(checklist.controls[item.control], item.position);
+  return !item.flow && !springsBack(checklist.controls[item.control], item.position);
 }
 
 function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>): boolean {
@@ -67,20 +97,37 @@ function actionSatisfied<S>(checklist: ChecklistState<S>, state: TrainerState<S>
   );
 }
 
-function complete<S>(checklist: ChecklistState<S>): ChecklistState<S> {
-  const next = checklist.current + 1;
+function complete<S>(checklist: ChecklistState<S>, index = checklist.current): ChecklistState<S> {
+  const completed = [...checklist.completed, index];
+  const { length } = checklist.procedure.items;
+  const open = checklist.procedure.items.findIndex((_, at) => !completed.includes(at));
   return {
     ...checklist,
-    current: next,
-    completed: [...checklist.completed, checklist.current],
+    current: open === -1 ? length : open,
+    completed,
     operated: false,
     touched: false,
     repeating: false,
-    done: next >= checklist.procedure.items.length,
+    done: open === -1,
   };
 }
 
+// A flow item stays ticked once its target held; the checklist after the flow verifies it.
+function settleFlow<S>(checklist: ChecklistState<S>, state: TrainerState<S>): ChecklistState<S> {
+  return checklist.procedure.items.reduce(
+    (next, item, index) =>
+      isFlowItem(item) &&
+      !next.completed.includes(index) &&
+      state.controls[item.control] === item.position &&
+      (item.holdUntil?.(state) ?? true)
+        ? complete(next, index)
+        : next,
+    checklist,
+  );
+}
+
 function settle<S>(checklist: ChecklistState<S>, state: TrainerState<S>): ChecklistState<S> {
+  if (inFlow(checklist)) return settleFlow(checklist, state);
   return actionSatisfied(checklist, state) ? complete(checklist) : checklist;
 }
 
@@ -109,10 +156,11 @@ function deviate<S>(checklist: ChecklistState<S>, deviation: Deviation): Checkli
     last !== undefined &&
     last.itemIndex === deviation.itemIndex &&
     last.controlId === deviation.controlId;
+  const named = repeat && last.from !== undefined ? { ...deviation, from: last.from } : deviation;
   return {
     ...checklist,
     repeating: true,
-    deviations: [...(repeat ? checklist.deviations.slice(0, -1) : checklist.deviations), deviation],
+    deviations: [...(repeat ? checklist.deviations.slice(0, -1) : checklist.deviations), named],
   };
 }
 
@@ -145,6 +193,8 @@ export function startChecklist<S>(
       operated: false,
       touched: false,
       repeating: false,
+      elapsedMs: 0,
+      assists: 0,
     },
     state,
   );
@@ -158,10 +208,13 @@ export function observeControl<S>(
   const item = currentItem(checklist);
   if (!item) return checklist;
   const moved = change.source === 'pilot' && change.kind === 'position';
+  const flowing = inFlow(checklist);
   // Moves on the target itself are never deviations, so a stepped control such as a
   // transponder digit may pass through wrong values; only the position left behind counts.
-  const deviating = moved && !targets(item, change.id);
-  const touching = moved && item.type === 'action' && item.control === change.id;
+  // In a flow every flow target is the target, and no position is left behind.
+  const deviating =
+    moved && !(flowing ? flowTargets(checklist.procedure, change.id) : targets(item, change.id));
+  const touching = moved && !flowing && item.type === 'action' && item.control === change.id;
   const operating = touching && item.position === change.to;
   const operated = checklist.operated || operating;
   const touched = checklist.touched || touching;
@@ -179,6 +232,9 @@ export function observeControl<S>(
     next = deviate(next, {
       itemIndex: checklist.current,
       controlId: change.id,
+      position: change.to,
+      from: change.from,
+      ...(flowing && { duringFlow: true }),
       ...(later === undefined
         ? { kind: 'unexpected-control' }
         : { kind: 'out-of-order', laterItem: later }),
@@ -192,6 +248,18 @@ export function observeState<S>(
   state: TrainerState<S>,
 ): ChecklistState<S> {
   return settle(checklist, state);
+}
+
+/** Starts the current item over: what the pilot did on it no longer counts, and it is an assist. */
+export function retryItem<S>(checklist: ChecklistState<S>): ChecklistState<S> {
+  if (checklist.done) return checklist;
+  return {
+    ...checklist,
+    operated: false,
+    touched: false,
+    repeating: false,
+    assists: checklist.assists + 1,
+  };
 }
 
 /**

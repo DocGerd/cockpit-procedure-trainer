@@ -340,6 +340,44 @@ describe('walkProcedure', () => {
     );
   });
 
+  describe('a flow', () => {
+    const flow = <T extends Items[number]>(item: T) => ({ ...item, flow: true }) as T;
+    const coverOn = {
+      type: 'action',
+      control: 'cover',
+      position: 'on',
+      text: text('Kappenschalter EIN', 'Covered switch ON'),
+    } as const;
+    const items: Items = [flow(masterOn), flow(coverOn), flow(keyBoth), masterOn, coverOn, keyBoth];
+
+    it.each(['listed', 'reversed'] as const)('walks it in the %s order', (flowOrder) => {
+      expect(walkProcedure(clockAircraft(items), 'run', { flowOrder })).toEqual({ ok: true });
+    });
+
+    // The button's hold needs the clock, which runs only with the master on.
+    const dependent: Items = [
+      flow(masterOn),
+      flow({
+        type: 'action',
+        control: 'button',
+        position: 'held',
+        holdUntil: ms(100),
+        text: text('Taste halten', 'Hold the button'),
+      }),
+      masterOn,
+    ];
+
+    it('performs the flow in the order asked for', () => {
+      const aircraft = clockAircraft(dependent);
+      expect(walkProcedure(aircraft, 'run')).toEqual({ ok: true });
+      expect(walkProcedure(aircraft, 'run', { flowOrder: 'reversed' })).toMatchObject({
+        ok: false,
+        itemIndex: 1,
+        reason: `hold condition not met within ${MAX_STEPS} steps`,
+      });
+    });
+  });
+
   it('fails a procedure without items instead of passing it', () => {
     expect(walk([])).toEqual({
       ok: false,

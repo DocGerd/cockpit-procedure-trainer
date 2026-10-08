@@ -4,7 +4,7 @@ import type { KeyboardEvent, MouseEvent, PointerEvent, ReactNode, RefObject } fr
 import type { ControlWidgetProps } from '../types';
 import { ArtworkStage } from './ArtworkStage';
 import type { Artwork, Size } from './ArtworkStage';
-import { fractionNear, layerFraction } from './geometry';
+import { fractionNear, layerFraction, readHitAreas } from './geometry';
 
 export type ArtworkControlProps = ControlWidgetProps & {
   artwork: Artwork;
@@ -462,6 +462,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
       fallback={fallback}
       options={props.options}
       renderInput={input}
+      inputBox={readHitAreas(props.options)?.[String(position)]}
     />
   );
 }

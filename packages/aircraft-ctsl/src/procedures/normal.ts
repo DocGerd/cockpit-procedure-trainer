@@ -466,7 +466,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'elt',
         position: 'armed',
-        text: text('Notsender auf ARMED', 'ELT armed'),
+        text: text('Notsender auf ARM', 'ELT remote switch at ARM'),
       },
       confirm(
         'Passagier eingewiesen: Gurte, Türverriegelung, Rettungsgerät, Feuerlöscher, Notsender',
@@ -881,7 +881,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'elt',
         position: 'armed',
-        text: text('Notsender geprüft, bleibt auf ARMED', 'ELT checked and left armed'),
+        text: text('Notsender geprüft, bleibt auf ARM', 'ELT checked and left at ARM'),
       },
       confirm('Bremsklötze vorgelegt', 'Chocks in place'),
     ],
