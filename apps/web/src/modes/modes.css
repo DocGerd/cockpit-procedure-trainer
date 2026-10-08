@@ -129,6 +129,10 @@
   border-radius: var(--radius-sm);
 }
 
+.modes-outline[data-outline='stray'] {
+  outline-style: dashed;
+}
+
 .modes-outline[data-pulse='true'] {
   animation: modes-pulse 1.6s ease-out infinite;
 }

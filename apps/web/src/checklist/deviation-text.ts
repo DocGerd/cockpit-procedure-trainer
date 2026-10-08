@@ -1,4 +1,4 @@
-import type { ChecklistState, Deviation } from '@cpt/core';
+import type { ChecklistState, ControlPosition, Deviation } from '@cpt/core';
 import { format, useLocalize, useMessages } from '../i18n';
 import { messages as panelMessages } from '../panel/messages';
 import { messages } from './messages';
@@ -11,22 +11,32 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
   const localize = useLocalize();
   const panelText = useMessages(panelMessages);
 
-  const definition = (deviation: Deviation) => {
-    const id = deviation.controlId ?? '';
-    return checklist && Object.hasOwn(checklist.controls, id) ? checklist.controls[id] : undefined;
-  };
+  const definition = (id: string | undefined) =>
+    checklist && id !== undefined && Object.hasOwn(checklist.controls, id)
+      ? checklist.controls[id]
+      : undefined;
   const control = (deviation: Deviation) => {
-    const found = definition(deviation);
+    const found = definition(deviation.controlId);
     return found ? localize(found.name) : (deviation.controlId ?? '');
   };
-  // Only breakers have position names in the UI language; other position ids are not shown.
-  const position = (deviation: Deviation) => {
-    if (definition(deviation)?.kind !== 'breaker') return undefined;
-    return deviation.position === 'in' ? panelText.breakerIn : panelText.breakerPulled;
+  // A position reads as the panel prints it: its id in capitals, in the aircraft's own wording.
+  const positionName = (id: string | undefined, at: ControlPosition | undefined) => {
+    if (at === undefined) return undefined;
+    if (typeof at === 'number') return `${Math.round(at * 100)} %`;
+    if (definition(id)?.kind === 'breaker') {
+      return at === 'in' ? panelText.breakerIn : panelText.breakerPulled;
+    }
+    return at.toUpperCase();
   };
+  const position = (deviation: Deviation) => positionName(deviation.controlId, deviation.position);
+  const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);
   const item = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];
     return found ? localize(found.text) : '';
+  };
+  const target = (deviation: Deviation) => {
+    const found = checklist?.procedure.items[deviation.itemIndex];
+    return found?.type === 'action' ? positionName(deviation.controlId, found.position) : undefined;
   };
 
   return {
@@ -53,34 +63,69 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
           return format(text.unmetTitle, { item: item(deviation) });
       }
     },
-    detail: (deviation: Deviation) => {
+    /** What the checklist asked for where the deviation happened. */
+    expected: (deviation: Deviation) => {
+      const at = deviation.kind === 'wrong-position' ? target(deviation) : undefined;
+      return at === undefined
+        ? item(deviation)
+        : format(text.expectedAt, { control: control(deviation), position: at });
+    },
+    /** What the pilot did instead. */
+    actual: (deviation: Deviation) => {
+      const at = position(deviation);
       switch (deviation.kind) {
         case 'unexpected-control':
+          return at === undefined
+            ? format(text.unexpectedTitle, { control: control(deviation) })
+            : format(text.actualSet, { control: control(deviation), position: at });
         case 'out-of-order':
-          return format(text.unexpectedDetail, { item: item(deviation) });
+          return at === undefined
+            ? format(text.outOfOrderTitle, { control: control(deviation), ...later(deviation) })
+            : format(text.actualSetEarly, {
+                control: control(deviation),
+                position: at,
+                ...later(deviation),
+              });
         case 'wrong-position':
-          return format(text.wrongPositionDetail, { item: item(deviation) });
+          return at === undefined
+            ? format(text.wrongPositionTitle, { control: control(deviation) })
+            : format(text.wrongPositionAtTitle, { control: control(deviation), position: at });
         case 'unmet-check':
           return deviation.response === undefined
-            ? text.unmetDetail
-            : format(text.unmetReadingDetail, { response: deviation.response });
+            ? text.actualUnmet
+            : format(text.actualReading, { response: deviation.response });
       }
     },
     banner: (deviation: Deviation) => {
+      const at = position(deviation);
+      const from = previous(deviation);
       switch (deviation.kind) {
         case 'unexpected-control':
-          return format(text.bannerUnexpected, {
-            control: control(deviation),
-            ...number(deviation),
-          });
+          return at !== undefined && from !== undefined
+            ? format(text.bannerUnexpected, {
+                control: control(deviation),
+                position: at,
+                previous: from,
+              })
+            : format(text.bannerUnexpectedBare, {
+                control: control(deviation),
+                ...number(deviation),
+              });
         case 'out-of-order':
-          return format(text.bannerOutOfOrder, {
-            control: control(deviation),
-            ...number(deviation),
-            ...later(deviation),
-          });
-        case 'wrong-position': {
-          const at = position(deviation);
+          return at !== undefined && from !== undefined
+            ? format(text.bannerOutOfOrder, {
+                control: control(deviation),
+                position: at,
+                previous: from,
+                ...number(deviation),
+                ...later(deviation),
+              })
+            : format(text.bannerOutOfOrderBare, {
+                control: control(deviation),
+                ...number(deviation),
+                ...later(deviation),
+              });
+        case 'wrong-position':
           return at === undefined
             ? format(text.bannerWrongPosition, {
                 control: control(deviation),
@@ -91,7 +136,6 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
                 ...number(deviation),
                 position: at,
               });
-        }
         case 'unmet-check':
           return format(text.bannerUnmet, number(deviation));
       }

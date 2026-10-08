@@ -392,6 +392,43 @@ describe('Guided', () => {
   });
 });
 
+describe('Guided stray control', () => {
+  const stray = () => document.querySelector<HTMLElement>('[data-outline="stray"]');
+
+  it('outlines a control the pilot moved away from the item, without a pulse', () => {
+    renderTrainer();
+    start('start', 'guided');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(boxOf(stray())).toEqual(boxOf(placement('throttle')));
+    expect(stray()?.dataset.pulse).toBeUndefined();
+    expect(outline()?.dataset.outline).toBe('target');
+  });
+
+  it('drops the outline once the control is back where it was', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('throttle', 0));
+    expect(stray()).toBeNull();
+  });
+
+  it('drops the outline when the item changes', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.set('throttle', 0.5));
+    act(() => trainer.session.set('master', 'on'));
+    expect(stray()).toBeNull();
+  });
+
+  it('draws none in Practice', () => {
+    renderTrainer();
+    start('start', 'practice');
+    act(() => trainer.session.set('throttle', 0.5));
+    expect(stray()).toBeNull();
+  });
+});
+
 describe('Guided while zoomed', () => {
   const viewport = { width: 400, height: 200 };
   const zoomVar = (name: string) =>

@@ -47,9 +47,24 @@ function useReducedMotion(): boolean {
   );
 }
 
+/** The control the pilot moved off the current item, until it is back where it stood. */
+function useStrayControl(): string | undefined {
+  return useSessionState((session) => {
+    const checklist = session.checklist();
+    const latest = checklist?.deviations.at(-1);
+    if (!checklist || checklist.done || latest?.itemIndex !== checklist.current) return undefined;
+    if (latest.kind !== 'unexpected-control' && latest.kind !== 'out-of-order') return undefined;
+    const { controlId, from } = latest;
+    if (controlId === undefined || from === undefined) return undefined;
+    return session.state().controls[controlId] === from ? undefined : controlId;
+  });
+}
+
 function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
   const { aircraft } = useTrainer();
   const target = useCurrentTarget();
+  const stray = useStrayControl();
+  const strayBox = stray === undefined ? undefined : targetBox(rects, { control: stray });
   const item = useSessionState((session) => session.checklist()?.current);
   const reducedMotion = useReducedMotion();
   const active = useActiveView();
@@ -105,6 +120,9 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
           data-pulse={reducedMotion ? undefined : 'true'}
           style={boxStyle(box)}
         />
+      )}
+      {strayBox && (
+        <div className="modes-outline" data-outline="stray" style={boxStyle(strayBox)} />
       )}
     </div>
   );

@@ -92,12 +92,14 @@ function ItemRow({
   state,
   mode,
   tick,
+  lever,
 }: {
   index: number;
   item: ProcedureItem<unknown>;
   state: ItemState;
   mode: Mode;
   tick: boolean;
+  lever: boolean;
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -108,15 +110,21 @@ function ItemRow({
     pending: text.statePending,
     deviated: text.stateDeviated,
   };
+  // A current action that takes no tick springs back, so it is held.
+  const gesture =
+    !tick && state === 'current' ? text.gestureHold : lever ? text.gestureDrag : text.gesturePress;
   const hint =
     item.type === 'action'
-      ? mode === 'guided'
-        ? tick
-          ? text.hintVerifyGuided
-          : text.hintActionGuided
-        : tick
-          ? text.hintVerifyPractice
-          : text.hintActionPractice
+      ? format(
+          mode === 'guided'
+            ? tick
+              ? text.hintVerifyGuided
+              : text.hintActionGuided
+            : tick
+              ? text.hintVerifyPractice
+              : text.hintActionPractice,
+          { gesture },
+        )
       : item.type === 'check'
         ? answerable
           ? text.hintResponse
@@ -152,13 +160,26 @@ function DeviationBanner({
   reserve?: boolean;
 }) {
   const text = useMessages(messages);
+  const { session } = useTrainer();
   const describe = useDeviationText(checklist);
   const latest = checklist.deviations.at(-1);
+  const retry = reserve && latest !== undefined && latest.itemIndex === checklist.current;
   return (
     <div role="status" className="checklist-status" data-reserved={reserve}>
       {latest && (
         <div className="checklist-banner">
-          <div className="checklist-eyebrow">{text.deviationBanner}</div>
+          <div className="checklist-banner-head">
+            <div className="checklist-eyebrow">{text.deviationBanner}</div>
+            {retry && (
+              <button
+                type="button"
+                className="chrome-button checklist-retry"
+                onClick={() => session.retryItem()}
+              >
+                {text.retryItem}
+              </button>
+            )}
+          </div>
           <div>{describe.banner(latest)}</div>
         </div>
       )}
@@ -228,6 +249,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
             state={itemState(checklist, index, guided)}
             mode={mode}
             tick={index === checklist.current && takesTick(checklist)}
+            lever={item.type === 'action' && checklist.controls[item.control]?.kind === 'lever'}
           />
         ))}
       </ol>

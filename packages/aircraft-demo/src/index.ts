@@ -8,8 +8,8 @@ import { indicators } from './indicators';
 import {
   engineRunning,
   initial,
+  lampTestDone,
   lowVoltageLit,
-  oilPressureLit,
   runningFrom,
   step,
 } from './systems';
@@ -273,10 +273,10 @@ export const demoAircraft = defineAircraft({
           type: 'action',
           control: 'annunciator',
           position: 'test',
-          holdUntil: (state) => lowVoltageLit(state) && oilPressureLit(state),
+          holdUntil: lampTestDone,
           text: text(
-            'Warnlampen auf TEST halten, bis beide leuchten',
-            'Hold the annunciator switch at TEST until both lamps light',
+            'Warnlampen auf TEST halten, bis der Lampentest durch ist',
+            'Hold the annunciator switch at TEST until the lamp test is done',
           ),
         },
         {
