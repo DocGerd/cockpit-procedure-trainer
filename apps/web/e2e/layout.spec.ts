@@ -344,3 +344,44 @@ for (const viewport of desktops) {
     }
   });
 }
+
+// #440: the app chrome follows the panel up to 4K instead of staying at its 1080p size.
+const CHROME_SCALE_MIN = 1.5;
+const chromeText = {
+  'header brand': '.shell-brand-name',
+  'mode button': '.modes-segment',
+  'checklist item': '.checklist-item-text',
+  footer: '.app-footer',
+};
+
+const chromeFontSizes = async (page: Page) =>
+  new Map(
+    await Promise.all(
+      Object.entries(chromeText).map(
+        async ([name, selector]) =>
+          [
+            name,
+            await page
+              .locator(selector)
+              .first()
+              .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
+          ] as const,
+      ),
+    ),
+  );
+
+test('the chrome text at 3840x2160 is at least 1.5 times its 1920x1080 size', async ({ page }) => {
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl);
+    await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+    await expectNoPageScroll(page);
+    sizes.push(await chromeFontSizes(page));
+  }
+  const [hd, uhd] = sizes;
+  for (const name of Object.keys(chromeText)) {
+    const ratio = (uhd?.get(name) ?? 0) / (hd?.get(name) ?? Number.POSITIVE_INFINITY);
+    expect(ratio, name).toBeGreaterThanOrEqual(CHROME_SCALE_MIN);
+  }
+});

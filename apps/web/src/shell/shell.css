@@ -11,6 +11,7 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-6);
+  font-size: var(--text-md);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -287,6 +288,7 @@
   flex: 1 1 calc(var(--space-12) * 6);
   flex-direction: column;
   min-width: 0;
+  font-size: var(--text-md);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
