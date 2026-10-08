@@ -320,6 +320,59 @@ describe('CTSL control artwork', () => {
     }
   });
 
+  describe('rocker switches', () => {
+    // The lit paddle (the rect filled with gradient #b) marks the selected side, which is how a pilot
+    // reads the panel (#464); the dark half is the empty side. Moving it off the active legend inverts the switch.
+    const legendY = (face: string, legend: 'ON' | 'OFF') =>
+      Number(
+        new RegExp(String.raw`<text\b[^>]* y="([\d.]+)"[^>]*>${legend}</text>`).exec(face)?.[1],
+      );
+    const paddleCentreY = (image: string) => {
+      const paddles = [...image.matchAll(/<rect\b[^>]*>/g)].filter(([rect]) =>
+        rect.includes('fill="url(#b)"'),
+      );
+      expect(paddles, 'one paddle rect filled with the paddle gradient').toHaveLength(1);
+      const rect = paddles[0]?.[0] ?? '';
+      const y = Number(/\by="([\d.]+)"/.exec(rect)?.[1]);
+      return y + Number(/\bheight="([\d.]+)"/.exec(rect)?.[1]) / 2;
+    };
+    const rockers = controlArtwork.filter(
+      ({ artwork }) =>
+        artwork.moving.type === 'positions' &&
+        Object.keys(artwork.moving.images).sort().join() === 'off,on',
+    );
+
+    it('covers the five light rockers and the avionics master', () => {
+      expect(rockers.map(({ id }) => id).sort()).toEqual(
+        [
+          'avionicsMaster',
+          'beacon',
+          'cockpitLight',
+          'intercom',
+          'landingLight',
+          'positionLights',
+        ].sort(),
+      );
+    });
+
+    it.each(['on', 'off'] as const)(
+      'draws the paddle beside the legend of the %s position',
+      (state) => {
+        for (const { id, artwork } of rockers) {
+          if (artwork.moving.type !== 'positions') continue;
+          const image = artwork.moving.images[state];
+          if (image === undefined) throw new Error(`${id} has no ${state} image`);
+          const face = read(artwork.face);
+          const [on, off] = [legendY(face, 'ON'), legendY(face, 'OFF')];
+          expect(on, `${id}: ON legend`).toBeLessThan(off);
+          const centre = paddleCentreY(read(image));
+          const nearest = Math.abs(centre - on) < Math.abs(centre - off) ? 'on' : 'off';
+          expect(nearest, `${id}: ${fileOf(image)}`).toBe(state);
+        }
+      },
+    );
+  });
+
   it('draws the controls the plan names', () => {
     const ids = controlArtwork.map(({ id }) => id);
     for (const id of [
