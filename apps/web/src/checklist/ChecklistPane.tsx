@@ -2,8 +2,9 @@ import { takesTick } from '@cpt/core';
 import type { ChecklistState, ProcedureItem } from '@cpt/core';
 import { useEffect, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
-import { useSessionState, useTrainer } from '../trainer';
+import { useLostProgressText, useProgressAtRisk, useSessionState, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
+import { ConfirmDialog } from '../ui';
 import './checklist.css';
 import { ChecklistSelector } from './ChecklistSelector';
 import { DeviationSummary } from './DeviationSummary';
@@ -173,6 +174,12 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const guided = mode === 'guided';
   const count = deviations.length;
   const list = useRef<HTMLOListElement>(null);
+  const lost = useLostProgressText();
+  const [confirming, setConfirming] = useState(false);
+  const atRisk = useProgressAtRisk() !== undefined;
+  const restart = () => {
+    if (trainer.procedureId !== undefined) trainer.startProcedure(trainer.procedureId);
+  };
 
   // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
@@ -238,12 +245,23 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         <button
           type="button"
           className="chrome-button"
-          onClick={() => {
-            if (trainer.procedureId !== undefined) trainer.startProcedure(trainer.procedureId);
-          }}
+          onClick={() => (atRisk ? setConfirming(true) : restart())}
         >
           {text.restart}
         </button>
+        {confirming && (
+          <ConfirmDialog
+            title={text.restartTitle}
+            body={`${text.restartBody} ${lost}`}
+            confirmLabel={text.restart}
+            cancelLabel={text.restartCancel}
+            onCancel={() => setConfirming(false)}
+            onConfirm={() => {
+              setConfirming(false);
+              restart();
+            }}
+          />
+        )}
       </div>
     </div>
   );

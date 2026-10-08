@@ -1,8 +1,16 @@
-import type { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { openAircraft, selectLanguage } from './legibility';
-import { aircraft, copy, copyDe, openPicker } from './trainer';
+import {
+  aircraft,
+  copy,
+  copyDe,
+  openPicker,
+  operateUnrelatedControl,
+  pickProcedure,
+  procedure,
+} from './trainer';
 
 test('the picker loads with the training-aid notice', async ({ page }) => {
   await openPicker(page);
@@ -163,18 +171,6 @@ for (const viewport of headerViewports) {
   }
 }
 
-async function expectPlacement(dialog: Locator, chip: Box, box: Box, placement: 'start' | 'end') {
-  await expect(dialog).toHaveAttribute('data-placement', placement);
-  expect(box.y, 'dialog under the chip').toBeGreaterThanOrEqual(chip.y + chip.height - 1);
-  expect(box.y - (chip.y + chip.height), 'gap below the chip').toBeLessThan(16);
-  const dialogEdge = placement === 'start' ? box.x : box.x + box.width;
-  const chipEdge = placement === 'start' ? chip.x : chip.x + chip.width;
-  expect(
-    Math.abs(dialogEdge - chipEdge),
-    `dialog ${placement} edge on the chip`,
-  ).toBeLessThanOrEqual(1);
-}
-
 const chipViewports = [
   { width: 1366, height: 1024, hasTouch: true },
   { width: 1440, height: 900, hasTouch: false },
@@ -186,84 +182,48 @@ for (const { hasTouch, ...viewport } of chipViewports) {
   test.describe(`header chip at ${viewport.width}x${viewport.height}${hasTouch ? ' with touch' : ''}`, () => {
     test.use({ viewport, hasTouch });
 
-    test('opens the full text and "Change" returns to the picker', async ({ page }) => {
-      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-      const rescue = ctsl?.procedures.rescueDeployment;
-      if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
-      await openAircraft(page, ctsl, 'rescueDeployment');
+    const press = async (chip: Locator) => {
+      if (hasTouch) await chip.tap();
+      else await chip.click();
+    };
+    const picker = (page: Page) =>
+      page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle });
 
+    test('acts in one step when nothing would be lost', async ({ page }) => {
+      await pickProcedure(page, 'engineStart', 'guided');
+      await press(page.getByRole('banner').getByRole('button', { name: aircraft.name.en }));
+      await expect(page.getByRole('alertdialog')).toHaveCount(0);
+      await expect(picker(page)).toBeVisible();
+    });
+
+    test('asks before it discards a deviation, and cancel keeps the run', async ({ page }) => {
+      await pickProcedure(page, 'engineStart', 'guided');
+      await operateUnrelatedControl(page, 'flaps');
       const header = page.getByRole('banner');
-      const open = async (full: string) => {
-        const chip = header.getByRole('button', { name: full });
-        if (hasTouch) await chip.tap();
-        else await chip.click();
-        const dialog = page.getByRole('dialog');
-        await expect(dialog.getByText(full, { exact: true })).toBeVisible();
-        const clipped = await dialog.evaluate((element) => {
-          const { left, right } = element.getBoundingClientRect();
-          const value = element.querySelector('.shell-detail-value');
-          return {
-            offscreen: left < 0 || right > window.innerWidth,
-            value: value ? value.scrollWidth > value.clientWidth : true,
-          };
-        });
-        expect(clipped.offscreen, 'dialog outside the window').toBe(false);
-        const [chipBox, dialogBox] = [await chip.boundingBox(), await dialog.boundingBox()];
-        if (!chipBox || !dialogBox) throw new Error('chip or dialog has no box');
-        expect(dialogBox.y, 'dialog under the chip').toBeGreaterThanOrEqual(
-          chipBox.y + chipBox.height - 1,
-        );
-        expect(dialogBox.y - (chipBox.y + chipBox.height), 'gap below the chip').toBeLessThan(16);
-        await expectPlacement(dialog, chipBox, dialogBox, 'start');
-        expect(clipped.value, 'dialog value clipped').toBe(false);
-        return dialog;
-      };
+      const title = procedure('engineStart').title.en;
 
-      await open(rescue.title.en);
-      await page.keyboard.press('Escape');
-      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await press(header.getByRole('button', { name: title }));
+      const dialog = page.getByRole('alertdialog', { name: `${copy.shell.changeProcedure}?` });
+      await expect(dialog).toContainText('1 deviation');
+      await expect(dialog.getByRole('button', { name: copy.shell.changeProcedure })).toBeVisible();
+      await press(dialog.getByRole('button', { name: copy.shell.cancel }));
+      await expect(page.getByRole('alertdialog')).toHaveCount(0);
+      await expect(picker(page)).toHaveCount(0);
+      await expect(header.getByRole('button', { name: title })).toBeVisible();
 
-      const dialog = await open(ctsl.name.en);
-      const change = dialog.getByRole('button', { name: copy.shell.changeAircraft });
-      if (hasTouch) await change.tap();
-      else await change.click();
-      await expect(
-        page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle }),
-      ).toBeVisible();
+      await press(header.getByRole('button', { name: title }));
+      await press(
+        page
+          .getByRole('alertdialog')
+          .getByRole('button', { name: copy.shell.changeProcedure, exact: true }),
+      );
+      await expect(picker(page)).toBeVisible();
     });
   });
 }
 
-type Box = { x: number; y: number; width: number; height: number };
-
-test('a chip near the right edge opens its dialog aligned to the chip end', async ({ page }) => {
-  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-  const rescue = ctsl?.procedures.rescueDeployment;
-  if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openAircraft(page, ctsl, 'rescueDeployment');
-
-  const chip = page.getByRole('banner').getByRole('button', { name: rescue.title.en });
-  const margin = await page.evaluate(() =>
-    parseFloat(getComputedStyle(document.querySelector('.shell-header') as Element).paddingLeft),
-  );
-  await chip.evaluate((element, edge) => {
-    const anchor = element.parentElement as HTMLElement;
-    const { right } = anchor.getBoundingClientRect();
-    anchor.style.transform = `translateX(${edge - right}px)`;
-  }, 1440 - margin);
-  await chip.click();
-
-  const dialog = page.getByRole('dialog');
-  const [chipBox, dialogBox] = [await chip.boundingBox(), await dialog.boundingBox()];
-  if (!chipBox || !dialogBox) throw new Error('chip or dialog has no box');
-  await expectPlacement(dialog, chipBox, dialogBox, 'end');
-  expect(dialogBox.x, 'dialog inside the window').toBeGreaterThanOrEqual(0);
-  expect(dialogBox.x + dialogBox.width, 'dialog inside the window').toBeLessThanOrEqual(1440);
-});
-
 for (const language of languages) {
-  test(`a header chip shows its full text in a dialog in ${language} at tablet width`, async ({
+  test(`a header chip names its full text and action in ${language} at tablet width`, async ({
     page,
   }) => {
     const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
@@ -274,22 +234,15 @@ for (const language of languages) {
     await selectLanguage(page, language);
 
     const header = page.getByRole('banner');
-    for (const full of [ctsl.name[language], rescue.title[language]]) {
-      await header.getByRole('button', { name: full }).click();
-      const dialog = page.getByRole('dialog');
-      await expect(dialog).toHaveCount(1);
-      await expect(dialog.getByText(full, { exact: true })).toBeVisible();
-      const shown = await dialog.evaluate((element) => {
-        const { left, right } = element.getBoundingClientRect();
-        const value = element.querySelector('.shell-detail-value');
-        return { left, right, clipped: value ? value.scrollWidth > value.clientWidth : true };
-      });
-      expect(shown.left, 'dialog left').toBeGreaterThanOrEqual(0);
-      expect(shown.right, 'dialog right').toBeLessThanOrEqual(1024);
-      expect(shown.clipped, 'dialog value clipped').toBe(false);
-      await page.keyboard.press('Escape');
-      await expect(dialog).toHaveCount(0);
-    }
+    const action = language === 'de' ? copyDe.shell : copy.shell;
+    await expect(header.getByRole('button', { name: ctsl.name[language] })).toHaveAttribute(
+      'title',
+      `${action.changeAircraft}: ${ctsl.name[language]}`,
+    );
+    await expect(header.getByRole('button', { name: rescue.title[language] })).toHaveAttribute(
+      'title',
+      `${action.changeProcedure}: ${rescue.title[language]}`,
+    );
   });
 }
 
