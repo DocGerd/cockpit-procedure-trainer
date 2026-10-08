@@ -395,16 +395,15 @@ describe('visibility', () => {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: Element,
     ) {
-      const rect = this === aside ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
+      const rect = this.tagName === 'OL' ? { top: 0, bottom: 100 } : { top: 200, bottom: 240 };
       return { ...rect, left: 0, right: 0, width: 0, height: 0, x: 0, y: rect.top } as DOMRect;
     });
     await userEvent.selectOptions(
       screen.getByRole('combobox', { name: 'Show checklist' }),
       'followUp',
     );
-    expect(aside.scrollTop).toBe(0);
     await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
-    expect(aside.scrollTop).toBe(140);
+    expect(within(aside).getByRole('list').scrollTop).toBe(140);
     vi.restoreAllMocks();
   });
 });
@@ -442,6 +441,21 @@ describe('scrolling the running checklist', () => {
     });
     operate('avionics', 'on');
     expect(list.scrollTop).toBe(260);
+  });
+
+  it('leaves the list alone when the current item is already inside it', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      if (this === list) return rectOf(100, 200);
+      return this.getAttribute('aria-current') === 'step' ? rectOf(120, 160) : rectOf(0, 0);
+    });
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(25);
   });
 });
 

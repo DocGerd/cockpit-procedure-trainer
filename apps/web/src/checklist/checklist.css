@@ -130,6 +130,13 @@
   color: var(--color-text-secondary);
 }
 
+.checklist-status[data-reserved='true'] {
+  /* The space of a two-line banner, so a deviation never resizes the list above it. */
+  min-height: calc(
+    var(--space-3) * 4 + 2px + var(--space-1) + var(--leading-xs) + var(--leading-md) * 2
+  );
+}
+
 .checklist-banner {
   display: flex;
   flex-direction: column;

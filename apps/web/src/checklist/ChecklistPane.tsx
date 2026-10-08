@@ -93,12 +93,18 @@ function ItemRow({
   );
 }
 
-function DeviationBanner({ checklist }: { checklist: ChecklistState<unknown> }) {
+function DeviationBanner({
+  checklist,
+  reserve = false,
+}: {
+  checklist: ChecklistState<unknown>;
+  reserve?: boolean;
+}) {
   const text = useMessages(messages);
   const describe = useDeviationText(checklist);
   const latest = checklist.deviations.at(-1);
   return (
-    <div role="status">
+    <div role="status" className="checklist-status" data-reserved={reserve}>
       {latest && (
         <div className="checklist-banner">
           <div className="checklist-eyebrow">{text.deviationBanner}</div>
@@ -118,8 +124,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
   const count = deviations.length;
   const list = useRef<HTMLOListElement>(null);
 
-  // The list is the scroller, so its own box is the area the current item must sit in; a banner that
-  // appears below the list shrinks that area.
+  // The list is the scroller, so its own box is the area the current item must sit in.
   useEffect(() => {
     const scroller = list.current;
     const row = scroller?.querySelector<HTMLElement>('[aria-current="step"]');
@@ -168,7 +173,7 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
         ))}
       </ol>
 
-      {guided && <DeviationBanner checklist={checklist} />}
+      {guided && <DeviationBanner checklist={checklist} reserve />}
 
       <div className="checklist-footer">
         {guided && (

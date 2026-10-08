@@ -1,6 +1,6 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { demoAircraft } from '@cpt/aircraft-demo';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { openAircraft } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
@@ -73,6 +73,27 @@ async function operate(page: Page, controlId: string, position: string | number)
   }
 }
 
+async function advance(
+  page: Page,
+  item: (typeof longestNormal)[1]['items'][number] | undefined,
+  card: Locator,
+  at: number,
+) {
+  if (item?.type === 'action') {
+    await operate(page, item.control, item.position);
+  } else {
+    await card.getByRole('button').click();
+  }
+  await expect
+    .poll(
+      async () =>
+        (await card.count()) === 0 ||
+        (await card.locator('.checklist-number').innerText()) !== String(at),
+      { message: `item ${at} advances` },
+    )
+    .toBe(true);
+}
+
 test('the pane header and the whole current card stay in view at every item of the longest CTSL procedure', async ({
   page,
 }) => {
@@ -117,17 +138,7 @@ test('the pane header and the whole current card stay in view at every item of t
     });
     expect(covered, `card covered at ${label}`).toBe(false);
 
-    const item = longest.items[at - 1];
-    if (item?.type === 'action') {
-      await operate(page, item.control, item.position);
-    } else {
-      await card.getByRole('button').click();
-    }
-    await expect
-      .poll(async () => (await card.count()) === 0 || (await number.innerText()) !== String(at), {
-        message: `${label} advances`,
-      })
-      .toBe(true);
+    await advance(page, longest.items[at - 1], card, at);
   }
   expect(visited.size, 'items the current card visited').toBeGreaterThan(longest.items.length / 2);
 });
@@ -141,6 +152,32 @@ test('a deviation banner leaves the current card where it was', async ({ page })
   await operate(page, 'positionLights', 'on');
   await expect(page.getByRole('status')).toContainText(copy.checklist.deviationBanner);
 
+  const after = await card.boundingBox();
+  if (!before || !after) throw new Error('no boxes');
+  expect(Math.abs(after.y - before.y), 'card top shift').toBeLessThanOrEqual(4);
+});
+
+test('a deviation banner leaves the current card where it was once the list has scrolled', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const [id, longest] = longestNormal;
+  await openAircraft(page, ctslAircraft, id);
+  const pane = checklistPane(page);
+  const list = pane.getByRole('list');
+  const card = pane.locator('[aria-current="step"]');
+
+  for (let step = 0; step < longest.items.length; step++) {
+    if ((await list.evaluate((element) => element.scrollTop)) > 0) break;
+    const at = Number(await card.locator('.checklist-number').innerText());
+    await advance(page, longest.items[at - 1], card, at);
+  }
+  expect(await list.evaluate((element) => element.scrollTop), 'list scrolled').toBeGreaterThan(0);
+
+  const before = await card.boundingBox();
+  await operate(page, 'positionLights', 'on');
+  await expect(page.getByRole('status')).toContainText(copy.checklist.deviationBanner);
   const after = await card.boundingBox();
   if (!before || !after) throw new Error('no boxes');
   expect(Math.abs(after.y - before.y), 'card top shift').toBeLessThanOrEqual(4);
