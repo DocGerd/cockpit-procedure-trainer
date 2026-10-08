@@ -28,7 +28,8 @@ const expected = [
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
   engineStart: ['Parking brake holds', 'All breakers in', 'Flap readout shows 0°'],
-  shortTakeoff: ['Parking brake holds'],
+  takeoff: ['Flap readout shows 15°'],
+  shortTakeoff: ['Flap readout shows 15°'],
   beforeTakeoff: [
     'Parking brake holds',
     'Oil pressure in the green',
