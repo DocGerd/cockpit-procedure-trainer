@@ -68,11 +68,16 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
         }
         case 'unmet-check':
           return format(text.unmetTitle, { item: item(deviation) });
+        case 'late-memory-item':
+          return format(text.lateMemoryTitle, { item: item(deviation) });
       }
     },
     /** What the checklist asked for where the deviation happened. */
     expected: (deviation: Deviation) => {
       if (deviation.duringFlow) return text.expectedFlow;
+      if (deviation.kind === 'late-memory-item') {
+        return format(text.expectedMemory, { item: item(deviation) });
+      }
       const at = deviation.kind === 'wrong-position' ? target(deviation) : undefined;
       return at === undefined
         ? item(deviation)
@@ -110,6 +115,8 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
           return deviation.response === undefined
             ? text.actualUnmet
             : format(text.actualReading, { response: deviation.response });
+        case 'late-memory-item':
+          return text.actualLateMemory;
       }
     },
     /** The live cue; once the stray control is back, it no longer says to return it. */
@@ -154,6 +161,8 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
               });
         case 'unmet-check':
           return format(text.bannerUnmet, number(deviation));
+        case 'late-memory-item':
+          return format(text.bannerLateMemory, number(deviation));
       }
     },
   };

@@ -1,4 +1,5 @@
 import { sharedPhases } from '@cpt/core';
+import type { Page } from '@playwright/test';
 import { SURPRISE_MAX_MS } from '../src/trainer/surprise-delay';
 import { control } from './content';
 import { expect, test } from './fixtures';
@@ -284,6 +285,31 @@ test('a summary with deviations makes Repeat primary and links each deviation to
   await expect(items.first()).toBeInViewport();
 });
 
+test.describe('the Alternator failure opens with its memory items', () => {
+  const alternatorFailure = 'alternatorFailure';
+  const memory = procedure(alternatorFailure).items.filter((item) => item.memory === true);
+  const group = (page: Page) =>
+    checklistPane(page).getByRole('list', { name: copy.checklist.memoryItems });
+
+  test('grouped in Guided, where they are worked in order', async ({ page }) => {
+    await startProcedure(page, alternatorFailure, 'guided');
+    const rows = group(page).getByRole('listitem');
+    await expect(rows).toHaveCount(memory.length);
+    await expect(rows.first()).toContainText(memory[0]?.text.en ?? '');
+
+    await rows.first().getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+    await expect(rows.nth(1).getByRole('img', { name: copy.checklist.stateCurrent })).toBeVisible();
+  });
+
+  test('blank in Practice until done', async ({ page }) => {
+    await startProcedure(page, alternatorFailure, 'practice');
+    await expect(group(page).getByRole('listitem')).toHaveCount(memory.length);
+    for (const item of memory) {
+      await expect(checklistPane(page).getByText(item.text.en)).toHaveCount(0);
+    }
+  });
+});
+
 test('a surprise failure appears unannounced and the debrief times its recognition', async ({
   page,
 }) => {
@@ -306,7 +332,9 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   await pane.getByRole('button', { name: copy.checklist.runChecklist }).click();
   for (const item of procedure(failureId).items) {
     const row = pane.locator('[aria-current="step"]');
-    await expect(row).toContainText(item.text.en);
+    // The drill runs in Practice, where a memory item's text waits until it is done.
+    if (item.memory === true) await expect(row).not.toContainText(item.text.en);
+    else await expect(row).toContainText(item.text.en);
     if (item.type === 'check') {
       await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
     } else if (item.type === 'confirm') {

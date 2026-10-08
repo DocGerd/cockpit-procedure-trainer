@@ -6,6 +6,9 @@ import { text } from './text';
 export const chargeLampLit = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && !state.systems.bus.charging;
 
+const flapCircuitPowered = (state: CtslTrainerState) =>
+  state.systems.bus.mainPowered && state.controls['flapBreaker'] === 'in';
+
 export const indicators = {
   compass: {
     name: text('Magnetkompass', 'Magnetic compass'),
@@ -54,7 +57,8 @@ export const indicators = {
   },
   flapReadout: {
     name: text('Klappenstellungsanzeige', 'Flap position indicator'),
-    select: (state: CtslTrainerState) => state.systems.flaps.angle,
+    select: (state: CtslTrainerState) =>
+      flapCircuitPowered(state) ? state.systems.flaps.angle : '',
     appearance: { widget: 'digital-readout', options: { units: '°', decimals: 0 } },
   },
   eltLamp: {

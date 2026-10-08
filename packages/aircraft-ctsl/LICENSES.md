@@ -28,6 +28,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/phase-taxi-in-running.svg`          | Outside view, taxi in, engine running (propeller disc)                |
 | `src/assets/phase-parking-securing.svg`         | Outside view, parking and securing                                    |
 | `src/assets/phase-parking-securing-running.svg` | Outside view, parking and securing, engine running (propeller disc)   |
+| `src/assets/cue-engine-smoke.svg`               | Outside view overlay, smoke from the engine bay during an engine fire |
 | `src/assets/artwork/gauge-airspeed.svg`         | Gauge face, airspeed                                                  |
 | `src/assets/artwork/glass-gauge.svg`            | Gauge glass and hub cap, shared                                       |
 | `src/assets/artwork/gauge-altimeter.svg`        | Gauge face, altimeter                                                 |

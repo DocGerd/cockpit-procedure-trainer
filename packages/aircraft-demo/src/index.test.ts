@@ -262,6 +262,19 @@ describe('demo aircraft', () => {
       expect(systems(session).amps).toBeLessThan(0);
     });
 
+    it('opens with the recognition and the breaker reset as memory items', () => {
+      const items = demoAircraft.procedures.alternatorFailure?.items ?? [];
+      expect(items.map((item) => item.memory === true)).toEqual([
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+      ]);
+    });
+
     it('stays failed after the breaker is reset', () => {
       const session = createSession(demoAircraft, { devices, phase: 'cruise' });
       session.startProcedure('alternatorFailure');

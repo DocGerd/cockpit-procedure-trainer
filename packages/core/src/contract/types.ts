@@ -317,7 +317,14 @@ export type PhaseDefinition<S, CT extends ControlRecord = ControlRecord> = {
   };
 };
 
-type ItemBase = { readonly text: Text };
+type ItemBase = {
+  readonly text: Text;
+  /**
+   * A memory item of an emergency procedure: done at once from recall, before the checklist is
+   * read. Memory items form the procedure's leading block.
+   */
+  readonly memory?: true;
+};
 
 export type DeviceControlId = `${string}.${string}`;
 
@@ -382,6 +389,13 @@ export type ProcedureDefinition<
   | { readonly type: 'emergency'; readonly failure: F }
 );
 
+export type OutsideCue<S> = {
+  readonly name: Text;
+  /** Drawn in the coordinate space of the phase images, transparent where nothing shows. */
+  readonly image: string;
+  readonly shows: Condition<S>;
+};
+
 /**
  * Every shared phase and no other; `P` is inferred from the keys an aircraft declares, so an
  * unknown key fails to typecheck even when the phases are built apart from `defineAircraft`.
@@ -409,6 +423,8 @@ export type AircraftDefinition<
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   /** Whether the engine runs; selects `imageRunning` over `image` in the outside view. */
   readonly engineRunning?: Condition<S>;
+  /** Images laid over the outside view while their condition holds, such as smoke from the engine. */
+  readonly outsideCues?: { readonly [id: string]: OutsideCue<S> };
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: PhaseRecord<PhaseDefinition<S, CT>, P>;
   readonly procedures: {

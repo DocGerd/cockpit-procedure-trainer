@@ -146,6 +146,39 @@ for (const aircraft of aircraftRegistry) {
   }
 }
 
+// The flap readout is dark without power, as in parking where the tests above open the CTSL,
+// so its digits are checked lit, in cruise.
+const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+const readoutView = Object.entries(ctsl?.views ?? {}).find(([, view]) =>
+  Object.hasOwn(view.indicators ?? {}, 'flapReadout'),
+)?.[0];
+
+// The widget leaves out units with too little room for them at the minimum size.
+test('ctsl prints the lit flap readout digits at the minimum size at 1920x1080', async ({
+  page,
+}) => {
+  if (!ctsl || readoutView === undefined) throw new Error('The CTSL places no flap readout');
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await openAircraft(page, ctsl, 'descent');
+  const root = await showView(page, ctsl, readoutView, 'en');
+  const readout = root.locator('[data-placement="flapReadout"] [data-widget="digital-readout"]');
+  await expect(readout).toHaveAttribute('aria-label', /: -?\d+ °$/);
+  await expect(readout.locator('[data-value]')).toHaveText(/^-?\d+$/);
+  const sizes = await readout.evaluate((svg: SVGSVGElement) => {
+    const { width, height } = svg.getBoundingClientRect();
+    const box = svg.viewBox.baseVal;
+    const scale = Math.min(width / box.width, height / box.height);
+    return [...svg.querySelectorAll('[data-value], [data-units]')].map((text) => ({
+      text: text.textContent ?? '',
+      px: Number(text.getAttribute('font-size')) * scale,
+    }));
+  });
+  expect(
+    sizes.filter(({ px }) => px < MIN_TEXT_PX - 0.5).map(({ text, px }) => `${text} ${px}px`),
+    `flap readout lettering below ${MIN_TEXT_PX - 0.5}px`,
+  ).toEqual([]);
+});
+
 const cardSizes = (svg: string) =>
   [...svg.matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)].map(([, attributes = '', text = '']) => ({
     text,

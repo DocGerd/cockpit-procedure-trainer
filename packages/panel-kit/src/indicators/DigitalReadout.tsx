@@ -93,7 +93,7 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
   });
   const baseline = Math.min(BASELINE, FLOOR - DESCENT * bare.fontSize);
   const showCaption = bare.show && caption.show;
-  const showUnits = units !== '' && showCaption && unit.show && withUnits.show;
+  const showUnits = text !== '' && units !== '' && showCaption && unit.show && withUnits.show;
   const valueRight = showUnits ? TEXT_RIGHT - reserve : TEXT_RIGHT;
   const available = valueRight - TEXT_LEFT;
 
@@ -105,7 +105,9 @@ export function DigitalReadout({ value, label, options }: IndicatorWidgetProps) 
       height="100%"
       viewBox="0 0 100 40"
       role="img"
-      aria-label={units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`}
+      aria-label={
+        text === '' ? label : units === '' ? `${label}: ${text}` : `${label}: ${text} ${units}`
+      }
     >
       <Kit id={kit} use={['bezel', 'lip', 'chamfer', 'well', 'lens-glare', 'specular']}>
         <LinearGradient id={`${kit}-glass`} {...LIGHT} stops={GLASS} />
