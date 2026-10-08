@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ControlChange, Positions, ProcedureDefinition, TrainerState } from '../contract';
 import { fixtureAircraft } from '../contract/fixtures';
 import type { FixtureState } from '../contract/fixtures';
-import { checkOff, observeControl, observeState, startChecklist } from './checklist';
+import { checkOff, observeControl, observeState, startChecklist, takesTick } from './checklist';
 
 function procedureOf(id: string): ProcedureDefinition<FixtureState> {
   const procedure = fixtureAircraft.procedures[id];
@@ -166,6 +166,38 @@ describe('action items', () => {
     const checklist = atStarter();
     expect(checklist.current).toBe(5);
     expect(checkOff(checklist, magnetosOn)).toBe(checklist);
+  });
+
+  it('ignore a verify tick on a momentary press', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        { type: 'action', control: 'lampTest', position: 'pressed', text: { de: 'x', en: 'x' } },
+      ],
+    };
+    const checklist = startChecklist(procedure, stateOf(), controls);
+    expect(takesTick(checklist)).toBe(false);
+    expect(checkOff(checklist, stateOf())).toBe(checklist);
+  });
+
+  it('complete a holdUntil action at once on a verify tick while the target is elsewhere', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'master',
+          position: 'on',
+          holdUntil: () => false,
+          text: { de: 'x', en: 'x' },
+        },
+      ],
+    };
+    const checklist = checkOff(startChecklist(procedure, stateOf(), controls), stateOf());
+    expect(checklist.done).toBe(true);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'master', position: 'off' },
+    ]);
   });
 
   it('with holdUntil still wait for the condition after a verify tick', () => {
@@ -579,6 +611,30 @@ describe('a drag that ends on a later item target', () => {
       { kind: 'out-of-order', itemIndex: 0, controlId: 'throttle', laterItem: 1 },
     ]);
   });
+
+  it('records one unexpected deviation for a drag that passes the later target and ends elsewhere', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        { type: 'action', control: 'master', position: 'on', text: { de: 'x', en: 'x' } },
+        { type: 'action', control: 'throttle', position: 0.5, text: { de: 'x', en: 'x' } },
+      ],
+    };
+    let checklist = startChecklist(procedure, stateOf(), controls);
+    for (const [from, to] of [
+      [0, 0.5],
+      [0.5, 0.7],
+    ] as const) {
+      checklist = observeControl(
+        checklist,
+        position('throttle', from, to),
+        stateOf({ throttle: to }),
+      );
+    }
+    expect(checklist.deviations).toEqual([
+      { kind: 'unexpected-control', itemIndex: 0, controlId: 'throttle' },
+    ]);
+  });
 });
 
 describe('a check with a response', () => {
@@ -616,6 +672,12 @@ describe('a check with a response', () => {
     expect(checkOff(start(), idling).deviations).toEqual([]);
     expect(checkOff(start(), stateOf({}, { rpm: 100 })).deviations).toEqual([
       { kind: 'unmet-check', itemIndex: 0 },
+    ]);
+  });
+
+  it('keeps a reading of zero', () => {
+    expect(checkOff(start(), idling, 0).deviations).toEqual([
+      { kind: 'unmet-check', itemIndex: 0, response: 0 },
     ]);
   });
 

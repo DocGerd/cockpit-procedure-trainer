@@ -10,6 +10,16 @@ import { useDeviationText } from './deviation-text';
 
 const aircraft: Aircraft = {
   ...deviceAircraft,
+  controls: {
+    ...deviceAircraft.controls,
+    lampBreaker: {
+      kind: 'breaker',
+      name: { de: 'Lampensicherung', en: 'Lamp breaker' },
+      description: { de: 'Sicherung', en: 'Breaker' },
+      positions: ['in', 'pulled'],
+      initial: 'in',
+    },
+  },
   procedures: {
     flow: {
       title: { de: 'Ablauf', en: 'Flow' },
@@ -87,12 +97,13 @@ describe('deviation text for each kind', () => {
     expect(text.banner(outOfOrder)).toBe('Bus operated early. It belongs to item 4, not item 1.');
   });
 
-  it('names where a control was left in the wrong position', () => {
+  it('names a control left in the wrong position without its raw position id', () => {
     const text = describeIn('en');
     expect(text.where(wrongPosition)).toBe('Item 1');
-    expect(text.title(wrongPosition)).toBe('Bus left at off');
+    expect(text.title(wrongPosition)).toBe('Bus left in a wrong position');
     expect(text.detail(wrongPosition)).toBe('The item was Confirm.');
-    expect(text.banner(wrongPosition)).toBe('Bus left at off during item 1.');
+    expect(text.banner(wrongPosition)).toBe('Bus left in a wrong position during item 1.');
+    expect(describeIn('de').title(wrongPosition)).toBe('Bus (de) in falscher Stellung gelassen');
   });
 
   it('gives the reading of an unmet check when there was one', () => {
@@ -103,5 +114,16 @@ describe('deviation text for each kind', () => {
     expect(text.detail({ kind: 'unmet-check', itemIndex: 0 })).toBe(
       'Der Punkt wurde abgehakt, obwohl seine Bedingung nicht erfüllt war.',
     );
+  });
+
+  it('names a breaker position in the UI language', () => {
+    const pulled: Deviation = {
+      kind: 'wrong-position',
+      itemIndex: 0,
+      controlId: 'lampBreaker',
+      position: 'pulled',
+    };
+    expect(describeIn('de').title(pulled)).toBe('Lampensicherung auf Gezogen gelassen');
+    expect(describeIn('en').banner(pulled)).toBe('Lamp breaker left at Pulled during item 1.');
   });
 });

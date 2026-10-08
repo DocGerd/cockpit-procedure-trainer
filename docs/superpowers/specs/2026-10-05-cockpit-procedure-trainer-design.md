@@ -277,7 +277,8 @@ logic follows and lists the functions it does not model.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
-   - an action item completes when its condition is met;
+   - an action item completes when the pilot sets its target while it is
+     current, or ticks it verified, and its `holdUntil` condition, if any, is met;
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
      deviation: `out-of-order` when it sets a later action's target to that
@@ -286,7 +287,7 @@ logic follows and lists the functions it does not model.
    - moving the current action's target is never a deviation by itself, so a
      stepped control such as a transponder digit may pass through wrong values;
      leaving it at a position other than the target, by operating another
-     control, is a `wrong-position` (#442).
+     control, is a `wrong-position` (#442);
    - while a flow runs, any of its actions may complete in any order; only a
      control change outside the flow's targets is a deviation.
 5. Completing a procedure shows its deviations and, if the procedure names an

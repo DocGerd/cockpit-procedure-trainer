@@ -331,6 +331,7 @@ export type CheckItem<
   readonly response?: {
     readonly reading: (state: TrainerState<S>) => number;
     readonly tolerance: number;
+    readonly unit?: Text;
   };
 };
 

@@ -33,6 +33,58 @@ function itemState(
   return index === checklist.current ? 'current' : 'pending';
 }
 
+// Mounted only while its row is current, so a typed reading ends with the row's turn.
+function CurrentDetail({
+  item,
+  hint,
+  answerable,
+  tick,
+}: {
+  item: ProcedureItem<unknown>;
+  hint: string;
+  answerable: boolean;
+  tick: boolean;
+}) {
+  const text = useMessages(messages);
+  const localize = useLocalize();
+  const { session } = useTrainer();
+  const [reading, setReading] = useState('');
+  return (
+    <span className="checklist-item-detail">
+      <span className="checklist-hint">{hint}</span>
+      {answerable && item.type === 'check' && (
+        <label className="checklist-response">
+          <span className="checklist-response-label">{text.reading}</span>
+          <input
+            type="number"
+            inputMode="decimal"
+            className="checklist-response-input"
+            aria-label={text.reading}
+            value={reading}
+            onChange={(event) => setReading(event.target.value)}
+          />
+          {item.response?.unit && <span>{localize(item.response.unit)}</span>}
+        </label>
+      )}
+      {tick && (
+        <button
+          type="button"
+          className={`button-secondary ${item.type === 'action' ? 'checklist-verify' : 'checklist-check-off'}`}
+          onClick={() =>
+            session.checkOff(answerable && reading.trim() !== '' ? Number(reading) : undefined)
+          }
+        >
+          {item.type === 'action'
+            ? text.verify
+            : item.type === 'check'
+              ? text.checkOff
+              : text.confirm}
+        </button>
+      )}
+    </span>
+  );
+}
+
 function ItemRow({
   index,
   item,
@@ -48,8 +100,6 @@ function ItemRow({
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { session } = useTrainer();
-  const [reading, setReading] = useState('');
   const answerable = item.type === 'check' && item.response !== undefined && mode === 'practice';
   const labels: Record<ItemState, string> = {
     done: text.stateDone,
@@ -87,34 +137,7 @@ function ItemRow({
         <span className="checklist-item-text">{localize(item.text)}</span>
       </span>
       {state === 'current' && (
-        <span className="checklist-item-detail">
-          <span className="checklist-hint">{hint}</span>
-          {answerable && (
-            <input
-              type="number"
-              inputMode="decimal"
-              className="checklist-response"
-              aria-label={text.reading}
-              value={reading}
-              onChange={(event) => setReading(event.target.value)}
-            />
-          )}
-          {tick && (
-            <button
-              type="button"
-              className={`button-secondary ${item.type === 'action' ? 'checklist-verify' : 'checklist-check-off'}`}
-              onClick={() =>
-                session.checkOff(answerable && reading.trim() !== '' ? Number(reading) : undefined)
-              }
-            >
-              {item.type === 'action'
-                ? text.verify
-                : item.type === 'check'
-                  ? text.checkOff
-                  : text.confirm}
-            </button>
-          )}
-        </span>
+        <CurrentDetail item={item} hint={hint} answerable={answerable} tick={tick} />
       )}
     </li>
   );

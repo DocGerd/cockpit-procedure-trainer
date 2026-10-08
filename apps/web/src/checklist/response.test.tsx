@@ -13,7 +13,30 @@ vi.mock('../aircraft-registry', async () => {
     aircraftRegistry: [
       {
         ...fixture,
+        controls: {
+          ...fixture.controls,
+          lampTest: {
+            kind: 'momentary',
+            positions: ['released', 'pressed'],
+            initial: 'released',
+            name: { de: 'Lampentest', en: 'Lamp test' },
+            description: { de: 'Lampentest', en: 'Lamp test' },
+          },
+        },
         procedures: {
+          press: {
+            title: { de: 'Drücken', en: 'Press' },
+            type: 'normal',
+            startPhase: 'ground',
+            items: [
+              {
+                type: 'action',
+                control: 'lampTest',
+                position: 'pressed',
+                text: { de: 'Lampentest', en: 'Lamp test' },
+              },
+            ],
+          },
           reading: {
             title: { de: 'Ablesen', en: 'Reading' },
             type: 'normal',
@@ -23,7 +46,7 @@ vi.mock('../aircraft-registry', async () => {
                 type: 'check',
                 target: { indicator: 'fuel' },
                 condition: () => true,
-                response: { reading: () => 4000, tolerance: 100 },
+                response: { reading: () => 4000, tolerance: 100, unit: { de: 'U/min', en: 'rpm' } },
                 text: { de: 'Drehzahl prüfen', en: 'Rpm check' },
               },
               { type: 'confirm', text: { de: 'Fertig', en: 'Done' } },
@@ -41,7 +64,7 @@ function Probe() {
   return null;
 }
 
-function start(mode: Mode) {
+function start(mode: Mode, procedure = 'reading') {
   renderWithLanguage(
     <TrainerProvider>
       <Probe />
@@ -50,7 +73,7 @@ function start(mode: Mode) {
   );
   act(() => {
     trainer.setMode(mode);
-    trainer.startProcedure('reading');
+    trainer.startProcedure(procedure);
   });
 }
 
@@ -82,8 +105,35 @@ describe('a check that takes a reading', () => {
     expect(trainer.session.checklist()?.deviations).toEqual([]);
   });
 
+  it('shows the reading label and unit', () => {
+    start('practice');
+    const field = screen.getByRole('spinbutton', { name: 'Reading' }).closest('label');
+    expect(field?.textContent).toBe('Readingrpm');
+  });
+
+  it('starts a restarted run with an empty reading', async () => {
+    start('practice');
+    await userEvent.type(screen.getByRole('spinbutton', { name: 'Reading' }), '3000');
+    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
+    expect(screen.getByRole('spinbutton', { name: 'Reading' })).toHaveProperty('value', '');
+    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    expect(trainer.session.checklist()?.deviations).toEqual([]);
+  });
+
   it('asks for no reading in Guided', () => {
     start('guided');
     expect(screen.queryByRole('spinbutton')).toBeNull();
+  });
+});
+
+describe('a spring-back press', () => {
+  it('offers no Verified tick, in either mode', () => {
+    start('practice', 'press');
+    expect(screen.queryByRole('button', { name: 'Verified' })).toBeNull();
+    cleanup();
+    start('guided', 'press');
+    expect(screen.queryByRole('button', { name: 'Verified' })).toBeNull();
+    expect(screen.getByText('Highlighted on the panel. Operate it to continue.')).toBeTruthy();
   });
 });
