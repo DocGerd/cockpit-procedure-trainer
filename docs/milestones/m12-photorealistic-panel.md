@@ -1,93 +1,65 @@
-# M12 Photorealistic panel - verification draft
+# M12 Photorealistic panel (in v0.12.0)
 
-Draft by the verification task (#396) for the release summary; the release agent folds it into the four sections of `milestone-release`. On GitHub M12 is milestone 13. The open release PR #422 is to carry M11 and M12 together as v0.12.0; the release agent settles the version and which M12 PRs it lists.
+M12 ships inside v0.12.0, together with M11, through the release PR #422; on GitHub it is milestone 13. It redraws the panel as hardware: painted panel metal with seams, screws and instrument seats; gauges with machined bezels, glass glare and needle shadows; switches, breakers, knobs and levers per position; generic panel-kit widgets from the same materials; and avionics units in anodised bezels behind glass. All art is self-drawn vector (ADR 0002 G1); no photographs, scans or manufacturer artwork.
 
-## What shipped (M12 PRs after the spike, #401 and #402)
+The spike and plan (#398), the glass layer, materials and perf harness (#401) and the demo backgrounds (#402) landed before the M11 summary was written and are described there too.
 
-- **CTSL view backgrounds as painted panel metal** (#403, for #393): fine stipple, plate seams, panel screws, cutout shadows around every instrument and device seat.
-- **CTSL controls as photoreal hardware** (#417, for #392): breakers, rockers, push-pulls, valves, flap selector, ignition, levers, handles and rescue handle, per position.
-- **CTSL gauges** (#423, for #391): eight instruments with machined bezels, glass glare above the needle and stage-drawn needle shadows; secondary captions printed as on the real instrument (`data-lettering="secondary"`).
-- **Generic panel widgets as real hardware** (#419, for #390): every panel-kit control and indicator from token gradients; `--panel-bezel`, `--panel-bezel-dark` and `--panel-dial` aligned to the plan's palette.
-- **Device frames as anodised bezels behind glass** (#416, for #394), in the panel slot and in the dock.
-- **Perf harness corrected** (#413, for #409): each paint counted once; P2 judges the view switch, the resize is printed as information.
-- **Verification** (#396): this note, the plan's process rules, and the fix wave below.
+## What shipped
 
-## Verification (#396)
+Visible in the app:
 
-### Rubric, whole panel
+- **CTSL view backgrounds as painted panel metal** (#403, for #393): panel, centre field and console with fine stipple, raised plates and seams, screws, bays with depth and shadowed instrument seats.
+- **CTSL controls as photoreal hardware** (#417, for #392): breakers, push-pulls, rockers, fuel valves, levers, flap selector, ignition and rescue handle, one image per position, no SVG filters.
+- **CTSL gauges** (#423, for #391): eight instruments with machined bezels, one shared needle with a stage-drawn shadow, a shared glass with glare above the needle, and the compass with its own face, card and glass.
+- **Generic panel widgets as real hardware** (#419, for #390): every panel-kit control and indicator drawn from token gradients, engraved-aluminium placards; `--panel-bezel`, `--panel-bezel-dark` and `--panel-dial` aligned to the plan's palette.
+- **Device frames as anodised bezels behind glass** (#416, for #394), in the panel mirrors and in the dock: faceplates, glass glare, moulded keycaps, cast shadow; CSS only, tokens only, floors and hit regions unchanged.
+- **Whole-panel verification and fix wave** (#426, for #396): the docked COM and radio volume thumb now stands out against its track, and the demo's aluminium placards sit a shade darker on the dark panel.
 
-Scored by the single M12 scorer on `develop` at 9d0a633 (all task PRs in), Free explore, 1920x1080 crops at device scale factor 2 and 3840x2160; 1024x768 checked for clipping and placard fit. Guided and Practice draw the same panel. Visual headings 0 to 3; the bar is every applicable heading at least 2 and their mean at least 2.5.
+For contributors:
 
-| View                   | Element type                                                  | Mean        |
-| ---------------------- | ------------------------------------------------------------- | ----------- |
-| CTSL panel             | Eight gauges, compass included                                | 2.5 to 2.67 |
-| CTSL panel             | Breakers, dark lamps                                          | 2.6         |
-| CTSL panel             | Panel and bay backgrounds                                     | 2.5 to 2.75 |
-| CTSL panel             | COM, XPDR and GPS mirrors                                     | 2.75 to 3.0 |
-| CTSL centre field      | Rockers, valves, flap selector, ignition, BAT and GEN, ground | 2.6 to 2.8  |
-| CTSL centre console    | Levers, rescue handle, ground                                 | 2.6 to 2.8  |
-| Demo panel             | Generic widgets                                               | 2.5 to 2.8  |
-| Demo panel             | RADIO bay and mirrors                                         | 2.75        |
-| Demo panel and console | Backgrounds                                                   | 2.5         |
-| Demo console           | Sliders, knob, guarded handle                                 | 2.6 to 2.8  |
-| Dock, both aircraft    | Device frames                                                 | 2.5         |
+- **Perf harness corrected** (#413, for #409): each paint is counted once, P2 judges the view switch and the resize is printed as information.
+- **New checks:** artwork controls meet the 44 px target (`legibility.ts`), indicator faces meet the lettering minimum from 1920x1080 up (`lettering.spec.ts`), every panel-kit widget paints only from `--panel-*` tokens (`paint-check.ts`), and device volume thumbs keep 3:1 against their track (`tools/device-css.test.ts`).
+- **Licence rows:** the verification audit added the missing rows for the outside-view propeller images (#358); every aircraft and device image now has one.
+- **Plan** (`docs/superpowers/plans/2026-10-07-m12-photorealistic-panel.md`): the scoring process, the interim perf rule under load and the milestone's readings of ADR 0002 are recorded there.
 
-Pass/fail headings: no lettering below the minimum (the demo's DOM labels measured; CTSL lettering is SVG and owned by `lettering.spec.ts`), no status colour, nothing clipped at 4K or 1024x768, no console errors; G1 below.
+Results (figures in the PR bodies, chiefly #426):
 
-Cross-element heading 10 (one light, one palette across widgets, backgrounds and device frames): 2 on every view. Light and shadow run up-left to down-right across every element. Residual mismatches the scorer named: CTSL gauge bezels read a little lighter than the dark panel plates; the demo's aluminium placards pulled the eye on the dark panel; the dock's black screen sits in a lighter frame than the panel mirrors.
+- **Rubric:** every element on both aircraft meets the plan's bar (every applicable heading at least 2, mean at least 2.5) on 1920x1080 crops at device scale factor 2 and at 3840x2160. The cross-element heading 10 (one light, one palette across widgets, backgrounds and frames) scores 2 on every view, never higher.
+- **Performance:** the absolute budget (P1 needle frame within 4 ms, P2 view switch within 33 ms, P3 at most one filter per view background, P4 payload within 3x the baseline) holds on every view in a near-idle run after the fix wave.
+- **Spec §1 audit** (#426): each success criterion has evidence; gaps are #425 (no e2e operates every control through its positions), #360 (fidelity spike), #415 (the spec still calls the dock optional) and #125 (install on a real tablet).
 
-One fail: the volume slider in the docked COM (CTSL) and radio (demo) Screens read as low contrast. The scorer's crops showed the unit unpowered, where a `--panel-screen` veil at 0.7 opacity dims the whole Screen by design. Powered, measured from rendered pixels in both themes: track against screen 4.15:1, but thumb against track 2.89:1.
+## Decisions made
 
-Fix wave (#396):
+Agent decisions you may overrule:
 
-- The volume thumb takes `--panel-legend` in the COM and SL40 stylesheets: thumb against track 4.23:1; `tools/device-css.test.ts` now requires 3:1 between thumb and track.
-- The aluminium placard plate (`finish.aluminium` in panel-kit) drops one step, so it no longer pulls the eye on the dark panel.
+1. **No version of its own.** Milestone Mn normally ships as v0.(n+1).0, but the M11 release PR #422 was still open with `develop` as its head, so every M12 PR that landed was already part of it, and `release.yml` tags only the top changelog section. M12 therefore ships in v0.12.0 with its changelog entries in that section; the rule bends this once.
+2. **Technique** (#398): generic widgets draw gradients in TSX whose stops are `--panel-*` tokens, one `<defs>` per widget, no `<filter>`. A shared SVG kit file was rejected (Chromium does not resolve paint servers across documents, and its colours would bypass the token rule).
+3. **One scorer.** Implementer self-scores ran consistently above independent scores, so one calibrated ui-verifier scored every M12 art PR and #426; the tables in the PR bodies are its scores, not the implementers'.
+4. **Heading 10 in two passes:** per crop on the element's own parts in each PR, across elements only on the whole panel (#426).
+5. **P2 under load** (orchestrator): with the machine saturated by parallel agents, the same base measured far apart, so art PRs passed P2 on an alternating base/PR comparison or a fixed margin under the budget; P1, P3 and P4 stayed absolute, and the absolute budget was checked once in #426. The rule is in the plan.
+6. **Real-face wording beats the 10.5 px floor for secondary captions** (#423): numerals and units are held to the floor; identity captions printed small on the real instrument carry `data-lettering="secondary"` and are skipped by the face check. Tablet sizes are #420.
+7. **Stage needle shadow on all gauges and glass on all eight** (#423): a baked halo on the small gauges scored too faint and was dropped; the glass costs per image layer, tracked in #421 as an optimisation.
+8. **No page-level defs sharing** (#419): each widget carries its own `<defs>`, which grows the gallery's DOM; its test has a longer timeout.
+9. **Filters:** none in panel-kit TSX or any control or gauge image; at most one `feTurbulence` per view background.
+10. **Small calls:** RADIO legend in plain ink, no engraving (#402); plates raised, not recessed; ELT and lamps stay generic (#417); the dock bezel keeps its width because device floors are exact (#416); the `--panel-bezel` change darkens device CSS too (#419).
+11. **Fix wave scope** (#426): the issue first said verification only; parts from different tasks meet only on the whole panel, so it scored `develop` and ran one fix wave. The volume fail was settled by measuring rendered pixels: only the thumb changed.
 
-Re-score of the changed crops after the wave: the powered docked COM 2.75 and demo radio 2.5 (the slider fail withdrawn), demo placard plates 2.67, cross-element heading 10 on the demo panel and console still 2, with the placards no longer dominating. Every element now meets the bar; no rubric failure is open.
+## Open questions for the owner
 
-### Performance budget (absolute, idle machine)
+1. **Is this what "photorealistic" means?** The bar is every heading at least 2 ("convincing: at a glance it reads as the real material") and a mean of at least 2.5; heading 10 never went above 2. Judge by eye from the screenshots under How to verify. If not, name the heading to raise.
+2. **ADR 0002 readings:** hardware-recognisable realism (shape, position, state, lettering) is rank 2, finish beyond that is rank 6 and yields to performance; real-face wording beats the 10.5 px floor for secondary captions. The release review raised one edge: on the oil-temperature and CHT faces the OIL and CHT captions are the only text that tells the two apart, yet they are marked secondary. Keep, or hold identity captions to the floor?
+3. **Perf rule:** the absolute budget is now verified. Keep the interim under-load rule for future art PRs on a busy machine, or require the absolute run on every art PR?
+4. **Accepted at the bar, not above it:** #421 glass-layer cost (the absolute budget passed on a quiet machine in #426, so this is an optimisation, not a blocker; pay for it?), #420 CTSL gauge lettering below the floor at tablet sizes (unscheduled), and the VSI and compass needle shadows at 2 (the compass card shadow is not visible).
+5. **CLAUDE.md edits from M11** proposed in #422's summary ("own view" and "adding a device") are still pending your approval.
 
-`pnpm test:perf` on the tree after the fix wave, load average 0.48 at the start and 1.69 at the end (a scorer's build may have overlapped). 1024x768, CPU throttled 4x, median (min to max) of nine samples.
+Follow-ups, without milestone (#421 leaves milestone M12 when the milestone closes; the absolute perf budget passed in #426, so it is an optimisation): #407 Remove unused raw.d.ts from the device packages; #411 Demo at 1920x950 sits on the strip-fold threshold; #412 Viewport matrix never exercises the folded outside-view strip; #414 Tablet checklist overlay: footer below the fold with long procedures at 1024x768; #415 Spec and guide drift: the cockpit dock cell is required, not optional; #420 CTSL indicator-face lettering below 10.5 px at tablet sizes; #421 ArtworkStage: glass overlay cost per `<img>` (layer per glass); #424 Contract test: every aircraft and device image has a licence row (G1); #425 E2E: operate every control of each aircraft through its positions (spec §1).
 
-| Aircraft, view      | P1 needle frame (budget 4 ms) | P2 view switch (budget 33 ms) | Resize (information) | P3 filter uses |
-| ------------------- | ----------------------------- | ----------------------------- | -------------------- | -------------- |
-| CTSL panel          | 2.12 (1.93 to 2.20), 15 parts | 19.50 (18.55 to 20.22)        | 29.83                | 1 in 41 images |
-| CTSL centre field   | no needles                    | 8.24 (7.71 to 10.04)          | 8.31                 | 1 in 25 images |
-| CTSL centre console | no needles                    | 6.75 (6.33 to 7.30)           | 7.02                 | 1 in 15 images |
-| Demo panel          | 1.46 (1.36 to 1.63), 6 parts  | 14.64 (14.08 to 15.58)        | 13.14                | 1 in 1 image   |
-| Demo centre console | no needles                    | 7.04 (6.19 to 9.56)           | 7.28                 | 1 in 1 image   |
+## How to verify
 
-P4 payload (budget 3x the recorded baseline): CTSL 577,218 bytes, 1.45x; demo 186,641 bytes, 1.18x. Every budget holds with room; #421 (glass-layer cost) stays open as an optimisation, not a budget failure. The same run on `develop` before the fix wave gave the same picture (CTSL panel P2 18.97 ms).
-
-### G1 audit (heading 11)
-
-Every image in every aircraft and device package has a `LICENSES.md` row, every row names a file that exists, and no SVG embeds a raster image or an `<image>` element. The device packages ship no image files. The audit found the 18 outside-view `phase-*-running.svg` images (9 per aircraft, the propeller disc of #358) without rows; #396 adds them, and #424 proposes a contract test so a missing row fails CI. No image is traced: every licence file states the images were drawn for the project, and the art PRs drew from the plan's palette and the intake notes, never from `reference/`.
-
-### Spec §1 success criteria
-
-| Criterion                                                                                                                          | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                | Gap                                                                                                                                                                                         |
-| ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A pilot can pick an aircraft and a procedure, operate every control on the panel, and be told what they did outside the checklist. | `procedure.spec.ts` (Guided run completes and the summary lists the deviation; Practice shows no deviation until the summary), `modes-dock.spec.ts` and `demo-modes-dock.spec.ts` (device keys in Guided, Practice and Free explore), `mode-switch.spec.ts`; every control is reachable at 44 px and labelled (`placards.spec.ts`, `layout.spec.ts`, `legibility.ts` artwork-control check, `printed-labels.test.tsx`). | No test operates every control of each aircraft through all its positions in the browser; the evidence proves every control is present, labelled and hittable, and samples operation: #425. |
-| Wrong operation behaves as the aircraft would: turning the starter with the magnetos off does not start the engine.                | Demo: `packages/aircraft-demo/src/index.test.ts` ("turns the engine but does not start it with the magnetos off"). CTSL: `systems.test.ts` (no crank with BAT pulled, no start with the fuel valve closed, no cold start without choke or with the throttle open, stops with the ignition off).                                                                                                                         | Only the start side is modelled as inhibits; how much system logic to simulate and how to show wrong actions is spike #360, an owner decision.                                              |
-| A developer adds an aircraft by writing one package and registering it. No engine or app code changes.                             | ESLint boundary rules and `tools/boundary.test.ts`; `apps/web` imports aircraft only in `aircraft-registry.ts`; `docs/adding-an-aircraft.md`. M12 drew all aircraft art inside `packages/aircraft-*` and generic widgets in `panel-kit`; no M12 PR added aircraft-specific code to `apps/web` or `core` (the only M12 change to `core` is #401's generic glass layer and its validation).                               | #415: the spec and the guide still call the dock cell optional.                                                                                                                             |
-| The app installs on a desktop or tablet and works without a network at the airfield.                                               | `offline.spec.ts` (reload and start a procedure offline; update prompt), `apps/web/src/pwa/build.test.ts` (manifest, icons, precache of every aircraft image), `config.test.ts`.                                                                                                                                                                                                                                        | Install on a real tablet is #125 (UAT, open).                                                                                                                                               |
-
-### Decisions in #396
-
-- Score on `develop` plus one fix wave, not verification only as the issue first said: parts from different tasks meet only on the whole panel. The plan's Task 8 now says so.
-- The volume fail was settled by measuring rendered pixels rather than redesigning the track: the track already met 3:1 against the screen when powered; the thumb against the track did not, and only that changed.
-- The plan records the scoring process (one scorer, two-pass heading 10, self-scores as information), the interim P2 rule under load and the ADR 0002 readings of the milestone.
-
-### Open questions for the owner
-
-1. Is the rubric's bar (every heading at least 2, mean at least 2.5) what you mean by photorealistic? Every element meets it; the cross-element heading 10 sits at the bar (2), not above it.
-2. The interim P2 rule under load (show at most 4 ms above base, or at most 25 ms) stays documented in the plan for future art PRs on a busy machine: keep it, or require the absolute run on every art PR?
-3. The ADR 0002 readings in the plan: recognisable realism rank 2, finish rank 6, perf between them; a real instrument's face wording beats the 10.5 px floor for secondary captions. Confirm both.
-4. Accepted at the bar, not above it: the VSI needle shadow at 2 and the compass card shadow not visible (#423). Open beside this milestone: #420 (CTSL gauge lettering below the floor at tablet sizes, unscheduled) and #421 (glass-layer cost, an optimisation).
-5. The CLAUDE.md edits proposed in the release summary are still pending.
-
-### How to verify
-
-- `pnpm test:perf` on an idle machine prints the table above; `pnpm vitest run tools/device-css.test.ts` holds the thumb rule.
+- Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when 4399 is busy).
+- Perf: `pnpm test:perf` on a quiet machine; it prints P1 to P4 per view and fails on a budget.
+- Viewport matrix: `layout.spec.ts` (the priority viewports per aircraft), with `lettering.spec.ts`, `placards.spec.ts` and `floors.spec.ts`.
+- Screenshots: `m12-<aircraft>-<viewport>[-dark][-docked].png` (final state, both aircraft at 1920x1080 light and dark, 3840x2160 and every tab at 1024x768) and the earlier `develop-e4f16d9-*.png` crops, in `/tmp/claude-1000/-home-pkuhn-gaproctrainer/ed6433f4-5a16-484c-8fdd-fabc147ddcef/scratchpad/`; not committed.
 - In the built app at 1920x1080 and 3840x2160, both aircraft, Free explore: every view in one viewport; dock the COM (CTSL) or radio (demo), turn on the battery and avionics, and drag VOL. Repeat at 1024x768 through the tabs. Light and dark chrome leave the panel unchanged.
-- Final-state screenshots are taken by the verification task for the release PR: both aircraft at 1920x1080 (light and dark), 3840x2160 and 1024x768 (every tab), each with the dock empty and with a device docked.
+- UAT: https://docgerd.github.io/cockpit-procedure-trainer/uat/ and, after #422 is merged, prod https://docgerd.github.io/cockpit-procedure-trainer/.
+- The tag (`v0.12.0`), the Release and the deploy order after the merge are in the M11 summary's How to verify (`docs/milestones/m11-cockpit-re-layout.md`).

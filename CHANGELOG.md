@@ -8,22 +8,27 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
-## [0.12.0] - 2026-10-07
+## [0.12.0] - 2026-10-08
 
 ### Added
 
 - Every avionics device now has a read-only display for a panel slot, a short text readout of that display (used as the slot's accessible name) in German and English, and a declared floor size at which its operable screen keeps full touch targets.
 - Each device slot in the panel shows a live read-only mirror with one button that opens the device in the dock, where the aircraft has a dock.
 - A device dock under the panel holds one operable avionics device at a time, with a close button and an empty-state hint; aircraft declare its cell in their cockpit arrangement.
-- Photorealistic panel (M12, in progress): instrument artwork can carry a glass layer above the needle.
+- Instrument artwork can carry a glass layer above the needle.
 
 ### Changed
 
 - The CT Supralight now has three views (panel, centre field, console). Its COM radio, transponder and GPS sit in the panel as live mirrors; selecting one opens the operable unit in the device dock under the panel. Showing the whole cockpit at once now needs a larger window than before; on smaller windows the cockpit falls back to view tabs.
 - The demo aircraft has a radio section on its panel: its COM radio and transponder show as live mirrors there and open in the device dock, and its radio-stack view is gone.
 - In Guided, a step that targets an avionics device now opens that device in the device dock and rings its panel slot and the key to press, instead of switching to another view; Practice opens and rings nothing, and Free explore docks a unit when you select its slot.
-- Photorealistic panel (M12, in progress): the CT Supralight airspeed indicator and light rockers, and the generic round gauge, gain metal bezels, glass glare and shadows; a turning needle no longer repaints the face beneath it.
-- Photorealistic panel (M12, in progress): the demo aircraft's panel and console are drawn as painted, recessed metal.
+- The demo aircraft's panel and console are drawn as painted, recessed metal.
+- Generic panel controls and gauges look like real hardware: metal bezels, glass, shadows and shaded switches.
+- The CT Supralight instruments look like real gauges: metal bezels, glass glare and shadowed needles; a turning needle no longer repaints the face beneath it.
+- The CT Supralight switches, breakers, knobs and levers look like real hardware.
+- The CT Supralight panel reads as painted metal with shadows around its instruments.
+- Avionics units sit in shaded bezels behind glass.
+- The radio volume slider shows its position clearly against the track, and panel placards sit a shade darker beside the painted panel.
 
 ### Fixed
 

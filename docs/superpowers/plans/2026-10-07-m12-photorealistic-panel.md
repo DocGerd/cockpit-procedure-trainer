@@ -18,7 +18,7 @@
 4. **A needle must not repaint its face.** Without a layer of its own, every needle move re-rasterises the face beneath it, filters included. The spike puts the moving image of a needle on its own compositor layer (`.cpt-artwork-moving[data-moving='needle']` in `artwork.css`); after that a sweeping photorealistic needle costs less than the flat one did. Positions and travel layers stay unpromoted: they change on a click, not every frame, and every layer costs memory.
 5. **Blur filters are the expensive part of a static face.** With the moving layer split off they cost only on a full re-raster (view switch, resize, zoom), but there they dominate. Gradients do most of the work at a fraction of the cost.
 6. **Generic widgets: token-driven gradients in TSX** (see Technique below).
-7. **Decision (#409): P2 judges the view switch; the resize is information.** A resize mostly measures every artwork SVG `<img>` being re-recorded at a new size, which only fewer or simpler images reduce, and it swings with machine load; a view switch is what a user triggers on every tab change. The resize sample stays in the printed table so a growing image count shows up. The first harness also summed `PaintImage` on top of the `Paint` that contains it, which inflated the resize sample by about a third; that is corrected (Harness method).
+7. **Decision (#409): P2 judges the view switch; the resize is information.** A resize mostly measures every artwork SVG `<img>` being re-recorded at a new size, which only fewer or simpler images reduce, and it swings with machine load; a view switch is what a user triggers on every tab change. The resize sample stays in the printed table so a growing image count shows up. The first harness also summed `PaintImage` on top of the `Paint` that contains it, which inflated the resize sample; that is corrected (Harness method).
 
 ## Technique for panel-kit generic widgets
 
@@ -65,7 +65,7 @@ Trade-offs taken:
 | Glass rim highlight: a crisp arc, upper left | | none | 0.45 |
 | Specular edge on metal or plastic, upper left | | linear gradient | 0.55–0.75 → 0 |
 
-**Reference specimens.** The spike's files show the technique and the light every task follows: `gauge-airspeed.svg` and `needle-airspeed.svg` (bezel, lip, recess, glass, screws, needle), `rocker-beacon.svg` with `rocker-on.svg` and `rocker-off.svg` (frame, well, paddle), and `RoundGauge.tsx` (the same materials from tokens). They do not set the finish: the ui-verifier scored them below the rubric's bar ("good drawings, not photographs"), so every task goes beyond them with the photoreal devices below.
+**Reference specimens.** The spike's files show the technique and the light every task follows: `gauge-airspeed.svg` and `needle-airspeed.svg` (bezel, lip, recess, glass, screws, needle; Task 3 replaced the needle with the shared `needle.svg` and the glass with `glass-gauge.svg`), `rocker-beacon.svg` with `rocker-on.svg` and `rocker-off.svg` (frame, well, paddle), and `RoundGauge.tsx` (the same materials from tokens). They do not set the finish: the ui-verifier scored them below the rubric's bar ("good drawings, not photographs"), so every task goes beyond them with the photoreal devices below.
 
 **Materials and palette** (hex values are for aircraft SVG files; panel-kit takes the same roles from the `--panel-*` tokens in the last column, and a token's value is the hex it stands for):
 
