@@ -1,4 +1,6 @@
+import { control } from './content';
 import { expect, test } from './fixtures';
+import { selectLanguage } from './legibility';
 import {
   aircraft,
   checklistPane,
@@ -26,14 +28,15 @@ test('a Guided procedure completes and the summary lists the deviation', async (
   await expect(pane.getByText(copy.checklist.noDeviations)).toBeVisible();
 
   await operateUnrelatedControl(page, unrelatedControl);
-  await expect(page.getByRole('status')).toContainText(deviation.banner(unrelatedControl, 1));
+  await expect(page.getByRole('status')).toContainText(deviation.banner(unrelatedControl));
 
   await completeProcedure(page, engineStart);
 
-  await expect(pane.getByRole('listitem')).toHaveCount(1);
-  await expect(
-    pane.getByRole('region', { name: copy.checklist.deviationsHeading }).getByRole('listitem'),
-  ).toContainText(deviation.title(unrelatedControl));
+  const rows = pane
+    .getByRole('region', { name: copy.checklist.deviationsHeading })
+    .getByRole('listitem');
+  await expect(rows).toHaveCount(1);
+  await expect(rows).toContainText(deviation.title(unrelatedControl));
 });
 
 test('a Practice run shows no deviation information until the summary', async ({ page }) => {
@@ -43,7 +46,7 @@ test('a Practice run shows no deviation information until the summary', async ({
   await operateUnrelatedControl(page, unrelatedControl);
 
   await expect(page.getByRole('status')).toHaveCount(0);
-  await expect(page.getByText(deviation.banner(unrelatedControl, 1))).toHaveCount(0);
+  await expect(page.getByText(deviation.banner(unrelatedControl))).toHaveCount(0);
   await expect(page.getByText(copy.checklist.noDeviations)).toHaveCount(0);
   await expect(page.getByText(/\d+ deviations?/)).toHaveCount(0);
   await expect(pane.getByRole('img', { name: copy.checklist.stateDeviated })).toHaveCount(0);
@@ -143,4 +146,79 @@ test.describe('changing the phase during a procedure', () => {
     await expect(progress(page)).toHaveCount(0);
     await expect(checklistPane(page).getByRole('img')).toHaveCount(0);
   });
+});
+
+test('a stray Guided action is ringed until it is back, and Retry this item puts it back', async ({
+  page,
+}) => {
+  await startProcedure(page, engineStart, 'guided');
+  const stray = page.locator('[data-outline="stray"]');
+  await expect(stray).toHaveCount(0);
+
+  await operateUnrelatedControl(page, unrelatedControl);
+  await expect(page.getByRole('status')).toContainText(deviation.banner(unrelatedControl));
+  await expect(stray).toBeVisible();
+
+  await checklistPane(page).getByRole('button', { name: copy.checklist.retryItem }).click();
+  await expect(stray).toHaveCount(0);
+  const flaps = control(unrelatedControl);
+  await expect(
+    page
+      .getByRole('radiogroup', { name: flaps.name.en, exact: true })
+      .getByRole('radio', { name: String(flaps.initial), exact: true }),
+  ).toBeChecked();
+});
+
+for (const language of ['en', 'de'] as const) {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    test(`the ${language} ${colorScheme} summary keeps every stat on one line inside its tile`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.emulateMedia({ colorScheme });
+      await startProcedure(page, engineStart, 'guided');
+      await operateUnrelatedControl(page, unrelatedControl);
+      await completeProcedure(page, engineStart);
+      await selectLanguage(page, language);
+
+      const tiles = checklistPane(page).locator('.checklist-stat');
+      await expect(tiles).toHaveCount(3);
+      const fits = await tiles.evaluateAll((elements) =>
+        elements.map((tile) => {
+          const label = tile.querySelector('dt');
+          const value = tile.querySelector('dd');
+          if (!label || !value) return false;
+          const box = tile.getBoundingClientRect();
+          const inside = (rect: DOMRect) => rect.left >= box.left && rect.right <= box.right;
+          const line = parseFloat(getComputedStyle(value).lineHeight);
+          return (
+            inside(label.getBoundingClientRect()) &&
+            inside(value.getBoundingClientRect()) &&
+            label.scrollWidth <= label.clientWidth &&
+            value.getBoundingClientRect().height <= line * 1.5
+          );
+        }),
+      );
+      expect(fits).toEqual([true, true, true]);
+    });
+  }
+}
+
+test('a summary with deviations makes Repeat primary and links each deviation to its item', async ({
+  page,
+}) => {
+  await startProcedure(page, engineStart, 'guided');
+  await operateUnrelatedControl(page, unrelatedControl);
+  await completeProcedure(page, engineStart);
+  const pane = checklistPane(page);
+
+  await expect(pane.getByRole('button', { name: copy.checklist.repeatProcedure })).toHaveClass(
+    /button-primary/,
+  );
+  await pane.getByRole('button', { name: /^Go to item / }).click();
+  const items = pane
+    .getByRole('region', { name: copy.checklist.itemsHeading })
+    .getByRole('listitem');
+  await expect(items.first()).toBeFocused();
+  await expect(items.first()).toBeInViewport();
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useCurrentTarget } from '../checklist';
+import { useCurrentTarget, useStray } from '../checklist';
 import { useDock } from '../devices/dock-state';
 import { useActiveView } from '../panel/active-view';
 import { useReveal } from '../panel/panel-zoom';
@@ -50,6 +50,8 @@ function useReducedMotion(): boolean {
 function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects }) {
   const { aircraft } = useTrainer();
   const target = useCurrentTarget();
+  const stray = useStray();
+  const strayBox = stray === undefined ? undefined : targetBox(rects, { control: stray });
   const item = useSessionState((session) => session.checklist()?.current);
   const reducedMotion = useReducedMotion();
   const active = useActiveView();
@@ -105,6 +107,9 @@ function GuidedOverlay({ viewId, rects }: { viewId: string; rects: PanelRects })
           data-pulse={reducedMotion ? undefined : 'true'}
           style={boxStyle(box)}
         />
+      )}
+      {strayBox && (
+        <div className="modes-outline" data-outline="stray" style={boxStyle(strayBox)} />
       )}
     </div>
   );

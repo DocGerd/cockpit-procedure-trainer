@@ -415,3 +415,66 @@ describe('radio section layout', () => {
     }
   });
 });
+
+describe('the annunciator test item of the engine start', () => {
+  function atAnnunciator(): Session {
+    const session = createSession(demoAircraft, { devices, phase: 'parking' });
+    session.startProcedure('engineStart');
+    session.checkOff();
+    session.checkOff();
+    for (const [control, position] of [
+      ['fuelSelector', 'both'],
+      ['mixture', 1],
+      ['battery', 'on'],
+      ['alternator', 'on'],
+    ] as const) {
+      session.set(control, position);
+    }
+    expect(session.checklist()?.current).toBe(6);
+    return session;
+  }
+
+  it('does not complete on a click', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    session.release('annunciator');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(6);
+  });
+
+  it('does not complete on a hold that is let go early', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 400);
+    session.release('annunciator');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(6);
+  });
+
+  it('completes once the switch has been held long enough', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 3000);
+    expect(session.checklist()?.current).toBe(7);
+  });
+
+  it('starts the hold over after a release', () => {
+    const session = atAnnunciator();
+    session.press('annunciator', 'test');
+    run(session, 400);
+    session.release('annunciator');
+    session.press('annunciator', 'test');
+    run(session, 400);
+    expect(session.checklist()?.current).toBe(6);
+  });
+});
+
+describe('the radio and transponder self-check', () => {
+  it('records an unmet check when it is ticked with the avionics off', () => {
+    const session = createSession(demoAircraft, { devices });
+    session.startProcedure('radioAndTransponder');
+    session.set('avionics', 'off');
+    session.checkOff();
+    expect(session.checklist()?.deviations).toEqual([{ kind: 'unmet-check', itemIndex: 0 }]);
+  });
+});
