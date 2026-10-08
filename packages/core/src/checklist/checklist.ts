@@ -230,10 +230,14 @@ export function observeControl<S>(
   // In a flow every flow target is the target, and no position is left behind.
   const deviating =
     moved && !(flowing ? flowTargets(checklist.procedure, change.id) : targets(item, change.id));
-  const touching = moved && !flowing && item.type === 'action' && item.control === change.id;
+  const onTarget = item.type === 'action' && item.control === change.id;
+  const touching = moved && !flowing && onTarget;
+  // A spring-back released early, such as a starter cranked in bursts, rests where it left
+  // nothing behind; a later pilot move of the target counts again.
+  const releasing = change.source === 'spring' && change.kind === 'position' && onTarget;
   const operating = touching && item.position === change.to;
   const operated = checklist.operated || operating;
-  const touched = checklist.touched || touching;
+  const touched = (checklist.touched || touching) && !releasing;
   const repeating = checklist.repeating && deviating;
   let next =
     operated === checklist.operated &&
