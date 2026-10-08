@@ -537,6 +537,41 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('invalid-memory', () => {
+    const alternatorItems = fixtureAircraft.procedures.alternatorFailure?.items ?? [];
+    const recall = { type: 'confirm', memory: true, text };
+
+    it('accepts memory items of any kind leading an emergency procedure', () => {
+      const [first, ...rest] = alternatorItems;
+      const aircraft = withItems('alternatorFailure', [
+        recall,
+        { ...first, memory: true },
+        ...rest,
+      ]);
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports a memory item on a normal procedure', () => {
+      const finding = only(
+        withItems('beforeStart', [recall, ...beforeStartItems]),
+        'invalid-memory',
+        'beforeStart',
+      );
+      expect(finding.message).toContain('procedure beforeStart item 0');
+    });
+
+    it('reports a memory item after an item that is not one', () => {
+      const finding = only(
+        withItems('alternatorFailure', [...alternatorItems, recall]),
+        'invalid-memory',
+        'alternatorFailure',
+      );
+      expect(finding.message).toContain(
+        `procedure alternatorFailure item ${alternatorItems.length}`,
+      );
+    });
+  });
+
   describe('inexact-lever-target', () => {
     const action = (control: string, position: unknown) =>
       withItems('beforeStart', [

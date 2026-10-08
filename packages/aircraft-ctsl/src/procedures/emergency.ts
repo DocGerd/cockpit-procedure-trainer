@@ -25,6 +25,9 @@ const engineStoppedCheck: Item = {
 
 const confirm = (de: string, en: string): Item => ({ type: 'confirm', text: text(de, en) });
 
+// Which steps are memory items is assumed (unverified): docs/aircraft/ctsl-intake.md §9, question 23.
+const fromMemory = (item: Item): Item => ({ ...item, memory: true });
+
 const fieldChosen = confirm(
   'Landefeld in Gleitreichweite gewählt; keines erreichbar: Rettungsgerät',
   'Field within gliding reach chosen; none reachable: rescue system',
@@ -79,8 +82,8 @@ const afterTouchdown: readonly Item[] = [
     control: 'brake',
     position: 'on',
     text: text(
-      'Nach dem Aufsetzen: Knüppel ganz zurück, Bremshebel ziehen',
-      'After touchdown: stick fully back, brake lever on',
+      'Nach dem Aufsetzen: Knüppel ganz zurück, Bremshebel ziehen und halten',
+      'After touchdown: stick fully back, brake lever pulled and held',
     ),
   },
   {
@@ -107,10 +110,12 @@ export const emergencyProcedures = {
     failure: 'engineStoppage',
     startPhase: 'departure',
     items: [
-      engineStoppedCheck,
-      confirm(
-        'Kein Neustart; geradeaus landen, keine Umkehrkurve unter 250 m, unter 50 m gar keine Kurven',
-        'No restart; land ahead, no turn back below 250 m (820 ft), no turns at all below 50 m (160 ft)',
+      fromMemory(engineStoppedCheck),
+      fromMemory(
+        confirm(
+          'Kein Neustart; geradeaus landen, keine Umkehrkurve unter 250 m, unter 50 m gar keine Kurven',
+          'No restart; land ahead, no turn back below 250 m (820 ft), no turns at all below 50 m (160 ft)',
+        ),
       ),
       fieldChosen,
       ...preparation,
@@ -132,25 +137,30 @@ export const emergencyProcedures = {
     failure: 'engineStoppage',
     startPhase: 'cruise',
     items: [
-      engineStoppedCheck,
+      fromMemory(engineStoppedCheck),
       {
         type: 'action',
+        memory: true,
         control: 'fuelValve',
         position: 'open',
         text: text('Brandhahn offen', 'Fuel valve (Brandhahn) open'),
       },
-      confirm(
-        'Kraftstoff in beiden Tanks sichtbar; ist einer leer, diese Fläche hoch halten',
-        'Fuel visible in both tanks; if one shows empty, keep that wing up',
+      fromMemory(
+        confirm(
+          'Kraftstoff in beiden Tanks sichtbar; ist einer leer, diese Fläche hoch halten',
+          'Fuel visible in both tanks; if one shows empty, keep that wing up',
+        ),
       ),
       {
         type: 'action',
+        memory: true,
         control: 'ignition',
         position: 'both',
         text: text('Zündschalter BOTH', 'Ignition BOTH'),
       },
       {
         type: 'action',
+        memory: true,
         control: 'ignition',
         position: 'start',
         text: text(
@@ -180,13 +190,16 @@ export const emergencyProcedures = {
     failure: 'engineStoppage',
     startPhase: 'cruise',
     items: [
-      engineStoppedCheck,
-      confirm(
-        'Kein Landefeld in Gleitreichweite: Rettungsgerät auslösen',
-        'No field within gliding reach: deploy the rescue system',
+      fromMemory(engineStoppedCheck),
+      fromMemory(
+        confirm(
+          'Kein Landefeld in Gleitreichweite: Rettungsgerät auslösen',
+          'No field within gliding reach: deploy the rescue system',
+        ),
       ),
       {
         type: 'action',
+        memory: true,
         control: 'ignition',
         position: 'off',
         text: text(
@@ -194,12 +207,15 @@ export const emergencyProcedures = {
           'Ignition OFF so the propeller cannot damage the parachute',
         ),
       },
-      confirm(
-        'Sicherungsstift gezogen, vor dem Flug entfernt (Ergänzung des Trainers)',
-        'Safety pin out, removed before flight (trainer addition)',
+      fromMemory(
+        confirm(
+          'Sicherungsstift gezogen, vor dem Flug entfernt (Ergänzung des Trainers)',
+          'Safety pin out, removed before flight (trainer addition)',
+        ),
       ),
       {
         type: 'action',
+        memory: true,
         control: 'rescueHandle',
         position: 'pulled',
         text: text(
@@ -241,18 +257,21 @@ export const emergencyProcedures = {
     items: [
       {
         type: 'check',
+        memory: true,
         target: { control: 'fuelValve' },
         condition: (state) => state.systems.fire,
         text: text('Rauch oder Flammen am Triebwerk', 'Smoke or flames from the engine'),
       },
       {
         type: 'action',
+        memory: true,
         control: 'fuelValve',
         position: 'closed',
         text: text('Brandhahn sofort zu', 'Fuel valve (Brandhahn) closed at once'),
       },
       {
         type: 'action',
+        memory: true,
         control: 'throttle',
         position: 'full',
         holdUntil: (state) => !state.systems.engine.running,
@@ -260,6 +279,7 @@ export const emergencyProcedures = {
       },
       {
         type: 'action',
+        memory: true,
         control: 'ignition',
         position: 'off',
         text: text('Zündschalter OFF', 'Ignition OFF'),
@@ -330,18 +350,21 @@ export const emergencyProcedures = {
     items: [
       {
         type: 'check',
+        memory: true,
         target: { indicator: 'oilPressure' },
         condition: (state) => state.systems.oilPressureBar < OIL_PRESSURE_MIN_BAR,
         text: text('Öldruck unter dem Minimum', 'Oil pressure below the minimum'),
       },
       {
         type: 'action',
+        memory: true,
         control: 'ignition',
         position: 'off',
         text: text('Zündschalter OFF', 'Ignition OFF'),
       },
       {
         type: 'action',
+        memory: true,
         control: 'fuelValve',
         position: 'closed',
         text: text('Brandhahn zu', 'Fuel valve (Brandhahn) closed'),

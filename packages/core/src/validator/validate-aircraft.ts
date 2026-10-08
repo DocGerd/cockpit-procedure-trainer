@@ -40,7 +40,8 @@ export type FindingCode =
   | 'invalid-cockpit-dock'
   | 'artwork-glass-size'
   | 'invalid-check-response'
-  | 'invalid-flow';
+  | 'invalid-flow'
+  | 'invalid-memory';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -565,6 +566,7 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         : later.type === 'check' && 'control' in later.target && later.target.control === control);
 
     let checklistStarted = false;
+    let recallEnded = false;
     procedure.items.forEach((item, index) => {
       const where = `procedure ${procedureId} item ${index}`;
       checkText(procedureId, `item ${index} text`, item.text);
@@ -579,6 +581,17 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       } else if (!procedure.items.some((later) => verifies(later, item.control))) {
         // A flow item latches, so only a later checklist item catches its control moved back.
         add('invalid-flow', procedureId, `${where} is in a flow, but no later item verifies it`);
+      }
+      if (item.memory !== true) {
+        recallEnded = true;
+      } else if (procedure.type !== 'emergency') {
+        add('invalid-memory', procedureId, `${where} is a memory item; only an emergency has them`);
+      } else if (recallEnded) {
+        add(
+          'invalid-memory',
+          procedureId,
+          `${where} is a memory item, which must lead the procedure`,
+        );
       }
       if (item.type === 'action') {
         checkControlTarget(item.control, where, item.position, true);

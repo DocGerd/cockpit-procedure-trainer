@@ -533,38 +533,60 @@ describe('flaps', () => {
 });
 
 describe('parking brake', () => {
-  it('sets when the brake is applied with the valve closed, holds, and releases with the valve', () => {
+  it('brakes only while the lever is held, which springs back when released', () => {
+    const session = sessionAt('taxiIn');
+    expect(session.press('brake')).toEqual({ applied: true });
+    expect(session.state().controls.brake).toBe('on');
+    expect(systems(session).brakeApplied).toBe(true);
+    session.release('brake');
+    expect(session.state().controls.brake).toBe('off');
+    expect(systems(session).brakeApplied).toBe(false);
+  });
+
+  it('sets when the lever is pulled and released with the valve closed, and clears with the valve', () => {
     const session = sessionAt('taxiIn');
     expect(systems(session).parkingBrakeSet).toBe(false);
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
-    session.set('brake', 'on');
+    session.press('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
-    session.set('brake', 'off');
+    session.release('brake');
     advanceSeconds(session, 5);
     expect(systems(session).parkingBrakeSet).toBe(true);
     session.set('parkingBrakeValve', 'open');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the brake is applied with the valve open', () => {
+  it('sets when the valve closes while the lever is held, and holds once it is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    expect(systems(session).parkingBrakeSet).toBe(false);
+    session.set('parkingBrakeValve', 'closed');
+    expect(systems(session).parkingBrakeSet).toBe(true);
+    session.release('brake');
+    advanceSeconds(session, 5);
+    expect(systems(session).parkingBrakeSet).toBe(true);
+  });
+
+  it('does not set when the lever is pulled and released with the valve open', () => {
+    const session = sessionAt('taxiIn');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
-  it('does not set when the valve closes on a brake already applied', () => {
+  it('does not set when the valve closes after the lever is released', () => {
     const session = sessionAt('taxiIn');
-    session.set('brake', 'on');
+    session.press('brake');
+    session.release('brake');
     session.set('parkingBrakeValve', 'closed');
     expect(systems(session).parkingBrakeSet).toBe(false);
   });
 
   it('stays set at holding while the valve stays closed', () => {
     const session = sessionAt('holding');
-    session.set('brake', 'on');
-    session.set('brake', 'off');
+    session.press('brake');
+    session.release('brake');
     expect(systems(session).parkingBrakeSet).toBe(true);
   });
 });
