@@ -2,7 +2,7 @@ import { createSession } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { ctslAircraft } from './index';
 import { devices } from './devices';
-import { initial } from './systems';
+import { KMH_PER_KT, initial } from './systems';
 import type { CtslTrainerState } from './systems';
 import { testDevices } from './test-devices';
 import { deviceSlots } from './views';
@@ -103,7 +103,17 @@ describe('the GPSMAP 496 install', () => {
       view: 'panel',
       placement: deviceSlots.gps,
     });
-    expect(install.inputs).toEqual({});
+    expect(Object.keys(install.inputs)).toEqual(['groundSpeedKt', 'trackDeg']);
+  });
+
+  it('reads the airspeed as ground speed in knots and the heading as track', () => {
+    const state = stateWith(true, {});
+    const flying = {
+      ...state,
+      systems: { ...state.systems, airspeedKmh: 108 * KMH_PER_KT, headingDeg: 180 },
+    };
+    expect(install.inputs.groundSpeedKt(flying)).toBeCloseTo(108);
+    expect(install.inputs.trackDeg(flying)).toBe(180);
   });
 
   it.each([

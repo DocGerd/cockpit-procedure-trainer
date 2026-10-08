@@ -760,9 +760,9 @@ describe('CTSL aircraft', () => {
     ['landing', true],
     ['taxiIn', true],
     ['parkingSecuring', false],
-  ])('enters %s with the GPS on: %s', (phase, on) => {
+  ])('enters %s with the GPS on and its position fixed: %s', (phase, on) => {
     const session = createSession(ctslAircraft, { devices, phase });
-    expect(session.state().devices.gps?.state).toMatchObject({ on, page: 'map' });
+    expect(session.state().devices.gps?.state).toMatchObject({ on, page: 'map', fix: on });
   });
 
   it.each([

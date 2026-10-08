@@ -1,5 +1,5 @@
 import { defineDevice } from '@cpt/core';
-import type { Text } from '@cpt/core';
+import type { IndicatorValue, Text } from '@cpt/core';
 
 export const PAGES = ['map', 'terrain', 'route', 'info'] as const;
 export type Gpsmap496Page = (typeof PAGES)[number];
@@ -9,10 +9,20 @@ export type Gpsmap496Key = (typeof KEYS)[number];
 
 export const BACKLIGHT_LEVELS = 3;
 
+export const GROUND_SPEED_INPUT = 'groundSpeedKt';
+export const TRACK_INPUT = 'trackDeg';
+
+/** How long the receiver searches for satellites after it is switched on. */
+export const ACQUIRE_MS = 30_000;
+
 export type Gpsmap496State = {
   readonly on: boolean;
   readonly page: Gpsmap496Page;
   readonly backlight: number;
+  readonly fix: boolean;
+  readonly acquiringMs: number;
+  readonly groundSpeedKt: number | null;
+  readonly trackDeg: number | null;
   readonly held: Readonly<Record<Gpsmap496Key, string>>;
 };
 
@@ -31,8 +41,17 @@ const initial: Gpsmap496State = {
   on: false,
   page: 'map',
   backlight: 1,
+  fix: false,
+  acquiringMs: 0,
+  groundSpeedKt: null,
+  trackDeg: null,
   held: { power: 'released', backlight: 'released', page: 'released', quit: 'released' },
 };
+
+const noFix = { fix: false, acquiringMs: 0, groundSpeedKt: null, trackDeg: null } as const;
+
+const reading = (value: IndicatorValue | undefined): number | null =>
+  typeof value === 'number' && Number.isFinite(value) ? value : null;
 
 const shift = (page: Gpsmap496Page, by: number): Gpsmap496Page =>
   PAGES[(PAGES.indexOf(page) + by + PAGES.length) % PAGES.length] ?? page;
@@ -44,10 +63,13 @@ export const gpsmap496Device = defineDevice({
     'Garmin GPSMAP 496, operation from general knowledge of Garmin handheld GPS units; manual revision not identified',
   ),
   notModelled: [
-    text('Karte, Kartendarstellung und Zoom', 'Moving map, map display and zoom'),
     text(
-      'Satellitenempfang, Position, Kurs und Geschwindigkeit',
-      'Satellite reception, position, track and speed',
+      'Kartendaten, Zoom und Kartenausrichtung: die Karte zeigt nur Entfernungsringe, Kurslinie und Nordrichtung',
+      'Map data, zoom and map orientation: the map shows only range rings, the track line and north',
+    ),
+    text(
+      'Satellitenkonstellation, Signalstärke, Koordinaten und GPS-Höhe; die Position steht nach einer festen Suchzeit',
+      'Satellite constellation, signal strength, coordinates and GPS altitude; the fix comes after a fixed search time',
     ),
     text(
       'Navigationsdatenbank, Flughäfen und Luftraum',
@@ -88,23 +110,35 @@ export const gpsmap496Device = defineDevice({
     ),
   },
   initial,
-  step(state: Gpsmap496State, { controls, powered }): Gpsmap496State {
+  step(state: Gpsmap496State, { controls, powered, inputs, dtMs }): Gpsmap496State {
     const held = Object.fromEntries(KEYS.map((id) => [id, String(controls[id])])) as Record<
       Gpsmap496Key,
       string
     >;
-    if (!powered) return { ...state, on: false, page: 'map', held };
+    if (!powered) return { ...state, ...noFix, on: false, page: 'map', held };
 
     const tapped = (id: Gpsmap496Key): boolean =>
       held[id] === 'pressed' && state.held[id] !== 'pressed';
 
     let { on, page, backlight } = state;
     if (tapped('power')) on = !on;
-    if (!on) return { ...state, on, page: 'map', held };
+    if (!on) return { ...state, ...noFix, on, page: 'map', held };
 
     if (tapped('page')) page = shift(page, 1);
     if (tapped('quit')) page = shift(page, -1);
     if (tapped('backlight')) backlight = (backlight + 1) % BACKLIGHT_LEVELS;
-    return { on, page, backlight, held };
+
+    const acquiringMs = Math.min(ACQUIRE_MS, state.acquiringMs + dtMs);
+    const fix = state.fix || acquiringMs >= ACQUIRE_MS;
+    return {
+      on,
+      page,
+      backlight,
+      fix,
+      acquiringMs,
+      groundSpeedKt: fix ? reading(inputs[GROUND_SPEED_INPUT]) : null,
+      trackDeg: fix ? reading(inputs[TRACK_INPUT]) : null,
+      held,
+    };
   },
 });
