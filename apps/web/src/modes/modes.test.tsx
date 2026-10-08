@@ -427,6 +427,16 @@ describe('Guided stray control', () => {
     act(() => trainer.session.set('throttle', 0.5));
     expect(stray()).toBeNull();
   });
+
+  it('draws none for a spring-back control, even while it is held', () => {
+    renderTrainer();
+    start('start', 'guided');
+    act(() => trainer.session.press('starter'));
+    expect(trainer.session.checklist()?.deviations.at(-1)?.controlId).toBe('starter');
+    expect(stray()).toBeNull();
+    act(() => trainer.session.release('starter'));
+    expect(stray()).toBeNull();
+  });
 });
 
 describe('Guided while zoomed', () => {

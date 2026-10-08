@@ -1,3 +1,4 @@
+import { springsBack } from '@cpt/core';
 import type { ChecklistState, ControlPosition, Deviation } from '@cpt/core';
 import { format, useLocalize, useMessages } from '../i18n';
 import { messages as panelMessages } from '../panel/messages';
@@ -30,6 +31,10 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
   };
   const position = (deviation: Deviation) => positionName(deviation.controlId, deviation.position);
   const previous = (deviation: Deviation) => positionName(deviation.controlId, deviation.from);
+  // A spring-back control is already back by the time the pilot reads this: name the press.
+  const pressed = (deviation: Deviation) =>
+    deviation.position !== undefined &&
+    springsBack(definition(deviation.controlId), deviation.position);
   const item = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];
     return found ? localize(found.text) : '';
@@ -75,10 +80,18 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
       const at = position(deviation);
       switch (deviation.kind) {
         case 'unexpected-control':
+          if (pressed(deviation))
+            return format(text.actualPressed, { control: control(deviation) });
           return at === undefined
             ? format(text.unexpectedTitle, { control: control(deviation) })
             : format(text.actualSet, { control: control(deviation), position: at });
         case 'out-of-order':
+          if (pressed(deviation)) {
+            return format(text.actualPressedEarly, {
+              control: control(deviation),
+              ...later(deviation),
+            });
+          }
           return at === undefined
             ? format(text.outOfOrderTitle, { control: control(deviation), ...later(deviation) })
             : format(text.actualSetEarly, {
@@ -101,6 +114,12 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
       const from = previous(deviation);
       switch (deviation.kind) {
         case 'unexpected-control':
+          if (pressed(deviation)) {
+            return format(text.bannerPressed, {
+              control: control(deviation),
+              ...number(deviation),
+            });
+          }
           return at !== undefined && from !== undefined
             ? format(text.bannerUnexpected, {
                 control: control(deviation),
@@ -112,6 +131,13 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
                 ...number(deviation),
               });
         case 'out-of-order':
+          if (pressed(deviation)) {
+            return format(text.bannerPressedEarly, {
+              control: control(deviation),
+              ...number(deviation),
+              ...later(deviation),
+            });
+          }
           return at !== undefined && from !== undefined
             ? format(text.bannerOutOfOrder, {
                 control: control(deviation),

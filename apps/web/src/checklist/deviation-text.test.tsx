@@ -19,6 +19,21 @@ const aircraft: Aircraft = {
       positions: ['in', 'pulled'],
       initial: 'in',
     },
+    starter: {
+      kind: 'momentary',
+      name: { de: 'Anlasser', en: 'Starter' },
+      description: { de: 'Anlasser', en: 'Starter' },
+      positions: ['released', 'held'],
+      initial: 'released',
+    },
+    key: {
+      kind: 'rotary',
+      name: { de: 'Zündschalter', en: 'Key' },
+      description: { de: 'Zündschalter', en: 'Key' },
+      positions: ['off', 'on', 'start'],
+      initial: 'off',
+      springBack: { start: 'on' },
+    },
   },
   procedures: {
     flow: {
@@ -111,6 +126,24 @@ describe('deviation text for each kind', () => {
     expect(text.banner(moved)).toBe(
       'Bus set to ON early. It belongs to item 4, not item 1. Return it to OFF.',
     );
+  });
+
+  it('names a stray spring-back press as a press, with nothing to return', () => {
+    const text = describeIn('en');
+    const press = stray('starter', 'held', 'released');
+    expect(text.banner(press)).toBe('Starter pressed. Not part of item 1.');
+    expect(text.actual(press)).toBe('Starter pressed');
+    const early: Deviation = {
+      ...outOfOrder,
+      controlId: 'starter',
+      position: 'held',
+      from: 'released',
+    };
+    expect(text.banner(early)).toBe('Starter pressed early. It belongs to item 4, not item 1.');
+    expect(text.actual(early)).toBe('Starter pressed, which belongs to item 4');
+    expect(text.banner(stray('key', 'start', 'on'))).toBe('Key pressed. Not part of item 1.');
+    expect(text.banner(stray('key', 'on', 'off'))).toBe('Key set to ON. Return it to OFF.');
+    expect(describeIn('de').banner(press)).toBe('Anlasser gedrückt. Nicht Teil von Punkt 1.');
   });
 
   it('names a control left in the wrong position as the panel prints the position', () => {

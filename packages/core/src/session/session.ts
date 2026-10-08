@@ -72,7 +72,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   let runMs = 0;
   let itemStart:
     | {
-        readonly item: number;
+        readonly completed: number;
         readonly positions: ReturnType<typeof store.positions>;
         readonly guards: ReturnType<typeof store.guards>;
         readonly systems: unknown;
@@ -152,9 +152,10 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     const wasDone = checklist?.done ?? false;
     checklist = next.done && !wasDone ? { ...next, elapsedMs: runMs } : next;
     if (next.done) itemStart = undefined;
-    else if (itemStart?.item !== next.current) {
+    // Keyed on completions, not `current`: a flow ticks items without moving `current`.
+    else if (itemStart?.completed !== next.completed.length) {
       itemStart = {
-        item: next.current,
+        completed: next.completed.length,
         positions: store.positions(),
         guards: store.guards(),
         systems: runtime.state(),

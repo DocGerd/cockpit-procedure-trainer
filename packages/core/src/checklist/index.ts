@@ -5,5 +5,6 @@ export {
   retryItem,
   checkOff,
   takesTick,
+  springsBack,
 } from './checklist';
 export type { ChecklistState, Deviation, DeviationKind } from './checklist';

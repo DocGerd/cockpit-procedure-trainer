@@ -41,6 +41,8 @@ export const messages = defineMessages({
     deviationBanner: 'Deviation',
     bannerUnexpected: '{control} set to {position}. Return it to {previous}.',
     bannerUnexpectedBare: '{control} operated. Not part of item {n}.',
+    bannerPressed: '{control} pressed. Not part of item {n}.',
+    bannerPressedEarly: '{control} pressed early. It belongs to item {later}, not item {n}.',
     bannerUnmet: 'Item {n} was checked off, but its condition was not met.',
     bannerOutOfOrder:
       '{control} set to {position} early. It belongs to item {later}, not item {n}. Return it to {previous}.',
@@ -68,6 +70,8 @@ export const messages = defineMessages({
     expectedAt: '{control} at {position}',
     actualSet: '{control} set to {position}',
     actualSetEarly: '{control} set to {position}, which belongs to item {later}',
+    actualPressed: '{control} pressed',
+    actualPressedEarly: '{control} pressed, which belongs to item {later}',
     actualReading: 'Reading given: {response}',
     actualUnmet: 'Checked off with the condition not met',
     goToItem: 'Go to item {n}',
@@ -125,6 +129,9 @@ export const messages = defineMessages({
     deviationBanner: 'Abweichung',
     bannerUnexpected: '{control} auf {position} gestellt. Zurück auf {previous} stellen.',
     bannerUnexpectedBare: '{control} bedient. Nicht Teil von Punkt {n}.',
+    bannerPressed: '{control} gedrückt. Nicht Teil von Punkt {n}.',
+    bannerPressedEarly:
+      '{control} zu früh gedrückt. Das gehört zu Punkt {later}, nicht zu Punkt {n}.',
     bannerUnmet: 'Punkt {n} wurde abgehakt, aber seine Bedingung war nicht erfüllt.',
     bannerOutOfOrder:
       '{control} zu früh auf {position} gestellt. Das gehört zu Punkt {later}, nicht zu Punkt {n}. Zurück auf {previous} stellen.',
@@ -153,6 +160,8 @@ export const messages = defineMessages({
     expectedAt: '{control} auf {position}',
     actualSet: '{control} auf {position} gestellt',
     actualSetEarly: '{control} auf {position} gestellt, das gehört zu Punkt {later}',
+    actualPressed: '{control} gedrückt',
+    actualPressedEarly: '{control} gedrückt, das gehört zu Punkt {later}',
     actualReading: 'Angegebener Wert: {response}',
     actualUnmet: 'Abgehakt, obwohl die Bedingung nicht erfüllt war',
     goToItem: 'Zu Punkt {n}',

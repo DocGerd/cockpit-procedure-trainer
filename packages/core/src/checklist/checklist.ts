@@ -38,11 +38,15 @@ export type ChecklistState<S> = {
   readonly repeating: boolean;
   /** How long the run took; the session sets it when the procedure is done, and it is 0 before. */
   readonly elapsedMs: number;
-  /** Help the pilot took: how often the current item was retried. */
+  /** Help the pilot took, such as a retried item. */
   readonly assists: number;
 };
 
-function springsBack(definition: ControlDefinition | undefined, position: string | number) {
+/** Whether the control returns from this position by itself, so the pilot presses and holds it. */
+export function springsBack(
+  definition: ControlDefinition | undefined,
+  position: ControlPosition,
+): boolean {
   if (definition?.kind === 'momentary') return position === definition.positions[1];
   return (
     definition?.kind === 'rotary' &&

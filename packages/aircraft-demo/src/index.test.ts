@@ -431,3 +431,13 @@ describe('the annunciator test item of the engine start', () => {
     expect(session.checklist()?.current).toBe(6);
   });
 });
+
+describe('the radio and transponder self-check', () => {
+  it('records an unmet check when it is ticked with the avionics off', () => {
+    const session = createSession(demoAircraft, { devices });
+    session.startProcedure('radioAndTransponder');
+    session.set('avionics', 'off');
+    session.checkOff();
+    expect(session.checklist()?.deviations).toEqual([{ kind: 'unmet-check', itemIndex: 0 }]);
+  });
+});

@@ -1,3 +1,4 @@
+import { springsBack } from '@cpt/core';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useCurrentTarget } from '../checklist';
@@ -54,8 +55,9 @@ function useStrayControl(): string | undefined {
     const latest = checklist?.deviations.at(-1);
     if (!checklist || checklist.done || latest?.itemIndex !== checklist.current) return undefined;
     if (latest.kind !== 'unexpected-control' && latest.kind !== 'out-of-order') return undefined;
-    const { controlId, from } = latest;
-    if (controlId === undefined || from === undefined) return undefined;
+    const { controlId, from, position } = latest;
+    if (controlId === undefined || from === undefined || position === undefined) return undefined;
+    if (springsBack(checklist.controls[controlId], position)) return undefined;
     return session.state().controls[controlId] === from ? undefined : controlId;
   });
 }
