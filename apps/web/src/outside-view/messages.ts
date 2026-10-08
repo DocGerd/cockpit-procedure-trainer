@@ -2,14 +2,14 @@ import { defineMessages } from '../i18n';
 
 export const messages = defineMessages({
   en: {
-    phase: 'Phase',
+    phase: 'Start in phase',
     jumpTitle: 'End the procedure?',
     jumpBody: 'Jumping to {phase} ends the running procedure and loads that phase.',
     jumpConfirm: 'Jump to phase',
     jumpCancel: 'Cancel',
   },
   de: {
-    phase: 'Flugphase',
+    phase: 'Start in Flugphase',
     jumpTitle: 'Verfahren beenden?',
     jumpBody: 'Der Sprung zu {phase} beendet das laufende Verfahren und lädt diese Phase.',
     jumpConfirm: 'Zur Phase springen',

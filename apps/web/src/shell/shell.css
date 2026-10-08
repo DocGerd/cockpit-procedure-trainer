@@ -527,7 +527,46 @@
 .picker-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-6);
+}
+
+.picker-action {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-action > p {
+  margin: 0;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] {
+  height: 100dvh;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker {
+  flex: 1 1 auto;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+  display: grid;
+  flex: 1 1 0;
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: calc(var(--space-12) * 9);
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-procedures {
+  min-height: 0;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-list {
+  flex: 1 1 0;
+  min-height: calc(var(--space-12) * 3);
+  overflow-y: auto;
 }
 
 .shell > .error-backdrop {
