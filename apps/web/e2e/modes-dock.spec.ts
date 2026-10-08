@@ -162,6 +162,8 @@ test('Guided shows the deviation made on a device at once', async ({ page }) => 
   await expect(page.getByRole('status')).toContainText(
     copy.checklist.bannerOutOfOrder
       .replace('{control}', 'Mode')
+      .replace('{position}', 'ALT')
+      .replace('{previous}', 'OFF')
       .replace('{later}', String(altItem))
       .replace('{n}', '1'),
   );
