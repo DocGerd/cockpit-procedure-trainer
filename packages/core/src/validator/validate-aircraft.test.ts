@@ -482,6 +482,30 @@ describe('validateAircraft', () => {
     it.each([0, 50])('accepts the tolerance %s', (tolerance) => {
       expect(ofCode(check(tolerance), 'invalid-check-response')).toEqual([]);
     });
+
+    it.each([0, -1])(
+      'rejects a reading on a check with nothing to read, tolerance %s',
+      (tolerance) => {
+        const aircraft = withItems('beforeStart', [
+          {
+            type: 'check',
+            condition: () => true,
+            response: { reading: () => 0, tolerance },
+            text,
+          },
+        ]);
+        const finding = only(aircraft, 'invalid-check-response', 'beforeStart');
+        expect(finding.message).toContain('nothing on the panel to read');
+      },
+    );
+  });
+
+  it('accepts a check with nothing to read on the panel', () => {
+    const aircraft = withItems('beforeStart', [
+      ...beforeStartItems,
+      { type: 'check', condition: () => true, text },
+    ]);
+    expect(validateAircraft(aircraft)).toEqual([]);
   });
 
   describe('invalid-flow', () => {

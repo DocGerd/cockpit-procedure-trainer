@@ -305,7 +305,10 @@ describe('demo aircraft', () => {
         const verified = rest.some(
           (item) =>
             (item.type === 'action' && item.control === control) ||
-            (item.type === 'check' && 'control' in item.target && item.target.control === control),
+            (item.type === 'check' &&
+              item.target !== undefined &&
+              'control' in item.target &&
+              item.target.control === control),
         );
         expect(verified, control).toBe(true);
       }

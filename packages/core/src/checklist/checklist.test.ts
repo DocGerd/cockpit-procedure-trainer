@@ -588,6 +588,35 @@ describe('deviations', () => {
     expect(next.deviations).toEqual([]);
   });
 
+  it('record a move of the next item target while a check without a target is current', () => {
+    const noticed: ProcedureDefinition<FixtureState> = {
+      ...alternatorFailure,
+      items: [
+        {
+          type: 'check',
+          condition: () => true,
+          text: { de: 'Brandgeruch', en: 'Smell of burning' },
+        },
+        {
+          type: 'action',
+          control: 'alternatorBreaker',
+          position: 'pulled',
+          text: { de: 'Sicherung gezogen', en: 'Breaker pulled' },
+        },
+      ],
+    };
+    const pulled = stateOf({ alternatorBreaker: 'pulled' });
+    const early = observeControl(
+      startChecklist(noticed, stateOf(), controls),
+      position('alternatorBreaker', 'in', 'pulled'),
+      pulled,
+    );
+    expect(early.deviations).toEqual([
+      expect.objectContaining({ kind: 'out-of-order', itemIndex: 0, laterItem: 1 }),
+    ]);
+    expect(checkOff(startChecklist(noticed, stateOf(), controls), stateOf()).current).toBe(1);
+  });
+
   it('leave a wrong digit on the current target pending without a deviation', () => {
     const code: ProcedureDefinition<FixtureState> = {
       title: { de: 'Code', en: 'Code' },

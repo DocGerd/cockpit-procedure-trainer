@@ -156,7 +156,9 @@ function ItemRow({
       : item.type === 'check'
         ? answerable
           ? text.hintResponse
-          : text.hintCheck
+          : item.target === undefined
+            ? text.hintLook
+            : text.hintCheck
         : text.hintConfirm;
 
   return (

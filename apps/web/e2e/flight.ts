@@ -82,6 +82,7 @@ const isDeviceItem = (aircraft: Aircraft, item: Item): item is Action =>
 
 const readsDevice = (aircraft: Aircraft, item: Item) =>
   item.type === 'check' &&
+  item.target !== undefined &&
   'control' in item.target &&
   !Object.hasOwn(aircraft.controls, item.target.control);
 
