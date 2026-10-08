@@ -272,10 +272,15 @@ export const controlArtwork = {
   intercom: rocker(images.rockerIntercom, 'INTERCOM'),
   cockpitLight: rocker(images.rockerCockpit, 'COCKPIT'),
   landingLight: rocker(images.rockerLanding, 'LANDING'),
-  fuelValve: positions(images.fuelValveFace, {
-    open: images.fuelValveOpen,
-    closed: images.fuelValveClosed,
-  }),
+  // Open, the handle stands up in its slot clear of the key switch below, so only the slot takes a
+  // tap; closed, the whole box does, its handle over the key slot.
+  fuelValve: {
+    ...positions(images.fuelValveFace, {
+      open: images.fuelValveOpen,
+      closed: images.fuelValveClosed,
+    }),
+    options: { hitArea: { open: { left: 0, top: 0, width: 1, height: 0.56 } } },
+  },
   elt: lettered(
     positions(images.eltFace, { armed: images.eltArmed, on: images.eltOn }),
     'ELT',

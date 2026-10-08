@@ -6,6 +6,7 @@ import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
+import { controlArtwork } from './artwork';
 import { devices as installs } from './devices';
 import { ctslAircraft } from './index';
 import { chargeLampLit } from './indicators';
@@ -344,6 +345,12 @@ describe('CTSL aircraft', () => {
         slot.x > part.x && slot.x < part.x + part.w && slot.y > part.y && slot.y < part.y + part.h;
       expect(covers(handle(valveClosed))).toBe(true);
       expect(handle(valveOpen).y + handle(valveOpen).h).toBeLessThan(ignition.y);
+      const { options } = controlArtwork.fuelValve;
+      expect(options.hitArea).not.toHaveProperty('closed');
+      const hitBottom =
+        valve.y + (options.hitArea.open.top + options.hitArea.open.height) * valve.h;
+      expect(hitBottom).toBeLessThan(ignition.y);
+      expect(hitBottom).toBeGreaterThan(handle(valveOpen).y + handle(valveOpen).h);
       const order = Object.keys(placed);
       expect(order.indexOf('fuelValve')).toBeGreaterThan(order.indexOf('ignition'));
     });

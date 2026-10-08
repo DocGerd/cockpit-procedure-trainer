@@ -378,6 +378,7 @@ function renderControl(
   moving: MovingPart,
   position: string | number,
   guardOpen = false,
+  options?: JsonObject,
 ) {
   const handlers: Handlers = {
     onSet: vi.fn<(position: ControlPosition) => void>(),
@@ -395,6 +396,7 @@ function renderControl(
       positionLabels={{ a: 'Alpha', b: 'Beta' }}
       artwork={artworkOf(moving)}
       fallback={fallback}
+      {...(options ? { options } : {})}
       {...handlers}
     />,
   );
@@ -1301,5 +1303,30 @@ describe('ArtworkIndicator for assistive technology', () => {
     );
     loadFace();
     expect(screen.getByRole('img', { name: 'Lamp: Lit' })).toBeTruthy();
+  });
+});
+
+describe('ArtworkControl hit area', () => {
+  const options = { hitArea: { a: { left: 0, top: 0.25, width: 1, height: 0.5 } } };
+  const input = () => screen.getByRole('button');
+  const stage = () => input().closest('.cpt-artwork-hit')?.parentElement;
+
+  it('confines the input to the declared part of the face, and lets the rest pass through', () => {
+    renderControl(toggle, switchImages, 'a', false, options);
+    const area = input().closest<HTMLElement>('.cpt-artwork-hit');
+    expect(area?.style.top).toBe('25%');
+    expect(area?.style.height).toBe('50%');
+    expect(stage()?.style.pointerEvents).toBe('none');
+  });
+
+  it('covers the whole face in a position without an area', () => {
+    renderControl(toggle, switchImages, 'b', false, options);
+    expect(input().closest('.cpt-artwork-hit')).toBeNull();
+    expect(input().parentElement?.style.pointerEvents).toBe('');
+  });
+
+  it('ignores a malformed option', () => {
+    renderControl(toggle, switchImages, 'a', false, { hitArea: { a: { top: 2 } } });
+    expect(input().closest('.cpt-artwork-hit')).toBeNull();
   });
 });

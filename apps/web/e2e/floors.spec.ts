@@ -34,7 +34,7 @@ const acceptedOverlaps: Readonly<Record<string, Readonly<Record<string, Record<s
     },
     ctsl: {
       centre: {
-        'fuelValve and ignition': `the valve handle covers the key slot when closed (intake §3.3), so a tap there moves the valve; the key turns from its sides and lower half`,
+        'fuelValve and ignition': `only while the valve is closed (the floor's initial state): its handle covers the key slot (intake §3.3), so a tap there moves the valve; open, the valve takes taps only in its slot above the key`,
       },
     },
   };

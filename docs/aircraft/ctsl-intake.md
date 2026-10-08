@@ -92,7 +92,7 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   from general knowledge of the CT Supralight (#447): the slide runs straight
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
-  key turned on, as E6 requires; legends OPEN and CLOSED beside the slide.
+  key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.

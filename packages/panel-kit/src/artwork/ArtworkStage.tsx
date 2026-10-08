@@ -5,7 +5,7 @@ import { useId, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import './artwork.css';
 import { layerFraction, needleAngle, pointAlong } from './geometry';
-import type { LayerValue } from './geometry';
+import type { FaceBox, LayerValue } from './geometry';
 
 export type Artwork = ArtworkAppearance['artwork'];
 export type Size = { width: number; height: number };
@@ -18,9 +18,12 @@ type StageProps = {
   options?: JsonObject | undefined;
   imageLabel?: string | undefined;
   renderInput?: ((size: Size | null) => ReactNode) | undefined;
+  /** Where the input lies on the face; elsewhere a tap passes through to whatever is beneath. */
+  inputBox?: FaceBox | undefined;
 };
 
 const stageStyle: CSSProperties = { position: 'relative', width: '100%' };
+const passThroughStyle: CSSProperties = { ...stageStyle, pointerEvents: 'none' };
 const faceStyle: CSSProperties = { display: 'block', width: '100%', height: 'auto' };
 const overlayStyle: CSSProperties = {
   position: 'absolute',
@@ -72,6 +75,7 @@ export function ArtworkStage({
   options,
   imageLabel,
   renderInput,
+  inputBox,
 }: StageProps) {
   const [size, setSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
@@ -93,7 +97,7 @@ export function ArtworkStage({
 
   return (
     <div
-      style={stageStyle}
+      style={inputBox ? passThroughStyle : stageStyle}
       {...(imageLabel === undefined ? {} : { role: 'img', 'aria-label': imageLabel })}
     >
       <img
@@ -162,7 +166,21 @@ export function ArtworkStage({
           onError={() => fail(glass)}
         />
       )}
-      {renderInput?.(size)}
+      {inputBox ? (
+        <div
+          className="cpt-artwork-hit"
+          style={{
+            left: `${inputBox.left * 100}%`,
+            top: `${inputBox.top * 100}%`,
+            width: `${inputBox.width * 100}%`,
+            height: `${inputBox.height * 100}%`,
+          }}
+        >
+          {renderInput?.(size)}
+        </div>
+      ) : (
+        renderInput?.(size)
+      )}
     </div>
   );
 }

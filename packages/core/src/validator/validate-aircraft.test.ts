@@ -353,6 +353,13 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports an interlock on the control itself', () => {
+      const aircraft = withControl('ignition', {
+        interlock: { control: 'ignition', at: 'off', holds: 'off' },
+      });
+      only(aircraft, 'unknown-target', 'ignition');
+    });
+
     it('accepts an interlock on known positions', () => {
       const aircraft = withControl('ignition', {
         interlock: { control: 'master', at: 'off', holds: 'off' },
