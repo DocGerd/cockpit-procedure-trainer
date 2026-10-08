@@ -15,7 +15,7 @@ vi.mock('../aircraft-registry', async () => {
     title: text('Drill'),
     type: 'emergency',
     failure: 'fire',
-    startPhase: 'airborne',
+    startPhase: 'cruise',
     items: [
       { type: 'action', memory: true, control: 'pump', position: 'off', text: text('Pump off') },
       { type: 'confirm', memory: true, text: text('Mayday call') },

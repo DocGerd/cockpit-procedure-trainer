@@ -1,4 +1,4 @@
-import { defineAircraft, defineDevice } from '@cpt/core';
+import { defineAircraft, defineDevice, everyPhase } from '@cpt/core';
 import type { Aircraft, Device, Environment, Text, TrainerState } from '@cpt/core';
 import type { DeviceDisplayProps, DeviceScreenEntry, DeviceScreenProps } from '@cpt/panel-kit';
 import type { ComponentType } from 'react';
@@ -151,13 +151,10 @@ export const aircraft: Aircraft = defineAircraft({
   },
   systems,
   failures: {},
-  phases: {
-    ground: {
-      name: text('Ground'),
-      image: 'ground.png',
-      environment,
-      entry: { controls: { bus: 'off' }, state: {} },
-    },
-  },
+  phases: everyPhase({
+    image: 'ground.png',
+    environment,
+    entry: { controls: { bus: 'off' }, state: {} },
+  }),
   procedures: {},
 });

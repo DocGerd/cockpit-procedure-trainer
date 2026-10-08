@@ -9,6 +9,7 @@ import landing from './assets/phase-landing.svg?raw';
 import linedUp from './assets/phase-lined-up.svg?raw';
 import parkingSecuring from './assets/phase-parking-securing.svg?raw';
 import parking from './assets/phase-parking.svg?raw';
+import taxiOut from './assets/phase-taxi-out.svg?raw';
 import taxiIn from './assets/phase-taxi-in.svg?raw';
 import { headingLabel, phaseHeadings, runway, turn, windFromDeg } from './airfield';
 import { demoAircraft } from './index';
@@ -18,6 +19,7 @@ import { testDevices as devices } from './test-devices';
 
 const views = {
   parking,
+  taxiOut,
   holding,
   linedUp,
   departure,
@@ -30,6 +32,7 @@ const views = {
 
 const files: Record<keyof typeof views, string> = {
   parking: 'phase-parking.svg',
+  taxiOut: 'phase-taxi-out.svg',
   holding: 'phase-holding.svg',
   linedUp: 'phase-lined-up.svg',
   departure: 'phase-departure.svg',
@@ -93,9 +96,10 @@ describe('the airfield of one flight', () => {
     expect(angle(heading('cruise') - runway.headingDeg)).toBe(180);
   });
 
-  it('vacates the runway to a taxiway at a right angle and parks on it', () => {
+  it('vacates the runway to a taxiway at a right angle, parks on it and taxies out along it', () => {
     expect([90, 270]).toContain(angle(heading('taxiIn') - runway.headingDeg));
     expect(heading('parking')).toBe(heading('taxiIn'));
+    expect(heading('taxiOut')).toBe(heading('taxiIn'));
     expect(heading('parkingSecuring')).toBe(heading('taxiIn'));
   });
 });

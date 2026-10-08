@@ -1,3 +1,5 @@
+import type { PhaseId } from '@cpt/core';
+
 export type Runway = { readonly designator: string; readonly headingDeg: number };
 
 /** Compass degrees run 1 to 360; north is 360. */
@@ -22,6 +24,7 @@ const downwindDeg = turn(runway.headingDeg, 180);
 
 export const phaseHeadings = {
   parking: taxiwayDeg,
+  taxiOut: taxiwayDeg,
   holding: holdingDeg,
   linedUp: runway.headingDeg,
   departure: runway.headingDeg,
@@ -30,4 +33,4 @@ export const phaseHeadings = {
   landing: runway.headingDeg,
   taxiIn: taxiwayDeg,
   parkingSecuring: taxiwayDeg,
-} as const;
+} as const satisfies Record<PhaseId, number>;

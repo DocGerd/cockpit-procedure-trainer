@@ -222,6 +222,7 @@ export const normalProcedures = {
     title: text('Triebwerk anlassen und Rollen', 'Engine start and taxi'),
     type: 'normal',
     startPhase: 'parking',
+    endPhase: 'taxiOut',
     items: [
       flow('avionicsMaster', 'off', 'Avionik aus', 'Avionics Master off'),
       flow('beacon', 'on', 'Beacon ein', 'Beacon on'),

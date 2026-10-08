@@ -1,3 +1,4 @@
+import { phaseName } from '@cpt/core';
 import { ImageWithFallback } from '../errors/ImageWithFallback';
 import { useLocalize } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
@@ -15,8 +16,9 @@ export function OutsideView() {
     );
   });
   const phase = aircraft.phases[phaseId];
-  if (!phase) return null;
-  const name = localize(phase.name);
+  const label = phaseName(phaseId);
+  if (!phase || !label) return null;
+  const name = localize(label);
   return (
     <div className="outside-view">
       <ImageWithFallback

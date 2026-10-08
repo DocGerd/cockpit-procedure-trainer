@@ -334,12 +334,12 @@ describe('drills in the picker', () => {
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
     localStorage.setItem('cpt.aircraft', second.id);
     renderPicker();
-    expect(screen.getByRole('combobox', { name: 'Phase' })).toHaveProperty('value', 'ground');
+    expect(screen.getByRole('combobox', { name: 'Phase' })).toHaveProperty('value', 'parking');
     await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBeUndefined();
-    expect(trainer.session.scenario()).toMatchObject({ phase: 'ground', failure: 'fire' });
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
   });
 });
 

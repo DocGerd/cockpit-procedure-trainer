@@ -34,7 +34,7 @@ vi.mock('../aircraft-registry', async () => {
           press: {
             title: { de: 'Drücken', en: 'Press' },
             type: 'normal',
-            startPhase: 'ground',
+            startPhase: 'parking',
             items: [
               {
                 type: 'action',
@@ -47,7 +47,7 @@ vi.mock('../aircraft-registry', async () => {
           drag: {
             title: { de: 'Ziehen', en: 'Drag' },
             type: 'normal',
-            startPhase: 'ground',
+            startPhase: 'parking',
             items: [
               {
                 type: 'action',
@@ -60,7 +60,7 @@ vi.mock('../aircraft-registry', async () => {
           flip: {
             title: { de: 'Schalten', en: 'Flip' },
             type: 'normal',
-            startPhase: 'ground',
+            startPhase: 'parking',
             items: [
               {
                 type: 'action',
@@ -73,7 +73,7 @@ vi.mock('../aircraft-registry', async () => {
           reading: {
             title: { de: 'Ablesen', en: 'Reading' },
             type: 'normal',
-            startPhase: 'ground',
+            startPhase: 'parking',
             items: [
               {
                 type: 'check',

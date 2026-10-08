@@ -1,4 +1,4 @@
-import { CONTRACT_VERSION, createSession, STEP_MS, validateAircraft } from '@cpt/core';
+import { CONTRACT_VERSION, createSession, phaseOrder, STEP_MS, validateAircraft } from '@cpt/core';
 import type { ControlDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
@@ -116,6 +116,7 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
 
 const expectedPhases = {
   parking: { airspeedKt: 0, altitudeFt: 0, onGround: true },
+  taxiOut: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   holding: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   linedUp: { airspeedKt: 0, altitudeFt: 0, onGround: true },
   departure: { airspeedKt: 57, altitudeFt: 200, onGround: false },
@@ -438,7 +439,8 @@ describe('CTSL aircraft', () => {
   });
 
   it('lists the phases of a whole flight in flight order', () => {
-    expect(Object.keys(ctslAircraft.phases)).toEqual(Object.keys(expectedPhases));
+    expect(Object.keys(expectedPhases)).toEqual(phaseOrder);
+    expect(Object.keys(ctslAircraft.phases)).toEqual(phaseOrder);
   });
 
   it.each(Object.entries(expectedPhases))(
@@ -515,6 +517,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'idle'],
+    ['taxiOut', 'low'],
     ['holding', 'idle'],
     ['departure', 'full'],
     ['cruise', 'cruise'],
@@ -528,6 +531,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', true],
+    ['taxiOut', false],
     ['holding', true],
     ['linedUp', false],
     ['departure', false],
@@ -575,6 +579,7 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
+    ['taxiOut', '0'],
     ['holding', '0'],
     ['linedUp', '15'],
     ['departure', '0'],
@@ -654,6 +659,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'in', 'closed'],
+    ['taxiOut', 'in', 'closed'],
     ['holding', 'in', 'closed'],
     ['linedUp', 'out', 'open'],
     ['departure', 'out', 'open'],
@@ -689,6 +695,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'off'],
+    ['taxiOut', 'off'],
     ['holding', 'off'],
     ['linedUp', 'off'],
     ['departure', 'off'],
@@ -712,6 +719,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', 'off'],
+    ['taxiOut', 'off'],
     ['holding', 'off'],
     ['linedUp', 'alt'],
     ['departure', 'alt'],
@@ -727,6 +735,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', '2000'],
+    ['taxiOut', '2000'],
     ['holding', '2000'],
     ['linedUp', '7000'],
     ['departure', '7000'],
@@ -742,6 +751,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', false],
+    ['taxiOut', false],
     ['holding', false],
     ['linedUp', true],
     ['departure', true],

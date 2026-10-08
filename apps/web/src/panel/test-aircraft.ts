@@ -1,4 +1,4 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixtures, so panel tests do not depend on the registered aircraft's content.
@@ -119,25 +119,22 @@ export const fixture: Aircraft = defineAircraft({
   },
   systems,
   failures: {},
-  phases: {
-    ground: {
-      name: text('Ground'),
-      image: 'ground.png',
-      environment,
-      entry: {
-        controls: {
-          master: 'off',
-          pump: 'off',
-          beacon: 'off',
-          cb: 'in',
-          cutoff: 'normal',
-          starter: 'off',
-          key: 'off',
-        },
-        state: initial,
+  phases: everyPhase({
+    image: 'ground.png',
+    environment,
+    entry: {
+      controls: {
+        master: 'off',
+        pump: 'off',
+        beacon: 'off',
+        cb: 'in',
+        cutoff: 'normal',
+        starter: 'off',
+        key: 'off',
       },
+      state: initial,
     },
-  },
+  }),
   procedures: {},
 });
 
@@ -157,14 +154,11 @@ export const other: Aircraft = defineAircraft({
   },
   systems,
   failures: {},
-  phases: {
-    ground: {
-      name: text('Ground'),
-      image: 'ground.png',
-      environment,
-      entry: { controls: { light: 'off' }, state: initial },
-    },
-  },
+  phases: everyPhase({
+    image: 'ground.png',
+    environment,
+    entry: { controls: { light: 'off' }, state: initial },
+  }),
   procedures: {},
 });
 
@@ -183,13 +177,10 @@ export const vector: Aircraft = defineAircraft({
   },
   systems,
   failures: {},
-  phases: {
-    ground: {
-      name: text('Ground'),
-      image: 'ground.png',
-      environment,
-      entry: { controls: { light: 'off' }, state: initial },
-    },
-  },
+  phases: everyPhase({
+    image: 'ground.png',
+    environment,
+    entry: { controls: { light: 'off' }, state: initial },
+  }),
   procedures: {},
 });

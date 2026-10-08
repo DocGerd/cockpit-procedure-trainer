@@ -1,4 +1,4 @@
-import { flightLegs } from '@cpt/core';
+import { flightLegs, phaseName } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
 import { useId, useMemo, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
@@ -68,7 +68,7 @@ function ProcedureGroup({
       {ids.map((id) => {
         const procedure = aircraft.procedures[id];
         if (!procedure) return null;
-        const phase = aircraft.phases[procedure.startPhase];
+        const phase = phaseName(procedure.startPhase);
         const run = history[id];
         return (
           <button
@@ -80,7 +80,7 @@ function ProcedureGroup({
           >
             <span className="picker-row-title">{localize(procedure.title)}</span>{' '}
             <span className="picker-meta">
-              {phase ? `${localize(phase.name)} · ` : ''}
+              {phase ? `${localize(phase)} · ` : ''}
               {count(procedure.items.length, text.itemOne, text.itemOther)}
             </span>
             {run && (
@@ -202,7 +202,7 @@ function Drills({ mode }: { mode: PickerMode }) {
                 onChange={(event) => setPhase(event.target.value)}
               >
                 {phases.map((id) => {
-                  const name = aircraft.phases[id]?.name;
+                  const name = phaseName(id);
                   return (
                     <option key={id} value={id}>
                       {name ? localize(name) : id}

@@ -1,3 +1,4 @@
+import { phaseOrder as sharedOrder } from '../contract';
 import type { Aircraft } from '../contract';
 
 /**
@@ -7,7 +8,7 @@ import type { Aircraft } from '../contract';
  */
 export function flightLegs(
   aircraft: Aircraft,
-  phaseOrder: readonly string[] = Object.keys(aircraft.phases),
+  phaseOrder: readonly string[] = sharedOrder,
 ): readonly string[] {
   const rank = (phase: string) => phaseOrder.indexOf(phase);
   const normal = Object.entries(aircraft.procedures)

@@ -15,7 +15,7 @@ vi.mock('../aircraft-registry', async () => {
   const scan = {
     title: text('Scan'),
     type: 'normal',
-    startPhase: 'ground',
+    startPhase: 'parking',
     items: [
       { type: 'action', flow: true, control: 'master', position: 'on', text: text('Master flow') },
       { type: 'action', flow: true, control: 'pump', position: 'on', text: text('Pump flow') },
@@ -26,7 +26,7 @@ vi.mock('../aircraft-registry', async () => {
   const preset = {
     title: text('Preset'),
     type: 'normal',
-    startPhase: 'airborne',
+    startPhase: 'cruise',
     items: [
       { type: 'action', flow: true, control: 'master', position: 'on', text: text('Master flow') },
       {
@@ -254,12 +254,12 @@ it('jumps phase without asking while only preset flow items are done', () => {
   renderPane({ phase: true });
   start('guided', 'preset');
   const phase = () => screen.getByRole('combobox', { name: 'Start in phase' });
-  fireEvent.change(phase(), { target: { value: 'ground' } });
+  fireEvent.change(phase(), { target: { value: 'parking' } });
   expect(screen.queryByRole('alertdialog')).toBeNull();
-  expect(trainer.session.phase()).toBe('ground');
+  expect(trainer.session.phase()).toBe('parking');
 
   start('guided', 'preset');
   operate('avionics', 'on');
-  fireEvent.change(phase(), { target: { value: 'ground' } });
+  fireEvent.change(phase(), { target: { value: 'parking' } });
   expect(screen.getByRole('alertdialog')).toBeTruthy();
 });

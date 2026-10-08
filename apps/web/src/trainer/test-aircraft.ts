@@ -1,4 +1,4 @@
-import { defineAircraft } from '@cpt/core';
+import { defineAircraft, everyPhase } from '@cpt/core';
 import type { Aircraft, Environment, Text } from '@cpt/core';
 
 // Test-only fixtures, so shell tests do not depend on the registered aircraft's content.
@@ -48,14 +48,12 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
     systems: { initial, step: (_state, input) => ({ failing: input.failures.size > 0 }) },
     failures: { fire: { name: text('Fire') } },
     phases: {
-      ground: {
-        name: text('Ground'),
+      ...everyPhase({
         image: 'ground.svg',
         environment,
         entry: { controls: { master: 'off', pump: 'off' }, state: initial },
-      },
+      }),
       cruise: {
-        name: text('Cruise'),
         image: 'cruise.svg',
         environment: { airspeedKt: 100, altitudeFt: 3000, onGround: false },
         entry: { controls: { master: 'on', pump: 'on' }, state: initial },
@@ -65,7 +63,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
       powerUp: {
         title: text(`${name} power up`),
         type: 'normal',
-        startPhase: 'ground',
+        startPhase: 'parking',
         items: [
           { type: 'action', control: 'master', position: 'on', text: text('Master on') },
           { type: 'action', control: 'pump', position: 'on', text: text('Pump on') },
@@ -77,7 +75,7 @@ function fixture(id: string, name: string, withFire: boolean): Aircraft {
               title: text(`${name} engine fire`),
               type: 'emergency' as const,
               failure: 'fire',
-              startPhase: 'ground',
+              startPhase: 'parking',
               items: [{ type: 'action', control: 'pump', position: 'off', text: text('Pump off') }],
             },
           }
@@ -91,24 +89,27 @@ export const testAircraft: readonly [Aircraft, Aircraft] = [
   fixture('bravo', 'Bravo', true),
 ];
 
-/** Two legs: power up on the ground, then a cruise check whose phase snapshot has the master off. */
+/** Two legs: power up while parked, then a taxi check whose phase snapshot has the master off. */
 export const flightAircraft: Aircraft = (() => {
   const base = fixture('charlie', 'Charlie', false);
-  const cruise = base.phases['cruise'];
-  if (!cruise) throw new Error('The fixture has no cruise phase');
+  const taxiOut = base.phases['taxiOut'];
+  if (!taxiOut) throw new Error('The fixture has no taxiOut phase');
   return {
     ...base,
     phases: {
       ...base.phases,
-      cruise: { ...cruise, entry: { ...cruise.entry, controls: { master: 'off', pump: 'off' } } },
+      taxiOut: {
+        ...taxiOut,
+        entry: { ...taxiOut.entry, controls: { master: 'off', pump: 'off' } },
+      },
     },
     procedures: {
       ...base.procedures,
-      cruiseCheck: {
-        title: text('Charlie cruise check'),
+      taxiCheck: {
+        title: text('Charlie taxi check'),
         type: 'normal',
-        startPhase: 'cruise',
-        items: [{ type: 'confirm', text: text('Cruise set') }],
+        startPhase: 'taxiOut',
+        items: [{ type: 'confirm', text: text('Taxi set') }],
       },
     },
   };
