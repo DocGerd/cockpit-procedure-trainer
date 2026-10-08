@@ -137,9 +137,13 @@ export const deviation = {
   banner: (controlId: string) => {
     const { from, to } = unrelatedMove(controlId);
     return copy.checklist.bannerUnexpected
-      .replace('{control}', control(controlId).name.en)
-      .replace('{position}', to.toUpperCase())
-      .replace('{previous}', from.toUpperCase());
+      .replace(
+        '{stray}',
+        copy.checklist.actualSet
+          .replace('{control}', control(controlId).name.en)
+          .replace('{position}', to.toUpperCase()),
+      )
+      .replace('{back}', copy.checklist.returnTo.replace('{previous}', from.toUpperCase()));
   },
   title: (controlId: string) =>
     copy.checklist.unexpectedTitle.replace('{control}', control(controlId).name.en),

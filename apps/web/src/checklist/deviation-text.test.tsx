@@ -30,9 +30,15 @@ const aircraft: Aircraft = {
       kind: 'rotary',
       name: { de: 'Zündschalter', en: 'Key' },
       description: { de: 'Zündschalter', en: 'Key' },
-      positions: ['off', 'on', 'start'],
+      positions: ['out', 'off', 'on', 'start'],
       initial: 'off',
       springBack: { start: 'on' },
+      legends: {
+        out: {
+          state: { de: 'Schlüssel abgezogen', en: 'key out' },
+          restore: { de: 'Schlüssel wieder abziehen', en: 'Take the key out again' },
+        },
+      },
     },
   },
   procedures: {
@@ -247,6 +253,44 @@ describe('deviation text for each kind', () => {
     expect(describeIn('en').banner(stray('lampBreaker', 'pulled', 'in'))).toBe(
       'Lamp breaker set to Pulled. Return it to In.',
     );
+  });
+
+  it('names a position the panel prints nothing for in its own sentence forms', () => {
+    const en = describeIn('en');
+    const de = describeIn('de');
+    expect(en.banner(stray('key', 'out', 'off'))).toBe('Key: key out. Return it to OFF.');
+    expect(de.banner(stray('key', 'out', 'off'))).toBe(
+      'Zündschalter: Schlüssel abgezogen. Zurück auf OFF stellen.',
+    );
+    expect(en.banner(stray('key', 'off', 'out'))).toBe('Key set to OFF. Take the key out again.');
+    expect(de.banner(stray('key', 'off', 'out'))).toBe(
+      'Zündschalter auf OFF gestellt. Schlüssel wieder abziehen.',
+    );
+    expect(en.actual(stray('key', 'out', 'off'))).toBe('Key: key out');
+    const early: Deviation = {
+      kind: 'out-of-order',
+      itemIndex: 0,
+      controlId: 'key',
+      laterItem: 3,
+      position: 'out',
+      from: 'off',
+    };
+    expect(en.banner(early)).toBe(
+      'Key early: key out. It belongs to item 4, not item 1. Return it to OFF.',
+    );
+    expect(de.banner({ ...early, duringFlow: true })).toBe(
+      'Zündschalter zu früh: Schlüssel abgezogen. Das gehört zu Punkt 4, nicht zum Flow. Zurück auf OFF stellen.',
+    );
+    expect(en.actual(early)).toBe('Key: key out, which belongs to item 4');
+    const left: Deviation = {
+      kind: 'wrong-position',
+      itemIndex: 0,
+      controlId: 'key',
+      position: 'out',
+    };
+    expect(en.title(left)).toBe('Key left in a wrong position: key out');
+    expect(en.banner(left)).toBe('Key left in a wrong position during item 1: key out.');
+    expect(de.title(left)).toBe('Zündschalter in falscher Stellung gelassen: Schlüssel abgezogen');
   });
 
   it('names a late memory item by its item in both languages', () => {

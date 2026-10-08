@@ -238,7 +238,7 @@ const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): Artwor
 const breaker = (face: string, lettering: string) =>
   lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), lettering);
 const rocker = (face: string, lettering: string) =>
-  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), lettering);
+  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), lettering, 'ON', 'OFF');
 const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
@@ -272,6 +272,8 @@ export const controlArtwork = {
       on: images.rockerMasterOn,
     }),
     'AVIONICS',
+    'ON',
+    'OFF',
   ),
   beacon: rocker(images.rockerBeacon, 'BEACON'),
   positionLights: rocker(images.rockerPosition, 'POSITION'),
@@ -299,6 +301,8 @@ export const controlArtwork = {
       closed: images.valveClosed,
     }),
     'PARK BRAKE',
+    'OPEN',
+    'SHUT',
   ),
   flapSelector: lettered(
     positions(images.flapSelectorFace, {
@@ -311,25 +315,54 @@ export const controlArtwork = {
       'override-down': images.flapKnob6,
     }),
     'FLAPS',
+    'UP',
+    '-12',
+    '0',
+    '15',
+    '30',
+    '35',
+    'DN',
   ),
-  ignition: positions(images.ignitionFace, {
-    out: images.ignitionKeyOut,
-    off: images.ignitionKeyOff,
-    left: images.ignitionKeyL,
-    right: images.ignitionKeyR,
-    both: images.ignitionKeyBoth,
-    start: images.ignitionKeyStart,
-  }),
+  ignition: lettered(
+    positions(images.ignitionFace, {
+      out: images.ignitionKeyOut,
+      off: images.ignitionKeyOff,
+      left: images.ignitionKeyL,
+      right: images.ignitionKeyR,
+      both: images.ignitionKeyBoth,
+      start: images.ignitionKeyStart,
+    }),
+    'OFF',
+    'L',
+    'R',
+    'BOTH',
+    'START',
+  ),
   battery: pushPull,
   generator: pushPull,
-  brake: lettered(travel(images.leverBrakeFace, images.handleBrake, pullSlide), 'BRAKE'),
-  choke: lettered(travel(images.leverChokeFace, images.handleBrake, pullSlide), 'CHOKE'),
+  brake: lettered(
+    travel(images.leverBrakeFace, images.handleBrake, pullSlide),
+    'BRAKE',
+    'OFF',
+    'ON',
+  ),
+  choke: lettered(
+    travel(images.leverChokeFace, images.handleBrake, pullSlide),
+    'CHOKE',
+    'OFF',
+    'ON',
+  ),
   throttle: lettered(
     travel(images.leverThrottleFace, images.handleThrottle, [
       { x: 712, y: 76 },
       { x: 232, y: 76 },
     ]),
     'THROTTLE',
+    'FULL',
+    'CRUISE',
+    'RUN-UP',
+    'LOW',
+    'IDLE',
   ),
   carbHeat: lettered(
     travel(images.leverCarbFace, images.handleCarb, [
@@ -337,6 +370,8 @@ export const controlArtwork = {
       { x: 75, y: 235 },
     ]),
     'CARB HEAT',
+    'OFF',
+    'ON',
   ),
   trim: lettered(
     positions(images.trimWheelFace, {
@@ -345,6 +380,9 @@ export const controlArtwork = {
       'nose-up': images.trimWheelNoseUp,
     }),
     'TRIM',
+    'NOSE DN',
+    'NEUTRAL',
+    'NOSE UP',
   ),
   rescueHandle: lettered(
     {

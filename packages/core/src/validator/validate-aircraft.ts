@@ -225,6 +225,16 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
+    for (const [position, legend] of Object.entries(control.legends ?? {})) {
+      checkPosition(id, 'legends key', position);
+      if (typeof legend === 'string') {
+        if (isMissing(legend)) add('missing-translation', id, `legend of ${position}: empty`);
+      } else {
+        checkText(id, `legend of ${position}`, legend.state);
+        checkText(id, `restore legend of ${position}`, legend.restore);
+      }
+    }
+
     for (const { control: by, at, holds } of control.interlock ?? []) {
       for (const held of holds) checkPosition(id, 'interlock holds', held);
       if (by === id) add('unknown-target', by, `the interlock of ${id} names ${id} itself`);
