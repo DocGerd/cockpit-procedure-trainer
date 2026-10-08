@@ -26,13 +26,13 @@ Shared phases and procedures:
 
 The trainer, closer to procedure-trainer practice:
 
-- **Checklist engine** (#442): an action already set is verified (operate it or tick Verified), never ticked for you; a control left at the wrong position and a step done early are deviations of their own; the CTSL run-up rpm check takes a reading (challenge-response).
-- **Deviation feedback and debrief** (#445): a stray action says where the control went and where to put it back, rings it until it is back, and offers Retry this item; the debrief shows time, assists, deviations by kind with expected against actual, Go to item, and Repeat first after a deviation.
+- **Checklist engine** (#442, #514): an action already set is verified (operate it or tick Verified), never ticked for you; a control left at the wrong position and a step done early are deviations of their own; the CTSL run-up rpm check takes a reading (challenge-response).
+- **Deviation feedback and debrief** (#445, #512): a stray action says where the control went and where to put it back, in the panel's own legends, rings it until it is back, and offers Retry this item; the debrief shows time, assists, deviations by kind with expected against actual, Go to item, and Repeat first after a deviation.
 - **Practice recall and Show me** (#448): Hide upcoming items turns a run into recall; Show me reveals the current item and rings it, counted as an assist.
 - **Flows** (#452, #453): a normal procedure may open with a flow done from memory in any order, then verified by the checklist. Guided rings every flow target, numbered as a scan path. CTSL Engine start, Before take-off and After landing open with one; the demo's Before landing too.
 - **Memory items** (#450): emergencies open with their memory items, grouped in the pane, hidden in Practice until done, and a late one is a deviation. Five CTSL emergencies and the demo's alternator failure have them.
 - **Drills** (#446): a surprise failure appears unannounced in a phase you choose (time to recognise and right checklist in the debrief), a random emergency, and Practise next from your history.
-- **Full flight** (#479, #499): every normal procedure in order from cold and dark to securing, each leg continuing from the cockpit the last one left, with the next phase's heading and environment; ends with a table of every leg.
+- **Full flight** (#479, #499, #513): every normal procedure in order from cold and dark to securing, each leg continuing from the cockpit the last one left, with the next phase's heading and environment; ends with a table of every leg. Leaving a leg summary asks first.
 - **Local history** (#443): last and best result per procedure, in the browser only, shown in the picker.
 
 Screens and navigation:
@@ -97,7 +97,7 @@ Follow-ups, without milestone (none blocks the release):
 
 - Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when 4399 is busy).
 - Perf: `E2E_PERF=1 pnpm test:perf` on a quiet machine. At the release cut it passed the absolute budget on every view of both aircraft, and every view stayed within the plan's A/B margin of v0.12.0; the figures are in the release preparation PR.
-- Whole-milestone review: one reviewer over the diff since v0.12.0, with sub-reviews of core, web, aircraft content, and docs, panel-kit and changelog. Verdict: ship, no blockers. Fixed before the release: FIXPRS. Folded into the release preparation PR: spec, architecture, aircraft-guide, CT Supralight README and intake text that M13 had made stale (contract version 2, interlock refusal, phase device states and carry-over, flow latching, GPS fix, persisted options, indicator lettering, the walk-through's scope), the Taxi parking-brake release marked as a trainer addition, and changelog wording. The rest is filed as follow-ups above.
+- Whole-milestone review: one reviewer over the diff since v0.12.0, with sub-reviews of core, web, aircraft content, and docs, panel-kit and changelog. Verdict: ship, no blockers. Fixed before the release: #512 (cues name positions as the panel prints them, for example L, R and ARM, and "key out"), #513 (leaving a full-flight leg summary asks first) and #514 (releasing a spring-back control early is no longer a wrong position; a flow item counts as verified only by a later item on the same position or a check of that control). Folded into the release preparation PR: spec, architecture, aircraft-guide, CT Supralight README and intake text that M13 had made stale (contract version 2, interlock refusal, phase device states and carry-over, flow latching, GPS fix, persisted options, indicator lettering, the walk-through's scope), the Taxi parking-brake release marked as a trainer addition, and changelog wording. The rest is filed as follow-ups above.
 - UAT (develop): https://docgerd.github.io/cockpit-procedure-trainer/uat/; prod after the merge: https://docgerd.github.io/cockpit-procedure-trainer/.
 
 A ten-minute walk-through at 1920x1080, CT Supralight, English:
