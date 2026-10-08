@@ -109,7 +109,8 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 ### 3.4 Centre console (view `console`)
 
 - Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
-  hydraulic brake lever, Bremshebel), **THROTTLE** (idle/full, Gashebel),
+  hydraulic brake lever, Bremshebel; non-locking: it brakes only while held and
+  springs back when released, owner ruling #465), **THROTTLE** (idle/full, Gashebel),
   **CHOKE** (off/on). The trainer draws the console as the left seat sees its
   flank, so forward is to the left: the throttle pushes left to full, and the
   brake and choke pull right, toward the pilot, to on (§9, question 25).
@@ -117,8 +118,9 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   nose down. The trainer draws the wheel's rim in its slot with the indicator
   scale above it, nose down to the left (§9, question 25).
 - **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
-  the throttle group. Parking brake: close the valve, then apply the brake lever;
-  the pressure holds until the valve is opened.
+  the throttle group. Parking brake: close the valve, then pull and release the
+  brake lever; the valve traps the pressure, which holds until the valve is opened.
+  Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Carb heat** (Vergaservorwärmung): named in seven checklists and on the take-off
   placard, but the handbook shows no control. The trainer adds a provisional
   pull knob on the console (§9).
@@ -255,7 +257,7 @@ derived from the limits table above, not copied markings.
   left there, the motor runs to its end switch.
 - Pitch trim: anti-tab on the stabilator, wheel on the console, neutral for
   take-off. Rudder and aileron tabs are ground-adjustable only.
-- Brakes: hydraulic, main wheels, one central lever. Parking brake as in §3.4;
+- Brakes: hydraulic, main wheels, one central non-locking lever. Parking brake as in §3.4;
   always use chocks too.
 - MTOW 472.5 kg; baggage 25 kg per side.
 

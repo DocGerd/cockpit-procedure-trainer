@@ -82,8 +82,8 @@ const afterTouchdown: readonly Item[] = [
     control: 'brake',
     position: 'on',
     text: text(
-      'Nach dem Aufsetzen: Knüppel ganz zurück, Bremshebel ziehen',
-      'After touchdown: stick fully back, brake lever on',
+      'Nach dem Aufsetzen: Knüppel ganz zurück, Bremshebel ziehen und halten',
+      'After touchdown: stick fully back, brake lever pulled and held',
     ),
   },
   {

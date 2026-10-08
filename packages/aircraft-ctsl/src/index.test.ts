@@ -71,7 +71,7 @@ const expectedControls: Record<string, Expected> = {
   },
   battery: breaker('centre', 'pulled'),
   generator: breaker('centre', 'pulled'),
-  brake: offOn,
+  brake: { ...offOn, kind: 'momentary' },
   throttle: {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
@@ -542,6 +542,18 @@ describe('CTSL aircraft', () => {
       brake: 'off',
     });
     expect(entryState(id).parkingBrakeSet).toBe(set);
+  });
+
+  it('has a non-locking brake lever that every procedure only pulls and holds', () => {
+    expect(ctslAircraft.controls.brake?.kind).toBe('momentary');
+    const brakeActions = Object.values(ctslAircraft.procedures).flatMap(({ items }) =>
+      items.filter((item) => item.type === 'action' && item.control === 'brake'),
+    );
+    expect(brakeActions.length).toBeGreaterThan(0);
+    for (const item of brakeActions) {
+      expect(item.type === 'action' && item.position, item.text.en).toBe('on');
+      expect(item.text.en, item.text.en).toMatch(/held|hold/i);
+    }
   });
 
   it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
