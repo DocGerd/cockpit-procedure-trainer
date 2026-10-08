@@ -128,7 +128,7 @@ export const gpsmap496Device = defineDevice({
     if (tapped('quit')) page = shift(page, -1);
     if (tapped('backlight')) backlight = (backlight + 1) % BACKLIGHT_LEVELS;
 
-    const acquiringMs = state.acquiringMs + dtMs;
+    const acquiringMs = Math.min(ACQUIRE_MS, state.acquiringMs + dtMs);
     const fix = state.fix || acquiringMs >= ACQUIRE_MS;
     return {
       on,

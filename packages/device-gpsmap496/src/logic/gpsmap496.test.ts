@@ -111,10 +111,11 @@ describe('gpsmap496Device position fix', () => {
     expect(fixed.fix).toBe(true);
   });
 
-  it('adds up the time spent acquiring across steps', () => {
+  it('adds up the time spent acquiring across steps, and stops counting at the fix', () => {
     const half = step(running, {}, true, ACQUIRE_MS / 2);
     expect(half.fix).toBe(false);
     expect(step(half, {}, true, ACQUIRE_MS / 2).fix).toBe(true);
+    expect(step(fixed, {}, true, ACQUIRE_MS).acquiringMs).toBe(fixed.acquiringMs);
   });
 
   it('reads ground speed and track from its inputs only with a fix', () => {
