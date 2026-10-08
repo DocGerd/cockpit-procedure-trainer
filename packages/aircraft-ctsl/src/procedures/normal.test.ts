@@ -234,7 +234,12 @@ describe('CTSL normal procedures', () => {
     const detents = controls.ignition.positions as readonly string[];
     const session = createSession(ctslAircraft, { devices, phase: 'parking' });
     session.startProcedure('engineStart');
-    for (let at = 0; at <= toBoth; at += 1) {
+    // A flow completes in any order, so the walk follows the engine's current item.
+    for (
+      let at = session.checklist()?.current ?? 0;
+      at <= toBoth;
+      at = session.checklist()?.current ?? toBoth + 1
+    ) {
       const item = items[at] as Item;
       if (item.type !== 'action') session.checkOff();
       else if (session.state().controls[item.control] === item.position) session.checkOff();
