@@ -27,7 +27,8 @@ Normal:
 | Id              | Intake  |
 | --------------- | ------- |
 | `preflight`     | N1      |
-| `engineStart`   | N3, N5  |
+| `engineStart`   | N3      |
+| `taxi`          | N5      |
 | `beforeTakeoff` | N6, N2  |
 | `takeoff`       | N7      |
 | `shortTakeoff`  | N8      |

@@ -43,6 +43,7 @@ describe('full-flight walk-through', () => {
     expect(flightLegs(ctsl)).toEqual([
       'preflight',
       'engineStart',
+      'taxi',
       'beforeTakeoff',
       'radioAndTransponder',
       'takeoff',

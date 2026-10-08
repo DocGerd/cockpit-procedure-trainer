@@ -12,6 +12,7 @@ const devices = testDevices;
 const expected = [
   ['preflight', 'parking', undefined],
   ['engineStart', 'parking', 'taxiOut'],
+  ['taxi', 'taxiOut', 'holding'],
   ['beforeTakeoff', 'holding', undefined],
   ['takeoff', 'linedUp', 'departure'],
   ['shortTakeoff', 'linedUp', 'departure'],
@@ -32,6 +33,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'All breakers in',
     'Flap readout shows 0°',
   ],
+  taxi: ['Parking brake released'],
   takeoff: ['Flap readout shows 15°'],
   shortTakeoff: ['Flap readout shows 15°'],
   beforeTakeoff: [
@@ -116,6 +118,16 @@ describe('CTSL normal procedures', () => {
       expect(procedure?.startPhase, id).toBe(startPhase);
       expect(procedure?.endPhase, id).toBe(endPhase);
     }
+  });
+
+  it('keeps the brake and steering checks out of the engine start and in the taxi', () => {
+    const confirms = (id: string) =>
+      (ctslAircraft.procedures[id]?.items ?? []).flatMap((item) =>
+        item.type === 'confirm' ? [item.text.en] : [],
+      );
+    expect(confirms('engineStart')).not.toContain('Brakes checked');
+    expect(confirms('engineStart')).not.toContain('Nose-wheel steering checked');
+    expect(confirms('taxi')).toEqual(['Brakes checked', 'Nose-wheel steering checked']);
   });
 
   it('states the handbook revision the procedures follow', () => {

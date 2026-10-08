@@ -219,7 +219,7 @@ export const normalProcedures = {
     ],
   },
   engineStart: {
-    title: text('Triebwerk anlassen und Rollen', 'Engine start and taxi'),
+    title: text('Triebwerk anlassen', 'Engine start'),
     type: 'normal',
     startPhase: 'parking',
     endPhase: 'taxiOut',
@@ -356,6 +356,15 @@ export const normalProcedures = {
         condition: flapsAt(0),
         text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
       },
+    ],
+  },
+  taxi: {
+    title: text('Rollen', 'Taxi'),
+    type: 'normal',
+    startPhase: 'taxiOut',
+    endPhase: 'holding',
+    items: [
+      ...releaseParkingBrake,
       confirm('Bremsen geprüft', 'Brakes checked'),
       confirm('Bugradsteuerung geprüft', 'Nose-wheel steering checked'),
     ],
