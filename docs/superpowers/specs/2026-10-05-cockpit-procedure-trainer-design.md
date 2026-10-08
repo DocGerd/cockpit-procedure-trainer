@@ -181,7 +181,10 @@ Each item has text in both languages and one of:
 - **action**: a target control and the position to reach, optionally held until
   a state condition is true (starter until engine running);
 - **check**: a target indicator or control and a condition on the state, ticked
-  by the pilot;
+  by the pilot. A numeric check may also name the reading to compare and a
+  tolerance: in Practice the pilot may enter the value read, and a reading off
+  by more than the tolerance counts as an unmet check. Its text then states the
+  challenge only ("Rpm check"), not the expected value;
 - **confirm**: no target (a visual or verbal check), ticked by the pilot.
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
@@ -193,12 +196,17 @@ respond).
 
 The checklist starts from the procedure, the current state and the control
 definitions (the aircraft's plus those of its installed devices), because it
-needs to know which controls spring back. An action on a spring-back position
-(a momentary button's pressed position, or a rotary detent with a rest
-position) is satisfied only by a pilot press of its own: the control resting at
-that position is not enough, and each such action needs its own press. Any
-other action whose target already holds completes without one. An action with
-`holdUntil` still waits for its condition.
+needs to know which controls spring back. An action completes only through the
+pilot, never because its target already holds: every line of a checklist is
+looked at and answered, so a control already in place is still verified (spec
+amended in #442; the earlier rule let such items tick themselves). The pilot
+either sets the target to its position while the item is current, or ticks the
+item as verified; a verify tick while the target is elsewhere completes the
+item and records it as a wrong position. An action on a spring-back position (a
+momentary button's pressed position, or a rotary detent with a rest position)
+takes no verify tick: it is satisfied only by a pilot press of its own, and
+each such action needs its own press. An action with `holdUntil` still waits
+for its condition.
 
 ### 4.8 Appearance
 
@@ -269,10 +277,17 @@ logic follows and lists the functions it does not model.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
-   - an action item completes when its condition is met;
+   - an action item completes when the pilot sets its target while it is
+     current, or ticks it verified, and its `holdUntil` condition, if any, is met;
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
-     deviation; so is ticking a check whose condition is not met.
+     deviation: `out-of-order` when it sets a later action's target to that
+     action's position, else `unexpected-control`; ticking a check whose
+     condition is not met, or whose reading is off, is an `unmet-check`;
+   - moving the current action's target is never a deviation by itself, so a
+     stepped control such as a transponder digit may pass through wrong values;
+     leaving it at a position other than the target, by operating another
+     control, is a `wrong-position` (#442);
    - while a flow runs, any of its actions may complete in any order; only a
      control change outside the flow's targets is a deviation.
 5. Completing a procedure shows its deviations and, if the procedure names an

@@ -133,6 +133,20 @@ export async function operateUnrelatedControl(page: Page, controlId: string) {
   await setControl(page, controlId, target);
 }
 
+/** Whether a control with named positions already rests at the position an item asks for. */
+async function isSet(page: Page, controlId: string, position: string | number) {
+  const definition = control(controlId);
+  await selectView(page, controlId);
+  if (definition.positions === 'continuous') {
+    const slider = page.getByRole('slider', { name: definition.name.en, exact: true });
+    return Number(await slider.getAttribute('aria-valuenow')) === position;
+  }
+  return page
+    .getByRole('radiogroup', { name: definition.name.en, exact: true })
+    .getByRole('radio', { name: String(position), exact: true })
+    .isChecked();
+}
+
 const expectDone = (page: Page, procedureId: string, row: Locator) =>
   expect(mark(row, /^(Done|Deviated)$/).or(summaryHeading(page, procedureId))).toBeVisible();
 
@@ -152,6 +166,8 @@ async function perform(page: Page, procedureId: string, item: ProcedureItem<unkn
     await page.keyboard.down('Enter');
     await expectDone(page, procedureId, row);
     await page.keyboard.up('Enter');
+  } else if (await isSet(page, item.control, item.position)) {
+    await row.getByRole('button', { name: copy.checklist.verify, exact: true }).click();
   } else {
     await setControl(page, item.control, item.position);
   }

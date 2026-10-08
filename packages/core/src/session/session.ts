@@ -42,7 +42,7 @@ export type Session = {
   jumpToPhase(id: string): void;
   startProcedure(id: string): void;
   advance(dtMs: number): void;
-  checkOff(): void;
+  checkOff(response?: number): void;
   subscribe(listener: () => void): () => void;
 };
 
@@ -228,10 +228,10 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       notify();
     },
 
-    checkOff() {
+    checkOff(response) {
       if (!checklist || failed()) return;
       try {
-        track(checkOff(checklist, buildState()));
+        track(checkOff(checklist, buildState(), response));
       } finally {
         dirty = true;
       }
