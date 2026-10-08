@@ -1,13 +1,15 @@
 import type { Aircraft } from '@cpt/core';
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { StartupNotice } from '../errors/StartupNotice';
-import { useLocalize, useMessages } from '../i18n';
+import { format, useLanguage, useLocalize, useMessages } from '../i18n';
+import { readHistory } from '../storage';
 import { useTrainer } from '../trainer';
 import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
+import { relativeDate } from './relative-date';
 
 type PickerMode = 'guided' | 'practice';
 
@@ -49,8 +51,12 @@ function ProcedureGroup({
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const { language } = useLanguage();
   const { aircraft } = useTrainer();
   const labelId = useId();
+  const history = useMemo(() => readHistory(aircraft.id), [aircraft.id]);
+  const deviationCount = (n: number) =>
+    format(n === 1 ? text.toggleDeviationOne : text.toggleDeviationOther, { count: n });
   if (ids.length === 0) return null;
   return (
     <div role="group" aria-labelledby={labelId}>
@@ -61,6 +67,7 @@ function ProcedureGroup({
         const procedure = aircraft.procedures[id];
         if (!procedure) return null;
         const phase = aircraft.phases[procedure.startPhase];
+        const run = history[id];
         return (
           <button
             key={id}
@@ -69,7 +76,19 @@ function ProcedureGroup({
             aria-pressed={id === selected}
             onClick={() => onSelect(id)}
           >
-            <span className="picker-row-title">{localize(procedure.title)}</span>{' '}
+            <span className="picker-row-text">
+              <span className="picker-row-title">{localize(procedure.title)}</span>
+              {run && (
+                <span className="picker-meta">
+                  {format(text.historyLast, {
+                    result: deviationCount(run.last.deviations),
+                    when: relativeDate(run.last.at, Date.now(), language),
+                  })}
+                  {run.best.deviations < run.last.deviations &&
+                    ` · ${format(text.historyBest, { result: deviationCount(run.best.deviations) })}`}
+                </span>
+              )}
+            </span>{' '}
             <span className="picker-meta">
               {phase ? `${localize(phase.name)} · ` : ''}
               {count(procedure.items.length, text.itemOne, text.itemOther)}

@@ -6,14 +6,14 @@ design and common weaknesses. Companion: [`architecture.md`](architecture.md).
 
 ## 1. Claims
 
-| #   | Claim                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| C1  | The project owns no server-side attack surface: no backend, API, database or accounts.                                               |
-| C2  | No user data leaves the device. The app persists only theme, language and last aircraft, in `localStorage`.                          |
-| C3  | The app loads only its own assets and makes no runtime request to a third-party origin; the browser enforces this with a strict CSP. |
-| C4  | The shipped bytes correspond to the reviewed source: `main` is built by CI and served by GitHub Pages.                               |
-| C5  | Third-party code is declared in a lockfile, monitored and updated.                                                                   |
-| C6  | Failure is safe: a missing `localStorage` or image disables persistence or shows a placeholder, never corrupts the trainer.          |
+| #   | Claim                                                                                                                                                                             |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | The project owns no server-side attack surface: no backend, API, database or accounts.                                                                                            |
+| C2  | No user data leaves the device. The app persists only theme, language, last aircraft and a per-procedure run history (last and best deviation count and date), in `localStorage`. |
+| C3  | The app loads only its own assets and makes no runtime request to a third-party origin; the browser enforces this with a strict CSP.                                              |
+| C4  | The shipped bytes correspond to the reviewed source: `main` is built by CI and served by GitHub Pages.                                                                            |
+| C5  | Third-party code is declared in a lockfile, monitored and updated.                                                                                                                |
+| C6  | Failure is safe: a missing `localStorage` or image disables persistence or shows a placeholder, never corrupts the trainer.                                                       |
 
 Not claimed: flight-safety authority (training aid only, the handbook is
 authoritative) and protection against a compromised device or browser.
@@ -47,7 +47,7 @@ accounts or uploads.
 | T2 Script injection (XSS)                                  | No user-supplied HTML is rendered, no `dangerouslySetInnerHTML`, React escaping, `script-src 'self'` with no inline script or style (the e2e specs fail on a violation), `object-src 'none'`, `base-uri 'self'`; CodeQL scans every pull request for injection sinks |
 | T3 Data exfiltration or tracking                           | No analytics, no third-party origin; `connect-src 'self'` and `form-action 'none'`                                                                                                                                                                                   |
 | T4 Tampering between repository and browser                | Pull-request-only protected branches, required `check` job, deploy from `main` through GitHub's OIDC Pages flow, HTTPS from GitHub Pages                                                                                                                             |
-| T5 Local attacker with device access                       | Out of scope: only non-sensitive settings are stored                                                                                                                                                                                                                 |
+| T5 Local attacker with device access                       | Out of scope: only non-sensitive settings and practice results are stored                                                                                                                                                                                            |
 | T6 Malicious contributor or compromised maintainer account | Required checks and review threads, a separate review agent, owner-only release pull request; a compromised owner account is an accepted risk (section 7)                                                                                                            |
 | T7 Malicious or broken aircraft content                    | The validator rejects inconsistent aircraft data in CI; content is paraphrased in-repo and never fetched at runtime                                                                                                                                                  |
 

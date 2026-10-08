@@ -475,8 +475,11 @@
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
 }
 
-.picker-row-title {
+.picker-row-text {
+  display: flex;
+  flex-direction: column;
   flex-grow: 1;
+  padding-block: var(--space-2);
 }
 
 .picker-modes {

@@ -60,6 +60,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   real.use = false;
 });
 
@@ -153,6 +154,84 @@ describe('aircraft and procedure picker', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('explore');
     expect(trainer.procedureId).toBeUndefined();
+  });
+});
+
+describe('run history in the picker', () => {
+  const daysAgo = (days: number) => {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - days);
+    return date.getTime();
+  };
+  const run = (deviations: number, at: number, mode = 'guided') => ({ mode, deviations, at });
+  const seed = (history: unknown) => localStorage.setItem('cpt.history', JSON.stringify(history));
+  const rowFor = (title: string) =>
+    procedureButtons().find((button) => button.textContent?.includes(title));
+
+  it('shows the last run beside a procedure that has one', () => {
+    const last = run(2, daysAgo(3));
+    seed({ [first.id]: { powerUp: { last, best: last } } });
+    renderPicker();
+    expect(rowFor(first.procedures['powerUp']?.title.en ?? '')?.textContent).toContain(
+      'Last run: 2 deviations, 3 days ago',
+    );
+  });
+
+  it('adds the best run only when it beats the last one', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9)) },
+        fire: { last: run(1, daysAgo(0)), best: run(1, daysAgo(0)) },
+      },
+    });
+    renderPicker();
+    const rows = procedureButtons().map((button) => button.textContent ?? '');
+    expect(rows.find((text) => text.includes('power up'))).toContain(
+      'Last run: 1 deviation, yesterday · Best: 0 deviations',
+    );
+    expect(rows.join()).not.toContain('Best: 1');
+  });
+
+  it('shows nothing for a procedure without a run, or for another aircraft', () => {
+    const last = run(1, daysAgo(2));
+    seed({ [second.id]: { powerUp: { last, best: last } } });
+    renderPicker();
+    expect(screen.queryByText(/Last run/)).toBeNull();
+  });
+
+  it('follows the chosen aircraft', async () => {
+    const last = run(4, daysAgo(2));
+    seed({ [second.id]: { powerUp: { last, best: last } } });
+    renderPicker();
+    await userEvent.click(
+      within(aircraftSection()).getByRole('button', { name: new RegExp(second.name.en) }),
+    );
+    expect(screen.getByText(/Last run: 4 deviations, 2 days ago/)).toBeTruthy();
+  });
+
+  it('reads the stored date in German', () => {
+    const last = run(2, daysAgo(3));
+    seed({ [first.id]: { powerUp: { last, best: last } } });
+    renderPicker('de');
+    expect(screen.getByText(/Letzter Durchlauf: 2 Abweichungen, vor 3 Tagen/)).toBeTruthy();
+  });
+
+  it('renders the list without history when the stored value is corrupt', () => {
+    localStorage.setItem('cpt.history', '{nope');
+    renderPicker();
+    expect(procedureButtons()).toHaveLength(Object.keys(first.procedures).length);
+    expect(screen.queryByText(/Last run/)).toBeNull();
+  });
+
+  it('renders the list without history when storage throws', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('denied');
+    });
+    renderPicker();
+    expect(procedureButtons()).toHaveLength(Object.keys(first.procedures).length);
+    expect(screen.queryByText(/Last run/)).toBeNull();
   });
 });
 

@@ -2,6 +2,7 @@
 import { STEP_MS } from '@cpt/core';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readHistory } from '../storage';
 import { shallowEqual, TrainerProvider, useSessionState, useTrainer } from './index';
 import { testAircraft } from './test-aircraft';
 
@@ -474,5 +475,72 @@ describe('session state', () => {
     expect(snapshot.status()).toEqual({ kind: 'running' });
     expect(snapshot.guards()).toBe(trainer.session.guards());
     expect(snapshot.failures()).toBe(trainer.session.failures());
+  });
+});
+
+describe('run history', () => {
+  const finish = (result: ReturnType<typeof renderTrainer>['result']) => {
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+    });
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+  };
+
+  it('stores aircraft, procedure, mode, deviations and date when a run completes', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.setMode('practice'));
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(readHistory(first.id)).toEqual({});
+    finish(result);
+    const deviations = result.current.snapshot.checklist()?.deviations.length;
+    const run = { mode: 'practice', deviations, at: 1_700_000_000_000 };
+    expect(readHistory(first.id)).toEqual({ [firstProcedure]: { last: run, best: run } });
+    expect(readHistory(second.id)).toEqual({});
+  });
+
+  it('stores a run once, however long the finished checklist stays open', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    const spy = vi.spyOn(Storage.prototype, 'setItem');
+    act(() => {
+      result.current.trainer.session.set('master', 'off');
+    });
+    act(() => result.current.trainer.session.advance(STEP_MS));
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('stores every completed run, including a repeat', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    vi.spyOn(Date, 'now').mockReturnValue(2_000_000_000_000);
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    finish(result);
+    expect(readHistory(first.id)[firstProcedure]?.last.at).toBe(2_000_000_000_000);
+  });
+
+  it('stores nothing for a run left unfinished or for Free explore', () => {
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+    });
+    act(() => result.current.trainer.backToPicker());
+    act(() => result.current.trainer.setMode('explore'));
+    expect(localStorage.getItem('cpt.history')).toBeNull();
+  });
+
+  it('keeps running when storage refuses the write', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    const { result } = renderTrainer();
+    act(() => result.current.trainer.startProcedure(firstProcedure));
+    expect(() => finish(result)).not.toThrow();
   });
 });
