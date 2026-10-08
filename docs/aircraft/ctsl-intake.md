@@ -53,7 +53,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   VSI (drawn in the background; not an indicator).
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
-  for this variant (§9) and is drawn unlit in the background.
+  for this variant (§9) and is drawn unlit in the background. The charge lamp's
+  legend and colour are assumed (§9, question 22).
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
@@ -66,7 +67,8 @@ laid out for the left seat (pilot in command). The trainer draws three views:
   then oil pressure, oil temperature and cylinder head temperature (CHT).
 - A small item at the top left next to the type name: probably the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
-  phase from the airfield of `src/airfield.ts`.
+  phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
+  assumed (§9, question 20); the type name is not printed.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -494,18 +496,24 @@ verifies it on D-MPGO.
     down from it between the seats.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
-    round card turning under a lubber line, numbers increasing clockwise.
-    **Answered by assumption pending owner verification** (#444 records the
-    assumed type here).
+    small round panel compass at the top left of the upper-right field, no larger
+    than the vertical speed indicator; its reversed card shows through a window at
+    the top of the housing, numbers increasing to the left. **Answered by
+    assumption pending owner verification** (#444). Assumed (unverified), from general knowledge of the CT
+    Supralight: a panel-mounted magnetic compass with a reversed card read in a
+    window, mounted in the panel (not on the windscreen frame), no larger than the
+    vertical speed indicator.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: the printed label "ELT" with no position legends
     and a red lamp. **Answered by assumption pending owner verification** (#447
     records the assumed legends here).
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
-    and in which colour does it light? Today: an unlabelled red lamp.
-    **Answered by assumption pending owner verification** (#444 records the
-    assumed legend here).
+    and in which colour does it light? Today: a round red lamp with the legend
+    CHARGE printed below it; the second lamp is round at the same size, without a
+    legend. **Answered by assumption pending owner verification** (#444). Assumed
+    (unverified), from general knowledge of the CT Supralight: the charge lamp
+    lights red and the panel prints CHARGE with it.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: none; every item is read and done
     from the list. **Answered by assumption pending owner verification** (#450

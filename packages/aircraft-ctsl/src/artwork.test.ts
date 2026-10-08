@@ -92,29 +92,64 @@ describe('CTSL artwork files', () => {
 });
 
 describe('CTSL compass', () => {
-  it('turns a full card under the lubber line, so the heading reads at the top', () => {
-    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
-    expect(moving?.type).toBe('needle');
-    if (moving?.type !== 'needle') return;
+  const compassArtwork = () => {
+    const artwork = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork;
+    if (artwork?.moving.type !== 'needle') throw new Error('the compass card turns as a needle');
+    return { ...artwork, moving: artwork.moving };
+  };
+  const placedOnCard = (point: string) =>
+    Number(
+      new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(
+        read(compassArtwork().moving.image),
+      )?.[1],
+    );
+
+  it('turns the full card clockwise under the lubber line, so it slides right as the heading increases', () => {
+    const { moving } = compassArtwork();
     expect(moving.valueRange).toEqual({ min: 0, max: 360 });
-    expect(moving.angleRange).toEqual({ min: 0, max: -360 });
+    expect(moving.angleRange).toEqual({ min: 0, max: 360 });
     expect(moving.pivot).toEqual({ x: 100, y: 100 });
   });
 
   it('turns the card so heading 090 shows E at the top', () => {
-    const moving = indicatorArtwork.find((gauge) => gauge.id === 'compass')?.artwork.moving;
-    if (moving?.type !== 'needle') throw new Error('the compass card turns as a needle');
-    const svg = read(moving.image);
-    const placed = (point: string) =>
-      Number(new RegExp(String.raw`rotate\((\d+) 100 100\)">${point}</text>`).exec(svg)?.[1]);
+    const { moving } = compassArtwork();
     const cardTurn = (headingDeg: number) =>
       (headingDeg / moving.valueRange.max) * moving.angleRange.max;
     const atTop = (point: string, headingDeg: number) =>
-      (((placed(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
+      (((placedOnCard(point) + cardTurn(headingDeg)) % 360) + 360) % 360 === 0;
     expect(atTop('N', 360)).toBe(true);
     expect(atTop('E', 90)).toBe(true);
     expect(atTop('S', 180)).toBe(true);
     expect(atTop('W', 270)).toBe(true);
+  });
+
+  it('prints a reversed card: the numbers increase to the left of the lubber line', () => {
+    expect(placedOnCard('3')).toBe(330);
+    expect(placedOnCard('E')).toBe(270);
+    expect(placedOnCard('33')).toBe(30);
+  });
+
+  it('shows the card only through a window at the top of an opaque housing', () => {
+    const { glass } = compassArtwork();
+    if (glass === undefined) throw new Error('the compass housing is drawn as its glass');
+    const window = /<path\b[^>]*data-window=""[^>]*\bd="M([\d.]+) ([\d.]+)/.exec(read(glass));
+    expect(window, 'a path marked data-window in the housing').not.toBeNull();
+    expect(Number(window?.[2])).toBeLessThan(100);
+  });
+
+  it('is no larger than the vertical speed indicator', () => {
+    const compass = views.panel.indicators.compass.rect;
+    const vsi = views.panel.indicators.verticalSpeed.rect;
+    expect(compass.w).toBeLessThanOrEqual(vsi.w);
+    expect(compass.h).toBeLessThanOrEqual(vsi.h);
+  });
+
+  it('sits at the top left of the right field, above the leftmost engine gauge', () => {
+    const { rect } = views.panel.indicators.compass;
+    const tachometer = views.panel.indicators.tachometer.rect;
+    expect(rect.y + rect.h).toBeLessThan(tachometer.y);
+    expect(rect.x + rect.w / 2).toBeGreaterThan(tachometer.x);
+    expect(rect.x + rect.w / 2).toBeLessThan(tachometer.x + tachometer.w);
   });
 
   it('letters the card with the cardinal points', () => {
@@ -162,8 +197,57 @@ describe('CTSL compass', () => {
   });
 });
 
+describe('CTSL warning lamps', () => {
+  const chargeLamp = () => {
+    const artwork = indicatorArtwork.find((lamp) => lamp.id === 'chargeLamp')?.artwork;
+    if (artwork?.moving.type !== 'positions')
+      throw new Error('the charge lamp draws one lens per state');
+    return { ...artwork, moving: artwork.moving };
+  };
+  const bezelRadius = (svg: string) =>
+    Number(/<circle\b[^>]*data-bezel=""[^>]*\br="([\d.]+)"/.exec(svg)?.[1]);
+
+  it('draws the charge lamp lens unlit and lit', () => {
+    expect(Object.keys(chargeLamp().moving.images).sort()).toEqual(['false', 'true']);
+  });
+
+  it('draws the charge lamp round, with no rectangular part', () => {
+    const { face, moving } = chargeLamp();
+    for (const url of [face, ...Object.values(moving.images)]) {
+      expect(read(url), fileOf(url)).not.toMatch(/<rect\b/);
+    }
+    expect(bezelRadius(read(face))).toBeGreaterThan(0);
+  });
+
+  it('prints a legend on the charge lamp that the second lamp does not carry', () => {
+    const { face, lettering } = chargeLamp();
+    expect(lettering).toEqual(['CHARGE']);
+    expect(read(face)).toContain('>CHARGE</text>');
+    const panel = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    expect(panel).not.toContain('>CHARGE</text>');
+  });
+
+  it('draws both warning lamps round at the same size', () => {
+    const { face } = chargeLamp();
+    const faceWidth = Number(sizeOf(face).width);
+    const { rect } = views.panel.indicators.chargeLamp;
+    const panel = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const second = bezelRadius(panel);
+    expect(second).toBeGreaterThan(0);
+    expect((bezelRadius(read(face)) * rect.w) / faceWidth).toBeCloseTo(second, 0);
+  });
+});
+
 describe('CTSL gauges', () => {
-  const gaugeArtwork = indicatorArtwork.filter(({ id }) => id !== 'compass');
+  const gaugeArtwork = indicatorArtwork.filter(
+    ({ id, artwork }) => id !== 'compass' && artwork.moving.type === 'needle',
+  );
 
   const scales: Record<string, { min: number; max: number }> = {
     airspeed: { min: 40, max: 300 },
@@ -277,6 +361,14 @@ describe('CTSL view backdrops', () => {
     expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
   });
 
+  it("heads the breaker block in the panel's own wording", () => {
+    const { x, y } = views.panel.controls.comBreaker.rect;
+    const header = [...backdrop('panel').matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)]
+      .filter(([, textX, textY]) => Number(textX) > x && Number(textY) <= y)
+      .map(([, , , content]) => content);
+    expect(header.join(' ')).toBe('Circuit Breakers - Push off');
+  });
+
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
@@ -286,7 +378,8 @@ describe('CTSL view backdrops', () => {
         'COM RADIO@450,449/40',
         'TRANSPONDER@450,609/40',
         'GPS@1368,204/40',
-        'BREAKERS@1736,54/30',
+        'Circuit Breakers -@1736,72/30',
+        'Push off@1736,106/30',
       ],
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',
