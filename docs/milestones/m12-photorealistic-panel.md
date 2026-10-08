@@ -1,8 +1,8 @@
-# M12 Photorealistic panel (v0.13.0) - verification draft
+# M12 Photorealistic panel - verification draft
 
-Draft by the verification task (#396) for the release summary; the release agent folds it into the four sections of `milestone-release`. Milestone M12 is released as v0.13.0; on GitHub it is milestone 13. The spike (#398), the glass layer, materials and perf harness (#401) and the demo backgrounds (#402) already shipped in v0.12.0.
+Draft by the verification task (#396) for the release summary; the release agent folds it into the four sections of `milestone-release`. On GitHub M12 is milestone 13. The open release PR #422 is to carry M11 and M12 together as v0.12.0; the release agent settles the version and which M12 PRs it lists.
 
-## What shipped (since v0.12.0)
+## What shipped (M12 PRs after the spike, #401 and #402)
 
 - **CTSL view backgrounds as painted panel metal** (#403, for #393): fine stipple, plate seams, panel screws, cutout shadows around every instrument and device seat.
 - **CTSL controls as photoreal hardware** (#417, for #392): breakers, rockers, push-pulls, valves, flap selector, ignition, levers, handles and rescue handle, per position.
