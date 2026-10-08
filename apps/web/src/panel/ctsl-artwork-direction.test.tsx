@@ -34,7 +34,7 @@ const drawn: Drawn[] = Object.entries(ctsl.controls).flatMap(([id, control]) => 
 const sliders = drawn.filter(({ steps }) => steps.length > 2);
 
 const legends: Record<string, Record<string, string>> = {
-  throttle: { idle: 'IDLE', low: 'LOW', runup: 'RUN-UP', cruise: 'CRUISE', full: 'FULL' },
+  throttle: { idle: 'IDLE', full: 'FULL' },
   trim: { 'nose-down': 'NOSE DN', neutral: 'NEUTRAL', 'nose-up': 'NOSE UP' },
   flapSelector: {
     'override-up': 'UP',
@@ -120,6 +120,21 @@ describe('CTSL notched artwork controls', () => {
     }
   });
 
+  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
+    const throttle = drawn.find(({ id }) => id === 'throttle');
+    if (!throttle) throw new Error('the CTSL draws no throttle');
+    const svg = faceSvg(throttle.face);
+    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
+    const { appearance } = throttle.control;
+    expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
+      'THROTTLE',
+      'FULL',
+      'IDLE',
+    ]);
+    expect(svg.match(/<line\b/g)).toHaveLength(2);
+  });
+
   it('rolls the trim wheel from a tap a touch target in from either end of its rim', () => {
     const entry = sliders.find(({ id }) => id === 'trim');
     if (!entry) throw new Error('the CTSL draws no trim wheel');
@@ -200,14 +215,15 @@ describe('CTSL notched artwork controls', () => {
       expect(now(up ?? '')).toBeGreaterThan(now(here));
       expect(now(down ?? '')).toBeLessThan(now(here));
 
-      const [from, next, previous] = [printed(here), printed(up ?? ''), printed(down ?? '')];
-      if (vertical) {
-        expect(next.y).toBeLessThan(from.y);
-        expect(previous.y).toBeGreaterThan(from.y);
-      } else {
-        expect(next.x).toBeGreaterThan(from.x);
-        expect(previous.x).toBeLessThan(from.x);
-      }
+      // Some stops print no legend (the throttle's middle stops), so compare the outermost printed ones.
+      const marked = steps
+        .filter((position) => legends[id]?.[position] !== undefined)
+        .map((position) => ({ position, value: now(position) }))
+        .sort((a, b) => a.value - b.value);
+      const [lowest, highest] = [marked[0]?.position ?? '', marked.at(-1)?.position ?? ''];
+      const [low, high] = [printed(lowest), printed(highest)];
+      if (vertical) expect(high.y).toBeLessThan(low.y);
+      else expect(high.x).toBeGreaterThan(low.x);
     },
   );
 });

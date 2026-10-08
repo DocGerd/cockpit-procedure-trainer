@@ -173,8 +173,12 @@ What the trainer draws today, and where it departs from the above:
   pushes left to full, the brake and choke pull right to on. The order and every
   direction match the handbook once the view is read as a top view with forward
   to the left; framed as a flank, the stack is wrong (the levers lie side by side).
-- The throttle prints FULL, CRUISE, RUN-UP, LOW and IDLE; the aircraft prints
-  FULL and IDLE only.
+- The throttle prints FULL at the forward end and IDLE at the aft end, as the
+  aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
+  check gives the end legends, not the title. The handbook treats the throttle as
+  continuous; the trainer keeps it stepped, with three unprinted trainer stops
+  between the ends (low, run-up and cruise power) that drive the rpm model and the
+  procedures. Cues name those stops in words, not as printed legends.
 - The trim prints TRIM, NOSE DN, NEUTRAL and NOSE UP; the aircraft prints DOWN and
   UP.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
@@ -692,6 +696,9 @@ verifies it on D-MPGO.
     lie side by side across the console top, not stacked on its flank; from the
     pilot's side outward trim wheel, choke, throttle, brake (inferred from HB 7-19;
     §3.4). Handle shapes cannot be read in the figure and stay open.
+    Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
+    low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
+    (unverified).
 26. **Rescue handle on the bulkhead**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Today: a T-grip in a holder centred on the bulkhead between
