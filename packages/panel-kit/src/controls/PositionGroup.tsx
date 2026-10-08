@@ -80,11 +80,13 @@ export function PositionGroup({
     );
   }, [positions.length]);
 
-  useLayoutEffect(measure);
-
   useLayoutEffect(() => {
     const element = group.current;
-    if (element === null || typeof ResizeObserver === 'undefined') return;
+    if (element === null) return;
+    if (typeof ResizeObserver === 'undefined') {
+      measure();
+      return;
+    }
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();
