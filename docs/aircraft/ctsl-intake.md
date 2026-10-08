@@ -111,6 +111,8 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
+- Breaker legends: the BAT, GEN and flap breaker legends are correct as drawn,
+  **owner-confirmed** 2026-10-08.
 
 ### 3.4 Centre console (view `console`)
 
@@ -143,8 +145,9 @@ Handbook facts (checked 2026-10-08):
 - **Parking-brake valve** (Rückflusshahn): close the valve first, then apply the
   brake lever; the pressure holds until the valve is opened again, all with one
   hand (HB 7-10). The figure shows a small lever with a printed tag aft of the
-  lever row; the handbook's placard list names no legend for it. Assumed
-  (unverified): closing the valve while the lever is held traps it as well.
+  lever row; the handbook's placard list names no legend for it. Its legends
+  PARK BRAKE, OPEN and SHUT are correct as drawn, **owner-confirmed** 2026-10-08.
+  Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Large knob aft of the valve** (§9, question 10): the hydraulic in-flight
   adjustable propeller is set by a lever on the centre console behind the engine
   control unit, with several detents and a catch under the grip that is lifted to
@@ -174,7 +177,8 @@ What the trainer draws today, and where it departs from the above:
   FULL and IDLE only.
 - The trim prints TRIM, NOSE DN, NEUTRAL and NOSE UP; the aircraft prints DOWN and
   UP.
-- The parking-brake valve prints PARK BRAKE, OPEN and SHUT: trainer wording.
+- The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
+  trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - A provisional carb-heat pull knob stands where the figure shows the large knob.
 - The rescue handle is drawn in its own view, `bulkhead`, as a T-grip high on the
   bulkhead between the seat backs, and its description gives no pull direction;
@@ -595,6 +599,9 @@ verifies it on D-MPGO.
     down from it between the seats. **Handbook check 2026-10-08:** partly answered. The engine
     control unit sits on the console just aft of the lower centre field (HB 7-19);
     the column's width and offset are not given.
+    **Answered by the owner 2026-10-08:** the panel geometry as drawn matches the
+    aircraft. The one-screen compromise stays: the console beside the centre
+    column rather than below it.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
@@ -605,7 +612,8 @@ verifies it on D-MPGO.
     window, mounted in the panel (not on the windscreen frame), no larger than the
     vertical speed indicator. **Handbook check 2026-10-08:** still open. A magnetic compass with a
     deviation card under it is minimum equipment (HB 1-3, 7-20); type and card are
-    not given.
+    not given. **Answered by the owner 2026-10-08:** correct as drawn,
+    owner-confirmed.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
@@ -615,6 +623,8 @@ verifies it on D-MPGO.
     TEST or RESET position; the lamp lights red while the ELT transmits.
     **Handbook check 2026-10-08:** still open. The remote unit in the lower centre field shows
     when the ELT has been triggered (HB 4-15, 7-18); its legends cannot be read.
+    **Answered by the owner 2026-10-08:** the remote plate's legends and lamp are
+    correct as drawn, owner-confirmed.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
@@ -622,7 +632,8 @@ verifies it on D-MPGO.
     (unverified), from general knowledge of the CT Supralight: the charge lamp
     lights red and the panel prints CHARGE with it. **Handbook check 2026-10-08:** still open. The
     wiring diagram names an alternator warning light (HB 7-8); legend and colour
-    are not given.
+    are not given. **Answered by the owner 2026-10-08:** the CHARGE lamp is
+    correct as drawn, owner-confirmed.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: the leading steps below are memory
     items; the rest of each procedure is read and done from the list. **Answered by
@@ -743,3 +754,14 @@ verifies it on D-MPGO.
     **Handbook check 2026-10-08:** still open; the handbook gives checklists, not flows. The
     console scan order changes with §3.4: across the console from the pilot's side
     (trim, choke, throttle, brake), not down a stack.
+
+31. **Console lever order across the console**: in which order do the levers sit
+    from the pilot's side outward? The handbook figure and the trim wheel sitting
+    left of the throttle (HB 7-19, 7-12) give trim wheel, choke, throttle, brake.
+    The order is inferred from the figure: **assumed (unverified)** until the
+    owner confirms it on D-MPGO. Today: a vertical stack on the console's flank
+    (§3.4), which #534 redraws.
+32. **GPS and intercom switch-on steps**: which normal-procedure step switches
+    the GPS on, and which the intercom? Today: no procedure step does; the phase
+    presets carry them (§5, question 24). #519 adds the steps and fills in this
+    question.
