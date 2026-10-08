@@ -194,6 +194,11 @@ export type StepInput<F extends string = string> = {
 export type SystemsDefinition<S, F extends string = string> = {
   readonly initial: S;
   step(state: S, input: StepInput<F>): S;
+  /**
+   * Lays what a phase sets and the pilot does not control, such as the heading, from the phase's
+   * entry state over a state carried into it. Without it a carried state keeps those values.
+   */
+  carry?(carried: S, entry: S): S;
 };
 
 export type DeviceStepInput = {

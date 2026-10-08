@@ -5,7 +5,15 @@ import { cockpit } from './cockpit';
 import { controls } from './controls';
 import { headingLabel, phaseHeadings, runway } from './airfield';
 import { indicators } from './indicators';
-import { engineRunning, initial, lampTestDone, lowVoltageLit, runningFrom, step } from './systems';
+import {
+  carry,
+  engineRunning,
+  initial,
+  lampTestDone,
+  lowVoltageLit,
+  runningFrom,
+  step,
+} from './systems';
 import type { DemoFailure, DemoState, DemoTrainerState } from './systems';
 import { text } from './text';
 
@@ -99,10 +107,10 @@ export const demoAircraft = defineAircraft({
         tachometer: { rect: { x: 45, y: 40, w: 230, h: 230 } },
         oilPressure: { rect: { x: 330, y: 40, w: 230, h: 230 } },
         ammeter: { rect: { x: 615, y: 40, w: 230, h: 230 } },
-        hourMeter: { rect: { x: 910, y: 40, w: 220, h: 120 } },
-        compass: { rect: { x: 1140, y: 40, w: 220, h: 120 } },
-        lowVoltageLamp: { rect: { x: 915, y: 170, w: 210, h: 90 } },
-        oilPressureLamp: { rect: { x: 1150, y: 170, w: 210, h: 90 } },
+        hourMeter: { rect: { x: 933, y: 74, w: 174, h: 68 }, printed: ['HOURS'] },
+        compass: { rect: { x: 1163, y: 74, w: 174, h: 68 }, printed: ['COMPASS'] },
+        lowVoltageLamp: { rect: { x: 949, y: 189, w: 142, h: 70 }, printed: ['LOW VOLT'] },
+        oilPressureLamp: { rect: { x: 1184, y: 189, w: 142, h: 70 }, printed: ['OIL PRESS'] },
       },
     },
     console: {
@@ -135,7 +143,7 @@ export const demoAircraft = defineAircraft({
       inputs: { pressureAltitude },
     },
   },
-  systems: { initial, step },
+  systems: { initial, step, carry },
   engineRunning,
   failures: {
     alternatorFailure: {
