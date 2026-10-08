@@ -180,6 +180,7 @@ describe('CTSL emergency procedures', () => {
     ['coolantLoss', 'throttle', 'low'],
     ['oilLoss', 'elt', 'on'],
     ['flapControlFailure', 'flapSelector', 'override-up'],
+    ['flapControlFailure', 'flapBreaker', 'in'],
     ['rescueDeployment', 'rescueHandle', 'pulled'],
   ] as const)('%s fails without its %s %s step', (id, control, position) => {
     const result = walkProcedure(withoutItem(id, actionOn(id, control, position)), id, {
@@ -237,6 +238,7 @@ describe('CTSL emergency procedures', () => {
 
     it('lets the flaps stop at full negative only with the control failed', () => {
       const session = inject('flapControlFailure');
+      session.set('flapBreaker', 'in');
       session.set('flapSelector', 'override-up');
       run(session, 2000);
       session.set('flapSelector', '-12');

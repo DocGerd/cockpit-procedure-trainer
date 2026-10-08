@@ -388,6 +388,13 @@ export type ProcedureDefinition<
   | { readonly type: 'emergency'; readonly failure: F }
 );
 
+export type OutsideCue<S> = {
+  readonly name: Text;
+  /** Drawn in the coordinate space of the phase images, transparent where nothing shows. */
+  readonly image: string;
+  readonly shows: Condition<S>;
+};
+
 export type AircraftDefinition<
   S,
   CT extends ControlRecord,
@@ -407,6 +414,8 @@ export type AircraftDefinition<
   readonly systems: SystemsDefinition<S, NoInfer<F>>;
   /** Whether the engine runs; selects `imageRunning` over `image` in the outside view. */
   readonly engineRunning?: Condition<S>;
+  /** Images laid over the outside view while their condition holds, such as smoke from the engine. */
+  readonly outsideCues?: { readonly [id: string]: OutsideCue<S> };
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: { readonly [K in P]: PhaseDefinition<S, CT> };
   readonly procedures: {

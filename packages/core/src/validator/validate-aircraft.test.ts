@@ -255,6 +255,29 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('outside cues', () => {
+    const cue = { name: { de: 'Rauch', en: 'Smoke' }, image: 'smoke.svg', shows: () => true };
+
+    it('accepts a cue with a name and an image', () => {
+      expect(validateAircraft(broken({ outsideCues: { smoke: cue } }))).toEqual([]);
+    });
+
+    it('reports a cue without an image', () => {
+      only(
+        broken({ outsideCues: { smoke: { ...cue, image: ' ' } } }),
+        'cue-without-image',
+        'smoke',
+      );
+    });
+
+    it('reports a cue name missing a language', () => {
+      const aircraft = broken({
+        outsideCues: { smoke: { ...cue, name: { de: '', en: 'Smoke' } } },
+      });
+      expect(only(aircraft, 'missing-translation', 'smoke').message).toContain('name');
+    });
+  });
+
   describe('phase-without-snapshot', () => {
     it('reports a phase with no entry', () => {
       only(withPhase('parking', { entry: undefined }), 'phase-without-snapshot', 'parking');

@@ -80,13 +80,23 @@ describe('surprise cues', () => {
     expect(() => pickSurprise(smokeUnseen, 'cruise')).toThrow('cruise');
   });
 
-  it('draws on the CT Supralight in cruise only failures with a cue on its panel', () => {
+  it('draws on every failure of the CT Supralight cruise emergencies, each with a panel cue', () => {
     const drawn = new Set(
       Array.from({ length: 60 }, (_, n) => pickSurprise(ctsl, 'cruise', () => n / 60).failure),
     );
+    const cruiseFailures = new Set(
+      Object.values(ctsl.procedures).flatMap((procedure) =>
+        procedure.type === 'emergency' && procedure.startPhase === 'cruise'
+          ? [procedure.failure]
+          : [],
+      ),
+    );
+    expect([...drawn].sort()).toEqual([...cruiseFailures].sort());
     expect([...drawn].sort()).toEqual([
       'coolantLoss',
+      'engineFire',
       'engineStoppage',
+      'flapControlFailure',
       'generatorFailure',
       'oilLoss',
     ]);

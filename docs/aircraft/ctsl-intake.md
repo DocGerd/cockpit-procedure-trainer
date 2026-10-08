@@ -613,3 +613,17 @@ verifies it on D-MPGO.
     as `parking` has it. **Answered by assumption pending owner verification**
     (#468). Assumed (unverified), from the handle covering the slot and N3's order
     (fuel valve open, then key in).
+28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
+    engine bay streams over the windscreen in the outside view, and the CHT and oil
+    temperature climb past their red lines within seconds while the fire burns; both
+    clear once the valve is closed and the engine has stopped. **Answered by
+    assumption pending owner verification** (#233). Assumed (unverified), from
+    general-aviation practice: smell and smoke come first, and a fire in the engine
+    bay heats the CHT and oil sensors; the size of the rise is a trainer value.
+29. **Flap control failure cue**: what shows on the panel when the flap controller
+    fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
+    position readout on that circuit goes dark, and with the breaker reset the readout
+    stays put whatever the selector says. **Answered by assumption pending owner
+    verification** (#233). Assumed (unverified), from the overload note of E9 and the
+    wiring of §4: the readout is fed through the flap breaker, and a failed controller
+    overloads the drive until the breaker trips.

@@ -212,6 +212,11 @@ and the disc `id="propeller-disc"` in each `imageRunning` SVG; `tools/propeller-
 checks the markers in every `packages/aircraft-*/src/assets/phase-*.svg` (running images are
 named `phase-<id>-running.svg`).
 
+A failure the pilot should see outside, such as smoke from an engine fire, is an
+`outsideCues` entry: a name, an image in the coordinate space of the phase images and
+transparent elsewhere, and a `shows(state)` condition. The outside view lays the image
+over the phase image while the condition holds, in every phase.
+
 ### Procedures
 
 `procedures` maps an id to `{ title, type, startPhase, endPhase?, items }`. A
@@ -374,7 +379,7 @@ too long for its widget at the minimum text size is squeezed and marked `data-ov
 `Finding`s, `{ aircraftId, code, id, message }`, and an empty list means valid. The
 codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `missing-translation`, `phase-without-image`, `running-image-without-engine`,
-`phase-without-running-image`, `phase-without-snapshot`,
+`phase-without-running-image`, `cue-without-image`, `phase-without-snapshot`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
