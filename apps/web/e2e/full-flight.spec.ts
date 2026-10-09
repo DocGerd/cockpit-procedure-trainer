@@ -12,6 +12,7 @@ import {
   openPicker,
   procedure,
   setControl,
+  startProcedure,
 } from './trainer';
 
 const continueWith = (page: Page, title: string) =>
@@ -143,4 +144,22 @@ test('a Practice full flight starts with an unannounced surprise and upcoming it
     .selectOption('engineFire');
   await expect(pane.getByRole('button', { name: copy.checklist.runChecklist })).toHaveCount(0);
   await expect(pane.getByText(copy.checklist.surpriseNote)).toHaveCount(0);
+});
+
+test('Hide upcoming items on a Practice full flight does not carry over to later Practice runs', async ({
+  page,
+}) => {
+  const [first] = flightLegs(aircraft);
+  if (!first) throw new Error('The demo needs a leg');
+  const upcoming = procedure(first).items[1]?.text.en ?? '';
+  await openPicker(page);
+  await page.getByRole('radio', { name: copy.shell.practice }).check();
+  await page.getByRole('checkbox', { name: copy.shell.hideUpcoming }).check();
+  await page.getByRole('button', { name: copy.shell.fullFlight, exact: true }).click();
+  await expect(page.locator('body')).not.toContainText(upcoming);
+
+  await startProcedure(page, first, 'practice');
+  const hide = checklistPane(page).getByRole('checkbox', { name: copy.checklist.hideUpcoming });
+  await expect(hide).not.toBeChecked();
+  await expect(page.locator('body')).toContainText(upcoming);
 });

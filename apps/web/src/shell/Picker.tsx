@@ -131,6 +131,7 @@ function Drills({ mode }: { mode: PickerMode }) {
   const phase = chosenPhase !== undefined && phases.includes(chosenPhase) ? chosenPhase : phases[0];
   const flightPhases = useMemo(() => flightSurprisePhases(aircraft), [aircraft]);
   const [flightChoice, setFlightChoice] = useState('');
+  const [flightRecall, setFlightRecall] = useState(trainer.recall);
   const flightSurprise =
     mode === 'practice' && (flightChoice === ANY_PHASE || flightPhases.includes(flightChoice))
       ? flightChoice
@@ -200,8 +201,8 @@ function Drills({ mode }: { mode: PickerMode }) {
               <label className="picker-check picker-card-text">
                 <input
                   type="checkbox"
-                  checked={trainer.recall}
-                  onChange={(event) => trainer.setRecall(event.target.checked)}
+                  checked={flightRecall}
+                  onChange={(event) => setFlightRecall(event.target.checked)}
                 />
                 {text.hideUpcoming}
               </label>
@@ -213,11 +214,12 @@ function Drills({ mode }: { mode: PickerMode }) {
             aria-describedby={flightHint}
             onClick={() => {
               trainer.setMode(mode);
-              trainer.startFlight(
-                flightSurprise === ''
+              trainer.startFlight({
+                recall: mode === 'practice' && flightRecall,
+                ...(flightSurprise === ''
                   ? {}
-                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } },
-              );
+                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } }),
+              });
             }}
           >
             {text.fullFlight}
