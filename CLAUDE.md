@@ -53,7 +53,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Every agent works in its own git worktree; never switch branches or edit
   files in the main checkout. `.claude/hooks/main-checkout-guard.sh` refuses
   such edits (including `/revise-claude-md` and `.claude/settings.local.json`
-  in a main-checkout session); the owner overrides with
+  in a main-checkout session; `.remember/` is exempt); the owner overrides with
   `CPT_ALLOW_MAIN_EDIT=1`.
 - Harness worktrees start on a `worktree-agent-*` branch: switch to the work
   branch from `origin/develop` first; cleanup deletes both branches.

@@ -738,6 +738,32 @@ describe('main-checkout-guard.sh', () => {
     );
   });
 
+  it('allows files under the top-level .remember/ of the main checkout', () => {
+    for (const file of ['.remember/remember.md', '.remember/new/dir/note.md']) {
+      expect(denies({ tool: 'Write', input: { file_path: join(main, file) } })).toBe(false);
+    }
+    expect(
+      denies({
+        tool: 'Edit',
+        input: { file_path: '.remember/remember.md' },
+        cwd: main,
+        project: main,
+      }),
+    ).toBe(false);
+  });
+
+  it('keeps denying near-misses of .remember/ in the main checkout', () => {
+    for (const file of [
+      '.remember',
+      '.remember-x/a.md',
+      '.remembered/a.md',
+      'sub/.remember/a.md',
+      '.remember/../README.md',
+    ]) {
+      expect(denies({ tool: 'Write', input: { file_path: join(main, file) } })).toBe(true);
+    }
+  });
+
   it('allows an edit in a linked worktree, also when the project dir is the main checkout', () => {
     for (const project of [worktree, main]) {
       expect(
