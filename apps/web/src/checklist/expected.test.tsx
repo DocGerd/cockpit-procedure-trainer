@@ -60,7 +60,7 @@ function start(mode: Mode, language: 'de' | 'en' = 'en') {
   });
 }
 
-const confirm = () => userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+const confirm = () => userEvent.click(screen.getByRole('button', { name: 'Done' }));
 
 const itemTexts = () =>
   [...document.querySelectorAll('.checklist-item-text')].map((node) => node.textContent);
@@ -81,7 +81,7 @@ describe('a check with an expected value', () => {
     start('practice');
     await confirm();
     expect(itemTexts()[1]).toBe('Flap readout');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(itemTexts()[1]).toBe('Flap readout: 15°');
   });
 
@@ -97,6 +97,13 @@ describe('a check with an expected value', () => {
     expect(itemTexts()[1]).toBe('Flap readout: 15°');
   });
 
+  it('sets the expected value behind a dot leader', () => {
+    start('guided');
+    const row = document.querySelectorAll('.checklist-item-text')[1];
+    expect(row?.querySelector('.leader')).not.toBeNull();
+    expect(row?.querySelector('.checklist-expected')?.textContent).toBe('15°');
+  });
+
   it('speaks German', () => {
     start('guided', 'de');
     expect(itemTexts()[1]).toBe('Klappenanzeige: 15°');
@@ -105,7 +112,7 @@ describe('a check with an expected value', () => {
   it('shows the expected value in the summary', async () => {
     start('practice');
     await confirm();
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     await confirm();
     expect(itemTexts()).toContain('Flap readout: 15°');
   });

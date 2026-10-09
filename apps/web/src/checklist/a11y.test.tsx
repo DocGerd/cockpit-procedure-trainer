@@ -68,21 +68,21 @@ describe('checklist focus', () => {
     expect(currentItem()?.textContent).toContain('Master on');
   });
 
-  it('moves focus to the next check-off button after Check off', async () => {
+  it('moves focus to the next check-off button after Checked', async () => {
     renderLayout();
     start('flow');
     operate('master', 'on');
     operate('pump', 'on');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Done' }));
   });
 
   it('moves focus to the current item when it has no check-off button', async () => {
     renderLayout();
     start('flow');
     operate('master', 'on');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(document.activeElement).toBe(currentItem());
     expect(currentItem()?.textContent).toContain('Pump on');
   });
@@ -100,9 +100,9 @@ describe('checklist focus', () => {
     renderLayout();
     start('flow');
     operate('master', 'on');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(document.activeElement).not.toBe(document.body);
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(document.activeElement).not.toBe(document.body);
     operate('pump', 'on');
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Flow complete' }));
@@ -125,7 +125,7 @@ describe('checklist announcements', () => {
     expect(announcer()?.textContent).toBe('');
     operate('master', 'on');
     expect(announcer()?.textContent).toBe('Item 2 of 4: Fuel flowing');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(announcer()?.textContent).toBe('Item 3 of 4: Walk-around done');
   });
 
@@ -134,8 +134,8 @@ describe('checklist announcements', () => {
     start('flow');
     operate('master', 'on');
     operate('pump', 'on');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     expect(announcer()?.textContent).toBe('Procedure complete: Flow');
   });
@@ -242,8 +242,8 @@ describe('checklist announcements', () => {
     start('flow');
     operate('master', 'on');
     operate('pump', 'on');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     await userEvent.click(screen.getByRole('button', { name: 'Next: Follow-up' }));
     expect(announcer()?.textContent).toBe('');
