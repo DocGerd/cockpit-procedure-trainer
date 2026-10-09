@@ -14,7 +14,7 @@ description: Write the changelog fragment a PR needs, or decide it may use a "No
 - No user-visible effect (internal docs, CI-only, tests-only, agent config): skip
   the file and put `No changelog: <reason>` in the PR body. A spec or plan change
   that alters product behaviour still needs a fragment.
-- Dependabot PRs are exempt.
+- Dependabot, release and backmerge PRs are exempt.
 - Once the release-prep PR has folded `changelog.d` into `CHANGELOG.md`, a PR
   landing before the release edits that release's section in `CHANGELOG.md`
   instead of adding a fragment.
