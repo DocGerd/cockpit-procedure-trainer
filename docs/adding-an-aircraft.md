@@ -162,24 +162,25 @@ placement that is not inside it as `placement-outside-view`.
 
 ### Cockpit arrangement
 
-`cockpit` is optional, but once present it needs a `dock` cell. It describes the whole cockpit as one left-seat arrangement:
-`size: { width, height }` is a coordinate space of your choosing (only proportions
-matter), and `views` holds one cell per view id, `{ rect, minWidth }`. A view
-without a cell fails to type-check, and so does a cell for a view that does not
-exist. An aircraft without `cockpit` always shows its views as tabs.
+`cockpit` is optional, but once present it needs a `dock` cell. It describes the
+whole cockpit as one left-seat arrangement: `size: { width, height }` is a
+coordinate space of your choosing (only proportions matter), and `views` holds one
+cell per view id, `{ rect, minWidth }`. A view without a cell fails to type-check,
+and so does a cell for a view that does not exist. An aircraft without `cockpit`
+always shows its views as tabs.
 
 Cells are spatial, not to scale: each view is contain-fit in its own cell, so a
-small console view can take far more screen per image unit than the panel. Keep the
-left-seat relationships (what is above, below, left and right) and give each cell
-the aspect of its view. Cells may touch but must not overlap or leave `size`.
+small console view can take far more screen per image unit than the panel. Keep
+the left-seat relationships (what is above, below, left and right) and give each
+cell the aspect of its view. Cells may touch but must not overlap or leave `size`.
 Put the arrangement in its own file, `src/cockpit.ts`, and add it to the
 definition with one line.
 
 `minWidth` is the narrowest rendered width, in CSS px, at which the view stays
-legible and operable: every touch target at least
-`--size-target`, no placard overfull, all placards and lettering at least
-`--text-2xs`, and no two operable targets of different controls overlapping, each
-taken as its rendered box grown to at least `--size-target` around its centre.
+legible and operable: every touch target at least `--size-target`, no placard
+overfull, all placards and lettering at least `--text-2xs`, and no two operable
+targets of different controls overlapping, each taken as its rendered box grown to
+at least `--size-target` around its centre.
 Space placements apart to clear an overlap; one that only a higher floor could
 clear is accepted by name in the test's `acceptedOverlaps`, with what a tap loses
 there. The positions of one control may overlap: the panel kit clips each to the

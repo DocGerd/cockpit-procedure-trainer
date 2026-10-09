@@ -125,9 +125,9 @@ finding codes, each with a test:
 | `invalid-cockpit-dock` | `dock` missing, or present but its `rect` or `minWidth` malformed, outside `size`, or overlapping a view cell |
 
 The dock is required whenever an aircraft has a `cockpit`; an aircraft without
-a `cockpit` has no dock. A
-test, not the validator, checks that the dock's `minWidth` reaches the floor of
-every installed device (`apps/web/src/aircraft-validation.test.ts`).
+a `cockpit` has no dock. A test, not the validator, checks that the dock's
+`minWidth` reaches the floor of every installed device
+(`apps/web/src/aircraft-validation.test.ts`).
 
 The demo keeps working: it gains an arrangement in its `index.ts`, and the
 validator test of every registered aircraft covers it.
