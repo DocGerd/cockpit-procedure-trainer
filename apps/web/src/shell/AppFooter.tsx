@@ -2,6 +2,7 @@ import { deployEnv } from '../deploy-env';
 import { useMessages } from '../i18n';
 import { versionLabel } from '../version';
 import { messages } from './messages';
+import './footer.css';
 
 export function AppFooter() {
   const text = useMessages(messages);

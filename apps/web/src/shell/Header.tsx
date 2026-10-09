@@ -8,6 +8,7 @@ import { ThemeSwitch } from '../theme';
 import { useLeavingRisk, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { messages } from './messages';
+import './header.css';
 
 function BrandMark() {
   return (
