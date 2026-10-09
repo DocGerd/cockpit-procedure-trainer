@@ -106,10 +106,11 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   `reference/` is local-only — never read it in implementation agents, never
   commit or quote it.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
-  substring "merge" (also "emergency", `--no-merges` — use
-  `git log --max-parents=1 A..B` —, jq `mergeCommit`, `merged_at`), except one
-  plain `gh pr merge` of a `develop` PR or a plain `git merge`/`merge-base`. It
-  also refuses chained commands that contain it (a newline in a quoted body
+  substring "merge" (also "emergency", `--no-merges`, jq `mergeCommit`,
+  `merged_at`), except one plain `gh pr merge` of a `develop` PR or a plain
+  `git merge`/`merge-base`; for `--no-merges` use
+  `git log --max-parents=1 A..B`. It also refuses chained commands that
+  contain it (a newline in a quoted body
   counts as chaining) and, in gh, curl and wget commands, any expansion in the
   subcommand, endpoint, GraphQL query or URL: write such text to a file
   (`--body-file`), spell endpoints literally, run
@@ -132,7 +133,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Review replies: POST `…/pulls/<n>/comments/<id>/replies` with
   `--field body=@file` (`--raw-field` posts the literal `@file`); resolve
   threads via GraphQL. `gh pr edit` fails on the Projects-classic error: PATCH
-  `repos/<owner>/<repo>/pulls/<n>` instead; clear a milestone by PATCHing
+  `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead; clear a milestone by PATCHing
   `…/issues/<n>` with `--input` on a file holding `{"milestone": null}`.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
