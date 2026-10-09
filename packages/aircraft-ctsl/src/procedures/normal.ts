@@ -483,7 +483,7 @@ export const normalProcedures = {
         target: { indicator: 'tachometer' },
         condition: (state: State) => Math.abs(state.systems.rpm - RUNUP_RPM) <= RUNUP_RPM_TOLERANCE,
         response: { ...rpmReading, tolerance: RUNUP_RPM_TOLERANCE },
-        text: text('Drehzahl prüfen', 'Rpm check'),
+        text: text('Drehzahl', 'Rpm'),
         expected: text(`${RUNUP_RPM} U/min`, `${RUNUP_RPM} rpm`),
       },
       oilPressureGreen,
@@ -507,7 +507,7 @@ export const normalProcedures = {
         target: { indicator: 'tachometer' },
         condition: circuitDropWithinLimit,
         text: text('Drehzahlabfall', 'Rpm drop'),
-        expected: text('höchstens 300 U/min', 'at most 300'),
+        expected: text('höchstens 300 U/min', 'at most 300 rpm'),
       },
       {
         type: 'action',
@@ -528,7 +528,7 @@ export const normalProcedures = {
         text: text('Drehzahlabfall', 'Rpm drop'),
         expected: text(
           'höchstens 300 U/min, höchstens 120 U/min Unterschied zu L',
-          'at most 300, and within 120 of the drop on L',
+          'at most 300 rpm, and within 120 rpm of the drop on L',
         ),
       },
       {
@@ -635,7 +635,7 @@ export const normalProcedures = {
           state.systems.rpm >= MIN_TAKEOFF_RPM && state.systems.rpm <= RED_LINE_RPM,
         response: rpmReading,
         text: text('Drehzahl', 'Rpm'),
-        expected: text('4800 bis 5000 U/min, mindestens 4600', '4800 to 5000, at least 4600'),
+        expected: text('4800 bis 5000 U/min, mindestens 4600', '4800 to 5000 rpm, at least 4600'),
       },
       confirm(
         'Bugrad entlasten, Abheben bei etwa 75 km/h',
@@ -721,7 +721,7 @@ export const normalProcedures = {
         condition: (state: State) => state.systems.rpm <= MAX_CONTINUOUS_RPM,
         response: rpmReading,
         text: text('Drehzahl', 'Rpm'),
-        expected: text('höchstens 5500 U/min', 'at most 5500'),
+        expected: text('höchstens 5500 U/min', 'at most 5500 rpm'),
       },
       {
         type: 'action',

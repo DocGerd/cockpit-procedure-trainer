@@ -48,7 +48,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Charge lamp: out',
   ],
   climbCruise: [
-    'Rpm: at most 5500',
+    'Rpm: at most 5500 rpm',
     'Oil pressure: in the green',
     'Oil temperature: in the green',
     'Cylinder head temperature: in the green',
