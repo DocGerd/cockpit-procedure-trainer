@@ -134,8 +134,8 @@ size, and the extent of the placements while neither is known yet. When a size i
 
 An optional cockpit arrangement places every view in one layout and states,
 per view, the narrowest rendered width at which it stays legible and operable.
-It may also place a device dock, outside the views, for the avionics devices
-(§4.9). The web app shows the arrangement when every view reaches that width
+It also places a device dock, a required `dock` cell outside the views, for the
+avionics devices (§4.9). The web app shows the arrangement when every view reaches that width
 and tabs otherwise (`2026-10-06-one-viewport-cockpit-design.md`).
 
 ### 4.4 Systems model
@@ -184,7 +184,9 @@ pilot's seat, not a third-person picture of the aircraft.
 A phase may also supply a second outside-view image for a running engine (a
 static propeller-disc outline in place of the stopped blade). The aircraft then
 declares an `engineRunning` condition over its state; the outside view shows
-the running image while it holds. Both fields are optional.
+the running image while it holds. Both are optional, but only together: a
+phase's running image needs `engineRunning`, and `engineRunning` needs a running
+image on every phase (§8).
 
 An aircraft may also declare outside cues: images laid over the outside view while
 a condition over its state holds, such as smoke from the engine during a fire. The
@@ -337,9 +339,11 @@ logic follows and lists the functions it does not model.
 
 1. The pilot operates a control; the control store records the new position, or
    refuses the move when an interlock holds it or the control reaches that
-   position only from others (result `locked`): the position stays, a notice
-   names both controls and rings the holding control on the panel when another
-   control holds it, and no deviation is recorded.
+   position only from others (result `locked`): the position stays and no
+   deviation is recorded. When another control holds it, a notice names both
+   controls and the panel rings the holding control; when the position is
+   reached only from others, a notice names the positions it is reached from
+   and the panel rings the refused control. An interlock wins when both apply.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
@@ -393,7 +397,8 @@ aircraft's checklists for reading. A checklist viewed that way is a static
 list of its items, independent of the running session: in Guided and Practice
 the running procedure is untouched and a button leads back to it; in Free
 explore the pane starts on the last procedure that ran, else the aircraft's
-first.
+first. Back to the picker and a change of aircraft forget the last procedure,
+so Free explore entered from the picker starts on the aircraft's first.
 
 ### Scenarios
 
@@ -403,9 +408,11 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   emergency procedures; the session loads it with no checklist and, after a
   random delay, injects one of the phase's failures with no banner and no title
   naming it. Only failures that change the panel within seconds are drawn, so
-  there is always something to recognise. The pane says only that a failure will come. The pilot reads
-  checklists through the selector and runs the one they judge right; until
-  then nothing is recorded. The debrief adds the time from the failure to that
+  there is always something to recognise. The pane says only that a failure will come, and the selector
+  opens on "Choose a checklist" with no procedure shown. The pilot reads
+  checklists through the selector and runs the one they judge right with
+  "Run this checklist", which is offered for every procedure, normal ones
+  included, until the pilot has run one; until then nothing is recorded. The debrief adds the time from the failure to that
   choice (or that it came before the failure) and whether the checklist was an
   emergency procedure for the injected failure; a wrong checklist's run is not
   recorded in the history. Repeat, Restart and returning from Free explore
@@ -431,7 +438,8 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   Leaving the flight by phase, Free explore or the selection before its last
   leg is done asks first and names the legs flown.
   In Practice (added in #510) the flight can carry a surprise failure in a
-  chosen or random phase, and Hide upcoming items can be set before it starts.
+  chosen or random phase, and Hide upcoming items can be set before it starts,
+  for that flight only: the stored Practice option is unchanged.
   The surprise comes in a leg that starts in that phase, after one of its items
   other than the last (at the latest when the leg is done), with no banner;
   only then does the viewer offer to run a checklist. The checklist the pilot
@@ -529,7 +537,11 @@ parallel.
   lever targets only 0 or 1 (`inexact-lever-target`), since a slider cannot be
   expected to land on a fraction; a declared view size is a positive, finite
   width and height (`invalid-view-size`) and no placement lies outside it
-  (`placement-outside-view`).
+  (`placement-outside-view`); a phase's running image and the aircraft's
+  `engineRunning` go together: `imageRunning` on a phase requires
+  `engineRunning` (`running-image-without-engine`), and `engineRunning`
+  requires `imageRunning` on every phase (`phase-without-running-image`); a
+  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing view or outside-view image falls back to a labelled placeholder and
   a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their

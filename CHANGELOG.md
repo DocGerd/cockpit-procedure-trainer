@@ -8,6 +8,14 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.16.0] - 2026-10-09
+
+### Fixed
+
+- Taking the CT Supralight ignition key out from any position other than OFF now shows a notice that it comes out only from OFF and rings the key, instead of doing nothing.
+- Hide upcoming items in the Full flight drill is now the flight's own option: it no longer changes the Hide upcoming setting that later Practice runs use.
+- When the running checklist completes while you are reading another one, the view now returns to the run summary instead of leaving it behind the selector.
+
 ## [0.15.0] - 2026-10-09
 
 ### Added
@@ -320,7 +328,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...v0.12.0

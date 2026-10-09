@@ -1,4 +1,4 @@
-import type { Session, SessionControlResult } from '@cpt/core';
+import type { ControlPosition, Session, SessionControlResult } from '@cpt/core';
 import type { ControlWidgetProps } from '@cpt/panel-kit';
 import { useCallback, useMemo } from 'react';
 import { useTrainer } from '../trainer';
@@ -20,17 +20,19 @@ function panelInput(
 ): PanelInput {
   const operates = () => mode !== 'explore' || explore.get().operate;
   const notices = lockNoticeStore(session);
-  const operate = (action: () => SessionControlResult) => {
-    if (operates()) notices.report(controlId, action());
+  const operate = (action: () => SessionControlResult, to?: ControlPosition) => {
+    if (operates()) notices.report(controlId, action(), to);
     else explore.select(controlId);
   };
   return {
     onSet: (position) => {
-      operate(() => session.set(controlId, position));
+      operate(() => session.set(controlId, position), position);
     },
     onPress: (position) => {
-      operate(() =>
-        position === undefined ? session.press(controlId) : session.press(controlId, position),
+      operate(
+        () =>
+          position === undefined ? session.press(controlId) : session.press(controlId, position),
+        position,
       );
     },
     // A hold that began while operating must still end, or the control stays held.

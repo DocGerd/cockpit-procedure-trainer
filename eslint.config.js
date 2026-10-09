@@ -52,7 +52,8 @@ const reachesOtherPackage = (own) => [
 
 // esquery regex literals cannot contain a slash, so match it by code point.
 const slash = '\\x2f';
-const dynamicSource = (pattern) => `ImportExpression[source.value=/${pattern}/]`;
+const dynamicSource = (pattern) =>
+  `ImportExpression:matches([source.value=/${pattern}/], [source.expressions.length=0][source.quasis.0.value.cooked=/${pattern}/])`;
 
 const dynamicReach = (own) =>
   dynamicSource(
@@ -157,9 +158,15 @@ const typeSpacingSelectors = [
 const literalSelectors = [...colourLiterals, ...typeSpacingSelectors];
 
 const e2eRelativePackageImport = {
-  regex: '^\\.{1,2}/(?:\\.{1,2}/)*packages/',
+  regex: '^\\.{1,2}/(?:.*/)?packages/',
   message: 'Import another package by its name, never by a relative path.',
 };
+const e2eDynamicPackageImport = {
+  selector: dynamicSource(`^\\.{1,2}${slash}(.*${slash})?packages${slash}`),
+  message: 'Import another package by its name, never by a relative path.',
+};
+const e2eFiles = 'apps/web/e2e/**/*.{ts,mts,cts}';
+const e2eSpecFiles = 'apps/web/e2e/**/*.spec.{ts,mts,cts}';
 
 const deviceGroups = [
   {
@@ -308,12 +315,23 @@ export default tseslint.config(
     rules: restrict('web', [], literalSelectors),
   },
   {
-    files: ['apps/web/e2e/**/*.ts'],
-    rules: { 'no-restricted-imports': ['error', { patterns: [e2eRelativePackageImport] }] },
+    files: [e2eFiles],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [e2eRelativePackageImport] }],
+      'no-restricted-syntax': ['error', e2eDynamicPackageImport],
+    },
   },
   {
-    files: ['apps/web/e2e/**/*.spec.ts'],
+    files: [e2eSpecFiles],
     rules: {
+      'no-restricted-syntax': [
+        'error',
+        e2eDynamicPackageImport,
+        {
+          selector: dynamicSource(`^@playwright${slash}test$`),
+          message: 'Import test and expect from ./fixtures so the spec fails on a CSP violation.',
+        },
+      ],
       'no-restricted-imports': [
         'error',
         {

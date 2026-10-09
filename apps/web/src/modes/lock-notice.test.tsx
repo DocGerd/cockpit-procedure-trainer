@@ -7,7 +7,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
-import { lockHolder } from './lock-notice';
+import { lockCause, lockHolder } from './lock-notice';
 import { ModeControl } from './ModeControl';
 
 vi.mock('../aircraft-registry', async () => {
@@ -19,6 +19,30 @@ vi.mock('../aircraft-registry', async () => {
       starter: {
         ...fixture.controls.starter,
         interlock: [{ control: 'master', at: 'off', holds: ['off'] }],
+      },
+      key: {
+        kind: 'rotary',
+        positions: ['out', 'off', 'on'],
+        initial: 'out',
+        onlyFrom: { out: ['off'] },
+        name: { de: 'Zündschloss', en: 'Ignition' },
+        legends: {
+          out: {
+            state: { de: 'Schlüssel abgezogen', en: 'key out' },
+            restore: { de: 'Schlüssel wieder abziehen', en: 'Take the key out again' },
+          },
+        },
+        description: { de: 'Zündschlüssel', en: 'Ignition key' },
+      },
+    },
+    views: {
+      ...fixture.views,
+      main: {
+        ...fixture.views['main'],
+        controls: {
+          ...fixture.views['main']?.controls,
+          key: { rect: { x: 600, y: 350, w: 100, h: 100 } },
+        },
       },
     },
   } as unknown as Aircraft;
@@ -156,6 +180,49 @@ describe('the lock ring', () => {
   });
 });
 
+describe('the key-out notice', () => {
+  const keyTo = (position: string) => userEvent.click(radio('Ignition|Zündschloss', position));
+
+  it.each([
+    ['en', 'Ignition reaches key out only from OFF.'],
+    ['de', 'Zündschloss: Schlüssel abgezogen nur von OFF aus erreichbar.'],
+  ] as const)(
+    'says where the target is reached from when onlyFrom refuses, in %s',
+    async (language, notice) => {
+      renderTrainer(language);
+      await keyTo('on');
+      await keyTo('out');
+      expect(trainer.session.state().controls.key).toBe('on');
+      expect(screen.getByRole('status').textContent).toBe(notice);
+    },
+  );
+
+  it('rings the refused control itself', async () => {
+    renderTrainer();
+    await keyTo('on');
+    expect(lockRing()).toBeNull();
+    await keyTo('out');
+    expect(boxOf(lockRing())).toEqual(placementBox('key'));
+  });
+
+  it('goes once a move goes through', async () => {
+    renderTrainer();
+    await keyTo('on');
+    await keyTo('out');
+    await keyTo('off');
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(lockRing()).toBeNull();
+  });
+
+  it('stays silent for a move that is allowed', async () => {
+    renderTrainer();
+    await keyTo('on');
+    await keyTo('off');
+    await keyTo('out');
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
 describe('lockHolder', () => {
   const name = { de: 'n', en: 'n' };
   const toggle = (positions: readonly string[]) => ({
@@ -182,5 +249,62 @@ describe('lockHolder', () => {
   it('names nothing when no lock holds the current position', () => {
     expect(lockHolder(aircraft, { valve: 'closed', key: 'on' }, 'key')).toBeUndefined();
     expect(lockHolder(aircraft, { valve: 'open', key: 'off' }, 'key')).toBeUndefined();
+  });
+});
+
+describe('lockCause', () => {
+  const name = { de: 'n', en: 'n' };
+  const key = {
+    name,
+    description: name,
+    kind: 'rotary',
+    positions: ['out', 'off', 'on'],
+    initial: 'out',
+    onlyFrom: { out: ['off'] },
+  };
+  const aircraft = {
+    controls: {
+      valve: {
+        name,
+        description: name,
+        kind: 'toggle',
+        positions: ['open', 'closed'],
+        initial: 'open',
+      },
+      key: { ...key, interlock: [{ control: 'valve', at: 'closed', holds: ['on'] }] },
+      plain: { ...key, onlyFrom: undefined },
+    },
+  } as unknown as Pick<Aircraft, 'controls'>;
+
+  it('prefers the holding control over the source list', () => {
+    expect(
+      lockCause(aircraft, { valve: 'closed', key: 'on' }, { controlId: 'key', to: 'out' }),
+    ).toEqual({
+      kind: 'holder',
+      control: 'valve',
+    });
+  });
+
+  it('lists the positions the target is reached from', () => {
+    expect(
+      lockCause(aircraft, { valve: 'open', key: 'on' }, { controlId: 'key', to: 'out' }),
+    ).toEqual({
+      kind: 'source',
+      to: 'out',
+      from: ['off'],
+    });
+  });
+
+  it('names nothing without a target or a source restriction', () => {
+    const positions = { valve: 'open', key: 'on', plain: 'on' };
+    expect(lockCause(aircraft, positions, { controlId: 'key' })).toBeUndefined();
+    expect(lockCause(aircraft, positions, { controlId: 'key', to: 'off' })).toBeUndefined();
+    expect(lockCause(aircraft, positions, { controlId: 'plain', to: 'out' })).toBeUndefined();
+  });
+
+  it('names nothing when the control already sits at a source', () => {
+    expect(
+      lockCause(aircraft, { valve: 'open', key: 'off' }, { controlId: 'key', to: 'out' }),
+    ).toBeUndefined();
   });
 });
