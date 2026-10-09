@@ -33,6 +33,18 @@ export type Gtx327State = {
 
 const text = (de: string, en: string): Text => ({ de, en });
 
+// The unit prints no word for a key at rest or pressed, so cues name both in words.
+const keyLegends = {
+  released: {
+    state: text('losgelassen', 'released'),
+    restore: text('Wieder loslassen', 'Release it'),
+  },
+  pressed: {
+    state: text('gedrückt', 'pressed'),
+    restore: text('Wieder drücken', 'Press it again'),
+  },
+} as const;
+
 const isMode = (value: unknown): value is Gtx327Mode => MODES.some((mode) => mode === value);
 
 const restingKeys = (): Record<Key, string> =>
@@ -43,6 +55,7 @@ const key = (name: Text, description: Text) =>
     kind: 'momentary',
     positions: ['released', 'pressed'],
     initial: 'released',
+    legends: keyLegends,
     name,
     description,
   }) as const;
