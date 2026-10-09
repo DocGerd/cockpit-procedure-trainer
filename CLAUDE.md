@@ -33,6 +33,14 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   opens the release PR `develop` to `main`; the owner merges it.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
+- A PR scored against a visual rubric stays a draft until a ui-verifier passes
+  it; workflows and the merge train do not check scores. Brief scorers blind:
+  no prior scores or "be strict" notes (they anchor).
+- Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
+  review-toolkit passes that a reviewer agent asks for.
+- One agent owns a worktree at a time. A message to a finished subagent
+  resumes it with that order, so wait for its hand-back before giving the
+  worktree to another agent.
 - Every agent works in its own git worktree; never switch branches or edit
   files in the main checkout.
 - Rebase only before a branch's first push (force-push is blocked); after
@@ -99,6 +107,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   endpoints literally, run `git pull --ff-only origin develop` on its own. A
   global force-push guard also refuses `--noEmit` and `+0`-like text in
   commands.
+- The hook also refuses `--no-merges`: use `git log --max-parents=1 A..B`.
+- Once the release-prep PR has folded `changelog.d`, a PR landing before the
+  release edits the CHANGELOG.md section instead of adding a fragment.
 - `gh pr merge --delete-branch` errors when a worktree holds the branch (the
   PR still lands); delete branches after removing the worktree.
 - After landing a PR, check its `Closes` issue is closed; if not, PATCH
