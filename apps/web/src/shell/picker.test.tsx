@@ -476,7 +476,7 @@ describe('picker card text in German', () => {
 
 describe('picker compact layout', () => {
   const css = readFileSync(
-    fileURLToPath(import.meta.url).replace(/picker\.test\.tsx$/, 'shell.css'),
+    fileURLToPath(import.meta.url).replace(/picker\.test\.tsx$/, 'picker.css'),
     'utf8',
   );
 

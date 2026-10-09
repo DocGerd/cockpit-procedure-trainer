@@ -35,7 +35,19 @@ Product tokens the bundle does not define: the Violet accent in the dark theme,
 `--color-on-accent`, `--text-xs` and `--leading-xs`, `--leading-2xs`,
 `--tracking-eyebrow`, `--space-5`, `--space-10` and `--size-target`. The bundle
 tokens the product does not use (display and H1 sizes, the 64px and larger
-spacing steps, shadows, layout widths) are not reproduced.
+spacing steps) are not reproduced.
+
+- `--color-accent-strong` takes the step the bundle's azure takes to its
+  accent-strong: about 0.79 of each channel in the light theme, about a quarter
+  of the way to white in the dark theme.
+- `--shadow-sm` and `--shadow-md` follow the bundle's two elevations, drawn in
+  the ink in the light theme and in black in the dark theme. Shadows belong to
+  overlays only.
+- `--duration-fast`, `--duration-theme` and `--ease-standard` name the bundle's
+  hover and theme-change transitions. Motion runs only when the viewer allows
+  it.
+- `--content-max` is the bundle's maximum content width and `--measure` its
+  line length.
 
 ## Accent
 
@@ -53,60 +65,68 @@ Light is `:root`; dark is `[data-theme="dark"]`. A token that does not change
 with the theme repeats its value in both columns. Rows marked "derived" are not
 drawn on the canvas.
 
-| Token                    | Light                                                                         | Dark                                                                          | Use                               |
-| ------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------- |
-| `--color-bg`             | `#FBFBFC`                                                                     | `#0D0E10`                                                                     | page ground                       |
-| `--color-surface`        | `#FFFFFF`                                                                     | `#15171A`                                                                     | header, panes, cards              |
-| `--color-surface-subtle` | `#F4F5F7`                                                                     | `#141619`                                                                     | group headers, tracks             |
-| `--color-surface-muted`  | `#EEF0F2`                                                                     | `#1B1E22`                                                                     | neutral chips                     |
-| `--color-divider`        | `#E6E9EC`                                                                     | `#202428`                                                                     | rules inside a surface            |
-| `--color-border`         | `#DCE0E4`                                                                     | `#2A2E33`                                                                     | outlines of controls and surfaces |
-| `--color-text`           | `#14161A`                                                                     | `#ECEEF1`                                                                     | primary text                      |
-| `--color-text-secondary` | `#3B4046`                                                                     | `#C2C7CD`                                                                     | secondary text                    |
-| `--color-text-muted`     | `#5E646B`                                                                     | `#969CA4`                                                                     | eyebrows, meta                    |
-| `--color-accent`         | `#6A57C4`                                                                     | `#9A8BE8`                                                                     | product accent                    |
-| `--color-on-accent`      | `#FFFFFF`                                                                     | `#0D0E10`                                                                     | text on accent fill               |
-| `--color-success`        | `#2E7D46`                                                                     | `#5FBE7C`                                                                     | status ink, chrome only           |
-| `--color-warning`        | `#9A6B1A`                                                                     | `#D6A23E`                                                                     | status ink, chrome only           |
-| `--color-danger`         | `#BC4438`                                                                     | `#E0726A`                                                                     | status ink, chrome only           |
-| `--font-sans`            | `'Geist', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif` | `'Geist', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif` | UI text                           |
-| `--font-mono`            | `'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace`   | `'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace`   | eyebrows, values, codes           |
-| `--text-2xs`             | `11px`                                                                        | `11px`                                                                        | header eyebrow                    |
-| `--leading-2xs`          | `14px`                                                                        | `14px`                                                                        | header eyebrow                    |
-| `--text-xs`              | `12px`                                                                        | `12px`                                                                        | eyebrow                           |
-| `--leading-xs`           | `16px`                                                                        | `16px`                                                                        | eyebrow; derived                  |
-| `--text-sm`              | `13px`                                                                        | `13px`                                                                        | meta, mono values                 |
-| `--leading-sm`           | `19px`                                                                        | `19px`                                                                        | meta, mono values                 |
-| `--text-md`              | `14px`                                                                        | `14px`                                                                        | body                              |
-| `--leading-md`           | `22px`                                                                        | `22px`                                                                        | body                              |
-| `--text-lg`              | `16px`                                                                        | `16px`                                                                        | prominent body, buttons           |
-| `--leading-lg`           | `26px`                                                                        | `26px`                                                                        | prominent body, buttons           |
-| `--text-xl`              | `20px`                                                                        | `20px`                                                                        | section heading                   |
-| `--leading-xl`           | `26px`                                                                        | `26px`                                                                        | section heading                   |
-| `--text-2xl`             | `24px`                                                                        | `24px`                                                                        | pane heading                      |
-| `--leading-2xl`          | `30px`                                                                        | `30px`                                                                        | pane heading                      |
-| `--text-3xl`             | `36px`                                                                        | `36px`                                                                        | page heading                      |
-| `--leading-3xl`          | `40px`                                                                        | `40px`                                                                        | page heading                      |
-| `--weight-regular`       | `400`                                                                         | `400`                                                                         | body weight                       |
-| `--weight-medium`        | `500`                                                                         | `500`                                                                         | emphasis                          |
-| `--weight-semibold`      | `600`                                                                         | `600`                                                                         | headings, buttons                 |
-| `--tracking-tight`       | `-0.02em`                                                                     | `-0.02em`                                                                     | headings                          |
-| `--tracking-eyebrow`     | `0.16em`                                                                      | `0.16em`                                                                      | uppercase mono eyebrows           |
-| `--space-1`              | `4px`                                                                         | `4px`                                                                         | half step of the 8-pt scale       |
-| `--space-2`              | `8px`                                                                         | `8px`                                                                         | 8-pt scale                        |
-| `--space-3`              | `12px`                                                                        | `12px`                                                                        | half step of the 8-pt scale       |
-| `--space-4`              | `16px`                                                                        | `16px`                                                                        | 8-pt scale                        |
-| `--space-5`              | `20px`                                                                        | `20px`                                                                        | half step of the 8-pt scale       |
-| `--space-6`              | `24px`                                                                        | `24px`                                                                        | 8-pt scale                        |
-| `--space-8`              | `32px`                                                                        | `32px`                                                                        | 8-pt scale                        |
-| `--space-10`             | `40px`                                                                        | `40px`                                                                        | half step of the 8-pt scale       |
-| `--space-12`             | `48px`                                                                        | `48px`                                                                        | 8-pt scale                        |
-| `--radius-sm`            | `3px`                                                                         | `3px`                                                                         | small controls                    |
-| `--radius-md`            | `6px`                                                                         | `6px`                                                                         | controls                          |
-| `--radius-lg`            | `10px`                                                                        | `10px`                                                                        | cards, panes                      |
-| `--radius-xl`            | `16px`                                                                        | `16px`                                                                        | dialogs                           |
-| `--radius-pill`          | `100px`                                                                       | `100px`                                                                       | chips, pills                      |
-| `--size-target`          | `44px`                                                                        | `44px`                                                                        | minimum touch target              |
+| Token                    | Light                                                                         | Dark                                                                          | Use                                 |
+| ------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------- |
+| `--color-bg`             | `#FBFBFC`                                                                     | `#0D0E10`                                                                     | page ground                         |
+| `--color-surface`        | `#FFFFFF`                                                                     | `#15171A`                                                                     | header, panes, cards                |
+| `--color-surface-subtle` | `#F4F5F7`                                                                     | `#141619`                                                                     | group headers, tracks               |
+| `--color-surface-muted`  | `#EEF0F2`                                                                     | `#1B1E22`                                                                     | neutral chips                       |
+| `--color-divider`        | `#E6E9EC`                                                                     | `#202428`                                                                     | rules inside a surface              |
+| `--color-border`         | `#DCE0E4`                                                                     | `#2A2E33`                                                                     | outlines of controls and surfaces   |
+| `--color-text`           | `#14161A`                                                                     | `#ECEEF1`                                                                     | primary text                        |
+| `--color-text-secondary` | `#3B4046`                                                                     | `#C2C7CD`                                                                     | secondary text                      |
+| `--color-text-muted`     | `#5E646B`                                                                     | `#969CA4`                                                                     | eyebrows, meta                      |
+| `--color-accent`         | `#6A57C4`                                                                     | `#9A8BE8`                                                                     | product accent                      |
+| `--color-on-accent`      | `#FFFFFF`                                                                     | `#0D0E10`                                                                     | text on accent fill                 |
+| `--color-accent-strong`  | `#53449A`                                                                     | `#B2A7EE`                                                                     | hover and pressed accent; derived   |
+| `--color-success`        | `#2E7D46`                                                                     | `#5FBE7C`                                                                     | status ink, chrome only             |
+| `--color-warning`        | `#9A6B1A`                                                                     | `#D6A23E`                                                                     | status ink, chrome only             |
+| `--color-danger`         | `#BC4438`                                                                     | `#E0726A`                                                                     | status ink, chrome only             |
+| `--font-sans`            | `'Geist', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif` | `'Geist', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif` | UI text                             |
+| `--font-mono`            | `'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace`   | `'Geist Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace`   | eyebrows, values, codes             |
+| `--text-2xs`             | `11px`                                                                        | `11px`                                                                        | header eyebrow                      |
+| `--leading-2xs`          | `14px`                                                                        | `14px`                                                                        | header eyebrow                      |
+| `--text-xs`              | `12px`                                                                        | `12px`                                                                        | eyebrow                             |
+| `--leading-xs`           | `16px`                                                                        | `16px`                                                                        | eyebrow; derived                    |
+| `--text-sm`              | `13px`                                                                        | `13px`                                                                        | meta, mono values                   |
+| `--leading-sm`           | `19px`                                                                        | `19px`                                                                        | meta, mono values                   |
+| `--text-md`              | `14px`                                                                        | `14px`                                                                        | body                                |
+| `--leading-md`           | `22px`                                                                        | `22px`                                                                        | body                                |
+| `--text-lg`              | `16px`                                                                        | `16px`                                                                        | prominent body, buttons             |
+| `--leading-lg`           | `26px`                                                                        | `26px`                                                                        | prominent body, buttons             |
+| `--text-xl`              | `20px`                                                                        | `20px`                                                                        | section heading                     |
+| `--leading-xl`           | `26px`                                                                        | `26px`                                                                        | section heading                     |
+| `--text-2xl`             | `24px`                                                                        | `24px`                                                                        | pane heading                        |
+| `--leading-2xl`          | `30px`                                                                        | `30px`                                                                        | pane heading                        |
+| `--text-3xl`             | `36px`                                                                        | `36px`                                                                        | page heading                        |
+| `--leading-3xl`          | `40px`                                                                        | `40px`                                                                        | page heading                        |
+| `--weight-regular`       | `400`                                                                         | `400`                                                                         | body weight                         |
+| `--weight-medium`        | `500`                                                                         | `500`                                                                         | emphasis                            |
+| `--weight-semibold`      | `600`                                                                         | `600`                                                                         | headings, buttons                   |
+| `--tracking-tight`       | `-0.02em`                                                                     | `-0.02em`                                                                     | headings                            |
+| `--tracking-eyebrow`     | `0.16em`                                                                      | `0.16em`                                                                      | uppercase mono eyebrows             |
+| `--space-1`              | `4px`                                                                         | `4px`                                                                         | half step of the 8-pt scale         |
+| `--space-2`              | `8px`                                                                         | `8px`                                                                         | 8-pt scale                          |
+| `--space-3`              | `12px`                                                                        | `12px`                                                                        | half step of the 8-pt scale         |
+| `--space-4`              | `16px`                                                                        | `16px`                                                                        | 8-pt scale                          |
+| `--space-5`              | `20px`                                                                        | `20px`                                                                        | half step of the 8-pt scale         |
+| `--space-6`              | `24px`                                                                        | `24px`                                                                        | 8-pt scale                          |
+| `--space-8`              | `32px`                                                                        | `32px`                                                                        | 8-pt scale                          |
+| `--space-10`             | `40px`                                                                        | `40px`                                                                        | half step of the 8-pt scale         |
+| `--space-12`             | `48px`                                                                        | `48px`                                                                        | 8-pt scale                          |
+| `--radius-sm`            | `3px`                                                                         | `3px`                                                                         | small controls                      |
+| `--radius-md`            | `6px`                                                                         | `6px`                                                                         | controls                            |
+| `--radius-lg`            | `10px`                                                                        | `10px`                                                                        | cards, panes                        |
+| `--radius-xl`            | `16px`                                                                        | `16px`                                                                        | dialogs                             |
+| `--radius-pill`          | `100px`                                                                       | `100px`                                                                       | chips, pills                        |
+| `--size-target`          | `44px`                                                                        | `44px`                                                                        | minimum touch target                |
+| `--shadow-sm`            | `0 1px 2px rgba(20, 22, 26, 0.06)`                                            | `0 1px 2px rgba(0, 0, 0, 0.4)`                                                | raised control; derived             |
+| `--shadow-md`            | `0 8px 24px rgba(20, 22, 26, 0.1), 0 2px 6px rgba(20, 22, 26, 0.06)`          | `0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4)`                 | overlays: dialogs, drawers; derived |
+| `--duration-fast`        | `150ms`                                                                       | `150ms`                                                                       | hover and press                     |
+| `--duration-theme`       | `350ms`                                                                       | `350ms`                                                                       | theme cross-fade                    |
+| `--ease-standard`        | `ease`                                                                        | `ease`                                                                        | every chrome transition             |
+| `--content-max`          | `1080px`                                                                      | `1080px`                                                                      | widest content column               |
+| `--measure`              | `70ch`                                                                        | `70ch`                                                                        | longest line of running text        |
 
 ## Panel hardware
 

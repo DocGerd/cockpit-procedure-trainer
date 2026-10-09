@@ -1,0 +1,20 @@
+.shell:not([data-screen='trainer']) .app-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+}
+
+.app-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
