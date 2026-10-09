@@ -417,60 +417,66 @@ describe('CTSL control artwork', () => {
 });
 
 describe('CTSL console levers (intake §3.4)', () => {
-  // The console is drawn as the left seat sees its flank: forward, toward the centre column and the
-  // nose, is to the left, and a lever pulled toward the pilot moves right.
-  const travelOf = (id: 'brake' | 'throttle' | 'choke') => {
-    const { moving } = controlArtwork.find((entry) => entry.id === id)?.artwork ?? {};
+  // The console is drawn from above, forward up: a lever pushed forward slides up its slot and one
+  // pulled toward the pilot slides down.
+  type Lever = 'brake' | 'throttle' | 'choke' | 'trim';
+  const artworkFor = (id: Lever) => controlArtwork.find((entry) => entry.id === id)?.artwork;
+  const movingOf = (id: Lever) => {
+    const moving = artworkFor(id)?.moving;
     if (moving?.type !== 'travel') throw new Error(`${id} slides along a travel path`);
-    return moving.path;
+    return moving;
   };
-  const xOf = (svg: string, legend: string) =>
-    Number(new RegExp(String.raw`<text x="([\d.]+)"[^>]*>${legend}</text>`).exec(svg)?.[1]);
+  const travelOf = (id: Lever) => movingOf(id).path;
+  const faceOf = (id: Lever) => read(artworkFor(id)?.face ?? '');
+  const legendAt = (svg: string, legend: string) => {
+    const match = new RegExp(
+      String.raw`<text x="([\d.]+)" y="([\d.]+)"[^>]*>${legend}</text>`,
+    ).exec(svg);
+    return { x: Number(match?.[1]), y: Number(match?.[2]) };
+  };
 
-  it.each(['brake', 'throttle', 'choke'] as const)('slides %s horizontally', (id) => {
+  it.each(['brake', 'throttle', 'choke', 'trim'] as const)('slides %s fore and aft', (id) => {
     const path = travelOf(id);
     const [first, last] = [path[0], path[path.length - 1]];
-    expect(first?.y).toBe(last?.y);
-    expect(first?.x).not.toBe(last?.x);
+    expect(first?.x).toBe(last?.x);
+    expect(first?.y).not.toBe(last?.y);
   });
 
-  it('pushes the throttle forward, to the left, for full power', () => {
-    const path = travelOf('throttle');
-    expect(path[path.length - 1]?.x).toBeLessThan(path[0]?.x ?? 0);
-    const face = read(controlArtwork.find(({ id }) => id === 'throttle')?.artwork.face ?? '');
-    expect(xOf(face, 'FULL')).toBeLessThan(xOf(face, 'IDLE'));
-  });
-
-  it.each(['brake', 'choke'] as const)('pulls %s aft, to the right, to ON', (id) => {
+  it.each([
+    ['brake', 'OFF', 'ON'],
+    ['choke', 'OFF', 'ON'],
+    ['throttle', 'FULL', 'IDLE'],
+    ['trim', 'DOWN', 'UP'],
+  ] as const)('prints the %s legend strip beside its slot', (id, forward, aft) => {
     const path = travelOf(id);
-    expect(path[1]?.x).toBeGreaterThan(path[0]?.x ?? 0);
-    const face = read(controlArtwork.find((entry) => entry.id === id)?.artwork.face ?? '');
-    expect(xOf(face, 'ON')).toBeGreaterThan(xOf(face, 'OFF'));
+    const face = faceOf(id);
+    const ends = [legendAt(face, forward), legendAt(face, aft)];
+    for (const end of ends) expect(end.x, id).toBeGreaterThan(path[0]?.x ?? Infinity);
+    expect(ends[0]?.y, `${forward} forward of ${aft}`).toBeLessThan(ends[1]?.y ?? 0);
   });
 
-  describe('trim wheel', () => {
-    const artwork = controlArtwork.find(({ id }) => id === 'trim')?.artwork;
-    const images = artwork?.moving.type === 'positions' ? artwork.moving.images : {};
-    const pointerX = (position: string) =>
-      Number(
-        /<path\b[^>]*data-pointer=""[^>]*\bd="M([\d.]+)/.exec(read(images[position] ?? ''))?.[1],
-      );
-    const wheel = (position: string) =>
-      /<path\b[^>]*data-wheel=""[^>]*\bd="([^"]+)"/.exec(read(images[position] ?? ''))?.[1];
+  it('pushes the throttle forward, up, for full power', () => {
+    const path = travelOf('throttle');
+    expect(path[path.length - 1]?.y).toBeLessThan(path[0]?.y ?? 0);
+  });
 
-    it('turns a wheel and moves a separate indicator for each position', () => {
-      expect(Object.keys(images).sort()).toEqual(['neutral', 'nose-down', 'nose-up']);
-      const turned = ['nose-down', 'neutral', 'nose-up'].map(wheel);
-      expect(turned.every((ribs) => ribs !== undefined)).toBe(true);
-      expect(new Set(turned).size).toBe(3);
-    });
+  it.each(['brake', 'choke'] as const)('pulls %s aft, down, to ON', (id) => {
+    const path = travelOf(id);
+    expect(path[1]?.y).toBeGreaterThan(path[0]?.y ?? 0);
+  });
 
-    it('shows nose down forward, to the left, on the indicator', () => {
-      expect(pointerX('nose-down')).toBeLessThan(pointerX('neutral'));
-      expect(pointerX('neutral')).toBeLessThan(pointerX('nose-up'));
-      const face = read(artwork?.face ?? '');
-      expect(xOf(face, 'DOWN')).toBeLessThan(xOf(face, 'UP'));
-    });
+  it('rolls the trim wheel forward, up, for nose down', () => {
+    const path = travelOf('trim');
+    expect(path[path.length - 1]?.y).toBeGreaterThan(path[0]?.y ?? 0);
+  });
+
+  it('draws the trim wheel rim inboard of its indicator', () => {
+    const rim = /<rect x="([\d.]+)"[^>]*width="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(faceOf('trim'));
+    expect(rim, 'the trim face draws a wheel rim').not.toBeNull();
+    const pointer = Number(
+      /<path\b[^>]*data-pointer=""[^>]*\bd="M([\d.]+)/.exec(read(movingOf('trim').image))?.[1],
+    );
+    expect(Number(rim?.[1]) + Number(rim?.[2])).toBeLessThan(pointer);
   });
 });
 

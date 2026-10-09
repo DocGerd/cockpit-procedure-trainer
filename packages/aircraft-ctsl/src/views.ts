@@ -74,12 +74,12 @@ export const views = {
     image: images.console,
     size: { width: 1200, height: 495 },
     controls: {
-      brake: at(20, 8, 440, 110),
-      throttle: at(20, 130, 750, 110),
-      choke: at(20, 252, 440, 110),
-      trim: at(20, 374, 750, 110),
-      parkingBrakeValve: at(806, 30, 180, 180),
-      carbHeat: at(1022, 30, 150, 300),
+      trim: at(20, 8, 210, 232),
+      choke: at(242, 8, 180, 232),
+      throttle: at(434, 8, 200, 232),
+      brake: at(646, 8, 180, 232),
+      parkingBrakeValve: at(646, 256, 180, 180),
+      carbHeat: at(940, 16, 150, 300),
     },
   },
   bulkhead: {
