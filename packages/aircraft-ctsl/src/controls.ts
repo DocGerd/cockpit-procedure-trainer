@@ -314,8 +314,8 @@ export const controls = {
     },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(
-      'Griff des ballistischen Rettungssystems. Am Boden mit dem Sicherungsstift gesichert; zum Auslösen kräftig und weit ziehen.',
-      'Handle of the ballistic rescue system. Secured by the safety pin on the ground; pull hard and far to deploy.',
+      'Griff des ballistischen Rettungssystems, tief am hinteren Ende der Mittelkonsole zwischen den Sitzen. Am Boden sichert der Sicherungsstift den Auslösehebel; zum Auslösen nach vorn, kräftig, bis zum Anschlag ziehen.',
+      'Handle of the ballistic rescue system, low at the aft end of the centre console between the seats. On the ground the safety pin secures the release lever; to deploy, pull it forward, hard, to the stop.',
     ),
     appearance: controlArtwork.rescueHandle,
   },

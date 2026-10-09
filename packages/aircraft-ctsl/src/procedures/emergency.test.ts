@@ -115,6 +115,13 @@ describe('CTSL emergency procedures', () => {
     );
   });
 
+  it('pulls the rescue handle forward, hard, to the stop (intake §7 E2)', () => {
+    const pull =
+      procedure('rescueDeployment').items[actionOn('rescueDeployment', 'rescueHandle', 'pulled')];
+    expect(pull?.text.en).toMatch(/forward, hard, to the stop/);
+    expect(pull?.text.de).toMatch(/nach vorn, kräftig, bis zum Anschlag/);
+  });
+
   it('finds the safety pin already out when the rescue deployment starts', () => {
     const session = createSession(ctslAircraft, { devices });
     session.startProcedure('rescueDeployment');

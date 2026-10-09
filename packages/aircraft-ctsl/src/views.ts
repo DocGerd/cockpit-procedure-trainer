@@ -72,7 +72,7 @@ export const views = {
   console: {
     name: text('Mittelkonsole', 'Centre console'),
     image: images.console,
-    size: { width: 1200, height: 495 },
+    size: { width: 1200, height: 807 },
     controls: {
       trim: at(20, 8, 210, 292),
       choke: at(242, 8, 180, 292),
@@ -80,14 +80,7 @@ export const views = {
       brake: at(646, 8, 180, 292),
       parkingBrakeValve: at(646, 302, 180, 180),
       carbHeat: at(940, 16, 150, 300),
-    },
-  },
-  bulkhead: {
-    name: text('Hauptspant', 'Main bulkhead'),
-    image: images.bulkhead,
-    size: { width: 1200, height: 284 },
-    controls: {
-      rescueHandle: at(497, 4, 206, 276),
+      rescueHandle: at(372, 494, 216, 290),
     },
   },
 } as const satisfies Record<string, CtslView>;
