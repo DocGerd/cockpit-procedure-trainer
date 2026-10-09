@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { openAircraft, selectLanguage } from './legibility';
+import { pickerMessages } from '../src/shell/picker.messages';
 import {
   aircraft,
   copy,
@@ -283,5 +284,22 @@ for (const viewport of [
     expect(overflow.page, 'page scroll').toBeLessThanOrEqual(0);
     expect(overflow.list, 'the list scrolls on its own').toBeGreaterThan(0);
     expect(overflow.listHeight, 'rows the list shows').toBeGreaterThanOrEqual(6 * 44);
+
+    const tab = page
+      .getByRole('navigation', { name: pickerMessages.en.procedureGroups })
+      .getByRole('button', { name: new RegExp(`^${copy.shell.emergencyProcedures} \\d+$`) });
+    await inside(tab, 'Emergency tab');
+    await tab.click();
+    const first = page
+      .getByRole('group', { name: copy.shell.emergencyProcedures, exact: true })
+      .getByRole('button')
+      .first();
+    const [row, list] = await Promise.all([
+      first.boundingBox(),
+      page.locator('.picker-list').boundingBox(),
+    ]);
+    if (!row || !list) throw new Error('no row or list box');
+    expect(row.y, 'first row top').toBeGreaterThanOrEqual(list.y);
+    expect(row.y + row.height, 'first row bottom').toBeLessThanOrEqual(list.y + list.height);
   });
 }

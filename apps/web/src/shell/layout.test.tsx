@@ -295,7 +295,7 @@ describe('trainer layout on desktop', () => {
 
   it('shows a read-only checklist and no procedure in Free explore', async () => {
     renderShell();
-    await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Free explore' }));
     expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
     const aside = screen.getByRole('complementary', { name: 'Checklist' });
     expect(within(aside).getByRole('combobox', { name: 'Show checklist' })).toBeTruthy();
@@ -365,7 +365,7 @@ describe('trainer layout on desktop', () => {
 
   it('returns to the picker when switching from Free explore without a procedure', async () => {
     renderShell();
-    await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Free explore' }));
     act(() => trainer.setMode('practice'));
     expect(screen.getByRole('heading', { name: 'Choose aircraft and procedure' })).toBeTruthy();
     expect((screen.getByRole('radio', { name: /^Practice/ }) as HTMLInputElement).checked).toBe(
