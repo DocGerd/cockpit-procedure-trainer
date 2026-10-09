@@ -10,9 +10,9 @@ export const messages = defineMessages({
     changeAircraft: 'Change aircraft',
     changeProcedure: 'Change procedure',
     changeAircraftBody:
-      'Changing the aircraft ends the running procedure and returns to the picker.',
+      'Changing the aircraft ends the running procedure and returns to aircraft selection.',
     changeProcedureBody:
-      'Changing the procedure ends the running procedure and returns to the picker.',
+      'Changing the procedure ends the running procedure and returns to aircraft selection.',
     cancel: 'Cancel',
     switchToLight: 'Switch to light theme',
     switchToDark: 'Switch to dark theme',
@@ -71,9 +71,9 @@ export const messages = defineMessages({
     changeAircraft: 'Flugzeug wechseln',
     changeProcedure: 'Verfahren wechseln',
     changeAircraftBody:
-      'Das Wechseln des Flugzeugs beendet das laufende Verfahren und führt zurück zur Auswahl.',
+      'Das Wechseln des Flugzeugs beendet das laufende Verfahren und führt zurück zur Flugzeugauswahl.',
     changeProcedureBody:
-      'Das Wechseln des Verfahrens beendet das laufende Verfahren und führt zurück zur Auswahl.',
+      'Das Wechseln des Verfahrens beendet das laufende Verfahren und führt zurück zur Flugzeugauswahl.',
     cancel: 'Abbrechen',
     switchToLight: 'Zum hellen Design wechseln',
     switchToDark: 'Zum dunklen Design wechseln',

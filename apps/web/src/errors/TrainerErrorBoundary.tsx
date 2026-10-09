@@ -2,12 +2,15 @@ import { Component, Fragment, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useMessages } from '../i18n';
 import { AppFooter } from '../shell/AppFooter';
+import { messages as shellMessages } from '../shell/messages';
 import { useSessionState, useTrainer } from '../trainer';
+import { buildLabel } from '../version';
 import { messages } from './messages';
 import './errors.css';
 
 function ErrorDialog({ onReset }: { onReset(): void }) {
   const text = useMessages(messages);
+  const shell = useMessages(shellMessages);
   const titleId = useId();
   const bodyId = useId();
   const reset = useRef<HTMLButtonElement>(null);
@@ -26,6 +29,13 @@ function ErrorDialog({ onReset }: { onReset(): void }) {
           </h1>
           <p id={bodyId} className="error-body">
             {text.errorBody}
+          </p>
+          <p className="error-version readout">
+            {shell.version}{' '}
+            {buildLabel({
+              release: import.meta.env.VITE_APP_RELEASE,
+              commit: import.meta.env.VITE_BUILD_SHA,
+            })}
           </p>
           <button ref={reset} type="button" className="button-primary" onClick={onReset}>
             {text.reset}
