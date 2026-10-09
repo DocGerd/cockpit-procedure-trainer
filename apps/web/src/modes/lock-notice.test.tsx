@@ -25,7 +25,13 @@ vi.mock('../aircraft-registry', async () => {
         positions: ['out', 'off', 'on'],
         initial: 'out',
         onlyFrom: { out: ['off'] },
-        name: { de: 'Schlüssel', en: 'Key' },
+        name: { de: 'Zündschloss', en: 'Ignition' },
+        legends: {
+          out: {
+            state: { de: 'Schlüssel abgezogen', en: 'key out' },
+            restore: { de: 'Schlüssel wieder abziehen', en: 'Take the key out again' },
+          },
+        },
         description: { de: 'Zündschlüssel', en: 'Ignition key' },
       },
     },
@@ -175,11 +181,11 @@ describe('the lock ring', () => {
 });
 
 describe('the key-out notice', () => {
-  const keyTo = (position: string) => userEvent.click(radio('Key|Schlüssel', position));
+  const keyTo = (position: string) => userEvent.click(radio('Ignition|Zündschloss', position));
 
   it.each([
-    ['en', 'Key reaches out only from off.'],
-    ['de', 'Schlüssel erreicht out nur von off aus.'],
+    ['en', 'Ignition reaches key out only from OFF.'],
+    ['de', 'Zündschloss: Schlüssel abgezogen nur von OFF aus erreichbar.'],
   ] as const)(
     'says where the target is reached from when onlyFrom refuses, in %s',
     async (language, notice) => {

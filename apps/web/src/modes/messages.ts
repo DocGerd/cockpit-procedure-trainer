@@ -47,7 +47,7 @@ export const messages = defineMessages({
     guidedOnNotice:
       'Geführt ist an: das nächste Bedienelement wird hervorgehoben, Abweichungen erscheinen sofort.',
     lockedNotice: '{control} gesperrt durch {by}. Zuerst {by} betätigen.',
-    sourceNotice: '{control} erreicht {to} nur von {from} aus.',
+    sourceNotice: '{control}: {to} nur von {from} aus erreichbar.',
     exploreTitle: 'Zu Freiem Erkunden wechseln?',
     exploreBody:
       'Freies Erkunden beendet das laufende Verfahren und setzt das Cockpit auf den Beginn der aktuellen Flugphase zurück.',

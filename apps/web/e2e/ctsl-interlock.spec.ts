@@ -13,8 +13,8 @@ const key = (page: Page) => page.locator('[data-placement="ignition"] [role="sli
 const valve = (page: Page) => page.locator('[data-placement="fuelValve"] button');
 const sourceNotice = messages.en.sourceNotice
   .replaceAll('{control}', 'Ignition')
-  .replaceAll('{to}', 'out')
-  .replaceAll('{from}', 'off');
+  .replaceAll('{to}', 'key out')
+  .replaceAll('{from}', 'OFF');
 
 const status = (page: Page) => page.getByRole('status').filter({ hasText: /locked by/ });
 const lockRing = (page: Page) => page.locator('[data-outline="lock"]');
