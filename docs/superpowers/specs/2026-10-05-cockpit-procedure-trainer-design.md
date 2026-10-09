@@ -339,9 +339,11 @@ logic follows and lists the functions it does not model.
 
 1. The pilot operates a control; the control store records the new position, or
    refuses the move when an interlock holds it or the control reaches that
-   position only from others (result `locked`): the position stays, a notice
-   names both controls and rings the holding control on the panel when another
-   control holds it, and no deviation is recorded.
+   position only from others (result `locked`): the position stays and no
+   deviation is recorded. When another control holds it, a notice names both
+   controls and the panel rings the holding control; when the position is
+   reached only from others, a notice names the positions it is reached from
+   and the panel rings the refused control. An interlock wins when both apply.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
@@ -436,7 +438,8 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   Leaving the flight by phase, Free explore or the selection before its last
   leg is done asks first and names the legs flown.
   In Practice (added in #510) the flight can carry a surprise failure in a
-  chosen or random phase, and Hide upcoming items can be set before it starts.
+  chosen or random phase, and Hide upcoming items can be set before it starts,
+  for that flight only: the stored Practice option is unchanged.
   The surprise comes in a leg that starts in that phase, after one of its items
   other than the last (at the latest when the leg is done), with no banner;
   only then does the viewer offer to run a checklist. The checklist the pilot

@@ -41,10 +41,17 @@ Agent decisions you may overrule (reasons in the PRs):
 
 Closed in the backlog triage: #179 (done) and #354 (won't do, ADR 0002).
 
+Follow-ups from the whole-milestone review, without milestone (none blocks the release):
+
+- #594: a full flight started in Guided carries Hide upcoming off, so a switch to Practice mid-flight ignores the stored setting (#561).
+- #595: in a full flight with a surprise, the run summary can come forward while the pilot is still choosing a checklist (#363).
+- #596: the key-out notice would join several source positions with a comma; no control has more than one today (#560).
+
 ## How to verify
 
 - Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when the default port is busy).
 - Each PR had a separate reviewer; #587, #588 and #591 also passed a real-browser check at 1920x1080 and 1024x768.
+- Whole-milestone review: one reviewer over the diff since v0.15.0. Verdict: release-ready, no blockers. Folded into the release preparation PR: the main spec §5 now describes both kinds of refused move (an interlock rings the holder, a source restriction rings the refused control) and says the full flight's Hide upcoming option leaves the Practice setting unchanged. The rest is filed as follow-ups above.
 - UAT (develop): https://docgerd.github.io/cockpit-procedure-trainer/uat/; prod after the merge: https://docgerd.github.io/cockpit-procedure-trainer/.
 
 A short walk-through at 1920x1080, CT Supralight, English:
