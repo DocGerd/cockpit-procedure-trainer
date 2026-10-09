@@ -3,7 +3,7 @@ import { format, useLocalize, useMessages } from '../i18n';
 import { useLeavingRisk, useTrainer } from '../trainer';
 import type { Mode } from '../trainer';
 import { ConfirmDialog } from '../ui';
-import { lockHolder, useLockNotice, useLockNoticeStore } from './lock-notice';
+import { lockCause, useLockNotice, useLockNoticeStore } from './lock-notice';
 import { messages } from './messages';
 import { OperateToggle } from './OperateToggle';
 import './modes.css';
@@ -11,7 +11,7 @@ import './modes.css';
 const segments: readonly Mode[] = ['guided', 'practice'];
 const NOTICE_MS = 6000;
 
-/** Names the control that holds a refused move, if another control does; the panel rings that holder. */
+/** Says why a move was refused: the control holding it, or the positions its target is reached from; the panel rings what to move. */
 function LockNotice() {
   const text = useMessages(messages);
   const localize = useLocalize();
@@ -26,9 +26,20 @@ function LockNotice() {
   }, [notice, store]);
 
   const control = notice && aircraft.controls[notice.controlId];
-  const holder = notice && lockHolder(aircraft, session.state().controls, notice.controlId);
-  const by = holder === undefined ? undefined : aircraft.controls[holder];
-  if (!control || !by) return null;
+  const cause = notice && lockCause(aircraft, session.state().controls, notice);
+  if (!control || !cause) return null;
+  if (cause.kind === 'source')
+    return (
+      <p role="status" className="modes-notice" data-notice="source">
+        {format(text.sourceNotice, {
+          control: localize(control.name),
+          to: cause.to,
+          from: cause.from.join(', '),
+        })}
+      </p>
+    );
+  const by = aircraft.controls[cause.control];
+  if (!by) return null;
   return (
     <p role="status" className="modes-notice" data-notice="locked">
       {format(text.lockedNotice, { control: localize(control.name), by: localize(by.name) })}

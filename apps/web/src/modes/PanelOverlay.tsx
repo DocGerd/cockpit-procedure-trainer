@@ -9,7 +9,7 @@ import { useSessionState, useTrainer } from '../trainer';
 import { ControlDetails } from './ControlDetails';
 import { useExploreState, useExploreStore } from './explore-state';
 import { useTargetCued } from './guided-install';
-import { lockHolder, useLockNotice } from './lock-notice';
+import { lockCause, useLockNotice } from './lock-notice';
 import { installOf, targetBox, targetInstall, targetKey, targetView } from './target';
 import './modes.css';
 
@@ -202,13 +202,14 @@ function ExploreOverlay({ rects }: { rects: PanelRects }) {
   );
 }
 
-/** Rings the control that holds a refused move, next to it, while the header names it. */
+/** Rings what to move after a refused move, while the header says why: the holding control, or the refused control itself. */
 function LockOverlay({ rects }: { rects: PanelRects }) {
   const { aircraft, session } = useTrainer();
   const notice = useLockNotice();
   const reducedMotion = useReducedMotion();
-  const holder = notice && lockHolder(aircraft, session.state().controls, notice.controlId);
-  const box = holder === undefined ? undefined : targetBox(rects, { control: holder });
+  const cause = notice && lockCause(aircraft, session.state().controls, notice);
+  const ringed = cause?.kind === 'holder' ? cause.control : notice?.controlId;
+  const box = cause && ringed ? targetBox(rects, { control: ringed }) : undefined;
   if (!notice || !box) return null;
   return (
     <div className="modes-overlay" data-modes-overlay="">
