@@ -1001,6 +1001,34 @@ describe('viewing a checklist', () => {
     expect(screen.queryByText('Deviation')).toBeNull();
   });
 
+  it('brings the summary forward when the running checklist completes while another is read', async () => {
+    renderPane();
+    start(flow);
+    await view('followUp');
+    expect(screen.getByRole('heading', { name: 'Follow-up' })).toBeTruthy();
+    finishFlowWithDeviations();
+    expect(screen.getByRole('heading', { name: 'Flow complete' })).toBeTruthy();
+    expect(trainer.viewedProcedureId).toBe(flow);
+  });
+
+  it('brings the summary forward in Practice too', async () => {
+    renderPane();
+    start(flow, 'practice');
+    await view('followUp');
+    finishFlowWithDeviations();
+    expect(screen.getByRole('heading', { name: 'Flow complete' })).toBeTruthy();
+  });
+
+  it('lets the pilot read another checklist after the summary has been shown', async () => {
+    renderPane();
+    start(flow);
+    await view('followUp');
+    finishFlowWithDeviations();
+    await view('fire');
+    expect(screen.getByRole('heading', { name: 'Fire' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Flow complete' })).toBeNull();
+  });
+
   it('works the same in Practice', async () => {
     renderPane();
     start(flow, 'practice');

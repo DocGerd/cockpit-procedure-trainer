@@ -204,12 +204,17 @@ async function perform(page: Page, procedureId: string, item: ProcedureItem<unkn
   await expectDone(page, procedureId, row);
 }
 
-/** Work through every item of the running procedure, in order, until the summary shows. */
-export async function completeProcedure(page: Page, procedureId: string) {
+/** Work through the first `count` items of the running procedure, in order. */
+export async function completeItems(page: Page, procedureId: string, count: number) {
   const { items } = procedure(procedureId);
-  for (const [at, item] of items.entries()) {
+  for (const [at, item] of items.slice(0, count).entries()) {
     await perform(page, procedureId, item, at);
   }
+}
+
+/** Work through every item of the running procedure, in order, until the summary shows. */
+export async function completeProcedure(page: Page, procedureId: string) {
+  await completeItems(page, procedureId, procedure(procedureId).items.length);
   await expect(summaryHeading(page, procedureId)).toBeVisible();
 }
 

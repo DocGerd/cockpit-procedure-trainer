@@ -2,7 +2,15 @@ import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { messages as modeMessages } from '../src/modes/messages';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
-import { checklistPane, copy, pickProcedure, procedure, progress, setControl } from './trainer';
+import {
+  checklistPane,
+  completeItems,
+  copy,
+  pickProcedure,
+  procedure,
+  progress,
+  setControl,
+} from './trainer';
 
 const engineStart = 'engineStart';
 const other = 'beforeTakeoff';
@@ -124,3 +132,33 @@ for (const viewport of viewports) {
     });
   });
 }
+
+// The drawer of a narrow viewport covers the panel the walk through the items operates.
+test.describe('desktop', () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
+  test('the summary comes forward when the running checklist completes behind another', async ({
+    page,
+  }) => {
+    const { items } = procedure(engineStart);
+    const last = items.at(-1);
+    if (last?.type !== 'action') throw new Error('engineStart does not end on an action item');
+
+    await pickProcedure(page, engineStart, 'guided');
+    await openChecklist(page);
+    await completeItems(page, engineStart, items.length - 1);
+    await selector(page).selectOption(other);
+    await expect(title(page, other)).toBeVisible();
+
+    await closeChecklist(page);
+    await setControl(page, last.control, last.position);
+    await openChecklist(page);
+    await expect(
+      checklistPane(page).getByRole('heading', {
+        level: 1,
+        name: copy.checklist.summaryTitle.replace('{title}', procedure(engineStart).title.en),
+      }),
+    ).toBeVisible();
+    await expect(selector(page)).toHaveValue(engineStart);
+  });
+});
