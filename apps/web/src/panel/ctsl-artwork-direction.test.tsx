@@ -120,11 +120,31 @@ describe('CTSL notched artwork controls', () => {
     }
   });
 
+  it('engraves only the words the face prints in ink, and all of them', () => {
+    const engraved = drawn.flatMap(({ id, face }) => {
+      const texts = [...faceSvg(face).matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)];
+      const words = (decor: boolean) =>
+        [
+          ...new Set(
+            texts
+              .filter(([, attributes = '']) => attributes.includes('data-decor') === decor)
+              .map(([, , text]) => text),
+          ),
+        ].sort();
+      const decor = words(true);
+      return decor.length > 0 ? [{ id, decor, ink: words(false) }] : [];
+    });
+    expect(engraved.length).toBeGreaterThan(0);
+    for (const { id, decor, ink } of engraved) expect(decor, id).toEqual(ink);
+  });
+
   it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
     const throttle = drawn.find(({ id }) => id === 'throttle');
     if (!throttle) throw new Error('the CTSL draws no throttle');
     const svg = faceSvg(throttle.face);
-    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
+      ([, text]) => text,
+    );
     expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
     const { appearance } = throttle.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
@@ -147,7 +167,9 @@ describe('CTSL notched artwork controls', () => {
     const trim = drawn.find(({ id }) => id === 'trim');
     if (!trim) throw new Error('the CTSL draws no trim wheel');
     const svg = faceSvg(trim.face);
-    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
+      ([, text]) => text,
+    );
     expect(printed).toEqual(['TRIM', 'DOWN', 'UP']);
     const { appearance } = trim.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([

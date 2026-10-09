@@ -59,11 +59,55 @@ const rectBoxes = (svg: string): Box[] =>
     };
   });
 
+// Every drawn shape of a sliding image, measured by the browser: its shadows and grain are
+// paths too. Rotating images keep the rect sweep, as their axis-aligned boxes over-reach.
+async function shapeBoxes(page: Page, svg: string): Promise<Box[]> {
+  return page.evaluate((markup) => {
+    const root = new DOMParser().parseFromString(markup, 'image/svg+xml').documentElement;
+    const host = document.body.appendChild(
+      document.importNode(root, true),
+    ) as unknown as SVGSVGElement;
+    const toRoot = host.getScreenCTM()?.inverse();
+    const shapes = host.querySelectorAll<SVGGraphicsElement>(
+      'path, rect, circle, ellipse, line, polyline, polygon',
+    );
+    const boxes = [...shapes]
+      .filter((shape) => !shape.closest('defs, pattern, mask, clipPath, symbol'))
+      .flatMap((shape) => {
+        const style = getComputedStyle(shape);
+        const stroked = style.stroke !== 'none' ? Number.parseFloat(style.strokeWidth) || 0 : 0;
+        if (style.fill === 'none' && stroked === 0) return [];
+        const box = shape.getBBox();
+        const toScreen = shape.getScreenCTM();
+        if (!toScreen || !toRoot) return [];
+        const corners = [
+          [box.x, box.y],
+          [box.x + box.width, box.y],
+          [box.x, box.y + box.height],
+          [box.x + box.width, box.y + box.height],
+        ].map(([x, y]) => new DOMPoint(x, y).matrixTransform(toScreen).matrixTransform(toRoot));
+        const xs = corners.map(({ x }) => x);
+        const ys = corners.map(({ y }) => y);
+        const pad = stroked / 2;
+        return [
+          {
+            left: Math.min(...xs) - pad,
+            top: Math.min(...ys) - pad,
+            right: Math.max(...xs) + pad,
+            bottom: Math.max(...ys) + pad,
+          },
+        ];
+      });
+    host.remove();
+    return boxes;
+  }, svg);
+}
+
 const overlaps = (a: Box, b: Box) =>
   a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
 // Boxes of the moving part at every position, swept along its travel.
-function movingBoxes(aircraft: Aircraft, id: string): Box[] {
+async function movingBoxes(page: Page, aircraft: Aircraft, id: string): Promise<Box[]> {
   const appearance = aircraft.controls[id]?.appearance;
   if (!appearance || !('artwork' in appearance)) return [];
   const { moving } = appearance.artwork;
@@ -74,7 +118,7 @@ function movingBoxes(aircraft: Aircraft, id: string): Box[] {
   const first = moving.path[0];
   const last = moving.path[moving.path.length - 1];
   if (!first || !last) return [];
-  return rectBoxes(source(moving.image)).flatMap((box) => [
+  return (await shapeBoxes(page, source(moving.image))).flatMap((box) => [
     box,
     {
       left: box.left + last.x - first.x,
@@ -92,12 +136,15 @@ function movingBoxes(aircraft: Aircraft, id: string): Box[] {
 }
 
 for (const aircraft of aircraftRegistry) {
-  test(`${aircraft.id} keeps face legends clear of the moving part at every position`, () => {
-    const clashes = Object.keys(aircraft.controls).flatMap((id) => {
+  test(`${aircraft.id} keeps face legends clear of the moving part at every position`, async ({
+    page,
+  }) => {
+    const clashes: string[] = [];
+    for (const id of Object.keys(aircraft.controls)) {
       const appearance = aircraft.controls[id]?.appearance;
-      if (!appearance || !('artwork' in appearance)) return [];
-      const moving = movingBoxes(aircraft, id);
-      return legendBoxes(source(appearance.artwork.face))
+      if (!appearance || !('artwork' in appearance)) continue;
+      const moving = await movingBoxes(page, aircraft, id);
+      const clashing = legendBoxes(source(appearance.artwork.face))
         .filter(({ box }) =>
           moving.some((part) =>
             overlaps(
@@ -107,7 +154,8 @@ for (const aircraft of aircraftRegistry) {
           ),
         )
         .map(({ text }) => `${id}: ${text}`);
-    });
+      clashes.push(...clashing);
+    }
     expect(clashes).toEqual([]);
   });
 
