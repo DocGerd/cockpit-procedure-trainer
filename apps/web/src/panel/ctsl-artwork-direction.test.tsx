@@ -132,7 +132,15 @@ describe('CTSL notched artwork controls', () => {
       'FULL',
       'IDLE',
     ]);
-    expect(svg.match(/<line\b/g)).toHaveLength(2);
+    const [from, to] = [throttle.path?.[0], throttle.path?.at(-1)];
+    if (!from || !to) throw new Error('the throttle has no travel');
+    const stops = throttle.steps.map(
+      (_, i) => from.y + ((to.y - from.y) * i) / (throttle.steps.length - 1),
+    );
+    const ticks = new Set(
+      [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"/g)].map(([, y]) => Number(y)),
+    );
+    expect([...ticks].sort((a, b) => a - b)).toEqual(stops.sort((a, b) => a - b));
   });
 
   it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no neutral mark', () => {
@@ -150,20 +158,16 @@ describe('CTSL notched artwork controls', () => {
     expect(svg.match(/<line\b/g)).toHaveLength(2);
   });
 
-  it('rolls the trim wheel from a tap a touch target in from either end of its rim', () => {
+  it('rolls the trim wheel from a tap within a touch target of either end of its slot', () => {
     const entry = sliders.find(({ id }) => id === 'trim');
     if (!entry) throw new Error('the CTSL draws no trim wheel');
-    const rim =
-      /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(
-        faceSvg(entry.face),
-      );
-    if (!rim) throw new Error('the trim face draws no wheel rim');
-    const [x, y, width, height] = rim.slice(1).map(Number) as [number, number, number, number];
+    const { width, height } = sizeOf(faceSvg(entry.face));
     const { console: consoleView } = ctsl.views;
     const floor = ctsl.cockpit?.views.console?.minWidth;
     if (!consoleView?.size || !floor) throw new Error('the CTSL console has no floor');
     // The web app's --size-target token, in face units at the console's floor width.
     const target = (44 * consoleView.size.width) / floor;
+    expect(height, 'two touch targets fit along the slot').toBeGreaterThanOrEqual(2 * target);
 
     const rollFrom = (at: Point) => {
       const onSet = mount(entry, 'neutral');
@@ -172,8 +176,8 @@ describe('CTSL notched artwork controls', () => {
       cleanup();
       return set;
     };
-    expect(rollFrom({ x: x + target, y: y + height / 2 })).toBe('nose-down');
-    expect(rollFrom({ x: x + width - target, y: y + height / 2 })).toBe('nose-up');
+    expect(rollFrom({ x: width / 2, y: target / 2 })).toBe('nose-down');
+    expect(rollFrom({ x: width / 2, y: height - target / 2 })).toBe('nose-up');
   });
 
   it.each(sliders.map((entry) => [entry.id, entry] as const))(

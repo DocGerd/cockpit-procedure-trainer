@@ -168,17 +168,21 @@ Handbook facts (checked 2026-10-08):
 
 What the trainer draws today, and where it departs from the above:
 
-- The console is drawn as the left seat sees its flank, forward to the left, with
-  BRAKE, THROTTLE, CHOKE and the trim wheel stacked top to bottom: the throttle
-  pushes left to full, the brake and choke pull right to on. The order and every
-  direction match the handbook once the view is read as a top view with forward
-  to the left; framed as a flank, the stack is wrong (the levers lie side by side).
+- The console is drawn from above, forward up and the pilot's seat on the left
+  (#534). The trim wheel, CHOKE, THROTTLE and BRAKE lie side by side in that
+  order, left to right; the order is **assumed (unverified)** (§9, question 31).
+  Each slides up (forward) and down (aft) in its own slot with its legend strip
+  beside it: the throttle pushes up to FULL, the brake and choke pull down to ON,
+  and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
+  it, DOWN forward. The parking-brake valve sits aft of the lever row, below the
+  brake lever.
 - The throttle prints FULL at the forward end and IDLE at the aft end, as the
   aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
   check gives the end legends, not the title. The handbook treats the throttle as
-  continuous; the trainer keeps it stepped, with three unprinted trainer stops
-  between the ends (low, run-up and cruise power) that drive the rpm model and the
-  procedures. Cues name those stops in words, not as printed legends.
+  continuous; the trainer keeps it stepped, with three trainer stops between the
+  ends (low, run-up and cruise power) that drive the rpm model and the procedures.
+  The trainer marks them with unworded detent ticks, which the aircraft's strip
+  does not have. Cues name those stops in words, not as printed legends.
 - The trim placard prints DOWN at the forward end and UP at the aft end, with no
   neutral mark, as the aircraft does (#532). Its title TRIM is assumed
   (unverified): the handbook check gives the end legends, not the title. The
@@ -186,7 +190,13 @@ What the trainer draws today, and where it departs from the above:
   neutral trim (HB 7-20); cues name it in words, not as a printed legend.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
-- A provisional carb-heat pull knob stands where the figure shows the large knob.
+- The large knob is drawn as unlabelled artwork, not a control, until its
+  identity is known (§9, question 10). It stands right of the valve, not aft of
+  it: today's console cell has no room aft of the valve once the levers get a
+  travel long enough to tell the throttle's stops apart.
+- The provisional carb-heat pull knob stands outboard of the lever row, on the
+  right-seat side of the console top, clear of the lever row and the large knob;
+  this place is **assumed (unverified)** (§9, question 3).
 - The rescue handle is drawn in its own view, `bulkhead`, as a T-grip high on the
   bulkhead between the seat backs, and its description gives no pull direction;
   the handbook puts it low between the seats, pulled forward (§9, question 26).
@@ -556,6 +566,9 @@ verifies it on D-MPGO.
    provisional pull knob on the console, off/on.
    **Handbook check 2026-10-08:** still open. Carb heat is pulled to apply (HB 4-11, 4-13); no figure
    or text shows the control (HB 7-18 to 7-21).
+   Provisional place (#534): the knob stood where the figure shows the large knob,
+   so it moved to the right-seat side of the console top, outboard of the lever row
+   and clear of it, pulled aft to ON. This place is **assumed (unverified)**.
 4. **Engine fire ending**: the handbook allows a rescue deployment at about 200 m
    after the flames die; the same page forbids it with fire on board. Uses: never
    deploy, emergency landing.
@@ -577,7 +590,7 @@ verifies it on D-MPGO.
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
 12. **Trim wheel position**: left of the throttle (text) or below the choke
-    (photo)? Uses below the choke. **Handbook check 2026-10-08:** answered by inference from the
+    (photo)? Uses left of the throttle, with the choke between them (#534). **Handbook check 2026-10-08:** answered by inference from the
     handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
     read as a top view with forward to the left: its bottom slot is then the pilot-side one, and the trim wheel is left of the throttle with the choke
     between them (HB 7-12, 7-19; §3.4).
@@ -761,10 +774,10 @@ verifies it on D-MPGO.
     verified by the §6 items that follow it. **Answered by assumption pending
     owner verification** (#453). Assumed (unverified), from general-aviation
     practice and the CT Supralight panel layout (§3), scanned top to bottom on the
-    centre field, then down the console's lever stack and across to carb heat:
+    centre field, then across the console from the pilot's side and on to carb heat:
     - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
       carb heat off.
-    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+    - N6 Before take-off: flaps 15°; trim neutral; choke off; carb heat off. The
       parking brake stays out of the flow, since its valve and lever go in order
       (§3.4).
     - N15 After landing: landing light off; flaps 0°; carb heat off.
@@ -778,8 +791,9 @@ verifies it on D-MPGO.
     left of the throttle (HB 7-19, 7-12) give trim wheel, choke, throttle, brake
     (question 25's handbook check).
     The order is inferred from the figure: **assumed (unverified)** until the
-    owner confirms it on D-MPGO. Today: a vertical stack on the console's flank
-    (§3.4), which #534 redraws.
+    owner confirms it on D-MPGO. Today (#534): the console is drawn from above,
+    forward up, with the trim wheel, choke, throttle and brake side by side in
+    that order from the pilot's side, each sliding fore and aft (§3.4).
 32. **GPS and intercom switch-on steps**: which normal-procedure step switches
     the GPS on, and which the intercom? The handbook checklists name neither (§6).
     The trainer switches the intercom on in N3 right after Avionics Master on, and

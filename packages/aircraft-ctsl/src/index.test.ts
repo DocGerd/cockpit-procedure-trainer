@@ -16,7 +16,7 @@ import { emergencyProcedures } from './procedures/emergency';
 import { normalProcedures } from './procedures/normal';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
-import { deviceSlots } from './views';
+import { deviceSlots, views } from './views';
 
 type Expected = {
   readonly kind: ControlDefinition['kind'];
@@ -417,19 +417,44 @@ describe('CTSL aircraft', () => {
       expect(Object.keys(bulkheadView.rects)).toEqual(['rescueHandle']);
     });
 
-    it('stacks BRAKE, THROTTLE and CHOKE top to bottom in one column', () => {
-      expect(bottom('brake')).toBeLessThanOrEqual(rectOf('throttle').y);
-      expect(bottom('throttle')).toBeLessThanOrEqual(rectOf('choke').y);
-      expect(rectOf('throttle').x).toBe(rectOf('brake').x);
-      expect(rectOf('choke').x).toBe(rectOf('brake').x);
+    // A top view, forward up, the pilot's seat on the left.
+    const leverRow = ['trim', 'choke', 'throttle', 'brake'] as const;
+
+    it('lays trim, choke, throttle and brake side by side from the pilot outward (§9 q31)', () => {
+      leverRow.slice(1).forEach((id, index) => {
+        const inboard = leverRow[index] ?? '';
+        expect(rectOf(id).x, `${id} right of ${inboard}`).toBeGreaterThanOrEqual(right(inboard));
+        expect(rectOf(id).y, `${id} level with ${inboard}`).toBe(rectOf(inboard).y);
+      });
     });
 
-    it('puts the trim wheel below the choke and the parking-brake valve right of the levers', () => {
-      expect(rectOf('trim').y).toBeGreaterThanOrEqual(bottom('choke'));
-      expect(rectOf('trim').x).toBeLessThan(right('choke'));
-      expect(right('trim')).toBeGreaterThan(rectOf('choke').x);
-      const levers = Math.max(right('brake'), right('throttle'), right('choke'));
-      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(levers);
+    it.each(leverRow)('gives %s a fore-and-aft slot, taller than wide', (id) => {
+      expect(rectOf(id).h).toBeGreaterThan(rectOf(id).w);
+    });
+
+    it('puts the parking-brake valve aft of the lever group, lower in the top view', () => {
+      const levers = Math.max(...leverRow.map(bottom));
+      expect(rectOf('parkingBrakeValve').y).toBeGreaterThanOrEqual(levers);
+    });
+
+    it('keeps the provisional carb heat outboard of the lever row (§9 q3)', () => {
+      expect(rectOf('carbHeat').x).toBeGreaterThan(right('brake'));
+    });
+
+    it('draws the large knob beside the valve as unlabelled artwork, not a control (§9 q10)', () => {
+      const knob = /<circle\b[^>]*data-knob=""[^>]*>/.exec(viewConsole)?.[0] ?? '';
+      const at = (name: string) => Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(knob)?.[1]);
+      expect(at('r')).toBeGreaterThan(0);
+      expect(at('cx') - at('r')).toBeGreaterThanOrEqual(right('parkingBrakeValve'));
+      expect(at('cy')).toBeGreaterThan(rectOf('parkingBrakeValve').y);
+      expect(at('cy')).toBeLessThan(bottom('parkingBrakeValve'));
+      expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
+        views.console.size.height - 8,
+      );
+      expect(viewConsole).not.toMatch(/<text\b/);
+      expect(Object.keys(consoleView.rects).sort()).toEqual(
+        ['brake', 'carbHeat', 'choke', 'parkingBrakeValve', 'throttle', 'trim'].sort(),
+      );
     });
   });
 
