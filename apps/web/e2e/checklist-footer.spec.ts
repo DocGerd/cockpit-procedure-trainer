@@ -174,6 +174,25 @@ test('the pane header and the whole current card stay in view at every item of t
   expect(visited.size, 'items the current card visited').toBeGreaterThan(longest.items.length / 2);
 });
 
+/** The current card ends above the deviation sheet, and its own bottom edge is what a click there hits. */
+async function expectClearOfSheet(pane: Locator, label: string) {
+  const card = pane.locator('[aria-current="step"]');
+  const [cardBox, sheetBox] = await Promise.all([
+    card.boundingBox(),
+    pane.locator('.checklist-sheet').boundingBox(),
+  ]);
+  if (!cardBox || !sheetBox) throw new Error('no boxes');
+  expect(cardBox.y + cardBox.height, `card bottom ${label}`).toBeLessThanOrEqual(
+    sheetBox.y + SUBPIXEL,
+  );
+  const covered = await card.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.bottom - 2);
+    return !hit || !element.contains(hit);
+  });
+  expect(covered, `card covered ${label}`).toBe(false);
+}
+
 test('a deviation banner leaves the current card where it was', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await openAircraft(page, ctslAircraft, longestNormal[0]);
@@ -186,6 +205,7 @@ test('a deviation banner leaves the current card where it was', async ({ page })
   const after = await card.boundingBox();
   if (!before || !after) throw new Error('no boxes');
   expect(Math.abs(after.y - before.y), 'card top shift').toBeLessThanOrEqual(4);
+  await expectClearOfSheet(checklistPane(page), 'under the banner');
 });
 
 test('a deviation banner leaves the current card where it was once the list has scrolled', async ({
@@ -212,7 +232,53 @@ test('a deviation banner leaves the current card where it was once the list has 
   const after = await card.boundingBox();
   if (!before || !after) throw new Error('no boxes');
   expect(Math.abs(after.y - before.y), 'card top shift').toBeLessThanOrEqual(4);
+  await expectClearOfSheet(checklistPane(page), 'under the banner');
 });
+
+for (const viewport of [
+  { width: 1280, height: 800 },
+  { width: 1024, height: 768 },
+]) {
+  test(`a German deviation banner never covers a current card at the top third of the list at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const [id, longest] = longestNormal;
+    await openAircraft(page, ctslAircraft, id);
+    const card = checklistPane(page).locator('[aria-current="step"]');
+    const list = checklistPane(page).locator('.checklist-items');
+    for (let step = 0; step < longest.items.length; step++) {
+      if ((await list.evaluate((element) => element.scrollTop)) > 0) break;
+      const at = Number(await card.locator('.checklist-number').innerText());
+      await advance(page, longest.items[at - 1], card, at);
+    }
+
+    await page.setViewportSize(viewport);
+    await selectLanguage(page, 'de');
+    const drawer = page.getByRole('banner').getByRole('button', { name: /^Checklist/ });
+    if (await drawer.isVisible()) await drawer.click();
+    const pane = page.locator('aside:has(.checklist)');
+    await expect(pane.locator('[aria-current="step"]')).toBeVisible();
+    const placed = await pane.locator('.checklist-items').evaluate((scroller) => {
+      const row = scroller.querySelector('[aria-current="step"]');
+      if (!row) return false;
+      const box = scroller.getBoundingClientRect();
+      scroller.scrollTop += row.getBoundingClientRect().top - (box.top + box.height / 3 - 1);
+      return Math.abs(row.getBoundingClientRect().top - (box.top + box.height / 3 - 1)) <= 1;
+    });
+    expect(placed, 'card at the top third').toBe(true);
+
+    // The drawer covers the panel at tablet width, so the switch is worked from the keyboard.
+    await page
+      .getByRole('tabpanel')
+      .getByRole('button', { name: /^Choke: / })
+      .focus();
+    await page.keyboard.press('Enter');
+    await expect(pane.locator('.checklist-banner')).toBeVisible();
+    await expectClearOfSheet(pane, `at ${viewport.width}x${viewport.height}`);
+  });
+}
 
 for (const aircraft of [ctslAircraft, demoAircraft]) {
   test(`${aircraft.id} keeps the tablet overlay's Restart button in view on its longest procedure`, async ({

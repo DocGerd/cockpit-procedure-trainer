@@ -369,7 +369,7 @@
   border-top: 1px solid var(--color-divider);
 }
 
-.checklist-restart {
+.checklist-footer .checklist-restart {
   flex: none;
   min-height: var(--size-target);
   margin-inline-start: auto;

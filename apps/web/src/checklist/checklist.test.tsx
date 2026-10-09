@@ -892,12 +892,19 @@ describe('scrolling the running checklist', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  /** The list, the current row and the row before it; everything else has no size. */
-  function layout(list: HTMLElement, box: DOMRect, current: DOMRect, previous = rectOf(0, 0)) {
+  /** The list, the current row, the row before it and the sheet; everything else has no size. */
+  function layout(
+    list: HTMLElement,
+    box: DOMRect,
+    current: DOMRect,
+    previous = rectOf(0, 0),
+    sheet = rectOf(box.bottom, box.bottom),
+  ) {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: Element,
     ) {
       if (this === list) return box;
+      if (this.classList.contains('checklist-sheet')) return sheet;
       if (this.getAttribute('aria-current') === 'step') return current;
       if (this.nextElementSibling?.getAttribute('aria-current') === 'step') return previous;
       return rectOf(0, 0);
@@ -947,10 +954,31 @@ describe('scrolling the running checklist', () => {
     start(flow);
     const list = screen.getByRole('list');
     list.scrollTop = 25;
-    layout(list, rectOf(0, 100), rectOf(200, 240));
+    layout(list, rectOf(0, 400), rectOf(200, 240), rectOf(0, 0), rectOf(300, 400));
     operate('avionics', 'on');
     expect(screen.getByRole('status').textContent).not.toBe('');
     expect(list.scrollTop).toBe(25);
+  });
+
+  it('lifts the current item just clear of a deviation sheet that would cover it', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    layout(list, rectOf(0, 400), rectOf(200, 320), rectOf(0, 0), rectOf(300, 400));
+    operate('avionics', 'on');
+    expect(screen.getByRole('status').textContent).not.toBe('');
+    expect(list.scrollTop).toBe(45);
+  });
+
+  it('never lifts the current item above the top of the list for the sheet', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    layout(list, rectOf(0, 400), rectOf(10, 320), rectOf(0, 0), rectOf(300, 400));
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(35);
   });
 });
 

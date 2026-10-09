@@ -328,6 +328,18 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
     }
   }, [checklist.current, trainer.assisted.length, trainer.recall]);
 
+  // A deviation moves the item only as far as it takes to lift it clear of the sheet.
+  useEffect(() => {
+    const scroller = list.current;
+    const row = scroller?.querySelector<HTMLElement>('[aria-current="step"]');
+    const sheet = scroller?.querySelector('.checklist-sheet');
+    if (!scroller || !row || !sheet || count === 0) return;
+    const rect = row.getBoundingClientRect();
+    const covered = rect.bottom - sheet.getBoundingClientRect().top;
+    const room = rect.top - scroller.getBoundingClientRect().top;
+    if (covered > 0) scroller.scrollTop += Math.min(covered, Math.max(room, 0));
+  }, [count]);
+
   // Focus that was lost, e.g. with the check-off button of the item just done, goes to the new
   // current item; never to its Verified button, so a key press cannot pass an action unlooked.
   useEffect(() => {
