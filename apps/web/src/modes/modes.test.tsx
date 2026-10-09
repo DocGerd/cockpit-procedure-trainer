@@ -111,9 +111,7 @@ const boxOf = (element: HTMLElement | null) => {
 const percent = (part: number, whole: number) => `${(part / whole) * 100}%`;
 const selectedTab = () => screen.getByRole('tab', { selected: true }).textContent;
 const modeButton = (name: string) =>
-  name === 'Free explore'
-    ? screen.getByRole('button', { name })
-    : within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
+  within(screen.getByRole('group', { name: 'Mode' })).getByRole('button', { name });
 const hit = (id: string) => {
   const found = document.querySelector<HTMLElement>(`[data-hit="${id}"]`);
   if (!found) throw new Error(`no hit area for ${id}`);
@@ -123,7 +121,7 @@ const radio = (control: string, position: string) =>
   within(screen.getByRole('radiogroup', { name: control })).getByRole('radio', { name: position });
 
 describe('ModeControl', () => {
-  it('offers Guided and Practice as segments and Free explore as a separate button', () => {
+  it('offers Guided, Practice and Free explore as the segments of one group', () => {
     renderTrainer();
     expect(
       within(screen.getByRole('group', { name: 'Mode' }))
@@ -132,13 +130,11 @@ describe('ModeControl', () => {
     ).toEqual([
       ['Guided', 'true'],
       ['Practice', 'false'],
+      ['Free explore', 'false'],
     ]);
-    expect(screen.getByRole('button', { name: 'Free explore' }).getAttribute('aria-pressed')).toBe(
-      'false',
-    );
   });
 
-  it('marks Free explore instead of a segment while exploring', () => {
+  it('marks the Free explore segment while exploring', () => {
     renderTrainer();
     enterExplore();
     expect(modeButton('Free explore').getAttribute('aria-pressed')).toBe('true');

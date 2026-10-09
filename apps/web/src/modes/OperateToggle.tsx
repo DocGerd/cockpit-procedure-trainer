@@ -14,7 +14,7 @@ export function OperateToggle({ hint = false }: { hint?: boolean }) {
       </span>
       <input
         type="checkbox"
-        className="modes-operate-input"
+        className="switch"
         checked={operate}
         onChange={(event) => store.setOperate(event.target.checked)}
       />

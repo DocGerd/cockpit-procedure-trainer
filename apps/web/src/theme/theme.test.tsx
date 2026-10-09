@@ -6,8 +6,6 @@ import { writeSetting } from '../storage';
 import { ThemeProvider, ThemeSwitch } from './index';
 
 const labels = {
-  light: 'Light',
-  dark: 'Dark',
   switchToLight: 'Switch to light theme',
   switchToDark: 'Switch to dark theme',
 };
@@ -78,14 +76,16 @@ describe('theme', () => {
     mockSystemTheme('dark');
     renderSwitch();
     expect(theme()).toBe('dark');
-    expect(screen.getByRole('button', { name: 'Switch to light theme' }).textContent).toBe('Light');
+    const button = screen.getByRole('button', { name: 'Switch to light theme' });
+    expect(button.querySelector('svg')?.dataset.icon).toBe('dark');
   });
 
   it('follows a light system setting', () => {
     mockSystemTheme('light');
     renderSwitch();
     expect(theme()).toBe('light');
-    expect(screen.getByRole('button', { name: 'Switch to dark theme' }).textContent).toBe('Dark');
+    const button = screen.getByRole('button', { name: 'Switch to dark theme' });
+    expect(button.querySelector('svg')?.dataset.icon).toBe('light');
   });
 
   it('follows the system setting when it changes', () => {

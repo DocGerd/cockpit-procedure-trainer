@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { messages as modeMessages } from '../src/modes/messages';
+import { headerMessages } from '../src/shell/header.messages';
 import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
 import {
   checklistPane,
@@ -75,7 +76,12 @@ for (const viewport of viewports) {
       await expect(rows).toHaveCount(items.length);
       await expect(rows.first()).toContainText(items[0]?.text.en ?? '');
       await expect(marks(page)).toHaveCount(0);
-      await expect(checklistPane(page).getByRole('button')).toHaveCount(0);
+      // The tablet drawer's own close button is the only button a read-only checklist keeps.
+      const close = checklistPane(page).getByRole('button', {
+        name: headerMessages.en.closeChecklist,
+      });
+      await expect(close).toHaveCount(tablet(page) ? 1 : 0);
+      await expect(checklistPane(page).getByRole('button')).toHaveCount(tablet(page) ? 1 : 0);
       await expect(progress(page)).toHaveCount(0);
       await expectTouchTarget(selector(page));
 

@@ -18,7 +18,24 @@
   min-height: var(--size-target);
 }
 
+.shell-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+  padding: 0;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
 .shell-brand-mark {
+  flex: none;
   width: var(--space-6);
   height: var(--space-6);
   color: var(--color-accent);
@@ -29,12 +46,19 @@
   line-height: var(--leading-lg);
   font-weight: var(--weight-semibold);
   letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.shell-header-spacer {
-  flex-grow: 1;
+.shell-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
 }
 
+/* The picker's intro eyebrow still uses this. */
 .shell-eyebrow {
   margin: 0;
   font-family: var(--font-mono);
@@ -45,18 +69,63 @@
   color: var(--color-text-muted);
 }
 
-.shell-choice {
+.shell-breadcrumb {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--space-1) var(--space-3);
+  flex: 999 1 0;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-1);
+}
+
+.shell-breadcrumb-separator {
+  color: var(--color-text-muted);
+}
+
+.shell-choice {
+  min-height: var(--size-target);
+  padding: 0 var(--space-1);
+  font: inherit;
+  font-weight: var(--weight-medium);
   color: var(--color-text);
-  text-align: left;
+  text-align: start;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .shell-choice-value {
-  font-weight: var(--weight-medium);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .shell-choice:hover,
+  .shell-home:hover .shell-brand-name {
+    color: var(--color-accent-strong);
+  }
+
+  .shell-choice:hover .shell-choice-value {
+    text-decoration-color: currentColor;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-choice {
+    transition: none;
+  }
+
+  .shell-choice-value {
+    transition: none;
+  }
+
+  .shell-brand-name {
+    transition: none;
+  }
 }
 
 .shell-checklist-toggle {
@@ -67,8 +136,14 @@
   font-weight: var(--weight-medium);
 }
 
+.shell-checklist-icon {
+  display: none;
+  flex: none;
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
 .shell-progress {
-  font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   font-weight: var(--weight-regular);
@@ -90,9 +165,63 @@
   border-radius: var(--radius-pill);
 }
 
+/* The settings start at the datum: a hairline before the language pair. */
+.shell-header .language-switch {
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-divider);
+}
+
+.language-switch {
+  display: flex;
+}
+
+.language-switch-option {
+  position: relative;
+  min-width: var(--size-target);
+  padding: 0 var(--space-2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+.language-switch-option:not(:first-child) {
+  border-inline-start-width: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.language-switch-option:not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.language-switch-option[aria-pressed='true'] {
+  z-index: 1;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.language-switch-option:has(+ [aria-pressed='true']) {
+  border-inline-end-color: var(--color-accent);
+}
+
+.language-switch-option:focus-visible {
+  z-index: 2;
+}
+
+.chrome-button.theme-switch {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.theme-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
 @media (min-width: 1024px) {
   .shell-header {
-    flex-wrap: nowrap;
     gap: var(--space-2);
   }
 
@@ -100,27 +229,29 @@
     flex-shrink: 0;
   }
 
-  .shell-header .shell-choice {
-    flex-shrink: 1;
-    min-width: var(--size-target);
+  .shell-header .shell-breadcrumb {
+    flex-wrap: nowrap;
   }
 
-  .shell-choice-value {
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  /* A name wraps to two lines at most (three on a tablet) before the controls take a row of their own.
+     The floor sits on the inner span so a single long word still sets the button's minimum. */
+  @supports (min-width: calc-size(max-content, size)) {
+    .shell-header .shell-choice-value {
+      display: inline-block;
+      min-width: calc-size(max-content, size * 0.6);
+    }
+
+    .shell[data-layout='tablet'] .shell-header .shell-choice-value {
+      min-width: calc-size(max-content, size * 0.4);
+    }
+  }
+
+  .shell-header .shell-controls,
+  .shell-header .modes-control {
+    flex-wrap: nowrap;
   }
 
   .shell-header .modes-control {
-    flex-wrap: nowrap;
-    gap: var(--space-2);
-  }
-
-  .shell-header .phase-control {
-    flex-direction: row;
-    align-items: center;
     gap: var(--space-2);
   }
 
@@ -128,9 +259,17 @@
     padding-inline: var(--space-4);
   }
 
+  /* The toggle reads as its icon and progress; the word stays in its accessible name. */
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-icon {
+    display: block;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .language-switch {
+    padding-inline-start: var(--space-2);
+  }
+
   .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name,
-  .shell[data-layout='tablet'] .shell-header .shell-eyebrow,
-  .shell[data-layout='tablet'] .shell-header .phase-control-label {
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-word {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -148,26 +287,4 @@
   .shell[data-layout='tablet'] .shell-header .modes-segment {
     padding-inline: var(--space-2);
   }
-
-  .shell[data-layout='tablet'] .shell-header .shell-choice {
-    align-items: stretch;
-  }
-}
-
-.language-switch {
-  display: flex;
-  gap: var(--space-1);
-}
-
-.language-switch-option {
-  min-width: var(--size-target);
-  padding: 0 var(--space-2);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-eyebrow);
-}
-
-.language-switch-option[aria-pressed='true'] {
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
-  border-color: var(--color-accent);
 }
