@@ -240,6 +240,11 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
           at: Date.now(),
         });
       }
+      // The summary must not wait behind a checklist the pilot is reading, mounted pane or not.
+      if (checklist && done && !wasDone && mode !== 'explore' && current.current.viewed) {
+        current.current = { ...current.current, viewed: undefined };
+        setState(current.current);
+      }
       wasDone = done;
     });
   }, [session]);
