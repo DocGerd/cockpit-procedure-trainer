@@ -20,11 +20,11 @@
         ]
       },
       {
-        "matcher": "Read|Glob|Grep|Edit|Write|NotebookEdit",
+        "matcher": "Read|Glob|Grep|Edit|Write|NotebookEdit|LSP|mcp__plugin_pdf-viewer_pdf__display_pdf",
         "hooks": [
           {
             "type": "command",
-            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/reference-guard.sh\"; if [ -x \"$H\" ]; then exec \"$H\"; else echo 'reference guard script missing or not executable; allowing the call' >&2; fi",
+            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/reference-guard.sh\"; if [ -f \"$H\" ]; then exec bash \"$H\"; else echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"The reference guard is missing: .claude/hooks/reference-guard.sh is not under CLAUDE_PROJECT_DIR. Restore it with git before using file tools.\"}}'; fi",
             "timeout": 30
           }
         ]
@@ -34,7 +34,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/main-checkout-guard.sh\"; if [ -x \"$H\" ]; then exec \"$H\"; else echo 'main-checkout guard script missing or not executable; allowing the call' >&2; fi",
+            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/main-checkout-guard.sh\"; if [ -f \"$H\" ]; then exec bash \"$H\"; else echo 'main-checkout guard script missing; allowing the call' >&2; exit 1; fi",
             "timeout": 30
           }
         ]

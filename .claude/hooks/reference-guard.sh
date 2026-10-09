@@ -1,24 +1,32 @@
 #!/usr/bin/env bash
-# PreToolUse hook for Read, Glob, Grep, Edit, Write and NotebookEdit. It denies
-# a target under reference/ of the main checkout or of the current worktree:
-# that directory holds copyrighted material that agents must not read or quote.
+# PreToolUse hook for the file tools (Read, Glob, Grep, Edit, Write,
+# NotebookEdit, LSP) and the PDF viewer. It denies a target under reference/ of
+# any worktree of this project, the main checkout included: that directory
+# holds copyrighted material that agents must not read or quote.
 #
 # This is an accident tripwire, NOT a security boundary. Known limits:
 # - Bash (cat, sed, rg) is not covered.
-# - A Grep or Glob rooted above reference/ with no pattern naming it is allowed.
+# - A Grep or Glob rooted above reference/ is allowed unless a pattern segment
+#   is literally reference, preceded only by a literal path and then bare
+#   wildcards (*, **); ref* or */docs/reference pass.
 #
-# Fails closed only on a clear match. A missing jq or git, unparseable input
-# or an unreadable repo allows the call and prints a notice on stderr.
-# Override (owner, when authoring docs/aircraft intake): CPT_ALLOW_REFERENCE=1.
+# Fails closed only on a clear match. A missing jq, git or GNU realpath,
+# unexpected input or an unreadable repo allows the call: exit 1 shows the
+# user a hook-error notice. Override (owner, when authoring docs/aircraft
+# intake): CPT_ALLOW_REFERENCE=1.
 #
-# The decision is in the JSON on stdout; the exit code is always 0.
+# A deny is the JSON on stdout with exit 0.
 set -uo pipefail
 
 [ "${CPT_ALLOW_REFERENCE:-}" = 1 ] && exit 0
+# Repo lookups must follow the paths, not an inherited GIT_DIR.
+unset "${!GIT_@}"
+# On a case-insensitive filesystem Reference/ opens reference/.
+shopt -s nocasematch
 
 warn() {
   echo "reference-guard: $1; allowing the call" >&2
-  exit 0
+  exit 1
 }
 
 deny() {
@@ -28,9 +36,11 @@ deny() {
 
 command -v jq >/dev/null 2>&1 || warn "jq is missing"
 command -v git >/dev/null 2>&1 || warn "git is missing"
+realpath -m / >/dev/null 2>&1 || warn "realpath does not support -m (needs GNU coreutils)"
 
 input="$(cat)"
-cwd="$(jq -r '.cwd // empty' <<<"$input" 2>/dev/null)" || warn "input is not valid JSON"
+jq -e '(.tool_input | type) == "object"' >/dev/null 2>&1 <<<"$input" || warn "input is not JSON with a tool_input object"
+cwd="$(jq -r '.cwd // empty' <<<"$input")"
 [ -n "$cwd" ] || cwd="$PWD"
 
 # Resolve to an absolute path, normalising .. and symlinks where they exist.
@@ -43,11 +53,11 @@ resolve() {
 
 under() { [[ "$1" == "$2" || "$1" == "$2"/* ]]; }
 
-mapfile -t paths < <(jq -r '[.tool_input.file_path, .tool_input.notebook_path, .tool_input.path] | map(select(type == "string" and . != "")) | .[]' <<<"$input" 2>/dev/null)
-mapfile -t patterns < <(jq -r 'if .tool_name == "Glob" then .tool_input.pattern elif .tool_name == "Grep" then .tool_input.glob else empty end | select(type == "string" and . != "")' <<<"$input" 2>/dev/null)
-searchbase="$(jq -r '.tool_input.path // empty' <<<"$input" 2>/dev/null)"
+mapfile -t paths < <(jq -r '[.tool_input | .file_path, .notebook_path, .path, .filePath, (.url | select(type == "string" and ((test("^[a-z]+://") | not) or startswith("file://"))) | sub("^file://"; ""))] | map(select(type == "string" and . != "")) | .[]' <<<"$input")
+mapfile -t patterns < <(jq -r 'if .tool_name == "Glob" then .tool_input.pattern elif .tool_name == "Grep" then .tool_input.glob else empty end | select(type == "string" and . != "")' <<<"$input")
+searchbase="$(jq -r '.tool_input.path // empty' <<<"$input")"
 
-tool="$(jq -r '.tool_name // empty' <<<"$input" 2>/dev/null)"
+tool="$(jq -r '.tool_name // empty' <<<"$input")"
 # A search without a path starts at the session cwd.
 if [ -z "$searchbase" ] && [[ "$tool" == Glob || "$tool" == Grep ]]; then
   paths+=("$cwd")
@@ -55,24 +65,29 @@ fi
 
 resolved=()
 for p in "${paths[@]}"; do
-  resolved+=("$(resolve "$p")")
+  r="$(resolve "$p")" || warn "cannot resolve '$p'"
+  resolved+=("$r")
 done
 
-# Cheap exit: every protected root ends in /reference, so a call whose paths
-# and patterns never mention it needs no git lookup.
+# Cheap exit: every protected root is reached through a path naming
+# reference, so a call that never mentions it needs no git lookup.
 mentions=0
-for p in "${resolved[@]}" "${patterns[@]}"; do
+for p in "${paths[@]}" "${resolved[@]}" "${patterns[@]}"; do
   [[ "$p" == *reference* ]] && mentions=1
 done
 [ "$mentions" = 1 ] || exit 0
 
 proj="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
-common="$(git -C "$proj" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || warn "cannot read the project repo"
-roots=("$(resolve "$(dirname "$common")/reference")")
-for dir in "$proj" "$cwd"; do
-  top="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || continue
-  roots+=("$(resolve "$top/reference")")
+[ -n "$proj" ] || warn "cannot locate the project"
+trees="$(LC_ALL=C git -C "$proj" worktree list --porcelain 2>&1)" || warn "cannot read the project repo: ${trees%%$'\n'*}"
+mapfile -t trees <<<"$trees"
+# A symlinked reference/ is protected both where it points and by its own name.
+roots=()
+for line in "${trees[@]}"; do
+  [[ "$line" == "worktree "* ]] || continue
+  roots+=("$(resolve "${line#worktree }/reference")" "$(realpath -ms -- "${line#worktree }/reference")")
 done
+[ "${#roots[@]}" -gt 0 ] || warn "the project repo lists no worktree"
 
 hit=""
 for p in "${resolved[@]}"; do
@@ -81,27 +96,35 @@ for p in "${resolved[@]}"; do
   done
 done
 
-# A pattern that names a reference segment reaches a root when its literal
-# prefix lands there, or when only wildcards precede it and the search base
-# contains the root.
+# A pattern that names a reference segment reaches a root when what precedes
+# it is a literal path, optionally followed by bare wildcards, and that path
+# contains the root or lies inside it.
 if [ -z "$hit" ]; then
-  base="$cwd"
-  [ -n "$searchbase" ] && base="$(resolve "$searchbase")"
+  base="$(resolve "${searchbase:-$cwd}")"
   for pat in "${patterns[@]}"; do
     [[ "$pat" =~ (^|/)reference(/|$) ]] || continue
-    pre="${pat%%reference*}"
-    pre="${pre%/}"
-    if [ -z "$pre" ] || [[ "$pre" =~ ^(\*\*?/)*\*\*?$ ]]; then
-      for r in "${roots[@]}"; do
-        { under "$r" "$base" || under "$base" "$r"; } && hit="$pat"
-      done
-    elif [[ "$pre" != *[*?[{]* ]]; then
-      if [[ "$pre" == /* ]]; then t="$pre/reference"; else t="$base/$pre/reference"; fi
-      t="$(realpath -m -- "$t")"
-      for r in "${roots[@]}"; do
-        under "$t" "$r" && hit="$pat"
-      done
-    fi
+    pre="${pat%%"${BASH_REMATCH[0]}"*}"
+    [[ "$pat" == /* ]] && lit="/" || lit="$base"
+    wild=0 opaque=0
+    IFS=/ read -ra segs <<<"$pre"
+    for s in "${segs[@]}"; do
+      if [[ "$s" =~ ^\*\*?$ ]]; then
+        wild=1
+      elif [[ "$s" == *[*?[{]* ]] || [ "$wild" = 1 ]; then
+        opaque=1
+      else
+        lit="$lit/$s"
+      fi
+    done
+    [ "$opaque" = 0 ] || continue
+    lit="$(realpath -m -- "$lit")"
+    for r in "${roots[@]}"; do
+      if [ "$wild" = 1 ]; then
+        { under "$r" "$lit" || under "$lit" "$r"; } && hit="$pat"
+      else
+        under "$lit/reference" "$r" && hit="$pat"
+      fi
+    done
   done
 fi
 
