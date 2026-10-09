@@ -3,7 +3,7 @@ import type { TrainerState } from '@cpt/core';
 import { text } from '../text';
 
 // An aircraft depends on core only, so it reads a device's state structurally.
-const field = (state: TrainerState<unknown>, install: string, name: string): unknown => {
+export const field = (state: TrainerState<unknown>, install: string, name: string): unknown => {
   const device = state.devices[install]?.state;
   return typeof device === 'object' && device !== null
     ? (device as Record<string, unknown>)[name]

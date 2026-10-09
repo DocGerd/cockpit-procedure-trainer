@@ -157,6 +157,7 @@ export const controls = {
     positions: ['out', 'off', 'left', 'right', 'both', 'start'],
     initial: 'out',
     springBack: { start: 'both' },
+    onlyFrom: { out: ['off'] },
     legends: {
       out: {
         state: text('Schlüssel abgezogen', 'key out'),

@@ -7,6 +7,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
+import { lockHolder } from './lock-notice';
 import { ModeControl } from './ModeControl';
 
 vi.mock('../aircraft-registry', async () => {
@@ -152,5 +153,34 @@ describe('the lock ring', () => {
     pressStarter();
     expect(lockRing()).not.toBe(first);
     expect(lockRing()?.dataset.pulse).toBe('once');
+  });
+});
+
+describe('lockHolder', () => {
+  const name = { de: 'n', en: 'n' };
+  const toggle = (positions: readonly string[]) => ({
+    name,
+    description: name,
+    kind: 'toggle',
+    positions,
+    initial: positions[0],
+  });
+  const aircraft = {
+    controls: {
+      valve: toggle(['open', 'closed']),
+      key: {
+        ...toggle(['out', 'off', 'on']),
+        interlock: [{ control: 'valve', at: 'closed', holds: ['off', 'out'] }],
+      },
+    },
+  } as unknown as Pick<Aircraft, 'controls'>;
+
+  it('names the control whose lock holds the current position', () => {
+    expect(lockHolder(aircraft, { valve: 'closed', key: 'off' }, 'key')).toBe('valve');
+  });
+
+  it('names nothing when no lock holds the current position', () => {
+    expect(lockHolder(aircraft, { valve: 'closed', key: 'on' }, 'key')).toBeUndefined();
+    expect(lockHolder(aircraft, { valve: 'open', key: 'off' }, 'key')).toBeUndefined();
   });
 });
