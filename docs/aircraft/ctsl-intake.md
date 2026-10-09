@@ -396,8 +396,9 @@ carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel val
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
 after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
-to the taxi setting (0°); intercom on (trainer addition, assumed, §9 question 32). Before the first start of the day turn the prop by hand;
-if the aircraft rolls during start, ignition off.
+to the taxi setting (0°); intercom on (trainer addition, assumed, §9 question 32).
+Before the first start of the day turn the prop by hand; if the aircraft rolls
+during start, ignition off.
 
 **N4 Warm-up (HB 4-6, 4-7; no checklist in the handbook).** About 2000 rpm for
 2 min, then 2500 rpm; raise rpm only above 2 bar oil pressure; ready at 50 °C oil.
@@ -410,12 +411,12 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
 transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
-powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke off; carb heat off; throttle to 4000 rpm; engine
-gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
-300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
-lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; GPS position
-fix _(check, same assumption)_; rescue system armed,
-pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
+powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
+off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
+drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
+both; oil temperature at least 51 °C; charge lamp out; throttle idle; flaps 15°; trim
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
+system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
 **N7 Normal take-off (HB 4-3, 4-10, 4-11).** Flaps 15° (0° on pavement); carb heat

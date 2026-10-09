@@ -89,9 +89,11 @@ describe('the CTSL GPS and intercom in a full flight', () => {
     });
     expect(result).toEqual({ ok: true });
     const legs = flightLegs(ctsl);
-    const takeoff = legs.indexOf('takeoff');
-    expect(takeoff).toBeGreaterThan(0);
-    for (const id of legs.slice(takeoff - 1, legs.indexOf('shutdown'))) {
+    const lineUpLeg = legs.indexOf('beforeTakeoff');
+    const shutdown = legs.indexOf('shutdown');
+    expect(lineUpLeg).toBeGreaterThanOrEqual(0);
+    expect(shutdown).toBeGreaterThan(lineUpLeg);
+    for (const id of legs.slice(lineUpLeg, shutdown)) {
       expect(carried[id], id).toMatchObject({
         intercom: lineUp.controls.intercom,
         gps: lineUp.deviceStates?.gps,

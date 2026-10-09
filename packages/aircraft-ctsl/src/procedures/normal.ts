@@ -428,7 +428,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'gps.power',
         position: 'pressed',
-        text: text('GPS einschalten', 'GPS on'),
+        text: text('GPS ein', 'GPS on'),
       },
       {
         type: 'action',
