@@ -135,7 +135,10 @@ recurses() {
     grep | egrep | fgrep | zgrep)
       for w in "${a[@]}"; do [[ "$w" =~ ^-[A-Za-z]*[rR][A-Za-z]*$ || "$w" == --recursive || "$w" == --dereference-recursive ]] && return 0; done ;;
     rg | ag | fd | fdfind)
-      for w in "${a[@]}"; do [[ "$w" =~ ^-[A-Za-z]*u[A-Za-z]*$ || "$w" =~ ^--(no-ignore[a-z-]*|unrestricted|skip-vcs-ignores)$ || "$w" == -I ]] && return 0; done ;;
+      for w in "${a[@]}"; do [[ "$w" =~ ^-[A-Za-z]*u[A-Za-z]*$ || "$w" =~ ^--(no-ignore[a-z-]*|unrestricted|skip-vcs-ignores)$ ]] && return 0; done
+      if [[ "$cmd" == fd || "$cmd" == fdfind ]]; then
+        for w in "${a[@]}"; do [[ "$w" == -I ]] && return 0; done
+      fi ;;
     cp | rsync)
       for w in "${a[@]}"; do [[ "$w" =~ ^-[A-Za-z]*[rRa][A-Za-z]*$ || "$w" == --recursive || "$w" == --archive ]] && return 0; done ;;
     zip)
