@@ -1,6 +1,6 @@
 import { flightLegs, phaseName } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { StartupNotice } from '../errors/StartupNotice';
 import { format, useLanguage, useLocalize, useMessages } from '../i18n';
@@ -162,7 +162,7 @@ function Drills({ mode }: { mode: PickerMode }) {
   };
 
   return (
-    <section className="picker-drills scroll-thin" aria-labelledby={headingId}>
+    <section className="picker-drills scroll-thin scroll-fade" aria-labelledby={headingId}>
       <h2 id={headingId} className="picker-heading">
         {text.drills}
       </h2>
@@ -313,6 +313,7 @@ export function Picker() {
   const modeName = useId();
   const exploreHint = useId();
   const groupId = useId();
+  const list = useRef<HTMLDivElement>(null);
 
   const byType = (type: ProcedureType) =>
     ids.filter((id) => aircraft.procedures[id]?.type === type);
@@ -358,7 +359,7 @@ export function Picker() {
               <p className="picker-empty">{text.noProcedures}</p>
             ) : (
               <div className="picker-index">
-                <div className="picker-list scroll-thin">
+                <div ref={list} className="picker-list scroll-thin">
                   {groups.map((group) => (
                     <ProcedureGroup
                       key={group.type}
@@ -378,9 +379,17 @@ export function Picker() {
                       type="button"
                       className="picker-tab"
                       data-type={group.type}
-                      onClick={() =>
-                        document.getElementById(group.id)?.scrollIntoView({ block: 'start' })
-                      }
+                      onClick={() => {
+                        const box = list.current;
+                        const target = document.getElementById(group.id);
+                        if (!box || !target) return;
+                        box.scrollTo({
+                          top:
+                            box.scrollTop +
+                            target.getBoundingClientRect().top -
+                            box.getBoundingClientRect().top,
+                        });
+                      }}
                     >
                       {group.label}{' '}
                       <span className="picker-tab-count readout">{group.ids.length}</span>
@@ -389,6 +398,8 @@ export function Picker() {
                 </nav>
               </div>
             )}
+          </section>
+          <div className="picker-launch">
             <fieldset className="picker-modes">
               <legend className="picker-heading">{text.mode}</legend>
               {(
@@ -431,7 +442,7 @@ export function Picker() {
               </button>
               <p id={exploreHint}>{text.exploreHint}</p>
             </div>
-          </section>
+          </div>
           <Drills mode={mode} />
         </div>
       </main>

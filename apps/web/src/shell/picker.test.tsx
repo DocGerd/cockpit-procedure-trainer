@@ -190,17 +190,17 @@ describe('procedure index thumb tabs', () => {
   });
 
   it('scrolls the list to the group of the tab without picking a procedure', async () => {
-    const scrolled: Element[] = [];
-    Element.prototype.scrollIntoView = vi.fn(function (this: Element) {
-      scrolled.push(this);
-    });
+    const scrolled: [Element, ScrollToOptions | undefined][] = [];
+    Element.prototype.scrollTo = vi.fn(function (this: Element, options?: ScrollToOptions) {
+      scrolled.push([this, options]);
+    }) as typeof Element.prototype.scrollTo;
     localStorage.setItem('cpt.aircraft', second.id);
     renderPicker();
+    const group = within(procedureSection()).getByRole('group', { name: 'Emergency' });
+    group.getBoundingClientRect = () => ({ top: 120 }) as DOMRect;
     const before = procedureButtons().map((button) => button.getAttribute('aria-pressed'));
     await userEvent.click(screen.getByRole('button', { name: /^Emergency/ }));
-    expect(scrolled).toEqual([
-      within(procedureSection()).getByRole('group', { name: 'Emergency' }),
-    ]);
+    expect(scrolled).toEqual([[group.parentElement, { top: 120 }]]);
     expect(procedureButtons().map((button) => button.getAttribute('aria-pressed'))).toEqual(before);
   });
 
