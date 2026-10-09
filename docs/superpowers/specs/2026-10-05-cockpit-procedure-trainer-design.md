@@ -407,7 +407,7 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   opens on "Choose a checklist" with no procedure shown. The pilot reads
   checklists through the selector and runs the one they judge right with
   "Run this checklist", which is offered for every procedure, normal ones
-  included; until then nothing is recorded. The debrief adds the time from the failure to that
+  included, until the pilot has run one; until then nothing is recorded. The debrief adds the time from the failure to that
   choice (or that it came before the failure) and whether the checklist was an
   emergency procedure for the injected failure; a wrong checklist's run is not
   recorded in the history. Repeat, Restart and returning from Free explore
