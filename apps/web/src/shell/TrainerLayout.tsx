@@ -9,6 +9,7 @@ import { useCockpitLayout, useCockpitRegion } from '../panel/use-cockpit-layout'
 import { useSessionState, useTrainer } from '../trainer';
 import { AppFooter } from './AppFooter';
 import { Header } from './Header';
+import { headerMessages } from './header.messages';
 import { useLayout } from './layout';
 import { messages } from './messages';
 
@@ -54,12 +55,36 @@ function ChecklistToggle({
       aria-controls={controls}
       onClick={onToggle}
     >
-      {text.checklist} {progress && <span className="shell-progress">{progress}</span>}
+      {text.checklist} {progress && <span className="readout shell-progress">{progress}</span>}
       {deviations > 0 && (
         <span className="shell-deviation-badge" aria-hidden="true">
           {deviations}
         </span>
       )}
+    </button>
+  );
+}
+
+function DrawerClose({ onClose }: { onClose(): void }) {
+  const text = useMessages(headerMessages);
+  return (
+    <button
+      type="button"
+      className="chrome-button shell-drawer-close"
+      aria-label={text.closeChecklist}
+      title={text.closeChecklist}
+      onClick={onClose}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      >
+        <path d="M6 6l12 12M18 6L6 18" />
+      </svg>
     </button>
   );
 }
@@ -177,6 +202,8 @@ export function TrainerLayout() {
             onKeyDown={onPaneKeyDown}
           >
             <ChecklistPane />
+            {/* Last in the DOM so focus enters the checklist first; CSS lifts it into the head. */}
+            {overlay && <DrawerClose onClose={() => setExpanded(false)} />}
           </aside>
         )}
       </div>

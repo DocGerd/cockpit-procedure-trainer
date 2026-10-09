@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
@@ -7,6 +7,7 @@ import { PhaseControl } from '../outside-view/PhaseControl';
 import { ThemeSwitch } from '../theme';
 import { useLeavingRisk, useTrainer } from '../trainer';
 import { ConfirmDialog } from '../ui';
+import { headerMessages } from './header.messages';
 import { messages } from './messages';
 import './header.css';
 
@@ -19,68 +20,86 @@ function BrandMark() {
   );
 }
 
-type Choice = 'aircraft' | 'procedure';
+type Leave = 'aircraft' | 'procedure' | 'home';
 
-function TrainerChoices() {
+function LeaveConfirm({ kind, onDone }: { kind: Leave; onDone(): void }) {
+  const text = useMessages(messages);
+  const headerText = useMessages(headerMessages);
+  const { backToPicker } = useTrainer();
+  const { lost } = useLeavingRisk();
+  const { action, body } = {
+    aircraft: { action: text.changeAircraft, body: text.changeAircraftBody },
+    procedure: { action: text.changeProcedure, body: text.changeProcedureBody },
+    home: { action: headerText.home, body: headerText.homeBody },
+  }[kind];
+  return (
+    <ConfirmDialog
+      title={`${action}?`}
+      body={`${body} ${lost}`}
+      confirmLabel={action}
+      cancelLabel={text.cancel}
+      onCancel={onDone}
+      onConfirm={() => {
+        onDone();
+        backToPicker();
+      }}
+    />
+  );
+}
+
+function Breadcrumb({ onChoose }: { onChoose(kind: 'aircraft' | 'procedure'): void }) {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, backToPicker } = useTrainer();
-  const { atRisk, lost } = useLeavingRisk();
-  const [pending, setPending] = useState<Choice>();
+  const { aircraft, procedureId } = useTrainer();
   const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
-  const choose = (kind: Choice) => {
-    if (!atRisk) backToPicker();
-    else setPending(kind);
-  };
-  const chips: { kind: Choice; eyebrow: string; value: string; action: string }[] = [
-    {
-      kind: 'aircraft',
-      eyebrow: text.aircraft,
-      value: localize(aircraft.name),
-      action: text.changeAircraft,
-    },
+  const crumbs = [
+    { kind: 'aircraft' as const, value: localize(aircraft.name), action: text.changeAircraft },
     ...(procedure
       ? [
           {
             kind: 'procedure' as const,
-            eyebrow: text.procedure,
             value: localize(procedure.title),
             action: text.changeProcedure,
           },
         ]
       : []),
   ];
-  const asking = chips.find((chip) => chip.kind === pending);
-  const body = pending === 'procedure' ? text.changeProcedureBody : text.changeAircraftBody;
   return (
-    <>
-      {chips.map(({ kind, eyebrow, value, action }) => (
-        <button
-          key={kind}
-          type="button"
-          className="chrome-button shell-choice"
-          title={`${action}: ${value}`}
-          onClick={() => choose(kind)}
-        >
-          <span className="shell-eyebrow">{eyebrow}</span>{' '}
-          <span className="shell-choice-value">{value}</span>
-        </button>
+    <div className="shell-breadcrumb">
+      {crumbs.map(({ kind, value, action }, index) => (
+        <Fragment key={kind}>
+          {index > 0 && (
+            <span className="shell-breadcrumb-separator" aria-hidden="true">
+              /
+            </span>
+          )}
+          <button
+            type="button"
+            className="shell-choice"
+            title={`${action}: ${value}`}
+            onClick={() => onChoose(kind)}
+          >
+            <span className="shell-choice-value">{value}</span>
+          </button>
+        </Fragment>
       ))}
-      {asking && (
-        <ConfirmDialog
-          title={`${asking.action}?`}
-          body={`${body} ${lost}`}
-          confirmLabel={asking.action}
-          cancelLabel={text.cancel}
-          onCancel={() => setPending(undefined)}
-          onConfirm={() => {
-            setPending(undefined);
-            backToPicker();
-          }}
-        />
-      )}
-    </>
+    </div>
   );
+}
+
+function useDocumentTitle(variant: 'picker' | 'trainer') {
+  const headerText = useMessages(headerMessages);
+  const localize = useLocalize();
+  const { aircraft, procedureId } = useTrainer();
+  const procedure = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
+  const context =
+    variant === 'picker'
+      ? []
+      : [...(procedure ? [localize(procedure.title)] : []), localize(aircraft.name)];
+  const title = [context.join(' · '), headerText.appTitle].filter(Boolean).join(' — ');
+  useEffect(() => {
+    document.title = title;
+  }, [title]);
 }
 
 export function Header({
@@ -91,32 +110,54 @@ export function Header({
   checklistToggle?: ReactNode;
 }) {
   const text = useMessages(messages);
+  const headerText = useMessages(headerMessages);
   const isUat = deployEnv(import.meta.env.VITE_DEPLOY_ENV) === 'uat';
+  const { backToPicker } = useTrainer();
+  const { atRisk } = useLeavingRisk();
+  const [pending, setPending] = useState<Leave>();
+  const leave = (kind: Leave) => {
+    if (atRisk) setPending(kind);
+    else backToPicker();
+  };
+  useDocumentTitle(variant);
+  const brand = (
+    <>
+      <BrandMark />
+      <span className="shell-brand-name">{text.brandName}</span>
+    </>
+  );
   return (
     <header className="shell-header" data-variant={variant}>
       <div className="shell-brand">
-        <BrandMark />
-        <span className="shell-brand-name">{text.brandName}</span>
+        {variant === 'trainer' ? (
+          <button
+            type="button"
+            className="shell-home"
+            title={headerText.home}
+            onClick={() => leave('home')}
+          >
+            {brand}
+          </button>
+        ) : (
+          brand
+        )}
         {isUat && <span className="uat-badge">{text.uatBadge}</span>}
       </div>
-      {variant === 'trainer' && <TrainerChoices />}
-      <div className="shell-header-spacer" />
-      {variant === 'trainer' && (
-        <>
-          <PhaseControl />
-          <ModeControl />
-          {checklistToggle}
-        </>
-      )}
-      <LanguageSwitch />
-      <ThemeSwitch
-        labels={{
-          light: text.themeLight,
-          dark: text.themeDark,
-          switchToLight: text.switchToLight,
-          switchToDark: text.switchToDark,
-        }}
-      />
+      {variant === 'trainer' && <Breadcrumb onChoose={leave} />}
+      <div className="shell-controls">
+        {variant === 'trainer' && (
+          <>
+            <PhaseControl />
+            <ModeControl />
+            {checklistToggle}
+          </>
+        )}
+        <LanguageSwitch />
+        <ThemeSwitch
+          labels={{ switchToLight: text.switchToLight, switchToDark: text.switchToDark }}
+        />
+      </div>
+      {pending && <LeaveConfirm kind={pending} onDone={() => setPending(undefined)} />}
     </header>
   );
 }
