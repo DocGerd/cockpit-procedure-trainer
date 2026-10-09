@@ -355,7 +355,7 @@ export function Picker() {
               {text.procedure}
             </h2>
             {ids.length === 0 ? (
-              <p className="picker-card-text">{text.noProcedures}</p>
+              <p className="picker-empty">{text.noProcedures}</p>
             ) : (
               <div className="picker-index">
                 <div className="picker-list scroll-thin">

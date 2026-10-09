@@ -103,6 +103,11 @@
   border-inline-start-color: var(--color-accent);
 }
 
+/* Inset: sticky group labels and the list's overflow would cover an outer ring. */
+.picker-list .picker-row:focus-visible {
+  outline-offset: calc(-1 * var(--space-1));
+}
+
 @media (hover: hover) {
   .picker-card[aria-pressed='false']:hover,
   .picker-row[aria-pressed='false']:hover {
@@ -295,6 +300,11 @@
 
 .picker-mode-label {
   font-weight: var(--weight-semibold);
+}
+
+.picker-empty {
+  margin: 0;
+  color: var(--color-text-secondary);
 }
 
 .picker-mode-hint {
