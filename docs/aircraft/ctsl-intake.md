@@ -179,9 +179,10 @@ What the trainer draws today, and where it departs from the above:
 - The throttle prints FULL at the forward end and IDLE at the aft end, as the
   aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
   check gives the end legends, not the title. The handbook treats the throttle as
-  continuous; the trainer keeps it stepped, with three unprinted trainer stops
-  between the ends (low, run-up and cruise power) that drive the rpm model and the
-  procedures. Cues name those stops in words, not as printed legends.
+  continuous; the trainer keeps it stepped, with three trainer stops between the
+  ends (low, run-up and cruise power) that drive the rpm model and the procedures.
+  The trainer marks them with unworded detent ticks, which the aircraft's strip
+  does not have. Cues name those stops in words, not as printed legends.
 - The trim placard prints DOWN at the forward end and UP at the aft end, with no
   neutral mark, as the aircraft does (#532). Its title TRIM is assumed
   (unverified): the handbook check gives the end legends, not the title. The
@@ -192,8 +193,7 @@ What the trainer draws today, and where it departs from the above:
 - The large knob is drawn as unlabelled artwork, not a control, until its
   identity is known (§9, question 10). It stands right of the valve, not aft of
   it: today's console cell has no room aft of the valve once the levers get a
-  travel long enough to tell the throttle's stops apart. The shelf inboard of the
-  valve is drawn empty.
+  travel long enough to tell the throttle's stops apart.
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
   right-seat side of the console top, clear of the lever row and the large knob;
   this place is **assumed (unverified)** (§9, question 3).

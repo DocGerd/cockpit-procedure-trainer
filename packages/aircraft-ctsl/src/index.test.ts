@@ -16,7 +16,7 @@ import { emergencyProcedures } from './procedures/emergency';
 import { normalProcedures } from './procedures/normal';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
-import { deviceSlots } from './views';
+import { deviceSlots, views } from './views';
 
 type Expected = {
   readonly kind: ControlDefinition['kind'];
@@ -449,7 +449,7 @@ describe('CTSL aircraft', () => {
       expect(at('cy')).toBeGreaterThan(rectOf('parkingBrakeValve').y);
       expect(at('cy')).toBeLessThan(bottom('parkingBrakeValve'));
       expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
-        (ctslAircraft.views.console?.size?.height ?? 0) - 8,
+        views.console.size.height - 8,
       );
       expect(viewConsole).not.toMatch(/<text\b/);
       expect(Object.keys(consoleView.rects).sort()).toEqual(

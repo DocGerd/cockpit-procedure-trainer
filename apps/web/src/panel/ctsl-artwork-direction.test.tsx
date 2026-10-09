@@ -132,7 +132,15 @@ describe('CTSL notched artwork controls', () => {
       'FULL',
       'IDLE',
     ]);
-    expect(svg.match(/<line\b/g)).toHaveLength(2);
+    const [from, to] = [throttle.path?.[0], throttle.path?.at(-1)];
+    if (!from || !to) throw new Error('the throttle has no travel');
+    const stops = throttle.steps.map(
+      (_, i) => from.y + ((to.y - from.y) * i) / (throttle.steps.length - 1),
+    );
+    const ticks = new Set(
+      [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"/g)].map(([, y]) => Number(y)),
+    );
+    expect([...ticks].sort((a, b) => a - b)).toEqual(stops.sort((a, b) => a - b));
   });
 
   it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no neutral mark', () => {
