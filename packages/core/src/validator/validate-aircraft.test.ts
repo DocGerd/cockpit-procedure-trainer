@@ -210,6 +210,27 @@ describe('validateAircraft', () => {
       expect(found.map((f) => f.id)).toEqual(['beforeStart', 'beforeStart']);
     });
 
+    it("reports a check's expected value", () => {
+      const aircraft = broken({
+        procedures: {
+          beforeStart: {
+            ...fixtureAircraft.procedures.beforeStart,
+            items: [
+              {
+                type: 'check',
+                target: { indicator: 'rpm' },
+                condition: () => true,
+                text: { de: 'Drehzahl', en: 'Rpm' },
+                expected: { de: '', en: 'idle' },
+              },
+            ],
+          },
+        },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.message)).toEqual(['item 0 expected: empty de']);
+    });
+
     it('reports aircraft, indicator, view, failure and guard texts', () => {
       const empty = { de: '', en: '' };
       const aircraft = broken({

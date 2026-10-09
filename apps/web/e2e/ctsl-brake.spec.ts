@@ -23,9 +23,9 @@ async function closeValve(page: Page) {
 }
 
 async function expectParkingBrakeHolds(page: Page) {
-  const check = row(page, 'Brake lever released, parking brake holds');
+  const check = row(page, 'Parking brake: holds, brake lever released');
   await check.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
-  await expect(done(page, 'Brake lever released, parking brake holds')).toBeVisible();
+  await expect(done(page, 'Parking brake: holds, brake lever released')).toBeVisible();
   await expect(checklistPane(page).getByText(copy.checklist.noDeviations)).toBeVisible();
 }
 

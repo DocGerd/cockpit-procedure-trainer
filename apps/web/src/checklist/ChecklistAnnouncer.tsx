@@ -5,6 +5,7 @@ import { format, useLocalize, useMessages } from '../i18n';
 import { useSessionState, useTrainer } from '../trainer';
 import { useDeviationText } from './deviation-text';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 import { flowLength } from './useCurrentTarget';
 
 type Seen = {
@@ -27,6 +28,7 @@ export function ChecklistAnnouncer({
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const { mode, recall, assisted } = useTrainer();
   const checklist = useSessionState((snapshot) => snapshot.checklist());
   const [message, setMessage] = useState('');
@@ -74,7 +76,7 @@ export function ChecklistAnnouncer({
             : format(text.announceItem, {
                 n: current + 1,
                 total: procedure.items.length,
-                text: localize(item.text),
+                text: itemText(item, guided || assisted.includes(current)),
               }),
         );
       }
@@ -100,6 +102,7 @@ export function ChecklistAnnouncer({
     describe,
     text,
     localize,
+    itemText,
   ]);
 
   return (

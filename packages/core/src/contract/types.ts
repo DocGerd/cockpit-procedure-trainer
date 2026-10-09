@@ -393,6 +393,11 @@ export type CheckItem<
   readonly target?:
     { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
+  /**
+   * What the pilot should find. With it, `text` is the challenge alone, so Practice can withhold
+   * the answer until the item is ticked.
+   */
+  readonly expected?: Text;
   /** Lets the pilot answer with the value read; a reading off by more than the tolerance is unmet. */
   readonly response?: {
     readonly reading: (state: TrainerState<S>) => number;
