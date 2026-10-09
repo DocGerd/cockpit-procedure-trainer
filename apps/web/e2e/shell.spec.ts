@@ -293,29 +293,42 @@ for (const viewport of [
   { width: 1280, height: 800 },
   { width: 1024, height: 768 },
 ]) {
-  test(`the header shows both names in full in German with the rescue-system procedure at ${viewport.width}x${viewport.height}`, async ({
-    page,
-  }) => {
-    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-    const rescue = ctsl?.procedures.rescueDeployment;
-    if (!ctsl || !rescue) throw new Error('The CTSL has no rescue-system procedure');
-    await page.setViewportSize(viewport);
-    await openAircraft(page, ctsl, 'rescueDeployment');
-    await selectLanguage(page, 'de');
+  // The rescue title is the longest name; the preflight title is one long German word.
+  for (const procedureId of ['rescueDeployment', 'preflight']) {
+    test(`the header keeps one row and shows both names in full in German with ${procedureId} at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      const chosen = ctsl?.procedures[procedureId];
+      if (!ctsl || !chosen) throw new Error(`The CTSL has no ${procedureId} procedure`);
+      await page.setViewportSize(viewport);
+      await openAircraft(page, ctsl, procedureId);
+      await selectLanguage(page, 'de');
 
-    const header = page.getByRole('banner');
-    for (const name of [ctsl.name.de, rescue.title.de]) {
-      const crumb = header.getByRole('button', { name, exact: true });
-      await expect(crumb).toBeInViewport({ ratio: 1 });
-      await expect(crumb).toHaveText(name);
-      const clipped = await crumb.evaluate(
-        (element) =>
-          element.scrollWidth > element.clientWidth + 0.5 ||
-          element.scrollHeight > element.clientHeight + 0.5,
+      const header = page.getByRole('banner');
+      const boxes = await header.evaluate((element) =>
+        ['.shell-brand', '.shell-breadcrumb', '.shell-controls'].map((selector) => {
+          const box = element.querySelector(selector)?.getBoundingClientRect();
+          if (!box) throw new Error(`no ${selector}`);
+          return { top: box.top, bottom: box.bottom };
+        }),
       );
-      expect(clipped, `${name} clipped`).toBe(false);
-    }
-  });
+      const lowestTop = Math.max(...boxes.map(({ top }) => top));
+      const highestBottom = Math.min(...boxes.map(({ bottom }) => bottom));
+      expect(lowestTop, 'brand, names and controls share one row').toBeLessThan(highestBottom);
+      for (const name of [ctsl.name.de, chosen.title.de]) {
+        const crumb = header.getByRole('button', { name, exact: true });
+        await expect(crumb).toBeInViewport({ ratio: 1 });
+        await expect(crumb).toHaveText(name);
+        const clipped = await crumb.evaluate(
+          (element) =>
+            element.scrollWidth > element.clientWidth + 0.5 ||
+            element.scrollHeight > element.clientHeight + 0.5,
+        );
+        expect(clipped, `${name} clipped`).toBe(false);
+      }
+    });
+  }
 }
 
 test('the phase select is no wider than its longest phase at 1920x1080', async ({ page }) => {

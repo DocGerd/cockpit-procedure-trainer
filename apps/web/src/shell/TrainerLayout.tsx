@@ -55,7 +55,20 @@ function ChecklistToggle({
       aria-controls={controls}
       onClick={onToggle}
     >
-      {text.checklist} {progress && <span className="readout shell-progress">{progress}</span>}
+      <svg
+        className="shell-checklist-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 6.5l1.5 1.5 2.5-3M4 13.5l1.5 1.5 2.5-3M11 7h9M11 14h9M11 20h9M4 20h4" />
+      </svg>
+      <span className="shell-checklist-word">{text.checklist}</span>{' '}
+      {progress && <span className="readout shell-progress">{progress}</span>}
       {deviations > 0 && (
         <span className="shell-deviation-badge" aria-hidden="true">
           {deviations}

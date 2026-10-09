@@ -136,6 +136,13 @@
   font-weight: var(--weight-medium);
 }
 
+.shell-checklist-icon {
+  display: none;
+  flex: none;
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
 .shell-progress {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
@@ -226,10 +233,16 @@
     flex-wrap: nowrap;
   }
 
-  /* A name may wrap to a second line, never a third: the controls move to a row of their own first. */
+  /* A name wraps to two lines at most (three on a tablet) before the controls take a row of their own.
+     The floor sits on the inner span so a single long word still sets the button's minimum. */
   @supports (min-width: calc-size(max-content, size)) {
-    .shell-header .shell-choice {
+    .shell-header .shell-choice-value {
+      display: inline-block;
       min-width: calc-size(max-content, size * 0.6);
+    }
+
+    .shell[data-layout='tablet'] .shell-header .shell-choice-value {
+      min-width: calc-size(max-content, size * 0.4);
     }
   }
 
@@ -246,7 +259,17 @@
     padding-inline: var(--space-4);
   }
 
-  .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name {
+  /* The toggle reads as its icon and progress; the word stays in its accessible name. */
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-icon {
+    display: block;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .language-switch {
+    padding-inline-start: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name,
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-word {
     position: absolute;
     width: 1px;
     height: 1px;
