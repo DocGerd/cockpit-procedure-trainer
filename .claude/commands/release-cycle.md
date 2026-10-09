@@ -6,11 +6,16 @@ argument-hint: '[milestone number/title | steering text, e.g. "focus on perf deb
 Input: $ARGUMENTS. It is a milestone number or title, free-text steering
 (e.g. "only aircraft content"), or empty.
 
-- Milestone: verify it exists and is open.
+- A token matching an existing milestone number or title is a milestone;
+  anything else is steering text.
+- Milestone: it must exist and be open, else stop and say so.
 - Empty: pick the lowest-numbered open milestone that has open issues without
   the `blocked` label, and name it back before proceeding.
-- No such milestone, or steering text: run the Triage phase first, then
-  Phase 0 with the milestone it creates.
+- Steering text with such a milestone open: name the conflict and ask which
+  governs.
+- No such milestone, or steering text it governs: run the Triage phase, then
+  Phase 0. An open milestone that is empty or all blocked is reused: triage
+  fills it instead of creating a new one.
 
 You are the orchestrator. Read `CLAUDE.md` first; it is binding. Plan the whole
 session before executing it. The main session holds decisions and verdicts;
@@ -25,26 +30,31 @@ Delegate it; the main session keeps only the proposal. Create and change
 nothing before the owner approves.
 
 1. One agent sweeps every open issue without a milestone
-   (`gh api "repos/DocGerd/cockpit-procedure-trainer/issues?state=open&milestone=none&per_page=100"`,
-   paginated; drop pull requests), reading body, labels and recent comments.
-   It writes its table to the scratchpad and returns a summary.
+   (`gh api --paginate "repos/DocGerd/cockpit-procedure-trainer/issues?state=open&milestone=none&per_page=100"`;
+   drop pull requests), reading body, labels, recent comments and linked open
+   PRs. It writes its table to the scratchpad and returns a summary.
 2. Classify each issue: ready; needs owner decision (label `question`, a
-   change to the spec's decisions table, unclear copyright); blocked; spike or
-   idea needing scoping; stale or done (propose closing with the reason);
+   change to the spec's decisions table, unclear copyright); blocked (label
+   or open dependency); spike or idea needing scoping; stale or done (verify
+   against `origin/develop` and open PRs; propose closing with the reason);
    duplicate (name the original).
 3. Rank the ready issues: `docs/adr/0002-quality-priorities.md` order (gates
    first, never traded), then dependencies, then the steering text if given.
+   No ready issue: stop after presenting the table; create nothing and do not
+   go to Phase 4.
 4. Propose ONE coherent milestone: title `M<n> <Theme>` with n one above the
-   highest existing milestone; a scope sized to what one session's waves can
-   land (a guideline, not a quota); each issue with a one-line reason; deferred
-   issues with the reason; owner questions that block anything; a draft wave
-   plan of file-disjoint work.
+   highest milestone, open or closed; each issue with a one-line reason;
+   deferred issues with the reason (they stay unchanged); owner questions that
+   block anything.
 5. Present it as one scannable block and ask once with AskUserQuestion:
    approve, adjust, or an alternative theme. This is the owner's scope choice
    and the one approval stop.
-6. On approval: create the milestone and assign the issues through the REST
-   API, apply the approved closes and labels (never close unapproved), then
-   continue with Phase 0. Without approval, stop with nothing changed.
+6. On approval, one unchained REST call each, bodies from files: POST
+   `milestones`; PATCH `issues/<n>` with the milestone; PATCH `issues/<n>`
+   with `state=closed` and `state_reason` `completed` or `not_planned` (only
+   approved closes); label changes. On a partial failure stop and report what
+   was applied. Then continue with Phase 0. Without approval, stop with
+   nothing changed.
 
 ## Phase 0 - State
 
