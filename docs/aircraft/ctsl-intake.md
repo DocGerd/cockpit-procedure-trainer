@@ -587,7 +587,7 @@ verifies it on D-MPGO.
 9. **Second warning lamp** at the top of the upper-left field: what is it in the
    analog variant? Drawn unlit, not modelled.
 10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
-    Not modelled. **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
+    Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
     in-flight adjustable propeller has its lever on the centre console behind the
     engine control unit, with detents and a catch under the grip (HB 7-5), where
     the figure shows the knob; a cabin heater is optional equipment (HB 6-8, 8-7).
