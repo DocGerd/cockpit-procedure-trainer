@@ -128,6 +128,7 @@ function expectCuedWording([, id, position, aircraft, control, printed]: Case) {
   const legend = control.legends?.[position];
   const positions = named(control);
   const deviation: Deviation = { kind: 'wrong-position', itemIndex: 0, controlId: id, position };
+  const lines = typeof legend === 'object' ? [] : [...printed()];
   for (const language of ['en', 'de'] as const) {
     const cue = cueText(aircraft, language);
     const title = cue.title(deviation);
@@ -155,7 +156,7 @@ function expectCuedWording([, id, position, aircraft, control, printed]: Case) {
         language === 'en'
           ? title.replace(`${name} left at `, '')
           : title.replace(`${name} auf `, '').replace(/ gelassen$/, '');
-      expect([...printed()]).toContain(wording);
+      expect(lines).toContain(wording);
     }
   }
 }
