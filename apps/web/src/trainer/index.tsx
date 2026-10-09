@@ -34,6 +34,8 @@ export type LegResult = {
 export type FlightOptions = {
   /** A surprise failure in the phase given, or in a random one when the phase is left out. */
   readonly surprise?: { readonly phase?: string };
+  /** Withholds the upcoming items for this flight only, whatever the Practice setting is. */
+  readonly recall?: boolean;
 };
 
 /** A full flight: the aircraft's normal procedures in order, each leg from the cockpit the last left. */
@@ -46,6 +48,8 @@ export type Flight = {
    * it interrupted.
    */
   readonly surprise?: FlightSurprise & { readonly randomPhase: boolean };
+  /** The flight's own Hide upcoming items; it never reads or writes the Practice setting. */
+  readonly recall?: boolean;
 };
 
 export type Trainer = {
@@ -78,7 +82,10 @@ export type Trainer = {
   /** Deviations from this index on were made in Guided, so only they get its live cues. */
   guidedFrom: number;
   setMode(mode: Mode): void;
-  /** Whether Practice withholds the upcoming and current item text. */
+  /**
+   * Whether Practice withholds the upcoming and current item text: the running flight's own
+   * option during a full flight, the stored Practice setting otherwise.
+   */
   recall: boolean;
   setRecall(on: boolean): void;
   /** Items of this run the pilot had shown with Show me, each once. */
@@ -140,10 +147,12 @@ const legSurprise = (flight: Flight, leg: string): LegSurprise | undefined =>
     ? { failure: flight.surprise.failure, afterItems: flight.surprise.afterItems }
     : undefined;
 
-const flightOptions = (flight: Flight): FlightOptions =>
-  flight.surprise === undefined
+const flightOptions = (flight: Flight): FlightOptions => ({
+  ...(flight.surprise === undefined
     ? {}
-    : { surprise: flight.surprise.randomPhase ? {} : { phase: flight.surprise.phase } };
+    : { surprise: flight.surprise.randomPhase ? {} : { phase: flight.surprise.phase } }),
+  ...(flight.recall === undefined ? {} : { recall: flight.recall }),
+});
 
 /** Starts the first leg of a full flight on the session and returns the trainer state for it. */
 function startFlight(
@@ -155,17 +164,19 @@ function startFlight(
   const first = legs[0];
   if (first === undefined) return {};
   const chosen = options.surprise;
-  const flight: Flight =
-    chosen === undefined
-      ? { legs, results: [] }
+  const flight: Flight = {
+    legs,
+    results: [],
+    ...(chosen === undefined
+      ? {}
       : {
-          legs,
-          results: [],
           surprise: {
             ...pickFlightSurprise(aircraft, chosen.phase),
             randomPhase: chosen.phase === undefined,
           },
-        };
+        }),
+    ...(options.recall === undefined ? {} : { recall: options.recall }),
+  };
   session.jumpToPhase(procedureOf(aircraft, first).startPhase);
   session.startLeg(first, legSurprise(flight, first));
   return {
@@ -248,6 +259,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
     };
     return {
       ...state,
+      recall: state.flight === undefined ? state.recall : (state.flight.recall ?? false),
       procedureId,
       viewedProcedureId,
       viewProcedure(id) {
@@ -386,6 +398,11 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         }
       },
       setRecall(on) {
+        const { flight } = current.current;
+        if (flight !== undefined) {
+          update({ flight: { ...flight, recall: on } });
+          return;
+        }
         writeSetting('recall', on ? 'on' : 'off');
         update({ recall: on });
       },
