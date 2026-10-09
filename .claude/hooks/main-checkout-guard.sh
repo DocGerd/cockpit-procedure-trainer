@@ -19,7 +19,7 @@ set -uo pipefail
 
 [ "${CPT_ALLOW_MAIN_EDIT:-}" = 1 ] && exit 0
 # Repo lookups must follow the paths, not an inherited GIT_DIR.
-unset "${!GIT_@}"
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_CEILING_DIRECTORIES GIT_DISCOVERY_ACROSS_FILESYSTEM
 
 warn() {
   echo "main-checkout-guard: $1; allowing the call" >&2
@@ -49,7 +49,8 @@ until [ -d "$dir" ]; do dir="$(dirname "$dir")"; done
 dirs=()
 repo_dirs() {
   local out line
-  if ! out="$(LC_ALL=C git -C "$1" rev-parse --path-format=absolute --git-dir --git-common-dir 2>&1)"; then
+  if ! out="$(git -C "$1" rev-parse --path-format=absolute --git-dir --git-common-dir 2>/dev/null)"; then
+    out="$(LC_ALL=C git -C "$1" rev-parse --path-format=absolute --git-dir --git-common-dir 2>&1)"
     [[ "$out" == *"not a git repository"* ]] && return 1
     warn "cannot read the repo at $1: ${out%%$'\n'*}"
   fi

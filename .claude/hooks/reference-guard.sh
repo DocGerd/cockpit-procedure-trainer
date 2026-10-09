@@ -19,8 +19,8 @@
 set -uo pipefail
 
 [ "${CPT_ALLOW_REFERENCE:-}" = 1 ] && exit 0
-# Repo lookups must follow the paths, not an inherited GIT_DIR.
-unset "${!GIT_@}"
+# git -C must find the project repo, not an inherited one.
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_CEILING_DIRECTORIES GIT_DISCOVERY_ACROSS_FILESYSTEM
 # On a case-insensitive filesystem Reference/ opens reference/.
 shopt -s nocasematch
 
@@ -51,7 +51,7 @@ resolve() {
   realpath -m -- "$p"
 }
 
-under() { [[ "$1" == "$2" || "$1" == "$2"/* ]]; }
+under() { [[ "$1" == "$2" || "$1" == "${2%/}"/* ]]; }
 
 mapfile -t paths < <(jq -r '[.tool_input | .file_path, .notebook_path, .path, .filePath, (.url | select(type == "string" and ((test("^[a-z]+://") | not) or startswith("file://"))) | sub("^file://"; ""))] | map(select(type == "string" and . != "")) | .[]' <<<"$input")
 mapfile -t patterns < <(jq -r 'if .tool_name == "Glob" then .tool_input.pattern elif .tool_name == "Grep" then .tool_input.glob else empty end | select(type == "string" and . != "")' <<<"$input")
@@ -81,7 +81,8 @@ proj="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}
 [ -n "$proj" ] || warn "cannot locate the project"
 trees="$(LC_ALL=C git -C "$proj" worktree list --porcelain 2>&1)" || warn "cannot read the project repo: ${trees%%$'\n'*}"
 mapfile -t trees <<<"$trees"
-# A symlinked reference/ is protected both where it points and by its own name.
+# A symlinked reference/ is guarded under its own name and, when reached
+# through it, at its target; the target's own path is not guarded.
 roots=()
 for line in "${trees[@]}"; do
   [[ "$line" == "worktree "* ]] || continue

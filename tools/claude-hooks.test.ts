@@ -47,6 +47,7 @@ let other: string;
 let plain: string;
 let noRealpathM: string;
 let dubiousGit: string;
+let noisyGit: string;
 
 function git(cwd: string, ...args: string[]): void {
   execFileSync(
@@ -170,6 +171,12 @@ beforeAll(() => {
     'git',
     "echo 'fatal: detected dubious ownership in repository' >&2\nexit 128",
   );
+  const realGit = execFileSync('sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim();
+  noisyGit = shim(
+    join(root, 'noisy-git'),
+    'git',
+    `echo 'warning: noise' >&2\nexec ${realGit} "$@"`,
+  );
 });
 
 afterAll(() => {
@@ -215,7 +222,7 @@ describe('reference-guard.sh', () => {
     expect(denies({ tool: 'Glob', input: { pattern: 'reference/*' }, cwd: nested })).toBe(true);
   });
 
-  it('denies a ~ path that lands in reference/', () => {
+  it('expands ~ before judging a path', () => {
     const env = { HOME: main };
     expect(denies({ tool: 'Read', input: { file_path: '~/reference/handbook.txt' }, env })).toBe(
       true,
@@ -262,6 +269,8 @@ describe('reference-guard.sh', () => {
     expect(
       denies({ tool: 'Glob', input: { pattern: '**/reference/*' }, cwd: join(root, 'wt-link') }),
     ).toBe(true);
+    expect(denies({ tool: 'Glob', input: { pattern: '**/reference/**', path: '/' } })).toBe(true);
+    expect(denies({ tool: 'Glob', input: { pattern: '/**/reference/**' } })).toBe(true);
   });
 
   it('allows a Glob whose reference segment lies outside every reference/', () => {
@@ -527,6 +536,15 @@ describe('main-checkout-guard.sh', () => {
     expect(guard({ ...call, env: { PATH: noRealpathM } }).notice).toContain('main-checkout-guard');
     expect(guard({ ...call, env: { PATH: dubiousGit } }).notice).toContain('dubious ownership');
     expect(guard({ ...call, project: plain }).notice).toContain('not a git repo');
+  });
+
+  it('ignores a warning git prints on a successful lookup', () => {
+    const env = { PATH: noisyGit };
+    expect(denies({ tool: 'Edit', input: { file_path: join(main, 'README.md') }, env })).toBe(true);
+    expect(denies({ tool: 'Edit', input: { file_path: join(worktree, 'README.md') }, env })).toBe(
+      false,
+    );
+    expect(denies({ tool: 'Write', input: { file_path: join(plain, 'a.txt') }, env })).toBe(false);
   });
 
   it('fails open with a notice on unexpected input', () => {
