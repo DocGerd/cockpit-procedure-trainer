@@ -25,3 +25,16 @@ export function versionLabel({
   const version = `v${release}`;
   return deployEnv === 'uat' && commit ? `${version} · ${commit.slice(0, COMMIT_LENGTH)}` : version;
 }
+
+/** The release and its commit, for places that identify the exact build in any environment. */
+export function buildLabel({
+  release,
+  commit,
+}: {
+  release: string | undefined;
+  commit: string | undefined;
+}): string {
+  return [release === undefined ? 'dev' : `v${release}`, commit?.slice(0, COMMIT_LENGTH)]
+    .filter(Boolean)
+    .join(' · ');
+}

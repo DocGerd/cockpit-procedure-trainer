@@ -1,9 +1,10 @@
 import { Component, Fragment, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useMessages } from '../i18n';
-import { AppFooter, buildLabel } from '../shell/AppFooter';
+import { AppFooter } from '../shell/AppFooter';
 import { messages as shellMessages } from '../shell/messages';
 import { useSessionState, useTrainer } from '../trainer';
+import { buildLabel } from '../version';
 import { messages } from './messages';
 import './errors.css';
 
@@ -30,7 +31,11 @@ function ErrorDialog({ onReset }: { onReset(): void }) {
             {text.errorBody}
           </p>
           <p className="error-version readout">
-            {shell.version} {buildLabel()}
+            {shell.version}{' '}
+            {buildLabel({
+              release: import.meta.env.VITE_APP_RELEASE,
+              commit: import.meta.env.VITE_BUILD_SHA,
+            })}
           </p>
           <button ref={reset} type="button" className="button-primary" onClick={onReset}>
             {text.reset}

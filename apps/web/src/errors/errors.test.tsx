@@ -78,6 +78,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('error boundary', () => {
@@ -110,7 +111,6 @@ describe('error boundary', () => {
     broken = true;
     renderBoundary();
     expect(screen.getByRole('alertdialog').textContent).toContain('Version v0.7.0 · abcdef0');
-    vi.unstubAllEnvs();
   });
 
   it('puts keyboard focus on the reset button', () => {

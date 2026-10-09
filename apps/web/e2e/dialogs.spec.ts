@@ -72,7 +72,7 @@ test.describe('confirm dialog', () => {
 test.describe('About', () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
-  test('opens from the footer with both handbook revisions and the latest releases, offline', async ({
+  test('opens from the footer with both handbook revisions and the latest releases, fetching only its code', async ({
     page,
   }) => {
     await openPicker(page);

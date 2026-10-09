@@ -4,8 +4,8 @@ import { aircraftRegistry } from '../aircraft-registry';
 import { messages as noticeMessages } from '../errors/messages';
 import { useLocalize, useMessages } from '../i18n';
 import { ModalDialog } from '../ui';
+import { buildLabel } from '../version';
 import { messages } from './about.messages';
-import { buildLabel } from './AppFooter';
 import { latestReleases } from './changelog';
 import { messages as shellMessages } from './messages';
 
@@ -36,7 +36,12 @@ export function About({ onClose }: { onClose(): void }) {
         <h2 id={titleId} className="about-title">
           {text.aboutTitle}
         </h2>
-        <p className="about-version readout">{buildLabel()}</p>
+        <p className="about-version readout">
+          {buildLabel({
+            release: import.meta.env.VITE_APP_RELEASE,
+            commit: import.meta.env.VITE_BUILD_SHA,
+          })}
+        </p>
       </div>
       <div className="about-scroll scroll-thin scroll-fade">
         <p className="about-purpose">{text.purpose}</p>
