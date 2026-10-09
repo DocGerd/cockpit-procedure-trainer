@@ -14,8 +14,6 @@ export const messages = defineMessages({
     changeProcedureBody:
       'Changing the procedure ends the running procedure and returns to aircraft selection.',
     cancel: 'Cancel',
-    themeLight: 'Light',
-    themeDark: 'Dark',
     switchToLight: 'Switch to light theme',
     switchToDark: 'Switch to dark theme',
     outsideView: 'Outside view',
@@ -77,8 +75,6 @@ export const messages = defineMessages({
     changeProcedureBody:
       'Das Wechseln des Verfahrens beendet das laufende Verfahren und führt zurück zur Flugzeugauswahl.',
     cancel: 'Abbrechen',
-    themeLight: 'Hell',
-    themeDark: 'Dunkel',
     switchToLight: 'Zum hellen Design wechseln',
     switchToDark: 'Zum dunklen Design wechseln',
     outsideView: 'Außensicht',
