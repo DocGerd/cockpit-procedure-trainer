@@ -472,10 +472,16 @@ describe('bash-reference-guard.sh', () => {
       'egrep -rn foo ./',
       'grep --recursive foo .',
       'grep foo -r .',
-      'find . -name "*.pdf"',
-      'find / -name x',
-      'find',
-      'find . -type f -exec cat {} +',
+      'find . -name "*.pdf" -exec cat {} +',
+      'find / -name x -execdir grep foo {} ;',
+      'find . -ok cat {} ;',
+      'python3 -c "print(open(\'reference/own.txt\').read())"',
+      'python -c \'import os; os.listdir("reference")\'',
+      "node -e \"require('fs').readFileSync('reference/own.txt')\"",
+      "node --eval \"require('fs').readFileSync('reference/own.txt')\"",
+      'perl -e \'open(F, "reference/own.txt")\'',
+      'ruby -e \'puts File.read("reference/own.txt")\'',
+      `python3 -c "print(open('${main}/reference/handbook.txt').read())"`,
       'rg -u foo',
       'rg --no-ignore foo .',
       'rg -uu foo ..',
@@ -493,7 +499,7 @@ describe('bash-reference-guard.sh', () => {
       expect(denies(command), command).toBe(true);
     }
     expect(denies('grep -rn foo .', { cwd: main })).toBe(true);
-    expect(denies('find . -name x', { cwd: main })).toBe(true);
+    expect(denies('find . -exec cat {} +', { cwd: main })).toBe(true);
     expect(denies('cd .. && grep -rn foo .')).toBe(true);
     expect(denies('grep -rn foo .', { cwd: nested })).toBe(true);
   });
@@ -510,7 +516,14 @@ describe('bash-reference-guard.sh', () => {
       'rg -I foo .',
       "rg -u -g '!reference' foo",
       "rg -u --glob '!reference/**' foo",
-      'find . -path ./reference -prune -o -name x -print',
+      'find . -path ./reference -prune -o -type f -exec cat {} +',
+      'find . -name "*.ts"',
+      'find . -maxdepth 1',
+      'find / -name x',
+      'find',
+      'python3 -c "print(1 + 1)"',
+      'node -e "console.log(\'docs/reference-notes.md\')"',
+      'python3 script.py',
       'find docs -name "*.md"',
       'find ./docs -type f',
       'cp -r docs /tmp/x',

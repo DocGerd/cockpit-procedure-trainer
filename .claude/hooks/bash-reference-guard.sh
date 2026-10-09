@@ -15,10 +15,14 @@
 #   a search pattern, so reference as message or search text passes.
 # - Searches that honour .gitignore (rg, ag, fd) pass unless a no-ignore flag
 #   is given; git grep never sees untracked files. du, ls and tree list names
-#   only and are not checked.
-# - A recursive grep, find, ack, tar, cp, rsync or zip is judged by its path
-#   operands (the working directory when it has none). cd is followed within
-#   the command, nothing else is.
+#   only, so they are not checked for recursion; their path operands are.
+# - A recursive grep, ack, tar, cp, rsync or zip, and a find that runs or
+#   prints file contents (-exec, -execdir, -ok, -okdir, -fprint), is judged by
+#   its path operands (the working directory when it has none). A find piped
+#   to a reader is not followed. cd is followed within the command, nothing
+#   else is.
+# - The code of python -c, node -e, perl -e and ruby -e is scanned only for
+#   words containing reference/ and the quoted word reference.
 #
 # Fails visible rather than closed: a missing jq, git or GNU realpath,
 # unexpected input or a command it cannot tokenise allows the call and exit 1
@@ -131,7 +135,9 @@ excludes_reference() {
 recurses() {
   local cmd="$1" w
   case "$cmd" in
-    find | ack | tar) return 0 ;;
+    ack | tar) return 0 ;;
+    find)
+      for w in "${a[@]}"; do [[ "$w" =~ ^-(exec|execdir|ok|okdir|fprint0?|fprintf)$ ]] && return 0; done ;;
     grep | egrep | fgrep | zgrep)
       for w in "${a[@]}"; do [[ "$w" =~ ^-[A-Za-z]*[rR][A-Za-z]*$ || "$w" == --recursive || "$w" == --dereference-recursive ]] && return 0; done ;;
     rg | ag | fd | fdfind)
@@ -161,6 +167,7 @@ check_segment() {
     fi
   done
   seg=()
+  local inline=$'[^[:space:]\'"()`,;]*reference/[^[:space:]\'"()`,;]*|[\'"]reference[\'"]' code m
   local n=${#a[@]} k=0 wrapped=0 opt cmd i skip=0 pat=0 fexpr=0 explicit=0 grepish=0 fileish=0
   while [ "$k" -lt "$n" ]; do
     w="${a[k]}"
@@ -190,6 +197,18 @@ check_segment() {
       done
       ;;
     eval) scan_command "${a[*]:1}" "$((depth + 1))" ;;
+    python | python[0-9]* | node | nodejs | perl | ruby)
+      for ((i = 1; i < n - 1; i++)); do
+        if [[ "${a[i]}" =~ ^-[A-Za-z]*[ceE]$ || "${a[i]}" == --eval ]]; then
+          code="${a[i + 1]}"
+          while [[ "$code" =~ $inline ]]; do
+            m="${BASH_REMATCH[0]}"
+            cands+=("${m//[\'\"]/}")
+            code="${code#*"$m"}"
+          done
+        fi
+      done
+      ;;
     grep | egrep | fgrep | zgrep | rg | ag | ack | fd | fdfind) grepish=1 ;;
     cd | pushd | ls | tree | du | find | cp | mv | rsync | tar | zip | 7z) fileish=1 ;;
   esac
