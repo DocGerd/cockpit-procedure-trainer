@@ -113,7 +113,7 @@ async function advance(
     if ((await guardAt(page, item.control)) === item.position) await verify.click();
     else await setGuard(page, item.control, item.position);
   } else {
-    await card.getByRole('button').last().click();
+    await card.locator('.checklist-check-off').click();
   }
   await expect
     .poll(

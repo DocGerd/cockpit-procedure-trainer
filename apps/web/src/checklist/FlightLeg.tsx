@@ -8,8 +8,8 @@ export function FlightLeg() {
   const { flight } = useTrainer();
   if (!flight) return null;
   return (
-    <div className="checklist-eyebrow checklist-flight-leg">
+    <span className="checklist-flight-leg">
       {format(text.flightLeg, { n: flight.results.length + 1, total: flight.legs.length })}
-    </div>
+    </span>
   );
 }

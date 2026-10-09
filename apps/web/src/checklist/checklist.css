@@ -7,24 +7,24 @@
 }
 
 .checklist-selector {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-5);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
   border-bottom: 1px solid var(--color-divider);
 }
 
+/* The selected option and its groups say what the select does, so its label is only spoken. */
 .checklist-selector-label {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  line-height: var(--leading-2xs);
-  letter-spacing: var(--tracking-eyebrow);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  position: absolute;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .checklist-selector-select {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--color-text);
 }
 
@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-5) var(--space-5) var(--space-4);
+  padding: var(--space-4) var(--space-5) var(--space-3);
   border-bottom: 1px solid var(--color-divider);
 }
 
@@ -58,32 +58,21 @@
   color: var(--color-text-muted);
 }
 
-.checklist-kind {
+.checklist-kicker {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+  gap: 0 var(--space-2);
+}
+
+.checklist-kicker > * + *::before {
+  content: '·';
+  margin-inline-end: var(--space-2);
+  color: var(--color-text-muted);
 }
 
 .checklist-chip {
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: var(--leading-xs);
-  letter-spacing: var(--tracking-eyebrow);
-  text-transform: uppercase;
+  font-weight: var(--weight-semibold);
   color: var(--color-danger);
-  border: 1px solid var(--color-danger);
-  border-radius: var(--radius-pill);
-}
-
-.checklist-kind-text {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  line-height: var(--leading-xs);
-  letter-spacing: var(--tracking-eyebrow);
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 .checklist-title {
@@ -103,7 +92,7 @@
 
 .checklist-bar {
   flex-grow: 1;
-  height: var(--space-2);
+  height: calc(var(--space-1) * 1.5);
   overflow: hidden;
   appearance: none;
   background: var(--color-surface-muted);
@@ -124,28 +113,26 @@
 }
 
 .checklist-progress-count {
-  font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   color: var(--color-text-secondary);
 }
 
-.checklist-status[data-reserved='true'] {
-  /* The space of a three-line banner under its retry button, so a deviation never resizes the list above it. */
-  min-height: calc(
-    var(--space-3) * 4 + 2px + var(--space-1) + var(--size-target) + var(--leading-md) * 3
-  );
+/* Stuck to the bottom of the scrolling list, so a deviation covers rows ahead, never resizes the list. */
+.checklist-sheet {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  margin-block-start: auto;
 }
 
 .checklist-banner {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin: var(--space-3);
-  padding: var(--space-3);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-  border: 1px solid var(--color-warning);
-  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-5);
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
+  border-top: 1px solid var(--color-border);
 }
 
 .checklist-banner-head {
@@ -163,51 +150,84 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--space-1);
   min-height: calc(var(--space-12) * 2);
   overflow: hidden auto;
   margin: 0;
-  padding: var(--space-2);
+  padding: var(--space-2) 0 0;
   list-style: none;
 }
 
+/* A hard edge under the sheet, and room to scroll a focused control out from under it. */
+.checklist-items[data-banner='true'] {
+  scroll-padding-block-end: calc(var(--leading-md) * 3 + var(--size-target) + var(--space-6));
+  animation: none;
+  mask-image: none;
+}
+
+/* With the rule, the padding puts the mark under the header text. */
 .checklist-item {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-4);
+  border-inline-start: 3px solid transparent;
 }
 
 .checklist-item-row {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  align-items: baseline;
+  gap: var(--space-2);
 }
 
 .checklist-mark {
   flex: none;
-  width: var(--space-5);
+  width: var(--space-4);
   font-weight: var(--weight-semibold);
   text-align: center;
+  color: var(--color-text-muted);
 }
 
 .checklist-number {
   flex: none;
   width: var(--space-5);
-  font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   color: var(--color-text-muted);
 }
 
 .checklist-item-text {
+  position: relative;
+  display: flex;
   flex-grow: 1;
+  align-items: baseline;
+  gap: var(--space-2);
   min-width: 0;
 }
 
-.checklist-item[data-state='done'] {
+.checklist-challenge {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.checklist-expected {
+  flex: 0 1 auto;
+  max-width: 60%;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  text-align: end;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* Spoken only; the item text holds it, so it scrolls and clips with the row. */
+.checklist-sr {
+  position: absolute;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.checklist-item[data-state='done'],
+.checklist-item[data-state='deviated'] {
   color: var(--color-text-muted);
 }
 
@@ -215,22 +235,21 @@
   color: var(--color-success);
 }
 
-.checklist-item[data-state='deviated'] {
-  color: var(--color-text-muted);
-}
-
 .checklist-item[data-state='deviated'] .checklist-mark {
   color: var(--color-warning);
 }
 
 .checklist-item[data-state='current'] {
-  padding: var(--space-3);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  border-color: var(--color-accent);
+  padding-block: var(--space-3);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-inline-start-color: var(--color-accent);
 }
 
 .checklist-item[data-state='current'] .checklist-mark,
-.checklist-item[data-state='current'] .checklist-number {
+.checklist-item[data-state='current'] .checklist-number,
+.checklist-item[data-state='open'] .checklist-mark,
+.checklist-item[data-state='open'] .checklist-number {
+  font-weight: var(--weight-semibold);
   color: var(--color-accent);
 }
 
@@ -241,12 +260,7 @@
 }
 
 .checklist-item[data-state='open'] {
-  border-color: var(--color-accent);
-}
-
-.checklist-item[data-state='open'] .checklist-mark,
-.checklist-item[data-state='open'] .checklist-number {
-  color: var(--color-accent);
+  border-inline-start-color: var(--color-accent);
 }
 
 .checklist-item[data-state='open'] .checklist-item-text {
@@ -258,13 +272,13 @@
   flex: none;
   flex-direction: column;
   gap: var(--space-1);
+  margin-block: var(--space-1);
   padding-block: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-block: 1px solid var(--color-divider);
 }
 
 .checklist-group-label {
-  padding-inline: var(--space-3);
+  padding-inline: var(--space-5);
 }
 
 .checklist-group[data-state='current'] .checklist-group-label {
@@ -274,7 +288,6 @@
 .checklist-group-items {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -285,25 +298,22 @@
 }
 
 .checklist-transition {
-  margin: var(--space-2) var(--space-2) 0;
-  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-4);
   font-weight: var(--weight-medium);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-inline-start: 3px solid var(--color-accent);
 }
 
+/* Under the number, so the action and Show me fit side by side in the narrow pane. */
 .checklist-item-detail {
   display: flex;
   min-inline-size: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  padding-inline-start: var(--space-8);
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  padding-inline-start: calc(var(--space-4) + var(--space-2));
   color: var(--color-text-secondary);
-}
-
-.checklist-hint {
-  flex: 1 1 auto;
 }
 
 .checklist-response {
@@ -331,18 +341,40 @@
   border-radius: var(--radius-md);
 }
 
+.checklist-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-target);
+}
+
+.checklist-action :is(.button-primary, .button-secondary) {
+  min-height: var(--size-target);
+  padding: 0 var(--space-4);
+  font-size: var(--text-md);
+}
+
+.checklist-instruction {
+  color: var(--color-text-muted);
+}
+
 .checklist-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
   margin-top: auto;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--color-divider);
 }
 
-.checklist-footer .chrome-button {
+.checklist-restart {
+  flex: none;
+  min-height: var(--size-target);
   margin-inline-start: auto;
+  padding: 0 var(--space-4);
+  font-size: var(--text-md);
 }
 
 .checklist-recall {
@@ -363,7 +395,14 @@
 }
 
 .checklist-footer-count {
-  flex-grow: 1;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
 }
 
@@ -375,28 +414,38 @@
 .checklist-stats {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
   margin: 0;
-  padding: var(--space-4) var(--space-5) 0;
+  padding: var(--space-3) var(--space-5) 0;
 }
 
 .checklist-stat {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: baseline;
-  justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  padding-block: var(--space-1);
+}
+
+.checklist-stat dt {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-text-secondary);
+}
+
+.checklist-stat dt::after {
+  content: '';
+  flex: 1 1 var(--space-4);
+  min-width: var(--space-4);
+  border-block-end: 1px dotted var(--color-text-muted);
 }
 
 .checklist-stat-value {
   flex: none;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-2xl);
-  line-height: var(--leading-2xl);
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
   font-weight: var(--weight-medium);
   white-space: nowrap;
 }
@@ -429,7 +478,7 @@
 }
 
 .checklist-review {
-  padding: var(--space-4) var(--space-3) 0;
+  padding: var(--space-4) 0 0;
 }
 
 .checklist-review-list {
@@ -478,16 +527,13 @@
 .checklist-assisted-list {
   margin: 0;
   padding: 0;
-  overflow: hidden;
   list-style: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-block-start: 1px solid var(--color-divider);
 }
 
 .checklist-flight-table {
   width: 100%;
   border-collapse: collapse;
-  border: 1px solid var(--color-border);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
 }
@@ -539,7 +585,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
+  padding-block: var(--space-3);
 }
 
 .checklist-deviation + .checklist-deviation,
@@ -549,7 +595,6 @@
 
 .checklist-deviation-where,
 .checklist-assisted-number {
-  font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   color: var(--color-text-muted);
