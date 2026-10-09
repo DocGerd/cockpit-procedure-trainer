@@ -34,8 +34,8 @@ lower-case kebab form, for example `m2-core-engine`.
    merge; the `block-main-merge.sh` tripwire denies the usual forms but is not a boundary. The owner merges it; the `Release` workflow then creates tag
    `vX.Y.Z` and the GitHub Release from the top section of `CHANGELOG.md`.
 6. Give the owner the release PR URL and the open questions.
-7. In the next session, after the owner's merge: confirm tag and Release exist
-   and close the milestone. Open a PR `main` to `develop` (branch
-   `chore/backmerge`) only if `git log --max-parents=1 origin/develop..origin/main`
+7. After the owner's merge, in this session or the next: confirm tag and
+   Release exist and close the milestone. Open a PR `main` to `develop` (branch
+   `chore/sync-main-to-develop`) only if `git log --max-parents=1 origin/develop..origin/main`
    prints commits: it excludes the release's own merge commit, so anything left
    is a hotfix.
