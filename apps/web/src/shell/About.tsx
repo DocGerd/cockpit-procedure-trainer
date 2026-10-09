@@ -80,9 +80,6 @@ export function About({ onClose }: { onClose(): void }) {
               ))}
             </article>
           ))}
-          <a className="about-link" href={RELEASES_URL} target="_blank" rel="noreferrer">
-            {text.allReleaseNotes}
-          </a>
         </section>
       </div>
       <div className="about-foot">
@@ -91,6 +88,9 @@ export function About({ onClose }: { onClose(): void }) {
         </p>
         <a className="about-link" href={REPOSITORY_URL} target="_blank" rel="noreferrer">
           {text.sourceCode}
+        </a>
+        <a className="about-link" href={RELEASES_URL} target="_blank" rel="noreferrer">
+          {text.allReleaseNotes}
         </a>
         <button
           ref={close}

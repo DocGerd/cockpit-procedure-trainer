@@ -176,13 +176,11 @@
 }
 
 .about-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-target);
   color: var(--color-accent);
   text-underline-offset: 0.2em;
-}
-
-.about-section > .about-link {
-  display: inline-block;
-  margin-top: var(--space-4);
 }
 
 .about-foot {

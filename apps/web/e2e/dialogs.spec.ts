@@ -105,6 +105,45 @@ test.describe('About', () => {
   });
 });
 
+const smallestText = (dialog: ReturnType<Page['getByRole']>) =>
+  dialog.evaluate((root) => {
+    const sizes = [...root.querySelectorAll('*')]
+      .filter((element) =>
+        [...element.childNodes].some(
+          (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+        ),
+      )
+      .map((element) => parseFloat(getComputedStyle(element).fontSize));
+    return Math.min(...sizes);
+  });
+
+test.describe('dialogs on a 4K screen', () => {
+  test.use({ viewport: { width: 3840, height: 2160 } });
+
+  test('scale the confirm dialog with the rest of the chrome', async ({ page }) => {
+    const dialog = await askToChangeProcedure(page);
+    await expect(dialog).toBeVisible();
+    expect(await smallestText(dialog)).toBeGreaterThanOrEqual(22);
+    const box = await dialog.boundingBox();
+    expect(box?.width).toBeGreaterThan(900);
+    const buttons = await dialog
+      .getByRole('button')
+      .evaluateAll((all) => all.map((button) => button.getBoundingClientRect().top));
+    expect(new Set(buttons).size, 'Cancel and the confirm share a row').toBe(1);
+  });
+
+  test('scale every text in About and keep its links touch-sized', async ({ page }) => {
+    await openPicker(page);
+    await page.getByRole('contentinfo').getByRole('button').click();
+    const dialog = page.getByRole('dialog', { name: about.aboutTitle });
+    await expect(dialog).toBeVisible();
+    expect(await smallestText(dialog)).toBeGreaterThanOrEqual(22);
+    for (const link of await dialog.getByRole('link').all()) {
+      expect((await link.boundingBox())?.height).toBeGreaterThanOrEqual(88);
+    }
+  });
+});
+
 test('Start stays clear of the footer on the tablet picker', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 768 });
   await openPicker(page);
