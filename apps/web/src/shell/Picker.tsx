@@ -171,21 +171,6 @@ function Drills({ mode }: { mode: PickerMode }) {
       )}
       {flight && (
         <div className="picker-drill">
-          <button
-            type="button"
-            className="button-secondary"
-            aria-describedby={flightHint}
-            onClick={() => {
-              trainer.setMode(mode);
-              trainer.startFlight(
-                flightSurprise === ''
-                  ? {}
-                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } },
-              );
-            }}
-          >
-            {text.fullFlight}
-          </button>
           {mode === 'practice' && (
             <div className="picker-surprise">
               {flightPhases.length > 0 && (
@@ -222,6 +207,21 @@ function Drills({ mode }: { mode: PickerMode }) {
               </label>
             </div>
           )}
+          <button
+            type="button"
+            className="button-secondary"
+            aria-describedby={flightHint}
+            onClick={() => {
+              trainer.setMode(mode);
+              trainer.startFlight(
+                flightSurprise === ''
+                  ? {}
+                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } },
+              );
+            }}
+          >
+            {text.fullFlight}
+          </button>
           <p id={flightHint} className="picker-card-text">
             {text.fullFlightHint}
           </p>

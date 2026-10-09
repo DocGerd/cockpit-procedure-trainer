@@ -814,15 +814,32 @@ describe('flight legs', () => {
       expect(session.checklist()?.deviations).toEqual([]);
     });
 
+    const flaps = {
+      type: 'action',
+      control: 'flaps',
+      position: 'takeoff',
+      flow: true,
+      text: { de: 'Klappen', en: 'Flaps' },
+    };
+    const flowing = {
+      ...legs,
+      procedures: {
+        ...legs.procedures,
+        runupFlow: leg('taxiOut', [flaps, ready]),
+        runupLong: leg('taxiOut', [
+          flaps,
+          {
+            type: 'action',
+            control: 'master',
+            position: 'on',
+            text: { de: 'Hauptschalter', en: 'Master' },
+          },
+          ready,
+        ]),
+      },
+    } as Aircraft;
+
     it('counts the items from the leg start, not the ones in place before it', () => {
-      const flaps = { type: 'action', control: 'flaps', position: 'takeoff', flow: true };
-      const flowing = {
-        ...legs,
-        procedures: {
-          ...legs.procedures,
-          runupFlow: leg('taxiOut', [{ ...flaps, text: { de: 'Klappen', en: 'Flaps' } }, ready]),
-        },
-      } as Aircraft;
       const session = createSession(flowing, { phase: 'taxiOut' });
       session.set('flaps', 'takeoff');
       session.startLeg('runupFlow', surprise);
@@ -832,15 +849,26 @@ describe('flight legs', () => {
     });
 
     it('injects it at the latest when the leg is done', () => {
-      const session = createSession(legs, { phase: 'taxiOut' });
-      session.startLeg('runupCheck', { ...surprise, afterItems: 5 });
+      const session = createSession(flowing, { phase: 'taxiOut' });
       session.set('flaps', 'takeoff');
+      session.startLeg('runupFlow', { ...surprise, afterItems: 5 });
       expect(session.failures().size).toBe(0);
       session.advance(STEP_MS);
       session.checkOff();
       expect(session.checklist()).toMatchObject({ done: true, elapsedMs: STEP_MS });
       expect([...session.failures()]).toEqual(['alternatorFailure']);
       expect(session.state().controls.alternatorBreaker).toBe('pulled');
+    });
+
+    it('keeps an item after it when items in place push the count past the leg', () => {
+      const session = createSession(flowing, { phase: 'taxiOut' });
+      session.set('flaps', 'takeoff');
+      session.set('master', 'off');
+      session.startLeg('runupLong', { ...surprise, afterItems: 2 });
+      expect(session.scenario()?.afterItems).toBe(2);
+      session.set('master', 'on');
+      expect([...session.failures()]).toEqual(['alternatorFailure']);
+      expect(session.checklist()?.done).toBe(false);
     });
 
     it('rearms it on a restart before the pilot answers', () => {

@@ -404,10 +404,13 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         markLegStart(id);
         beginChecklist(id);
         if (surprise && checklist && legStart) {
+          const start = checklist.completed.length;
+          // Items in place at the start can push the count past the last item; keep one after it.
+          const lastButOne = Math.max(start + 1, procedure.items.length - 1);
           scenario = {
             phase: legStart.phase,
             failure: surprise.failure,
-            afterItems: checklist.completed.length + surprise.afterItems,
+            afterItems: Math.min(start + surprise.afterItems, lastButOne),
           };
           legStart = { ...legStart, scenario };
         }
