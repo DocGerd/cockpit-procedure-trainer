@@ -5,6 +5,7 @@ import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
 import type { CtslProcedures } from '../types';
+import { field } from './avionics';
 
 // Values: docs/aircraft/ctsl-intake.md §4.2, §4.3 and §6.
 const RUNUP_RPM = 4000;
@@ -349,6 +350,13 @@ export const normalProcedures = {
         position: 'on',
         text: text('Avionik ein', 'Avionics Master on'),
       },
+      // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
+      {
+        type: 'action',
+        control: 'intercom',
+        position: 'on',
+        text: text('Intercom ein', 'Intercom on'),
+      },
       {
         type: 'action',
         control: 'flapSelector',
@@ -414,6 +422,13 @@ export const normalProcedures = {
         condition: (state: State) =>
           state.devices.xpdr?.on === true && state.controls['xpdr.mode'] === 'sby',
         text: text('Transponder ein, Standby', 'Transponder on, standby'),
+      },
+      // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
+      {
+        type: 'action',
+        control: 'gps.power',
+        position: 'pressed',
+        text: text('GPS ein', 'GPS on'),
       },
       {
         type: 'action',
@@ -528,6 +543,12 @@ export const normalProcedures = {
         text: text('Trimmrad neutral', 'Trim neutral'),
       },
       confirm('Funkgerät eingestellt', 'Radio set'),
+      {
+        type: 'check',
+        target: { control: 'gps.power' },
+        condition: (state: State) => field(state, 'gps', 'fix') === true,
+        text: text('GPS hat eine Position (3D FIX)', 'GPS has a position fix (3D FIX)'),
+      },
       {
         type: 'guard',
         control: 'rescueHandle',

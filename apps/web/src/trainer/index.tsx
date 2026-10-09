@@ -1,5 +1,5 @@
 import { createSession, flightLegs, procedureOf, STEP_MS } from '@cpt/core';
-import type { Aircraft, Session } from '@cpt/core';
+import type { Aircraft, LegSurprise, Session } from '@cpt/core';
 import {
   createContext,
   useContext,
@@ -15,7 +15,8 @@ import { deviceRegistry } from '../device-registry';
 import { format, useMessages } from '../i18n';
 import { readSetting, recordRun, writeSetting } from '../storage';
 import { messages } from './messages';
-import { pickSurprise } from './scenarios';
+import { pickFlightSurprise, pickSurprise } from './scenarios';
+import type { FlightSurprise } from './scenarios';
 
 export type Mode = 'guided' | 'practice' | 'explore';
 export type TrainerScreen = 'picker' | 'trainer';
@@ -26,6 +27,13 @@ export type LegResult = {
   /** Retries and Show me assists together, as the leg's debrief counts them. */
   readonly assists: number;
   readonly elapsedMs: number;
+  /** The pilot left the leg for the checklist of a surprise failure before it was done. */
+  readonly interrupted?: boolean;
+};
+
+export type FlightOptions = {
+  /** A surprise failure in the phase given, or in a random one when the phase is left out. */
+  readonly surprise?: { readonly phase?: string };
 };
 
 /** A full flight: the aircraft's normal procedures in order, each leg from the cockpit the last left. */
@@ -33,6 +41,11 @@ export type Flight = {
   readonly legs: readonly string[];
   /** One per finished leg the pilot has moved on from; the running leg is the next. */
   readonly results: readonly LegResult[];
+  /**
+   * Armed in its leg. The checklist the pilot takes for it becomes the last leg, after the one
+   * it interrupted.
+   */
+  readonly surprise?: FlightSurprise & { readonly randomPhase: boolean };
 };
 
 export type Trainer = {
@@ -52,7 +65,7 @@ export type Trainer = {
   takeChecklist(id: string): void;
   /** The full flight in progress. */
   flight: Flight | undefined;
-  startFlight(): void;
+  startFlight(options?: FlightOptions): void;
   /** Moves a full flight on to its next leg once the current one is done. */
   nextLeg(): void;
   /**
@@ -122,13 +135,39 @@ function startSurprise(aircraft: Aircraft, session: Session, phase: string): Par
   };
 }
 
+const legSurprise = (flight: Flight, leg: string): LegSurprise | undefined =>
+  flight.surprise?.leg === leg
+    ? { failure: flight.surprise.failure, afterItems: flight.surprise.afterItems }
+    : undefined;
+
+const flightOptions = (flight: Flight): FlightOptions =>
+  flight.surprise === undefined
+    ? {}
+    : { surprise: flight.surprise.randomPhase ? {} : { phase: flight.surprise.phase } };
+
 /** Starts the first leg of a full flight on the session and returns the trainer state for it. */
-function startFlight(aircraft: Aircraft, session: Session): Partial<TrainerState> {
+function startFlight(
+  aircraft: Aircraft,
+  session: Session,
+  options: FlightOptions = {},
+): Partial<TrainerState> {
   const legs = flightLegs(aircraft);
   const first = legs[0];
   if (first === undefined) return {};
+  const chosen = options.surprise;
+  const flight: Flight =
+    chosen === undefined
+      ? { legs, results: [] }
+      : {
+          legs,
+          results: [],
+          surprise: {
+            ...pickFlightSurprise(aircraft, chosen.phase),
+            randomPhase: chosen.phase === undefined,
+          },
+        };
   session.jumpToPhase(procedureOf(aircraft, first).startPhase);
-  session.startLeg(first);
+  session.startLeg(first, legSurprise(flight, first));
   return {
     screen: 'trainer',
     guidedFrom: 0,
@@ -136,7 +175,7 @@ function startFlight(aircraft: Aircraft, session: Session): Partial<TrainerState
     lastProcedureId: first,
     viewed: undefined,
     surprisePhase: undefined,
-    flight: { legs, results: [] },
+    flight,
   };
 }
 
@@ -245,17 +284,44 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         update(startSurprise(current.current.aircraft, current.current.session, phase));
       },
       takeChecklist(id) {
-        current.current.session.takeChecklist(id);
+        const { session, flight, assisted } = current.current;
+        const leg = session.checklist();
+        const legId = session.procedureId();
+        const answering =
+          flight?.surprise !== undefined &&
+          session.scenario()?.chosen === undefined &&
+          leg !== undefined &&
+          legId !== undefined;
+        session.takeChecklist(id);
+        const scenario = session.scenario();
         update({
           guidedFrom: 0,
           assisted: [],
           lastProcedureId: id,
           viewed: undefined,
-          flight: undefined,
+          flight:
+            answering && scenario
+              ? {
+                  ...flight,
+                  legs: [...flight.legs.slice(0, flight.results.length + 1), id],
+                  results: [
+                    ...flight.results,
+                    {
+                      id: legId,
+                      deviations: leg.deviations.length,
+                      assists: leg.assists + assisted.length,
+                      elapsedMs: leg.done
+                        ? leg.elapsedMs
+                        : (scenario.injectedAtMs ?? 0) + (scenario.recognitionMs ?? 0),
+                      ...(leg.done ? {} : { interrupted: true }),
+                    },
+                  ],
+                }
+              : undefined,
         });
       },
-      startFlight() {
-        update(startFlight(current.current.aircraft, current.current.session));
+      startFlight(options) {
+        update(startFlight(current.current.aircraft, current.current.session, options));
       },
       nextLeg() {
         const { session, flight, assisted } = current.current;
@@ -263,13 +329,15 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         const id = session.procedureId();
         const next = flight?.legs[flight.results.length + 1];
         if (!flight || !checklist?.done || id === undefined || next === undefined) return;
+        // A failure that came in this leg waits for its checklist; the flight goes no further.
+        if (session.scenario()?.injectedAtMs !== undefined) return;
         const result: LegResult = {
           id,
           deviations: checklist.deviations.length,
           assists: checklist.assists + assisted.length,
           elapsedMs: checklist.elapsedMs,
         };
-        session.startLeg(next);
+        session.startLeg(next, legSurprise(flight, next));
         update({
           guidedFrom: 0,
           assisted: [],
@@ -333,7 +401,7 @@ export function TrainerProvider({ children }: { children: ReactNode }) {
         const running = old.procedureId();
         const fresh = newSession(aircraft, running === undefined ? old.phase() : undefined);
         if (flight !== undefined) {
-          update({ ...startFlight(aircraft, fresh), session: fresh });
+          update({ ...startFlight(aircraft, fresh, flightOptions(flight)), session: fresh });
         } else if (surprisePhase !== undefined) {
           update({ ...startSurprise(aircraft, fresh, surprisePhase), session: fresh });
         } else if (running === undefined) {
