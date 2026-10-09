@@ -87,8 +87,8 @@ const releaseParkingBrake = [
 ] as const;
 
 // Assumed (unverified), intake §9 question 30: the panel scans that open a procedure as a flow,
-// top to bottom on the centre field, then down the console's lever stack and across to carb heat.
-// The checklist items after them verify them.
+// top to bottom on the centre field, then across the console from the pilot's side and on to carb
+// heat. The checklist items after them verify them.
 const flow = <C extends keyof typeof controls>(
   control: C,
   position: PositionOf<(typeof controls)[C]>,
@@ -394,8 +394,8 @@ export const normalProcedures = {
     startPhase: 'holding',
     items: [
       flow('flapSelector', '15', 'Klappen 15°', 'Flaps 15°'),
-      flow('choke', 'off', 'Choke zurück', 'Choke off'),
       flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
+      flow('choke', 'off', 'Choke zurück', 'Choke off'),
       flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
