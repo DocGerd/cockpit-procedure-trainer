@@ -30,8 +30,10 @@ Rationale: [ADR-0001](adr/0001-architecture-and-aircraft-contract.md).
 ## Data flow
 
 1. The pilot operates a control; the control store records the new position, or
-   refuses the move when an interlock holds it (result `locked`): the position
-   stays, a notice names both controls, and no deviation is recorded.
+   refuses the move when an interlock holds it or the control reaches that
+   position only from others (`onlyFrom`; result `locked`): the position stays,
+   a notice names both controls and rings the holding control on the panel when
+   another control holds it, and no deviation is recorded.
 2. The systems runtime steps and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine only observes control changes and state, completes

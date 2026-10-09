@@ -59,9 +59,7 @@ export const images = {
   leverCarbFace: new URL('./assets/artwork/lever-carb-face.svg', import.meta.url).href,
   handleCarb: new URL('./assets/artwork/handle-carb.svg', import.meta.url).href,
   trimWheelFace: new URL('./assets/artwork/trim-wheel-face.svg', import.meta.url).href,
-  trimWheelNoseDown: new URL('./assets/artwork/trim-wheel-nose-down.svg', import.meta.url).href,
-  trimWheelNeutral: new URL('./assets/artwork/trim-wheel-neutral.svg', import.meta.url).href,
-  trimWheelNoseUp: new URL('./assets/artwork/trim-wheel-nose-up.svg', import.meta.url).href,
+  trimPointer: new URL('./assets/artwork/trim-pointer.svg', import.meta.url).href,
   flapSelectorFace: new URL('./assets/artwork/flap-selector-face.svg', import.meta.url).href,
   flapKnob0: new URL('./assets/artwork/flap-knob-0.svg', import.meta.url).href,
   flapKnob1: new URL('./assets/artwork/flap-knob-1.svg', import.meta.url).href,
@@ -243,12 +241,11 @@ const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
 });
-// The console is drawn as the left seat sees its flank: forward is to the left, so a lever pushed
-// forward slides left and one pulled toward the pilot slides right.
-const pullSlide = [
-  { x: 232, y: 76 },
-  { x: 392, y: 76 },
-] as const;
+// The console is drawn from above with forward up: a lever pushed forward slides up its slot and
+// one pulled toward the pilot slides down.
+const forwardEnd = { x: 56, y: 70 } as const;
+const aftEnd = { x: 56, y: 260 } as const;
+const pullSlide = [forwardEnd, aftEnd] as const;
 
 export const controlArtwork = {
   comBreaker: breaker(images.breakerCom, 'COM'),
@@ -353,36 +350,28 @@ export const controlArtwork = {
     'ON',
   ),
   throttle: lettered(
-    travel(images.leverThrottleFace, images.handleThrottle, [
-      { x: 712, y: 76 },
-      { x: 232, y: 76 },
-    ]),
+    travel(images.leverThrottleFace, images.handleThrottle, [aftEnd, forwardEnd]),
     'THROTTLE',
     'FULL',
-    'CRUISE',
-    'RUN-UP',
-    'LOW',
     'IDLE',
   ),
   carbHeat: lettered(
     travel(images.leverCarbFace, images.handleCarb, [
-      { x: 75, y: 95 },
-      { x: 75, y: 235 },
+      { x: 75, y: 107 },
+      { x: 75, y: 227 },
     ]),
     'CARB HEAT',
     'OFF',
     'ON',
   ),
   trim: lettered(
-    positions(images.trimWheelFace, {
-      'nose-down': images.trimWheelNoseDown,
-      neutral: images.trimWheelNeutral,
-      'nose-up': images.trimWheelNoseUp,
-    }),
+    travel(images.trimWheelFace, images.trimPointer, [
+      { x: 104, y: 70 },
+      { x: 104, y: 260 },
+    ]),
     'TRIM',
-    'NOSE DN',
-    'NEUTRAL',
-    'NOSE UP',
+    'DOWN',
+    'UP',
   ),
   rescueHandle: lettered(
     {

@@ -12,6 +12,7 @@ const notice = messages.en.lockedNotice
 const key = (page: Page) => page.locator('[data-placement="ignition"] [role="slider"]');
 const valve = (page: Page) => page.locator('[data-placement="fuelValve"] button');
 const status = (page: Page) => page.getByRole('status').filter({ hasText: /locked by/ });
+const lockRing = (page: Page) => page.locator('[data-outline="lock"]');
 
 async function tap(page: Page, placement: string, x: number, y: number) {
   const box = await page.locator(`[data-placement="${placement}"]`).boundingBox();
@@ -50,12 +51,19 @@ test('the CTSL fuel valve lets the key in only open and out only closed, and hol
   await expect(status(page)).toHaveText(notice);
   await expect(key(page)).toHaveAttribute('aria-valuetext', 'out');
   await expect(checklistPane(page).getByText(copy.checklist.noDeviations)).toBeVisible();
+  await expect(lockRing(page)).toHaveCount(1);
+  const ring = await lockRing(page).boundingBox();
+  const holder = await page.locator('[data-placement="fuelValve"]').boundingBox();
+  if (!ring || !holder) throw new Error('no lock ring over the fuel valve');
+  for (const side of ['x', 'y', 'width', 'height'] as const)
+    expect(ring[side]).toBeCloseTo(holder[side], 0);
 
   const topThird = [0.2, 0.35, 0.5, 0.65, 0.8];
   expect(await ownerAt(page, 'ignition', 0.5, 0.15)).toBe('fuelValve');
 
   await tapValve(page);
   await expect(valve(page)).toHaveAttribute('aria-label', /: open$/i);
+  await expect(lockRing(page)).toHaveCount(0);
   for (const x of topThird) expect(await ownerAt(page, 'ignition', x, 0.15)).toBe('ignition');
 
   for (const stop of ['off', 'left', 'right', 'both']) {

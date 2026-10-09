@@ -110,6 +110,7 @@
   --panel-lamp-glow-green: #c4f5cf;
   --panel-lamp-glow-blue: #cfe3ff;
   --panel-lamp-glow-white: #ffffff;
+  --panel-blink-period: 1s;
 }
 
 /* Chrome around the panel doubles on 4K screens; the panel scales itself. */
@@ -118,6 +119,7 @@
   .picker,
   .shell-outside-view,
   .shell-checklist,
+  .dock-hint,
   .app-footer {
     --text-2xs: 22px;
     --leading-2xs: 28px;

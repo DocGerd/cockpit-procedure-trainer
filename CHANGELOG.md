@@ -8,6 +8,36 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.15.0] - 2026-10-09
+
+### Added
+
+- Refusing an interlocked move now rings the control that holds it on the panel, so the CT Supralight ignition key points straight at its fuel valve.
+- A Practice full flight can now carry an unannounced surprise failure in a chosen or random phase and start with Hide upcoming items; the checklist taken for the failure becomes the last leg in the flight summary.
+- The CT Supralight flap position readout now blinks while the flaps travel, holds steady once they reach the selected setting, and keeps blinking while airspeed holds an extension off.
+
+### Changed
+
+- A surprise failure now opens with the checklist selector on "Choose a checklist" and no procedure shown, so no unrelated normal checklist can prime the pilot before they pick one.
+- In Practice, the CT Supralight normal checklists now name only what to read on a check, such as "Flap readout", and show the expected value once the item is ticked, while Guided shows both; the flap, oil, cylinder head and rpm checks also take the value the pilot reads.
+- During a surprise failure, "Run this checklist" now appears for every procedure in the viewer, so a pilot can take a normal checklist and the debrief reports it as not the checklist for the failure.
+- The demo aircraft's shutdown checklist now opens with the action "Throttle idle", so the whole demo flight can be flown leg after leg.
+- The CT Supralight centre console has a more realistic finish, though not yet up to the instrument panel's: bevelled cover plates and machined lever and trim slot bezels, shadows under the raised handles and the large knob that grow with their height, knurled and turned lever caps, a matte ribbed knob, engraved title plates and legend strips on every console control, and cover plates over the bare lower-right area.
+
+### Fixed
+
+- On 4K screens the device dock hint and the outside-view phase badge now scale with the rest of the app chrome.
+- In Guided, the CT Supralight engine fire's first check, smoke or flames from the engine, no longer rings the fuel valve and ignition key of the next item, and its hint asks the pilot to look for it rather than read the panel.
+- The picker's Best result now counts only Practice runs and is labelled Best in Practice, so a Guided run with the next control highlighted no longer stands as a procedure's best.
+- In a CT Supralight full flight the GPS and the intercom now come on as the pilot switches them: Engine start switches the intercom on, and Before take-off switches the GPS on and checks its position fix, so both are on at line-up as when the phase is picked directly.
+- The CT Supralight rescue safety pin now moves with the checklist: Before take-off has the pilot pull it and Shutdown and securing has the pilot put it back, so the panel shows it out through a whole flight and in again after shutdown; aircraft authors get a new guard item kind for this.
+- The CT Supralight ignition key now comes out only from OFF, never straight from L, R, BOTH or START.
+- Deviation cues now name a radio, transponder or GPS key or knob in words, such as "pressed" or "turned up", instead of a word the unit never prints, and a test holds every device position to the wording its screen shows.
+- The CT Supralight throttle placard now prints only FULL and IDLE, as the aircraft does; cues name the low, run-up and cruise stops in words.
+- The CT Supralight trim placard now prints DOWN forward and UP aft with no neutral mark, as the aircraft does; cues name neutral trim in words.
+- The CT Supralight centre console is now drawn from above with forward up, its trim wheel, choke, throttle and brake side by side and each sliding fore and aft beside its legend strip, the throttle with a detent tick at every stop, the parking-brake valve aft of them and the provisional carb heat moved outboard; the before-take-off flow now lists trim before choke, as the console is scanned from the pilot's side.
+- The CT Supralight rescue handle now sits low at the aft end of the centre console between the seats, where the console takes over the space of the former main-bulkhead view, and it pulls forward to the stop with the safety pin through its release lever; its description and the rescue-system checklist say to pull it forward, hard, to the stop, and the large knob is drawn aft of the parking-brake valve.
+
 ## [0.14.0] - 2026-10-08
 
 ### Added
@@ -290,7 +320,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...v0.14.0
 [0.12.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.11.0...v0.11.1

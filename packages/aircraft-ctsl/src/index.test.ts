@@ -3,7 +3,6 @@ import type { ControlDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
 import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
-import viewBulkhead from './assets/view-bulkhead.svg?raw';
 import viewCentre from './assets/view-centre.svg?raw';
 import viewConsole from './assets/view-console.svg?raw';
 import viewPanel from './assets/view-panel.svg?raw';
@@ -16,7 +15,7 @@ import { emergencyProcedures } from './procedures/emergency';
 import { normalProcedures } from './procedures/normal';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
-import { deviceSlots } from './views';
+import { deviceSlots, views } from './views';
 
 type Expected = {
   readonly kind: ControlDefinition['kind'];
@@ -96,7 +95,7 @@ const expectedControls: Record<string, Expected> = {
     kind: 'guarded',
     positions: ['stowed', 'pulled'],
     initial: 'stowed',
-    view: 'bulkhead',
+    view: 'console',
   },
 };
 
@@ -189,6 +188,14 @@ describe('CTSL aircraft', () => {
     });
   });
 
+  it('describes the rescue pull forward, hard, to the stop, the pin through the release lever', () => {
+    const description = ctslAircraft.controls.rescueHandle?.description;
+    expect(description?.en).toMatch(/forward, hard, to the stop/);
+    expect(description?.en).toMatch(/release lever/);
+    expect(description?.de).toMatch(/nach vorn, kräftig, bis zum Anschlag/);
+    expect(description?.de).toMatch(/Auslösehebel/);
+  });
+
   it('marks carb heat as provisional', () => {
     expect(ctslAircraft.controls.carbHeat?.description.en).toMatch(/provisional/i);
     expect(ctslAircraft.controls.carbHeat?.description.de).toMatch(/vorläufig/i);
@@ -212,7 +219,7 @@ describe('CTSL aircraft', () => {
   );
 
   it('has the views of the panel inventory', () => {
-    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console', 'bulkhead']);
+    expect(Object.keys(ctslAircraft.views)).toEqual(['panel', 'centre', 'console']);
   });
 
   it.each(Object.entries(deviceSlots))(
@@ -234,12 +241,7 @@ describe('CTSL aircraft', () => {
   });
 
   it('arranges its views and a dock, with the panel floor at 950', () => {
-    expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual([
-      'panel',
-      'centre',
-      'console',
-      'bulkhead',
-    ]);
+    expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual(['panel', 'centre', 'console']);
     expect(ctslAircraft.cockpit?.dock).toBeDefined();
     expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBeGreaterThanOrEqual(950);
   });
@@ -247,9 +249,9 @@ describe('CTSL aircraft', () => {
   describe('cockpit arrangement (intake §3)', () => {
     const cockpit = ctslAircraft.cockpit;
     const panelSize = ctslAircraft.views.panel?.size;
-    const { panel, centre, console: consoleCell, bulkhead } = cockpit?.views ?? {};
+    const { panel, centre, console: consoleCell } = cockpit?.views ?? {};
     const dock = cockpit?.dock;
-    if (!panelSize || !panel || !centre || !consoleCell || !bulkhead || !dock) {
+    if (!panelSize || !panel || !centre || !consoleCell || !dock) {
       throw new Error('the CTSL declares no panel size or misses a cockpit cell');
     }
     const right = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w;
@@ -286,11 +288,8 @@ describe('CTSL aircraft', () => {
       expect(consoleCell.rect.y).toBeLessThan(bottom(centre));
     });
 
-    it('puts the bulkhead behind the console, in its column', () => {
-      expect(bulkhead.rect.y).toBeGreaterThanOrEqual(bottom(consoleCell));
-      expect(bulkhead.rect.x).toBe(consoleCell.rect.x);
-      expect(right(bulkhead)).toBe(right(consoleCell));
-      expect(bottom(bulkhead)).toBeLessThanOrEqual(cockpit?.size.height ?? 0);
+    it('runs the console down to the bulkhead at the bottom of the cockpit', () => {
+      expect(bottom(consoleCell)).toBe(cockpit?.size.height);
     });
 
     it('keeps the dock below the panel, clear of the centre column', () => {
@@ -370,24 +369,22 @@ describe('CTSL aircraft', () => {
     });
   });
 
-  describe('centre console and bulkhead (intake §3.4)', () => {
+  describe('centre console (intake §3.4)', () => {
     // The web app's --size-target token; each cell renders at least its floor wide.
     const TOUCH_TARGET_PX = 44;
     // The guard's share of an open guarded placement, the handle taking the rest (panel-kit artwork.css).
     const OPEN_GUARD_SHARE = 0.4;
-    const placedIn = (viewId: 'console' | 'bulkhead') => {
-      const view = ctslAircraft.views[viewId];
-      const floor = ctslAircraft.cockpit?.views[viewId]?.minWidth;
-      if (!view?.controls || !view.size || !floor) throw new Error(`the CTSL has no ${viewId}`);
-      const rects = Object.fromEntries(
+    const view = ctslAircraft.views.console;
+    const floor = ctslAircraft.cockpit?.views.console?.minWidth;
+    if (!view?.controls || !view.size || !floor) throw new Error('the CTSL has no console');
+    const consoleView = {
+      rects: Object.fromEntries(
         Object.entries(view.controls).flatMap(([id, placement]) =>
           placement ? [[id, placement.rect] as const] : [],
         ),
-      );
-      return { rects, scale: floor / view.size.width };
+      ),
+      scale: floor / view.size.width,
     };
-    const consoleView = placedIn('console');
-    const bulkheadView = placedIn('bulkhead');
     const rectOf = (id: string) => {
       const rect = consoleView.rects[id];
       if (!rect) throw new Error(`the console does not place ${id}`);
@@ -396,8 +393,8 @@ describe('CTSL aircraft', () => {
     const right = (id: string) => rectOf(id).x + rectOf(id).w;
     const bottom = (id: string) => rectOf(id).y + rectOf(id).h;
 
-    const targets = [consoleView, bulkheadView].flatMap(({ rects, scale }) =>
-      Object.entries(rects).map(([id, rect]) => [id, Math.min(rect.w, rect.h) * scale] as const),
+    const targets = Object.entries(consoleView.rects).map(
+      ([id, rect]) => [id, Math.min(rect.w, rect.h) * consoleView.scale] as const,
     );
 
     it.each(targets)('draws %s at least the touch target at the floor', (_id, size) => {
@@ -405,31 +402,70 @@ describe('CTSL aircraft', () => {
     });
 
     it('opens the safety pin and the rescue handle each at least the touch target at the floor', () => {
-      const rescue = bulkheadView.rects.rescueHandle;
-      expect(rescue, 'the bulkhead places the rescue handle').toBeDefined();
-      const height = (rescue?.h ?? 0) * bulkheadView.scale;
+      const height = rectOf('rescueHandle').h * consoleView.scale;
       expect(height * OPEN_GUARD_SHARE, 'safety pin').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
       expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
-    it('carries the rescue handle on the bulkhead, not on the console', () => {
-      expect(Object.keys(consoleView.rects)).not.toContain('rescueHandle');
-      expect(Object.keys(bulkheadView.rects)).toEqual(['rescueHandle']);
+    it('puts the rescue handle low at the aft end, between the seats, inboard of the valve (§9 q26)', () => {
+      const rescue = rectOf('rescueHandle');
+      const valve = rectOf('parkingBrakeValve');
+      expect(rescue.y, 'aft of the valve row').toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
+      expect(right('rescueHandle'), 'inboard of the valve').toBeLessThanOrEqual(valve.x);
+      expect(bottom('rescueHandle'), 'inside the console edge').toBeLessThanOrEqual(
+        views.console.size.height,
+      );
+      const middle = rescue.x + rescue.w / 2;
+      expect(middle, 'between the seats').toBeGreaterThan(views.console.size.width / 3);
+      expect(middle, 'between the seats').toBeLessThan((2 * views.console.size.width) / 3);
     });
 
-    it('stacks BRAKE, THROTTLE and CHOKE top to bottom in one column', () => {
-      expect(bottom('brake')).toBeLessThanOrEqual(rectOf('throttle').y);
-      expect(bottom('throttle')).toBeLessThanOrEqual(rectOf('choke').y);
-      expect(rectOf('throttle').x).toBe(rectOf('brake').x);
-      expect(rectOf('choke').x).toBe(rectOf('brake').x);
+    // A top view, forward up, the pilot's seat on the left.
+    const leverRow = ['trim', 'choke', 'throttle', 'brake'] as const;
+
+    it('lays trim, choke, throttle and brake side by side from the pilot outward (§9 q31)', () => {
+      leverRow.slice(1).forEach((id, index) => {
+        const inboard = leverRow[index] ?? '';
+        expect(rectOf(id).x, `${id} right of ${inboard}`).toBeGreaterThanOrEqual(right(inboard));
+        expect(rectOf(id).y, `${id} level with ${inboard}`).toBe(rectOf(inboard).y);
+      });
     });
 
-    it('puts the trim wheel below the choke and the parking-brake valve right of the levers', () => {
-      expect(rectOf('trim').y).toBeGreaterThanOrEqual(bottom('choke'));
-      expect(rectOf('trim').x).toBeLessThan(right('choke'));
-      expect(right('trim')).toBeGreaterThan(rectOf('choke').x);
-      const levers = Math.max(right('brake'), right('throttle'), right('choke'));
-      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(levers);
+    it.each(leverRow)('gives %s a fore-and-aft slot, taller than wide', (id) => {
+      expect(rectOf(id).h).toBeGreaterThan(rectOf(id).w);
+    });
+
+    it('puts the parking-brake valve aft of the lever group, lower in the top view', () => {
+      const levers = Math.max(...leverRow.map(bottom));
+      expect(rectOf('parkingBrakeValve').y).toBeGreaterThanOrEqual(levers);
+    });
+
+    it('keeps the provisional carb heat outboard of the lever row (§9 q3)', () => {
+      expect(rectOf('carbHeat').x).toBeGreaterThan(right('brake'));
+    });
+
+    it('draws the large knob aft of the valve as unlabelled artwork, not a control (§9 q10)', () => {
+      const knob = /<circle\b[^>]*data-knob=""[^>]*>/.exec(viewConsole)?.[0] ?? '';
+      const at = (name: string) => Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(knob)?.[1]);
+      expect(at('r')).toBeGreaterThan(0);
+      expect(at('cy') - at('r')).toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
+      expect(at('cx')).toBeGreaterThan(rectOf('parkingBrakeValve').x);
+      expect(at('cx')).toBeLessThan(right('parkingBrakeValve'));
+      expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
+        views.console.size.height - 8,
+      );
+      expect(viewConsole).not.toMatch(/<text\b/);
+      expect(Object.keys(consoleView.rects).sort()).toEqual(
+        [
+          'brake',
+          'carbHeat',
+          'choke',
+          'parkingBrakeValve',
+          'rescueHandle',
+          'throttle',
+          'trim',
+        ].sort(),
+      );
     });
   });
 
@@ -563,6 +599,7 @@ describe('CTSL aircraft', () => {
   it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
     const state: CtslTrainerState = {
       controls: ctslAircraft.phases[id]?.entry.controls ?? {},
+      guards: {},
       systems: entryState(id),
       devices: {},
     };
@@ -575,7 +612,7 @@ describe('CTSL aircraft', () => {
     [{ mainPowered: false, avionicsPowered: false, charging: false }, false],
   ])('lights the charge lamp only on a powered bus that is not charging: %o', (bus, lit) => {
     const systems = { ...entryState('parking'), bus };
-    expect(chargeLampLit({ controls: {}, systems, devices: {} })).toBe(lit);
+    expect(chargeLampLit({ controls: {}, guards: {}, systems, devices: {} })).toBe(lit);
   });
 
   it.each([
@@ -794,7 +831,6 @@ describe('declared view sizes', () => {
     panel: viewPanel,
     centre: viewCentre,
     console: viewConsole,
-    bulkhead: viewBulkhead,
   };
 
   it.each(Object.keys(sources))('view %s matches the viewBox of its image', (id) => {

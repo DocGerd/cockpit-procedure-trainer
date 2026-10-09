@@ -89,6 +89,10 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
+A `rotary` may also declare `onlyFrom: { position: [sources] }`: the pilot
+reaches that position only from one of the sources, as the CTSL's key comes out
+only at OFF (`onlyFrom: { out: ['off'] }`); any other pilot move to it is
+refused (result `locked`).
 
 Any control may declare `interlock: [{ control, at, holds }, ...]`: while the
 other control stands at `at`, the pilot cannot move this one from a position in
@@ -102,8 +106,11 @@ failures move freely. The other control must be a different one.
 ### Indicators
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
-from the trainer state, `{ controls, systems, devices }`, and returns a number,
-boolean or string; indicators hold no state. `appearance` is required.
+from the trainer state, `{ controls, guards, systems, devices }`, and returns a number,
+boolean or string; indicators hold no state. `appearance` is required. An
+optional `blink` condition makes a widget that can blink (the digital readout)
+blink its value while it holds, as the CT Supralight flap readout does while the
+flaps travel; the period is `--panel-blink-period`.
 
 ### Systems
 
@@ -238,9 +245,25 @@ of:
   completes just because the control already held. The demo holds the `starter` at
   `'held'` until the engine runs.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
-  state. The pilot ticks it; ticking while the condition is false is recorded as
-  an `unmet-check` deviation, not refused.
+  state. Leave the `target` out when there is nothing to read on the panel, such
+  as smoke seen outside: Guided then rings nothing, rather than a control of a
+  later item, and the check takes no `response`. The pilot ticks it; ticking
+  while the condition is false is recorded as an `unmet-check` deviation, not
+  refused. An optional `expected` (`Text`) names what the pilot should find, so
+  `text` states the challenge only ("Flap readout", expected "15°"): Guided
+  shows both, Practice keeps the value back until the item is ticked. An
+  optional `response: { reading, tolerance, unit }` lets the pilot enter the
+  value read in Practice; a reading off by more than `tolerance` is an
+  `unmet-check`.
 - `confirm`: no target, a visual or verbal check the pilot ticks.
+- `guard`: a guarded `control` and the guard `position`, `'open'` or `'closed'`,
+  such as a safety pin pulled before take-off. It completes like an action: when
+  the pilot moves the guard to the position while the item is current, or ticks it
+  verified. Moving a guard is never a deviation, and a guard item cannot be in a
+  flow. The CTSL pulls its rescue safety pin this way. The item's hint and a guard
+  left wrong use the guard's own words when it declares
+  `guard.legends: { open, closed }`, each `{ state, act }` ("removed", "Remove the
+  safety pin"); without them they say open and closed.
 
 Input is never blocked: operating a control other than the current item's is
 recorded as an `unexpected-control` deviation.
@@ -416,13 +439,15 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
-the control for an action, advances until a check's condition holds, and ticks a
-confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
+the control for an action, moves the guard for a guard item, advances until a
+check's condition holds, and ticks a confirm. It returns `{ ok: true }` or `{ ok: false, aircraft, procedure,
 itemIndex, item, reason }`, so a procedure that cannot be completed as written
 points at its item. It does a flow in the listed order, or in reverse with
 `flowOrder: 'reversed'`. It also fails a spring-back press unless the control rests at the
 position it springs back to, so a procedure must set that position first. `apps/web`
-runs it for every procedure of every registered aircraft.
+runs it for every procedure of every registered aircraft. `afterChecklist(session, id)`,
+called once a checklist completes without a deviation, lets a test read the cockpit a
+procedure or flight leg leaves behind.
 
 Put your own tests in `src/index.test.ts`, as the demo does:
 

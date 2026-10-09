@@ -5,6 +5,7 @@ import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
 import type { CtslProcedures } from '../types';
+import { field } from './avionics';
 
 // Values: docs/aircraft/ctsl-intake.md §4.2, §4.3 and §6.
 const RUNUP_RPM = 4000;
@@ -18,6 +19,12 @@ const OIL_TEMP_GREEN_C = [90, 110] as const;
 const OIL_TEMP_RED_LINE_C = 130;
 const MIN_TAKEOFF_OIL_TEMP_C = 51;
 const CHT_GREEN_C = [50, 120] as const;
+
+// The trainer's own: about what a pilot reads off each scale.
+const RPM_READING_TOLERANCE = 100;
+const PRESSURE_READING_TOLERANCE_BAR = 0.5;
+const TEMPERATURE_READING_TOLERANCE_C = 5;
+const FLAP_READING_TOLERANCE = 0.5;
 
 type State = CtslTrainerState;
 
@@ -34,14 +41,48 @@ const circuitDropWithinLimit = (state: State) =>
 
 const confirm = (de: string, en: string) => ({ type: 'confirm', text: text(de, en) }) as const;
 
+const rpmReading = {
+  reading: (state: State) => state.systems.rpm,
+  tolerance: RPM_READING_TOLERANCE,
+  unit: text('U/min', 'rpm'),
+} as const;
+
+const oilPressureReading = {
+  reading: (state: State) => state.systems.oilPressureBar,
+  tolerance: PRESSURE_READING_TOLERANCE_BAR,
+  unit: text('bar', 'bar'),
+} as const;
+
+const temperatureReading = (reading: (state: State) => number) =>
+  ({ reading, tolerance: TEMPERATURE_READING_TOLERANCE_C, unit: text('°C', '°C') }) as const;
+
+const oilTempReading = temperatureReading((state) => state.systems.oilTempC);
+
+const flapCheck = (angle: number) => {
+  const shown = `${angle < 0 ? '−' : ''}${Math.abs(angle)}°`;
+  return {
+    type: 'check',
+    target: { indicator: 'flapReadout' },
+    condition: flapsAt(angle),
+    response: {
+      reading: (state: State) => state.systems.flaps.angle,
+      tolerance: FLAP_READING_TOLERANCE,
+      unit: text('°', '°'),
+    },
+    text: text('Klappenanzeige', 'Flap readout'),
+    expected: text(shown, shown),
+  } as const;
+};
+
 // Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
 const checkRunwayHeading = {
   type: 'check',
   target: { indicator: 'compass' },
   condition: (state: State) => state.systems.headingDeg === runway.headingDeg,
-  text: text(
-    `Kompass zeigt ${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator} (Ergänzung des Trainers)`,
-    `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`,
+  text: text('Kompass (Ergänzung des Trainers)', 'Compass (trainer addition)'),
+  expected: text(
+    `${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator}`,
+    `${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`,
   ),
 } as const;
 
@@ -64,10 +105,8 @@ const setParkingBrake = [
     type: 'check',
     target: { control: 'brake' },
     condition: (state: State) => state.systems.parkingBrakeSet && !state.systems.brakeApplied,
-    text: text(
-      'Bremshebel losgelassen, Parkbremse hält',
-      'Brake lever released, parking brake holds',
-    ),
+    text: text('Parkbremse', 'Parking brake'),
+    expected: text('hält, Bremshebel losgelassen', 'holds, brake lever released'),
   },
 ] as const;
 
@@ -82,13 +121,14 @@ const releaseParkingBrake = [
     type: 'check',
     target: { control: 'parkingBrakeValve' },
     condition: (state: State) => !state.systems.parkingBrakeSet,
-    text: text('Parkbremse gelöst', 'Parking brake released'),
+    text: text('Parkbremse', 'Parking brake'),
+    expected: text('gelöst', 'released'),
   },
 ] as const;
 
 // Assumed (unverified), intake §9 question 30: the panel scans that open a procedure as a flow,
-// top to bottom on the centre field, then down the console's lever stack and across to carb heat.
-// The checklist items after them verify them.
+// top to bottom on the centre field, then across the console from the pilot's side and on to carb
+// heat. The checklist items after them verify them.
 const flow = <C extends keyof typeof controls>(
   control: C,
   position: PositionOf<(typeof controls)[C]>,
@@ -100,14 +140,18 @@ const oilPressureGreen = {
   type: 'check',
   target: { indicator: 'oilPressure' },
   condition: (state: State) => within(state.systems.oilPressureBar, OIL_PRESSURE_GREEN_BAR),
-  text: text('Öldruck im grünen Bereich', 'Oil pressure in the green'),
+  response: oilPressureReading,
+  text: text('Öldruck', 'Oil pressure'),
+  expected: text('im grünen Bereich', 'in the green'),
 } as const;
 
 const chtGreen = {
   type: 'check',
   target: { indicator: 'cht' },
   condition: (state: State) => within(state.systems.chtC, CHT_GREEN_C),
-  text: text('Zylinderkopftemperatur im grünen Bereich', 'Cylinder head temperature in the green'),
+  response: temperatureReading((state) => state.systems.chtC),
+  text: text('Zylinderkopftemperatur', 'Cylinder head temperature'),
+  expected: text('im grünen Bereich', 'in the green'),
 } as const;
 
 export const normalProcedures = {
@@ -176,24 +220,14 @@ export const normalProcedures = {
           'Flaps fully out to check them (35°)',
         ),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(35),
-        text: text('Klappenanzeige zeigt 35°', 'Flap readout shows 35°'),
-      },
+      flapCheck(35),
       {
         type: 'action',
         control: 'flapSelector',
         position: '0',
         text: text('Klappen zurück auf 0°', 'Flaps back to 0°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(0),
-        text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
-      },
+      flapCheck(0),
       {
         type: 'action',
         control: 'battery',
@@ -261,7 +295,8 @@ export const normalProcedures = {
             'outletBreaker',
             'flapBreaker',
           ].every((id) => state.controls[id] === 'in'),
-        text: text('Alle Sicherungen eingedrückt', 'All breakers in'),
+        text: text('Sicherungen', 'Breakers'),
+        expected: text('alle eingedrückt', 'all in'),
       },
       {
         type: 'action',
@@ -332,10 +367,9 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'oilPressure' },
         condition: (state: State) => state.systems.oilPressureBar >= OIL_PRESSURE_GREEN_BAR[0],
-        text: text(
-          'Öldruck steigt innerhalb von 10 s, über 2 bar',
-          'Oil pressure rises within 10 s, above 2 bar',
-        ),
+        response: oilPressureReading,
+        text: text('Öldruck', 'Oil pressure'),
+        expected: text('steigt innerhalb von 10 s über 2 bar', 'rises within 10 s, above 2 bar'),
       },
       {
         type: 'action',
@@ -349,18 +383,20 @@ export const normalProcedures = {
         position: 'on',
         text: text('Avionik ein', 'Avionics Master on'),
       },
+      // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
+      {
+        type: 'action',
+        control: 'intercom',
+        position: 'on',
+        text: text('Intercom ein', 'Intercom on'),
+      },
       {
         type: 'action',
         control: 'flapSelector',
         position: '0',
         text: text('Klappen auf Rollstellung 0°', 'Flaps to the taxi setting, 0°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(0),
-        text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
-      },
+      flapCheck(0),
     ],
   },
   taxi: {
@@ -382,7 +418,8 @@ export const normalProcedures = {
         type: 'check',
         target: { control: 'parkingBrakeValve' },
         condition: (state: State) => !state.systems.parkingBrakeSet,
-        text: text('Parkbremse gelöst', 'Parking brake released'),
+        text: text('Parkbremse', 'Parking brake'),
+        expected: text('gelöst', 'released'),
       },
       confirm('Bremsen geprüft', 'Brakes checked'),
       confirm('Bugradsteuerung geprüft', 'Nose-wheel steering checked'),
@@ -394,8 +431,8 @@ export const normalProcedures = {
     startPhase: 'holding',
     items: [
       flow('flapSelector', '15', 'Klappen 15°', 'Flaps 15°'),
-      flow('choke', 'off', 'Choke zurück', 'Choke off'),
       flow('trim', 'neutral', 'Trimmrad neutral', 'Trim neutral'),
+      flow('choke', 'off', 'Choke zurück', 'Choke off'),
       flow('carbHeat', 'off', 'Vergaservorwärmung aus', 'Carb heat off'),
       ...setParkingBrake,
       confirm('Gurte angelegt', 'Belts fastened'),
@@ -413,7 +450,15 @@ export const normalProcedures = {
         target: { control: 'xpdr.mode' },
         condition: (state: State) =>
           state.devices.xpdr?.on === true && state.controls['xpdr.mode'] === 'sby',
-        text: text('Transponder ein, Standby', 'Transponder on, standby'),
+        text: text('Transponder', 'Transponder'),
+        expected: text('ein, Standby', 'on, standby'),
+      },
+      // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
+      {
+        type: 'action',
+        control: 'gps.power',
+        position: 'pressed',
+        text: text('GPS ein', 'GPS on'),
       },
       {
         type: 'action',
@@ -437,19 +482,18 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: (state: State) => Math.abs(state.systems.rpm - RUNUP_RPM) <= RUNUP_RPM_TOLERANCE,
-        response: {
-          reading: (state: State) => state.systems.rpm,
-          tolerance: RUNUP_RPM_TOLERANCE,
-          unit: text('U/min', 'rpm'),
-        },
-        text: text('Drehzahl prüfen', 'Rpm check'),
+        response: { ...rpmReading, tolerance: RUNUP_RPM_TOLERANCE },
+        text: text('Drehzahl', 'Rpm'),
+        expected: text(`${RUNUP_RPM} U/min`, `${RUNUP_RPM} rpm`),
       },
       oilPressureGreen,
       {
         type: 'check',
         target: { indicator: 'oilTemperature' },
         condition: (state: State) => state.systems.oilTempC < OIL_TEMP_RED_LINE_C,
-        text: text('Öltemperatur unter der roten Marke', 'Oil temperature below the red line'),
+        response: oilTempReading,
+        text: text('Öltemperatur', 'Oil temperature'),
+        expected: text('unter der roten Marke', 'below the red line'),
       },
       chtGreen,
       {
@@ -462,7 +506,8 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: circuitDropWithinLimit,
-        text: text('Drehzahlabfall höchstens 300 U/min', 'Rpm drop at most 300'),
+        text: text('Drehzahlabfall', 'Rpm drop'),
+        expected: text('höchstens 300 U/min', 'at most 300 rpm'),
       },
       {
         type: 'action',
@@ -480,9 +525,10 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: circuitDropWithinLimit,
-        text: text(
-          'Drehzahlabfall höchstens 300 U/min, höchstens 120 U/min Unterschied zu L',
-          'Rpm drop at most 300, and within 120 of the drop on L',
+        text: text('Drehzahlabfall', 'Rpm drop'),
+        expected: text(
+          'höchstens 300 U/min, höchstens 120 U/min Unterschied zu L',
+          'at most 300 rpm, and within 120 rpm of the drop on L',
         ),
       },
       {
@@ -495,13 +541,16 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'oilTemperature' },
         condition: (state: State) => state.systems.oilTempC >= MIN_TAKEOFF_OIL_TEMP_C,
-        text: text('Öltemperatur mindestens 51 °C', 'Oil temperature at least 51 °C'),
+        response: oilTempReading,
+        text: text('Öltemperatur', 'Oil temperature'),
+        expected: text('mindestens 51 °C', 'at least 51 °C'),
       },
       {
         type: 'check',
         target: { indicator: 'chargeLamp' },
         condition: (state: State) => !chargeLampLit(state),
-        text: text('Ladekontrolle aus', 'Charge lamp out'),
+        text: text('Ladekontrolle', 'Charge lamp'),
+        expected: text('aus', 'out'),
       },
       {
         type: 'action',
@@ -515,12 +564,7 @@ export const normalProcedures = {
         position: '15',
         text: text('Klappen 15°', 'Flaps 15°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(15),
-        text: text('Klappenanzeige zeigt 15°', 'Flap readout shows 15°'),
-      },
+      flapCheck(15),
       {
         type: 'action',
         control: 'trim',
@@ -528,10 +572,22 @@ export const normalProcedures = {
         text: text('Trimmrad neutral', 'Trim neutral'),
       },
       confirm('Funkgerät eingestellt', 'Radio set'),
-      confirm(
-        'Rettungsgerät entsichert, Sicherungsstift gezogen',
-        'Rescue system armed, safety pin removed',
-      ),
+      {
+        type: 'check',
+        target: { control: 'gps.power' },
+        condition: (state: State) => field(state, 'gps', 'fix') === true,
+        text: text('GPS', 'GPS'),
+        expected: text('Position gefunden (3D FIX)', 'position fix (3D FIX)'),
+      },
+      {
+        type: 'guard',
+        control: 'rescueHandle',
+        position: 'open',
+        text: text(
+          'Rettungsgerät entsichert, Sicherungsstift gezogen',
+          'Rescue system armed, safety pin removed',
+        ),
+      },
       {
         type: 'action',
         control: 'elt',
@@ -559,12 +615,7 @@ export const normalProcedures = {
         position: '15',
         text: text('Klappen 15° (auf Asphalt auch 0°)', 'Flaps 15° (0° possible on pavement)'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(15),
-        text: text('Klappenanzeige zeigt 15°', 'Flap readout shows 15°'),
-      },
+      flapCheck(15),
       {
         type: 'action',
         control: 'carbHeat',
@@ -582,10 +633,9 @@ export const normalProcedures = {
         target: { indicator: 'tachometer' },
         condition: (state: State) =>
           state.systems.rpm >= MIN_TAKEOFF_RPM && state.systems.rpm <= RED_LINE_RPM,
-        text: text(
-          'Drehzahl 4800 bis 5000 U/min, mindestens 4600',
-          'Rpm 4800 to 5000, at least 4600',
-        ),
+        response: rpmReading,
+        text: text('Drehzahl', 'Rpm'),
+        expected: text('4800 bis 5000 U/min, mindestens 4600', '4800 to 5000 rpm, at least 4600'),
       },
       confirm(
         'Bugrad entlasten, Abheben bei etwa 75 km/h',
@@ -601,12 +651,7 @@ export const normalProcedures = {
           'Above 50 m (160 ft), at 105 km/h, flaps to 0°',
         ),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(0),
-        text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
-      },
+      flapCheck(0),
       confirm('Dann 115 km/h', 'Then 115 km/h'),
     ],
   },
@@ -623,12 +668,7 @@ export const normalProcedures = {
         position: '15',
         text: text('Klappen 15°', 'Flaps 15°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(15),
-        text: text('Klappenanzeige zeigt 15°', 'Flap readout shows 15°'),
-      },
+      flapCheck(15),
       ...setParkingBrake,
       {
         type: 'action',
@@ -670,12 +710,7 @@ export const normalProcedures = {
         position: '-12',
         text: text('Klappen −12°', 'Flaps −12°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(-12),
-        text: text('Klappenanzeige zeigt −12°', 'Flap readout shows −12°'),
-      },
+      flapCheck(-12),
       confirm(
         'Steiggeschwindigkeit nach Klappenstellung: bestes Steigen mit −12° bei 125 km/h',
         'Climb speed by flap setting: best rate with −12° at 125 km/h',
@@ -684,7 +719,9 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'tachometer' },
         condition: (state: State) => state.systems.rpm <= MAX_CONTINUOUS_RPM,
-        text: text('Drehzahl höchstens 5500 U/min', 'Rpm at most 5500'),
+        response: rpmReading,
+        text: text('Drehzahl', 'Rpm'),
+        expected: text('höchstens 5500 U/min', 'at most 5500 rpm'),
       },
       {
         type: 'action',
@@ -700,7 +737,9 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'oilTemperature' },
         condition: (state: State) => within(state.systems.oilTempC, OIL_TEMP_GREEN_C),
-        text: text('Öltemperatur im grünen Bereich', 'Oil temperature in the green'),
+        response: oilTempReading,
+        text: text('Öltemperatur', 'Oil temperature'),
+        expected: text('im grünen Bereich', 'in the green'),
       },
       chtGreen,
       confirm('Vergaservorwärmung nur bei Vereisungsgefahr', 'Carb heat only when icing is likely'),
@@ -729,12 +768,7 @@ export const normalProcedures = {
         position: '30',
         text: text('Klappen 15° bis 35°, hier 30°', 'Flaps 15° to 35°, here 30°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(30),
-        text: text('Klappenanzeige zeigt 30°', 'Flap readout shows 30°'),
-      },
+      flapCheck(30),
       confirm('Landelicht nach Bedarf', 'Landing light as needed'),
     ],
   },
@@ -762,12 +796,7 @@ export const normalProcedures = {
           'Flaps on final 15° or 30°, here 30° (crosswind: 15° or 0°)',
         ),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(30),
-        text: text('Klappenanzeige zeigt 30°', 'Flap readout shows 30°'),
-      },
+      flapCheck(30),
       confirm('Endanflug mit 100 km/h', 'Final at 100 km/h'),
       {
         type: 'action',
@@ -812,12 +841,7 @@ export const normalProcedures = {
         position: '15',
         text: text('Klappen 15°', 'Flaps 15°'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(15),
-        text: text('Klappenanzeige zeigt 15°', 'Flap readout shows 15°'),
-      },
+      flapCheck(15),
       confirm('Geschwindigkeit 110 km/h', 'Speed 110 km/h'),
       confirm('Positives Steigen', 'Positive climb'),
     ],
@@ -855,12 +879,7 @@ export const normalProcedures = {
         position: '0',
         text: text('Klappen eingefahren (0°)', 'Flaps retracted (0°)'),
       },
-      {
-        type: 'check',
-        target: { indicator: 'flapReadout' },
-        condition: flapsAt(0),
-        text: text('Klappenanzeige zeigt 0°', 'Flap readout shows 0°'),
-      },
+      flapCheck(0),
       confirm(
         'Auf 121,5 MHz hören, ob der Notsender versehentlich sendet',
         'Listen on 121.5 MHz for an accidental ELT activation',
@@ -939,10 +958,15 @@ export const normalProcedures = {
         position: 'out',
         text: text('Zündschlüssel abgezogen', 'Key out'),
       },
-      confirm(
-        'Rettungsgerät gesichert, Sicherungsstift gesteckt',
-        'Rescue system secured, safety pin in',
-      ),
+      {
+        type: 'guard',
+        control: 'rescueHandle',
+        position: 'closed',
+        text: text(
+          'Rettungsgerät gesichert, Sicherungsstift gesteckt',
+          'Rescue system secured, safety pin in',
+        ),
+      },
       {
         type: 'action',
         control: 'elt',

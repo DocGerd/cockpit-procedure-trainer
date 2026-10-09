@@ -104,13 +104,16 @@ Any control may declare an `interlock`: while another control stands at a
 position, this one cannot be moved from a listed position to one outside the
 list, as a closed fuel valve over the key slot keeps the key at OFF. Only pilot
 moves are refused (result `locked`); phase entries and failures move controls
-freely.
+freely. A rotary may also declare positions reachable only from others
+(`onlyFrom`), as the key comes out only at OFF.
 
 ### 4.2 Indicators
 
 Gauges, lamps and readouts. Each binds to a value in the aircraft state through
 a selector function and declares how it shows it (needle range, lamp colour,
-digits). Indicators never hold state of their own.
+digits). Indicators never hold state of their own. A readout may blink while a
+declared condition holds (added in #533), as a flap readout does while the flaps
+travel.
 
 A lamp (annunciator) may also give `stateLabels`: plain strings for lit and
 dark, not bilingual text and not checked per language by the validator. The
@@ -217,12 +220,18 @@ Each item has text in both languages and one of:
 
 - **action**: a target control and the position to reach, optionally held until
   a state condition is true (starter until engine running);
-- **check**: a target indicator or control and a condition on the state, ticked
+- **check**: a target indicator or control, or none when there is nothing to
+  read on the panel (smoke seen outside), and a condition on the state, ticked
   by the pilot. A numeric check may also name the reading to compare and a
   tolerance: in Practice the pilot may enter the value read, and a reading off
-  by more than the tolerance counts as an unmet check. Its text then states the
-  challenge only ("Rpm check"), not the expected value;
-- **confirm**: no target (a visual or verbal check), ticked by the pilot.
+  by more than the tolerance counts as an unmet check. A check may name its
+  expected value apart from its text, which then states the challenge only
+  ("Flap readout", expected "15°"): Guided shows both, while Practice keeps the
+  value back until the item is ticked or shown (amended in #509: a value in the
+  text lets the pilot tick from the text instead of reading the instrument);
+- **confirm**: no target (a visual or verbal check), ticked by the pilot;
+- **guard**: a guarded control and the position its guard is to reach, open or
+  closed, such as the rescue safety pin pulled before take-off (#520).
 
 Targets are declared, not inferred, so Guided mode knows what to highlight.
 
@@ -327,14 +336,17 @@ logic follows and lists the functions it does not model.
 ## 5. Runtime
 
 1. The pilot operates a control; the control store records the new position, or
-   refuses the move when an interlock holds it (result `locked`): the position
-   stays, a notice names both controls, and no
-   deviation is recorded.
+   refuses the move when an interlock holds it or the control reaches that
+   position only from others (result `locked`): the position stays, a notice
+   names both controls and rings the holding control on the panel when another
+   control holds it, and no deviation is recorded.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:
    - an action item completes when the pilot sets its target while it is
      current, or ticks it verified, and its `holdUntil` condition, if any, is met;
+     a guard item likewise when the pilot moves its guard, and moving a guard is
+     never a deviation;
    - a check or confirm item completes when the pilot ticks it;
    - a control change that is not the current item's target is recorded as a
      deviation: `out-of-order` when it sets a later action's target to that
@@ -418,6 +430,16 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   starts it over. The checklist header names the running leg (leg n of m).
   Leaving the flight by phase, Free explore or the selection before its last
   leg is done asks first and names the legs flown.
+  In Practice (added in #510) the flight can carry a surprise failure in a
+  chosen or random phase, and Hide upcoming items can be set before it starts.
+  The surprise comes in a leg that starts in that phase, after one of its items
+  other than the last (at the latest when the leg is done), with no banner;
+  only then does the viewer offer to run a checklist. The checklist the pilot
+  takes becomes the flight's last leg: the leg it interrupted is listed as
+  interrupted, the summary adds the time to recognise and whether it matched,
+  and the flight goes no further. Restart and Repeat then run that checklist
+  again from the moment it was taken; a runtime reset starts the flight over
+  with a new surprise under the same choice.
 
 ### Screen
 
@@ -432,8 +454,9 @@ tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase,
 `localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
 items" option (`cpt.recall`) and a small run history only.
 The history keeps, per aircraft and procedure, the last run (run mode, deviation
-count, date) and the best run, so the pilot and an instructor see improvement
-across sessions; it is never sent anywhere (G2). Reads are validated and
+count, date) and the best Practice run (Guided shows the next control, so it
+never counts as best), so the pilot and an instructor see improvement across
+sessions; it is never sent anywhere (G2). Reads are validated and
 guarded; the app works without it. The Practise next drill only reads it.
 
 ## 6. Visual design

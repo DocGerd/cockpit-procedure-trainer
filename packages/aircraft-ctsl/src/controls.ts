@@ -157,6 +157,7 @@ export const controls = {
     positions: ['out', 'off', 'left', 'right', 'both', 'start'],
     initial: 'out',
     springBack: { start: 'both' },
+    onlyFrom: { out: ['off'] },
     legends: {
       out: {
         state: text('Schlüssel abgezogen', 'key out'),
@@ -214,7 +215,21 @@ export const controls = {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
-    legends: { runup: 'RUN-UP' },
+    // The placard prints only FULL and IDLE; the middle stops are the trainer's own.
+    legends: {
+      low: {
+        state: text('niedrige Leistung', 'low power'),
+        restore: text('Wieder auf niedrige Leistung stellen', 'Set low power again'),
+      },
+      runup: {
+        state: text('Standprobenleistung', 'run-up power'),
+        restore: text('Wieder auf Standprobenleistung stellen', 'Set run-up power again'),
+      },
+      cruise: {
+        state: text('Reiseleistung', 'cruise power'),
+        restore: text('Wieder auf Reiseleistung stellen', 'Set cruise power again'),
+      },
+    },
     name: text('Gashebel', 'Throttle'),
     description: text(
       'Stellt die Leistung ein: Leerlauf, niedrige Leistung, Standprobe, Reiseflug und Vollgas.',
@@ -242,7 +257,15 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'neutral', 'nose-up'],
     initial: 'neutral',
-    legends: { 'nose-down': 'NOSE DN', 'nose-up': 'NOSE UP' },
+    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for.
+    legends: {
+      'nose-down': 'DOWN',
+      'nose-up': 'UP',
+      neutral: {
+        state: text('neutral', 'neutral'),
+        restore: text('Wieder neutral trimmen', 'Set the trim neutral again'),
+      },
+    },
     name: text('Trimmrad', 'Trim wheel'),
     description: text(
       'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
@@ -276,11 +299,23 @@ export const controls = {
         restore: text('Wieder ziehen', 'Pull it again'),
       },
     },
-    guard: { name: text('Sicherungsstift', 'Safety pin') },
+    guard: {
+      name: text('Sicherungsstift', 'Safety pin'),
+      legends: {
+        open: {
+          state: text('gezogen', 'removed'),
+          act: text('Sicherungsstift ziehen', 'Remove the safety pin'),
+        },
+        closed: {
+          state: text('gesteckt', 'in'),
+          act: text('Sicherungsstift stecken', 'Fit the safety pin'),
+        },
+      },
+    },
     name: text('Rettungsgerät', 'Rescue system'),
     description: text(
-      'Griff des ballistischen Rettungssystems. Am Boden mit dem Sicherungsstift gesichert; zum Auslösen kräftig und weit ziehen.',
-      'Handle of the ballistic rescue system. Secured by the safety pin on the ground; pull hard and far to deploy.',
+      'Griff des ballistischen Rettungssystems, tief am hinteren Ende der Mittelkonsole zwischen den Sitzen. Am Boden sichert der Sicherungsstift den Auslösehebel; zum Auslösen nach vorn, kräftig, bis zum Anschlag ziehen.',
+      'Handle of the ballistic rescue system, low at the aft end of the centre console between the seats. On the ground the safety pin secures the release lever; to deploy, pull it forward, hard, to the stop.',
     ),
     appearance: controlArtwork.rescueHandle,
   },

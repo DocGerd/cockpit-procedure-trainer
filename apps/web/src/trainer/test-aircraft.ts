@@ -89,9 +89,12 @@ export const testAircraft: readonly [Aircraft, Aircraft] = [
   fixture('bravo', 'Bravo', true),
 ];
 
-/** Two legs: power up while parked, then a taxi check whose phase snapshot has the master off. */
+/**
+ * Two legs: power up while parked, then a taxi check whose phase snapshot has the master off.
+ * The engine fire of the parked phase gives a full flight its surprise.
+ */
 export const flightAircraft: Aircraft = (() => {
-  const base = fixture('charlie', 'Charlie', false);
+  const base = fixture('charlie', 'Charlie', true);
   const taxiOut = base.phases['taxiOut'];
   if (!taxiOut) throw new Error('The fixture has no taxiOut phase');
   return {

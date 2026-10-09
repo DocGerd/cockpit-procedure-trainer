@@ -103,10 +103,23 @@ describe('CTSL emergency procedures', () => {
     expect(touched).toEqual([]);
   });
 
+  it('reads the smoke or flames outside, with no panel target to ring', () => {
+    const check = procedure('engineFire').items[firstCheck('engineFire')];
+    expect(check).toMatchObject({ type: 'check', memory: true });
+    expect(check).not.toHaveProperty('target');
+  });
+
   it('deploys the rescue system only after the ignition is off', () => {
     expect(actionOn('rescueDeployment', 'ignition', 'off')).toBeLessThan(
       actionOn('rescueDeployment', 'rescueHandle', 'pulled'),
     );
+  });
+
+  it('pulls the rescue handle forward, hard, to the stop (intake §7 E2)', () => {
+    const pull =
+      procedure('rescueDeployment').items[actionOn('rescueDeployment', 'rescueHandle', 'pulled')];
+    expect(pull?.text.en).toMatch(/forward, hard, to the stop/);
+    expect(pull?.text.de).toMatch(/nach vorn, kräftig, bis zum Anschlag/);
   });
 
   it('finds the safety pin already out when the rescue deployment starts', () => {

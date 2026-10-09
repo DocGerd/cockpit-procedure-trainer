@@ -1,8 +1,9 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { demoAircraft } from '@cpt/aircraft-demo';
 import type { Locator, Page } from '@playwright/test';
+import type { ProcedureItem } from '@cpt/core';
 import { expect, test } from './fixtures';
-import { pressDevice } from './flight';
+import { guardAt, pressDevice, setGuard } from './flight';
 import { openAircraft, selectLanguage } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
 
@@ -108,6 +109,9 @@ async function advance(
     await verify.click();
   } else if (item?.type === 'action') {
     await operate(page, item.control, item.position);
+  } else if (item?.type === 'guard') {
+    if ((await guardAt(page, item.control)) === item.position) await verify.click();
+    else await setGuard(page, item.control, item.position);
   } else {
     await card.getByRole('button').last().click();
   }
@@ -237,9 +241,12 @@ test('the Practice Reading field stays inside the card and the pane never scroll
   page,
 }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
-  const entry = Object.entries(ctslAircraft.procedures).find(([, procedure]) =>
-    procedure.items.some((item) => item.type === 'check' && item.response !== undefined),
-  );
+  const firstReading = (items: readonly ProcedureItem<unknown>[]) =>
+    items.findIndex((item) => item.type === 'check' && item.response !== undefined);
+  // The procedure that reaches a reading soonest, so few items need working first.
+  const [entry] = Object.entries(ctslAircraft.procedures)
+    .filter(([, procedure]) => firstReading(procedure.items) !== -1)
+    .sort(([, a], [, b]) => firstReading(a.items) - firstReading(b.items));
   if (!entry) throw new Error('no CTSL procedure has a reading');
   const [id, procedure] = entry;
   await openAircraft(page, ctslAircraft, id);

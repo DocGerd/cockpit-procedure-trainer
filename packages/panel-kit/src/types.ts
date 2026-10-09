@@ -26,6 +26,7 @@ export type IndicatorWidgetProps = {
   value: IndicatorValue;
   label: string;
   options?: JsonObject;
+  blink?: boolean;
 };
 
 export type ControlWidget = ComponentType<ControlWidgetProps>;

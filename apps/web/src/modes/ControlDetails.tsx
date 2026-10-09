@@ -42,8 +42,11 @@ export function usesOf(aircraft: Pick<Aircraft, 'procedures'>, controlId: string
   return Object.entries(aircraft.procedures).flatMap(([procedureId, procedure]) =>
     procedure.items.flatMap((item, index) => {
       const targets =
-        (item.type === 'action' && item.control === controlId) ||
-        (item.type === 'check' && 'control' in item.target && item.target.control === controlId);
+        ((item.type === 'action' || item.type === 'guard') && item.control === controlId) ||
+        (item.type === 'check' &&
+          item.target !== undefined &&
+          'control' in item.target &&
+          item.target.control === controlId);
       return targets
         ? [{ key: `${procedureId}/${index}`, title: procedure.title, number: index + 1 }]
         : [];

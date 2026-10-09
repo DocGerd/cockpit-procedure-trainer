@@ -7,10 +7,11 @@ import { messages } from './messages';
 export function ChecklistSelector() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, viewedProcedureId, viewProcedure } = useTrainer();
+  const { aircraft, procedureId, viewedProcedureId, viewProcedure, surprisePhase } = useTrainer();
   const selectId = useId();
   const entries = Object.entries(aircraft.procedures);
-  if (viewedProcedureId === undefined) return null;
+  const choosing = viewedProcedureId === undefined && surprisePhase !== undefined;
+  if (viewedProcedureId === undefined && !choosing) return null;
 
   const group = (type: 'normal' | 'emergency', label: string) => {
     const members = entries.filter(([, procedure]) => procedure.type === type);
@@ -35,9 +36,14 @@ export function ChecklistSelector() {
       <select
         id={selectId}
         className="chrome-button checklist-selector-select"
-        value={viewedProcedureId}
+        value={viewedProcedureId ?? ''}
         onChange={(event) => viewProcedure(event.target.value)}
       >
+        {choosing && (
+          <option value="" disabled>
+            {text.chooseChecklist}
+          </option>
+        )}
         {group('normal', text.groupNormal)}
         {group('emergency', text.groupEmergency)}
       </select>

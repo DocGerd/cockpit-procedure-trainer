@@ -67,6 +67,10 @@ Rules that follow from how the session runs devices:
   button held during power-up does not fire.
 - A continuous lever can only be targeted by a procedure action at `0` or `1`.
   Use it for a knob the pilot sets by feel, such as volume.
+- A position no key prints, such as a knob's `down` or a key's `pressed`,
+  declares `legends: { position: { state, restore } }` (see Cues under
+  [Printed labels](adding-an-aircraft.md#printed-labels)), so cues name it in
+  words.
 
 Export the device, its state type and any constant a test or another package needs
 (ranges, durations, input names) from `src/logic/index.ts`.
@@ -208,4 +212,6 @@ position it springs back to, so a procedure must set that position first);
 screen tests for the display, the accessible names and the
 `send` calls; `tools/` contract tests check the entry (`Display`, `readout` and
 `floor`) of every `packages/device-*`, and `apps/web/src/device-keys.test.tsx` the
-`data-control` and `data-position` of every registered device's keys.
+`data-control` and `data-position` of every registered device's keys;
+`apps/web/src/checklist/position-legends.test.tsx` checks that every position of every
+installed device reads as its printed key or a declared legend.

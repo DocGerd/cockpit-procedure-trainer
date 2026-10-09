@@ -1,5 +1,5 @@
 import { createSession, flightLegs, MAX_STEPS, procedureOf, STEP_MS } from '@cpt/core';
-import type { Aircraft, ControlDefinition, ProcedureItem, Session } from '@cpt/core';
+import type { Aircraft, ControlDefinition, GuardPosition, ProcedureItem, Session } from '@cpt/core';
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { checklistPane, copy, dockedUnit } from './trainer';
@@ -25,7 +25,8 @@ type Step =
       readonly position: string | number;
       readonly holdMs: number;
     }
-  | { readonly kind: 'device'; readonly control: string; readonly position: string | number };
+  | { readonly kind: 'device'; readonly control: string; readonly position: string | number }
+  | { readonly kind: 'guard'; readonly control: string; readonly position: GuardPosition };
 
 export type Leg = { readonly id: string; readonly steps: readonly Step[] };
 
@@ -59,6 +60,16 @@ function shadowStep(session: Session, aircraft: Aircraft, item: Item, index: num
     session.checkOff(item.response?.reading(session.state()));
     return { kind: 'check', waitMs };
   }
+  if (item.type === 'guard') {
+    const { control, position } = item;
+    if (session.guards()[control] === position) {
+      session.checkOff();
+      return { kind: 'verify' };
+    }
+    if (position === 'open') session.openGuard(control);
+    else session.closeGuard(control);
+    return { kind: 'guard', control, position };
+  }
   // A flow item already in place ticks when the leg starts; the pilot has nothing to do for it.
   if (item.flow === true && completed()) return { kind: 'preset' };
   const definition = aircraft.controls[item.control];
@@ -82,6 +93,7 @@ const isDeviceItem = (aircraft: Aircraft, item: Item): item is Action =>
 
 const readsDevice = (aircraft: Aircraft, item: Item) =>
   item.type === 'check' &&
+  item.target !== undefined &&
   'control' in item.target &&
   !Object.hasOwn(aircraft.controls, item.target.control);
 
@@ -89,7 +101,8 @@ const readsDevice = (aircraft: Aircraft, item: Item) =>
  * The aircraft's full flight, played first on a session in this process: it times each check
  * and hold, which the page cannot tell. Device controls run only in the page. A leg of nothing
  * but device items is taken there as it comes, its checks met at once; in a leg that also moves
- * the aircraft's own controls, only the device action and the check on a device control are.
+ * the aircraft's own controls, the device action is taken at once and the check on a device
+ * control after the longest wait the walker allows.
  */
 export function flightPlan(aircraft: Aircraft): readonly Leg[] {
   const legs = flightLegs(aircraft);
@@ -103,13 +116,16 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
     const { items } = procedureOf(aircraft, id);
     const onlyDevices =
       items.some((item) => isDeviceItem(aircraft, item)) &&
-      !items.some((item) => item.type === 'action' && !isDeviceItem(aircraft, item));
+      !items.some(
+        (item) =>
+          item.type === 'guard' || (item.type === 'action' && !isDeviceItem(aircraft, item)),
+      );
     if (onlyDevices) {
       return {
         id,
         steps: items.map((item): Step => {
           if (item.type === 'confirm') return { kind: 'confirm' };
-          if (item.type === 'check') return { kind: 'check', waitMs: 0 };
+          if (item.type === 'check' || item.type === 'guard') return { kind: 'check', waitMs: 0 };
           return { kind: 'device', control: item.control, position: item.position };
         }),
       };
@@ -120,9 +136,13 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
         shadow.checkOff();
         return { kind: 'device', control: item.control, position: item.position };
       }
+      // The shadow cannot tell when a device's state meets the check, so both sides wait as
+      // long as `walkProcedure` would at most.
       if (readsDevice(aircraft, item)) {
+        const waitMs = MAX_STEPS * STEP_MS;
+        shadow.advance(waitMs);
         shadow.checkOff();
-        return { kind: 'check', waitMs: 0 };
+        return { kind: 'check', waitMs };
       }
       return shadowStep(shadow, aircraft, item, index);
     });
@@ -211,6 +231,20 @@ async function setPosition(page: Page, aircraft: Aircraft, id: string, position:
   await expect(cycle).toHaveAttribute('aria-label', wanted);
 }
 
+const guardOf = (page: Page, id: string) =>
+  page.locator(`[data-placement="${id}"] [aria-expanded]`);
+
+/** Where the guard of a guarded control on the panel stands. */
+export async function guardAt(page: Page, id: string): Promise<GuardPosition> {
+  return (await guardOf(page, id).getAttribute('aria-expanded')) === 'true' ? 'open' : 'closed';
+}
+
+/** Pulls or puts back a safety pin, or opens or closes a cover, by its guard on the panel. */
+export async function setGuard(page: Page, id: string, position: GuardPosition) {
+  if ((await guardAt(page, id)) !== position) await guardOf(page, id).click();
+  await expect(guardOf(page, id)).toHaveAttribute('aria-expanded', String(position === 'open'));
+}
+
 /** Presses a device key in the dock, or verifies a selection key that is already selected. */
 export async function pressDevice(
   page: Page,
@@ -274,6 +308,8 @@ export async function flyLeg(page: Page, aircraft: Aircraft, leg: Leg) {
       if (step.waitMs > 0) await page.clock.runFor(step.waitMs);
     } else if (step.kind === 'device') {
       await pressDevice(page, aircraft, step.control, step.position, verify);
+    } else if (step.kind === 'guard') {
+      await setGuard(page, step.control, step.position);
     } else {
       const definition = aircraft.controls[step.control];
       const name = definition?.name.en ?? step.control;

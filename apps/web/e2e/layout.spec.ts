@@ -129,12 +129,6 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
             (consoleBox.y >= panel.y + panel.height && consoleBox.x >= centre.x + centre.width),
           'console below or beside the centre field',
         ).toBe(true);
-        if (aircraft.cockpit?.views.bulkhead) {
-          const bulkhead = await boxOf(page.locator('[data-view="bulkhead"]'));
-          expect(bulkhead.y, 'bulkhead behind the console').toBeGreaterThanOrEqual(
-            consoleBox.y + consoleBox.height,
-          );
-        }
       }
     }
   }
@@ -395,6 +389,8 @@ const trainerText: ChromeText = {
   'mode button': ['.modes-segment', 'fontSize'],
   'checklist item': ['.checklist-item-text', 'fontSize'],
   'checklist line height': ['.checklist-item-text', 'lineHeight'],
+  'dock hint': ['.dock-hint', 'fontSize'],
+  'phase badge': ['.outside-view-caption', 'fontSize'],
   footer: ['.app-footer', 'fontSize'],
 };
 

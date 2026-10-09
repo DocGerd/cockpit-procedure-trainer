@@ -2,10 +2,12 @@ import type { ChecklistState, DeviationKind } from '@cpt/core';
 import { useEffect, useId, useRef, useState } from 'react';
 import { format, useLocalize, useMessages } from '../i18n';
 import { useLeavingRisk, useSessionState, useTrainer } from '../trainer';
+import type { LegResult } from '../trainer';
 import { ConfirmDialog } from '../ui';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 import { flowLength } from './useCurrentTarget';
 
 const KINDS: readonly DeviationKind[] = [
@@ -24,12 +26,14 @@ const clock = (ms: number) => {
 export function DeviationSummary({ checklist }: { checklist: ChecklistState<unknown> }) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const trainer = useTrainer();
   const { atRisk, lost } = useLeavingRisk();
   const [leaving, setLeaving] = useState(false);
   const describe = useDeviationText(checklist);
   const scenario = useSessionState((snapshot) => snapshot.scenario());
   const answer = scenario?.chosen === undefined ? undefined : scenario;
+  const unanswered = scenario?.injectedAtMs !== undefined && scenario.chosen === undefined;
   const headingId = useId();
   const listId = useId();
   const assistedId = useId();
@@ -46,14 +50,16 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   const ids = Object.keys(aircraft.procedures);
   const leg = flight?.results.length ?? 0;
   const nextId = flight
-    ? flight.legs[leg + 1]
+    ? unanswered
+      ? undefined
+      : flight.legs[leg + 1]
     : procedureId === undefined || answer
       ? undefined
       : ids
           .slice(ids.indexOf(procedureId) + 1)
           .find((id) => aircraft.procedures[id]?.type === procedure.type);
-  const legs =
-    flight && nextId === undefined && procedureId !== undefined
+  const legs: readonly LegResult[] | undefined =
+    flight && nextId === undefined && !unanswered && procedureId !== undefined
       ? [
           ...flight.results,
           {
@@ -99,7 +105,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
             {deviated ? '▲' : '✓'}
           </span>
           <span className="checklist-number">{index + 1}</span>
-          <span className="checklist-item-text">{localize(item.text)}</span>
+          <span className="checklist-item-text">{itemText(item)}</span>
         </span>
       </li>
     );
@@ -124,14 +130,14 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
       type="button"
       className={deviations.length > 0 ? 'button-primary' : 'button-secondary'}
       onClick={() =>
-        answer
-          ? trainer.startSurprise(answer.phase)
-          : flight
-            ? trainer.restart()
+        flight
+          ? trainer.restart()
+          : answer
+            ? trainer.startSurprise(answer.phase)
             : trainer.startProcedure(procedureId)
       }
     >
-      {answer ? text.newSurprise : text.repeatProcedure}
+      {answer && !flight ? text.newSurprise : text.repeatProcedure}
     </button>
   );
 
@@ -182,6 +188,8 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           {answer.recognitionMs === undefined && ` ${text.chosenEarly}`}
         </p>
       )}
+
+      {flight && unanswered && <p className="checklist-note">{text.surpriseNote}</p>}
 
       {deviations.length > 0 && (
         <ul className="checklist-kinds">
@@ -245,7 +253,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
                 <span className="checklist-assisted-number">
                   {format(text.itemNumber, { n: index + 1 })}
                 </span>
-                <span>{procedure.items[index] && localize(procedure.items[index].text)}</span>
+                <span>{procedure.items[index] && itemText(procedure.items[index])}</span>
               </li>
             ))}
           </ol>
@@ -267,11 +275,16 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
               </tr>
             </thead>
             <tbody>
-              {legs.map((result) => {
+              {legs.map((result, index) => {
                 const title = aircraft.procedures[result.id]?.title;
+                const name = title ? localize(title) : result.id;
                 return (
-                  <tr key={result.id}>
-                    <th scope="row">{title ? localize(title) : result.id}</th>
+                  <tr key={index}>
+                    <th scope="row">
+                      {result.interrupted === true
+                        ? format(text.flightInterrupted, { title: name })
+                        : name}
+                    </th>
                     <td data-deviated={result.deviations > 0}>{result.deviations}</td>
                     <td>{result.assists}</td>
                     <td>{clock(result.elapsedMs)}</td>

@@ -133,6 +133,29 @@ describe('validateAircraft', () => {
       only(aircraft, 'unknown-position', 'fuelPump');
     });
 
+    it('reports a guard item on an unknown control or a control without a guard', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'ghost', position: 'open', text },
+        { type: 'guard', control: 'master', position: 'open', text },
+      ]);
+      only(aircraft, 'unknown-target', 'ghost');
+      only(aircraft, 'unknown-target', 'master');
+    });
+
+    it('reports a guard item position other than open or closed', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'fuelPump', position: 'ajar', text },
+      ]);
+      only(aircraft, 'unknown-position', 'fuelPump');
+    });
+
+    it('reports a guard item in a flow', () => {
+      const aircraft = withItems('beforeStart', [
+        { type: 'guard', control: 'fuelPump', position: 'open', flow: true, text },
+      ]);
+      expect(ofCode(aircraft, 'invalid-flow')).toHaveLength(1);
+    });
+
     it('reports a failure that trips an unknown or non-breaker control', () => {
       const aircraft = broken({
         failures: {
@@ -187,6 +210,27 @@ describe('validateAircraft', () => {
       expect(found.map((f) => f.id)).toEqual(['beforeStart', 'beforeStart']);
     });
 
+    it("reports a check's expected value", () => {
+      const aircraft = broken({
+        procedures: {
+          beforeStart: {
+            ...fixtureAircraft.procedures.beforeStart,
+            items: [
+              {
+                type: 'check',
+                target: { indicator: 'rpm' },
+                condition: () => true,
+                text: { de: 'Drehzahl', en: 'Rpm' },
+                expected: { de: '', en: 'idle' },
+              },
+            ],
+          },
+        },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.message)).toEqual(['item 0 expected: empty de']);
+    });
+
     it('reports aircraft, indicator, view, failure and guard texts', () => {
       const empty = { de: '', en: '' };
       const aircraft = broken({
@@ -214,6 +258,24 @@ describe('validateAircraft', () => {
       const found = ofCode(aircraft, 'missing-translation');
       expect(found.map((f) => f.id)).toEqual(['ignition', 'ignition', 'ignition']);
       expect(found.every((f) => f.message.includes('legend'))).toBe(true);
+    });
+
+    it('reports a guard legend without both languages', () => {
+      const pin = { de: 'Stift', en: 'Pin' };
+      const aircraft = withControl('fuelPump', {
+        guard: {
+          name: pin,
+          legends: {
+            open: { state: { de: 'gezogen', en: '' }, act: pin },
+            closed: { state: pin, act: { de: '', en: 'Fit the pin' } },
+          },
+        },
+      });
+      const found = ofCode(aircraft, 'missing-translation');
+      expect(found.map((f) => f.message)).toEqual([
+        expect.stringContaining('guard legend of open'),
+        expect.stringContaining('guard act of closed'),
+      ]);
     });
 
     it('reports an empty handbook revision', () => {
@@ -398,6 +460,22 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports an onlyFrom key', () => {
+      only(
+        withControl('ignition', { onlyFrom: { half: ['off'] } }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
+    it('reports an onlyFrom source position', () => {
+      only(
+        withControl('ignition', { onlyFrom: { off: ['half'] } }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
     it('reports a legend for a position the control lacks', () => {
       only(withControl('ignition', { legends: { half: 'H' } }), 'unknown-position', 'ignition');
     });
@@ -482,6 +560,30 @@ describe('validateAircraft', () => {
     it.each([0, 50])('accepts the tolerance %s', (tolerance) => {
       expect(ofCode(check(tolerance), 'invalid-check-response')).toEqual([]);
     });
+
+    it.each([0, -1])(
+      'rejects a reading on a check with nothing to read, tolerance %s',
+      (tolerance) => {
+        const aircraft = withItems('beforeStart', [
+          {
+            type: 'check',
+            condition: () => true,
+            response: { reading: () => 0, tolerance },
+            text,
+          },
+        ]);
+        const finding = only(aircraft, 'invalid-check-response', 'beforeStart');
+        expect(finding.message).toContain('nothing on the panel to read');
+      },
+    );
+  });
+
+  it('accepts a check with nothing to read on the panel', () => {
+    const aircraft = withItems('beforeStart', [
+      ...beforeStartItems,
+      { type: 'check', condition: () => true, text },
+    ]);
+    expect(validateAircraft(aircraft)).toEqual([]);
   });
 
   describe('invalid-flow', () => {

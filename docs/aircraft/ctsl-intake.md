@@ -15,7 +15,6 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                      |
 | Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                            |
-| Serial on the cover     | E-12-03-06                                                                                                                                                                                                                                          |
 | Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                         |
 | `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                |
 | Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". |
@@ -43,9 +42,9 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
-laid out for the left seat (pilot in command). The trainer draws four views:
-`panel` (both upper fields), `centre` (lower centre field), `console` and
-`bulkhead` (the rescue handle between the seats, behind the console).
+laid out for the left seat (pilot in command). The trainer draws three views:
+`panel` (both upper fields), `centre` (lower centre field) and `console` (the
+console top down to the rescue handle at its aft end, between the seats).
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -55,7 +54,7 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
   for this variant (§9) and is drawn unlit in the background. The charge lamp's
-  legend and colour are assumed (§9, question 22).
+  legend and colour are owner-confirmed (§9, question 22).
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
@@ -66,10 +65,10 @@ laid out for the left seat (pilot in command). The trainer draws four views:
 - GPS in its cradle in the centre (device slot).
 - Below it, four round engine gauges in a row: a larger tachometer on the left,
   then oil pressure, oil temperature and cylinder head temperature (CHT).
-- A small item at the top left next to the type name: probably the magnetic
+- A small item at the top left next to the type name: the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
   phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
-  assumed (§9, question 20); the type name is not printed.
+  owner-confirmed (§9, question 20); the type name is not printed.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -87,9 +86,13 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   left of centre.
 - Flap position indicator (Klappenstellungsanzeige): a red seven-segment readout
   labelled "Flaps", centre. To its right the flap breaker (Klappensicherung, 8 A,
-  thermal), then two headset emergency jacks (background).
-- Fuel valve (Brandhahn), left: a vertical slide lever, open up, closed down.
-  When closed, its handle covers the ignition key slot. Assumed (unverified),
+  thermal), then two headset emergency jacks (background). The readout blinks
+  while the drive runs to the selected setting and shows steady once there; if it
+  keeps blinking while the flaps extend, the drive's overload protection has
+  stopped it (HB 7-12). The trainer blinks it the same way (#533).
+- Fuel valve (Brandhahn), left: a vertical slide lever, open up (HB 4-3), closed
+  down. When closed, its handle covers the ignition key slot (HB 3-6); the valve is
+  shaped so the key can hardly be operated past it (HB 4-6). Assumed (unverified),
   from general knowledge of the CT Supralight (#447): the slide runs straight
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
@@ -100,36 +103,108 @@ laid out for the left seat (pilot in command). The trainer draws four views:
   ("up" past −12°, "down" past 35°) for the manual override.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
+  The dial legends cannot be read in the handbook's figure (HB 7-18); its restart
+  item names the both position 1 + 2 (HB 3-5), which points to numbered positions
+  (§9, question 8).
   The key goes in and comes out at OFF, and comes out only with the fuel valve
   fully closed (E6). Assumed (unverified), from the handle covering the slot and
   N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
 - Master plate, bottom right: two round push-pull breaker switches, **BAT** (25 A,
   master switch, Hauptschalter) and **GEN** (30 A, generator, Generatorschalter).
+- Breaker legends: the BAT, GEN and flap breaker legends are correct as drawn,
+  **owner-confirmed** 2026-10-08.
 
 ### 3.4 Centre console (view `console`)
 
-- Horizontal push-pull levers, top to bottom: **BRAKE** (off/on, the single
-  hydraulic brake lever, Bremshebel; non-locking: it brakes only while held and
-  springs back when released, owner ruling #465), **THROTTLE** (idle/full, Gashebel),
-  **CHOKE** (off/on). The trainer draws the console as the left seat sees its
-  flank, so forward is to the left: the throttle pushes left to full, and the
-  brake and choke pull right, toward the pilot, to on (§9, question 25).
-- **Stabilator trim wheel** (Trimmrad) with its indicator beside it; forward is
-  nose down. The trainer draws the wheel's rim in its slot with the indicator
-  scale above it, nose down to the left (§9, question 25).
-- **Parking-brake valve** (Rückflusshahn), a small lever labelled "Brake", right of
-  the throttle group. Parking brake: close the valve, then pull and release the
-  brake lever; the valve traps the pressure, which holds until the valve is opened.
+Handbook facts (checked 2026-10-08):
+
+- **Engine control unit** (Motorbedieneinheit): on top of the centre console,
+  just aft of the lower centre field, reachable from both seats but laid out for
+  the left seat (HB 7-19).
+- **Lever layout**: the levers lie side by side across the console top, each
+  sliding fore and aft in its own slot with a legend strip beside it. The
+  handbook's figure shows them in one row: brake, throttle, choke, then the trim
+  wheel. Oriented by the forward ends of the legend strips and by the trim wheel
+  sitting left of the throttle (HB 7-12), the order from the pilot's side outward
+  is **trim wheel, choke, throttle, brake** (inferred from the figure; §9,
+  questions 25 and 31).
+- **THROTTLE** (Gashebel): legend strip with FULL at the forward end and IDLE at
+  the aft end, nothing between (HB 7-20). Push forward for power. At start the
+  throttle opens no more than about a tenth (HB 4-6).
+- **CHOKE**: legend strip with OFF forward and ON aft (HB 7-21). Pulled fully for
+  a cold start with the throttle closed, then eased off over the first half
+  minute (HB 4-6).
+- **BRAKE** (Bremshebel), the single hydraulic brake lever: legend strip with OFF
+  forward and ON aft (HB 7-21). It sits on the console directly behind the engine
+  controls (HB 7-10). Non-locking: it brakes only while held and springs back when
+  released (owner ruling #465).
+- **Stabilator trim wheel** (Trimmrad): left of the throttle, its indicator
+  directly beside the wheel; turning it forward trims nose-heavy (HB 7-12). Its
+  legend strip has DOWN forward and UP aft, with no neutral mark (HB 7-21);
+  the take-off placard (HB 7-20) is what asks for it neutral at take-off.
+- **Parking-brake valve** (Rückflusshahn): close the valve first, then apply the
+  brake lever; the pressure holds until the valve is opened again, all with one
+  hand (HB 7-10). The figure shows a small lever with a printed tag aft of the
+  lever row; the handbook's placard list names no legend for it. Its legends
+  PARK BRAKE, OPEN and SHUT are correct as drawn, **owner-confirmed** 2026-10-08.
   Assumed (unverified): closing the valve while the lever is held traps it as well.
-- **Carb heat** (Vergaservorwärmung): named in seven checklists and on the take-off
-  placard, but the handbook shows no control. The trainer adds a provisional
-  pull knob on the console (§9).
-- **Rescue-system handle** (Rettungsgerät), on the main bulkhead between the seats,
-  secured on the ground by a safety pin. Pull hard and far forward to deploy.
-  The trainer draws it in its own view, `bulkhead`, behind the console (§9,
-  question 26).
-- Not modelled: the large unlabelled knob right of the parking-brake valve (§9),
-  the fire extinguisher (pocket behind the passenger seat), the fuel dipstick.
+- **Large knob aft of the valve** (§9, question 10): the hydraulic in-flight
+  adjustable propeller is set by a lever on the centre console behind the engine
+  control unit, with several detents and a catch under the grip that is lifted to
+  move it (HB 7-5). That is the likely identity of the knob if D-MPGO has that
+  propeller. A cabin heater is optional equipment (HB 6-8, 8-7) and gives a
+  second candidate.
+- **Carb heat** (Vergaservorwärmung): pulled to apply (HB 4-11, 4-13); named in
+  seven checklists and on the take-off placard, but no figure or text shows the
+  control (§9, question 3).
+- **Rescue-system handle** (Rettungsgerät): on the centre console between the
+  seats, at the main bulkhead, low at the console's aft end (HB 3-4, 7-13; the
+  passenger briefing calls it the handle on the centre shelf, HB 4-5). It pulls a
+  cable to the rocket. Deploy by pulling it forward, hard, to the stop (HB 3-4).
+  Secured on the ground by a pin through the release lever (HB 8-1). The rocket and
+  canopy sit in the upper compartment behind the bulkhead (HB 7-13).
+- Not modelled as a control: the large knob aft of the parking-brake valve
+  (drawn as artwork only). Not modelled: the fire extinguisher (pocket behind
+  the passenger seat), the fuel dipstick.
+
+What the trainer draws today, and where it departs from the above:
+
+- The console is drawn from above, forward up and the pilot's seat on the left
+  (#534). The trim wheel, CHOKE, THROTTLE and BRAKE lie side by side in that
+  order, left to right; the order is **assumed (unverified)** (§9, question 31).
+  Each slides up (forward) and down (aft) in its own slot with its legend strip
+  beside it: the throttle pushes up to FULL, the brake and choke pull down to ON,
+  and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
+  it, DOWN forward. The parking-brake valve sits aft of the lever row, below the
+  brake lever.
+- The throttle prints FULL at the forward end and IDLE at the aft end, as the
+  aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
+  check gives the end legends, not the title. The handbook treats the throttle as
+  continuous; the trainer keeps it stepped, with three trainer stops between the
+  ends (low, run-up and cruise power) that drive the rpm model and the procedures.
+  The trainer marks them with unworded detent ticks, which the aircraft's strip
+  does not have. Cues name those stops in words, not as printed legends.
+- The trim placard prints DOWN at the forward end and UP at the aft end, with no
+  neutral mark, as the aircraft does (#532). Its title TRIM is assumed
+  (unverified): the handbook check gives the end legends, not the title. The
+  trainer keeps neutral as a trim position because the take-off placard asks for
+  neutral trim (HB 7-20); cues name it in words, not as a printed legend.
+- The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
+  trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
+- The large knob is drawn as unlabelled artwork, not a control, until its
+  identity is known (§9, question 10). It stands directly aft of the valve (#535).
+- The provisional carb-heat pull knob stands outboard of the lever row, on the
+  right-seat side of the console top, clear of the lever row and the large knob;
+  this place is **assumed (unverified)** (§9, question 3).
+- The rescue handle sits low at the console's aft end, between the seats, on a
+  recessed shelf beside the valve at the bulkhead (#535). The large knob holds the
+  column aft of the valve, so the handle is drawn a little to the pilot's side of the
+  console's centreline, not on it; that offset is a trainer compromise. Pulled, it
+  slides forward (up the top view) to the stop at its guide block; the safety pin
+  goes across the guide block through the release lever. Its description and the E2
+  pull item say forward, hard, to the stop. The T-grip, the plate's RESCUE and
+  PULL HARD with its forward chevrons, a pin with a ring and no flag, and the
+  handle's place across the shelf are **assumed (unverified)** (§9, question 26).
 
 ### 3.5 Not in the analog variant
 
@@ -335,9 +410,10 @@ extinguisher, ELT remote switch. Folded into N6.
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
-after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
-to the taxi setting (0°). Before the first start of the day turn the prop by hand;
-if the aircraft rolls during start, ignition off.
+after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; intercom on
+(trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
+Before the first start of the day turn the prop by hand; if the aircraft rolls
+during start, ignition off.
 
 **N4 Warm-up (HB 4-6, 4-7; no checklist in the handbook).** About 2000 rpm for
 2 min, then 2500 rpm; raise rpm only above 2 bar oil pressure; ready at 50 °C oil.
@@ -350,11 +426,12 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
 transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
-powered and at standby)_; choke off; carb heat off; throttle to 4000 rpm; engine
-gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
-300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
-lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
-pin removed (Rettungsgerät entsichert) _(confirm)_; ELT armed (Notsender); passenger briefed _(confirm)_;
+powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
+off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
+drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
+both; oil temperature at least 51 °C; charge lamp out; throttle idle; flaps 15°; trim
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
+system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
 **N7 Normal take-off (HB 4-3, 4-10, 4-11).** Flaps 15° (0° on pavement); carb heat
@@ -393,7 +470,7 @@ accidental ELT activation _(confirm)_.
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
 (assumed, §9 key and fuel valve cover: the key comes out only with it closed, E6); key out; rescue
-system secured, pin in (gesichert) _(confirm)_; ELT checked and left armed (§9); chocks
+system secured, pin in (gesichert); ELT checked and left armed (§9); chocks
 _(confirm)_.
 
 ## 7. Emergency procedures (our wording)
@@ -403,7 +480,7 @@ stops, reduce power and pull out gently. If recovery fails or height is short, u
 the rescue system. _Not trained in M6: no flight-dynamics model._
 
 **E2 Rescue system (HB 3-1, 3-4, 3-5).** Ignition off (so the prop cannot damage
-the chute); pull the handle hard and far until the rocket fires; fuel valve closed;
+the chute); pull the handle forward, hard, to the stop, and the rocket fires; fuel valve closed;
 emergency call _(confirm)_; BAT out; belts tight; brace: hands crossed behind the
 neck, forearms beside the face _(confirm)_. Maximum deployment speed VNE.
 
@@ -492,6 +569,11 @@ verifies it on D-MPGO.
    VNE 260 km/h and the yellow arc 245–260.
 3. **Carb heat**: does D-MPGO have a carb-heat control, and where? Uses a
    provisional pull knob on the console, off/on.
+   **Handbook check 2026-10-08:** still open. Carb heat is pulled to apply (HB 4-11, 4-13); no figure
+   or text shows the control (HB 7-18 to 7-21).
+   Provisional place (#534): the knob stood where the figure shows the large knob,
+   so it moved to the right-seat side of the console top, outboard of the lever row
+   and clear of it, pulled aft to ON. This place is **assumed (unverified)**.
 4. **Engine fire ending**: the handbook allows a rescue deployment at about 200 m
    after the flames die; the same page forbids it with fire on board. Uses: never
    deploy, emergency landing.
@@ -500,14 +582,23 @@ verifies it on D-MPGO.
 7. **ELT at shutdown**: off or left armed? Uses armed.
 8. **Ignition key labels**: OFF / 1 / 2 / 1+2 / START or L / R / BOTH? Uses
    OFF, L, R, BOTH, START.
+   **Handbook check 2026-10-08:** still open, leaning to numbers. The restart item names the both
+   position 1 + 2 (HB 3-5); the dial cannot be read in HB 7-18.
 9. **Second warning lamp** at the top of the upper-left field: what is it in the
    analog variant? Drawn unlit, not modelled.
-10. **Large knob** right of the parking-brake valve: cabin heat, propeller, other?
-    Not modelled.
+10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
+    Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
+    in-flight adjustable propeller has its lever on the centre console behind the
+    engine control unit, with detents and a catch under the grip (HB 7-5), where
+    the figure shows the knob; a cabin heater is optional equipment (HB 6-8, 8-7).
+    Goes with question 11.
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
 12. **Trim wheel position**: left of the throttle (text) or below the choke
-    (photo)? Uses below the choke.
+    (photo)? Uses left of the throttle, with the choke between them (#534). **Handbook check 2026-10-08:** answered by inference from the
+    handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
+    read as a top view with forward to the left: its bottom slot is then the pilot-side one, and the trim wheel is left of the throttle with the choke
+    between them (HB 7-12, 7-19; §3.4).
 13. **Cockpit-light switch**: present on the panel but absent from the wiring
     diagram. Modelled as a main-bus consumer.
 14. **Avionics as installed**: the units, their software versions and the pilot's
@@ -532,29 +623,45 @@ verifies it on D-MPGO.
     (unverified), from general knowledge of the CT Supralight: the centre column
     is centred on the junction of the two upper fields, its top at their lower
     edge; it is narrower than either upper field; the console continues straight
-    down from it between the seats.
+    down from it between the seats. **Handbook check 2026-10-08:** partly answered. The engine
+    control unit sits on the console just aft of the lower centre field (HB 7-19);
+    the column's width and offset are not given.
+    **Answered by the owner 2026-10-08:** the panel geometry as drawn matches the
+    aircraft. The one-screen compromise stays: the console beside the centre
+    column rather than below it.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
     than the vertical speed indicator; its reversed card shows through a window at
-    the top of the housing, numbers increasing to the left. **Answered by
-    assumption pending owner verification** (#444). Assumed (unverified), from general knowledge of the CT
+    the top of the housing, numbers increasing to the left. **Answered by the
+    owner 2026-10-08** (see below); first answered by assumption (#444). Assumed (unverified), from general knowledge of the CT
     Supralight: a panel-mounted magnetic compass with a reversed card read in a
     window, mounted in the panel (not on the windscreen frame), no larger than the
-    vertical speed indicator.
+    vertical speed indicator. **Handbook check 2026-10-08:** still open. A magnetic compass with a
+    deviation card under it is minimum equipment (HB 1-3, 7-20); type and card are
+    not given. **Answered by the owner 2026-10-08:** correct as drawn,
+    owner-confirmed.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
-    ON up and ARM down, its lamp beside it, red. **Answered by assumption pending
-    owner verification** (#447). Assumed (unverified), from general knowledge of
+    ON up and ARM down, its lamp beside it, red. **Answered by the owner
+    2026-10-08** (see below); first answered by assumption (#447). Assumed (unverified), from general knowledge of
     the CT Supralight: the remote plate prints ELT, ON (up) and ARM (down), with no
     TEST or RESET position; the lamp lights red while the ELT transmits.
+    **Handbook check 2026-10-08:** still open. The remote unit in the lower centre field shows
+    when the ELT has been triggered (HB 4-15, 7-18); its legends cannot be read.
+    **Answered by the owner 2026-10-08:** the remote plate's legends and lamp are
+    correct as drawn, owner-confirmed.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
-    legend. **Answered by assumption pending owner verification** (#444). Assumed
-    (unverified), from general knowledge of the CT Supralight: the charge lamp
-    lights red and the panel prints CHARGE with it.
+    legend. **Answered by the owner 2026-10-08** (see below); first answered by
+    assumption (#444). Assumed (unverified), from general knowledge of the CT
+    Supralight: the charge lamp
+    lights red and the panel prints CHARGE with it. **Handbook check 2026-10-08:** still open. The
+    wiring diagram names an alternator warning light (HB 7-8); legend and colour
+    are not given. **Answered by the owner 2026-10-08:** the CHARGE lamp is
+    correct as drawn, owner-confirmed.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: the leading steps below are memory
     items; the rest of each procedure is read and done from the list. **Answered by
@@ -580,7 +687,8 @@ verifies it on D-MPGO.
     glide (125 km/h, E5) after E4's restart attempt, and E3 below 100 m names only
     the approach speed: does the club fly the glide from memory, and where in the
     list? The safety-pin confirm (E2) is a memory item only because it sits
-    inside the leading block; does the club drill it so?
+    inside the leading block; does the club drill it so? **Handbook check 2026-10-08:** still
+    open; the handbook marks no memory items.
 
 24. **Phase start states**: which switches does the club have on in each phase? Today
     (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
@@ -591,28 +699,54 @@ verifies it on D-MPGO.
     and `taxiIn` entries carry it. **Answered by assumption pending owner
     verification** (#466). Assumed (unverified), from general-aviation practice;
     the day-VFR-only rulings (cockpit light off, avionics and beacon on) are the
-    owner's.
+    owner's. **Handbook check 2026-10-08:** still open; the handbook gives no phase states.
 25. **Console lever and trim geometry**: do BRAKE, THROTTLE and CHOKE travel
     fore and aft, which way does each apply (brake and choke on when pulled?),
     what handles do they carry, and where does the trim indicator sit relative to
-    the wheel? Today: three horizontal levers stacked top to bottom, drawn as the
+    the wheel? Before #534: three horizontal levers stacked top to bottom, drawn as the
     left seat sees the console's flank, forward to the left; the throttle pushes
     forward to full, the brake and choke pull aft to on; the trim wheel's rim
     shows in a slot below the choke with its indicator scale above it, nose down
-    forward. **Answered by assumption pending owner verification** (#449).
+    forward. Today: see §3.4 (#534). **Answered by assumption pending owner
+    verification** (#449).
     Assumed (unverified), from general knowledge of the CT Supralight: the three
     levers slide fore and aft; push is forward, so full throttle is forward and
     the brake and choke apply when pulled toward the pilot; the trim wheel turns
     fore and aft, forward nose down, with its indicator beside it.
-26. **Rescue handle on the bulkhead**: how high and where across the main
+    **Handbook check 2026-10-08:** answered from the handbook, with one correction;
+    the lever order is an inference for the owner to confirm (question 31). Directions:
+    throttle FULL forward and IDLE aft, brake and choke OFF forward and ON aft, trim
+    DOWN forward and UP aft, forward trims nose-heavy (HB 7-12, 7-19 to 7-21); the
+    trim indicator sits directly beside the wheel (HB 7-12). Correction: the levers
+    lie side by side across the console top, not stacked on its flank; from the
+    pilot's side outward trim wheel, choke, throttle, brake (inferred from HB 7-19;
+    §3.4). Handle shapes cannot be read in the figure and stay open.
+    Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
+    low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
+    (unverified).
+    Trim legends (#532): the placard prints DOWN forward and UP aft, with no
+    neutral mark; the trainer's neutral position is unprinted. The TRIM title is
+    assumed (unverified).
+26. **Rescue handle placement**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
-    safety pin go? Today: a T-grip in a holder centred on the bulkhead between
+    safety pin go? Before #535: a T-grip in a holder centred on the bulkhead between
     the two seat backs, the safety pin through the holder above the grip, the
     holder printed RESCUE and PULL HARD. **Answered by assumption pending owner
     verification** (#449). Assumed (unverified), from general knowledge of the CT
     Supralight: the handle sits centred between the seats on the bulkhead behind
     them, at about shoulder height, reached back over the shoulder; the pin goes
     through the holder and carries a remove-before-flight flag.
+    **Handbook check 2026-10-08:** answered from the handbook; the assumption is wrong on
+    height and reach, and it gave no pull direction. The handle is on the centre console between the seats,
+    at the main bulkhead, low at the console's aft end (HB 3-4, 7-13, 4-5), and is
+    pulled forward, hard, to the stop (HB 3-4). The pin secures the release lever
+    itself (HB 8-1). Grip shape and the pin's flag are not given.
+    **Drawn so (#535):** the handle is on the console view's recessed aft shelf,
+    low between the seats, and pulls forward to the stop; the pin goes through the
+    release lever. The `bulkhead` view is gone. Still **assumed (unverified)**: the
+    T-grip, the plate's legends, a pin with a ring but no flag, and the handle's
+    place across the shelf, drawn to the pilot's side of the centreline because the
+    large knob holds the column aft of the valve.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
@@ -620,7 +754,10 @@ verifies it on D-MPGO.
     N16 closes the valve after BAT out so the key can come out, leaving the aircraft
     as `parking` has it. **Answered by assumption pending owner verification**
     (#468). Assumed (unverified), from the handle covering the slot and N3's order
-    (fuel valve open, then key in).
+    (fuel valve open, then key in). **Handbook check 2026-10-08:** partly answered. The closed
+    handle covering the lock is a handbook fact (HB 3-6), and the valve is shaped so
+    the key can hardly be operated past it (HB 4-6). Whether the key goes in under
+    the closed handle, and the N16 order, are not given.
 28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
     engine bay streams over the windscreen in the outside view, and the CHT and oil
     temperature climb past their red lines within seconds while the fire burns; both
@@ -628,22 +765,54 @@ verifies it on D-MPGO.
     assumption pending owner verification** (#233). Assumed (unverified), from
     general-aviation practice: smell and smoke come first, and a fire in the engine
     bay heats the CHT and oil sensors; the size of the rise is a trainer value.
+    **Handbook check 2026-10-08:** still open; the fire item gives actions, not cues (HB 3-6).
 29. **Flap control failure cue**: what shows on the panel when the flap controller
     fails? Today: the failure trips the flap breaker (8 A, thermal), the flap
     position readout on that circuit goes dark, and with the breaker reset the readout
     stays put whatever the selector says. **Answered by assumption pending owner
     verification** (#233). Assumed (unverified), from the overload note of E9 and the
     wiring of §4: the readout is fed through the flap breaker, and a failed controller
-    overloads the drive until the breaker trips.
+    overloads the drive until the breaker trips. **Handbook check 2026-10-08:** partly answered,
+    and it adds a cue. The readout blinks while the drive runs and shows steady
+    once the setting is reached; blinking that persists while extending means the
+    overload protection has stopped the drive (HB 7-12). The thermal flap breaker
+    beside the selector can trip under sustained overload and takes a while to
+    reset (HB 7-13). A failed controller is reset by switching GEN and BAT off and
+    on (HB 3-7). The trainer blinks the readout while the drive runs, steady
+    once the setting is reached, and it keeps blinking while airspeed holds an
+    extension off (#533). Its rate (`--panel-blink-period`) is a trainer value,
+    assumed (unverified).
 30. **Flows**: which procedures does the club open with a panel scan done from
     memory before the checklist is read, and in which order? Today: three, each
     verified by the §6 items that follow it. **Answered by assumption pending
     owner verification** (#453). Assumed (unverified), from general-aviation
     practice and the CT Supralight panel layout (§3), scanned top to bottom on the
-    centre field, then down the console's lever stack and across to carb heat:
+    centre field, then across the console from the pilot's side and on to carb heat:
     - N3 Engine start: Avionics Master off; Beacon on; fuel valve open; BAT in;
       carb heat off.
-    - N6 Before take-off: flaps 15°; choke off; trim neutral; carb heat off. The
+    - N6 Before take-off: flaps 15°; trim neutral; choke off; carb heat off. The
       parking brake stays out of the flow, since its valve and lever go in order
       (§3.4).
     - N15 After landing: landing light off; flaps 0°; carb heat off.
+
+    **Handbook check 2026-10-08:** still open; the handbook gives checklists, not flows. The
+    console scan order changes with §3.4: across the console from the pilot's side
+    (trim, choke, throttle, brake), not down a stack.
+
+31. **Console lever order across the console**: in which order do the levers sit
+    from the pilot's side outward? The handbook figure and the trim wheel sitting
+    left of the throttle (HB 7-19, 7-12) give trim wheel, choke, throttle, brake
+    (question 25's handbook check).
+    The order is inferred from the figure: **assumed (unverified)** until the
+    owner confirms it on D-MPGO. Today (#534): the console is drawn from above,
+    forward up, with the trim wheel, choke, throttle and brake side by side in
+    that order from the pilot's side, each sliding fore and aft (§3.4).
+32. **GPS and intercom switch-on steps**: which normal-procedure step switches
+    the GPS on, and which the intercom? The handbook checklists name neither (§6).
+    The trainer switches the intercom on in N3 right after Avionics Master on, and
+    the GPS on in N6 after the transponder, with a check of its position fix after
+    "radio set", so the run-up covers the receiver's search. A full flight then
+    reaches line-up with both on, as the phase presets have them (§5, question 24);
+    a carried leg keeps what the pilot did and re-seeds no device state (#519).
+    **Assumed (unverified)**, from general-aviation practice, until the club
+    confirms when its pilots switch each on.

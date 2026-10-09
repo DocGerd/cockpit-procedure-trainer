@@ -219,8 +219,8 @@ export const emergencyProcedures = {
         control: 'rescueHandle',
         position: 'pulled',
         text: text(
-          'Rettungsgerät: Griff kräftig und weit ziehen, bis die Rakete zündet (höchstens VNE)',
-          'Rescue system: pull the handle hard and far until the rocket fires (at most VNE)',
+          'Rettungsgerät: Griff nach vorn, kräftig, bis zum Anschlag ziehen; die Rakete zündet (höchstens VNE)',
+          'Rescue system: pull the handle forward, hard, to the stop; the rocket fires (at most VNE)',
         ),
       },
       {
@@ -258,7 +258,6 @@ export const emergencyProcedures = {
       {
         type: 'check',
         memory: true,
-        target: { control: 'fuelValve' },
         condition: (state) => state.systems.fire,
         text: text('Rauch oder Flammen am Triebwerk', 'Smoke or flames from the engine'),
       },

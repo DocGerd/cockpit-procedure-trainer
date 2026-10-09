@@ -13,6 +13,7 @@ const stateWith = (
   altitudeFt = 0,
 ): CtslTrainerState => ({
   controls: breakers,
+  guards: {},
   systems: { ...initial, altitudeFt, bus: { ...initial.bus, avionicsPowered } },
   devices: {},
 });

@@ -8,6 +8,9 @@ export type Text = { readonly de: string; readonly en: string };
  */
 export type PositionPhrase = { readonly state: Text; readonly restore: Text };
 
+/** A guard position in the guard's own words: `state` ("removed"), `act` the imperative to reach it ("Remove the safety pin"). */
+export type GuardPhrase = { readonly state: Text; readonly act: Text };
+
 export type JsonValue =
   string | number | boolean | null | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
@@ -99,6 +102,11 @@ export type RotaryControl = ControlBase & {
   readonly positions: readonly string[];
   readonly initial: string;
   readonly springBack?: { readonly [detent: string]: string };
+  /**
+   * Positions the pilot reaches only from the listed ones, as the key comes out only at OFF; any
+   * other pilot move to them is refused as `locked`.
+   */
+  readonly onlyFrom?: { readonly [position: string]: readonly string[] };
 };
 
 export type LeverControl = ControlBase & { readonly kind: 'lever' } & (
@@ -116,7 +124,10 @@ export type GuardedControl = ControlBase & {
   readonly kind: 'guarded';
   readonly positions: readonly string[];
   readonly initial: string;
-  readonly guard: { readonly name: Text };
+  readonly guard: {
+    readonly name: Text;
+    readonly legends?: { readonly open: GuardPhrase; readonly closed: GuardPhrase };
+  };
 };
 
 export type BreakerControl = ControlBase & {
@@ -142,6 +153,8 @@ export type DeviceState<D = unknown> = { readonly on: boolean; readonly state: D
 
 export type TrainerState<S> = {
   readonly controls: Positions;
+  /** Per guarded control, whether its cover or pin is open. */
+  readonly guards: Readonly<Record<string, GuardPosition>>;
   readonly systems: S;
   readonly devices: Readonly<Record<string, DeviceState>>;
 };
@@ -153,6 +166,8 @@ export type IndicatorValue = number | boolean | string;
 export type IndicatorDefinition<S> = {
   readonly name: Text;
   readonly select: (state: TrainerState<S>) => IndicatorValue;
+  /** While true, a widget that can blink (the digital readout) blinks its value. */
+  readonly blink?: Condition<S>;
   readonly appearance: Appearance;
 };
 
@@ -374,9 +389,15 @@ export type CheckItem<
   I extends string = string,
 > = ItemBase & {
   readonly type: 'check';
-  readonly target:
+  /** Left out when there is nothing to read on the panel, such as smoke seen outside. */
+  readonly target?:
     { readonly indicator: I } | { readonly control: ControlId<CT> | DeviceControlId };
   readonly condition: Condition<S>;
+  /**
+   * What the pilot should find. With it, `text` is the challenge alone, so Practice can withhold
+   * the answer until the item is ticked.
+   */
+  readonly expected?: Text;
   /** Lets the pilot answer with the value read; a reading off by more than the tolerance is unmet. */
   readonly response?: {
     readonly reading: (state: TrainerState<S>) => number;
@@ -387,8 +408,21 @@ export type CheckItem<
 
 export type ConfirmItem = ItemBase & { readonly type: 'confirm' };
 
+/**
+ * Opens or closes the guard of a guarded control, such as pulling a safety pin. It completes like
+ * an action: when the pilot moves the guard to `position`, or ticks it verified.
+ */
+export type GuardItem<CT extends ControlRecord = ControlRecord> = ItemBase &
+  {
+    [K in GuardedId<CT>]: {
+      readonly type: 'guard';
+      readonly control: K;
+      readonly position: GuardPosition;
+    };
+  }[GuardedId<CT>];
+
 export type ProcedureItem<S, CT extends ControlRecord = ControlRecord, I extends string = string> =
-  ActionItem<S, CT> | CheckItem<S, CT, I> | ConfirmItem;
+  ActionItem<S, CT> | CheckItem<S, CT, I> | ConfirmItem | GuardItem<CT>;
 
 export type ProcedureDefinition<
   S,
