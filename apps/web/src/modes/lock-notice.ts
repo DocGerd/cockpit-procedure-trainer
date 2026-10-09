@@ -2,7 +2,7 @@ import type { Aircraft, ControlPosition, Session, SessionControlResult } from '@
 import { useSyncExternalStore } from 'react';
 import { useTrainer } from '../trainer';
 
-/** A pilot move an interlock refused; a new object on every refusal, so a repeat restarts its time. */
+/** A refused pilot move; a new object on every refusal, so a repeat restarts its time. */
 export type LockNotice = { readonly controlId: string; readonly serial: number };
 
 export type LockNoticeStore = {
@@ -66,7 +66,9 @@ export function lockHolder(
   controlId: string,
 ): string | undefined {
   const lock = aircraft.controls[controlId]?.interlock?.find(
-    (entry) => positions[entry.control] === entry.at,
+    (entry) =>
+      positions[entry.control] === entry.at &&
+      entry.holds.some((held) => held === positions[controlId]),
   );
   return lock && aircraft.controls[lock.control] ? lock.control : undefined;
 }
