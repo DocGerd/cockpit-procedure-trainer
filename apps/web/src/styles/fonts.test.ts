@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { latinFontFaces } from './font-subsets';
 
 const webRoot = fileURLToPath(new URL('../../', import.meta.url));
 const read = (path: string) => readFileSync(path, 'utf8');
@@ -25,5 +26,35 @@ describe('fonts are bundled', () => {
     for (const weight of [400, 500]) {
       expect(main).toContain(`'@fontsource/geist-mono/${weight}.css'`);
     }
+  });
+});
+
+describe('latinFontFaces', () => {
+  const fontsource = (family: string, weight: number) =>
+    read(join(webRoot, `node_modules/@fontsource/${family}/${weight}.css`));
+  const faces = (css: string) => [...css.matchAll(/\/\* ([\w-]+) \*\/\s*@font-face \{[^}]*\}/g)];
+
+  it.each([
+    ['geist', 400],
+    ['geist', 600],
+    ['geist-mono', 500],
+  ])(
+    'keeps only the latin-ext and latin faces of %s %i, unchanged and in order',
+    (family, weight) => {
+      const original = fontsource(family, weight);
+      const kept = faces(latinFontFaces(original));
+      expect(kept.map((face) => face[1])).toEqual([
+        `${family}-latin-ext-${weight}-normal`,
+        `${family}-latin-${weight}-normal`,
+      ]);
+      for (const face of kept) {
+        expect(original).toContain(face[0]);
+        expect(face[0]).toMatch(/unicode-range: U\+/);
+      }
+    },
+  );
+
+  it('refuses a stylesheet without a latin face', () => {
+    expect(() => latinFontFaces('@font-face { font-family: X; }')).toThrow();
   });
 });

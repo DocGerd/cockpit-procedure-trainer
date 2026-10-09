@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import type { Language } from '../i18n';
 import { LanguageProvider } from '../i18n';
@@ -53,6 +53,11 @@ const procedureButtons = () =>
   within(procedureSection())
     .getAllByRole('button')
     .filter((button) => button.hasAttribute('aria-pressed'));
+
+// The trainer screen is a lazy chunk: transform it once so Start does not wait on it.
+beforeAll(async () => {
+  await import('./TrainerLayout');
+});
 
 beforeEach(() => {
   localStorage.clear();
@@ -118,7 +123,7 @@ describe('aircraft and procedure picker', () => {
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('practice');
     expect(trainer.procedureId).toBe('fire');
-    expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
+    expect(await screen.findByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
   });
 
   it('describes what Start and Explore do, each with a one-line helper', () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LanguageProvider } from '../i18n';
 import { ThemeProvider } from '../theme';
 import { TrainerProvider, useTrainer } from '../trainer';
@@ -43,10 +43,16 @@ function setWidth(width: number) {
 
 async function startProcedure() {
   await userEvent.click(screen.getByRole('button', { name: 'Start procedure' }));
+  await screen.findByRole('region', { name: 'Cockpit panel' });
 }
 
 const checklistToggle = () =>
   within(screen.getByRole('banner')).getByRole('button', { name: /^Checklist/ });
+
+// The trainer screen is a lazy chunk: transform it once so Start does not wait on it.
+beforeAll(async () => {
+  await import('./TrainerLayout');
+});
 
 beforeEach(() => {
   localStorage.clear();
