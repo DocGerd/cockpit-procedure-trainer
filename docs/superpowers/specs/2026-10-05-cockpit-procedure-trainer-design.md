@@ -104,13 +104,16 @@ Any control may declare an `interlock`: while another control stands at a
 position, this one cannot be moved from a listed position to one outside the
 list, as a closed fuel valve over the key slot keeps the key at OFF. Only pilot
 moves are refused (result `locked`); phase entries and failures move controls
-freely.
+freely. A rotary may also declare positions reachable only from others
+(`onlyFrom`), as the key comes out only at OFF.
 
 ### 4.2 Indicators
 
 Gauges, lamps and readouts. Each binds to a value in the aircraft state through
 a selector function and declares how it shows it (needle range, lamp colour,
-digits). Indicators never hold state of their own.
+digits). Indicators never hold state of their own. A readout may blink while a
+declared condition holds (added in #533), as a flap readout does while the flaps
+travel.
 
 A lamp (annunciator) may also give `stateLabels`: plain strings for lit and
 dark, not bilingual text and not checked per language by the validator. The
@@ -333,9 +336,10 @@ logic follows and lists the functions it does not model.
 ## 5. Runtime
 
 1. The pilot operates a control; the control store records the new position, or
-   refuses the move when an interlock holds it (result `locked`): the position
-   stays, a notice names both controls, and no
-   deviation is recorded.
+   refuses the move when an interlock holds it or the control reaches that
+   position only from others (result `locked`): the position stays, a notice
+   names both controls and rings the holding control on the panel when another
+   control holds it, and no deviation is recorded.
 2. The systems runtime calls `step` and stores the new state.
 3. Indicators redraw from the state.
 4. The checklist engine observes control changes and state:

@@ -163,8 +163,9 @@ Handbook facts (checked 2026-10-08):
   cable to the rocket. Deploy by pulling it forward, hard, to the stop (HB 3-4).
   Secured on the ground by a pin through the release lever (HB 8-1). The rocket and
   canopy sit in the upper compartment behind the bulkhead (HB 7-13).
-- Not modelled: the large knob aft of the parking-brake valve, the fire
-  extinguisher (pocket behind the passenger seat), the fuel dipstick.
+- Not modelled as a control: the large knob aft of the parking-brake valve
+  (drawn as artwork only). Not modelled: the fire extinguisher (pocket behind
+  the passenger seat), the fuel dipstick.
 
 What the trainer draws today, and where it departs from the above:
 
@@ -409,8 +410,8 @@ extinguisher, ELT remote switch. Folded into N6.
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
-after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
-to the taxi setting (0°); intercom on (trainer addition, assumed, §9 question 32).
+after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; intercom on
+(trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
 Before the first start of the day turn the prop by hand; if the aircraft rolls
 during start, ignition off.
 
@@ -585,8 +586,8 @@ verifies it on D-MPGO.
    position 1 + 2 (HB 3-5); the dial cannot be read in HB 7-18.
 9. **Second warning lamp** at the top of the upper-left field: what is it in the
    analog variant? Drawn unlit, not modelled.
-10. **Large knob** right of the parking-brake valve: cabin heat, propeller, other?
-    Not modelled. **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
+10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
+    Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
     in-flight adjustable propeller has its lever on the centre console behind the
     engine control unit, with detents and a catch under the grip (HB 7-5), where
     the figure shows the knob; a cabin heater is optional equipment (HB 6-8, 8-7).
@@ -632,8 +633,8 @@ verifies it on D-MPGO.
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
     than the vertical speed indicator; its reversed card shows through a window at
-    the top of the housing, numbers increasing to the left. **Answered by
-    assumption pending owner verification** (#444). Assumed (unverified), from general knowledge of the CT
+    the top of the housing, numbers increasing to the left. **Answered by the
+    owner 2026-10-08** (see below); first answered by assumption (#444). Assumed (unverified), from general knowledge of the CT
     Supralight: a panel-mounted magnetic compass with a reversed card read in a
     window, mounted in the panel (not on the windscreen frame), no larger than the
     vertical speed indicator. **Handbook check 2026-10-08:** still open. A magnetic compass with a
@@ -643,8 +644,8 @@ verifies it on D-MPGO.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
-    ON up and ARM down, its lamp beside it, red. **Answered by assumption pending
-    owner verification** (#447). Assumed (unverified), from general knowledge of
+    ON up and ARM down, its lamp beside it, red. **Answered by the owner
+    2026-10-08** (see below); first answered by assumption (#447). Assumed (unverified), from general knowledge of
     the CT Supralight: the remote plate prints ELT, ON (up) and ARM (down), with no
     TEST or RESET position; the lamp lights red while the ELT transmits.
     **Handbook check 2026-10-08:** still open. The remote unit in the lower centre field shows
@@ -654,8 +655,9 @@ verifies it on D-MPGO.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
-    legend. **Answered by assumption pending owner verification** (#444). Assumed
-    (unverified), from general knowledge of the CT Supralight: the charge lamp
+    legend. **Answered by the owner 2026-10-08** (see below); first answered by
+    assumption (#444). Assumed (unverified), from general knowledge of the CT
+    Supralight: the charge lamp
     lights red and the panel prints CHARGE with it. **Handbook check 2026-10-08:** still open. The
     wiring diagram names an alternator warning light (HB 7-8); legend and colour
     are not given. **Answered by the owner 2026-10-08:** the CHARGE lamp is
@@ -701,11 +703,12 @@ verifies it on D-MPGO.
 25. **Console lever and trim geometry**: do BRAKE, THROTTLE and CHOKE travel
     fore and aft, which way does each apply (brake and choke on when pulled?),
     what handles do they carry, and where does the trim indicator sit relative to
-    the wheel? Today: three horizontal levers stacked top to bottom, drawn as the
+    the wheel? Before #534: three horizontal levers stacked top to bottom, drawn as the
     left seat sees the console's flank, forward to the left; the throttle pushes
     forward to full, the brake and choke pull aft to on; the trim wheel's rim
     shows in a slot below the choke with its indicator scale above it, nose down
-    forward. **Answered by assumption pending owner verification** (#449).
+    forward. Today: see §3.4 (#534). **Answered by assumption pending owner
+    verification** (#449).
     Assumed (unverified), from general knowledge of the CT Supralight: the three
     levers slide fore and aft; push is forward, so full throttle is forward and
     the brake and choke apply when pulled toward the pilot; the trim wheel turns
@@ -724,9 +727,9 @@ verifies it on D-MPGO.
     Trim legends (#532): the placard prints DOWN forward and UP aft, with no
     neutral mark; the trainer's neutral position is unprinted. The TRIM title is
     assumed (unverified).
-26. **Rescue handle on the bulkhead**: how high and where across the main
+26. **Rescue handle placement**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
-    safety pin go? Today: a T-grip in a holder centred on the bulkhead between
+    safety pin go? Before #535: a T-grip in a holder centred on the bulkhead between
     the two seat backs, the safety pin through the holder above the grip, the
     holder printed RESCUE and PULL HARD. **Answered by assumption pending owner
     verification** (#449). Assumed (unverified), from general knowledge of the CT

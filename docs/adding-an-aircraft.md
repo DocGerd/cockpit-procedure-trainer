@@ -107,7 +107,10 @@ failures move freely. The other control must be a different one.
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
 from the trainer state, `{ controls, guards, systems, devices }`, and returns a number,
-boolean or string; indicators hold no state. `appearance` is required.
+boolean or string; indicators hold no state. `appearance` is required. An
+optional `blink` condition makes a widget that can blink (the digital readout)
+blink its value while it holds, as the CT Supralight flap readout does while the
+flaps travel; the period is `--panel-blink-period`.
 
 ### Systems
 
@@ -246,7 +249,12 @@ of:
   as smoke seen outside: Guided then rings nothing, rather than a control of a
   later item, and the check takes no `response`. The pilot ticks it; ticking
   while the condition is false is recorded as an `unmet-check` deviation, not
-  refused.
+  refused. An optional `expected` (`Text`) names what the pilot should find, so
+  `text` states the challenge only ("Flap readout", expected "15°"): Guided
+  shows both, Practice keeps the value back until the item is ticked. An
+  optional `response: { reading, tolerance, unit }` lets the pilot enter the
+  value read in Practice; a reading off by more than `tolerance` is an
+  `unmet-check`.
 - `confirm`: no target, a visual or verbal check the pilot ticks.
 - `guard`: a guarded `control` and the guard `position`, `'open'` or `'closed'`,
   such as a safety pin pulled before take-off. It completes like an action: when
