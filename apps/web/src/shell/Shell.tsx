@@ -17,7 +17,10 @@ let trainerLoad: Promise<typeof import('./TrainerLayout')> | undefined;
 function loadTrainer() {
   if (!trainerLoad) {
     const load = import('./TrainerLayout');
-    void load.then((module) => Object.assign(load, { status: 'fulfilled', value: module }));
+    load.then(
+      (module) => Object.assign(load, { status: 'fulfilled', value: module }),
+      (reason: unknown) => Object.assign(load, { status: 'rejected', reason }),
+    );
     trainerLoad = load;
   }
   return trainerLoad;
