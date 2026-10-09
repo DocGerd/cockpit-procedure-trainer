@@ -16,6 +16,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const hooks = resolve(import.meta.dirname, '../.claude/hooks');
 const referenceGuard = join(hooks, 'reference-guard.sh');
+const bashGuard = join(hooks, 'bash-reference-guard.sh');
 const mainGuard = join(hooks, 'main-checkout-guard.sh');
 
 interface HookEntry {
@@ -28,7 +29,7 @@ const settings = JSON.parse(
 
 function entryFor(script: string): { matcher: string; command: string } {
   for (const entry of settings.hooks.PreToolUse) {
-    const hook = entry.hooks.find((h) => h.command.includes(script));
+    const hook = entry.hooks.find((h) => h.command.includes(`/${script}`));
     if (hook) return { matcher: entry.matcher, command: hook.command };
   }
   throw new Error(`no PreToolUse wrapper runs ${script}`);
@@ -42,6 +43,7 @@ let root: string;
 let main: string;
 let worktree: string;
 let worktree2: string;
+let bare: string;
 let nested: string;
 let other: string;
 let plain: string;
@@ -140,6 +142,7 @@ beforeAll(() => {
   main = join(root, 'main');
   worktree = join(root, 'wt');
   worktree2 = join(root, 'wt2');
+  bare = join(root, 'wt3');
   nested = join(main, '.claude/worktrees/nested');
   other = join(root, 'other');
   plain = join(root, 'plain');
@@ -154,6 +157,7 @@ beforeAll(() => {
   git(main, 'worktree', 'add', '-q', '-b', 'wt', worktree);
   git(main, 'worktree', 'add', '-q', '-b', 'nested', nested);
   git(main, 'worktree', 'add', '-q', '-b', 'wt2', worktree2);
+  git(main, 'worktree', 'add', '-q', '-b', 'wt3', bare);
   touch(join(worktree, 'reference/own.txt'));
   touch(join(worktree2, 'reference/copy.txt'));
   touch(join(root, 'store/doc.txt'));
@@ -389,13 +393,225 @@ describe('reference-guard.sh', () => {
   });
 });
 
+describe('bash-reference-guard.sh', () => {
+  const guard = (command: string, rest: Partial<Call> = {}) =>
+    run(bashGuard, { tool: 'Bash', input: { command }, ...rest });
+  const denies = (command: string, rest: Partial<Call> = {}) => guard(command, rest).denied;
+
+  it('denies a command that names a path under reference/', () => {
+    const r = guard('cat reference/own.txt');
+    expect(r.denied).toBe(true);
+    expect(r.reason).toContain('docs/aircraft/<id>-intake.md');
+    expect(r.reason).toContain('CPT_ALLOW_REFERENCE=1');
+    for (const command of [
+      'cat reference/own.txt',
+      'head -n 5 ./reference/own.txt',
+      'sed -n 1p reference/own.txt',
+      'cp reference/own.txt /tmp/copy',
+      'cat < reference/own.txt',
+      'echo x > reference/new.txt',
+      'echo x | tee reference/new.txt',
+      'cat -- reference/own.txt',
+      'X=1 cat reference/own.txt',
+      'sudo cat reference/own.txt',
+      'cat reference/own.txt | wc -l',
+      'cat "reference/own.txt"',
+      "cat 'reference/own.txt'",
+      'git add reference/',
+      'ls reference',
+      'cd reference && cat own.txt',
+      'cd docs && cat ../reference/own.txt',
+      'pushd reference',
+      'grep -rn foo reference',
+      'grep foo reference/own.txt',
+      'grep -e foo reference',
+      'rg -n foo reference',
+      'tar czf /tmp/x.tgz reference',
+      'rsync -a reference/ /tmp/x/',
+      'cat docs/../reference/own.txt',
+      'cat link-to-reference/handbook.txt',
+      'cat Reference/own.txt',
+      'cat $HOME/reference/handbook.txt',
+      'cat "${HOME}/reference/handbook.txt"',
+      'cat ~/reference/handbook.txt',
+      'cat --file=reference/own.txt',
+      'diff -u README.md reference/own.txt',
+      'bash -c "cat reference/own.txt"',
+      'eval cat reference/own.txt',
+      'echo ok; cat reference/own.txt',
+      'echo ok && (cat reference/own.txt)',
+      'cat `echo reference/own.txt`',
+      'cat <<EOF > reference/x.txt\nbody\nEOF',
+      `cat ${main}/reference/handbook.txt`,
+      `cat ${worktree2}/reference/copy.txt`,
+      `cat ${nested}/reference/doc.txt`,
+    ]) {
+      expect(denies(command, { env: { HOME: main } }), command).toBe(true);
+    }
+  });
+
+  it('judges a path against the session cwd', () => {
+    expect(denies('cat own.txt', { cwd: join(worktree, 'reference') })).toBe(true);
+    expect(denies('cat reference/handbook.txt', { cwd: main })).toBe(true);
+    expect(denies('cat ../reference/own.txt', { cwd: join(worktree, 'docs') })).toBe(true);
+    expect(denies('cat reference/a.txt', { cwd: other })).toBe(false);
+  });
+
+  it('denies a recursive search or copy of a directory that holds reference/', () => {
+    const r = guard('grep -rn foo .');
+    expect(r.denied).toBe(true);
+    expect(r.reason).toContain('--exclude-dir=reference');
+    expect(r.reason).toContain('CPT_ALLOW_REFERENCE=1');
+    for (const command of [
+      'grep -rn foo .',
+      'grep -r foo',
+      'grep -R foo ..',
+      'grep -rl foo /',
+      'grep -r -e foo .',
+      'egrep -rn foo ./',
+      'grep --recursive foo .',
+      'grep foo -r .',
+      'find . -name "*.pdf"',
+      'find / -name x',
+      'find',
+      'find . -type f -exec cat {} +',
+      'rg -u foo',
+      'rg --no-ignore foo .',
+      'rg -uu foo ..',
+      'ag -u foo',
+      'ack foo',
+      'fd -I pdf',
+      'cp -r . /tmp/x',
+      'cp -a .. /tmp/x',
+      'rsync -a . /tmp/x',
+      'tar czf /tmp/x.tgz .',
+      'zip -r /tmp/x.zip .',
+      `grep -rn foo ${main}`,
+      'grep -rn foo docs/.. .',
+    ]) {
+      expect(denies(command), command).toBe(true);
+    }
+    expect(denies('grep -rn foo .', { cwd: main })).toBe(true);
+    expect(denies('find . -name x', { cwd: main })).toBe(true);
+    expect(denies('cd .. && grep -rn foo .')).toBe(true);
+    expect(denies('grep -rn foo .', { cwd: nested })).toBe(true);
+  });
+
+  it('allows a recursive command that excludes reference/ or stays elsewhere', () => {
+    for (const command of [
+      'grep -rn foo docs',
+      'grep -rn foo docs/aircraft',
+      'grep -r foo . --exclude-dir=reference',
+      'grep -r --exclude-dir reference foo .',
+      "grep -r --exclude-dir='reference' foo .",
+      'rg foo',
+      'rg -n foo .',
+      "rg -u -g '!reference' foo",
+      "rg -u --glob '!reference/**' foo",
+      'find . -path ./reference -prune -o -name x -print',
+      'find docs -name "*.md"',
+      'find ./docs -type f',
+      'cp -r docs /tmp/x',
+      'cp -r docs/aircraft docs/more',
+      'tar czf /tmp/x.tgz docs',
+      'rsync -a docs/ /tmp/x/',
+      'zip -r /tmp/x.zip docs',
+      'grep -r reference docs',
+      'grep -rn "reference/" docs',
+      'cp README.md /tmp/x',
+      'cat README.md',
+    ]) {
+      expect(denies(command), command).toBe(false);
+    }
+  });
+
+  it('allows a recursive search of a checkout that has no reference/', () => {
+    expect(denies('grep -rn foo .', { cwd: bare })).toBe(false);
+    expect(denies('find . -name x', { cwd: bare })).toBe(false);
+    expect(denies('cp -r . /tmp/x', { cwd: bare })).toBe(false);
+    expect(denies('grep -rn foo ..', { cwd: bare })).toBe(true);
+  });
+
+  it('allows the word reference as search or message text', () => {
+    for (const command of [
+      'grep -n reference docs/aircraft/x-intake.md',
+      'grep reference/ README.md',
+      'grep -rn reference docs',
+      'grep -e reference README.md',
+      'rg reference docs',
+      'echo reference',
+      'echo "see reference/ for sources"',
+      'git commit -m "Guard reference/ in Bash"',
+      "git commit -m 'reference/ cleanup'",
+      'git commit -m "$(cat <<\'EOF\'\nGuard reference/ in Bash\n\nSee reference/own.txt.\nEOF\n)"',
+      "gh pr comment 1 --body-file - <<'EOF'\nreference/own.txt\nEOF",
+      'gh pr create --title "Bash reference guard" --body "Closes #1"',
+      'git log --oneline -- docs',
+      'cat docs/reference-notes.md',
+      'cat reference-old/a.txt',
+      'cat reference.md',
+      'ls docs/reference/',
+      'git branch reference',
+      'grep -rn foo docs --exclude-dir=reference',
+      'cat <<< "reference/own.txt"',
+      'pnpm test',
+      'pnpm lint && pnpm typecheck',
+      'cat "unbalanced',
+      '',
+    ]) {
+      expect(denies(command), command).toBe(false);
+    }
+  });
+
+  it('allows a reference/ of another repo', () => {
+    expect(denies(`cat ${other}/reference/a.txt`)).toBe(false);
+    expect(denies('cat reference/a.txt', { cwd: other })).toBe(false);
+  });
+
+  it('allows with CPT_ALLOW_REFERENCE=1 only', () => {
+    const command = 'cat reference/own.txt';
+    expect(denies(command, { env: { CPT_ALLOW_REFERENCE: '1' } })).toBe(false);
+    expect(denies('grep -rn foo .', { env: { CPT_ALLOW_REFERENCE: '1' } })).toBe(false);
+    expect(denies(command, { env: { CPT_ALLOW_REFERENCE: '0' } })).toBe(true);
+    expect(denies(command, { env: { CPT_ALLOW_MAIN_EDIT: '1' } })).toBe(true);
+  });
+
+  it('ignores an inherited GIT_DIR when finding the project repo', () => {
+    expect(
+      denies(`cat ${main}/reference/handbook.txt`, { env: { GIT_DIR: join(other, '.git') } }),
+    ).toBe(true);
+  });
+
+  it('fails open with a notice when realpath has no -m or git cannot read the repo', () => {
+    const command = 'cat reference/own.txt';
+    expect(guard(command, { env: { PATH: noRealpathM } }).notice).toContain('bash-reference-guard');
+    expect(guard(command, { env: { PATH: dubiousGit } }).notice).toContain('dubious ownership');
+    expect(guard(command, { project: plain }).notice).toContain('cannot read the project repo');
+  });
+
+  it('fails open with a notice on unexpected input', () => {
+    expect(runRaw(bashGuard, 'not json').notice).toContain('bash-reference-guard');
+    expect(runRaw(bashGuard, '{"tool_input":"cat reference/x"}').notice).toContain(
+      'bash-reference-guard',
+    );
+  });
+
+  it('ignores a call without a command', () => {
+    expect(runRaw(bashGuard, '{"tool_name":"Bash","tool_input":{}}')).toEqual({
+      denied: false,
+      reason: '',
+      notice: '',
+    });
+  });
+});
+
 describe('settings.json wrappers', () => {
   const viaWrapper = (script: string, call: Call) =>
     run('sh', call, ['-c', entryFor(script).command]);
 
   beforeAll(() => {
     mkdirSync(join(worktree, '.claude/hooks'), { recursive: true });
-    for (const script of [referenceGuard, mainGuard]) {
+    for (const script of [referenceGuard, bashGuard, mainGuard]) {
       const copy = join(worktree, '.claude/hooks', basename(script));
       copyFileSync(script, copy);
       chmodSync(copy, 0o644);
@@ -413,6 +629,7 @@ describe('settings.json wrappers', () => {
       'LSP',
       'mcp__plugin_pdf-viewer_pdf__display_pdf',
     ]);
+    expect(entryFor('bash-reference-guard.sh').matcher).toBe('Bash');
     expect(entryFor('main-checkout-guard.sh').matcher.split('|')).toEqual([
       'Edit',
       'Write',
@@ -433,6 +650,22 @@ describe('settings.json wrappers', () => {
         input: { file_path: join(main, 'README.md') },
       }).denied,
     ).toBe(true);
+    expect(
+      viaWrapper('bash-reference-guard.sh', {
+        tool: 'Bash',
+        input: { command: 'cat reference/own.txt' },
+      }).denied,
+    ).toBe(true);
+  });
+
+  it('deny every Bash call when the Bash reference guard is missing', () => {
+    const r = viaWrapper('bash-reference-guard.sh', {
+      tool: 'Bash',
+      input: { command: 'ls' },
+      project: plain,
+    });
+    expect(r.denied).toBe(true);
+    expect(r.reason).toContain('bash-reference-guard.sh');
   });
 
   it('deny every file call when the reference guard is missing', () => {

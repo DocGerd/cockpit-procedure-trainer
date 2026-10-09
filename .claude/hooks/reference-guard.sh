@@ -5,7 +5,7 @@
 # holds copyrighted material that agents must not read or quote.
 #
 # This is an accident tripwire, NOT a security boundary. Known limits:
-# - Bash (cat, sed, rg) is not covered.
+# - Bash (cat, sed, rg) is covered by bash-reference-guard.sh, not here.
 # - A Grep or Glob rooted above reference/ is allowed unless a pattern segment
 #   is literally reference, preceded only by a literal path and then bare
 #   wildcards (*, **); ref* or */docs/reference pass.

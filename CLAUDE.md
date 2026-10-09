@@ -107,8 +107,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   (`data-control`/`data-position` on Screen keys).
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
   `reference/` is local-only — never read it in implementation agents, never
-  commit or quote it. `.claude/hooks/reference-guard.sh` enforces it (not for
-  Bash); the owner overrides with `CPT_ALLOW_REFERENCE=1` for intake
+  commit or quote it. `.claude/hooks/reference-guard.sh` (file tools) and
+  `bash-reference-guard.sh` (Bash) enforce it; the owner overrides with `CPT_ALLOW_REFERENCE=1` for intake
   work.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", `--no-merges`, jq `mergeCommit`,

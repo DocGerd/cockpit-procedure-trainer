@@ -30,6 +30,16 @@
         ]
       },
       {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/bash-reference-guard.sh\"; if [ -f \"$H\" ]; then exec bash \"$H\"; else echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"The Bash reference guard is missing: .claude/hooks/bash-reference-guard.sh is not under CLAUDE_PROJECT_DIR. Restore it with git before using Bash.\"}}'; fi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
           {
