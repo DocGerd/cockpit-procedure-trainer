@@ -2,17 +2,15 @@ import { springsBack } from '@cpt/core';
 import type { ChecklistState, ControlPosition, Deviation } from '@cpt/core';
 import { format, useLocalize, useMessages } from '../i18n';
 import { messages as panelMessages } from '../panel/messages';
+import { positionName as namePosition } from '../panel/position-name';
+import type { NamedPosition } from '../panel/position-name';
 import { messages } from './messages';
 import { useItemText } from './item-text';
 
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 const later = (deviation: Deviation) => ({ later: (deviation.laterItem ?? 0) + 1 });
 
-/**
- * A position as a cue names it. A phrase takes its own sentence forms; `restore`, when set, is the
- * imperative to bring the control back to it.
- */
-type Named = { readonly name: string; readonly phrase?: true; readonly restore?: string };
+type Named = NamedPosition;
 
 export function useDeviationText(checklist: ChecklistState<unknown> | undefined) {
   const text = useMessages(messages);
@@ -41,24 +39,16 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     if (found?.kind === 'guarded' && guardItem(deviation)) return localize(found.guard.name);
     return found ? localize(found.name) : (deviation.controlId ?? '');
   };
-  // A position reads as the panel prints it: its declared legend, else its id in capitals. A
-  // position the panel prints nothing for is a phrase, which takes its own sentence forms.
   const positionName = (
     id: string | undefined,
     at: ControlPosition | undefined,
-  ): Named | undefined => {
-    if (at === undefined) return undefined;
-    if (typeof at === 'number') return { name: `${Math.round(at * 100)} %` };
-    const found = definition(id);
-    if (found?.kind === 'breaker') {
-      return { name: at === 'in' ? panelText.breakerIn : panelText.breakerPulled };
-    }
-    const legend =
-      found?.legends && Object.hasOwn(found.legends, at) ? found.legends[at] : undefined;
-    if (legend === undefined) return { name: at.toUpperCase() };
-    if (typeof legend === 'string') return { name: legend };
-    return { name: localize(legend.state), phrase: true, restore: localize(legend.restore) };
-  };
+  ): Named | undefined =>
+    at === undefined
+      ? undefined
+      : namePosition(definition(id), at, localize, {
+          in: panelText.breakerIn,
+          pulled: panelText.breakerPulled,
+        });
   const phrased = (named: Named, legendTemplate: string, phraseTemplate: string) =>
     named.phrase ? phraseTemplate : legendTemplate;
   const position = (deviation: Deviation) =>
