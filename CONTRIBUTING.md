@@ -134,3 +134,9 @@ this in `apps/web/src` and in the package sources and stylesheets (`pnpm lint` r
 
 Write checklists in your own words and use your own photos. Do not commit
 scanned handbook pages or manufacturer artwork.
+
+Handbook sources stay in the gitignored, local-only `reference/` directory.
+A Claude Code hook (`.claude/hooks/reference-guard.sh`) denies agents' file
+tools any path under it in any worktree; the owner sets `CPT_ALLOW_REFERENCE=1`
+to write an intake. Like the merge guard it is an accident tripwire: Bash is not
+covered.
