@@ -18,6 +18,26 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "matcher": "Read|Glob|Grep|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/reference-guard.sh\"; if [ -x \"$H\" ]; then exec \"$H\"; else echo 'reference guard script missing or not executable; allowing the call' >&2; fi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"$CLAUDE_PROJECT_DIR/.claude/hooks/main-checkout-guard.sh\"; if [ -x \"$H\" ]; then exec \"$H\"; else echo 'main-checkout guard script missing or not executable; allowing the call' >&2; fi",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "PostToolUse": [
