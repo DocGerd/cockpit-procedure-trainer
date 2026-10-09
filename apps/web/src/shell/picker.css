@@ -419,13 +419,7 @@
   overflow-y: auto;
 }
 
-/* Drill rows share the column's spare height, so the ruled list ends level with the action rail. */
-.shell[data-layout='desktop'][data-screen='picker'] .picker-drill-list {
-  flex: 1 0 auto;
-}
-
 .shell[data-layout='desktop'][data-screen='picker'] .picker-drill {
-  align-content: center;
   padding-block: var(--space-1);
 }
 
@@ -442,6 +436,10 @@
   .shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
     grid-template-columns: minmax(0, 5fr) minmax(0, 9fr);
     column-gap: var(--space-12);
+  }
+
+  .shell[data-layout='desktop'][data-screen='picker'] .picker-drill {
+    padding-block: var(--space-3);
   }
 }
 
