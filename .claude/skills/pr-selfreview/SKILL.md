@@ -7,7 +7,7 @@ description: Review a pull request - run a review, post one inline thread per fi
 
 Argument: the PR number `N`. Repo: `DocGerd/cockpit-procedure-trainer`. The
 reviewer must be an agent that can run `gh` and post comments; a read-only
-agent type cannot post threads. Called by the `/release-cycle` command, and
+agent type cannot post threads. Called by the `release-cycle` skill, and
 followed by the `merge-train` skill.
 
 1. **Review.** The base is `develop`. Get the diff with `gh pr diff N` and the
