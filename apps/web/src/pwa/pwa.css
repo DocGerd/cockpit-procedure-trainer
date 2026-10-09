@@ -8,8 +8,9 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-6);
-  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
-  border-bottom: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
 }
 
 .update-prompt-text {
