@@ -2,7 +2,8 @@
 
 Browser-based cockpit procedure trainer. Spec:
 `docs/superpowers/specs/2026-10-05-cockpit-procedure-trainer-design.md`.
-One implementation plan per milestone under `docs/superpowers/plans/`.
+Milestone plans (where written): `docs/superpowers/plans/`; milestone
+summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 
 ## Commands
 
@@ -10,12 +11,15 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
 - `pnpm test` runs all unit tests (fails if none are found); `pnpm test:coverage`
   is what the `check` job runs (statement threshold in `vitest.config.ts`)
 - `pnpm test:e2e` runs the Playwright browser tests (once:
-  `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when 4399 is
-  busy (parallel agents). Stop only processes you started; never `pkill` by
-  name (it kills other agents' servers). Wait loops wait on a PID, never on
-  `pgrep -f` of text in their own command line (it matches itself forever);
-  verifier scripts live in the scratchpad, never in another agent's worktree
+  `pnpm exec playwright install chromium`); `E2E_PORT=<port>` when the default
+  port is busy (parallel agents). Stop only processes you started; never
+  `pkill` by name (it kills other agents' servers). Wait loops wait on a PID,
+  never on `pgrep -f` of text in their own command line (it matches itself
+  forever); verifier scripts live in the scratchpad, never in another agent's
+  worktree
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
+- `pnpm test:perf` runs locally only (not in CI), for panel-art PRs; see
+  `CONTRIBUTING.md` Checks
 
 ## How work is done
 
@@ -24,7 +28,9 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   or the milestone plan settles.
 - Branch prefixes, squash/backmerge and releases follow `CONTRIBUTING.md`
   (Flow, Releases). Review, merging and the release PR run through the skills
-  `pr-selfreview`, `merge-train` and `milestone-release` in `.claude/skills/`.
+  `pr-selfreview`, `merge-train` and `milestone-release` in `.claude/skills/`;
+  `/release-cycle` (`.claude/commands/release-cycle.md`) drives a whole
+  milestone.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
 - Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line
@@ -62,20 +68,20 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   and the PR names any sacrificed quality. Accessibility ranks lowest: existing
   support stays, but briefs and reviews add no new screen-reader or
   keyboard-route work.
-- Package boundaries are in `CONTRIBUTING.md` and enforced by ESLint;
-  `tools/boundary.test.ts` proves the rules fire. Extend that test when adding
-  a package kind.
 - Cross-package contract tests (device CSS, device READMEs) live in `tools/`,
   discover `packages/device-*` themselves, and are typechecked by
-  `tsc -p tools`; packages never import from `tools/`.
+  `tsc -p tools`; packages never import from `tools/`. Package boundaries
+  (`CONTRIBUTING.md`) are ESLint-enforced; a new package kind extends
+  `tools/boundary.test.ts`.
 - Adding an aircraft: a new `packages/aircraft-<id>`, one line in
   `apps/web/src/aircraft-registry.ts` and its workspace dependency in
   `apps/web/package.json`. Nothing else in `apps/web` changes.
-- Adding an avionics device: a new `packages/device-<id>`, its entry in
-  `deviceEntries` in `apps/web/src/device-registry.ts` (`deviceScreens` is
-  derived), its `unitNames` row in `apps/web/src/devices/messages.ts`, its rows
-  in `tools/device-entry.test.ts`, and its workspace dependency in
-  `apps/web/package.json`; see `docs/adding-a-device.md`.
+- Adding an avionics device: a new `packages/device-<id>`, its entries in
+  `deviceRegistry` and `deviceEntries` in `apps/web/src/device-registry.ts`
+  (`deviceScreens` is derived), its `unitNames` row in
+  `apps/web/src/devices/messages.ts`, its rows in `tools/device-entry.test.ts`,
+  and its workspace dependency in `apps/web/package.json`; see
+  `docs/adding-a-device.md`.
 - Outside-view images are first-person views out of the cockpit from the
   pilot's seat, never the aircraft seen from outside.
 - Colours, type and spacing come only from `apps/web/src/styles/tokens.css`.
@@ -92,29 +98,30 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   `./fixtures` (lint-enforced).
 - Avionics devices have no view of their own: a device installs in a panel
   slot as a live mirror and opens in the cockpit's required `dock` cell, where
-  its keys are operable; slots only mirror while `IN_SLOT_OPERATION` is off
-  in `apps/web/src/panel/slot-mode.ts` (#340; scaled slots miss the 44 px
+  its keys are operable; slots stay mirror-only unless `IN_SLOT_OPERATION` in
+  `apps/web/src/panel/slot-mode.ts` is on (scaled slots miss the 44 px
   targets). Guided opens the target device in the dock and rings its key
   (`data-control`/`data-position` on Screen keys).
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
   `reference/` is local-only — never read it in implementation agents, never
   commit or quote it.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
-  substring "merge" (also "emergency", jq `mergeCommit`, `merged_at`), chained
-  commands that contain it (a newline in a quoted body counts as chaining), and
-  in gh, curl and wget commands any expansion in the subcommand, endpoint,
-  GraphQL query or URL: write such text to a file (`--body-file`), spell
-  endpoints literally, run `git pull --ff-only origin develop` on its own. A
-  global force-push guard also refuses `--noEmit` and `+0`-like text in
-  commands.
-- The hook also refuses `--no-merges`: use `git log --max-parents=1 A..B`.
+  substring "merge" (also "emergency", `--no-merges` — use
+  `git log --max-parents=1 A..B` —, jq `mergeCommit`, `merged_at`), except one
+  plain `gh pr merge` of a `develop` PR or a plain `git merge`/`merge-base`. It
+  also refuses chained commands that contain it (a newline in a quoted body
+  counts as chaining) and, in gh, curl and wget commands, any expansion in the
+  subcommand, endpoint, GraphQL query or URL: write such text to a file
+  (`--body-file`), spell endpoints literally, run
+  `git pull --ff-only origin develop` on its own. A global force-push guard
+  also refuses `--noEmit` and `+0`-like text in commands.
 - Once the release-prep PR has folded `changelog.d`, a PR landing before the
   release edits the CHANGELOG.md section instead of adding a fragment.
 - `gh pr merge --delete-branch` errors when a worktree holds the branch (the
   PR still lands); delete branches after removing the worktree.
 - After landing a PR, check its `Closes` issue is closed; if not, PATCH
   `repos/<owner>/<repo>/issues/<n>` with `state=closed`, `state_reason=completed`.
-- OpenSSF Best Practices silver (project 15281) rests on
+- The OpenSSF Best Practices badge rests on
   `docs/openssf-best-practices-badge.md`, `SECURITY.md`, `GOVERNANCE.md` and
   `docs/security-assurance-case.md`: a PR that changes a workflow, security
   behaviour or process they describe updates them in the same PR.
@@ -122,13 +129,11 @@ One implementation plan per milestone under `docs/superpowers/plans/`.
   attested).
 - Local `gh` lacks `gh attestation`: verify a release with a current gh release
   binary unpacked in the scratchpad (`docs/verifying-a-release.md`).
-- Review replies: POST to `…/pulls/<n>/comments/<id>/replies` with
+- Review replies: POST `…/pulls/<n>/comments/<id>/replies` with
   `--field body=@file` (`--raw-field` posts the literal `@file`); resolve
-  threads via GraphQL.
-- `gh pr edit` fails on the Projects-classic error: PATCH
-  `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead. Clear a
-  milestone by PATCHing `repos/<owner>/<repo>/issues/<n>` with `--input` on a
-  file holding `{"milestone": null}`.
+  threads via GraphQL. `gh pr edit` fails on the Projects-classic error: PATCH
+  `repos/<owner>/<repo>/pulls/<n>` instead; clear a milestone by PATCHing
+  `…/issues/<n>` with `--input` on a file holding `{"milestone": null}`.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
