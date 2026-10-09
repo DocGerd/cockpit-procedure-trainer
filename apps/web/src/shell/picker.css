@@ -412,11 +412,21 @@
 
 .shell[data-layout='desktop'][data-screen='picker'] .picker-drills {
   grid-area: drills;
-  max-height: 100%;
+  align-self: stretch;
   min-height: 0;
   padding: var(--space-1);
   margin: calc(-1 * var(--space-1));
   overflow-y: auto;
+}
+
+/* Drill rows share the column's spare height, so the ruled list ends level with the action rail. */
+.shell[data-layout='desktop'][data-screen='picker'] .picker-drill-list {
+  flex: 1 0 auto;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-drill {
+  align-content: center;
+  padding-block: var(--space-1);
 }
 
 .shell[data-layout='desktop'][data-screen='picker'] .picker-index {
