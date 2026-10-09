@@ -123,4 +123,23 @@ describe('e2e fixture import', () => {
       await restrictedSyntax(`apps/web/e2e/x.spec.${ext}`, "await import('@playwright/test');\n"),
     ).toBe(1);
   });
+
+  it('rejects a substitution-free template import into packages/', async () => {
+    expect(
+      await restrictedSyntax(
+        'apps/web/e2e/x.ts',
+        'await import(`../../../packages/core/src/a`);\n',
+      ),
+    ).toBe(1);
+  });
+
+  it('rejects a substitution-free template @playwright/test import in a spec', async () => {
+    expect(
+      await restrictedSyntax('apps/web/e2e/x.spec.ts', 'await import(`@playwright/test`);\n'),
+    ).toBe(1);
+  });
+
+  it('allows a substitution-free template import of another e2e file', async () => {
+    expect(await restrictedSyntax('apps/web/e2e/x.ts', 'await import(`./helpers`);\n')).toBe(0);
+  });
 });

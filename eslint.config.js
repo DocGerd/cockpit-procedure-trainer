@@ -52,7 +52,8 @@ const reachesOtherPackage = (own) => [
 
 // esquery regex literals cannot contain a slash, so match it by code point.
 const slash = '\\x2f';
-const dynamicSource = (pattern) => `ImportExpression[source.value=/${pattern}/]`;
+const dynamicSource = (pattern) =>
+  `ImportExpression:matches([source.value=/${pattern}/], [source.expressions.length=0][source.quasis.0.value.cooked=/${pattern}/])`;
 
 const dynamicReach = (own) =>
   dynamicSource(
