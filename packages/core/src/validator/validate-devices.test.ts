@@ -280,3 +280,34 @@ describe('inexact-lever-target on a device control', () => {
     expect(action(value)).toEqual([]);
   });
 });
+
+describe('legends of a device control', () => {
+  const withLegends = (legends: unknown) =>
+    codes(fixtureDeviceAircraft, {
+      devices: [
+        {
+          ...engineMonitor,
+          controls: { page: { ...engineMonitor.controls.page, legends } },
+        } as unknown as Device,
+      ],
+    });
+
+  it('accepts a legend and a phrase on positions the control has', () => {
+    expect(withLegends({ engine: 'ENG', electrical: { state: text, restore: text } })).toEqual([]);
+  });
+
+  it('reports a legend on a position the control does not have', () => {
+    expect(withLegends({ weather: 'WX' })).toEqual([
+      expect.objectContaining({ code: 'unknown-position', id: 'engineMonitor.page' }),
+    ]);
+  });
+
+  it('reports an empty legend and an untranslated phrase', () => {
+    expect(
+      withLegends({ engine: ' ', electrical: { state: { de: 'a', en: '' }, restore: text } }),
+    ).toEqual([
+      expect.objectContaining({ code: 'missing-translation', id: 'engineMonitor.page' }),
+      expect.objectContaining({ code: 'missing-translation', id: 'engineMonitor.page' }),
+    ]);
+  });
+});

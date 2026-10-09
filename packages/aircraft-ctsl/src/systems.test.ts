@@ -159,7 +159,7 @@ describe('engine start', () => {
     expect(session.set('ignition', 'both')).toEqual({ applied: true });
   });
 
-  it('closes the fuel valve with the key still on; the key then turns only to OFF and out', () => {
+  it('closes the fuel valve with the key still on; the key still turns to L and OFF but not on to BOTH, comes out at OFF and cannot go back in', () => {
     const session = sessionAt('holding');
     expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
     expect(session.set('ignition', 'left')).toEqual({ applied: true });
@@ -168,6 +168,19 @@ describe('engine start', () => {
     expect(session.set('ignition', 'out')).toEqual({ applied: true });
     expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
   });
+
+  it.each(['left', 'right', 'both'])(
+    'with the fuel valve closed, keeps the key in until it turns from %s to OFF',
+    (from) => {
+      const session = sessionAt('holding');
+      session.set('ignition', from);
+      session.set('fuelValve', 'closed');
+      expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+      expect(session.state().controls.ignition).toBe(from);
+      expect(session.set('ignition', 'off')).toEqual({ applied: true });
+      expect(session.set('ignition', 'out')).toEqual({ applied: true });
+    },
+  );
 
   it('keeps the key in while the fuel valve is open', () => {
     const session = sessionAt('holding');
@@ -795,6 +808,36 @@ describe('indicators', () => {
     session.advance(STEP_MS);
     expect(readout()).toBe('');
     expect(indicators.flapReadout.select(trainerState(sessionAt('parking')))).toBe('');
+  });
+
+  it('blink the flap readout while the flaps travel and hold it steady once there', () => {
+    const session = sessionAt('approach');
+    const blinking = () => indicators.flapReadout.blink(trainerState(session));
+    expect(blinking()).toBe(false);
+    session.set('flapSelector', '30');
+    advanceSeconds(session, 1);
+    expect(blinking()).toBe(true);
+    advanceSeconds(session, 30);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe(30);
+    expect(blinking()).toBe(false);
+  });
+
+  it('keep the flap readout blinking while an extension is held off', () => {
+    const session = sessionAt('cruise');
+    session.set('flapSelector', '0');
+    advanceSeconds(session, 30);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe(-12);
+    expect(indicators.flapReadout.blink(trainerState(session))).toBe(true);
+  });
+
+  it('never blink the flap readout while its circuit has no power', () => {
+    const session = sessionAt('cruise');
+    session.set('flapSelector', '0');
+    advanceSeconds(session, 1);
+    session.set('flapBreaker', 'pulled');
+    advanceSeconds(session, 1);
+    expect(indicators.flapReadout.select(trainerState(session))).toBe('');
+    expect(indicators.flapReadout.blink(trainerState(session))).toBe(false);
   });
 
   it('follow the model after a start', () => {

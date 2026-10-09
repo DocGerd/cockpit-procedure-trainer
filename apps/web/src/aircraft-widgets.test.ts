@@ -13,11 +13,13 @@ const entryStates = (aircraft: Aircraft): readonly TrainerState<unknown>[] => [
     controls: Object.fromEntries(
       Object.entries(aircraft.controls).map(([id, control]) => [id, control.initial]),
     ),
+    guards: {},
     systems: aircraft.systems.initial,
     devices: {},
   },
   ...Object.values(aircraft.phases).map((phase) => ({
     controls: phase.entry.controls,
+    guards: {},
     systems: phase.entry.state,
     devices: {},
   })),

@@ -1,5 +1,6 @@
 export { createSession } from './session';
 export type {
+  LegSurprise,
   Scenario,
   Session,
   SessionControlResult,

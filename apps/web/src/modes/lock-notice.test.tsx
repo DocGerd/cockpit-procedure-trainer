@@ -7,6 +7,7 @@ import { renderWithLanguage } from '../i18n/test-utils';
 import { PanelArea } from '../panel/PanelArea';
 import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
+import { lockHolder } from './lock-notice';
 import { ModeControl } from './ModeControl';
 
 vi.mock('../aircraft-registry', async () => {
@@ -60,6 +61,14 @@ const radio = (control: string, position: string) =>
     name: new RegExp(position),
   });
 
+const lockRing = () => document.querySelector<HTMLElement>('[data-outline="lock"]');
+const boxOf = (element: HTMLElement | null) => {
+  const style = element?.style;
+  return { left: style?.left, top: style?.top, width: style?.width, height: style?.height };
+};
+const placementBox = (id: string) =>
+  boxOf(document.querySelector<HTMLElement>(`[data-placement="${id}"]`));
+
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
@@ -98,5 +107,80 @@ describe('the interlock notice', () => {
     expect(screen.getByRole('status')).toBeTruthy();
     act(() => vi.advanceTimersByTime(6000));
     expect(screen.queryByRole('status')).toBeNull();
+  });
+});
+
+describe('the lock ring', () => {
+  it.each(['guided', 'practice', 'explore'] as const)(
+    'rings the holding control on the panel when a move is refused, in %s',
+    (mode) => {
+      renderTrainer();
+      act(() => trainer.setMode(mode));
+      if (mode === 'explore')
+        fireEvent.click(screen.getByRole('checkbox', { name: /Operate controls/ }));
+      pressStarter();
+      expect(lockRing()).not.toBeNull();
+      expect(boxOf(lockRing())).toEqual(placementBox('master'));
+    },
+  );
+
+  it('draws nothing before a refusal', () => {
+    renderTrainer();
+    expect(lockRing()).toBeNull();
+  });
+
+  it('goes with the notice once a move goes through', async () => {
+    renderTrainer();
+    pressStarter();
+    expect(lockRing()).not.toBeNull();
+    await userEvent.click(radio('Master', 'on'));
+    expect(lockRing()).toBeNull();
+  });
+
+  it('goes with the notice after a while', () => {
+    vi.useFakeTimers();
+    renderTrainer();
+    pressStarter();
+    expect(lockRing()).not.toBeNull();
+    act(() => vi.advanceTimersByTime(6000));
+    expect(lockRing()).toBeNull();
+  });
+
+  it('pulses again on a repeat refusal', () => {
+    renderTrainer();
+    pressStarter();
+    const first = lockRing();
+    pressStarter();
+    expect(lockRing()).not.toBe(first);
+    expect(lockRing()?.dataset.pulse).toBe('once');
+  });
+});
+
+describe('lockHolder', () => {
+  const name = { de: 'n', en: 'n' };
+  const toggle = (positions: readonly string[]) => ({
+    name,
+    description: name,
+    kind: 'toggle',
+    positions,
+    initial: positions[0],
+  });
+  const aircraft = {
+    controls: {
+      valve: toggle(['open', 'closed']),
+      key: {
+        ...toggle(['out', 'off', 'on']),
+        interlock: [{ control: 'valve', at: 'closed', holds: ['off', 'out'] }],
+      },
+    },
+  } as unknown as Pick<Aircraft, 'controls'>;
+
+  it('names the control whose lock holds the current position', () => {
+    expect(lockHolder(aircraft, { valve: 'closed', key: 'off' }, 'key')).toBe('valve');
+  });
+
+  it('names nothing when no lock holds the current position', () => {
+    expect(lockHolder(aircraft, { valve: 'closed', key: 'on' }, 'key')).toBeUndefined();
+    expect(lockHolder(aircraft, { valve: 'open', key: 'off' }, 'key')).toBeUndefined();
   });
 });

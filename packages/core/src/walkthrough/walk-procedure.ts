@@ -11,6 +11,8 @@ export type WalkOptions = {
   readonly devices?: readonly Device[];
   /** The order to do a leading flow in; any order completes it. */
   readonly flowOrder?: 'listed' | 'reversed';
+  /** Called with the session once a checklist completed without a deviation, before the next leg. */
+  readonly afterChecklist?: (session: Session, procedureId: string) => void;
 };
 
 export type WalkResult =
@@ -102,6 +104,15 @@ function performAction(
   return held ? undefined : `hold condition not met within ${MAX_STEPS} steps`;
 }
 
+function performGuard(session: Session, item: Extract<Item, { type: 'guard' }>) {
+  const { control, position } = item;
+  if (session.guards()[control] === position) {
+    session.checkOff();
+    return undefined;
+  }
+  return rejection(position === 'open' ? session.openGuard(control) : session.closeGuard(control));
+}
+
 function perform(
   session: Session,
   definition: ControlDefinition | undefined,
@@ -109,6 +120,7 @@ function perform(
   index: number,
 ): string | undefined {
   if (item.type === 'action') return performAction(session, definition, item, index);
+  if (item.type === 'guard') return performGuard(session, item);
   if (item.type === 'check') {
     if (!advanceUntil(session, () => item.condition(session.state()))) {
       return 'condition not met';
@@ -177,6 +189,7 @@ function walkChecklist(
     const named = deviation.controlId === undefined ? '' : ` ${deviation.controlId}`;
     return fail(deviation.itemIndex, `${deviation.kind}${named}`);
   }
+  options.afterChecklist?.(session, procedureId);
   return { ok: true };
 }
 

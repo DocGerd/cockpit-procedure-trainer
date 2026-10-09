@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import type { ProcedureHistory, RunRecord } from '../storage';
 import {
+  flightSurprisePhases,
+  pickFlightSurprise,
   pickSurprise,
   practiseNext,
   randomEmergency,
@@ -100,6 +102,47 @@ describe('surprise cues', () => {
       'generatorFailure',
       'oilLoss',
     ]);
+  });
+});
+
+describe('flightSurprisePhases', () => {
+  it('lists the surprise phases that a full-flight leg starts in', () => {
+    expect(flightSurprisePhases(alpha)).toEqual([]);
+    expect(flightSurprisePhases(withSecondFire)).toEqual(['parking']);
+    expect(flightSurprisePhases(ctsl)).toEqual(['departure', 'cruise']);
+  });
+});
+
+describe('pickFlightSurprise', () => {
+  it('picks a leg of the phase, one of its failures and an item past the first', () => {
+    expect(pickFlightSurprise(bravo, 'parking', () => 0)).toEqual({
+      phase: 'parking',
+      leg: 'powerUp',
+      failure: 'fire',
+      afterItems: 1,
+    });
+    expect(pickFlightSurprise(bravo, 'parking', () => 0.999).afterItems).toBe(1);
+  });
+
+  it('leaves at least the last item of the leg after the failure', () => {
+    const climb = required(ctsl.procedures['climbCruise']);
+    expect(pickFlightSurprise(ctsl, 'departure', () => 0)).toMatchObject({
+      leg: 'climbCruise',
+      afterItems: 1,
+    });
+    expect(pickFlightSurprise(ctsl, 'departure', () => 0.999999).afterItems).toBe(
+      climb.items.length - 1,
+    );
+  });
+
+  it('picks the phase too when none is given', () => {
+    expect(pickFlightSurprise(ctsl, undefined, () => 0).phase).toBe('departure');
+    expect(pickFlightSurprise(ctsl, undefined, () => 0.999999).phase).toBe('cruise');
+  });
+
+  it('throws for a phase no leg starts in', () => {
+    expect(() => pickFlightSurprise(withSecondFire, 'cruise')).toThrow('cruise');
+    expect(() => pickFlightSurprise(alpha, undefined)).toThrow();
   });
 });
 

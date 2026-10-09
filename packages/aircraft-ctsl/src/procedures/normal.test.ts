@@ -1,4 +1,4 @@
-import { createSession, walkProcedure } from '@cpt/core';
+import { createSession, deviceControls, walkProcedure } from '@cpt/core';
 import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
@@ -8,6 +8,7 @@ import { headingLabel, runway } from '../airfield';
 import { normalProcedures } from './normal';
 
 const devices = testDevices;
+const allControls = { ...ctslAircraft.controls, ...deviceControls(ctslAircraft, devices) };
 
 const expected = [
   ['preflight', 'parking', undefined],
@@ -25,36 +26,40 @@ const expected = [
   ['shutdown', 'parkingSecuring', undefined],
 ] as const;
 
-const runwayHeadingCheck = `Compass reads ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator} (trainer addition)`;
+const runwayHeadingCheck = `Compass (trainer addition): ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`;
 
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
   engineStart: [
-    'Brake lever released, parking brake holds',
-    'All breakers in',
-    'Flap readout shows 0°',
+    'Parking brake: holds, brake lever released',
+    'Breakers: all in',
+    'Flap readout: 0°',
   ],
-  taxi: ['Parking brake released'],
-  takeoff: [runwayHeadingCheck, 'Flap readout shows 15°'],
-  shortTakeoff: [runwayHeadingCheck, 'Flap readout shows 15°'],
+  taxi: ['Parking brake: released'],
+  takeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
+  shortTakeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
   beforeTakeoff: [
-    'Brake lever released, parking brake holds',
-    'Oil pressure in the green',
-    'Oil temperature below the red line',
-    'Cylinder head temperature in the green',
-    'Oil temperature at least 51 °C',
-    'Charge lamp out',
+    'Parking brake: holds, brake lever released',
+    'Oil pressure: in the green',
+    'Oil temperature: below the red line',
+    'Cylinder head temperature: in the green',
+    'Oil temperature: at least 51 °C',
+    'Charge lamp: out',
   ],
   climbCruise: [
-    'Rpm at most 5500',
-    'Oil pressure in the green',
-    'Oil temperature in the green',
-    'Cylinder head temperature in the green',
+    'Rpm: at most 5500 rpm',
+    'Oil pressure: in the green',
+    'Oil temperature: in the green',
+    'Cylinder head temperature: in the green',
   ],
 };
 
 type Item = ProcedureItem<unknown>;
+
+/** An item's English text as the checklist shows it once ticked: a check's challenge and value. */
+const said = (item: Item) =>
+  item.type === 'check' && item.expected ? `${item.text.en}: ${item.expected.en}` : item.text.en;
 
 const procedures = Object.entries(ctslAircraft.procedures).filter(([id]) => id in normalProcedures);
 
@@ -167,7 +172,7 @@ describe('CTSL normal procedures', () => {
       at = session.checklist()?.current ?? choke
     ) {
       const item = items[at] as Item;
-      if (item.type === 'action' && ctslAircraft.controls[item.control]?.kind === 'momentary') {
+      if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
         session.press(item.control);
         session.release(item.control);
       } else if (
@@ -193,7 +198,7 @@ describe('CTSL normal procedures', () => {
   describe('flows (assumed, intake §9 question 30)', () => {
     const flows = {
       engineStart: ['avionicsMaster', 'beacon', 'fuelValve', 'battery', 'carbHeat'],
-      beforeTakeoff: ['flapSelector', 'choke', 'trim', 'carbHeat'],
+      beforeTakeoff: ['flapSelector', 'trim', 'choke', 'carbHeat'],
       afterLanding: ['landingLight', 'flapSelector', 'carbHeat'],
     } as const;
 
@@ -244,10 +249,10 @@ describe('CTSL normal procedures', () => {
     };
 
     it('closes the valve, holds the lever, then checks the lever released', () => {
-      expect(items.slice(valve, valve + 3).map((item) => item.text.en)).toEqual([
+      expect(items.slice(valve, valve + 3).map(said)).toEqual([
         'Parking-brake valve closed',
         'Brake lever pulled and held',
-        'Brake lever released, parking brake holds',
+        'Parking brake: holds, brake lever released',
       ]);
     });
 
@@ -284,18 +289,46 @@ describe('CTSL normal procedures', () => {
       (item) =>
         item.type === 'action' && item.control === 'parkingBrakeValve' && item.position === 'open',
     );
-    expect(items.slice(open).map((item) => item.text.en)).toEqual([
+    expect(items.slice(open).map(said)).toEqual([
       'Parking-brake valve open',
-      'Parking brake released',
+      'Parking brake: released',
     ]);
   });
 
-  it('asks for the run-up rpm as a challenge and takes the reading as the response', () => {
-    const check = (normalProcedures.beforeTakeoff.items as readonly Item[]).find(
-      (item) => item.type === 'check' && item.response !== undefined,
+  const allChecks = procedures.flatMap(([id]) =>
+    checksOf(id).map(({ item }) => [id, said(item), item] as const),
+  );
+
+  it.each(allChecks)('%s "%s" names what to read and keeps the value back', (_, __, item) => {
+    if (item.type !== 'check') throw new Error('not a check');
+    expect(item.expected).toBeDefined();
+    expect(item.text.en).not.toMatch(/\d/);
+    expect(item.text.de).not.toMatch(/\d/);
+  });
+
+  it('takes a reading on every flap, oil and cylinder head check', () => {
+    const read = ['flapReadout', 'oilPressure', 'oilTemperature', 'cht'];
+    const unread = allChecks.filter(
+      ([, , item]) =>
+        item.type === 'check' &&
+        item.target !== undefined &&
+        'indicator' in item.target &&
+        read.includes(item.target.indicator) &&
+        item.response === undefined,
     );
-    expect(check?.text.en).not.toMatch(/\d/);
-    expect(check?.text.de).not.toMatch(/\d/);
+    expect(unread.map(([id, text]) => `${id}: ${text}`)).toEqual([]);
+  });
+
+  it('takes an rpm reading on every tachometer check but the magneto drops', () => {
+    const unread = allChecks.filter(
+      ([, , item]) =>
+        item.type === 'check' &&
+        item.target !== undefined &&
+        'indicator' in item.target &&
+        item.target.indicator === 'tachometer' &&
+        item.response === undefined,
+    );
+    expect(unread.map(([, , item]) => item.text.en)).toEqual(['Rpm drop', 'Rpm drop']);
   });
 
   it('engineStart needs its ignition BOTH step because the engine starts with the key off', () => {
@@ -358,6 +391,18 @@ describe('CTSL normal procedures', () => {
     expect(session.checklist()?.deviations).toEqual([]);
   });
 
+  it('engineStart leaves the intercom on, as the taxi-out phase starts it (§9 question 32)', () => {
+    let intercom: unknown;
+    walkProcedure(ctslAircraft, 'engineStart', {
+      devices,
+      afterChecklist: (session) => {
+        intercom = session.state().controls.intercom;
+      },
+    });
+    expect(intercom).toBe('on');
+    expect(ctslAircraft.phases.taxiOut?.entry.controls.intercom).toBe('on');
+  });
+
   it('preflight confirms the key out without inserting it', () => {
     expect(ignitionAt('preflight', 'off')).toBe(-1);
     expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
@@ -388,10 +433,10 @@ describe('CTSL normal procedures', () => {
       const facing = (phase: string) => createSession(ctslAircraft, { devices, phase }).state();
       expect(first.condition(facing('linedUp'))).toBe(true);
       expect(first.condition(facing('holding'))).toBe(false);
-      expect(first.text.en).toContain(headingLabel(runway.headingDeg));
-      expect(first.text.en).toContain(`runway ${runway.designator}`);
-      expect(first.text.de).toContain(headingLabel(runway.headingDeg));
-      expect(first.text.de).toContain(`Piste ${runway.designator}`);
+      expect(first.expected?.en).toContain(headingLabel(runway.headingDeg));
+      expect(first.expected?.en).toContain(`runway ${runway.designator}`);
+      expect(first.expected?.de).toContain(headingLabel(runway.headingDeg));
+      expect(first.expected?.de).toContain(`Piste ${runway.designator}`);
     },
   );
 
@@ -433,8 +478,8 @@ describe('CTSL normal procedures', () => {
   describe('every check is established by an earlier action', () => {
     const cases = procedures.flatMap(([id]) =>
       checksOf(id)
-        .filter(({ item }) => !snapshotChecks[id]?.includes(item.text.en))
-        .map(({ item, index }) => [id, index, item.text.en] as const),
+        .filter(({ item }) => !snapshotChecks[id]?.includes(said(item)))
+        .map(({ item, index }) => [id, index, said(item)] as const),
     );
 
     it.each(cases)('%s item %i "%s" fails without it', (id, index) => {
@@ -450,7 +495,7 @@ describe('CTSL normal procedures', () => {
 
     it.each(cases)('%s "%s" holds on entry and no action establishes it', (id, text) => {
       const procedure = ctslAircraft.procedures[id];
-      const found = checksOf(id).find(({ item }) => item.text.en === text);
+      const found = checksOf(id).find(({ item }) => said(item) === text);
       expect(found, text).toBeDefined();
       if (!procedure || !found || found.item.type !== 'check') return;
       const session = createSession(ctslAircraft, { devices, phase: procedure.startPhase });
@@ -471,7 +516,7 @@ describe('CTSL normal procedures', () => {
           ...ctslAircraft.procedures,
           [id]: {
             ...procedure,
-            items: procedure.items.filter((item) => texts.includes(item.text.en)),
+            items: procedure.items.filter((item) => texts.includes(said(item as Item))),
           },
         },
       } as Aircraft;
@@ -489,14 +534,14 @@ describe('CTSL normal procedures', () => {
       return session.checklist()?.deviations ?? [];
     };
 
-    describe('Transponder on, standby', () => {
-      const aircraft = only('beforeTakeoff', ['Transponder on, standby']);
+    describe('Transponder: on, standby', () => {
+      const aircraft = only('beforeTakeoff', ['Transponder: on, standby']);
       const tick = (prepare: (session: Session) => void) =>
         tickedAt(aircraft, 'beforeTakeoff', prepare);
 
       it('is a check on the transponder mode, after an action that sets it', () => {
         const items = normalProcedures.beforeTakeoff.items as readonly Item[];
-        const at = items.findIndex((item) => item.text.en === 'Transponder on, standby');
+        const at = items.findIndex((item) => said(item) === 'Transponder: on, standby');
         expect(items[at]).toMatchObject({ type: 'check', target: { control: 'xpdr.mode' } });
         expect(items[at - 1]).toMatchObject({
           type: 'action',
@@ -527,6 +572,43 @@ describe('CTSL normal procedures', () => {
 
       it('records nothing when ticked at standby with power', () => {
         expect(tick((session) => void session.set('xpdr.mode', 'sby'))).toEqual([]);
+      });
+    });
+
+    describe('GPS has a position fix (assumed, intake §9 question 32)', () => {
+      const fix = 'GPS: position fix (3D FIX)';
+      const aircraft = only('beforeTakeoff', [fix]);
+
+      it('is a check on the GPS, after the power key that switches it on', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === fix);
+        const power = items.findIndex((item) => item.text.en === 'GPS on');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'gps.power' } });
+        expect(items[power]).toMatchObject({
+          type: 'action',
+          control: 'gps.power',
+          position: 'pressed',
+        });
+        expect(power).toBeLessThan(at);
+      });
+
+      it('records an unmet check when ticked with the GPS off', () => {
+        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([
+          expect.objectContaining({ kind: 'unmet-check' }),
+        ]);
+      });
+
+      it('records nothing when ticked with the GPS on and its fix found', () => {
+        const switchedOn = (session: Session) => {
+          session.press('gps.power');
+          session.release('gps.power');
+          session.advance(100);
+        };
+        expect(
+          tickedAt(aircraft, 'beforeTakeoff', switchedOn).filter(
+            (deviation) => deviation.kind === 'unmet-check',
+          ),
+        ).toEqual([]);
       });
     });
 

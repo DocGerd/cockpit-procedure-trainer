@@ -29,8 +29,23 @@ export type SurpriseOptions = {
   readonly delayMs: number;
 };
 
+/** A surprise failure in a full-flight leg: it appears after this many of the leg's items. */
+export type LegSurprise = {
+  readonly failure: string;
+  readonly afterItems: number;
+};
+
 /** A surprise failure: injected unannounced, then answered by the checklist the pilot chooses. */
-export type Scenario = SurpriseOptions & {
+export type Scenario = {
+  readonly phase: string;
+  readonly failure: string;
+  /** Run time after which the failure appears, in a surprise drill. */
+  readonly delayMs?: number;
+  /**
+   * In a flight leg, the count of the leg's items done at which the failure appears, at the
+   * latest when the leg is done.
+   */
+  readonly afterItems?: number;
   /** Run time at which the failure appeared; unset while it is pending. */
   readonly injectedAtMs?: number;
   readonly chosen?: string;
@@ -70,9 +85,13 @@ export type Session = {
   /**
    * Starts a normal procedure as the next leg of a flight. In the current phase or the one right
    * after it, the leg starts from the cockpit as it stands; otherwise from its phase snapshot.
+   * A surprise counts the items the pilot does in the leg, not those already in place.
    */
-  startLeg(id: string): void;
-  /** Puts the cockpit and phase back as they were when the current leg began and starts it over. */
+  startLeg(id: string, surprise?: LegSurprise): void;
+  /**
+   * Puts the cockpit and phase back as they were when the current leg began and starts it over.
+   * Once the pilot answered a leg's surprise, the leg is the chosen checklist from that choice.
+   */
   restartLeg(): void;
   advance(dtMs: number): void;
   checkOff(response?: number): void;
@@ -120,6 +139,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         readonly guards: ReturnType<typeof store.guards>;
         readonly systems: unknown;
         readonly devices: DeviceStates;
+        readonly scenario: Scenario | undefined;
       }
     | undefined;
   let deviceFailure: RuntimeStatus | undefined;
@@ -131,6 +151,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
 
   const buildState = (): TrainerState<unknown> => ({
     controls: store.positions(),
+    guards: store.guards(),
     systems: runtime.state(),
     devices,
   });
@@ -214,6 +235,17 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         devices,
       };
     }
+    if (
+      scenario?.afterItems !== undefined &&
+      (next.completed.length >= scenario.afterItems || next.done)
+    ) {
+      depth++;
+      try {
+        injectSurprise();
+      } finally {
+        depth--;
+      }
+    }
     const endPhase = next.procedure.endPhase;
     if (next.done && !wasDone && endPhase !== undefined) enterPhase(endPhase);
   }
@@ -243,6 +275,18 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     checklist = undefined;
     procedureId = id;
     track(startChecklist(procedureOf(aircraft, id), buildState(), controls));
+  }
+
+  function markLegStart(id: string): void {
+    legStart = {
+      id,
+      phase,
+      positions: store.positions(),
+      guards: store.guards(),
+      systems: runtime.state(),
+      devices,
+      scenario,
+    };
   }
 
   function injectSurprise(): void {
@@ -323,6 +367,10 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     takeChecklist(id) {
       const procedure = procedureOf(aircraft, id);
       batch(() => {
+        const answersLeg =
+          legStart !== undefined &&
+          scenario?.afterItems !== undefined &&
+          scenario.chosen === undefined;
         if (scenario && scenario.chosen === undefined) {
           const early = scenario.injectedAtMs === undefined;
           injectSurprise();
@@ -334,15 +382,18 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
             ...(early ? {} : { recognitionMs: runMs - (answer.injectedAtMs ?? 0) }),
           };
         }
-        legStart = undefined;
+        if (answersLeg) markLegStart(id);
+        else legStart = undefined;
         beginChecklist(id);
       });
     },
 
-    startLeg(id) {
+    startLeg(id, surprise) {
       const procedure = procedureOf(aircraft, id);
       if (procedure.type !== 'normal')
         throw new Error(`Procedure "${id}" is not a normal procedure`);
+      if (surprise && !Object.hasOwn(aircraft.failures, surprise.failure))
+        throw new Error(`Unknown failure "${surprise.failure}"`);
       const order: readonly string[] = phaseOrder;
       const step = order.indexOf(procedure.startPhase) - order.indexOf(phase);
       batch(() => {
@@ -350,15 +401,19 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         if (step === 1) enterPhase(procedure.startPhase);
         else if (step !== 0) loadSnapshot(procedure.startPhase);
         scenario = undefined;
-        legStart = {
-          id,
-          phase,
-          positions: store.positions(),
-          guards: store.guards(),
-          systems: runtime.state(),
-          devices,
-        };
+        markLegStart(id);
         beginChecklist(id);
+        if (surprise && checklist && legStart) {
+          const start = checklist.completed.length;
+          // Items in place at the start can push the count past the last item; keep one after it.
+          const lastButOne = Math.max(start + 1, procedure.items.length - 1);
+          scenario = {
+            phase: legStart.phase,
+            failure: surprise.failure,
+            afterItems: Math.min(start + surprise.afterItems, lastButOne),
+          };
+          legStart = { ...legStart, scenario };
+        }
       });
     },
 
@@ -369,6 +424,9 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         checklist = undefined;
         store.load(start.positions, start.guards);
         setPhase(start.phase);
+        failureSet.clearAll();
+        scenario = start.scenario;
+        if (scenario?.injectedAtMs !== undefined) failureSet.inject(scenario.failure);
         runtime.onControlsChanged(store.positions());
         runtime.reset(start.systems);
         deviceFailure = undefined;
@@ -386,7 +444,11 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
       runMs += dtMs;
       dirty = true;
       try {
-        if (scenario && scenario.injectedAtMs === undefined && runMs >= scenario.delayMs) {
+        if (
+          scenario?.delayMs !== undefined &&
+          scenario.injectedAtMs === undefined &&
+          runMs >= scenario.delayMs
+        ) {
           depth++;
           try {
             injectSurprise();

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type {
   ControlChange,
+  GuardPosition,
   Positions,
   ProcedureDefinition,
   ProcedureItem,
@@ -49,9 +50,11 @@ const idle: FixtureState = {
 function stateOf(
   controls: Positions = {},
   systems: Partial<FixtureState> = {},
+  guards: Readonly<Record<string, GuardPosition>> = {},
 ): TrainerState<FixtureState> {
   return {
     controls: { ...parking, ...controls },
+    guards: { fuelPump: 'closed', ...guards },
     systems: { ...idle, ...systems },
     devices: {},
   };
@@ -586,6 +589,35 @@ describe('deviations', () => {
       stateOf({ alternatorBreaker: 'pulled' }),
     );
     expect(next.deviations).toEqual([]);
+  });
+
+  it('record a move of the next item target while a check without a target is current', () => {
+    const noticed: ProcedureDefinition<FixtureState> = {
+      ...alternatorFailure,
+      items: [
+        {
+          type: 'check',
+          condition: () => true,
+          text: { de: 'Brandgeruch', en: 'Smell of burning' },
+        },
+        {
+          type: 'action',
+          control: 'alternatorBreaker',
+          position: 'pulled',
+          text: { de: 'Sicherung gezogen', en: 'Breaker pulled' },
+        },
+      ],
+    };
+    const pulled = stateOf({ alternatorBreaker: 'pulled' });
+    const early = observeControl(
+      startChecklist(noticed, stateOf(), controls),
+      position('alternatorBreaker', 'in', 'pulled'),
+      pulled,
+    );
+    expect(early.deviations).toEqual([
+      expect.objectContaining({ kind: 'out-of-order', itemIndex: 0, laterItem: 1 }),
+    ]);
+    expect(checkOff(startChecklist(noticed, stateOf(), controls), stateOf()).current).toBe(1);
   });
 
   it('leave a wrong digit on the current target pending without a deviation', () => {
@@ -1466,5 +1498,66 @@ describe('memory items', () => {
     let checklist = retryItem(stray(start()));
     checklist = observeControl(checklist, position('master', 'off', 'on'), masterOn);
     expect(checklist.deviations.at(-1)).toEqual(late(0));
+  });
+});
+
+describe('guard items', () => {
+  const text = (en: string) => ({ de: en, en });
+  const pinning: ProcedureDefinition<FixtureState> = {
+    ...beforeStart,
+    items: [
+      { type: 'guard', control: 'fuelPump', position: 'open', text: text('Cover open') },
+      { type: 'confirm', text: text('Clear') },
+    ],
+  };
+  const guard = (
+    from: GuardPosition,
+    to: GuardPosition,
+    source: ControlChange['source'] = 'pilot',
+  ): ControlChange => ({ id: 'fuelPump', source, kind: 'guard', from, to });
+  const open = stateOf({}, {}, { fuelPump: 'open' });
+  const start = (state = stateOf()) => startChecklist(pinning, state, controls);
+
+  it('waits for the guard even when it is already in place', () => {
+    const checklist = start(open);
+    expect(checklist.completed).toEqual([]);
+    expect(takesTick(checklist)).toBe(true);
+  });
+
+  it('completes when the pilot moves the guard to its position', () => {
+    const checklist = observeControl(start(), guard('closed', 'open'), open);
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('does not complete on a guard the system moved', () => {
+    expect(observeControl(start(), guard('closed', 'open', 'system'), open).completed).toEqual([]);
+  });
+
+  it('does not complete while the guard moved the other way', () => {
+    const shut = observeControl(start(open), guard('open', 'closed'), stateOf());
+    expect(shut.completed).toEqual([]);
+    expect(shut.deviations).toEqual([]);
+  });
+
+  it('completes verified when ticked with the guard in place', () => {
+    const checklist = checkOff(start(open), open);
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.deviations).toEqual([]);
+  });
+
+  it('records a wrong position when ticked with the guard elsewhere', () => {
+    const checklist = checkOff(start(), stateOf());
+    expect(checklist.completed).toEqual([0]);
+    expect(checklist.deviations).toEqual([
+      { kind: 'wrong-position', itemIndex: 0, controlId: 'fuelPump', position: 'closed' },
+    ]);
+  });
+
+  it('records moving the guarded control itself as a stray move', () => {
+    const moved = observeControl(start(open), position('fuelPump', 'off', 'on'), open);
+    expect(moved.deviations).toEqual([
+      expect.objectContaining({ kind: 'unexpected-control', controlId: 'fuelPump' }),
+    ]);
   });
 });

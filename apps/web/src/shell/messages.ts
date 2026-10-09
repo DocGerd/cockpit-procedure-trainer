@@ -45,7 +45,7 @@ export const messages = defineMessages({
     exploreCockpit: 'Explore the cockpit',
     exploreHint: 'Look around the panel and read what each control does. No procedure runs.',
     historyLast: 'Last run: {result}, {when}',
-    historyBest: 'Best: {result}',
+    historyBest: 'Best in Practice: {result}',
     drills: 'Drills',
     practiseNext: 'Practise next',
     practiseNextDeviations: '{title}: its last run had deviations.',
@@ -59,6 +59,10 @@ export const messages = defineMessages({
     fullFlight: 'Full flight',
     fullFlightHint:
       'Every normal procedure in flight order, from cold and dark to securing. Each one continues from the cockpit the last one left.',
+    flightSurprise: 'Surprise in the flight',
+    flightSurpriseNone: 'None',
+    flightSurpriseAny: 'Any phase',
+    hideUpcoming: 'Hide upcoming items',
   },
   de: {
     brandName: 'Procedure Trainer',
@@ -105,7 +109,7 @@ export const messages = defineMessages({
     exploreHint:
       'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
     historyLast: 'Letzter Durchlauf: {result}, {when}',
-    historyBest: 'Bestwert: {result}',
+    historyBest: 'Bestwert im Üben: {result}',
     drills: 'Übungen',
     practiseNext: 'Als Nächstes üben',
     practiseNextDeviations: '{title}: der letzte Durchlauf hatte Abweichungen.',
@@ -119,5 +123,9 @@ export const messages = defineMessages({
     fullFlight: 'Ganzer Flug',
     fullFlightHint:
       'Alle Normalverfahren in der Reihenfolge des Flugs, vom kalten Cockpit bis zum Sichern. Jedes setzt mit dem Cockpit fort, wie das vorige es hinterlassen hat.',
+    flightSurprise: 'Überraschung im Flug',
+    flightSurpriseNone: 'Keine',
+    flightSurpriseAny: 'Beliebige Phase',
+    hideUpcoming: 'Kommende Punkte ausblenden',
   },
 });

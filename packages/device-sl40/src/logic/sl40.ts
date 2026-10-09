@@ -26,6 +26,31 @@ export type Sl40State = {
 
 const text = (de: string, en: string): Text => ({ de, en });
 
+// The unit prints no word for a key at rest or pressed, so cues name both in words.
+const keyLegends = {
+  released: {
+    state: text('losgelassen', 'released'),
+    restore: text('Wieder loslassen', 'Release it'),
+  },
+  pressed: {
+    state: text('gedrückt', 'pressed'),
+    restore: text('Wieder drücken', 'Press it again'),
+  },
+} as const;
+
+// The unit prints no word for a knob's rest or turn, so cues name each in words.
+const knobLegends = {
+  rest: { state: text('losgelassen', 'released'), restore: text('Wieder loslassen', 'Release it') },
+  down: {
+    state: text('abwärts gedreht', 'turned down'),
+    restore: text('Wieder abwärts drehen', 'Turn it down again'),
+  },
+  up: {
+    state: text('aufwärts gedreht', 'turned up'),
+    restore: text('Wieder aufwärts drehen', 'Turn it up again'),
+  },
+} as const;
+
 const wrap = (value: number, min: number, max: number): number =>
   value > max ? min : value < min ? max : value;
 
@@ -52,6 +77,7 @@ const knob = (name: Text, description: Text) =>
     positions: ['rest', 'down', 'up'],
     initial: 'rest',
     springBack: { down: 'rest', up: 'rest' },
+    legends: knobLegends,
     name,
     description,
   }) as const;
@@ -107,6 +133,7 @@ export const sl40Device = defineDevice({
       kind: 'momentary',
       positions: ['released', 'pressed'],
       initial: 'released',
+      legends: keyLegends,
       name: text('Tausch', 'Swap'),
       description: text(
         'Tauscht aktive und Bereitschaftsfrequenz.',
@@ -117,6 +144,7 @@ export const sl40Device = defineDevice({
       kind: 'momentary',
       positions: ['released', 'pressed'],
       initial: 'released',
+      legends: keyLegends,
       name: text('Mithören', 'Monitor'),
       description: text(
         'Hört die Bereitschaftsfrequenz mit, solange die Taste gedrückt ist.',

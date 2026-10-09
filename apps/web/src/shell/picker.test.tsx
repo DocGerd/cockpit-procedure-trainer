@@ -182,8 +182,8 @@ describe('run history in the picker', () => {
     localStorage.setItem('cpt.aircraft', second.id);
     seed({
       [second.id]: {
-        powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9)) },
-        fire: { last: run(1, daysAgo(0)), best: run(1, daysAgo(0)) },
+        powerUp: { last: run(1, daysAgo(1)), best: run(0, daysAgo(9), 'practice') },
+        fire: { last: run(1, daysAgo(0), 'practice'), best: run(1, daysAgo(0), 'practice') },
       },
     });
     renderPicker();
@@ -191,8 +191,45 @@ describe('run history in the picker', () => {
     expect(rows.find((text) => text.includes('power up'))).toContain(
       'Last run: 1 deviation, yesterday',
     );
-    expect(rows.find((text) => text.includes('power up'))).toContain('Best: 0 deviations');
-    expect(rows.join()).not.toContain('Best: 1');
+    expect(rows.find((text) => text.includes('power up'))).toContain(
+      'Best in Practice: 0 deviations',
+    );
+    expect(rows.join()).not.toContain('Best in Practice: 1');
+  });
+
+  it('never shows a Guided run as the best, even one stored before Best was Practice only', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(2, daysAgo(1), 'practice'), best: run(0, daysAgo(9)) },
+      },
+    });
+    renderPicker();
+    const row = rowFor('power up')?.textContent ?? '';
+    expect(row).toContain('Last run: 2 deviations, yesterday');
+    expect(row).not.toContain('Best');
+  });
+
+  it('shows a Practice best beside a later Guided run', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(3, daysAgo(0)), best: run(1, daysAgo(4), 'practice') },
+      },
+    });
+    renderPicker();
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 1 deviation');
+  });
+
+  it('keeps the Practice best beside a later Guided run with fewer deviations', () => {
+    localStorage.setItem('cpt.aircraft', second.id);
+    seed({
+      [second.id]: {
+        powerUp: { last: run(0, daysAgo(0)), best: run(2, daysAgo(4), 'practice') },
+      },
+    });
+    renderPicker();
+    expect(rowFor('power up')?.textContent).toContain('Best in Practice: 2 deviations');
   });
 
   it('shows nothing for a procedure without a run, or for another aircraft', () => {
@@ -308,7 +345,7 @@ describe('drills in the picker', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Surprise failure' }));
     expect(trainer.session.scenario()?.phase).toBe('cruise');
     expect(trainer.session.phase()).toBe('cruise');
-    expect(trainer.viewedProcedureId).toBe('descent');
+    expect(trainer.viewedProcedureId).toBeUndefined();
   });
 
   it('starts a full flight on its first leg in the chosen mode', async () => {
@@ -329,6 +366,45 @@ describe('drills in the picker', () => {
     expect(trainer.procedureId).toBe('preflight');
     expect(trainer.flight?.legs[0]).toBe('preflight');
     expect(trainer.flight?.results).toEqual([]);
+  });
+
+  it('offers a surprise and Hide upcoming items for a full flight in Practice only', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const surprise = () => screen.queryByRole('combobox', { name: 'Surprise in the flight' });
+    const hide = () => screen.queryByRole('checkbox', { name: 'Hide upcoming items' });
+    expect(surprise()).toBeNull();
+    expect(hide()).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    const select = surprise();
+    if (!select) throw new Error('no surprise select');
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['None', 'Any phase', 'Departure', 'Cruise']);
+    expect(select).toHaveProperty('value', '');
+    await userEvent.selectOptions(select, 'cruise');
+    await userEvent.click(hide() as HTMLElement);
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.recall).toBe(true);
+    expect(trainer.flight?.surprise).toMatchObject({ phase: 'cruise', randomPhase: false });
+    expect(trainer.procedureId).toBe('preflight');
+    expect(trainer.session.scenario()).toBeUndefined();
+  });
+
+  it('starts a full flight with a surprise in any phase', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    const select = screen.getByRole('combobox', { name: 'Surprise in the flight' });
+    await userEvent.selectOptions(select, 'Any phase');
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.flight?.surprise).toMatchObject({ randomPhase: true });
+    expect(['departure', 'cruise']).toContain(trainer.flight?.surprise?.phase);
   });
 
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {

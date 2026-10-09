@@ -2,7 +2,6 @@ export const images = {
   panel: new URL('./assets/view-panel.svg', import.meta.url).href,
   centre: new URL('./assets/view-centre.svg', import.meta.url).href,
   console: new URL('./assets/view-console.svg', import.meta.url).href,
-  bulkhead: new URL('./assets/view-bulkhead.svg', import.meta.url).href,
   parking: new URL('./assets/phase-parking.svg', import.meta.url).href,
   parkingRunning: new URL('./assets/phase-parking-running.svg', import.meta.url).href,
   taxiOut: new URL('./assets/phase-taxi-out.svg', import.meta.url).href,

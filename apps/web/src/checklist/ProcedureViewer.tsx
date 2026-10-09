@@ -3,27 +3,43 @@ import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 import { ProcedureKind } from './ProcedureKind';
 
 /** A procedure's items read straight from the aircraft data, with no session behind it. */
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist } = useTrainer();
+  const itemText = useItemText();
+  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist, flight } =
+    useTrainer();
+  // A full flight does not announce its surprise, so the answer waits for the failure.
   const awaiting = useSessionState((snapshot) => {
     const scenario = snapshot.scenario();
-    return scenario !== undefined && scenario.chosen === undefined;
+    return (
+      scenario !== undefined &&
+      scenario.chosen === undefined &&
+      (flight === undefined || scenario.injectedAtMs !== undefined)
+    );
   });
   const procedure =
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];
-  if (!procedure) return null;
+  if (!procedure) {
+    return awaiting ? (
+      <div className="checklist">
+        <div className="checklist-header">
+          <p className="checklist-note">{text.surpriseNote}</p>
+        </div>
+      </div>
+    ) : null;
+  }
   const running = procedureId === undefined ? undefined : aircraft.procedures[procedureId];
   const memoryCount = leadingCount(procedure.items, (item) => item.memory === true);
   const rows = procedure.items.map((item, index) => (
     <li key={index} className="checklist-item" data-state="reference">
       <span className="checklist-item-row">
         <span className="checklist-number">{index + 1}</span>
-        <span className="checklist-item-text">{localize(item.text)}</span>
+        <span className="checklist-item-text">{itemText(item)}</span>
       </span>
     </li>
   ));
@@ -35,7 +51,7 @@ export function ProcedureViewer() {
         <h1 className="checklist-title">{localize(procedure.title)}</h1>
         {awaiting && <p className="checklist-note">{text.surpriseNote}</p>}
         <p className="checklist-note">{text.viewOnly}</p>
-        {awaiting && procedure.type === 'emergency' && viewedProcedureId !== undefined && (
+        {awaiting && viewedProcedureId !== undefined && (
           <button
             type="button"
             className="button-primary checklist-back"

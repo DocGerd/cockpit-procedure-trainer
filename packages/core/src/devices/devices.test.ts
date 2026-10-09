@@ -21,6 +21,7 @@ const trainerState = (
   systems: Record<string, unknown> = {},
 ): TrainerState<unknown> => ({
   controls: { 'mon.page': 'engine', ...controls },
+  guards: {},
   systems: { busPowered: false, rpm: 0, volts: 0, ...systems },
   devices: states,
 });
@@ -219,6 +220,7 @@ describe('procedures over device controls', () => {
     let states = initialDeviceStates(fixtureDeviceAircraft, devices);
     const read = (): TrainerState<unknown> => ({
       controls: store.positions(),
+      guards: store.guards(),
       systems: { busPowered: true, rpm: 800, volts: 12 },
       devices: states,
     });

@@ -34,8 +34,8 @@ const drawn: Drawn[] = Object.entries(ctsl.controls).flatMap(([id, control]) => 
 const sliders = drawn.filter(({ steps }) => steps.length > 2);
 
 const legends: Record<string, Record<string, string>> = {
-  throttle: { idle: 'IDLE', low: 'LOW', runup: 'RUN-UP', cruise: 'CRUISE', full: 'FULL' },
-  trim: { 'nose-down': 'NOSE DN', neutral: 'NEUTRAL', 'nose-up': 'NOSE UP' },
+  throttle: { idle: 'IDLE', full: 'FULL' },
+  trim: { 'nose-down': 'DOWN', 'nose-up': 'UP' },
   flapSelector: {
     'override-up': 'UP',
     '-12': '-12',
@@ -120,20 +120,54 @@ describe('CTSL notched artwork controls', () => {
     }
   });
 
-  it('rolls the trim wheel from a tap a touch target in from either end of its rim', () => {
+  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
+    const throttle = drawn.find(({ id }) => id === 'throttle');
+    if (!throttle) throw new Error('the CTSL draws no throttle');
+    const svg = faceSvg(throttle.face);
+    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
+    const { appearance } = throttle.control;
+    expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
+      'THROTTLE',
+      'FULL',
+      'IDLE',
+    ]);
+    const [from, to] = [throttle.path?.[0], throttle.path?.at(-1)];
+    if (!from || !to) throw new Error('the throttle has no travel');
+    const stops = throttle.steps.map(
+      (_, i) => from.y + ((to.y - from.y) * i) / (throttle.steps.length - 1),
+    );
+    const ticks = new Set(
+      [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"/g)].map(([, y]) => Number(y)),
+    );
+    expect([...ticks].sort((a, b) => a - b)).toEqual(stops.sort((a, b) => a - b));
+  });
+
+  it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no neutral mark', () => {
+    const trim = drawn.find(({ id }) => id === 'trim');
+    if (!trim) throw new Error('the CTSL draws no trim wheel');
+    const svg = faceSvg(trim.face);
+    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    expect(printed).toEqual(['TRIM', 'DOWN', 'UP']);
+    const { appearance } = trim.control;
+    expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
+      'TRIM',
+      'DOWN',
+      'UP',
+    ]);
+    expect(svg.match(/<line\b/g)).toHaveLength(2);
+  });
+
+  it('rolls the trim wheel from a tap within a touch target of either end of its slot', () => {
     const entry = sliders.find(({ id }) => id === 'trim');
     if (!entry) throw new Error('the CTSL draws no trim wheel');
-    const rim =
-      /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(
-        faceSvg(entry.face),
-      );
-    if (!rim) throw new Error('the trim face draws no wheel rim');
-    const [x, y, width, height] = rim.slice(1).map(Number) as [number, number, number, number];
+    const { width, height } = sizeOf(faceSvg(entry.face));
     const { console: consoleView } = ctsl.views;
     const floor = ctsl.cockpit?.views.console?.minWidth;
     if (!consoleView?.size || !floor) throw new Error('the CTSL console has no floor');
     // The web app's --size-target token, in face units at the console's floor width.
     const target = (44 * consoleView.size.width) / floor;
+    expect(height, 'two touch targets fit along the slot').toBeGreaterThanOrEqual(2 * target);
 
     const rollFrom = (at: Point) => {
       const onSet = mount(entry, 'neutral');
@@ -142,8 +176,8 @@ describe('CTSL notched artwork controls', () => {
       cleanup();
       return set;
     };
-    expect(rollFrom({ x: x + target, y: y + height / 2 })).toBe('nose-down');
-    expect(rollFrom({ x: x + width - target, y: y + height / 2 })).toBe('nose-up');
+    expect(rollFrom({ x: width / 2, y: target / 2 })).toBe('nose-down');
+    expect(rollFrom({ x: width / 2, y: height - target / 2 })).toBe('nose-up');
   });
 
   it.each(sliders.map((entry) => [entry.id, entry] as const))(
@@ -200,13 +234,29 @@ describe('CTSL notched artwork controls', () => {
       expect(now(up ?? '')).toBeGreaterThan(now(here));
       expect(now(down ?? '')).toBeLessThan(now(here));
 
-      const [from, next, previous] = [printed(here), printed(up ?? ''), printed(down ?? '')];
-      if (vertical) {
-        expect(next.y).toBeLessThan(from.y);
-        expect(previous.y).toBeGreaterThan(from.y);
-      } else {
-        expect(next.x).toBeGreaterThan(from.x);
-        expect(previous.x).toBeLessThan(from.x);
+      // The nearest printed stops either side of here; a flap arc is only monotonic locally, and the
+      // throttle's middle stops print nothing.
+      const value = now(here);
+      const marked = steps
+        .filter((position) => legends[id]?.[position] !== undefined)
+        .map((position) => ({ position, value: now(position) }));
+      const above = marked
+        .filter((stop) => stop.value > value)
+        .sort((a, b) => a.value - b.value)[0];
+      const below = marked
+        .filter((stop) => stop.value < value)
+        .sort((a, b) => b.value - a.value)[0];
+      if (!above || !below) throw new Error(`${id} prints no legend on one side of ${here}`);
+      const pairs = legends[id]?.[here]
+        ? [
+            [here, above.position],
+            [below.position, here],
+          ]
+        : [[below.position, above.position]];
+      for (const [from = '', to = ''] of pairs) {
+        const [low, high] = [printed(from), printed(to)];
+        if (vertical) expect(high.y, `${from} to ${to}`).toBeLessThan(low.y);
+        else expect(high.x, `${from} to ${to}`).toBeGreaterThan(low.x);
       }
     },
   );

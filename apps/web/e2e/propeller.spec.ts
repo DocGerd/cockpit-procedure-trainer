@@ -28,7 +28,12 @@ for (const aircraft of aircraftRegistry) {
       const entry = aircraft.phases[id]?.entry;
       return (
         entry !== undefined &&
-        aircraft.engineRunning?.({ controls: entry.controls, systems: entry.state, devices: {} })
+        aircraft.engineRunning?.({
+          controls: entry.controls,
+          guards: {},
+          systems: entry.state,
+          devices: {},
+        })
       );
     });
     if (!running)
