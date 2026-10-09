@@ -48,7 +48,10 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   resumes it with that order, so wait for its hand-back before giving the
   worktree to another agent.
 - Every agent works in its own git worktree; never switch branches or edit
-  files in the main checkout.
+  files in the main checkout. `.claude/hooks/main-checkout-guard.sh` refuses
+  such edits (including `/revise-claude-md` and `.claude/settings.local.json`
+  in a main-checkout session); the owner overrides with
+  `CPT_ALLOW_MAIN_EDIT=1`.
 - Rebase only before a branch's first push (force-push is blocked); after
   that the merge train updates the branch from `develop`.
 - A decision the spec does not settle: make it, state it and its reason in the
@@ -104,7 +107,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   (`data-control`/`data-position` on Screen keys).
 - Aircraft facts come from `docs/aircraft/<id>-intake.md` (paraphrased);
   `reference/` is local-only — never read it in implementation agents, never
-  commit or quote it.
+  commit or quote it. `.claude/hooks/reference-guard.sh` enforces it (not for
+  Bash); the owner overrides with `CPT_ALLOW_REFERENCE=1` for intake
+  work.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", `--no-merges`, jq `mergeCommit`,
   `merged_at`), except one plain `gh pr merge` of a `develop` PR or a plain
