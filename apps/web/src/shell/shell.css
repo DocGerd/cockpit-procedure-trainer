@@ -115,7 +115,7 @@
   box-shadow: var(--shadow-md);
 }
 
-.shell-drawer-close {
+.chrome-button.shell-drawer-close {
   display: grid;
   flex: none;
   order: -1;

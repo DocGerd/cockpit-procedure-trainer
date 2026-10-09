@@ -405,3 +405,29 @@ test('the tablet drawer closes from the button in its head', async ({ page }) =>
   await expect(page.getByRole('complementary', { name: 'Checklist' })).toHaveCount(0);
   await expect(toggle).toBeFocused();
 });
+
+// base.css loads last, so header rules must outrank its focus ring and .chrome-button padding.
+test('the header controls keep their own focus ring and square icon buttons', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await pickProcedure(page, 'engineStart', 'guided');
+  const segment = page.locator('.modes-segment').last();
+  await page.keyboard.press('Shift');
+  await segment.focus();
+  const offset = await segment.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).outlineOffset),
+  );
+  expect(offset, 'focus ring drawn inside the clipped segment row').toBeLessThan(0);
+
+  const square = async (button: Locator) => {
+    const box = await button.boundingBox();
+    if (!box) throw new Error('button not rendered');
+    expect(Math.round(box.width)).toBe(Math.round(box.height));
+  };
+  await square(page.locator('.theme-switch'));
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page
+    .getByRole('banner')
+    .getByRole('button', { name: /^Checklist/ })
+    .click();
+  await square(page.getByRole('button', { name: 'Close checklist' }));
+});

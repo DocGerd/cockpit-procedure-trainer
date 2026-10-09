@@ -33,7 +33,7 @@
   background: var(--color-accent);
 }
 
-.modes-segment:focus-visible {
+.modes-segments .modes-segment:focus-visible {
   outline-offset: calc(-1 * var(--space-1));
 }
 
