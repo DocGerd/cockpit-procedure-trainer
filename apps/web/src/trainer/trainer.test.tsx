@@ -513,6 +513,55 @@ describe('full flight', () => {
     expect(trainer.flight).toEqual({ legs: ['powerUp', 'taxiCheck'], results: [] });
   });
 
+  describe('Hide upcoming items', () => {
+    const fly = (recall: boolean | undefined, setting?: 'on' | 'off') => {
+      if (setting) localStorage.setItem('cpt.recall', setting);
+      const view = renderTrainer();
+      act(() => view.result.current.trainer.selectAircraft(flightAircraft.id));
+      act(() => view.result.current.trainer.setMode('practice'));
+      act(() => view.result.current.trainer.startFlight(recall === undefined ? {} : { recall }));
+      return view;
+    };
+
+    it('is the flight own option and leaves the Practice setting alone', () => {
+      const { result } = fly(true, 'off');
+      expect(result.current.trainer.recall).toBe(true);
+      act(() => result.current.trainer.backToPicker());
+      expect(result.current.trainer.recall).toBe(false);
+      expect(localStorage.getItem('cpt.recall')).toBe('off');
+    });
+
+    it('is set from the pane during the flight without writing the Practice setting', () => {
+      const { result } = fly(false);
+      act(() => result.current.trainer.setRecall(true));
+      expect(result.current.trainer.recall).toBe(true);
+      expect(localStorage.getItem('cpt.recall')).toBeNull();
+      act(() => result.current.trainer.backToPicker());
+      expect(result.current.trainer.recall).toBe(false);
+    });
+
+    it('does not apply the Practice setting to a flight that did not ask for it', () => {
+      const { result } = fly(undefined, 'on');
+      expect(result.current.trainer.recall).toBe(false);
+    });
+
+    it('survives the leg change and a reset of the flight', () => {
+      const { result } = fly(true);
+      flyFirstLeg(result.current.trainer);
+      act(() => result.current.trainer.nextLeg());
+      expect(result.current.trainer.recall).toBe(true);
+      act(() => result.current.trainer.resetSession());
+      expect(result.current.trainer.recall).toBe(true);
+    });
+
+    it('still writes the Practice setting outside a flight', () => {
+      const { result } = renderTrainer();
+      act(() => result.current.trainer.setRecall(true));
+      expect(result.current.trainer.recall).toBe(true);
+      expect(localStorage.getItem('cpt.recall')).toBe('on');
+    });
+  });
+
   it.each([
     [
       'a chosen procedure',

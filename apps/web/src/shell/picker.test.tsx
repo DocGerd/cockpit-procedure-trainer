@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
@@ -393,6 +393,34 @@ describe('drills in the picker', () => {
     expect(trainer.flight?.surprise).toMatchObject({ phase: 'cruise', randomPhase: false });
     expect(trainer.procedureId).toBe('preflight');
     expect(trainer.session.scenario()).toBeUndefined();
+  });
+
+  it('keeps the flight Hide upcoming items choice out of the Practice setting', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Hide upcoming items' }));
+    expect(trainer.recall).toBe(false);
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.recall).toBe(true);
+    expect(localStorage.getItem('cpt.recall')).toBeNull();
+    act(() => trainer.backToPicker());
+    expect(trainer.recall).toBe(false);
+  });
+
+  it('starts the flight option from the Practice setting', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    localStorage.setItem('cpt.recall', 'on');
+    renderPicker();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    const hide = screen.getByRole('checkbox', { name: 'Hide upcoming items' });
+    expect(hide).toHaveProperty('checked', true);
+    await userEvent.click(hide);
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.recall).toBe(false);
+    expect(localStorage.getItem('cpt.recall')).toBe('on');
   });
 
   it('starts a full flight with a surprise in any phase', async () => {
