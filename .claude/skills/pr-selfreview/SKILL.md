@@ -21,6 +21,10 @@ followed by the `merge-train` skill.
    body has `No changelog: <reason>` and the reason is valid: no user-visible
    effect (e.g. internal docs, CI-only, tests-only, agent config, plans or specs
    that do not change product behaviour).
+   If the diff touches aircraft content (`packages/aircraft-*`, `packages/device-*`,
+   `docs/aircraft/`, procedure text, placards or art), ask the orchestrator to run
+   the `intake-checker` agent on the PR (a subagent cannot spawn one) and treat
+   its findings like any other.
 2. **Post one inline thread per finding**, anchored to a changed line. A finding
    outside the diff becomes a PR-level comment through
    `gh api repos/DocGerd/cockpit-procedure-trainer/issues/N/comments --method POST --raw-field body=TEXT`.
