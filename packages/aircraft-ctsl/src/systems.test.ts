@@ -159,7 +159,7 @@ describe('engine start', () => {
     expect(session.set('ignition', 'both')).toEqual({ applied: true });
   });
 
-  it('closes the fuel valve with the key still on; the key then turns only to OFF and out', () => {
+  it('closes the fuel valve with the key still on; the key still turns to L and OFF but not on to BOTH, comes out at OFF and cannot go back in', () => {
     const session = sessionAt('holding');
     expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
     expect(session.set('ignition', 'left')).toEqual({ applied: true });
@@ -168,6 +168,19 @@ describe('engine start', () => {
     expect(session.set('ignition', 'out')).toEqual({ applied: true });
     expect(session.set('ignition', 'off')).toEqual({ applied: false, reason: 'locked' });
   });
+
+  it.each(['left', 'right', 'both'])(
+    'with the fuel valve closed, keeps the key in until it turns from %s to OFF',
+    (from) => {
+      const session = sessionAt('holding');
+      session.set('ignition', from);
+      session.set('fuelValve', 'closed');
+      expect(session.set('ignition', 'out')).toEqual({ applied: false, reason: 'locked' });
+      expect(session.state().controls.ignition).toBe(from);
+      expect(session.set('ignition', 'off')).toEqual({ applied: true });
+      expect(session.set('ignition', 'out')).toEqual({ applied: true });
+    },
+  );
 
   it('keeps the key in while the fuel valve is open', () => {
     const session = sessionAt('holding');

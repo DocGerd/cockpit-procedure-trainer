@@ -439,6 +439,22 @@ describe('validateAircraft', () => {
       );
     });
 
+    it('reports an onlyFrom key', () => {
+      only(
+        withControl('ignition', { onlyFrom: { half: ['off'] } }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
+    it('reports an onlyFrom source position', () => {
+      only(
+        withControl('ignition', { onlyFrom: { off: ['half'] } }),
+        'unknown-position',
+        'ignition',
+      );
+    });
+
     it('reports a legend for a position the control lacks', () => {
       only(withControl('ignition', { legends: { half: 'H' } }), 'unknown-position', 'ignition');
     });

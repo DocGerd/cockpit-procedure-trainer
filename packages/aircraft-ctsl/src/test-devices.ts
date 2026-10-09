@@ -88,8 +88,13 @@ const gpsmap496StandIn = defineDevice({
     page: momentary(text('Seite', 'Page')),
     quit: momentary(text('Zurück', 'Quit')),
   },
-  initial: { on: false, page: 'map', fix: false },
-  step: (state) => state,
+  initial: { on: false, page: 'map', fix: false, power: 'released' },
+  // Finds its fix at once: the real unit's search time is the device's own concern.
+  step: (state, { controls, powered }) => {
+    const tapped = controls.power === 'pressed' && state.power !== 'pressed';
+    const on = powered && (tapped ? !state.on : state.on);
+    return { ...state, on, fix: on, power: String(controls.power) };
+  },
 });
 
 // An aircraft depends on core only, so its tests install stand-ins that share the control ids of

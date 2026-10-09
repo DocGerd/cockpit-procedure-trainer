@@ -101,7 +101,8 @@ const readsDevice = (aircraft: Aircraft, item: Item) =>
  * The aircraft's full flight, played first on a session in this process: it times each check
  * and hold, which the page cannot tell. Device controls run only in the page. A leg of nothing
  * but device items is taken there as it comes, its checks met at once; in a leg that also moves
- * the aircraft's own controls, only the device action and the check on a device control are.
+ * the aircraft's own controls, the device action is taken at once and the check on a device
+ * control after the longest wait the walker allows.
  */
 export function flightPlan(aircraft: Aircraft): readonly Leg[] {
   const legs = flightLegs(aircraft);
@@ -135,9 +136,13 @@ export function flightPlan(aircraft: Aircraft): readonly Leg[] {
         shadow.checkOff();
         return { kind: 'device', control: item.control, position: item.position };
       }
+      // The shadow cannot tell when a device's state meets the check, so both sides wait as
+      // long as `walkProcedure` would at most.
       if (readsDevice(aircraft, item)) {
+        const waitMs = MAX_STEPS * STEP_MS;
+        shadow.advance(waitMs);
         shadow.checkOff();
-        return { kind: 'check', waitMs: 0 };
+        return { kind: 'check', waitMs };
       }
       return shadowStep(shadow, aircraft, item, index);
     });

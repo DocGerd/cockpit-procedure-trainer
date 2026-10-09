@@ -102,6 +102,11 @@ export type RotaryControl = ControlBase & {
   readonly positions: readonly string[];
   readonly initial: string;
   readonly springBack?: { readonly [detent: string]: string };
+  /**
+   * Positions the pilot reaches only from the listed ones, as the key comes out only at OFF; any
+   * other pilot move to them is refused as `locked`.
+   */
+  readonly onlyFrom?: { readonly [position: string]: readonly string[] };
 };
 
 export type LeverControl = ControlBase & { readonly kind: 'lever' } & (

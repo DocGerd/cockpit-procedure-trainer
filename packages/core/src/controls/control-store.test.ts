@@ -395,6 +395,42 @@ describe('interlocked control', () => {
   });
 });
 
+describe('rotary position reached only from listed positions', () => {
+  const store = () =>
+    createControlStore({
+      key: {
+        ...base,
+        kind: 'rotary',
+        positions: ['out', 'off', 'on', 'start'],
+        initial: 'on',
+        springBack: { start: 'on' },
+        onlyFrom: { out: ['off'] },
+      },
+    } as const satisfies ControlRecord);
+
+  it('refuses the move from any other position', () => {
+    const keyStore = store();
+    expect(keyStore.set('key', 'out')).toEqual({ applied: false, reason: 'locked' });
+    expect(keyStore.positions().key).toBe('on');
+  });
+
+  it('applies the move from a listed position and leaves the way back free', () => {
+    const keyStore = store();
+    keyStore.set('key', 'off');
+    expect(keyStore.set('key', 'out')).toEqual({ applied: true });
+    expect(keyStore.set('key', 'off')).toEqual({ applied: true });
+    expect(keyStore.set('key', 'start')).toEqual({ applied: true });
+  });
+
+  it('leaves systemSet and load free', () => {
+    const keyStore = store();
+    expect(keyStore.systemSet('key', 'out')).toEqual({ applied: true });
+    keyStore.load({ key: 'on' });
+    keyStore.load({ key: 'out' });
+    expect(keyStore.positions().key).toBe('out');
+  });
+});
+
 describe('systemSet', () => {
   it('moves a control and emits a system change', () => {
     const { store, changes } = setup();

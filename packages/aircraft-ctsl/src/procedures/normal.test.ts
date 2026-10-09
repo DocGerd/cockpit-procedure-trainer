@@ -1,4 +1,4 @@
-import { createSession, walkProcedure } from '@cpt/core';
+import { createSession, deviceControls, walkProcedure } from '@cpt/core';
 import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
@@ -8,6 +8,7 @@ import { headingLabel, runway } from '../airfield';
 import { normalProcedures } from './normal';
 
 const devices = testDevices;
+const allControls = { ...ctslAircraft.controls, ...deviceControls(ctslAircraft, devices) };
 
 const expected = [
   ['preflight', 'parking', undefined],
@@ -167,7 +168,7 @@ describe('CTSL normal procedures', () => {
       at = session.checklist()?.current ?? choke
     ) {
       const item = items[at] as Item;
-      if (item.type === 'action' && ctslAircraft.controls[item.control]?.kind === 'momentary') {
+      if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
         session.press(item.control);
         session.release(item.control);
       } else if (
@@ -358,6 +359,18 @@ describe('CTSL normal procedures', () => {
     expect(session.checklist()?.deviations).toEqual([]);
   });
 
+  it('engineStart leaves the intercom on, as the taxi-out phase starts it (§9 question 32)', () => {
+    let intercom: unknown;
+    walkProcedure(ctslAircraft, 'engineStart', {
+      devices,
+      afterChecklist: (session) => {
+        intercom = session.state().controls.intercom;
+      },
+    });
+    expect(intercom).toBe('on');
+    expect(ctslAircraft.phases.taxiOut?.entry.controls.intercom).toBe('on');
+  });
+
   it('preflight confirms the key out without inserting it', () => {
     expect(ignitionAt('preflight', 'off')).toBe(-1);
     expect(ignitionAt('preflight', 'out')).toBeGreaterThanOrEqual(0);
@@ -527,6 +540,43 @@ describe('CTSL normal procedures', () => {
 
       it('records nothing when ticked at standby with power', () => {
         expect(tick((session) => void session.set('xpdr.mode', 'sby'))).toEqual([]);
+      });
+    });
+
+    describe('GPS has a position fix (assumed, intake §9 question 32)', () => {
+      const fix = 'GPS has a position fix (3D FIX)';
+      const aircraft = only('beforeTakeoff', [fix]);
+
+      it('is a check on the GPS, after the power key that switches it on', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        const at = items.findIndex((item) => item.text.en === fix);
+        const power = items.findIndex((item) => item.text.en === 'GPS on');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'gps.power' } });
+        expect(items[power]).toMatchObject({
+          type: 'action',
+          control: 'gps.power',
+          position: 'pressed',
+        });
+        expect(power).toBeLessThan(at);
+      });
+
+      it('records an unmet check when ticked with the GPS off', () => {
+        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([
+          expect.objectContaining({ kind: 'unmet-check' }),
+        ]);
+      });
+
+      it('records nothing when ticked with the GPS on and its fix found', () => {
+        const switchedOn = (session: Session) => {
+          session.press('gps.power');
+          session.release('gps.power');
+          session.advance(100);
+        };
+        expect(
+          tickedAt(aircraft, 'beforeTakeoff', switchedOn).filter(
+            (deviation) => deviation.kind === 'unmet-check',
+          ),
+        ).toEqual([]);
       });
     });
 

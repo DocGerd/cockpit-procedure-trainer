@@ -89,6 +89,10 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 A `springBack` detent returns to its rest position when released, as the demo's
 `annunciator` does with `springBack: { test: 'bright' }`. The demo keeps the
 magneto key, a `rotary`, and the starter, a `momentary`, as separate controls.
+A `rotary` may also declare `onlyFrom: { position: [sources] }`: the pilot
+reaches that position only from one of the sources, as the CTSL's key comes out
+only at OFF (`onlyFrom: { out: ['off'] }`); any other pilot move to it is
+refused (result `locked`).
 
 Any control may declare `interlock: [{ control, at, holds }, ...]`: while the
 other control stands at `at`, the pilot cannot move this one from a position in
