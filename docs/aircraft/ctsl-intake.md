@@ -196,12 +196,14 @@ What the trainer draws today, and where it departs from the above:
   right-seat side of the console top, clear of the lever row and the large knob;
   this place is **assumed (unverified)** (§9, question 3).
 - The rescue handle sits low at the console's aft end, between the seats, on a
-  recessed shelf inboard of the valve at the bulkhead (#535). Pulled, it slides
-  forward (up the top view) to the stop at its guide block; the safety pin goes
-  across the guide block through the release lever. Its description and the E2
+  recessed shelf beside the valve at the bulkhead (#535). The large knob holds the
+  column aft of the valve, so the handle is drawn a little to the pilot's side of the
+  console's centreline, not on it; that offset is a trainer compromise. Pulled, it
+  slides forward (up the top view) to the stop at its guide block; the safety pin
+  goes across the guide block through the release lever. Its description and the E2
   pull item say forward, hard, to the stop. The T-grip, the plate's RESCUE and
-  PULL HARD with its forward chevrons, and a pin with a ring and no flag are
-  **assumed (unverified)** (§9, question 26).
+  PULL HARD with its forward chevrons, a pin with a ring and no flag, and the
+  handle's place across the shelf are **assumed (unverified)** (§9, question 26).
 
 ### 3.5 Not in the analog variant
 
@@ -739,7 +741,9 @@ verifies it on D-MPGO.
     **Drawn so (#535):** the handle is on the console view's recessed aft shelf,
     low between the seats, and pulls forward to the stop; the pin goes through the
     release lever. The `bulkhead` view is gone. Still **assumed (unverified)**: the
-    T-grip, the plate's legends, and a pin with a ring but no flag.
+    T-grip, the plate's legends, a pin with a ring but no flag, and the handle's
+    place across the shelf, drawn to the pilot's side of the centreline because the
+    large knob holds the column aft of the valve.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
