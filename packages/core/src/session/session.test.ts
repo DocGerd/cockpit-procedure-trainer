@@ -836,9 +836,11 @@ describe('flight legs', () => {
       session.startLeg('runupCheck', { ...surprise, afterItems: 5 });
       session.set('flaps', 'takeoff');
       expect(session.failures().size).toBe(0);
+      session.advance(STEP_MS);
       session.checkOff();
-      expect(session.checklist()?.done).toBe(true);
+      expect(session.checklist()).toMatchObject({ done: true, elapsedMs: STEP_MS });
       expect([...session.failures()]).toEqual(['alternatorFailure']);
+      expect(session.state().controls.alternatorBreaker).toBe('pulled');
     });
 
     it('rearms it on a restart before the pilot answers', () => {
