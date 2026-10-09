@@ -427,15 +427,8 @@ function ActiveChecklist({ checklist, mode }: { checklist: ChecklistState<unknow
 }
 
 export function ChecklistPane() {
-  const { mode, procedureId, viewedProcedureId, viewProcedure } = useTrainer();
+  const { mode, procedureId, viewedProcedureId } = useTrainer();
   const checklist = useSessionState((snapshot) => snapshot.checklist());
-  const done = mode !== 'explore' && checklist?.done === true;
-  const wasDone = useRef(done);
-  // The run's summary is not left behind the checklist being read; later views are the pilot's.
-  useEffect(() => {
-    if (done && !wasDone.current && procedureId !== undefined) viewProcedure(procedureId);
-    wasDone.current = done;
-  }, [done]);
   const running =
     mode !== 'explore' && checklist !== undefined && viewedProcedureId === procedureId
       ? checklist

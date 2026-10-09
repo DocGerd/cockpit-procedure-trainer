@@ -1011,6 +1011,23 @@ describe('viewing a checklist', () => {
     expect(trainer.viewedProcedureId).toBe(flow);
   });
 
+  it('brings the summary forward for a pane that mounts only once the run is done', async () => {
+    function AfterDone() {
+      const done = useSessionState((snapshot) => snapshot.checklist()?.done ?? false);
+      return done ? <ChecklistPane /> : null;
+    }
+    renderWithLanguage(
+      <TrainerProvider>
+        <Probe />
+        <AfterDone />
+      </TrainerProvider>,
+    );
+    start(flow);
+    act(() => trainer.viewProcedure('followUp'));
+    finishFlowWithDeviations();
+    expect(screen.getByRole('heading', { name: 'Flow complete' })).toBeTruthy();
+  });
+
   it('brings the summary forward in Practice too', async () => {
     renderPane();
     start(flow, 'practice');
