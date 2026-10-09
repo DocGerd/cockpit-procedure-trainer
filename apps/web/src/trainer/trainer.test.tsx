@@ -532,6 +532,108 @@ describe('full flight', () => {
   });
 });
 
+describe('full flight with a surprise failure', () => {
+  const startFlight = (phase?: string) => {
+    const view = renderTrainer();
+    act(() => view.result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => view.result.current.trainer.setMode('practice'));
+    act(() =>
+      view.result.current.trainer.startFlight({ surprise: phase === undefined ? {} : { phase } }),
+    );
+    return view;
+  };
+  const answer = (trainer: ReturnType<typeof useTrainer>) => {
+    act(() => trainer.session.set('master', 'on'));
+    act(() => trainer.session.advance(STEP_MS));
+    act(() => trainer.takeChecklist('fire'));
+  };
+
+  it('arms the failure in a leg of the chosen phase, unannounced until the pilot gets there', () => {
+    const { result } = startFlight('parking');
+    const { trainer } = result.current;
+    expect(trainer.flight?.surprise).toEqual({
+      phase: 'parking',
+      leg: 'powerUp',
+      failure: 'fire',
+      afterItems: 1,
+      randomPhase: false,
+    });
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.surprisePhase).toBeUndefined();
+    expect(trainer.session.scenario()).toEqual({
+      phase: 'parking',
+      failure: 'fire',
+      afterItems: 1,
+    });
+    act(() => trainer.session.advance(SURPRISE_MAX_MS));
+    expect(result.current.snapshot.failures().size).toBe(0);
+    act(() => trainer.session.set('master', 'on'));
+    expect([...result.current.snapshot.failures()]).toEqual(['fire']);
+  });
+
+  it('picks the phase when none is chosen, and again on reset', () => {
+    const { result } = startFlight();
+    expect(result.current.trainer.flight?.surprise).toMatchObject({
+      phase: 'parking',
+      randomPhase: true,
+    });
+    act(() => result.current.trainer.resetSession());
+    const { trainer } = result.current;
+    expect(trainer.flight?.surprise).toMatchObject({ phase: 'parking', randomPhase: true });
+    expect(trainer.flight?.results).toEqual([]);
+    expect(trainer.session.scenario()).toMatchObject({ phase: 'parking', failure: 'fire' });
+  });
+
+  it('makes the checklist taken for it the last leg, after the leg it interrupted', () => {
+    const { result } = startFlight('parking');
+    answer(result.current.trainer);
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('fire');
+    expect(trainer.flight?.legs).toEqual(['powerUp', 'fire']);
+    expect(trainer.flight?.results).toEqual([
+      { id: 'powerUp', deviations: 0, assists: 0, elapsedMs: STEP_MS, interrupted: true },
+    ]);
+    expect(snapshot.scenario()).toMatchObject({ chosen: 'fire', matched: true });
+    act(() => {
+      trainer.session.set('pump', 'on');
+      trainer.session.set('pump', 'off');
+    });
+    expect(result.current.snapshot.checklist()?.done).toBe(true);
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('fire');
+  });
+
+  it('records a leg done before the checklist was taken as a whole leg', () => {
+    const { result } = startFlight('parking');
+    act(() => {
+      result.current.trainer.session.set('master', 'on');
+      result.current.trainer.session.set('pump', 'on');
+    });
+    act(() => result.current.trainer.nextLeg());
+    expect(result.current.trainer.procedureId).toBe('powerUp');
+    act(() => result.current.trainer.takeChecklist('fire'));
+    expect(result.current.trainer.flight?.results).toEqual([
+      { id: 'powerUp', deviations: 0, assists: 0, elapsedMs: 0 },
+    ]);
+  });
+
+  it('restarts the taken checklist from the choice, keeping the flight', () => {
+    const { result } = startFlight('parking');
+    answer(result.current.trainer);
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+      result.current.trainer.session.set('pump', 'off');
+    });
+    act(() => result.current.trainer.restart());
+    const { trainer, snapshot } = result.current;
+    expect(trainer.procedureId).toBe('fire');
+    expect(snapshot.checklist()?.done).toBe(false);
+    expect(snapshot.state().controls.pump).toBe('off');
+    expect([...snapshot.failures()]).toEqual(['fire']);
+    expect(trainer.flight?.legs).toEqual(['powerUp', 'fire']);
+  });
+});
+
 describe('shallowEqual', () => {
   it('compares plain objects and arrays one level deep', () => {
     const shared = {};
@@ -794,6 +896,20 @@ describe('leaving risk', () => {
       result.current.trainer.session.set('pump', 'on');
     });
   };
+
+  it('is nothing once the checklist of a full-flight surprise is done', () => {
+    const { result } = renderLeaving();
+    act(() => result.current.trainer.selectAircraft(flightAircraft.id));
+    act(() => result.current.trainer.startFlight({ surprise: { phase: 'parking' } }));
+    act(() => result.current.trainer.session.set('master', 'on'));
+    act(() => result.current.trainer.takeChecklist('fire'));
+    expect(result.current.leaving.atRisk).toBe(true);
+    act(() => {
+      result.current.trainer.session.set('pump', 'on');
+      result.current.trainer.session.set('pump', 'off');
+    });
+    expect(result.current.leaving.atRisk).toBe(false);
+  });
 
   it('follows the run outside a full flight', () => {
     const { result } = renderLeaving();

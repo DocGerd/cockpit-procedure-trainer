@@ -9,10 +9,16 @@ import { ProcedureKind } from './ProcedureKind';
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist } = useTrainer();
+  const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist, flight } =
+    useTrainer();
+  // A full flight does not announce its surprise, so the answer waits for the failure.
   const awaiting = useSessionState((snapshot) => {
     const scenario = snapshot.scenario();
-    return scenario !== undefined && scenario.chosen === undefined;
+    return (
+      scenario !== undefined &&
+      scenario.chosen === undefined &&
+      (flight === undefined || scenario.injectedAtMs !== undefined)
+    );
   });
   const procedure =
     viewedProcedureId === undefined ? undefined : aircraft.procedures[viewedProcedureId];

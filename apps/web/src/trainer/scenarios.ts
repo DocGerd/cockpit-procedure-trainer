@@ -1,4 +1,4 @@
-import { createSession, phaseOrder, STEP_MS } from '@cpt/core';
+import { createSession, flightLegs, phaseOrder, STEP_MS } from '@cpt/core';
 import type { Aircraft, Session } from '@cpt/core';
 import { deviceRegistry } from '../device-registry';
 import type { ProcedureHistory } from '../storage';
@@ -76,6 +76,46 @@ export function pickSurprise(
   const steps = Math.floor((SURPRISE_MAX_MS - SURPRISE_MIN_MS) / STEP_MS);
   const delayMs = SURPRISE_MIN_MS + Math.min(steps, Math.floor(random() * (steps + 1))) * STEP_MS;
   return { failure, delayMs };
+}
+
+const flightLegsIn = (aircraft: Aircraft, phase: string) =>
+  flightLegs(aircraft).filter((id) => aircraft.procedures[id]?.startPhase === phase);
+
+/** The surprise phases a full-flight leg starts in, so the cockpit is there while a leg runs. */
+export function flightSurprisePhases(aircraft: Aircraft): string[] {
+  return surprisePhases(aircraft).filter((phase) => flightLegsIn(aircraft, phase).length > 0);
+}
+
+export type FlightSurprise = {
+  readonly phase: string;
+  readonly leg: string;
+  readonly failure: string;
+  readonly afterItems: number;
+};
+
+/**
+ * A surprise for a full flight, in the phase given or a random one: a leg starting there, one of
+ * the phase's failures, and the item after which it appears, so at least one item follows it.
+ */
+export function pickFlightSurprise(
+  aircraft: Aircraft,
+  phase: string | undefined,
+  random: Random = Math.random,
+): FlightSurprise {
+  const at = phase ?? pick(flightSurprisePhases(aircraft), random);
+  const leg = at === undefined ? undefined : pick(flightLegsIn(aircraft, at), random);
+  const items = leg === undefined ? undefined : aircraft.procedures[leg]?.items.length;
+  if (at === undefined || leg === undefined || items === undefined) {
+    throw new Error(`No full-flight leg for a surprise in phase "${phase ?? 'any'}"`);
+  }
+  const { failure } = pickSurprise(aircraft, at, random);
+  const span = Math.max(1, items - 1);
+  return {
+    phase: at,
+    leg,
+    failure,
+    afterItems: 1 + Math.min(span - 1, Math.floor(random() * span)),
+  };
 }
 
 export function randomEmergency(aircraft: Aircraft, random: Random = Math.random) {

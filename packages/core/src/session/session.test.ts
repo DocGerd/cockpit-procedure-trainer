@@ -790,6 +790,102 @@ describe('flight legs', () => {
     expect(() => session.startLeg('alternatorFailure')).toThrow('alternatorFailure');
     expect(fingerprint(session)).toEqual(before);
   });
+
+  describe('with a surprise', () => {
+    const surprise = { failure: 'alternatorFailure', afterItems: 1 } as const;
+    const armed = () => {
+      const session = createSession(legs, { phase: 'taxiOut' });
+      session.startLeg('runupCheck', surprise);
+      return session;
+    };
+
+    it('arms it in the leg phase and injects it once the leg has that many items done', () => {
+      const session = armed();
+      expect(session.scenario()).toEqual({
+        phase: 'taxiOut',
+        failure: 'alternatorFailure',
+        afterItems: 1,
+      });
+      session.advance(60_000);
+      expect(session.failures().size).toBe(0);
+      session.set('flaps', 'takeoff');
+      expect([...session.failures()]).toEqual(['alternatorFailure']);
+      expect(session.scenario()?.injectedAtMs).toBe(60_000);
+      expect(session.checklist()?.deviations).toEqual([]);
+    });
+
+    it('counts the items from the leg start, not the ones in place before it', () => {
+      const flaps = { type: 'action', control: 'flaps', position: 'takeoff', flow: true };
+      const flowing = {
+        ...legs,
+        procedures: {
+          ...legs.procedures,
+          runupFlow: leg('taxiOut', [{ ...flaps, text: { de: 'Klappen', en: 'Flaps' } }, ready]),
+        },
+      } as Aircraft;
+      const session = createSession(flowing, { phase: 'taxiOut' });
+      session.set('flaps', 'takeoff');
+      session.startLeg('runupFlow', surprise);
+      expect(session.checklist()?.completed).toEqual([0]);
+      expect(session.failures().size).toBe(0);
+      expect(session.scenario()?.afterItems).toBe(2);
+    });
+
+    it('injects it at the latest when the leg is done', () => {
+      const session = createSession(legs, { phase: 'taxiOut' });
+      session.startLeg('runupCheck', { ...surprise, afterItems: 5 });
+      session.set('flaps', 'takeoff');
+      expect(session.failures().size).toBe(0);
+      session.checkOff();
+      expect(session.checklist()?.done).toBe(true);
+      expect([...session.failures()]).toEqual(['alternatorFailure']);
+    });
+
+    it('rearms it on a restart before the pilot answers', () => {
+      const session = armed();
+      const start = fingerprint(session);
+      session.set('flaps', 'takeoff');
+      session.restartLeg();
+      expect(fingerprint(session)).toEqual(start);
+      expect(session.scenario()).toEqual({
+        phase: 'taxiOut',
+        failure: 'alternatorFailure',
+        afterItems: 1,
+      });
+    });
+
+    it('restarts the chosen checklist from the choice, failure and answer kept', () => {
+      const session = armed();
+      session.set('flaps', 'takeoff');
+      session.advance(STEP_MS);
+      session.takeChecklist('alternatorFailure');
+      expect(session.scenario()).toMatchObject({
+        chosen: 'alternatorFailure',
+        matched: true,
+        recognitionMs: STEP_MS,
+      });
+      const choice = fingerprint(session);
+      session.set('master', 'off');
+      session.restartLeg();
+      expect(fingerprint(session)).toEqual(choice);
+      expect(session.scenario()).toMatchObject({ chosen: 'alternatorFailure', matched: true });
+    });
+
+    it('is dropped by the next leg once answered, and by a leg without one', () => {
+      const session = armed();
+      session.startLeg('runupCheck');
+      expect(session.scenario()).toBeUndefined();
+    });
+
+    it('throws for an unknown failure and changes nothing', () => {
+      const session = createSession(legs, { phase: 'taxiOut' });
+      const before = fingerprint(session);
+      expect(() => session.startLeg('runupCheck', { failure: 'nope', afterItems: 1 })).toThrow(
+        'nope',
+      );
+      expect(fingerprint(session)).toEqual(before);
+    });
+  });
 });
 
 describe('seeded device state', () => {

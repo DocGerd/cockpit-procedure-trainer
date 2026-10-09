@@ -6,7 +6,12 @@ import { StartupNotice } from '../errors/StartupNotice';
 import { format, useLanguage, useLocalize, useMessages } from '../i18n';
 import { readHistory } from '../storage';
 import { useTrainer } from '../trainer';
-import { practiseNext, randomEmergency, surprisePhases } from '../trainer/scenarios';
+import {
+  flightSurprisePhases,
+  practiseNext,
+  randomEmergency,
+  surprisePhases,
+} from '../trainer/scenarios';
 import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
@@ -14,6 +19,8 @@ import { messages } from './messages';
 import { relativeDate } from './relative-date';
 
 type PickerMode = 'guided' | 'practice';
+
+const ANY_PHASE = '*';
 
 const count = (n: number, one: string, other: string) => `${n} ${n === 1 ? one : other}`;
 
@@ -117,10 +124,17 @@ function Drills({ mode }: { mode: PickerMode }) {
   const surpriseHint = useId();
   const flightHint = useId();
   const phaseSelect = useId();
+  const flightSurpriseSelect = useId();
   const suggestion = useMemo(() => practiseNext(aircraft, readHistory(aircraft.id)), [aircraft]);
   const phases = surprisePhases(aircraft);
   const [chosenPhase, setPhase] = useState<string>();
   const phase = chosenPhase !== undefined && phases.includes(chosenPhase) ? chosenPhase : phases[0];
+  const flightPhases = useMemo(() => flightSurprisePhases(aircraft), [aircraft]);
+  const [flightChoice, setFlightChoice] = useState('');
+  const flightSurprise =
+    mode === 'practice' && (flightChoice === ANY_PHASE || flightPhases.includes(flightChoice))
+      ? flightChoice
+      : '';
   const suggested = suggestion && aircraft.procedures[suggestion.id];
   const flight = flightLegs(aircraft).length > 1;
   if (!suggested && phase === undefined && !flight) return null;
@@ -163,11 +177,51 @@ function Drills({ mode }: { mode: PickerMode }) {
             aria-describedby={flightHint}
             onClick={() => {
               trainer.setMode(mode);
-              trainer.startFlight();
+              trainer.startFlight(
+                flightSurprise === ''
+                  ? {}
+                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } },
+              );
             }}
           >
             {text.fullFlight}
           </button>
+          {mode === 'practice' && (
+            <div className="picker-surprise">
+              {flightPhases.length > 0 && (
+                <>
+                  <label htmlFor={flightSurpriseSelect} className="picker-card-text">
+                    {text.flightSurprise}
+                  </label>
+                  <select
+                    id={flightSurpriseSelect}
+                    className="chrome-button"
+                    value={flightSurprise}
+                    onChange={(event) => setFlightChoice(event.target.value)}
+                  >
+                    <option value="">{text.flightSurpriseNone}</option>
+                    <option value={ANY_PHASE}>{text.flightSurpriseAny}</option>
+                    {flightPhases.map((id) => {
+                      const name = phaseName(id);
+                      return (
+                        <option key={id} value={id}>
+                          {name ? localize(name) : id}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </>
+              )}
+              <label className="picker-check picker-card-text">
+                <input
+                  type="checkbox"
+                  checked={trainer.recall}
+                  onChange={(event) => trainer.setRecall(event.target.checked)}
+                />
+                {text.hideUpcoming}
+              </label>
+            </div>
+          )}
           <p id={flightHint} className="picker-card-text">
             {text.fullFlightHint}
           </p>
