@@ -129,12 +129,6 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
             (consoleBox.y >= panel.y + panel.height && consoleBox.x >= centre.x + centre.width),
           'console below or beside the centre field',
         ).toBe(true);
-        if (aircraft.cockpit?.views.bulkhead) {
-          const bulkhead = await boxOf(page.locator('[data-view="bulkhead"]'));
-          expect(bulkhead.y, 'bulkhead behind the console').toBeGreaterThanOrEqual(
-            consoleBox.y + consoleBox.height,
-          );
-        }
       }
     }
   }

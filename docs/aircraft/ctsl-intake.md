@@ -42,9 +42,9 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
-laid out for the left seat (pilot in command). The trainer draws four views:
-`panel` (both upper fields), `centre` (lower centre field), `console` and
-`bulkhead` (the rescue handle between the seats, behind the console).
+laid out for the left seat (pilot in command). The trainer draws three views:
+`panel` (both upper fields), `centre` (lower centre field) and `console` (the
+console top down to the rescue handle at its aft end, between the seats).
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -191,15 +191,17 @@ What the trainer draws today, and where it departs from the above:
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - The large knob is drawn as unlabelled artwork, not a control, until its
-  identity is known (§9, question 10). It stands right of the valve, not aft of
-  it: today's console cell has no room aft of the valve once the levers get a
-  travel long enough to tell the throttle's stops apart.
+  identity is known (§9, question 10). It stands directly aft of the valve (#535).
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
   right-seat side of the console top, clear of the lever row and the large knob;
   this place is **assumed (unverified)** (§9, question 3).
-- The rescue handle is drawn in its own view, `bulkhead`, as a T-grip high on the
-  bulkhead between the seat backs, and its description gives no pull direction;
-  the handbook puts it low between the seats, pulled forward (§9, question 26).
+- The rescue handle sits low at the console's aft end, between the seats, on a
+  recessed shelf inboard of the valve at the bulkhead (#535). Pulled, it slides
+  forward (up the top view) to the stop at its guide block; the safety pin goes
+  across the guide block through the release lever. Its description and the E2
+  pull item say forward, hard, to the stop. The T-grip, the plate's RESCUE and
+  PULL HARD with its forward chevrons, and a pin with a ring and no flag are
+  **assumed (unverified)** (§9, question 26).
 
 ### 3.5 Not in the analog variant
 
@@ -475,7 +477,7 @@ stops, reduce power and pull out gently. If recovery fails or height is short, u
 the rescue system. _Not trained in M6: no flight-dynamics model._
 
 **E2 Rescue system (HB 3-1, 3-4, 3-5).** Ignition off (so the prop cannot damage
-the chute); pull the handle hard and far until the rocket fires; fuel valve closed;
+the chute); pull the handle forward, hard, to the stop, and the rocket fires; fuel valve closed;
 emergency call _(confirm)_; BAT out; belts tight; brace: hands crossed behind the
 neck, forearms beside the face _(confirm)_. Maximum deployment speed VNE.
 
@@ -734,6 +736,10 @@ verifies it on D-MPGO.
     at the main bulkhead, low at the console's aft end (HB 3-4, 7-13, 4-5), and is
     pulled forward, hard, to the stop (HB 3-4). The pin secures the release lever
     itself (HB 8-1). Grip shape and the pin's flag are not given.
+    **Drawn so (#535):** the handle is on the console view's recessed aft shelf,
+    low between the seats, and pulls forward to the stop; the pin goes through the
+    release lever. The `bulkhead` view is gone. Still **assumed (unverified)**: the
+    T-grip, the plate's legends, and a pin with a ring but no flag.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);

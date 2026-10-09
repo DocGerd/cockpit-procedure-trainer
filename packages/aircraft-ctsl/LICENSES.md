@@ -7,7 +7,6 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/view-panel.svg`                     | Panel view background (both upper fields)                             |
 | `src/assets/view-centre.svg`                    | Lower centre field view background                                    |
 | `src/assets/view-console.svg`                   | Centre console view background, seen from above                       |
-| `src/assets/view-bulkhead.svg`                  | Main bulkhead view background, between the seats                      |
 | `src/assets/phase-parking.svg`                  | Outside view, parking                                                 |
 | `src/assets/phase-parking-running.svg`          | Outside view, parking, engine running (propeller disc)                |
 | `src/assets/phase-taxi-out.svg`                 | Outside view, taxi out                                                |
@@ -103,7 +102,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/ignition-key-r.svg`         | Ignition key, r                                                       |
 | `src/assets/artwork/ignition-key-both.svg`      | Ignition key, both                                                    |
 | `src/assets/artwork/ignition-key-start.svg`     | Ignition key, start                                                   |
-| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate on the bulkhead                                   |
+| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate on the console's aft shelf, seen from above       |
 | `src/assets/artwork/rescue-stowed.svg`          | Rescue handle, stowed                                                 |
 | `src/assets/artwork/rescue-stowed-open.svg`     | Rescue handle, stowed, safety pin removed                             |
 | `src/assets/artwork/rescue-pulled.svg`          | Rescue handle, pulled                                                 |
