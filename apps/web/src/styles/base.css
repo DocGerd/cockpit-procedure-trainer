@@ -98,12 +98,6 @@ body {
   background-color: color-mix(in srgb, var(--color-accent-strong) 85%, var(--color-text));
 }
 
-body {
-  transition:
-    background-color var(--duration-theme) var(--ease-standard),
-    color var(--duration-theme) var(--ease-standard);
-}
-
 .chrome-button,
 .button-primary,
 .button-secondary,
@@ -244,10 +238,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body {
-    transition: none;
-  }
-
   .chrome-button,
   .button-primary,
   .button-secondary,

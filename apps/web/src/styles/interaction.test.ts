@@ -33,9 +33,3 @@ describe('pointer feedback', () => {
     }
   });
 });
-
-describe('motion', () => {
-  it('cross-fades the page on a theme change', () => {
-    expect(rules(/^\s*body\s*$/).join()).toMatch(/transition:[^;]*var\(--duration-theme\)/);
-  });
-});
