@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../ui';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 import { flowLength } from './useCurrentTarget';
 
 const KINDS: readonly DeviationKind[] = [
@@ -25,6 +26,7 @@ const clock = (ms: number) => {
 export function DeviationSummary({ checklist }: { checklist: ChecklistState<unknown> }) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const trainer = useTrainer();
   const { atRisk, lost } = useLeavingRisk();
   const [leaving, setLeaving] = useState(false);
@@ -103,7 +105,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
             {deviated ? '▲' : '✓'}
           </span>
           <span className="checklist-number">{index + 1}</span>
-          <span className="checklist-item-text">{localize(item.text)}</span>
+          <span className="checklist-item-text">{itemText(item)}</span>
         </span>
       </li>
     );
@@ -251,7 +253,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
                 <span className="checklist-assisted-number">
                   {format(text.itemNumber, { n: index + 1 })}
                 </span>
-                <span>{procedure.items[index] && localize(procedure.items[index].text)}</span>
+                <span>{procedure.items[index] && itemText(procedure.items[index])}</span>
               </li>
             ))}
           </ol>

@@ -3,6 +3,7 @@ import type { ChecklistState, ControlPosition, Deviation } from '@cpt/core';
 import { format, useLocalize, useMessages } from '../i18n';
 import { messages as panelMessages } from '../panel/messages';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 
 const number = (deviation: Deviation) => ({ n: deviation.itemIndex + 1 });
 const later = (deviation: Deviation) => ({ later: (deviation.laterItem ?? 0) + 1 });
@@ -16,6 +17,7 @@ type Named = { readonly name: string; readonly phrase?: true; readonly restore?:
 export function useDeviationText(checklist: ChecklistState<unknown> | undefined) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const panelText = useMessages(panelMessages);
 
   const definition = (id: string | undefined) =>
@@ -70,7 +72,7 @@ export function useDeviationText(checklist: ChecklistState<unknown> | undefined)
     springsBack(definition(deviation.controlId), deviation.position);
   const item = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];
-    return found ? localize(found.text) : '';
+    return found ? itemText(found) : '';
   };
   const target = (deviation: Deviation) => {
     const found = checklist?.procedure.items[deviation.itemIndex];

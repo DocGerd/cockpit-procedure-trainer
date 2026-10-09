@@ -646,6 +646,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       } else if (item.type === 'guard') {
         checkGuardTarget(item.control, where, item.position);
       } else if (item.type === 'check') {
+        if (item.expected !== undefined)
+          checkText(procedureId, `item ${index} expected`, item.expected);
         const checked = item.target;
         if (checked === undefined) {
           if (item.response !== undefined) {

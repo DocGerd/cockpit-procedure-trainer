@@ -11,6 +11,7 @@ import { DeviationSummary } from './DeviationSummary';
 import { FlightLeg } from './FlightLeg';
 import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
+import { useItemText } from './item-text';
 import { messages } from './messages';
 import { ProcedureKind } from './ProcedureKind';
 import { ProcedureViewer } from './ProcedureViewer';
@@ -133,7 +134,10 @@ function ItemRow({
 }) {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const answerable = item.type === 'check' && item.response !== undefined && mode === 'practice';
+  // Practice holds a check's expected value back until the pilot has read the instrument.
+  const reveal = mode === 'guided' || shown || state === 'done' || state === 'deviated';
   const labels: Record<ItemState, string> = {
     done: text.stateDone,
     current: text.stateCurrent,
@@ -187,7 +191,7 @@ function ItemRow({
         </span>
         <span className="checklist-number">{index + 1}</span>
         <span className="checklist-item-text" data-withheld={withheld}>
-          {!withheld && localize(item.text)}
+          {!withheld && itemText(item, reveal)}
         </span>
       </span>
       {state === 'current' && (

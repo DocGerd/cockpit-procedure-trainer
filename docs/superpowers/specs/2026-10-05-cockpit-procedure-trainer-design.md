@@ -221,8 +221,11 @@ Each item has text in both languages and one of:
   read on the panel (smoke seen outside), and a condition on the state, ticked
   by the pilot. A numeric check may also name the reading to compare and a
   tolerance: in Practice the pilot may enter the value read, and a reading off
-  by more than the tolerance counts as an unmet check. Its text then states the
-  challenge only ("Rpm check"), not the expected value;
+  by more than the tolerance counts as an unmet check. A check may name its
+  expected value apart from its text, which then states the challenge only
+  ("Flap readout", expected "15°"): Guided shows both, while Practice keeps the
+  value back until the item is ticked or shown (amended in #509: a value in the
+  text lets the pilot tick from the text instead of reading the instrument);
 - **confirm**: no target (a visual or verbal check), ticked by the pilot;
 - **guard**: a guarded control and the position its guard is to reach, open or
   closed, such as the rescue safety pin pulled before take-off (#520).

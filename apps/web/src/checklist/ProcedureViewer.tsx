@@ -3,12 +3,14 @@ import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
+import { useItemText } from './item-text';
 import { ProcedureKind } from './ProcedureKind';
 
 /** A procedure's items read straight from the aircraft data, with no session behind it. */
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
+  const itemText = useItemText();
   const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist, flight } =
     useTrainer();
   // A full flight does not announce its surprise, so the answer waits for the failure.
@@ -37,7 +39,7 @@ export function ProcedureViewer() {
     <li key={index} className="checklist-item" data-state="reference">
       <span className="checklist-item-row">
         <span className="checklist-number">{index + 1}</span>
-        <span className="checklist-item-text">{localize(item.text)}</span>
+        <span className="checklist-item-text">{itemText(item)}</span>
       </span>
     </li>
   ));
