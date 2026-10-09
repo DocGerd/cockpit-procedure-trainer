@@ -134,8 +134,8 @@ size, and the extent of the placements while neither is known yet. When a size i
 
 An optional cockpit arrangement places every view in one layout and states,
 per view, the narrowest rendered width at which it stays legible and operable.
-It may also place a device dock, outside the views, for the avionics devices
-(§4.9). The web app shows the arrangement when every view reaches that width
+It also places a device dock, a required `dock` cell outside the views, for the
+avionics devices (§4.9). The web app shows the arrangement when every view reaches that width
 and tabs otherwise (`2026-10-06-one-viewport-cockpit-design.md`).
 
 ### 4.4 Systems model
@@ -184,7 +184,9 @@ pilot's seat, not a third-person picture of the aircraft.
 A phase may also supply a second outside-view image for a running engine (a
 static propeller-disc outline in place of the stopped blade). The aircraft then
 declares an `engineRunning` condition over its state; the outside view shows
-the running image while it holds. Both fields are optional.
+the running image while it holds. Both are optional, but only together: a
+phase's running image needs `engineRunning`, and `engineRunning` needs a running
+image on every phase (§8).
 
 An aircraft may also declare outside cues: images laid over the outside view while
 a condition over its state holds, such as smoke from the engine during a fire. The
@@ -393,7 +395,8 @@ aircraft's checklists for reading. A checklist viewed that way is a static
 list of its items, independent of the running session: in Guided and Practice
 the running procedure is untouched and a button leads back to it; in Free
 explore the pane starts on the last procedure that ran, else the aircraft's
-first.
+first. Back to the picker and a change of aircraft forget the last procedure,
+so Free explore entered from the picker starts on the aircraft's first.
 
 ### Scenarios
 
@@ -531,7 +534,11 @@ parallel.
   lever targets only 0 or 1 (`inexact-lever-target`), since a slider cannot be
   expected to land on a fraction; a declared view size is a positive, finite
   width and height (`invalid-view-size`) and no placement lies outside it
-  (`placement-outside-view`).
+  (`placement-outside-view`); a phase's running image and the aircraft's
+  `engineRunning` go together: `imageRunning` on a phase requires
+  `engineRunning` (`running-image-without-engine`), and `engineRunning`
+  requires `imageRunning` on every phase (`phase-without-running-image`); a
+  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing view or outside-view image falls back to a labelled placeholder and
   a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their
