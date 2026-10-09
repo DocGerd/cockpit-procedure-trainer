@@ -396,7 +396,7 @@ carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel val
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
 after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; flaps
-to the taxi setting (0°). Before the first start of the day turn the prop by hand;
+to the taxi setting (0°); intercom on (trainer addition, assumed, §9 question 32). Before the first start of the day turn the prop by hand;
 if the aircraft rolls during start, ignition off.
 
 **N4 Warm-up (HB 4-6, 4-7; no checklist in the handbook).** About 2000 rpm for
@@ -410,10 +410,11 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
 transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
-powered and at standby)_; choke off; carb heat off; throttle to 4000 rpm; engine
+powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke off; carb heat off; throttle to 4000 rpm; engine
 gauges in the green; ignition left: drop at most 300 rpm; both; right: drop at most
 300 rpm, difference at most 120 rpm; both; oil temperature at least 51 °C; charge
-lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; rescue system armed,
+lamp out; throttle idle; flaps 15°; trim neutral; radio set _(confirm)_; GPS position
+fix _(check, same assumption)_; rescue system armed,
 pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
@@ -779,6 +780,11 @@ verifies it on D-MPGO.
     owner confirms it on D-MPGO. Today: a vertical stack on the console's flank
     (§3.4), which #534 redraws.
 32. **GPS and intercom switch-on steps**: which normal-procedure step switches
-    the GPS on, and which the intercom? Today: no procedure step does; the phase
-    presets carry them (§5, question 24). #519 adds the steps and fills in this
-    question.
+    the GPS on, and which the intercom? The handbook checklists name neither (§6).
+    The trainer switches the intercom on in N3 right after Avionics Master on, and
+    the GPS on in N6 after the transponder, with a check of its position fix after
+    "radio set", so the run-up covers the receiver's search. A full flight then
+    reaches line-up with both on, as the phase presets have them (§5, question 24);
+    a carried leg keeps what the pilot did and re-seeds no device state (#519).
+    **Assumed (unverified)**, from general-aviation practice, until the club
+    confirms when its pilots switch each on.

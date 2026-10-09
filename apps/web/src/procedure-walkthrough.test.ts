@@ -72,6 +72,34 @@ describe('full-flight walk-through', () => {
   );
 });
 
+describe('the CTSL GPS and intercom in a full flight', () => {
+  const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+  if (!ctsl) throw new Error('The registry has no CTSL');
+  const lineUp = ctsl.phases.linedUp?.entry;
+  if (!lineUp) throw new Error('The CTSL has no line-up phase');
+
+  it('switches both on before line-up and carries them on as the line-up phase starts them', () => {
+    const carried: Record<string, { intercom: unknown; gps: unknown }> = {};
+    const result = walkFlight(ctsl, {
+      devices: deviceRegistry,
+      afterChecklist: (session, id) => {
+        const state = session.state();
+        carried[id] = { intercom: state.controls.intercom, gps: state.devices.gps?.state };
+      },
+    });
+    expect(result).toEqual({ ok: true });
+    const legs = flightLegs(ctsl);
+    const takeoff = legs.indexOf('takeoff');
+    expect(takeoff).toBeGreaterThan(0);
+    for (const id of legs.slice(takeoff - 1, legs.indexOf('shutdown'))) {
+      expect(carried[id], id).toMatchObject({
+        intercom: lineUp.controls.intercom,
+        gps: lineUp.deviceStates?.gps,
+      });
+    }
+  });
+});
+
 describe('the CTSL rescue safety pin', () => {
   const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
   if (!ctsl) throw new Error('The registry has no CTSL');
