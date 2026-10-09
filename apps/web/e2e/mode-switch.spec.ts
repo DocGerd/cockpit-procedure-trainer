@@ -13,9 +13,10 @@ const viewports = [
 ];
 
 const modeButton = (page: Page, name: string) =>
-  name === text.explore
-    ? page.getByRole('button', { name, exact: true })
-    : page.getByRole('group', { name: text.mode }).getByRole('button', { name, exact: true });
+  page
+    .getByRole('banner')
+    .getByRole('group', { name: text.mode })
+    .getByRole('button', { name, exact: true });
 
 const checklistToggle = (page: Page) =>
   page.getByRole('banner').getByRole('button', { name: /^Checklist/ });
@@ -50,7 +51,7 @@ async function enterExplore(page: Page) {
 async function expectReadOnlyChecklist(page: Page) {
   await expectChecklist(page);
   await expect(checklistPane(page).getByRole('img')).toHaveCount(0);
-  await expect(page.getByRole('banner').getByRole('button', { name: /^Procedure/ })).toHaveCount(0);
+  await expect(page.getByRole('banner').getByTitle(/^Change procedure:/)).toHaveCount(0);
 }
 
 for (const viewport of viewports) {

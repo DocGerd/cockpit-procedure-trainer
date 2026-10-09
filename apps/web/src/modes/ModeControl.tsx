@@ -10,7 +10,7 @@ import { messages } from './messages';
 import { OperateToggle } from './OperateToggle';
 import './modes.css';
 
-const segments: readonly Mode[] = ['guided', 'practice'];
+const segments: readonly Mode[] = ['guided', 'practice', 'explore'];
 const NOTICE_MS = 6000;
 
 /** Says why a move was refused: the control holding it, or the positions its target is reached from; the panel rings what to move. */
@@ -96,14 +96,6 @@ export function ModeControl() {
           </button>
         ))}
       </div>
-      <button
-        type="button"
-        className="modes-segment modes-explore"
-        aria-pressed={mode === 'explore'}
-        onClick={() => choose('explore')}
-      >
-        {text.explore}
-      </button>
       {guidedOn ? (
         <p role="status" className="modes-notice">
           {text.guidedOnNotice}

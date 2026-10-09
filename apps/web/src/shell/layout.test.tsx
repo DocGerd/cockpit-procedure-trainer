@@ -166,7 +166,7 @@ describe('trainer layout on desktop', () => {
     const header = screen.getByRole('banner');
     const title = alpha.procedures[procedureId]?.title.en ?? '';
     expect(within(header).getByRole('button', { name: new RegExp(title) })).toBeTruthy();
-    expect(within(header).getByRole('button', { name: `Aircraft ${alpha.name.en}` })).toBeTruthy();
+    expect(within(header).getByRole('button', { name: alpha.name.en })).toBeTruthy();
   });
 
   describe.each([
@@ -176,20 +176,20 @@ describe('trainer layout on desktop', () => {
   ])('header chips on %s', (_name, width) => {
     beforeEach(() => setWidth(width));
 
-    const chip = (name: RegExp | string) =>
-      within(screen.getByRole('banner')).getByRole('button', { name });
+    const chip = (action: string) =>
+      within(screen.getByRole('banner')).getByTitle(new RegExp(`^${action}:`));
     const picker = () => screen.queryByRole('heading', { name: 'Choose aircraft and procedure' });
     const doItem = () => act(() => trainer.session.set('master', 'on'));
 
     it('act in one step: no popover between the chip and its action', async () => {
       renderShell();
       await startProcedure();
-      const aircraftChip = chip(/^Aircraft/);
+      const aircraftChip = chip('Change aircraft');
       expect(aircraftChip.hasAttribute('aria-haspopup')).toBe(false);
       expect(aircraftChip.hasAttribute('aria-expanded')).toBe(false);
       expect(aircraftChip.getAttribute('title')).toBe(`Change aircraft: ${alpha.name.en}`);
       const title = alpha.procedures[procedureId]?.title.en ?? '';
-      expect(chip(/^Procedure/).getAttribute('title')).toBe(`Change procedure: ${title}`);
+      expect(chip('Change procedure').getAttribute('title')).toBe(`Change procedure: ${title}`);
       await userEvent.click(aircraftChip);
       expect(screen.queryByRole('dialog')).toBeNull();
       expect(picker()).toBeTruthy();
@@ -198,22 +198,22 @@ describe('trainer layout on desktop', () => {
     it('opens the picker from the procedure chip at once when nothing is done', async () => {
       renderShell();
       await startProcedure();
-      await userEvent.click(chip(/^Procedure/));
+      await userEvent.click(chip('Change procedure'));
       expect(screen.queryByRole('alertdialog')).toBeNull();
       expect(picker()).toBeTruthy();
       expect(trainer.procedureId).toBeUndefined();
     });
 
     it.each([
-      ['Aircraft', 'Change aircraft'],
-      ['Procedure', 'Change procedure'],
+      ['aircraft', 'Change aircraft'],
+      ['procedure', 'Change procedure'],
     ])(
-      'asks before the %s chip discards progress, naming what is lost',
-      async (eyebrow, action) => {
+      'asks before the %s crumb discards progress, naming what is lost',
+      async (_crumb, action) => {
         renderShell();
         await startProcedure();
         doItem();
-        await userEvent.click(chip(new RegExp(`^${eyebrow}`)));
+        await userEvent.click(chip(action));
         const dialog = screen.getByRole('alertdialog', { name: `${action}?` });
         expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
         expect(picker()).toBeNull();
@@ -224,7 +224,7 @@ describe('trainer layout on desktop', () => {
         expect(picker()).toBeNull();
         expect(trainer.procedureId).toBe(procedureId);
 
-        await userEvent.click(chip(new RegExp(`^${eyebrow}`)));
+        await userEvent.click(chip(action));
         await userEvent.click(
           within(screen.getByRole('alertdialog')).getByRole('button', { name: action }),
         );
@@ -237,7 +237,7 @@ describe('trainer layout on desktop', () => {
       renderShell();
       await startProcedure();
       act(() => trainer.session.set('pump', 'on'));
-      await userEvent.click(chip(/^Aircraft/));
+      await userEvent.click(chip('Change aircraft'));
       expect(screen.getByRole('alertdialog').textContent).toContain(
         `0 of ${itemCount} items done, 1 deviation.`,
       );
@@ -248,7 +248,7 @@ describe('trainer layout on desktop', () => {
       await startProcedure();
       doItem();
       act(() => trainer.session.set('pump', 'on'));
-      await userEvent.click(chip(/^Aircraft/));
+      await userEvent.click(chip('Change aircraft'));
       expect(screen.queryByRole('alertdialog')).toBeNull();
       expect(picker()).toBeTruthy();
     });
@@ -258,12 +258,72 @@ describe('trainer layout on desktop', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Deutsch' }));
       await userEvent.click(screen.getByRole('button', { name: 'Verfahren starten' }));
       doItem();
-      await userEvent.click(chip(/^Flugzeug/));
+      await userEvent.click(chip('Flugzeug wechseln'));
       const dialog = screen.getByRole('alertdialog', { name: 'Flugzeug wechseln?' });
       expect(dialog.textContent).toContain(`1 von ${itemCount} Punkten erledigt`);
       expect(within(dialog).getByRole('button', { name: 'Flugzeug wechseln' })).toBeTruthy();
       expect(within(dialog).getByRole('button', { name: 'Abbrechen' })).toBeTruthy();
     });
+
+    const home = () =>
+      within(screen.getByRole('banner')).getByRole('button', { name: 'Procedure Trainer' });
+
+    it('goes home from the title at once when nothing is done', async () => {
+      renderShell();
+      await startProcedure();
+      expect(home().getAttribute('title')).toBe('Back to the start');
+      await userEvent.click(home());
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(picker()).toBeTruthy();
+    });
+
+    it('asks before the title discards progress, and Cancel keeps the run', async () => {
+      renderShell();
+      await startProcedure();
+      doItem();
+      await userEvent.click(home());
+      const dialog = screen.getByRole('alertdialog', { name: 'Back to the start?' });
+      expect(dialog.textContent).toContain(`Progress lost: 1 of ${itemCount} items done.`);
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+      expect(picker()).toBeNull();
+      expect(trainer.procedureId).toBe(procedureId);
+
+      await userEvent.click(home());
+      await userEvent.click(
+        within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Back to the start' }),
+      );
+      expect(picker()).toBeTruthy();
+      expect(trainer.procedureId).toBeUndefined();
+    });
+  });
+
+  it('keeps the title plain text on the picker', () => {
+    renderShell();
+    const banner = screen.getByRole('banner');
+    expect(within(banner).getByText('Procedure Trainer').closest('button')).toBeNull();
+  });
+
+  it('names the screen, procedure and aircraft in the document title', async () => {
+    renderShell();
+    expect(document.title).toBe('Cockpit Procedure Trainer');
+    await startProcedure();
+    const title = alpha.procedures[procedureId]?.title.en ?? '';
+    expect(document.title).toBe(`${title} · ${alpha.name.en} — Cockpit Procedure Trainer`);
+    act(() => trainer.setMode('explore'));
+    expect(document.title).toBe(`${alpha.name.en} — Cockpit Procedure Trainer`);
+    await userEvent.click(screen.getByRole('button', { name: 'Deutsch' }));
+    expect(document.title).toBe(`${alpha.name.de} — Cockpit Procedure Trainer`);
+  });
+
+  it('offers the three modes as one group in the header', async () => {
+    renderShell();
+    await startProcedure();
+    const group = within(screen.getByRole('banner')).getByRole('group', { name: 'Mode' });
+    expect(
+      within(group)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual(['Guided', 'Practice', 'Free explore']);
   });
 
   it('names the progress a phase jump ends in its confirm dialog', async () => {
@@ -282,9 +342,7 @@ describe('trainer layout on desktop', () => {
     await startProcedure();
     act(() => trainer.session.set('master', 'on'));
     await userEvent.click(checklistToggle());
-    await userEvent.click(
-      within(screen.getByRole('banner')).getByRole('button', { name: /^Aircraft/ }),
-    );
+    await userEvent.click(within(screen.getByRole('banner')).getByTitle(/^Change aircraft:/));
     expect(screen.getByRole('alertdialog')).toBeTruthy();
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('alertdialog')).toBeNull();
@@ -301,22 +359,20 @@ describe('trainer layout on desktop', () => {
     expect(within(aside).getByRole('combobox', { name: 'Show checklist' })).toBeTruthy();
     expect(within(aside).getByRole('heading', { name: 'Alpha power up' })).toBeTruthy();
     expect(within(aside).queryByRole('img')).toBeNull();
-    expect(
-      within(screen.getByRole('banner')).queryByRole('button', { name: /^Procedure/ }),
-    ).toBeNull();
+    expect(within(screen.getByRole('banner')).queryByTitle(/^Change procedure:/)).toBeNull();
   });
 
   it('ends the procedure but keeps its checklist readable when switching to Free explore mid-procedure', async () => {
     renderShell();
     await startProcedure();
     const header = screen.getByRole('banner');
-    expect(within(header).getByRole('button', { name: /^Procedure/ })).toBeTruthy();
+    expect(within(header).getByTitle(/^Change procedure:/)).toBeTruthy();
     act(() => trainer.setMode('explore'));
     expect(trainer.session.procedureId()).toBeUndefined();
     const aside = screen.getByRole('complementary', { name: 'Checklist' });
     expect(within(aside).getByRole('heading', { name: 'Alpha power up' })).toBeTruthy();
     expect(within(aside).queryByRole('img')).toBeNull();
-    expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+    expect(within(header).queryByTitle(/^Change procedure:/)).toBeNull();
   });
 
   it('ticks nothing in the Free explore checklist when the panel is operated', async () => {
@@ -357,9 +413,7 @@ describe('trainer layout on desktop', () => {
       expect(
         within(screen.getByRole('complementary', { name: 'Checklist' })).getAllByRole('img'),
       ).not.toHaveLength(0);
-      expect(
-        within(screen.getByRole('banner')).getByRole('button', { name: /^Procedure/ }),
-      ).toBeTruthy();
+      expect(within(screen.getByRole('banner')).getByTitle(/^Change procedure:/)).toBeTruthy();
     },
   );
 
@@ -405,12 +459,12 @@ describe('trainer layout on desktop', () => {
     await startProcedure();
     const header = screen.getByRole('banner');
     act(() => trainer.jumpToPhase('cruise'));
-    expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+    expect(within(header).queryByTitle(/^Change procedure:/)).toBeNull();
     expect(
       within(screen.getByRole('complementary', { name: 'Checklist' })).queryByRole('img'),
     ).toBeNull();
     act(() => trainer.resetSession());
-    expect(within(header).queryByRole('button', { name: /^Procedure/ })).toBeNull();
+    expect(within(header).queryByTitle(/^Change procedure:/)).toBeNull();
     expect(
       within(screen.getByRole('complementary', { name: 'Checklist' })).queryByRole('img'),
     ).toBeNull();
@@ -575,6 +629,15 @@ describe('the tablet drawer from the keyboard', () => {
     expect(document.activeElement).toBe(checklistToggle());
     act(() => within(pane()).getByRole('combobox').focus());
     await userEvent.tab({ shift: true });
+    expect(document.activeElement).toBe(checklistToggle());
+  });
+
+  it('closes the drawer from its close button and returns focus to the toggle', async () => {
+    renderShell();
+    await startProcedure();
+    await userEvent.click(checklistToggle());
+    await userEvent.click(within(pane()).getByRole('button', { name: 'Close checklist' }));
+    expect(screen.queryByRole('complementary', { name: 'Checklist' })).toBeNull();
     expect(document.activeElement).toBe(checklistToggle());
   });
 
