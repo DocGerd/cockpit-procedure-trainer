@@ -29,8 +29,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Branch prefixes, squash/backmerge and releases follow `CONTRIBUTING.md`
   (Flow, Releases). Review, merging and the release PR run through the skills
   `pr-selfreview`, `merge-train` and `milestone-release` in `.claude/skills/`;
-  `/release-cycle` (`.claude/commands/release-cycle.md`) drives a whole
-  milestone.
+  the `release-cycle` skill (`/release-cycle`) drives a whole milestone.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
 - Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line

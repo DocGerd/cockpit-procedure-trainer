@@ -6,7 +6,7 @@ description: Merge reviewed pull requests into develop, one at a time, after ver
 # Merge into `develop`
 
 Argument: one or more PR numbers, merged in the order given. Called by the
-`/release-cycle` command after `pr-selfreview` has resolved every thread.
+`release-cycle` skill after `pr-selfreview` has resolved every thread.
 
 For each PR `N`:
 
