@@ -36,6 +36,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 - The CT Supralight trim placard now prints DOWN forward and UP aft with no neutral mark, as the aircraft does; cues name neutral trim in words.
 - The CT Supralight centre console is now drawn from above with forward up, its trim wheel, choke, throttle and brake side by side and each sliding fore and aft beside its legend strip, the throttle with a detent tick at every stop, the parking-brake valve aft of them and the provisional carb heat moved outboard; the before-take-off flow now lists trim before choke, as the console is scanned from the pilot's side.
 - The CT Supralight rescue handle now sits low at the aft end of the centre console between the seats, where the console takes over the space of the former main-bulkhead view, and it pulls forward to the stop with the safety pin through its release lever; its description and the rescue-system checklist say to pull it forward, hard, to the stop, and the large knob is drawn aft of the parking-brake valve.
+- The CT Supralight centre console now has a photographic finish: bevelled cover plates and lever slots, longer shadows under the raised handles and the large knob, a matte ribbed knob, brushed grips, engraved PARK BRAKE and RESCUE plates, and cover plates over the bare lower-right area.
 
 ## [0.14.0] - 2026-10-08
 
