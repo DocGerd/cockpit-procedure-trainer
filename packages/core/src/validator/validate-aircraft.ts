@@ -244,6 +244,13 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
       }
     }
 
+    if (control.kind === 'rotary') {
+      for (const [position, sources] of Object.entries(control.onlyFrom ?? {})) {
+        checkPosition(id, 'onlyFrom key', position);
+        for (const source of sources) checkPosition(id, 'onlyFrom source', source);
+      }
+    }
+
     for (const [position, legend] of Object.entries(control.legends ?? {})) {
       checkPosition(id, 'legends key', position);
       if (typeof legend === 'string') {

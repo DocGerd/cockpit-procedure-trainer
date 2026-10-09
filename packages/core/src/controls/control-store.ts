@@ -88,6 +88,11 @@ export function createControlStore<CT extends ControlRecord>(
 
   function locked(definition: ControlDefinition, id: string, to: ControlPosition): boolean {
     const from = current.get(id);
+    const sources =
+      definition.kind === 'rotary' && typeof to === 'string' && definition.onlyFrom
+        ? definition.onlyFrom[to]
+        : undefined;
+    if (sources && !sources.some((source) => source === from)) return true;
     return (definition.interlock ?? []).some(
       ({ control, at, holds }) =>
         current.get(control) === at &&
