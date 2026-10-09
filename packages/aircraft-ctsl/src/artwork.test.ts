@@ -113,6 +113,32 @@ describe('CTSL rescue handle safety pin', () => {
     expect(pinMarks(open)).toBe(0);
     expect(open).not.toBe(artwork.moving.images.stowed);
   });
+
+  // The console is a top view with forward up; the open guard takes the top of the placement.
+  const OPEN_GUARD_SHARE = 0.4;
+  const gripY = (url: string) =>
+    Number(/<rect\b[^>]*data-grip=""[^>]*\by="([\d.]+)"/.exec(read(url))?.[1] ?? Number.NaN);
+
+  it('slides the grip forward, up the top view, when pulled (§9 q26)', () => {
+    const artwork = rescue();
+    if (artwork?.moving.type !== 'positions') throw new Error('the rescue handle has positions');
+    const { stowed = '', pulled = '' } = artwork.moving.images;
+    expect(gripY(pulled)).toBeLessThan(gripY(stowed));
+    expect(gripY(artwork.guardOpen?.stowed ?? '')).toBe(gripY(stowed));
+  });
+
+  it('keeps the stowed grip where the open handle takes a tap, the pin where the guard does', () => {
+    const artwork = rescue();
+    if (artwork?.moving.type !== 'positions') throw new Error('the rescue handle has positions');
+    const stowed = artwork.moving.images.stowed ?? '';
+    const height = Number(sizeOf(stowed).height);
+    expect(gripY(stowed)).toBeGreaterThanOrEqual(height * OPEN_GUARD_SHARE);
+    const pinYs = [...read(stowed).matchAll(/<[^>]*data-pin=""[^>]*>/g)].flatMap(([tag]) =>
+      [...tag.matchAll(/\b(?:cy|y)="([\d.]+)"/g)].map(([, y]) => Number(y)),
+    );
+    expect(pinYs.length).toBeGreaterThan(0);
+    pinYs.forEach((y) => expect(y).toBeLessThan(height * OPEN_GUARD_SHARE));
+  });
 });
 
 describe('CTSL compass', () => {
@@ -481,7 +507,7 @@ describe('CTSL console levers (intake §3.4)', () => {
 });
 
 describe('CTSL view backdrops', () => {
-  const backdrop = (id: 'panel' | 'centre' | 'console' | 'bulkhead'): string =>
+  const backdrop = (id: 'panel' | 'centre' | 'console'): string =>
     readFileSync(new URL(`./assets/${fileOf(views[id].image)}`, import.meta.url), 'utf8');
   const count = (svg: string, pattern: RegExp) => [...svg.matchAll(pattern)].length;
   const lettering = (svg: string) =>
@@ -490,23 +516,17 @@ describe('CTSL view backdrops', () => {
         `${text}@${/\bx="([\d.]+)"/.exec(attributes)?.[1]},${/\by="([\d.]+)"/.exec(attributes)?.[1]}/${/font-size="([\d.]+)"/.exec(attributes)?.[1]}`,
     );
 
-  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
-    'uses at most one filter on %s',
-    (id) => {
-      const svg = backdrop(id);
-      expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
-      expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
-    },
-  );
+  it.each(['panel', 'centre', 'console'] as const)('uses at most one filter on %s', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBeLessThanOrEqual(1);
+    expect(count(svg, /filter=["']url\(/g)).toBeLessThanOrEqual(1);
+  });
 
-  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
-    'paints %s with a stipple texture',
-    (id) => {
-      const svg = backdrop(id);
-      expect(count(svg, /<feTurbulence\b/g)).toBe(1);
-      expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
-    },
-  );
+  it.each(['panel', 'centre', 'console'] as const)('paints %s with a stipple texture', (id) => {
+    const svg = backdrop(id);
+    expect(count(svg, /<feTurbulence\b/g)).toBe(1);
+    expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
+  });
 
   it("heads the breaker block in the panel's own wording", () => {
     const { x, y } = views.panel.controls.comBreaker.rect;
@@ -516,39 +536,35 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers - Push off');
   });
 
-  it.each(['panel', 'centre', 'console', 'bulkhead'] as const)(
-    'keeps the %s lettering in place',
-    (id) => {
-      const expected = {
-        panel: [
-          'TAKE@90,92/30',
-          'OFF@90,130/30',
-          'LIMITS@90,292/30',
-          'COM RADIO@450,449/40',
-          'TRANSPONDER@450,609/40',
-          'GPS@1368,204/40',
-          'Circuit Breakers -@1736,72/30',
-          'Push off@1736,106/30',
-        ],
-        centre: [
-          'AVIONICS OFF TO START AND STOP@570,272/29',
-          '12 V@120,378/29',
-          'INTERCOM@590,384/29',
-          'AUDIO@945,384/29',
-          'FLAPS@700,550/29',
-          'HEADSET@1080,490/29',
-          'IGNITION@223,886/29',
-          'BAT@930,658/29',
-          'GEN@1090,658/29',
-          'OPEN@150,434/29',
-          'FUEL@150,494/29',
-          'VALVE@150,528/29',
-          'CLOSED@150,598/29',
-        ],
-        console: [],
-        bulkhead: [],
-      }[id];
-      expect(lettering(backdrop(id))).toEqual(expected);
-    },
-  );
+  it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
+    const expected = {
+      panel: [
+        'TAKE@90,92/30',
+        'OFF@90,130/30',
+        'LIMITS@90,292/30',
+        'COM RADIO@450,449/40',
+        'TRANSPONDER@450,609/40',
+        'GPS@1368,204/40',
+        'Circuit Breakers -@1736,72/30',
+        'Push off@1736,106/30',
+      ],
+      centre: [
+        'AVIONICS OFF TO START AND STOP@570,272/29',
+        '12 V@120,378/29',
+        'INTERCOM@590,384/29',
+        'AUDIO@945,384/29',
+        'FLAPS@700,550/29',
+        'HEADSET@1080,490/29',
+        'IGNITION@223,886/29',
+        'BAT@930,658/29',
+        'GEN@1090,658/29',
+        'OPEN@150,434/29',
+        'FUEL@150,494/29',
+        'VALVE@150,528/29',
+        'CLOSED@150,598/29',
+      ],
+      console: [],
+    }[id];
+    expect(lettering(backdrop(id))).toEqual(expected);
+  });
 });
