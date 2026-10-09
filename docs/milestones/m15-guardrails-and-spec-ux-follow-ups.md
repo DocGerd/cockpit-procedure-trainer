@@ -56,7 +56,7 @@ Follow-ups from the whole-milestone review, without milestone (none blocks the r
 
 A short walk-through at 1920x1080, CT Supralight, English:
 
-1. **Key out.** In Free explore from Parking, open the fuel valve, put the key in and turn it to BOTH, then try to take it out: the header says the key comes out only from OFF and the key is ringed.
+1. **Key out.** In Free explore from Parking, open the fuel valve, put the key in and turn it to BOTH, then try to take it out: the header says "Ignition reaches key out only from OFF." and the key is ringed.
 2. **Hide upcoming.** Drills: Full flight in Practice with Hide upcoming items ticked; go back to the picker and run a single Practice checklist: the box is unticked and the next item shows.
 3. **Summary.** In Practice run Engine start; before the last item, open Before take-off from the selector, then tick Engine start's last item on the panel: the view returns to Engine start's summary.
 
