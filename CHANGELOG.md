@@ -22,6 +22,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 - In Practice, the CT Supralight normal checklists now name only what to read on a check, such as "Flap readout", and show the expected value once the item is ticked, while Guided shows both; the flap, oil, cylinder head and rpm checks also take the value the pilot reads.
 - During a surprise failure, "Run this checklist" now appears for every procedure in the viewer, so a pilot can take a normal checklist and the debrief reports it as not the checklist for the failure.
 - The demo aircraft's shutdown checklist now opens with the action "Throttle idle", so the whole demo flight can be flown leg after leg.
+- The CT Supralight centre console has a more realistic finish, though not yet up to the instrument panel's: bevelled cover plates and machined lever and trim slot bezels, shadows under the raised handles and the large knob that grow with their height, knurled and turned lever caps, a matte ribbed knob, engraved title plates and legend strips on every console control, and cover plates over the bare lower-right area.
 
 ### Fixed
 
@@ -36,7 +37,6 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 - The CT Supralight trim placard now prints DOWN forward and UP aft with no neutral mark, as the aircraft does; cues name neutral trim in words.
 - The CT Supralight centre console is now drawn from above with forward up, its trim wheel, choke, throttle and brake side by side and each sliding fore and aft beside its legend strip, the throttle with a detent tick at every stop, the parking-brake valve aft of them and the provisional carb heat moved outboard; the before-take-off flow now lists trim before choke, as the console is scanned from the pilot's side.
 - The CT Supralight rescue handle now sits low at the aft end of the centre console between the seats, where the console takes over the space of the former main-bulkhead view, and it pulls forward to the stop with the safety pin through its release lever; its description and the rescue-system checklist say to pull it forward, hard, to the stop, and the large knob is drawn aft of the parking-brake valve.
-- The CT Supralight centre console has a more realistic finish, though not yet up to the instrument panel's: bevelled cover plates and machined lever and trim slot bezels, shadows under the raised handles and the large knob that grow with their height, knurled and turned lever caps, a matte ribbed knob, engraved title plates and legend strips on every console control, and cover plates over the bare lower-right area.
 
 ## [0.14.0] - 2026-10-08
 

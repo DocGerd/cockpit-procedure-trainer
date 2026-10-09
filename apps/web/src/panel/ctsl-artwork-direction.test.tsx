@@ -120,6 +120,24 @@ describe('CTSL notched artwork controls', () => {
     }
   });
 
+  it('engraves only the words the face prints in ink, and all of them', () => {
+    const engraved = drawn.flatMap(({ id, face }) => {
+      const texts = [...faceSvg(face).matchAll(/<text\b([^>]*)>([^<]*)<\/text>/g)];
+      const words = (decor: boolean) =>
+        [
+          ...new Set(
+            texts
+              .filter(([, attributes = '']) => attributes.includes('data-decor') === decor)
+              .map(([, , text]) => text),
+          ),
+        ].sort();
+      const decor = words(true);
+      return decor.length > 0 ? [{ id, decor, ink: words(false) }] : [];
+    });
+    expect(engraved.length).toBeGreaterThan(0);
+    for (const { id, decor, ink } of engraved) expect(decor, id).toEqual(ink);
+  });
+
   it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
     const throttle = drawn.find(({ id }) => id === 'throttle');
     if (!throttle) throw new Error('the CTSL draws no throttle');
