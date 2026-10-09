@@ -11,11 +11,27 @@ const packageDirs = globSync('packages/*/', { cwd: repoRoot })
   .map((dir) => dir.replace(/[\\/]$/, ''))
   .sort();
 
-const imagesOf = (dir: string): string[] =>
-  globSync('src/**/*', { cwd: resolve(repoRoot, dir) })
+const imagesIn = (dir: string, pattern: string): string[] =>
+  globSync(pattern, {
+    cwd: resolve(repoRoot, dir),
+    exclude: (name) => /^(?:node_modules|dist|coverage)$/.test(String(name)),
+  })
     .map((file) => file.replaceAll('\\', '/'))
     .filter((file) => imageFile.test(file))
     .sort();
+
+const imagesOf = (dir: string): string[] => imagesIn(dir, 'src/**/*');
+
+// Explicitly outside the register until #590 settles authorship and licence.
+const unregistered = {
+  'apps/web/public': [
+    'apple-touch-icon.png',
+    'favicon.svg',
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'pwa-maskable-512x512.png',
+  ],
+};
 
 const rowsOf = (dir: string): string[] => {
   const register = resolve(repoRoot, dir, 'LICENSES.md');
@@ -31,6 +47,14 @@ describe('image licence register', () => {
     expect(packageDirs.flatMap(imagesOf).length).toBeGreaterThan(0);
   });
 
+  it('ships no image from apps/web/src', () => {
+    expect(imagesIn('apps/web', 'src/**/*')).toEqual([]);
+  });
+
+  it.each(Object.entries(unregistered))('ships only the known images from %s', (dir, known) => {
+    expect(imagesIn(dir, '**/*')).toEqual(known);
+  });
+
   describe.each(packageDirs)('%s', (dir) => {
     const images = imagesOf(dir);
     const rows = rowsOf(dir);
@@ -39,8 +63,19 @@ describe('image licence register', () => {
       expect(images.filter((image) => !rows.includes(image))).toEqual([]);
     });
 
-    it('names only files that exist', () => {
-      expect(rows.filter((row) => !existsSync(resolve(repoRoot, dir, row)))).toEqual([]);
+    it('has no image outside src/', () => {
+      expect(imagesIn(dir, '**/*').filter((image) => !image.startsWith('src/'))).toEqual([]);
+    });
+
+    it('names only existing image files under src/', () => {
+      const bad = rows.filter(
+        (row) =>
+          !row.startsWith('src/') ||
+          row.includes('..') ||
+          !imageFile.test(row) ||
+          !existsSync(resolve(repoRoot, dir, row)),
+      );
+      expect(bad).toEqual([]);
     });
 
     it('lists no file twice', () => {
