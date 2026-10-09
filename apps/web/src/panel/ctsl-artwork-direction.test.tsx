@@ -124,7 +124,9 @@ describe('CTSL notched artwork controls', () => {
     const throttle = drawn.find(({ id }) => id === 'throttle');
     if (!throttle) throw new Error('the CTSL draws no throttle');
     const svg = faceSvg(throttle.face);
-    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
+      ([, text]) => text,
+    );
     expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
     const { appearance } = throttle.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
@@ -147,7 +149,9 @@ describe('CTSL notched artwork controls', () => {
     const trim = drawn.find(({ id }) => id === 'trim');
     if (!trim) throw new Error('the CTSL draws no trim wheel');
     const svg = faceSvg(trim.face);
-    const printed = [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(([, text]) => text);
+    const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
+      ([, text]) => text,
+    );
     expect(printed).toEqual(['TRIM', 'DOWN', 'UP']);
     const { appearance } = trim.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
