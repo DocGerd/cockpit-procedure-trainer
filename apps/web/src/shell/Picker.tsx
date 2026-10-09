@@ -17,6 +17,7 @@ import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
 import { relativeDate } from './relative-date';
+import './picker.css';
 
 type PickerMode = 'guided' | 'practice';
 

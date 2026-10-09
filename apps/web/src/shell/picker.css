@@ -1,0 +1,337 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.picker-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.picker-title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.picker-columns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.picker-aircraft,
+.picker-procedures {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.picker-aircraft,
+.picker-drills {
+  flex: 1 1 300px;
+}
+
+.picker-procedures {
+  flex: 2 1 420px;
+}
+
+.picker-heading {
+  margin: 0;
+  padding: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.picker-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: var(--size-target);
+  padding: var(--space-4);
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.picker-card[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border-color: var(--color-accent);
+}
+
+.picker-card-title {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: var(--weight-semibold);
+}
+
+.picker-card-text {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.picker-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.picker-list {
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.picker-group-label {
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
+}
+
+.picker-list > [role='group'] + [role='group'] .picker-group-label {
+  border-top: 1px solid var(--color-divider);
+}
+
+.picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--space-12);
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 0;
+  border-top: 1px solid var(--color-divider);
+}
+
+.picker-row[aria-pressed='true'] {
+  font-weight: var(--weight-semibold);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+}
+
+.picker-row-title {
+  flex-grow: 1;
+}
+
+.picker-row > .picker-meta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.picker-history {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+}
+
+.picker-modes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.picker-modes > legend {
+  margin-bottom: var(--space-2);
+}
+
+.picker-mode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-target);
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.picker-mode:has(input:checked) {
+  border-color: var(--color-accent);
+}
+
+.picker-mode input {
+  width: var(--space-5);
+  height: var(--space-5);
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.picker-mode-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-mode-label {
+  font-weight: var(--weight-semibold);
+}
+
+.picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+}
+
+.picker-action {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-action > p {
+  margin: 0;
+}
+
+.picker-drills {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.picker-drill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.picker-drill > p {
+  margin: 0;
+}
+
+.picker-surprise {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.picker-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-target);
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker {
+  flex: 1 1 auto;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+  display: grid;
+  flex: 1 1 0;
+  align-items: stretch;
+  grid-template-areas:
+    'aircraft procedures'
+    'drills procedures';
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: calc(var(--space-12) * 9);
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-aircraft {
+  grid-area: aircraft;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-procedures {
+  grid-area: procedures;
+  min-height: 0;
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-drills {
+  grid-area: drills;
+  min-height: 0;
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
+  overflow-y: auto;
+}
+
+@media (min-width: 1400px) {
+  .shell[data-layout='desktop'][data-screen='picker'] .picker {
+    max-width: calc(var(--space-12) * 30);
+  }
+
+  .shell[data-layout='desktop'][data-screen='picker'] .picker-columns {
+    grid-template-areas: 'aircraft procedures drills';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+}
+
+.shell[data-layout='desktop'][data-screen='picker'] .picker-list {
+  flex: 1 1 0;
+  min-height: calc(var(--space-12) * 3);
+  overflow-y: auto;
+}
+
+@media (max-height: 1024px) {
+  .picker {
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+  }
+
+  .picker-procedures {
+    gap: var(--space-2);
+  }
+
+  .picker-mode {
+    padding-block: var(--space-1);
+  }
+
+  .picker-row {
+    min-height: var(--size-target);
+  }
+
+  .picker-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+  }
+
+  .picker-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .picker-modes > legend {
+    grid-column: 1 / -1;
+  }
+}
