@@ -1,11 +1,16 @@
 ---
-description: Run one milestone through the release cycle - implement every open issue as a PR into develop, review, fix, merge, then cut the release PR for the owner.
-argument-hint: '[milestone title, e.g. M2 Core engine - discovered if omitted]'
+description: Run one milestone through the release cycle (triaging the backlog into a proposed milestone when none is open) - implement every open issue as a PR into develop, review, fix, merge, then cut the release PR for the owner.
+argument-hint: '[milestone number/title | steering text, e.g. "focus on perf debt" - empty: next open milestone, else backlog triage]'
 ---
 
-Milestone: $ARGUMENTS. If empty, pick the lowest-numbered open milestone that
-has open issues without the `blocked` label, and name it back before
-proceeding. If set, verify it exists and is open.
+Input: $ARGUMENTS. It is a milestone number or title, free-text steering
+(e.g. "only aircraft content"), or empty.
+
+- Milestone: verify it exists and is open.
+- Empty: pick the lowest-numbered open milestone that has open issues without
+  the `blocked` label, and name it back before proceeding.
+- No such milestone, or steering text: run the Triage phase first, then
+  Phase 0 with the milestone it creates.
 
 You are the orchestrator. Read `CLAUDE.md` first; it is binding. Plan the whole
 session before executing it. The main session holds decisions and verdicts;
@@ -13,6 +18,33 @@ agents do the reading and the writing.
 
 Skills used here: `pr-selfreview` (review, threads, fixes), `merge-train`
 (merge into `develop`), `milestone-release` (the release PR).
+
+## Triage phase - no milestone to run
+
+Delegate it; the main session keeps only the proposal. Create and change
+nothing before the owner approves.
+
+1. One agent sweeps every open issue without a milestone
+   (`gh api "repos/DocGerd/cockpit-procedure-trainer/issues?state=open&milestone=none&per_page=100"`,
+   paginated; drop pull requests), reading body, labels and recent comments.
+   It writes its table to the scratchpad and returns a summary.
+2. Classify each issue: ready; needs owner decision (label `question`, a
+   change to the spec's decisions table, unclear copyright); blocked; spike or
+   idea needing scoping; stale or done (propose closing with the reason);
+   duplicate (name the original).
+3. Rank the ready issues: `docs/adr/0002-quality-priorities.md` order (gates
+   first, never traded), then dependencies, then the steering text if given.
+4. Propose ONE coherent milestone: title `M<n> <Theme>` with n one above the
+   highest existing milestone; a scope sized to what one session's waves can
+   land (a guideline, not a quota); each issue with a one-line reason; deferred
+   issues with the reason; owner questions that block anything; a draft wave
+   plan of file-disjoint work.
+5. Present it as one scannable block and ask once with AskUserQuestion:
+   approve, adjust, or an alternative theme. This is the owner's scope choice
+   and the one approval stop.
+6. On approval: create the milestone and assign the issues through the REST
+   API, apply the approved closes and labels (never close unapproved), then
+   continue with Phase 0. Without approval, stop with nothing changed.
 
 ## Phase 0 - State
 
