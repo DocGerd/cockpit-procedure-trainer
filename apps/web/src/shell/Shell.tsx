@@ -1,4 +1,4 @@
-import { Suspense, use, useEffect } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import { useTrainer } from '../trainer';
 import { AppFooter } from './AppFooter';
 import { Header } from './Header';
@@ -18,12 +18,24 @@ function loadTrainer() {
   if (!trainerLoad) {
     const load = import('./TrainerLayout');
     load.then(
-      (module) => Object.assign(load, { status: 'fulfilled', value: module }),
-      (reason: unknown) => Object.assign(load, { status: 'rejected', reason }),
+      (module) => {
+        Object.assign(load, { status: 'fulfilled', value: module });
+      },
+      (reason: unknown) => {
+        Object.assign(load, { status: 'rejected', reason });
+      },
     );
     trainerLoad = load;
   }
   return trainerLoad;
+}
+
+// A failed load is retried on the next prefetch, or when the error dialog's Reset remounts the trainer.
+// Browsers may cache a failed module fetch and a deploy may have replaced the chunk, so Reset also reloads.
+function retryFailedTrainerLoad(reload: boolean) {
+  if ((trainerLoad as { status?: string } | undefined)?.status !== 'rejected') return;
+  trainerLoad = undefined;
+  if (reload) location.reload();
 }
 
 function LoadedTrainer() {
@@ -44,7 +56,10 @@ function TrainerFrame() {
 function usePrefetchTrainer(active: boolean) {
   useEffect(() => {
     if (!active) return;
-    const prefetch = () => void loadTrainer();
+    const prefetch = () => {
+      retryFailedTrainerLoad(false);
+      void loadTrainer();
+    };
     const idle = window.setTimeout(() => {
       if (window.requestIdleCallback) window.requestIdleCallback(prefetch);
       else prefetch();
@@ -64,6 +79,7 @@ function usePrefetchTrainer(active: boolean) {
 
 export function Shell() {
   const onPicker = useTrainer().screen === 'picker';
+  useState(() => retryFailedTrainerLoad(!onPicker));
   usePrefetchTrainer(onPicker);
   return onPicker ? (
     <Picker />
