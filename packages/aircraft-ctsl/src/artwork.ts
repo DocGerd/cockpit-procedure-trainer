@@ -243,8 +243,8 @@ const pushPull = positions(images.pushpullFace, {
 });
 // The console is drawn from above with forward up: a lever pushed forward slides up its slot and
 // one pulled toward the pilot slides down.
-const forwardEnd = { x: 56, y: 88 } as const;
-const aftEnd = { x: 56, y: 192 } as const;
+const forwardEnd = { x: 56, y: 70 } as const;
+const aftEnd = { x: 56, y: 250 } as const;
 const pullSlide = [forwardEnd, aftEnd] as const;
 
 export const controlArtwork = {
@@ -357,8 +357,8 @@ export const controlArtwork = {
   ),
   carbHeat: lettered(
     travel(images.leverCarbFace, images.handleCarb, [
-      { x: 75, y: 95 },
-      { x: 75, y: 235 },
+      { x: 75, y: 107 },
+      { x: 75, y: 227 },
     ]),
     'CARB HEAT',
     'OFF',
@@ -366,8 +366,8 @@ export const controlArtwork = {
   ),
   trim: lettered(
     travel(images.trimWheelFace, images.trimPointer, [
-      { x: 104, y: 88 },
-      { x: 104, y: 192 },
+      { x: 104, y: 70 },
+      { x: 104, y: 250 },
     ]),
     'TRIM',
     'DOWN',

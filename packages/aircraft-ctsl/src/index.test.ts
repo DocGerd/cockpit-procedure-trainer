@@ -441,13 +441,16 @@ describe('CTSL aircraft', () => {
       expect(rectOf('carbHeat').x).toBeGreaterThan(right('brake'));
     });
 
-    it('draws the large knob aft of the valve as unlabelled artwork, not a control (§9 q10)', () => {
+    it('draws the large knob beside the valve as unlabelled artwork, not a control (§9 q10)', () => {
       const knob = /<circle\b[^>]*data-knob=""[^>]*>/.exec(viewConsole)?.[0] ?? '';
       const at = (name: string) => Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(knob)?.[1]);
       expect(at('r')).toBeGreaterThan(0);
-      expect(at('cy') - at('r')).toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
-      expect(at('cx')).toBeGreaterThan(rectOf('parkingBrakeValve').x);
-      expect(at('cx')).toBeLessThan(right('parkingBrakeValve'));
+      expect(at('cx') - at('r')).toBeGreaterThanOrEqual(right('parkingBrakeValve'));
+      expect(at('cy')).toBeGreaterThan(rectOf('parkingBrakeValve').y);
+      expect(at('cy')).toBeLessThan(bottom('parkingBrakeValve'));
+      expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
+        (ctslAircraft.views.console?.size?.height ?? 0) - 8,
+      );
       expect(viewConsole).not.toMatch(/<text\b/);
       expect(Object.keys(consoleView.rects).sort()).toEqual(
         ['brake', 'carbHeat', 'choke', 'parkingBrakeValve', 'throttle', 'trim'].sort(),

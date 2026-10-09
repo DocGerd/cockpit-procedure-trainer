@@ -189,8 +189,11 @@ What the trainer draws today, and where it departs from the above:
   neutral trim (HB 7-20); cues name it in words, not as a printed legend.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
-- The large knob is drawn aft of the valve as unlabelled artwork, not a control,
-  until its identity is known (§9, question 10).
+- The large knob is drawn as unlabelled artwork, not a control, until its
+  identity is known (§9, question 10). It stands right of the valve, not aft of
+  it: today's console cell has no room aft of the valve once the levers get a
+  travel long enough to tell the throttle's stops apart. The shelf inboard of the
+  valve is drawn empty.
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
   right-seat side of the console top, clear of the lever row and the large knob;
   this place is **assumed (unverified)** (§9, question 3).
