@@ -91,7 +91,7 @@ export type CockpitLayout<V extends string> = {
   readonly size: ViewSize;
   readonly views: { readonly [K in V]: CockpitCell };
   /** Where the device dock sits; its `minWidth` is at least the widest device floor. Not a view. */
-  readonly dock?: CockpitCell;
+  readonly dock: CockpitCell;
 };
 
 // AircraftDefinition gains:
@@ -107,8 +107,8 @@ readonly cockpit?: CockpitLayout<NoInfer<V>>;
 - `minWidth` sits in the arrangement and not in `ViewDefinition` because it is
   a fact about putting the view on a screen next to others; the view itself
   stays a pure image-and-placements description (§4.3 of the spec).
-- `contractVersion` does not change: the key is optional and older aircraft
-  stay valid.
+- `contractVersion` does not change: `cockpit` itself stays optional, so older
+  aircraft without one stay valid. Inside a `cockpit`, `dock` is required.
 
 **Validator** (`packages/core/src/validator/validate-aircraft.ts`), new
 finding codes, each with a test:
@@ -122,11 +122,12 @@ finding codes, each with a test:
 | `cockpit-cell-outside` | a cell leaves `size` |
 | `cockpit-cells-overlap` | two cells overlap |
 | `invalid-cockpit-min-width` | `minWidth` not a positive, finite number |
-| `invalid-cockpit-dock` | `dock` present but its `rect` or `minWidth` malformed, outside `size`, or overlapping a view cell |
+| `invalid-cockpit-dock` | `dock` missing, or present but its `rect` or `minWidth` malformed, outside `size`, or overlapping a view cell |
 
-The dock is optional in the contract so aircraft without one stay valid. A
-test, not the validator, checks that the dock's `minWidth` reaches the floor of
-every installed device (`apps/web/src/aircraft-validation.test.ts`).
+The dock is required whenever an aircraft has a `cockpit`; an aircraft without
+a `cockpit` has no dock. A test, not the validator, checks that the dock's
+`minWidth` reaches the floor of every installed device
+(`apps/web/src/aircraft-validation.test.ts`).
 
 The demo keeps working: it gains an arrangement in its `index.ts`, and the
 validator test of every registered aircraft covers it.
@@ -259,7 +260,8 @@ records only.
   every view is visible and `setView` does nothing.
 - `Dock.tsx` (new) and `panel/slot-mode.ts` (new): the dock and the pure
   `slotMode` rule of §4a. The dock context turns the slot mirrors on; without
-  it a device layer keeps drawing the operable Screen.
+  it (an aircraft without a `cockpit`) a device layer keeps drawing the operable
+  Screen.
 - `modes/PanelOverlay.tsx`: `GuidedOverlay` switches view only when the
   target's view is not visible, and moves focus only from the overlay of the
   view that holds the target. A device target resolves to its slot and device,
