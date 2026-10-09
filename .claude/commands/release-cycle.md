@@ -1,5 +1,5 @@
 ---
-description: Run one milestone through the release cycle (triaging the backlog into a proposed milestone when none is open) - implement every open issue as a PR into develop, review, fix, merge, then cut the release PR for the owner.
+description: Run one milestone through the release cycle (triaging the backlog into a proposed milestone when none is open) - implement every open issue as a PR into develop, review, fix, merge, cut the release PR for the owner, then close out after the owner's merge.
 argument-hint: '[milestone number/title | steering text, e.g. "focus on perf debt" - empty: next open milestone, else backlog triage]'
 ---
 
@@ -102,3 +102,33 @@ When the milestone has no open issues, run the `milestone-release` skill. It
 ends with the release PR `develop` to `main` open. You never merge it. Report
 to the owner: the release PR URL, decisions made, open questions, how to
 verify. The owner merges; a workflow tags and publishes the release.
+Then wait for the owner to report the merge and continue with Phase 5.
+
+## Phase 5 - Close out
+
+Runs once the owner reports the release PR merged, in this session or the
+next. Delegate each step; the main session keeps only verdicts.
+
+1. Release: wait in the foreground until the `main` Deploy run's
+   `prod-environment` job finishes; push nothing to `develop` before that.
+   Then run step 7 of the `milestone-release` skill (tag, Release, milestone,
+   backmerge only if needed), verify the release per
+   `docs/verifying-a-release.md`, and confirm prod serves the release commit.
+2. Sync: `git fetch --prune origin`. If the main checkout is on `develop` and
+   `git status --short` prints nothing, run `git pull --ff-only origin develop`
+   on its own; otherwise report why and change nothing.
+3. Housekeeping: remove this cycle's agent worktrees with
+   `git worktree remove`, never forced (list a dirty one and skip it); delete
+   the local and remote branches of closed PRs; `git worktree prune`. Stop every background
+   task, monitor and dev server this session started, by ID or PID. Leave
+   other sessions' worktrees and branches alone.
+4. CLAUDE.md: if the cycle taught something durable that `CLAUDE.md` lacks or
+   gets wrong, the main session runs `/revise-claude-md` itself, never a
+   subagent (it reflects on this session's transcript). The main-checkout
+   guard refuses that edit there, so first enter a worktree on
+   `chore/claude-md-<slug>` from `origin/develop`. Approved edits ship like
+   any change: an issue, a PR reviewed with `pr-selfreview`, the
+   `merge-train`. Nothing durable: say so and open no PR.
+5. Report to the owner in one block: released version and prod state, what
+   was cleaned up or skipped, the CLAUDE.md PR or "none", and the
+   unmilestoned backlog for the next triage.
