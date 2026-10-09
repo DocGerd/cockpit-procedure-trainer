@@ -119,3 +119,28 @@ test('Back to selection on a leg summary asks before ending the full flight', as
     page.getByRole('button', { name: copy.shell.fullFlight, exact: true }),
   ).toBeVisible();
 });
+
+test('a Practice full flight starts with an unannounced surprise and upcoming items hidden', async ({
+  page,
+}) => {
+  const legs = flightLegs(ctslAircraft);
+  await openPicker(page);
+  await page.getByRole('button', { name: ctslAircraft.name.en }).click();
+  await page.getByRole('radio', { name: copy.shell.practice }).check();
+  await page
+    .getByRole('combobox', { name: copy.shell.flightSurprise })
+    .selectOption({ label: 'Cruise' });
+  await page.getByRole('checkbox', { name: copy.shell.hideUpcoming }).check();
+  await page.getByRole('button', { name: copy.shell.fullFlight, exact: true }).click();
+  const pane = checklistPane(page);
+  await expect(pane.locator('.checklist-flight-leg')).toHaveText(
+    copy.checklist.flightLeg.replace('{n}', '1').replace('{total}', String(legs.length)),
+  );
+  await expect(pane.locator('.checklist-item[aria-current="step"]')).toHaveCount(1);
+  await expect(pane.locator('.checklist-item[data-state="pending"]')).toHaveCount(0);
+  await pane
+    .getByRole('combobox', { name: copy.checklist.showChecklist })
+    .selectOption('engineFire');
+  await expect(pane.getByRole('button', { name: copy.checklist.runChecklist })).toHaveCount(0);
+  await expect(pane.getByText(copy.checklist.surpriseNote)).toHaveCount(0);
+});

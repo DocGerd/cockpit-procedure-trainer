@@ -368,6 +368,45 @@ describe('drills in the picker', () => {
     expect(trainer.flight?.results).toEqual([]);
   });
 
+  it('offers a surprise and Hide upcoming items for a full flight in Practice only', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const surprise = () => screen.queryByRole('combobox', { name: 'Surprise in the flight' });
+    const hide = () => screen.queryByRole('checkbox', { name: 'Hide upcoming items' });
+    expect(surprise()).toBeNull();
+    expect(hide()).toBeNull();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    const select = surprise();
+    if (!select) throw new Error('no surprise select');
+    expect(
+      within(select)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['None', 'Any phase', 'Departure', 'Cruise']);
+    expect(select).toHaveProperty('value', '');
+    await userEvent.selectOptions(select, 'cruise');
+    await userEvent.click(hide() as HTMLElement);
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.mode).toBe('practice');
+    expect(trainer.recall).toBe(true);
+    expect(trainer.flight?.surprise).toMatchObject({ phase: 'cruise', randomPhase: false });
+    expect(trainer.procedureId).toBe('preflight');
+    expect(trainer.session.scenario()).toBeUndefined();
+  });
+
+  it('starts a full flight with a surprise in any phase', async () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
+    const select = screen.getByRole('combobox', { name: 'Surprise in the flight' });
+    await userEvent.selectOptions(select, 'Any phase');
+    await userEvent.click(screen.getByRole('button', { name: 'Full flight' }));
+    expect(trainer.flight?.surprise).toMatchObject({ randomPhase: true });
+    expect(['departure', 'cruise']).toContain(trainer.flight?.surprise?.phase);
+  });
+
   it('starts a surprise failure in Practice in the chosen phase, naming no procedure', async () => {
     localStorage.setItem('cpt.aircraft', second.id);
     renderPicker();

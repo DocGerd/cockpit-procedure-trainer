@@ -423,6 +423,16 @@ Besides a chosen procedure, the picker offers drills (added in #446):
   starts it over. The checklist header names the running leg (leg n of m).
   Leaving the flight by phase, Free explore or the selection before its last
   leg is done asks first and names the legs flown.
+  In Practice (added in #510) the flight can carry a surprise failure in a
+  chosen or random phase, and Hide upcoming items can be set before it starts.
+  The surprise comes in a leg that starts in that phase, after one of its items
+  other than the last (at the latest when the leg is done), with no banner;
+  only then does the viewer offer to run a checklist. The checklist the pilot
+  takes becomes the flight's last leg: the leg it interrupted is listed as
+  interrupted, the summary adds the time to recognise and whether it matched,
+  and the flight goes no further. Restart and Repeat then run that checklist
+  again from the moment it was taken; a runtime reset starts the flight over
+  with a new surprise under the same choice.
 
 ### Screen
 

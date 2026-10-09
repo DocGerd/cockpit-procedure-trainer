@@ -59,6 +59,10 @@ export const messages = defineMessages({
     fullFlight: 'Full flight',
     fullFlightHint:
       'Every normal procedure in flight order, from cold and dark to securing. Each one continues from the cockpit the last one left.',
+    flightSurprise: 'Surprise in the flight',
+    flightSurpriseNone: 'None',
+    flightSurpriseAny: 'Any phase',
+    hideUpcoming: 'Hide upcoming items',
   },
   de: {
     brandName: 'Procedure Trainer',
@@ -119,5 +123,9 @@ export const messages = defineMessages({
     fullFlight: 'Ganzer Flug',
     fullFlightHint:
       'Alle Normalverfahren in der Reihenfolge des Flugs, vom kalten Cockpit bis zum Sichern. Jedes setzt mit dem Cockpit fort, wie das vorige es hinterlassen hat.',
+    flightSurprise: 'Überraschung im Flug',
+    flightSurpriseNone: 'Keine',
+    flightSurpriseAny: 'Beliebige Phase',
+    hideUpcoming: 'Kommende Punkte ausblenden',
   },
 });
