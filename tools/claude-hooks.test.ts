@@ -169,6 +169,9 @@ beforeAll(() => {
   symlinkSync(join(main, 'reference'), join(worktree, 'link-to-reference'));
   symlinkSync(join(main, 'README.md'), join(worktree, 'link-to-main-readme.md'));
   symlinkSync(worktree, join(root, 'wt-link'));
+  touch(join(main, '.remember/note.md'));
+  symlinkSync(join(main, 'README.md'), join(main, '.remember/link-to-readme.md'));
+  symlinkSync(join(main, '.remember/note.md'), join(main, 'link-to-note.md'));
   noRealpathM = shim(join(root, 'no-realpath-m'), 'realpath', 'exit 1');
   dubiousGit = shim(
     join(root, 'dubious-git'),
@@ -750,6 +753,15 @@ describe('main-checkout-guard.sh', () => {
         project: main,
       }),
     ).toBe(false);
+  });
+
+  it('resolves symlinks before matching .remember/', () => {
+    expect(
+      denies({ tool: 'Edit', input: { file_path: join(main, '.remember/link-to-readme.md') } }),
+    ).toBe(true);
+    expect(denies({ tool: 'Edit', input: { file_path: join(main, 'link-to-note.md') } })).toBe(
+      false,
+    );
   });
 
   it('keeps denying near-misses of .remember/ in the main checkout', () => {
