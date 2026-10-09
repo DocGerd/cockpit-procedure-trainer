@@ -186,6 +186,24 @@ describe('package boundaries', () => {
       ),
     ).toBe(1);
   });
+
+  it('rejects a substitution-free template dynamic import across a package boundary', async () => {
+    expect(
+      await restrictedSyntax('apps/web/src/x.ts', 'await import(`@cpt/aircraft-demo`);\n'),
+    ).toBe(1);
+    expect(
+      await restrictedSyntax(
+        'packages/aircraft-demo/src/x.ts',
+        'await import(`../../core/src/index`);\n',
+      ),
+    ).toBe(1);
+  });
+
+  it('allows a substitution-free template dynamic import of an allowed dependency', async () => {
+    expect(
+      await restrictedSyntax('packages/aircraft-demo/src/x.ts', 'await import(`@cpt/core`);\n'),
+    ).toBe(0);
+  });
 });
 
 describe('module-flavoured sources in known package kinds', () => {
