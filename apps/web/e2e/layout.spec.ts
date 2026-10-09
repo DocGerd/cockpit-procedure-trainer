@@ -389,6 +389,8 @@ const trainerText: ChromeText = {
   'mode button': ['.modes-segment', 'fontSize'],
   'checklist item': ['.checklist-item-text', 'fontSize'],
   'checklist line height': ['.checklist-item-text', 'lineHeight'],
+  'dock hint': ['.dock-hint', 'fontSize'],
+  'phase badge': ['.outside-view-caption', 'fontSize'],
   footer: ['.app-footer', 'fontSize'],
 };
 
