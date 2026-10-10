@@ -98,8 +98,9 @@ difference against the trainer.
 **Trainer, M17 T4 (2026-10-10, §3.7):** four instruments in a 2×2: airspeed and
 altimeter above, a slip indicator (background art, not an indicator) and the vertical
 speed indicator below; no lamp. The radios and the GPS moved to the upper-centre field
-(§3.2a). Placards in our own wording: a take-off checklist summary at the top right
-and, in German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
+(§3.2a). Placards in our own wording: "Takeoff Checklist" at the top (the summary
+body is drawn as rules, since body print falls below the lettering floor) and, in
+German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
 The airspeed indicator stays 220 units wide because its numerals set the smallest
 size that reads at the lettering floor (§4.3).
 
@@ -128,10 +129,14 @@ single "12V Outlet" breaker in the third row (the header's place is **assumed
 Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
 Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
 GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
-Cockpit Light and Instrument Light are inert caps drawn in the background (the
-trainer's cockpit light has no breaker). The breaker legends print in full words,
-small as on the aircraft (captions marked secondary, ADR 0002 realism). The type-name
-script lettering is not reproduced.
+Cockpit Light and Instrument Light are inert caps drawn in the background, without
+legends (the trainer's cockpit light has no breaker). The legends of the eight trainer
+breakers print in full words on the control faces, small as on the aircraft: captions
+marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
+rank), because a legend like "Transponder" at the minimum does not fit the strip's
+pitch. The inert caps carry no legend for the same reason, since background lettering
+has no such exemption; the slip indicator, FLARM display and hour meter carry no
+wording either. The type-name script lettering is not reproduced.
 
 ### 3.2a Upper-centre field (view `panel`), M17 T4
 

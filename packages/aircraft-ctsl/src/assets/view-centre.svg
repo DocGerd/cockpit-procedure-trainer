@@ -79,23 +79,22 @@
 <circle cx="428" cy="366" r="3.7" fill="url(#rv)"/><circle cx="752" cy="366" r="3.7" fill="url(#rv)"/>
 <text x="590" y="326" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="middle">Fuel per side</text>
 <text x="590" y="360" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="middle">65 l, 62 l usable</text>
-<path d="M1170 301.4h2.2V377.4H796.2v-5.4H1170z" fill="#000000" fill-opacity="0.2"/><path d="M1170 299h1.2V375H795.2v-3H1170z" fill="#000000" fill-opacity="0.4"/>
-<rect x="790" y="292" width="380" height="80" rx="4" data-card="" fill="url(#pl)"/>
-<rect x="790" y="292" width="380" height="80" rx="4" fill="url(#br)"/>
-<path d="M790.7 367.3V296.7A4 4 0 0 1 794.7 292.7H1165.3" fill="none" stroke="#F4F5F7" stroke-width="1.4"/><path d="M1169.3 296.7V367.3A4 4 0 0 1 1165.3 371.3H794.7" fill="none" stroke="#6A7077" stroke-width="1.4"/>
-<circle cx="798" cy="366" r="3.7" fill="url(#rv)"/><circle cx="1162" cy="366" r="3.7" fill="url(#rv)"/>
-<text x="806" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="start" data-lettering="secondary">FLAP</text>
-<text x="806" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="start" data-lettering="secondary">km/h</text>
-<text x="892" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">-12°</text>
-<text x="892" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">300</text>
-<text x="958" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">0°</text>
-<text x="958" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">184</text>
-<text x="1024" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">15°</text>
-<text x="1024" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">148</text>
-<text x="1090" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">30°</text>
-<text x="1090" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">115</text>
-<text x="1156" y="324" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">35°</text>
-<text x="1156" y="354" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#1E2226" text-anchor="middle" data-lettering="secondary">115</text>
+<path d="M1172 395.4h2.2V575.4H992.2v-5.4H1172z" fill="#000000" fill-opacity="0.2"/><path d="M1172 393h1.2V573H991.2v-3H1172z" fill="#000000" fill-opacity="0.4"/>
+<rect x="986" y="386" width="186" height="184" rx="4" data-card="" fill="url(#pl)"/>
+<rect x="986" y="386" width="186" height="184" rx="4" fill="url(#br)"/>
+<path d="M986.7 565.3V390.7A4 4 0 0 1 990.7 386.7H1167.3" fill="none" stroke="#F4F5F7" stroke-width="1.4"/><path d="M1171.3 390.7V565.3A4 4 0 0 1 1167.3 569.3H990.7" fill="none" stroke="#6A7077" stroke-width="1.4"/>
+<circle cx="994" cy="564" r="3.7" fill="url(#rv)"/><circle cx="1164" cy="564" r="3.7" fill="url(#rv)"/>
+<path d="M1002 398 H1156" stroke="#1E2226" stroke-width="1.5" stroke-opacity="0.7"/>
+<text x="1004" y="432" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="start">-12°</text>
+<text x="1154" y="432" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="end">300</text>
+<text x="1004" y="464" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="start">0°</text>
+<text x="1154" y="464" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="end">184</text>
+<text x="1004" y="496" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="start">15°</text>
+<text x="1154" y="496" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="end">148</text>
+<text x="1004" y="528" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="start">30°</text>
+<text x="1154" y="528" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="end">115</text>
+<text x="1004" y="560" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="start">35°</text>
+<text x="1154" y="560" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#1E2226" text-anchor="end">115</text>
 <text x="458" y="836" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Instrument</text>
 <text x="458" y="868" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Light</text>
 </svg>

@@ -33,9 +33,9 @@ export const views = {
       outletBreaker: at(1650, 564, 100, 96),
     },
     indicators: {
-      airspeed: at(22, 126, 220, 220),
-      altimeter: at(248, 138, 196, 196),
-      verticalSpeed: at(248, 372, 196, 196),
+      airspeed: at(22, 122, 220, 220),
+      altimeter: at(248, 134, 196, 196),
+      verticalSpeed: at(248, 358, 196, 196),
       tachometer: at(1654, 40, 210, 210),
       cht: at(1878, 40, 150, 150),
       voltmeter: at(2034, 40, 150, 150),
