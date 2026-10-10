@@ -23,14 +23,8 @@ next. Delegate each step; the main session keeps only verdicts.
    still exists. Keep the branches of PRs closed without landing and say so.
    Stop every background task, monitor and dev server this session started, by
    ID or PID. Leave other sessions' worktrees and branches alone.
-4. CLAUDE.md: if the cycle taught something durable that `CLAUDE.md` lacks or
-   gets wrong, the main session runs `/revise-claude-md` itself, never a
-   subagent (it reflects on this session's transcript). The main-checkout
-   guard refuses that edit there, so first enter a worktree on
-   `chore/claude-md-<slug>` from `origin/develop`. The command has no Bash, so
-   verify each empirical claim before invoking it, and have a delegated agent
-   commit and open the PR afterwards. Approved edits ship like any change: an
-   issue, a PR reviewed with `pr-selfreview`, the `merge-train`. Nothing durable: say so and open no PR.
-5. Report to the owner in one block: released version and prod state, what
-   was cleaned up or skipped, the CLAUDE.md PR or "none", and the
-   unmilestoned backlog for the next triage.
+4. Report to the owner in one block: released version and prod state, what
+   was cleaned up or skipped, and the unmilestoned backlog for the next
+   triage.
+5. Run Session end in [SKILL.md](SKILL.md) (follow-ups, CLAUDE.md, processes,
+   remember); add its CLAUDE.md PR, or "none", to the report.
