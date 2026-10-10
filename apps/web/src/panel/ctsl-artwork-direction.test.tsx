@@ -138,7 +138,7 @@ describe('CTSL notched artwork controls', () => {
     for (const { id, decor, ink } of engraved) expect(decor, id).toEqual(ink);
   });
 
-  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft', () => {
+  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft, nothing between', () => {
     const throttle = drawn.find(({ id }) => id === 'throttle');
     if (!throttle) throw new Error('the CTSL draws no throttle');
     const svg = faceSvg(throttle.face);
@@ -154,13 +154,8 @@ describe('CTSL notched artwork controls', () => {
     ]);
     const [from, to] = [throttle.path?.[0], throttle.path?.at(-1)];
     if (!from || !to) throw new Error('the throttle has no travel');
-    const stops = throttle.steps.map(
-      (_, i) => from.y + ((to.y - from.y) * i) / (throttle.steps.length - 1),
-    );
-    const ticks = new Set(
-      [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"/g)].map(([, y]) => Number(y)),
-    );
-    expect([...ticks].sort((a, b) => a - b)).toEqual(stops.sort((a, b) => a - b));
+    const leaders = [...svg.matchAll(/<line\b[^>]*\by1="([\d.]+)"/g)].map(([, y]) => Number(y));
+    expect(leaders.sort((a, b) => a - b)).toEqual([to.y, from.y]);
   });
 
   it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no printed neutral legend', () => {

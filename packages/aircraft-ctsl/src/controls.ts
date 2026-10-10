@@ -144,6 +144,7 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'closed',
+    legends: { open: 'Open', closed: 'Closed' },
     name: text('Brandhahn', 'Fuel valve'),
     description: text(
       'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt sein Griff das Zündschloss: der Schlüssel lässt sich weder stecken noch aus OFF drehen, nur abziehen. Abziehen geht nur bei ganz geschlossenem Brandhahn.',
