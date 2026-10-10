@@ -26,5 +26,4 @@ next. Delegate each step; the main session keeps only verdicts.
 4. Report to the owner in one block: released version and prod state, what
    was cleaned up or skipped, and the unmilestoned backlog for the next
    triage.
-5. Run Session end in [SKILL.md](SKILL.md) (follow-ups, CLAUDE.md, processes,
-   remember); add its CLAUDE.md PR, or "none", to the report.
+5. Run Session end in [SKILL.md](SKILL.md).

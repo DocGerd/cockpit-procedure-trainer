@@ -105,4 +105,6 @@ release PR, after Phase 5, or when the time box runs out.
 3. Processes: stop every dev server, poll loop and background task this
    session's agents started, by PID; agents leave servers behind and later
    misread them as another session's, so match by the ports you assigned.
-4. Run `remember:remember` last.
+4. Report to the owner in one block: the follow-up issues, the CLAUDE.md PR
+   or "none", and the processes stopped.
+5. Run `remember:remember` last.

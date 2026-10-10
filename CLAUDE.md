@@ -38,8 +38,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   `No changelog: <reason>` when it has no user-visible effect.
 - Agents merge reviewed PRs into `develop` only, never into `main`. An agent
   opens the release PR `develop` to `main`; the owner merges it.
-- While a release PR is open, its head is `develop`: other sessions land
-  nothing in `develop` until the owner merges it, or it ships in that release.
+- While a release PR is open, its head is `develop`, so whatever lands there
+  ships in that release: other sessions land nothing until the owner merges
+  it, unless the release needs the change.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
 - App settings (language, Hide upcoming) persist in browser storage: browser
