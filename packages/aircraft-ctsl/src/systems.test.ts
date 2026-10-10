@@ -407,14 +407,14 @@ describe('engine running', () => {
 });
 
 describe('electrical system', () => {
-  it('lights the charge lamp with BAT in and the engine stopped', () => {
+  it('lights the generator lamp with BAT in and the engine stopped', () => {
     const session = sessionAt('parking');
     session.set('battery', 'in');
     session.set('generator', 'in');
     expect(chargeLampLit(trainerState(session))).toBe(true);
   });
 
-  it('puts the charge lamp out once the engine runs with GEN in', () => {
+  it('puts the generator lamp out once the engine runs with GEN in', () => {
     const session = coldStart();
     expect(chargeLampLit(trainerState(session))).toBe(true);
     session.set('generator', 'in');
@@ -654,7 +654,7 @@ describe('ELT and rescue system', () => {
 });
 
 describe('failures', () => {
-  it('generatorFailure: no charging, charge lamp lit', () => {
+  it('generatorFailure: no charging, generator lamp lit', () => {
     const failed = rig('cruise', ['generatorFailure']);
     expect(failed.state().bus.charging).toBe(false);
     expect(failed.state().bus.mainPowered).toBe(true);

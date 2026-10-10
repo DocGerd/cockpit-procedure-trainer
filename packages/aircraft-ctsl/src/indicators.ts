@@ -52,7 +52,7 @@ export const indicators = {
     appearance: gaugeArtwork.voltmeter,
   },
   chargeLamp: {
-    name: text('Ladekontrolle', 'Generator warning lamp'),
+    name: text('Generatorlampe', 'Generator warning lamp'),
     select: chargeLampLit,
     appearance: lampArtwork.charge,
   },

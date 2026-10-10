@@ -130,7 +130,11 @@ Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
 Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
 GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
 Cockpit Light and Instrument Light are inert caps drawn in the background, without
-legends (the trainer's cockpit light has no breaker). The legends of the eight trainer
+legends (the trainer's cockpit light has no breaker). Two of these differ from the
+photos (§3.7.1), **assumed (unverified)**: the photos show EMS fitted, but the analog
+variant has no EMS (E10), so it is drawn as a cap; they show Intercom as a plain cap,
+but the handbook gives the intercom a 2 A breaker (§3.6) and the photo does not show
+whether the cap is a blank, so the trainer keeps that breaker. The legends of the eight trainer
 breakers print in full words on the control faces, small as on the aircraft: captions
 marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
 rank), because a legend like "Transponder" at the minimum does not fit the strip's
@@ -151,7 +155,9 @@ wording either. The type-name script lettering is not reproduced.
   the panel floor, which rose from 950 to 1110 px with the wider panel (2372 units).
   The upper-centre field is wider than the lower column and sits about 40 px left of
   it at HD, so that the radio slot reaches over the device dock, which stays left of
-  the column under the panel.
+  the column under the panel. The FLARM display sits left of the GPS, not above it as
+  in the photos, and the version label and the second copy of the take-off checklist
+  summary are not drawn.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 

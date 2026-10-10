@@ -230,7 +230,7 @@ describe('CTSL gauges', () => {
     expect(labels.slice(0, 9)).toEqual(['2', '1.5', '1', '.5', '0', '.5', '1', '1.5', '2']);
   });
 
-  it('reads the voltmeter 9 to 17 V, a bus voltage the trainer assumes (intake §3.2)', () => {
+  it('reads the voltmeter 9 to 17 V, a bus voltage the trainer assumes (intake §3.5)', () => {
     const { options, artwork } = gauges.voltmeter;
     expect(options).toMatchObject({ min: 9, max: 17, units: 'V' });
     const face = read(artwork.face);
