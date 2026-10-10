@@ -97,6 +97,19 @@ describe('device hardware', () => {
     expect(rule('.pk-device-screen::after')).not.toMatch(/--pk-glass/);
   });
 
+  it('keeps the glare faint enough for the screen to read through', () => {
+    const glareShares = (source: string): number[] =>
+      [...source.matchAll(/var\(--panel-glare\)\s+(\d+)%/g)].map(([, share = '']) => Number(share));
+    const glass = /--pk-glass:([^;]*);/.exec(css)?.[1] ?? '';
+    const glassShares = glareShares(glass);
+    expect(glassShares.length).toBeGreaterThan(0);
+    expect(Math.max(...glassShares)).toBeLessThanOrEqual(18);
+
+    const bandShares = glareShares(rule('.pk-device-content > * > :first-child::after'));
+    expect(bandShares.length).toBeGreaterThan(0);
+    expect(Math.max(...bandShares)).toBeLessThanOrEqual(6);
+  });
+
   it('paints keycaps between the key face and its legend, outside the hit region', () => {
     const key = rule('.pk-device-content button');
     expect(key).toMatch(/position:\s*relative/);
