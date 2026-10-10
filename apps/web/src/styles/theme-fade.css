@@ -1,0 +1,116 @@
+/* The colour tokens are registered so a theme change can transition them on the root: every
+   var(--color-*) in the chrome moves in step, with no per-surface rules. :root always sets
+   the value, so the initial value never shows. ThemeProvider sets the class only around a
+   user-chosen change. */
+@property --color-bg {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-surface {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-surface-subtle {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-surface-muted {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-divider {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-border {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-text {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-text-secondary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-text-muted {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-on-accent {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-accent-strong {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-success {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-warning {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --color-danger {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+:root.theme-fading {
+  transition-property:
+    --color-bg, --color-surface, --color-surface-subtle, --color-surface-muted, --color-divider,
+    --color-border, --color-text, --color-text-secondary, --color-text-muted, --color-accent,
+    --color-on-accent, --color-accent-strong, --color-success, --color-warning, --color-danger;
+  transition-duration: var(--duration-theme);
+  transition-timing-function: var(--ease-standard);
+}
+
+/* A surface's own colour transitions would chase the moving tokens and lag behind them. The
+   panel surface keeps its transitions. */
+:root.theme-fading :not([data-panel-surface], [data-panel-surface] *),
+:root.theme-fading :not([data-panel-surface], [data-panel-surface] *)::before,
+:root.theme-fading :not([data-panel-surface], [data-panel-surface] *)::after {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-fading {
+    transition: none;
+  }
+}

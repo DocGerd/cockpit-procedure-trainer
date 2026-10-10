@@ -13,7 +13,10 @@
    behaviour) may skip the fragment if its description has a line
    `No changelog: <reason>`.
 4. Open a pull request against `develop` whose description contains `Closes #<issue>` (not
-   required for Dependabot pull requests, which have no issue).
+   required for Dependabot pull requests, which have no issue). Work that
+   depends on an unmerged PR may target that PR's branch; it lands after the
+   parent, once the parent's lander has retargeted it to `develop` (deleting the
+   parent's branch closes a child instead; see the `merge-train` skill, step 7).
 5. `develop` and `main` accept changes only through pull requests with a green
    `check` job and all review threads resolved. `develop` takes squash merges, except a `chore/backmerge`
    PR (`main` into `develop`), which uses a merge commit.

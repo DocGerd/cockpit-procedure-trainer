@@ -13,7 +13,7 @@ import type { Trainer } from '../trainer';
 import { testAircraft } from '../trainer/test-aircraft';
 import { Shell } from './Shell';
 
-const real = vi.hoisted(() => ({ use: false }));
+const real = vi.hoisted(() => ({ use: false, registry: undefined as unknown }));
 
 vi.mock('../aircraft-registry', async () => {
   const actual =
@@ -21,7 +21,7 @@ vi.mock('../aircraft-registry', async () => {
   const { testAircraft: fixtures } = await import('../trainer/test-aircraft');
   return {
     get aircraftRegistry() {
-      return real.use ? actual.aircraftRegistry : fixtures;
+      return real.registry ?? (real.use ? actual.aircraftRegistry : fixtures);
     },
   };
 });
@@ -67,6 +67,7 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   real.use = false;
+  real.registry = undefined;
 });
 
 describe('aircraft and procedure picker', () => {
@@ -109,7 +110,7 @@ describe('aircraft and procedure picker', () => {
     expect(modes.map((radio) => radio.getAttribute('value'))).toEqual(['guided', 'practice']);
     expect(screen.getByRole('radio', { name: /Guided/ })).toHaveProperty('checked', true);
     expect(screen.queryByRole('radio', { name: /explore/i })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Explore the cockpit' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Free explore' })).toBeTruthy();
   });
 
   it('starts the chosen procedure in the chosen mode', async () => {
@@ -126,39 +127,130 @@ describe('aircraft and procedure picker', () => {
     expect(await screen.findByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
   });
 
-  it('describes what Start and Explore do, each with a one-line helper', () => {
+  it('explains Free explore in one helper line beside Start and Free explore', () => {
     renderPicker();
-    const start = screen.getByRole('button', { name: 'Start procedure' });
-    const explore = screen.getByRole('button', { name: 'Explore the cockpit' });
-    expect(start.getAttribute('aria-describedby')).toBeTruthy();
-    expect(document.getElementById(start.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
-      'Run the selected procedure in the chosen mode.',
-    );
+    const explore = screen.getByRole('button', { name: 'Free explore' });
     expect(
       document.getElementById(explore.getAttribute('aria-describedby') ?? '')?.textContent,
-    ).toBe('Look around the panel and read what each control does. No procedure runs.');
+    ).toBe('Free explore opens the cockpit with no procedure running.');
+    expect(explore.closest('.picker-actions')?.querySelectorAll('p')).toHaveLength(1);
   });
 
-  it('describes Start and Explore in German', () => {
+  it('explains Free explore in German', () => {
     renderPicker('de');
-    const explore = screen.getByRole('button', { name: 'Cockpit erkunden' });
+    const explore = screen.getByRole('button', { name: 'Freies Erkunden' });
     expect(
       document.getElementById(explore.getAttribute('aria-describedby') ?? '')?.textContent,
-    ).toBe(
-      'Die Tafel ansehen und nachlesen, was jedes Bedienelement tut. Es läuft kein Verfahren.',
-    );
-    const start = screen.getByRole('button', { name: 'Verfahren starten' });
-    expect(document.getElementById(start.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
-      'Das gewählte Verfahren im gewählten Modus durchlaufen.',
-    );
+    ).toBe('Freies Erkunden öffnet das Cockpit, ohne dass ein Verfahren läuft.');
+    expect(screen.getByRole('button', { name: 'Verfahren starten' })).toBeTruthy();
+  });
+
+  it('has exactly one filled button', () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    expect(document.querySelectorAll('main .button-primary')).toHaveLength(1);
+  });
+
+  it('shows the training-aid note under the title, without a kicker', () => {
+    renderPicker();
+    const title = screen.getByRole('heading', { level: 1 });
+    const note = screen.getByRole('note', { name: 'Training aid only' });
+    expect(title.nextElementSibling).toBe(note);
+    expect(document.querySelector('main .shell-eyebrow')).toBeNull();
   });
 
   it('enters Free explore from its button', async () => {
     renderPicker();
-    await userEvent.click(screen.getByRole('button', { name: 'Explore the cockpit' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Free explore' }));
     expect(trainer.screen).toBe('trainer');
     expect(trainer.mode).toBe('explore');
     expect(trainer.procedureId).toBeUndefined();
+  });
+});
+
+describe('procedure index thumb tabs', () => {
+  it('names each group with its count and keeps every row in the list', () => {
+    real.use = true;
+    localStorage.setItem('cpt.aircraft', 'ctsl');
+    renderPicker();
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    if (!ctsl) throw new Error('no CTSL');
+    const procedures = Object.values(ctsl.procedures);
+    const normal = procedures.filter((entry) => entry.type === 'normal').length;
+    const emergency = procedures.filter((entry) => entry.type === 'emergency').length;
+    const tabs = within(procedureSection()).getByRole('navigation', {
+      name: 'Procedure groups',
+    });
+    expect(
+      within(tabs)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual([`Normal ${normal}`, `Emergency ${emergency}`]);
+    expect(procedureButtons()).toHaveLength(procedures.length);
+  });
+
+  it('scrolls the list so the group of each tab starts at its top, without picking a procedure', async () => {
+    const original = Element.prototype.scrollTo;
+    const scrolled: [Element, ScrollToOptions | undefined][] = [];
+    Element.prototype.scrollTo = function (this: Element, options?: ScrollToOptions) {
+      scrolled.push([this, options]);
+    } as typeof Element.prototype.scrollTo;
+    try {
+      localStorage.setItem('cpt.aircraft', second.id);
+      renderPicker();
+      const section = procedureSection();
+      const box = section.querySelector<HTMLElement>('.picker-list');
+      if (!box) throw new Error('no list');
+      box.scrollTop = 40;
+      box.getBoundingClientRect = () => ({ top: 300 }) as DOMRect;
+      const groupTops = { Normal: 310, Emergency: 420 };
+      for (const [name, top] of Object.entries(groupTops)) {
+        within(section).getByRole('group', { name }).getBoundingClientRect = () =>
+          ({ top }) as DOMRect;
+      }
+      const before = procedureButtons().map((button) => button.getAttribute('aria-pressed'));
+      await userEvent.click(screen.getByRole('button', { name: /^Emergency/ }));
+      await userEvent.click(screen.getByRole('button', { name: /^Normal/ }));
+      expect(scrolled).toEqual([
+        [box, { top: 40 + 420 - 300 }],
+        [box, { top: 40 + 310 - 300 }],
+      ]);
+      expect(procedureButtons().map((button) => button.getAttribute('aria-pressed'))).toEqual(
+        before,
+      );
+    } finally {
+      Element.prototype.scrollTo = original;
+    }
+  });
+
+  it('shows a single tab for an aircraft with normal procedures only', () => {
+    expect(Object.values(first.procedures).every((entry) => entry.type === 'normal')).toBe(true);
+    renderPicker();
+    const tabs = within(procedureSection()).getByRole('navigation', { name: 'Procedure groups' });
+    expect(
+      within(tabs)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual([`Normal ${Object.keys(first.procedures).length}`]);
+  });
+
+  it('shows the empty note and no tabs for an aircraft without procedures', () => {
+    real.registry = [{ ...first, procedures: {} }];
+    renderPicker();
+    expect(
+      within(procedureSection()).getByText('This aircraft has no procedures yet.'),
+    ).toBeTruthy();
+    expect(within(procedureSection()).queryByRole('navigation')).toBeNull();
+  });
+
+  it('names the tabs in German', () => {
+    renderPicker('de');
+    expect(
+      within(screen.getByRole('region', { name: 'Verfahren' })).getByRole('navigation', {
+        name: 'Verfahrensgruppen',
+      }),
+    ).toBeTruthy();
   });
 });
 
@@ -362,7 +454,7 @@ describe('drills in the picker', () => {
     const button = within(region).getByRole('button', {
       name: 'Full flight',
       description:
-        'Every normal procedure in flight order, from cold and dark to securing. Each one continues from the cockpit the last one left.',
+        'Every normal procedure in flight order, each from the cockpit the last one left.',
     });
     await userEvent.click(screen.getByRole('radio', { name: /Practice/ }));
     await userEvent.click(button);

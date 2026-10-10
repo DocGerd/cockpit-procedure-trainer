@@ -233,16 +233,12 @@
     flex-wrap: nowrap;
   }
 
-  /* A name wraps to two lines at most (three on a tablet) before the controls take a row of their own.
+  /* On a desktop a name wraps to two lines at most before the controls take a row of their own.
      The floor sits on the inner span so a single long word still sets the button's minimum. */
   @supports (min-width: calc-size(max-content, size)) {
     .shell-header .shell-choice-value {
       display: inline-block;
       min-width: calc-size(max-content, size * 0.6);
-    }
-
-    .shell[data-layout='tablet'] .shell-header .shell-choice-value {
-      min-width: calc-size(max-content, size * 0.4);
     }
   }
 
@@ -286,5 +282,28 @@
 
   .shell[data-layout='tablet'] .shell-header .modes-segment {
     padding-inline: var(--space-2);
+  }
+
+  /* One row of names on a tablet: the aircraft gives way first, with the full name in the title. */
+  .shell[data-layout='tablet'] .shell-header .shell-breadcrumb {
+    min-width: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice:first-child:not(:last-child) {
+    flex-shrink: 100;
+    min-width: calc(var(--space-12) * 2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice-value {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

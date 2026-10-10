@@ -122,6 +122,12 @@ describe('CTSL rescue handle safety pin', () => {
     expect(read(artwork.guardOpen?.stowed ?? '')).not.toContain('url(#fr)');
   });
 
+  it('draws the parachute label as a striped plate, with no amber outline that reads as focus', () => {
+    const face = read(rescue()?.face ?? '');
+    expect(face).toContain('fill="url(#hz)"');
+    expect(face).not.toContain('stroke="#f0a830"');
+  });
+
   it('prints only the parachute label on the face, not RESCUE or PULL HARD', () => {
     const artwork = rescue();
     const inked = [
@@ -460,6 +466,53 @@ describe('CTSL console levers (intake §3.4)', () => {
 
   it('prints the trim strip green', () => {
     expect(faceOf('trim')).toContain('fill="url(#gn)"');
+  });
+
+  it('paints the trim strip as a muted marking, not a lit slab', () => {
+    const paint = /<path\b[^>]*fill="url\(#gn\)"[^>]*fill-opacity="([\d.]+)"/.exec(faceOf('trim'));
+    expect(paint, 'the strip carries its green as paint over the plate').not.toBeNull();
+    expect(Number(paint?.[1])).toBeLessThan(0.7);
+  });
+
+  it('paints the trim strip as a lacquered plate with a soft glare', () => {
+    const face = faceOf('trim');
+    expect(face).toContain('data-paint=""');
+    expect(face).toContain('fill="url(#gg)"');
+  });
+
+  it('moulds the throttle grip as a lit knob, not a flat fill', () => {
+    const grip = read(movingOf('throttle').image);
+    for (const layer of ['bd', 'cs', 'hl', 'tx']) expect(grip, layer).toContain(`url(#${layer})`);
+  });
+
+  it.each(['brake', 'choke'] as const)('ribs and shades the %s grip', (id) => {
+    const grip = read(movingOf(id).image);
+    expect(grip).toContain('clip-path="url(#cp)"');
+    expect(grip).toContain('fill="url(#cs)"');
+    const ribs = grip.match(/stroke-opacity="\.\d+" stroke-width="1\.[4-7]"/g) ?? [];
+    expect(ribs.length).toBeGreaterThan(6);
+  });
+
+  it.each(['throttle', 'choke', 'brake'] as const)(
+    'casts the %s grip shadow like the carb-heat grip',
+    (id) => {
+      for (const grip of [read(movingOf(id).image), read(images.handleCarb)]) {
+        expect(grip).toContain('fill="url(#oc)"');
+        expect(grip).toContain('fill="url(#sk)"');
+      }
+    },
+  );
+
+  it('keeps the brake grip clear of the top of its slot', () => {
+    const grip = read(movingOf('brake').image);
+    const top = Number(/<clipPath id="cp"><path d="M[\d.]+ ([\d.]+)H/.exec(grip)?.[1]);
+    expect(top).toBeGreaterThanOrEqual(59);
+  });
+
+  it('draws the rescue pocket as a screwed plate like its neighbours', () => {
+    const backdrop = readFileSync(new URL('./assets/view-console.svg', import.meta.url), 'utf8');
+    expect(backdrop).not.toContain('<rect x="446" y="490" width="308" height="300"');
+    expect(backdrop).toContain('<g transform="translate(432 0)">');
   });
 
   it('draws the trim wheel rim inboard of its indicator', () => {
