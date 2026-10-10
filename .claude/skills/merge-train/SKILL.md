@@ -38,8 +38,11 @@ For each PR `N`:
 4. **Threads.** Every review thread is resolved (enumerate query in
    `pr-selfreview`). One unresolved thread: stop.
 5. **Merge.** `gh pr merge N --squash --delete-branch --match-head-commit SHA`;
-   leave out `--delete-branch` for a parent with open children (step 7). Run it as a single plain command, with no `--auto`, no quotes, no shell
-   expansion and nothing chained, and put the word merge in no other
+   leave out `--delete-branch` for a parent with open children, listed by
+   `gh api repos/DocGerd/cockpit-procedure-trainer/pulls --raw-field base=<head.ref> --raw-field state=open --method GET --jq .[].number`
+   (step 7; this relies on the repository setting that deletes head branches
+   on landing staying off). Run it as a single plain command, with no
+   `--auto`, no quotes, no shell expansion and nothing chained, and put the word merge in no other
    command (use `--body-file` for PR text). In other `gh`, `curl` and `wget`
    commands, an expansion (`$`, backtick, `%`) is denied only in the
    subcommand words, the `gh api` endpoint, a GraphQL query or the URL; spell
@@ -57,9 +60,14 @@ For each PR `N`:
    (spelled literally; `pr edit --base` is hook-denied). Confirm each child's
    `baseRefName` is `develop`, and only then delete the parent branch with
    `gh api --method DELETE repos/DocGerd/cockpit-procedure-trainer/git/refs/heads/<branch>`.
-   Recovery if a child was closed: recreate the ref at the old SHA (POST
-   `git/refs`), reopen the child (PATCH `pulls/<child>` `state=open`), retarget
-   it, then delete the ref.
+   For any landed PR, if
+   `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<head.ref>`
+   still finds the branch (`--delete-branch` failed while a worktree held it)
+   and no open PR targets it, delete it with the same DELETE call.
+   Recovery if a child was closed: recreate the ref at the parent's
+   `head.sha` (POST `git/refs` with `ref=refs/heads/<branch>` and
+   `sha=<head.sha>`), reopen the child (PATCH `pulls/<child>` `state=open`),
+   retarget it, then delete the ref.
 8. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
    wait for its checks again, and restart at step 2 for it. If `update-branch`
