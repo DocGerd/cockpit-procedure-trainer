@@ -131,6 +131,7 @@
   .shell-outside-view,
   .shell-checklist,
   .dock-hint,
+  .modes-details,
   .app-footer,
   .modal-dialog {
     --text-2xs: 22px;
