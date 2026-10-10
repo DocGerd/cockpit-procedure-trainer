@@ -157,6 +157,7 @@
   flex: 1 1 auto;
   min-width: 0;
   overflow-y: auto;
+  container-type: inline-size;
 }
 
 .picker-list > [role='group'] + [role='group'] {
@@ -200,6 +201,25 @@
 
 .picker-row-title {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Where title and value no longer share a line, the value goes under the title. */
+@container (max-width: 480px) {
+  .picker-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: var(--space-1);
+  }
+
+  .picker-row > .leader {
+    display: none;
+  }
+
+  .picker-row > .picker-meta {
+    white-space: normal;
+  }
 }
 
 .picker-row > .picker-meta {
@@ -460,8 +480,9 @@
     grid-area: drills;
   }
 
-  .shell[data-screen='picker'] .picker-list {
-    max-height: max(calc(var(--space-12) * 5), calc(100dvh - var(--space-12) * 11));
+  /* The tab strip sets the index's least height; the list fills it. */
+  .shell[data-screen='picker'] .picker-index {
+    max-height: max(calc(var(--space-12) * 6), calc(100dvh - var(--space-12) * 11));
   }
 }
 
@@ -524,12 +545,12 @@
   .shell[data-screen='picker'] .picker-index {
     flex: 1 1 0;
     min-height: calc(var(--space-12) * 3);
+    max-height: none;
   }
 
   .shell[data-screen='picker'] .picker-list {
     display: flex;
     flex-direction: column;
-    max-height: none;
   }
 
   .shell[data-screen='picker'] .picker-list > [role='group'] {
