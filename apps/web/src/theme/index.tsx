@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { readSetting, writeSetting } from '../storage';
 
@@ -27,6 +27,21 @@ function applyThemeColorChoice(choice: Theme) {
   }
 }
 
+const FADE_CLASS = 'theme-fading';
+const FADE_SETTLE_MS = 50;
+
+// The class turns the chrome's colour transitions on (styles/theme-fade.css) only while a
+// user-chosen change plays, so the first application and hover transitions are left alone.
+export function parseDurationMs(raw: string): number {
+  const value = Number.parseFloat(raw.trim());
+  if (!Number.isFinite(value)) return 0;
+  return raw.trim().endsWith('ms') ? value : value * 1000;
+}
+
+function fadeDurationMs(root: HTMLElement): number {
+  return parseDurationMs(getComputedStyle(root).getPropertyValue('--duration-theme'));
+}
+
 type ThemeContextValue = { theme: Theme; setTheme(theme: Theme): void };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -45,9 +60,30 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const theme: Theme = choice ?? (systemDark ? 'dark' : 'light');
 
+  const fadeNext = useRef(false);
+  const fadeTimer = useRef<number | undefined>(undefined);
+
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    if (fadeNext.current) {
+      fadeNext.current = false;
+      window.clearTimeout(fadeTimer.current);
+      root.classList.add(FADE_CLASS);
+      fadeTimer.current = window.setTimeout(
+        () => root.classList.remove(FADE_CLASS),
+        fadeDurationMs(root) + FADE_SETTLE_MS,
+      );
+    }
+    root.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(fadeTimer.current);
+      document.documentElement.classList.remove(FADE_CLASS);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (choice) applyThemeColorChoice(choice);
@@ -57,6 +93,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       theme,
       setTheme(next) {
+        fadeNext.current = next !== theme;
         setChoice(next);
         writeSetting('theme', next);
       },
