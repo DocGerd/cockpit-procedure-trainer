@@ -122,6 +122,12 @@ describe('CTSL rescue handle safety pin', () => {
     expect(read(artwork.guardOpen?.stowed ?? '')).not.toContain('url(#fr)');
   });
 
+  it('draws the parachute label as a striped plate, with no amber outline that reads as focus', () => {
+    const face = read(rescue()?.face ?? '');
+    expect(face).toContain('fill="url(#hz)"');
+    expect(face).not.toContain('stroke="#f0a830"');
+  });
+
   it('prints only the parachute label on the face, not RESCUE or PULL HARD', () => {
     const artwork = rescue();
     const inked = [
@@ -534,6 +540,12 @@ describe('CTSL console levers (intake §3.4)', () => {
 
   it('prints the trim strip green', () => {
     expect(faceOf('trim')).toContain('fill="url(#gn)"');
+  });
+
+  it('paints the trim strip as a muted marking, not a lit slab', () => {
+    const paint = /<path\b[^>]*fill="url\(#gn\)"[^>]*fill-opacity="([\d.]+)"/.exec(faceOf('trim'));
+    expect(paint, 'the strip carries its green as paint over the plate').not.toBeNull();
+    expect(Number(paint?.[1])).toBeLessThan(0.7);
   });
 
   it('draws the trim wheel rim inboard of its indicator', () => {
