@@ -414,26 +414,27 @@ test('a surprise failure appears unannounced and the debrief times its recogniti
   ).toBeVisible();
 });
 
-for (const language of ['en', 'de'] as const) {
-  test(`the ${language} drills fit beside the procedures at 1920x1080 once there is history`, async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    const run = { mode: 'practice', deviations: 1, at: 1 };
-    await page.addInitScript(
-      (history) => localStorage.setItem('cpt.history', history),
-      JSON.stringify({ [aircraft.id]: { [engineStart]: { last: run, best: run } } }),
-    );
-    await openPicker(page);
-    await selectLanguage(page, language);
-    const shell = language === 'de' ? copyDe.shell : copy.shell;
-    for (const name of [
-      shell.practiseNext,
-      shell.fullFlight,
-      shell.randomEmergency,
-      shell.surpriseFailure,
-    ]) {
-      await expect(page.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
-    }
-  });
-}
+for (const language of ['en', 'de'] as const)
+  for (const height of [1080, 950]) {
+    test(`the ${language} drills fit beside the procedures at 1920x${height} once there is history`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1920, height });
+      const run = { mode: 'practice', deviations: 1, at: 1 };
+      await page.addInitScript(
+        (history) => localStorage.setItem('cpt.history', history),
+        JSON.stringify({ [aircraft.id]: { [engineStart]: { last: run, best: run } } }),
+      );
+      await openPicker(page);
+      await selectLanguage(page, language);
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
+      for (const name of [
+        shell.practiseNext,
+        shell.fullFlight,
+        shell.randomEmergency,
+        shell.surpriseFailure,
+      ]) {
+        await expect(page.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+      }
+    });
+  }
