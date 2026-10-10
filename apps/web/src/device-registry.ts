@@ -1,5 +1,6 @@
 import type { Device } from '@cpt/core';
 import { comDevice, comScreenEntry } from '@cpt/device-com';
+import { flarmDevice, flarmScreenEntry } from '@cpt/device-flarm';
 import { gpsmap496Device, gpsmap496ScreenEntry } from '@cpt/device-gpsmap496';
 import { gtx327Device, gtx327ScreenEntry } from '@cpt/device-gtx327';
 import { sl40Device, sl40ScreenEntry } from '@cpt/device-sl40';
@@ -13,6 +14,7 @@ export const deviceRegistry: readonly Device[] = [
   sl40Device,
   gtx327Device,
   gpsmap496Device,
+  flarmDevice,
   transponderDevice,
   trt800hDevice,
 ];
@@ -23,6 +25,7 @@ export const deviceEntries: Readonly<Record<string, DeviceScreenEntry>> = {
   [sl40Device.id]: sl40ScreenEntry,
   [gtx327Device.id]: gtx327ScreenEntry,
   [gpsmap496Device.id]: gpsmap496ScreenEntry,
+  [flarmDevice.id]: flarmScreenEntry,
   [transponderDevice.id]: transponderScreenEntry,
   [trt800hDevice.id]: trt800hScreenEntry,
 };

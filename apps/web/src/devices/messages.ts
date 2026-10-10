@@ -20,6 +20,7 @@ export const messages = defineMessages({
 /** The unit's name as the pilot says it, keyed by device id; a device without one is named by its id. */
 export const unitNames = defineMessages({
   en: {
+    flarm: 'FLARM',
     com: 'COM radio',
     sl40: 'COM radio',
     transponder: 'Transponder',
@@ -28,6 +29,7 @@ export const unitNames = defineMessages({
     gpsmap496: 'GPS',
   },
   de: {
+    flarm: 'FLARM',
     com: 'COM-Funkgerät',
     sl40: 'COM-Funkgerät',
     transponder: 'Transponder',
