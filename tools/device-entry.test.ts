@@ -197,7 +197,7 @@ describe('mirror lettering at the panel floor', () => {
     } = await import(resolve(packagesDir, 'aircraft-ctsl/src/views.ts'));
     const slot = ctsl.deviceSlots[SLOT_OF[id] ?? ''];
     if (!slot) throw new Error(`no slot for ${id}`);
-    // The panel's narrowest width (decision on #339); slots scale with it.
+    // The panel's narrowest width, as its cockpit declares it; slots scale with it.
     const cockpit: { cockpit: { views: { panel: { minWidth: number } } } } = await import(
       resolve(packagesDir, 'aircraft-ctsl/src/cockpit.ts')
     );

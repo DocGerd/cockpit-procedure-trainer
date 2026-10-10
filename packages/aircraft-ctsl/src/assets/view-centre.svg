@@ -46,8 +46,8 @@
 <g transform="translate(0 10)"><path d="M860 254.2h2.5V288.2H286.5v-6.2H860z" fill="#000000" fill-opacity="0.2"/><path d="M860 251.5h1.4V285.5H285.4v-3.5H860z" fill="#000000" fill-opacity="0.4"/><rect x="280" y="244" width="580" height="38" rx="4" data-card="" fill="url(#an)"/><rect x="280" y="244" width="580" height="38" rx="4" fill="url(#gr)"/><path d="M280.7 277.3V248.7A4 4 0 0 1 284.7 244.7H855.3" fill="none" stroke="#5A6068" stroke-width="1.4"/><path d="M859.3 248.7V277.3A4 4 0 0 1 855.3 281.3H284.7" fill="none" stroke="#050506" stroke-width="1.4"/><circle cx="291" cy="263" r="4.4" fill="url(#sh)"/><circle cx="849" cy="263" r="4.4" fill="url(#sh)"/>
 <text x="570" y="272" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle">AVIONICS OFF TO START AND STOP</text></g>
 <text x="120" y="378" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">12 V</text>
-<text x="700" y="550" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">FLAPS</text>
-<text x="223" y="886" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">IGNITION</text>
+<text x="700" y="550" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Flaps</text>
+<text x="223" y="886" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Ignition</text>
 <text x="930" y="658" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">BAT</text>
 <text x="1090" y="658" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">GEN</text>
 <rect x="843" y="574" width="334" height="306" rx="6" fill="none" stroke="#ECEAE3" stroke-width="2.5"/>

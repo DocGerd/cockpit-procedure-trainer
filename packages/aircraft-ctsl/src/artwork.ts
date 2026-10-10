@@ -341,20 +341,20 @@ export const controlArtwork = {
   brake: lettered(
     travel(images.leverBrakeFace, images.handleBrake, pullSlide),
     'Brake',
-    'OFF',
-    'ON',
+    'Off',
+    'On',
   ),
   choke: lettered(
     travel(images.leverChokeFace, images.handleChoke, pullSlide),
     'Choke',
-    'OFF',
-    'ON',
+    'Off',
+    'On',
   ),
   throttle: lettered(
     travel(images.leverThrottleFace, images.handleThrottle, [aftEnd, forwardEnd]),
     'Throttle',
-    'FULL',
-    'IDLE',
+    'Full',
+    'Idle',
   ),
   carbHeat: lettered(
     travel(images.leverCarbFace, images.handleCarb, [
@@ -371,8 +371,8 @@ export const controlArtwork = {
       { x: 104, y: 260 },
     ]),
     'Stabilator Trim',
-    'DOWN',
-    'UP',
+    'Down',
+    'Up',
   ),
   rescueHandle: lettered(
     {

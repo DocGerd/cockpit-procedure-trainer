@@ -34,8 +34,8 @@ const drawn: Drawn[] = Object.entries(ctsl.controls).flatMap(([id, control]) => 
 const sliders = drawn.filter(({ steps }) => steps.length > 2);
 
 const legends: Record<string, Record<string, string>> = {
-  throttle: { idle: 'IDLE', full: 'FULL' },
-  trim: { 'nose-down': 'DOWN', 'nose-up': 'UP' },
+  throttle: { idle: 'Idle', full: 'Full' },
+  trim: { 'nose-down': 'Down', 'nose-up': 'Up' },
   flapSelector: {
     'override-up': 'up manually',
     '-12': '-12',
@@ -138,19 +138,19 @@ describe('CTSL notched artwork controls', () => {
     for (const { id, decor, ink } of engraved) expect(decor, id).toEqual(ink);
   });
 
-  it('prints the throttle as the aircraft does: its title, FULL forward and IDLE aft, nothing between', () => {
+  it('prints the throttle as the aircraft does: its title, Full forward and Idle aft, nothing between', () => {
     const throttle = drawn.find(({ id }) => id === 'throttle');
     if (!throttle) throw new Error('the CTSL draws no throttle');
     const svg = faceSvg(throttle.face);
     const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
       ([, text]) => text,
     );
-    expect(printed).toEqual(['Throttle', 'FULL', 'IDLE']);
+    expect(printed).toEqual(['Throttle', 'Full', 'Idle']);
     const { appearance } = throttle.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
       'Throttle',
-      'FULL',
-      'IDLE',
+      'Full',
+      'Idle',
     ]);
     const [from, to] = [throttle.path?.[0], throttle.path?.at(-1)];
     if (!from || !to) throw new Error('the throttle has no travel');
@@ -158,19 +158,19 @@ describe('CTSL notched artwork controls', () => {
     expect(leaders.sort((a, b) => a - b)).toEqual([to.y, from.y]);
   });
 
-  it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no printed neutral legend', () => {
+  it('prints the trim as the aircraft does: its title, Down forward, Up aft and no printed neutral legend', () => {
     const trim = drawn.find(({ id }) => id === 'trim');
     if (!trim) throw new Error('the CTSL draws no trim wheel');
     const svg = faceSvg(trim.face);
     const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
       ([, text]) => text,
     );
-    expect(printed).toEqual(['Stabilator Trim', 'DOWN', 'UP']);
+    expect(printed).toEqual(['Stabilator Trim', 'Down', 'Up']);
     const { appearance } = trim.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
       'Stabilator Trim',
-      'DOWN',
-      'UP',
+      'Down',
+      'Up',
     ]);
     expect(svg.match(/<line\b/g)).toHaveLength(trim.steps.length);
   });

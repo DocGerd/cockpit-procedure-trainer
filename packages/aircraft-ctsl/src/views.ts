@@ -57,7 +57,7 @@ export const views = {
       landingLight: at(900, 16, 150, 219),
       elt: at(292, 386, 160, 160),
       flapBreaker: at(850, 372, 124, 169),
-      ignition: at(93, 610, 260, 260, 'IGNITION'),
+      ignition: at(93, 610, 260, 260, 'Ignition'),
       // After the ignition, so the closed valve's handle lies over the key slot.
       fuelValve: at(161, 392, 124, 382, 'Open', 'Fuel', 'Valve', 'Closed'),
       flapSelector: at(555, 590, 290, 290),
@@ -66,7 +66,7 @@ export const views = {
     },
     indicators: {
       eltLamp: at(458, 431, 100, 64),
-      flapReadout: at(580, 400, 240, 110, 'FLAPS'),
+      flapReadout: at(580, 400, 240, 110, 'Flaps'),
     },
   },
   console: {
