@@ -107,7 +107,7 @@ legends    console    dials      layout
 
 | Value             | Trainer uses                                                                                    |
 | ----------------- | ----------------------------------------------------------------------------------------------- |
-| ASI scale         | 40–340 km/h, numbers every 40, ticks every 20 |
+| ASI scale         | 40–340 km/h, numbers every 20                                                                   |
 | ASI arcs          | white 72–115, green 94–245, yellow 245–300 (white and green lower end not legible; values kept) |
 | VNE / red line    | 300 km/h (162 kt)                                                                               |
 | Max flap −12°     | 300 km/h (placard)                                                                              |
@@ -123,6 +123,7 @@ legends    console    dials      layout
 - **Voltmeter modelled.** The photos show a voltmeter, and §3.5 said there was none. T4 adds it as an indicator reading a bus voltage. The value model is a trainer assumption, recorded in the intake.
 - **Inert art.** The FLARM display, hour meter, cabin-heat knob, red-cross disc and rudder- and aileron-trim wheels are drawn but not operable. They are not used by any procedure, and the decisions table names no such control.
 - **Aircraft name.** "CT Supralight (representative panel)" stays until the owner rules on dropping "representative" once T4 lands. The milestone summary asks.
+- **ASI numerals every 40 (T3).** The settled value is numbers every 20, but fifteen three-digit numerals do not fit the ring at the lettering floor. The dial prints numbers every 40 with ticks every 20; every 20 needs T4's larger gauge or an owner exemption. Recorded in intake §4.3.
 
 ## Review focus
 
