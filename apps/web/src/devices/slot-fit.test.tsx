@@ -33,6 +33,28 @@ const smallestTextPx = (markup: string): number =>
     ),
   );
 
+/** Why this markup does not fit, or is illegible, in a slot of the given size. */
+function markupProblems(where: string, markup: string, slotW: number, slotH: number): string[] {
+  const natural = mirrorSize(markup);
+  const smallestNatural = smallestTextPx(markup);
+  const measures = [natural.width, natural.height, smallestNatural, slotW, slotH];
+  if (!measures.every((measure) => Number.isFinite(measure) && measure > 0)) {
+    return [`${where}: unmeasurable mirror or slot`];
+  }
+  const problems: string[] = [];
+  if (Math.abs(natural.width / natural.height - slotW / slotH) >= 0.005) {
+    problems.push(
+      `${where}: mirror aspect ${(natural.width / natural.height).toFixed(2)} differs from slot ${(slotW / slotH).toFixed(2)}`,
+    );
+  }
+  const scale = Math.min(slotW / natural.width, slotH / natural.height);
+  const smallest = smallestNatural * scale;
+  if (smallest < MIN_TEXT_PX) {
+    problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${MIN_TEXT_PX} px`);
+  }
+  return problems;
+}
+
 /** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 function slotFitProblems(aircraft: Aircraft): string[] {
   const cockpit = aircraft.cockpit;
@@ -50,21 +72,13 @@ function slotFitProblems(aircraft: Aircraft): string[] {
     const markup = renderToStaticMarkup(
       createElement(entry.Display, { on: true, state: device.initial }),
     );
-    const natural = mirrorSize(markup);
     const unit = minWidth / viewWidth;
-    const [slotW, slotH] = [install.placement.rect.w * unit, install.placement.rect.h * unit];
-    const problems: string[] = [];
-    if (Math.abs(natural.width / natural.height - slotW / slotH) >= 0.005) {
-      problems.push(
-        `${where}: mirror aspect ${(natural.width / natural.height).toFixed(2)} differs from slot ${(slotW / slotH).toFixed(2)}`,
-      );
-    }
-    const scale = Math.min(slotW / natural.width, slotH / natural.height);
-    const smallest = smallestTextPx(markup) * scale;
-    if (smallest < MIN_TEXT_PX) {
-      problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${MIN_TEXT_PX} px`);
-    }
-    return problems;
+    return markupProblems(
+      where,
+      markup,
+      install.placement.rect.w * unit,
+      install.placement.rect.h * unit,
+    );
   });
 }
 
@@ -78,6 +92,13 @@ describe('the mirror in each installed slot', () => {
     const withDock = aircraftRegistry.filter((aircraft) => aircraft.cockpit);
     expect(withDock.length).toBeGreaterThan(0);
     expect(withDock.flatMap(slotFitProblems)).toEqual([]);
+  });
+
+  it('reports a mirror or slot it cannot measure instead of passing it', () => {
+    expect(markupProblems('x', '<div></div>', 100, 100).join('\n')).toContain('unmeasurable');
+    expect(markupProblems('x', '<div></div>', Number.NaN, 100).join('\n')).toContain(
+      'unmeasurable',
+    );
   });
 
   describe('a test-local aircraft with a mismatched slot', () => {
