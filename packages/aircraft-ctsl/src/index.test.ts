@@ -81,7 +81,7 @@ const expectedControls: Record<string, Expected> = {
   carbHeat: offOn,
   trim: {
     kind: 'lever',
-    positions: ['nose-down', 'neutral', 'nose-up'],
+    positions: ['nose-down', 'half-down', 'neutral', 'half-up', 'nose-up'],
     initial: 'neutral',
     view: 'console',
   },
@@ -199,6 +199,15 @@ describe('CTSL aircraft', () => {
   it('marks carb heat as provisional', () => {
     expect(ctslAircraft.controls.carbHeat?.description.en).toMatch(/provisional/i);
     expect(ctslAircraft.controls.carbHeat?.description.de).toMatch(/vorläufig/i);
+  });
+
+  it('trims in steps, neutral in the middle and each end reachable', () => {
+    const { positions, initial } = ctslAircraft.controls.trim ?? { positions: [], initial: '' };
+    expect(positions.length).toBeGreaterThan(3);
+    expect(positions[0]).toBe('nose-down');
+    expect(positions[positions.length - 1]).toBe('nose-up');
+    expect(positions[(positions.length - 1) / 2]).toBe('neutral');
+    expect(initial).toBe('neutral');
   });
 
   it('declares exactly the indicators of the analog panel', () => {
