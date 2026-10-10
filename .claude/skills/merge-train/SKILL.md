@@ -11,8 +11,11 @@ Argument: one or more PR numbers, merged in the order given. Called by the
 For each PR `N`:
 
 1. **Base.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .base.ref` must print
-   `develop`. Anything else: stop. Merging into `main` is never done from here,
-   by any source; the release PR `develop` to `main` is the owner's to merge.
+   `develop`. If `base.ref` is the `head.ref` of another open PR (the parent),
+   merge the parent first: it must come earlier in the argument list, or the
+   train stops. Never merge a PR while its base is a feature branch (the hook
+   refuses it anyway). Any other non-`develop` base: stop. Merging into `main`
+   is never done from here, by any source; the release PR `develop` to `main` is the owner's to merge.
    A PreToolUse hook (`.claude/hooks/block-main-merge.sh`) is an accident
    tripwire, not a security boundary: it allows only the single plain
    `gh pr merge` shape in step 5 for a PR whose base is `develop`, and denies
@@ -48,6 +51,22 @@ For each PR `N`:
 6. **Confirm.** `gh pr view N --json state --jq .state` prints `MERGED`, and
    each `Closes #n` issue reads `closed`. If the merge call errored, read that
    state before any retry; never retry blind.
-7. **Next PR.** If the next PR is behind `develop`, run
+7. **Children.** After a parent lands, check
+   `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<parent head.ref>`
+   (spelled literally). If the branch still exists (`--delete-branch` failed
+   while a worktree held it), remove the parent's worktree first, then delete
+   the branch with
+   `gh api --method DELETE repos/DocGerd/cockpit-procedure-trainer/git/refs/heads/<branch>`.
+   GitHub then retargets each child to `develop`. Re-read each child's
+   `base.ref`: it must be `develop`, otherwise stop and report (`pr edit --base`
+   is hook-denied, so retargeting falls to the owner). Continue with step 8 for
+   the child.
+8. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
-   wait for its checks again, and restart at step 2 for it.
+   wait for its checks again, and restart at step 2 for it. If `update-branch`
+   fails with a conflict (a child edited lines its parent introduced), hand the
+   child back to its owning agent: it runs a plain `git merge origin/develop` in
+   its own worktree (hook-allowed), resolves keeping its layer, and pushes
+   fast-forward; never rebase or force-push. Then restart at step 2.
+
+GitHub Stacks (`gh-stack`) is not used: it needs force-push and `gh stack merge`, both guard-blocked; native retargeting covers chains.

@@ -52,9 +52,11 @@ workflow changes. Each implementer:
 
 1. Works test-first and runs the project checks before pushing.
 2. Adds `changelog.d/<issue>.<category>.md`; every PR carries one.
-3. Opens a PR with base `develop`, body starting `Closes #<issue>`, a
-   `## Decisions` section for anything the spec and plan do not settle, and the
-   attribution line `CLAUDE.md` requires.
+3. Opens a PR with base `develop`, except when the issue depends on an
+   unmerged PR: then the base is that PR's branch and the body carries
+   `Depends on #<parent PR>`. The body starts `Closes #<issue>`, has a
+   `## Decisions` section for anything the spec and plan do not settle, and
+   the attribution line `CLAUDE.md` requires.
 4. Writes its report to a scratch location outside the repository, because a
    worktree agent cannot write elsewhere, and returns the PR number, the head
    SHA and a summary of at most 25 lines.
@@ -66,7 +68,8 @@ each PR. Reviewers must be an agent type that can run `gh` and post comments;
 a read-only agent type cannot post review threads. The implementer fixes the
 findings and the reviewer's threads are resolved. At most two fix waves per
 PR; leftovers become follow-up issues.
-Then the `merge-train` skill merges the PRs into `develop`, one at a time.
+Then the `merge-train` skill merges the PRs into `develop`, one at a time;
+pass parents before children.
 Never merge into `main`; a tripwire hook denies the usual forms, but the rule
 is yours to keep.
 
