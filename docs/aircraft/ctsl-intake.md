@@ -180,7 +180,7 @@ wording either. The type-name script lettering is not reproduced.
 
 - A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
   disc with a red cross (not identified), both inert art.
-- The FLARM display (inert art) left of the GPS; the GPS in its cradle (device slot);
+- The FLARM display (inert art here; M18 builds it, §2a item 5) left of the GPS; the GPS in its cradle (device slot);
   the COM radio and the transponder side by side below it (device slots). The
   existing SL40, GTX 327 and GPSMAP 496 move here unchanged; the round funkwerk units
   and the Garmin aera-like GPS come in M18.
@@ -458,7 +458,7 @@ left, with its status LEDs); a version label; a second copy of the take-off
 checklist summary; the GPS, a Garmin unit in a cradle (the model plate reads
 like aera 500, not fully legible); then two round radios side by
 side: a funkwerk **COM** radio (left; printed "COM", keys "I/O", "SET", "MEM",
-"VOL/SQL", "DW" and arrows, an active and a standby frequency, a volume line)
+"VOL/SQL" (corrected to VOL/SEL in §3.8.1), "DW" and arrows, an active and a standby frequency, a volume line)
 and a funkwerk transponder (right; printed "ATC", keys "I/O", "VFR", "ID",
 "MODE" and arrows, a code, a flight-level and a "STBY" line). Model names not
 legible.
@@ -663,7 +663,7 @@ does not.
 | `I/O`                                       | about 3 s                                                | switches off                                                                                                                 |
 | `SET` (entry)                               | short                                                    | steps the third display line through VOL, SQL, VOX, INT, STL, STR, EXT, BRT, then VOL again                                  |
 | `SET`                                       | short, inside a MEM or LST list                          | loads the shown entry into the standby frequency                                                                             |
-| `SET`                                       | 5 s or more                                              | opens the installer setup menu (not modelled)                                                                                |
+| `SET`                                       | 5 s or more                                              | opens the setup menu: pilot items (spacing, display, dual watch, PTT select), then installer items (not modelled)            |
 | `MEM`                                       | short                                                    | opens the 20 user memories; a second short press opens the list of the last 10 active frequencies (LST)                      |
 | `MEM`                                       | hold (2 s in the key table, 1.5 s in the worked example) | opens save mode: pick a slot, then a short press writes the frequency                                                        |
 | `DW` (dual watch)                           | short                                                    | toggles dual watch, line 2 reads `DW` instead of `SBY`; in any menu or list it returns to the standard display               |
@@ -729,8 +729,8 @@ these steps are assembled from its functions.
   memories, split sidetone items or other II features; whether anything is printed
   at the lower-right knob (§9 question 36).
 - The manual contradicts itself on several small points: the MEM hold time; whether
-  a save stores the active or the standby frequency (the key table says active, the
-  worked example standby); whether REPLAY needs a hold or a press; the volume range
+  a save stores the active or the standby frequency (the key table, §2.1, and the
+  worked example say standby, the display table, §2.3, says active); whether REPLAY needs a hold or a press; the volume range
   (1 to 20 or 0 to 20); how a list is left (`DW` or `SET`); and a memory-clear hold
   of `►` that only a flow chart shows. The trainer's choice for each is in the
   Trainer paragraph below or the M18 plan.
@@ -752,9 +752,10 @@ visible lettering (§9 question 36).
 #### 3.8.2 Transponder: funkwerk TRT800H-OLED
 
 **Identification.** A round 57 mm funkwerk Mode S transponder with a yellow OLED, in
-a square bezel with four corner screws, `ATC` printed vertically on the left. It is
-the TRT800H-OLED: the TRT800A-OLED has the same controls but a flat rectangular
-housing, so the round 57 mm body settles the variant. The older Filser TRT800 (a
+a square bezel with three corner screws and the knob in the fourth corner, `ATC` printed vertically on the left. It is
+the TRT800H-OLED: the TRT800A-OLED is a different, rectangular unit with seven
+buttons (it adds `MOD` and `FID`) in another layout, so the round 57 mm body
+settles the variant. The older Filser TRT800 (a
 square face with four knobs and an LCD) is a different face. Certainty: high on the
 family and variant, from the housing; the software version and cradle contents are
 not visible (§9 question 37).
@@ -797,7 +798,7 @@ DC, FPG), `BAT` or `DIM` at the right. Line 3: `IDT` at the left during ident, t
 flight level (`FL 030`, in 100 ft steps) at the right; `FLerr` for an invalid altitude
 outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code at the
 right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
-switch if one is fitted; `TM` marks test mode.
+switch if one is fitted. `TM` at the far right of the top line marks test mode.
 
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
@@ -949,7 +950,8 @@ screen (other makers) are rejected, as are the LXNAV LED displays with bicolour 
 five-LED status column. Two things the photos cannot show: whether the face is a separate
 display or the front of a panel unit, and which FLARM unit drives it (§9 question 39).
 Which maker of the two similar classic displays this is rests on the labels `above`,
-`below`, `RX`, `TX`, `GPS`, `Power` and `Mode` and red-only ring LEDs.
+`below`, `RX`, `TX`, `GPS`, `Power` and `Mode`, and on the EDIATec sheet's red-only ring LEDs (the photo identification
+does not give the ring colour).
 
 **Panel position.** Upper-centre field, top-left corner: above the GPS, left of the
 take-off checklist placard and just below the glareshield strip.

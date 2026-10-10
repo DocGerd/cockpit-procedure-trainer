@@ -151,7 +151,7 @@ Files: `docs/aircraft/ctsl-intake.md`, `docs/superpowers/specs/2026-10-05-cockpi
 - [ ] Spec §2 decisions table, new row after "Visual design": `| Avionics (CTSL) | D-MPGO's installed units: funkwerk ATR833-OLED COM and TRT800H-OLED transponder (round 57 mm), Garmin aera 500 in its cradle, and the classic FLARM external LED display; they replace SL40, GTX 327 and GPSMAP 496 (owner decision 2026-10-10). ATR833 facts come from the ATR833-II manual, limited to D-MPGO's face. The FLARM has no traffic (§4.9 scope). |`
 - [ ] Spec §4.9 scope paragraph: the CTSL's GPS (aera 500) finds its fix after a short search once powered or is seeded from line-up; the FLARM display finds its own; neither shows traffic, map data or a database.
 - [ ] Spec §11 ticket 47: done in M18, one issue per unit.
-- [ ] This plan with the filed issue numbers, then `pnpm exec prettier --write` on the three files (`format:check` runs on Markdown).
+- [ ] This plan with the filed issue numbers, then `pnpm exec prettier --write docs/aircraft/ctsl-intake.md` (`.prettierignore` excludes `docs/superpowers`, so `format:check` skips the plan and the spec).
 
 ### W1b Slot-fit test harness (`#673`)
 
@@ -205,7 +205,7 @@ Face: square bezel, round 57 mm face, `COM` printed vertically on the left; keys
 
 ### W2.2 TRT800H transponder (`trt800h`, intake §3.8.2)
 
-Face: square bezel with four screws, round 57 mm face, `ATC` printed vertically on the left; keys I/O, VFR, ID above the display, MODE, ▲▼, ► below; one unlettered knob at lower right.
+Face: square bezel with three screws and the knob in the fourth corner, round 57 mm face, `ATC` printed vertically on the left; keys I/O, VFR, ID above the display, MODE, ▲▼, ► below; one unlettered knob at lower right.
 
 | Control  | Kind                                     | Dock key text (`data-position`)    | Function                                                                                                                                                                                           |
 | -------- | ---------------------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
