@@ -1,4 +1,5 @@
 import type { Device } from '@cpt/core';
+import { atr833Device, atr833ScreenEntry } from '@cpt/device-atr833';
 import { comDevice, comScreenEntry } from '@cpt/device-com';
 import { gpsmap496Device, gpsmap496ScreenEntry } from '@cpt/device-gpsmap496';
 import { gtx327Device, gtx327ScreenEntry } from '@cpt/device-gtx327';
@@ -9,6 +10,7 @@ import type { ComponentType } from 'react';
 
 export const deviceRegistry: readonly Device[] = [
   comDevice,
+  atr833Device,
   sl40Device,
   gtx327Device,
   gpsmap496Device,
@@ -18,6 +20,7 @@ export const deviceRegistry: readonly Device[] = [
 /** What each device draws, keyed by device id; a device without an entry shows a placeholder. */
 export const deviceEntries: Readonly<Record<string, DeviceScreenEntry>> = {
   [comDevice.id]: comScreenEntry,
+  [atr833Device.id]: atr833ScreenEntry,
   [sl40Device.id]: sl40ScreenEntry,
   [gtx327Device.id]: gtx327ScreenEntry,
   [gpsmap496Device.id]: gpsmap496ScreenEntry,

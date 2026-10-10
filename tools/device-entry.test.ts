@@ -25,6 +25,7 @@ const FRAME_CHROME_PX = 2 * (token('space-2') + token('space-1'));
 const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
   com: [456, 204],
   sl40: [352, 136],
+  atr833: [440, 194],
   transponder: [584, 160],
   gtx327: [400, 132],
   gpsmap496: [220, 160],
