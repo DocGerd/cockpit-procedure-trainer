@@ -72,7 +72,8 @@ a read-only agent type cannot post review threads. The implementer fixes the
 findings and the reviewer's threads are resolved. At most two fix waves per
 PR; leftovers become follow-up issues.
 Then the `merge-train` skill merges the PRs into `develop`, one at a time;
-pass parents before children.
+pass parents before children; the train retargets each child to `develop`
+before it deletes the parent's branch.
 Never merge into `main`; a tripwire hook denies the usual forms, but the rule
 is yours to keep.
 
