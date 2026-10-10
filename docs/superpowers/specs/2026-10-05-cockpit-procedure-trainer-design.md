@@ -52,6 +52,7 @@ architecture that lets aircraft be added.
 | Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
 | Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
 | Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design. |
+| Avionics (CTSL) | D-MPGO's installed units: funkwerk ATR833-OLED COM and TRT800H-OLED transponder (round 57 mm), Garmin aera 500 in its cradle, and the classic FLARM external LED display; they replace SL40, GTX 327 and GPSMAP 496 (owner decision 2026-10-10). ATR833 facts come from the ATR833-II manual, limited to D-MPGO's face. The old three device packages stay in the repository, unregistered. The FLARM has no traffic (§4.9 scope). |
 
 ## 3. Architecture
 
@@ -329,10 +330,11 @@ viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
 works; nothing that needs the outside world does. No audio, no reception, no
-navigation database, no map data. The CTSL's GPS has a simulated position fix
-instead: seeded from line-up, or found after a short search when switched on by
-hand, with ground speed and track taken from the airspeed and heading and a
-schematic track-up map. Each device states the manual revision its
+navigation database, no map data. The CTSL's GPS (the aera 500) has a simulated
+position fix instead: seeded from line-up, or found after a short search once it is
+powered, with ground speed and track taken from the airspeed and heading and a
+schematic track-up map. The CTSL's FLARM display finds its own fix the same way;
+neither shows traffic, map data or a database. Each device states the manual revision its
 logic follows and lists the functions it does not model.
 
 ## 5. Runtime
@@ -649,7 +651,7 @@ parallel.
 40. Normal procedures
 41. Emergency procedures and failures
 42. Control and gauge artwork matching the real panel, replacing generic widgets
-47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake
+47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake (done in M18, one issue per unit)
 
 Ticket numbers are spec ids, not GitHub issue numbers.
 
