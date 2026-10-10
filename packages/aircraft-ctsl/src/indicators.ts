@@ -1,5 +1,6 @@
 import type { IndicatorDefinition } from '@cpt/core';
 import { gaugeArtwork, lampArtwork } from './artwork';
+import { FT_PER_MIN_PER_MS } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
 
@@ -27,7 +28,7 @@ export const indicators = {
   },
   verticalSpeed: {
     name: text('Variometer', 'Vertical speed indicator'),
-    select: (state: CtslTrainerState) => state.systems.verticalSpeedMs,
+    select: (state: CtslTrainerState) => state.systems.verticalSpeedMs * FT_PER_MIN_PER_MS,
     appearance: gaugeArtwork.verticalSpeed,
   },
   tachometer: {

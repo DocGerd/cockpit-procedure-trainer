@@ -520,6 +520,24 @@ describe('flaps', () => {
     expect(cruise.state().flaps).toEqual({ angle: -12, moving: true });
   });
 
+  it('do not return to -12° above its max flap speed of 300 km/h', () => {
+    const climbOut = (airspeedKt: number) => {
+      const fast = rig('cruise', [], { airspeedKt, altitudeFt: 2500, onGround: false });
+      fast.set('flapSelector', 'override-up');
+      fast.advance(10);
+      expect(fast.state().flaps.angle).toBeLessThan(-12);
+      fast.set('flapSelector', '-12');
+      fast.advance(10);
+      return fast.state();
+    };
+    const over = climbOut(170);
+    expect(over.airspeedKmh).toBeGreaterThan(300);
+    expect(over.flaps.angle).toBeLessThan(-12);
+    const under = climbOut(160);
+    expect(under.airspeedKmh).toBeLessThan(300);
+    expect(under.flaps).toEqual({ angle: -12, moving: false });
+  });
+
   it('extend below the max flap speed', () => {
     const approach = rig('approach');
     expect(approach.state().airspeedKmh).toBeLessThan(115);
@@ -797,6 +815,16 @@ describe('entry snapshots', () => {
 });
 
 describe('indicators', () => {
+  it('read the vertical speed in ft/min while the model keeps m/s', () => {
+    const reading = (phase: PhaseId) =>
+      indicators.verticalSpeed.select(trainerState(sessionAt(phase)));
+    expect(reading('departure')).toBeCloseTo(600, 0);
+    expect(reading('approach')).toBeCloseTo(-400, 0);
+    expect(reading('cruise')).toBe(0);
+    expect(phases.departure.entry.state.verticalSpeedMs).toBeCloseTo(3.048, 3);
+    expect(phases.approach.entry.state.verticalSpeedMs).toBeCloseTo(-2.032, 3);
+  });
+
   it('leave the flap readout dark while its circuit has no power', () => {
     const session = sessionAt('cruise');
     const readout = () => indicators.flapReadout.select(trainerState(session));

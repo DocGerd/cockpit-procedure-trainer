@@ -600,6 +600,11 @@ minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
 ticks every 500. Systems may keep metres per second internally; the gauge shows
 ft/min (1 m/s ≈ 197 ft/min).
 
+Trainer deviation (agent decision, M17 T3, open for the owner): the drawn
+airspeed dial prints numbers every 40 (40 to 320) with ticks every 20, because
+fifteen three-digit numerals do not fit the ring at the lettering floor; numbers
+every 20 need a larger gauge (M17 T4's layout) or an owner exemption.
+
 ### 4.4 Fuel, flaps, masses
 
 - Two wing tanks, 65 l each. **Usable 124 l (62 per side)** (§8). The photos show
