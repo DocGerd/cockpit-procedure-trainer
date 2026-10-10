@@ -14,6 +14,7 @@
     "@cpt/aircraft-demo": "workspace:*",
     "@cpt/core": "workspace:*",
     "@cpt/device-aera500": "workspace:*",
+    "@cpt/device-atr833": "workspace:*",
     "@cpt/device-com": "workspace:*",
     "@cpt/device-flarm": "workspace:*",
     "@cpt/device-gpsmap496": "workspace:*",
