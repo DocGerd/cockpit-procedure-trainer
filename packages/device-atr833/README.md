@@ -19,7 +19,7 @@ is open (intake section 9, question 36). Assumptions, none checked against a uni
 - A frequency that becomes active joins the last-active list once, newest first, up to 10. A third MEM release closes the lists.
 - Saving writes the standby frequency (key table and worked example) and shows `>` before it until the standby frequency changes. The hold is 1.5 s, the shorter of the manual's two times.
 - A browsed list entry shows its frequency on the standby line, without the `SBY` label; the manual does not say where. Loading an empty entry does nothing.
-- Setting ranges: VOL, INT, STL and STR 1 to 20; SQL, VOX and BRT 0 to 9; EXT 0 to 20, shown as off at 0. Defaults other than SQL 5 are placeholders.
+- Setting ranges: VOL, INT, STL and STR 1 to 20; SQL, VOX and BRT 0 to 9; EXT 0 to 20, shown as off at 0. The intake gives no default for any setting, so every default (SQL 5 included) is a placeholder.
 - The knob unlettered on the face is `freq`, the manual's name for it; the trainer prints `FREQ` on its keys, which is not visible lettering.
 - Initial frequencies 118.000 active and 119.000 standby are placeholders.
 
