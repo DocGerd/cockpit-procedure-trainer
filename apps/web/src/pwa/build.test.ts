@@ -129,6 +129,50 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
     }
   });
 
+  it('ships fonts as files, never as data URIs, with only the latin and latin-ext faces', async () => {
+    const { dir, files } = output();
+    const styles = await Promise.all(
+      files
+        .filter((file) => file.endsWith('.css'))
+        .map((file) => readFile(join(dir, file), 'utf8')),
+    );
+    const css = styles.join('\n');
+    expect(css).not.toMatch(/url\(\s*["']?data:font/);
+    expect(css.match(/@font-face/g)).toHaveLength(10);
+  });
+
+  it('preloads the regular and semibold Geist latin files it ships', async () => {
+    const html = await readFile(join(output().dir, 'index.html'), 'utf8');
+    const preloads = [...html.matchAll(/<link rel="preload" as="font"[^>]*href="([^"]+)"[^>]*>/g)];
+    expect(preloads.map((match) => match[0])).toEqual([
+      expect.stringContaining('crossorigin'),
+      expect.stringContaining('crossorigin'),
+    ]);
+    const hrefs = preloads.map((match) => match[1] ?? '');
+    expect(hrefs.map((href) => basename(href).replace(/-[\w-]{8}\.woff2$/, ''))).toEqual([
+      'geist-latin-400-normal',
+      'geist-latin-600-normal',
+    ]);
+    for (const href of hrefs) {
+      expect(href.startsWith(base)).toBe(true);
+      expect(output().files).toContain(href.slice(base.length));
+    }
+  });
+
+  it('loads the trainer screen on demand from a precached chunk', async () => {
+    const html = await readFile(join(output().dir, 'index.html'), 'utf8');
+    const trainer = output().files.filter((file) => /^assets\/TrainerLayout-.+\.js$/.test(file));
+    expect(trainer).toHaveLength(1);
+    expect(html).not.toContain(trainer[0]);
+    expect(output().precache).toContain(trainer[0]);
+  });
+
+  it('keeps every stylesheet in the entry, so the cascade order does not depend on the trainer chunk', () => {
+    expect(output().files.filter((file) => /^assets\/TrainerLayout-.+\.css$/.test(file))).toEqual(
+      [],
+    );
+  });
+
   it('precaches every aircraft image, emitted or inlined into a precached script', async () => {
     const urls = [...imageUrls(aircraftRegistry)];
     expect(urls.length).toBeGreaterThan(0);

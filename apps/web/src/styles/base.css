@@ -68,7 +68,187 @@ body {
 }
 
 .button-secondary {
-  color: var(--color-accent);
-  background: transparent;
-  border: 1px solid currentColor;
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+  border: 0;
+}
+
+@media (hover: hover) {
+  :where(.chrome-button:enabled):hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-muted);
+  }
+
+  :where(.button-primary:enabled):hover {
+    background-color: var(--color-accent-strong);
+  }
+
+  :where(.button-secondary:enabled):hover {
+    background-color: var(--color-border);
+  }
+}
+
+:where(.chrome-button:enabled):active {
+  color: var(--color-text);
+  background-color: var(--color-border);
+}
+
+:where(.button-secondary:enabled):active {
+  background-color: color-mix(in srgb, var(--color-text) 12%, var(--color-surface-muted));
+}
+
+:where(.button-primary:enabled):active {
+  background-color: color-mix(in srgb, var(--color-accent-strong) 85%, var(--color-text));
+}
+
+.chrome-button,
+.button-primary,
+.button-secondary,
+.switch {
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    background-position var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings:
+    'tnum' 1,
+    'zero' 1,
+    'liga' 0,
+    'calt' 0;
+}
+
+/* The track is the content box; the padding around it makes the whole box the touch target. */
+.switch {
+  --switch-pad: calc((var(--size-target) - var(--space-6)) / 2);
+  flex: none;
+  box-sizing: border-box;
+  width: calc(var(--size-target) + 2 * var(--switch-pad));
+  height: var(--size-target);
+  margin: 0;
+  padding: var(--switch-pad);
+  appearance: none;
+  cursor: pointer;
+  background-color: var(--color-text-muted);
+  background-image: radial-gradient(
+    circle closest-side,
+    var(--color-surface) 75%,
+    transparent calc(75% + 1px)
+  );
+  background-position: left center;
+  background-size: var(--space-6) var(--space-6);
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  background-clip: content-box;
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.switch:checked {
+  background-color: var(--color-accent);
+  background-position: right center;
+}
+
+.switch:focus-visible {
+  outline-offset: calc(-1 * var(--space-2));
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* The dots sit on the text baseline when the row aligns its items on the baseline. */
+.leader {
+  flex: 1 1 var(--space-4);
+  align-self: baseline;
+  min-width: var(--space-4);
+  border-block-end: 1px dotted var(--color-text-muted);
+}
+
+.datum {
+  margin: 0;
+  border: 0;
+  border-block-start: 1px solid var(--color-border);
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+@property --scroll-fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* Content fades out only at an edge that has more to scroll to. */
+.scroll-fade {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--color-text) var(--scroll-fade-start),
+    var(--color-text) calc(100% - var(--scroll-fade-end)),
+    transparent
+  );
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade {
+    animation: scroll-fade linear both;
+    animation-timeline: scroll(self);
+  }
+}
+
+@keyframes scroll-fade {
+  0% {
+    --scroll-fade-start: 0px;
+    --scroll-fade-end: var(--space-6);
+  }
+
+  8%,
+  92% {
+    --scroll-fade-start: var(--space-6);
+    --scroll-fade-end: var(--space-6);
+  }
+
+  100% {
+    --scroll-fade-start: var(--space-6);
+    --scroll-fade-end: 0px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chrome-button,
+  .button-primary,
+  .button-secondary,
+  .switch {
+    transition: none;
+  }
+
+  .scroll-fade {
+    animation: none;
+  }
 }

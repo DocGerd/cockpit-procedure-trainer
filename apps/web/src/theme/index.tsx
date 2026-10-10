@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { readSetting, writeSetting } from '../storage';
 
@@ -27,6 +27,27 @@ function applyThemeColorChoice(choice: Theme) {
   }
 }
 
+// Run before the first render, so no surface paints in the other theme and then transitions.
+export function applyInitialTheme() {
+  document.documentElement.dataset.theme =
+    storedTheme() ?? (systemMedia()?.matches ? 'dark' : 'light');
+}
+
+const FADE_CLASS = 'theme-fading';
+const FADE_SETTLE_MS = 50;
+
+// The class turns the chrome's colour transitions on (styles/theme-fade.css) only while a
+// user-chosen change plays, so the first application and hover transitions are left alone.
+export function parseDurationMs(raw: string): number {
+  const value = Number.parseFloat(raw.trim());
+  if (!Number.isFinite(value)) return 0;
+  return raw.trim().endsWith('ms') ? value : value * 1000;
+}
+
+function fadeDurationMs(root: HTMLElement): number {
+  return parseDurationMs(getComputedStyle(root).getPropertyValue('--duration-theme'));
+}
+
 type ThemeContextValue = { theme: Theme; setTheme(theme: Theme): void };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -45,9 +66,30 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const theme: Theme = choice ?? (systemDark ? 'dark' : 'light');
 
+  const fadeNext = useRef(false);
+  const fadeTimer = useRef<number | undefined>(undefined);
+
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    const root = document.documentElement;
+    if (fadeNext.current) {
+      fadeNext.current = false;
+      window.clearTimeout(fadeTimer.current);
+      root.classList.add(FADE_CLASS);
+      fadeTimer.current = window.setTimeout(
+        () => root.classList.remove(FADE_CLASS),
+        fadeDurationMs(root) + FADE_SETTLE_MS,
+      );
+    }
+    root.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(fadeTimer.current);
+      document.documentElement.classList.remove(FADE_CLASS);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (choice) applyThemeColorChoice(choice);
@@ -57,6 +99,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       theme,
       setTheme(next) {
+        fadeNext.current = next !== theme;
         setChoice(next);
         writeSetting('theme', next);
       },
@@ -74,23 +117,49 @@ export function useTheme(): ThemeContextValue {
 }
 
 export type ThemeSwitchLabels = {
-  light: string;
-  dark: string;
   switchToLight: string;
   switchToDark: string;
 };
 
+function ThemeIcon({ theme }: { theme: Theme }) {
+  return (
+    <svg
+      className="theme-icon"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      data-icon={theme}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {theme === 'dark' ? (
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+      ) : (
+        <>
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/** Shows the theme in use; its name says the theme it switches to. */
 export function ThemeSwitch({ labels }: { labels: ThemeSwitchLabels }) {
   const { theme, setTheme } = useTheme();
   const next: Theme = theme === 'dark' ? 'light' : 'dark';
+  const label = next === 'dark' ? labels.switchToDark : labels.switchToLight;
   return (
     <button
       type="button"
-      className="chrome-button"
-      aria-label={next === 'dark' ? labels.switchToDark : labels.switchToLight}
+      className="chrome-button theme-switch"
+      aria-label={label}
+      title={label}
       onClick={() => setTheme(next)}
     >
-      {next === 'dark' ? labels.dark : labels.light}
+      <ThemeIcon theme={theme} />
     </button>
   );
 }

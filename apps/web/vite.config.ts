@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { contentSecurityPolicy } from './src/csp';
 import { deployEnv } from './src/deploy-env';
 import { pwaColors, pwaOptions } from './src/pwa/config';
+import { latinFontFaces } from './src/styles/font-subsets';
 import { copyrightNotice, latestRelease } from './src/version';
 
 const base = process.env.BASE_PATH ?? '/';
@@ -60,17 +61,57 @@ const themeColorMeta: Plugin = {
     })),
 };
 
+const latinFontsOnly: Plugin = {
+  name: 'latin-fonts-only',
+  enforce: 'pre',
+  transform: (code, id) =>
+    /[\\/]@fontsource[\\/][\w-]+[\\/]\d+\.css$/.test(id) ? latinFontFaces(code) : undefined,
+};
+
+const preloadedFonts = ['geist-latin-400-normal', 'geist-latin-600-normal'];
+
+const fontPreload: Plugin = {
+  name: 'font-preload',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler: (_html, { bundle }) =>
+      preloadedFonts.map((name) => {
+        const file = Object.keys(bundle ?? {}).find((key) =>
+          new RegExp(`/${name}-[\\w-]+\\.woff2$`).test(key),
+        );
+        if (!file) throw new Error(`The build emitted no ${name}.woff2 to preload`);
+        return {
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            as: 'font',
+            type: 'font/woff2',
+            href: `${base}${file}`,
+            crossorigin: '',
+          },
+          injectTo: 'head',
+        };
+      }),
+  },
+};
+
 export default defineConfig({
   base,
   define: {
     'import.meta.env.VITE_APP_RELEASE': JSON.stringify(release),
     'import.meta.env.VITE_COPYRIGHT': JSON.stringify(copyright),
   },
+  build: {
+    assetsInlineLimit: (file) => (/\.woff2?$/.test(file) ? false : undefined),
+  },
   plugins: [
     react(),
+    latinFontsOnly,
     noindexForUat,
     strictCsp,
     themeColorMeta,
+    fontPreload,
     VitePWA(pwaOptions(base, env, pwaColors(tokens))),
   ],
 });

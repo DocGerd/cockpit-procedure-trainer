@@ -109,6 +109,8 @@ const pairs: [foreground: string, background: string][] = [
   ),
   ['--color-accent', '--color-surface'],
   ['--color-on-accent', '--color-accent'],
+  ['--color-accent-strong', '--color-surface'],
+  ['--color-on-accent', '--color-accent-strong'],
 ];
 
 describe('WCAG AA contrast', () => {
@@ -122,6 +124,12 @@ describe('WCAG AA contrast', () => {
         expect(contrast(fg ?? '', bg ?? '')).toBeGreaterThanOrEqual(4.5);
       });
     }
+    it(`${name}: the strong accent stands further from the surface than the accent`, () => {
+      const surface = tokens.get('--color-surface') ?? '';
+      expect(contrast(tokens.get('--color-accent-strong') ?? '', surface)).toBeGreaterThan(
+        contrast(tokens.get('--color-accent') ?? '', surface),
+      );
+    });
   }
 });
 
@@ -188,8 +196,12 @@ describe('tokens.css matches the DocGerdSoft brand bundle', () => {
 });
 
 describe('the chrome scale on 4K screens', () => {
+  it('keeps the measure in characters, so it follows the scaled type', () => {
+    expect(root.get('--measure')).toMatch(/^\d+ch$/);
+  });
+
   const scaled = block(/@media \(min-width: 3200px\) \{\s*\.shell-header,[^{]*\{/g);
-  const sized = /^--(text|leading|space|radius|size)-(?!pill)/;
+  const sized = /^--(text|leading|space|radius|size|content)-(?!pill)/;
 
   it('overrides every size token', () => {
     const names = [...root.keys()].filter((name) => sized.test(name));

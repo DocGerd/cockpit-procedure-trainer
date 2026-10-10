@@ -112,7 +112,7 @@ describe('checklist items', () => {
     checkOff();
     checkOff();
     expect(trainer.session.checklist()?.current).toBe(3);
-    expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Checked' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Verified' }));
     expect(trainer.session.checklist()?.done).toBe(true);
     expect(trainer.session.checklist()?.deviations.map(({ kind }) => kind)).toEqual([
@@ -123,17 +123,17 @@ describe('checklist items', () => {
   it('gives check and confirm items a check-off button', async () => {
     renderPane();
     start(flow);
-    expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Confirm' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Checked' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
 
     operate('master', 'on');
-    expect(screen.queryByRole('button', { name: 'Confirm' })).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(trainer.session.checklist()?.completed).toEqual([0, 1]);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(trainer.session.checklist()?.completed).toEqual([0, 1, 2]);
-    expect(screen.queryByRole('button', { name: 'Confirm' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
   });
 
   it('marks an emergency procedure in the pane header', () => {
@@ -807,7 +807,7 @@ describe('visibility', () => {
     expect(trainer.session.checklist()).toBeDefined();
     expect(items()).toHaveLength(itemCount);
     expect(screen.queryByRole('img')).toBeNull();
-    expect(screen.queryByRole('button', { name: /^(Check off|Confirm|Restart)$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^(Checked|Done|Restart)$/ })).toBeNull();
     expect(items().every((item) => item.getAttribute('aria-current') === null)).toBe(true);
   });
 
@@ -860,8 +860,29 @@ describe('visibility', () => {
       'followUp',
     );
     await userEvent.click(screen.getByRole('button', { name: 'Back to running checklist: Flow' }));
-    expect(within(aside).getByRole('list').scrollTop).toBe(140);
+    expect(within(aside).getByRole('list').scrollTop).toBe(200);
     vi.restoreAllMocks();
+  });
+});
+
+describe('the current item and the deviation sheet', () => {
+  it('gives the current item one primary action with Show me beside it', () => {
+    renderPane();
+    start(flow, 'practice');
+    operate('master', 'on');
+    expect(screen.getByRole('button', { name: 'Checked' }).className).toContain('button-primary');
+    expect(screen.getByRole('button', { name: 'Show me' }).className).toContain('button-secondary');
+  });
+
+  it('sticks the deviation banner to the end of the list without making it an item', () => {
+    renderPane();
+    start(flow);
+    operate('avionics', 'on');
+    const status = screen.getByRole('status');
+    expect(status.textContent).toContain('Deviation');
+    expect(status.closest('.checklist-items')).not.toBeNull();
+    expect(status.closest('.checklist-sheet')?.getAttribute('role')).toBe('none');
+    expect(items()).toHaveLength(itemCount);
   });
 });
 
@@ -871,18 +892,41 @@ describe('scrolling the running checklist', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('keeps the current item inside the list, which scrolls apart from header and footer', () => {
-    renderPane();
-    start(flow);
-    const list = screen.getByRole('list');
+  /** The list, the current row, the row before it and the sheet; everything else has no size. */
+  function layout(
+    list: HTMLElement,
+    box: DOMRect,
+    current: DOMRect,
+    previous = rectOf(0, 0),
+    sheet = rectOf(box.bottom, box.bottom),
+  ) {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: Element,
     ) {
-      if (this === list) return rectOf(0, 100);
-      return this.getAttribute('aria-current') === 'step' ? rectOf(200, 240) : rectOf(0, 0);
+      if (this === list) return box;
+      if (this.classList.contains('checklist-sheet')) return sheet;
+      if (this.getAttribute('aria-current') === 'step') return current;
+      if (this.nextElementSibling?.getAttribute('aria-current') === 'step') return previous;
+      return rectOf(0, 0);
     });
-    operate('avionics', 'on');
-    expect(list.scrollTop).toBe(140);
+  }
+
+  it('brings a current item below the list up under one row of what is done', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    layout(list, rectOf(0, 200), rectOf(300, 340), rectOf(260, 300));
+    operate('master', 'on');
+    expect(list.scrollTop).toBe(260);
+  });
+
+  it('moves the current item up once it passes the top third of the list', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    layout(list, rectOf(100, 400), rectOf(250, 290), rectOf(210, 250));
+    operate('master', 'on');
+    expect(list.scrollTop).toBe(110);
   });
 
   it('scrolls back up to a current item above the list', () => {
@@ -890,29 +934,51 @@ describe('scrolling the running checklist', () => {
     start(flow);
     const list = screen.getByRole('list');
     list.scrollTop = 300;
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      if (this === list) return rectOf(100, 200);
-      return this.getAttribute('aria-current') === 'step' ? rectOf(60, 100) : rectOf(0, 0);
-    });
-    operate('avionics', 'on');
+    layout(list, rectOf(100, 200), rectOf(60, 100));
+    operate('master', 'on');
     expect(list.scrollTop).toBe(260);
   });
 
-  it('leaves the list alone when the current item is already inside it', () => {
+  it('leaves the list alone when the current item is in its top third', () => {
     renderPane();
     start(flow);
     const list = screen.getByRole('list');
     list.scrollTop = 25;
-    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
-      this: Element,
-    ) {
-      if (this === list) return rectOf(100, 200);
-      return this.getAttribute('aria-current') === 'step' ? rectOf(120, 160) : rectOf(0, 0);
-    });
-    operate('avionics', 'on');
+    layout(list, rectOf(100, 400), rectOf(120, 160));
+    operate('master', 'on');
     expect(list.scrollTop).toBe(25);
+  });
+
+  it('leaves the current item where it is when a deviation appears', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    layout(list, rectOf(0, 400), rectOf(200, 240), rectOf(0, 0), rectOf(300, 400));
+    operate('avionics', 'on');
+    expect(screen.getByRole('status').textContent).not.toBe('');
+    expect(list.scrollTop).toBe(25);
+  });
+
+  it('lifts the current item just clear of a deviation sheet that would cover it', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    layout(list, rectOf(0, 400), rectOf(200, 320), rectOf(0, 0), rectOf(300, 400));
+    operate('avionics', 'on');
+    expect(screen.getByRole('status').textContent).not.toBe('');
+    expect(list.scrollTop).toBe(45);
+  });
+
+  it('never lifts the current item above the top of the list for the sheet', () => {
+    renderPane();
+    start(flow);
+    const list = screen.getByRole('list');
+    list.scrollTop = 25;
+    layout(list, rectOf(0, 400), rectOf(10, 320), rectOf(0, 0), rectOf(300, 400));
+    operate('avionics', 'on');
+    expect(list.scrollTop).toBe(35);
   });
 });
 

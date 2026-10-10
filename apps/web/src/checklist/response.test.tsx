@@ -119,7 +119,7 @@ describe('a check that takes a reading', () => {
   it('asks for the reading in Practice and records one outside tolerance', async () => {
     start('practice');
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Reading' }), '3000');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(trainer.session.checklist()?.deviations).toEqual([
       { kind: 'unmet-check', itemIndex: 0, response: 3000 },
     ]);
@@ -128,14 +128,14 @@ describe('a check that takes a reading', () => {
   it('accepts a reading within tolerance', async () => {
     start('practice');
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Reading' }), '4050');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(trainer.session.checklist()?.current).toBe(1);
     expect(trainer.session.checklist()?.deviations).toEqual([]);
   });
 
   it('lets the pilot check it off without a reading', async () => {
     start('practice');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(trainer.session.checklist()?.deviations).toEqual([]);
   });
 
@@ -148,13 +148,13 @@ describe('a check that takes a reading', () => {
   it('starts a restarted run with an empty reading', async () => {
     start('practice');
     await userEvent.type(screen.getByRole('spinbutton', { name: 'Reading' }), '3000');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     await userEvent.click(screen.getByRole('button', { name: 'Restart' }));
     await userEvent.click(
       within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Restart' }),
     );
     expect(screen.getByRole('spinbutton', { name: 'Reading' })).toHaveProperty('value', '');
-    await userEvent.click(screen.getByRole('button', { name: 'Check off' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Checked' }));
     expect(trainer.session.checklist()?.deviations).toEqual([]);
   });
 

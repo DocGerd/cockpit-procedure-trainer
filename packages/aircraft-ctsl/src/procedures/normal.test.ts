@@ -65,6 +65,27 @@ const procedures = Object.entries(ctslAircraft.procedures).filter(([id]) => id i
 
 const isFlow = (item: Item) => item.type === 'action' && item.flow === true;
 
+// Completes items in the engine's order until the cursor reaches `stop`, failing on an item that
+// does not advance instead of spinning.
+const walkTo = (session: Session, items: readonly Item[], stop: number) => {
+  for (let guard = 0; guard <= items.length; guard++) {
+    const at = session.checklist()?.current;
+    if (at === undefined) throw new Error('the procedure is no longer running');
+    if (at >= stop) return;
+    const item = items[at] as Item;
+    if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
+      session.press(item.control);
+      session.release(item.control);
+    } else if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
+      session.set(item.control, item.position);
+    } else {
+      session.checkOff();
+    }
+    if (session.checklist()?.current === at) throw new Error(`item ${at} did not advance`);
+  }
+  throw new Error(`the walk did not reach item ${stop}`);
+};
+
 // A flow item sets what a later action sets again, so the two stand or fall together.
 const twins = (items: readonly Item[], index: number) => {
   const action = items[index];
@@ -166,24 +187,7 @@ describe('CTSL normal procedures', () => {
     const session = createSession(ctslAircraft, { devices, phase: 'holding' });
     session.startProcedure('beforeTakeoff');
     expect(session.state().controls).toMatchObject({ choke: 'off', carbHeat: 'off' });
-    for (
-      let at = session.checklist()?.current ?? 0;
-      at < choke;
-      at = session.checklist()?.current ?? choke
-    ) {
-      const item = items[at] as Item;
-      if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
-        session.press(item.control);
-        session.release(item.control);
-      } else if (
-        item.type === 'action' &&
-        session.state().controls[item.control] !== item.position
-      ) {
-        session.set(item.control, item.position);
-      } else {
-        session.checkOff();
-      }
-    }
+    walkTo(session, items, choke);
     expect(session.checklist()?.current).toBe(choke);
     session.advance(1000);
     expect(session.checklist()?.current).toBe(choke);
@@ -224,6 +228,37 @@ describe('CTSL normal procedures', () => {
       const flow = procedure.items.filter((item) => isFlow(item as Item));
       expect(session.checklist()?.completed.length).toBeLessThan(flow.length);
     });
+  });
+
+  describe('trim in steps before take-off', () => {
+    const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+    const trimStep = items.findIndex(
+      (item) => !isFlow(item) && item.type === 'action' && item.control === 'trim',
+    );
+
+    it.each(['nose-down', 'half-down', 'half-up', 'nose-up'])(
+      'holds the trim step stepping out to %s and back, and completes it at neutral with no trim deviation',
+      (position) => {
+        const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+        session.startProcedure('beforeTakeoff');
+        walkTo(session, items, trimStep);
+        const walked = session.checklist()?.deviations;
+        const stops = controls.trim.positions as readonly string[];
+        const [neutral, target] = [stops.indexOf('neutral'), stops.indexOf(position)];
+        const away = target < neutral ? -1 : 1;
+        for (let at = neutral + away; at !== target + away; at += away) {
+          expect(session.set('trim', stops[at] as string), stops[at]).toEqual({ applied: true });
+          expect(session.checklist()?.current).toBe(trimStep);
+        }
+        for (let at = target - away; at !== neutral; at -= away) {
+          session.set('trim', stops[at] as string);
+          expect(session.checklist()?.current, stops[at]).toBe(trimStep);
+        }
+        session.set('trim', 'neutral');
+        expect(session.checklist()?.current).toBe(trimStep + 1);
+        expect(session.checklist()?.deviations).toEqual(walked);
+      },
+    );
   });
 
   describe('parking brake in shutdown, in the intake order', () => {

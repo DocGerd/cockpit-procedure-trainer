@@ -1,0 +1,215 @@
+.shell:not([data-screen='trainer']) .app-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+}
+
+/* The tablet picker scrolls the page, and a sticky footer would sit over Start. */
+.shell[data-layout='tablet'][data-screen='picker'] .app-footer {
+  position: static;
+}
+
+.app-footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.app-footer-version {
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.25em;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .app-footer-version:hover {
+    color: var(--color-text);
+  }
+}
+
+.modal-dialog.about-dialog {
+  max-width: calc(var(--measure) + 2 * var(--space-8));
+  padding: 0;
+}
+
+.about-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.about-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-8) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.about-version {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.about-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-6) var(--space-8);
+}
+
+.about-purpose {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+.about-notice {
+  margin: var(--space-4) 0 0;
+  padding-left: var(--space-4);
+  color: var(--color-text-secondary);
+  border-left: 3px solid var(--color-warning);
+}
+
+.about-notice strong {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+
+.about-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.about-heading {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: var(--weight-semibold);
+}
+
+.about-aircraft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.about-aircraft dt {
+  font-weight: var(--weight-medium);
+}
+
+.about-aircraft dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.about-release + .about-release {
+  margin-top: var(--space-5);
+}
+
+.about-release-title {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+.about-release-date {
+  font-weight: var(--weight-regular);
+  color: var(--color-text-muted);
+}
+
+.about-release-section {
+  margin-top: var(--space-2);
+}
+
+.about-release-kind {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.about-release-items {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-secondary);
+}
+
+.about-release-items li + li {
+  margin-top: var(--space-1);
+}
+
+.about-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--size-target);
+  color: var(--color-accent);
+  text-underline-offset: 0.2em;
+}
+
+.about-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  padding: var(--space-4) var(--space-8);
+  border-top: 1px solid var(--color-border);
+}
+
+.about-legal {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--color-text-muted);
+}
+
+.about-close {
+  margin-left: auto;
+}
+
+.about-dialog .about-close {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-footer-version {
+    transition: none;
+  }
+}

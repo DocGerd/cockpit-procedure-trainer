@@ -8,7 +8,8 @@
 # checkout), other repos and paths outside any repo are allowed.
 #
 # This is an accident tripwire, NOT a security boundary: Bash (sed -i, tee)
-# is not covered.
+# is not covered. Files under the main checkout's top-level .remember/ are
+# exempt.
 #
 # Fails closed only on a clear match. A missing jq, git or GNU realpath,
 # unexpected input or an unreadable repo allows the call: exit 1 shows the
@@ -68,6 +69,9 @@ here=("${dirs[@]}")
 
 [ "${here[1]}" = "${ours[1]}" ] || exit 0
 [ "${here[0]}" = "${here[1]}" ] || exit 0
+
+# .remember/ holds local session-handoff notes, not project files.
+[[ "$target" == "$(dirname "${here[1]}")/.remember/"* ]] && exit 0
 
 jq -n --arg r "Refused: '${target}' is in the main checkout. Work in your own git worktree and never edit files in the main checkout. The owner can set CPT_ALLOW_MAIN_EDIT=1 to authorise this edit." '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
 exit 0

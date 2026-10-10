@@ -3,7 +3,7 @@ import type { Aircraft } from '@cpt/core';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { renderWithLanguage } from '../i18n/test-utils';
 import { TrainerProvider, useTrainer } from '../trainer';
@@ -63,6 +63,11 @@ function renderBoundary(language?: 'de' | 'en') {
   );
 }
 
+// The trainer screen is a lazy chunk: transform it once so Start does not wait on it.
+beforeAll(async () => {
+  await import('../shell/TrainerLayout');
+});
+
 beforeEach(() => {
   localStorage.clear();
   registry.list = [...testAircraft];
@@ -73,6 +78,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('error boundary', () => {
@@ -97,6 +103,14 @@ describe('error boundary', () => {
     renderBoundary();
     expect(screen.getByRole('contentinfo').textContent).toContain('Version');
     expect(screen.getByRole('alertdialog').getAttribute('aria-modal')).toBeNull();
+  });
+
+  it('names the exact build in the error dialog', () => {
+    vi.stubEnv('VITE_APP_RELEASE', '0.7.0');
+    vi.stubEnv('VITE_BUILD_SHA', 'abcdef0123456');
+    broken = true;
+    renderBoundary();
+    expect(screen.getByRole('alertdialog').textContent).toContain('Version v0.7.0 · abcdef0');
   });
 
   it('puts keyboard focus on the reset button', () => {
@@ -282,6 +296,6 @@ describe('without localStorage', () => {
     await userEvent.click(choice());
     expect(choice().getAttribute('aria-pressed')).toBe('true');
     await userEvent.click(screen.getByRole('button', { name: 'Start procedure' }));
-    expect(screen.getByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
+    expect(await screen.findByRole('region', { name: 'Cockpit panel' })).toBeTruthy();
   }
 });

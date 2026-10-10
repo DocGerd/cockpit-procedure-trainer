@@ -84,7 +84,7 @@ export async function needleFrame(browser: Browser, page: Page, viewId: string) 
 export async function reraster(browser: Browser, page: Page, viewId: string) {
   const size = page.viewportSize() ?? { width: 1024, height: 768 };
   // One pixel wider, not narrower: narrower crosses the shell header's min-width rule in
-  // shell.css, so the sample would measure the header re-wrapping and the cockpit re-laying out.
+  // header.css, so the sample would measure the header re-wrapping and the cockpit re-laying out.
   const resize = await paintCost(browser, page, async () => {
     await page.setViewportSize({ width: size.width + 1, height: size.height });
     await nextPaint(page);

@@ -169,6 +169,9 @@ beforeAll(() => {
   symlinkSync(join(main, 'reference'), join(worktree, 'link-to-reference'));
   symlinkSync(join(main, 'README.md'), join(worktree, 'link-to-main-readme.md'));
   symlinkSync(worktree, join(root, 'wt-link'));
+  touch(join(main, '.remember/note.md'));
+  symlinkSync(join(main, 'README.md'), join(main, '.remember/link-to-readme.md'));
+  symlinkSync(join(main, '.remember/note.md'), join(main, 'link-to-note.md'));
   noRealpathM = shim(join(root, 'no-realpath-m'), 'realpath', 'exit 1');
   dubiousGit = shim(
     join(root, 'dubious-git'),
@@ -736,6 +739,41 @@ describe('main-checkout-guard.sh', () => {
     expect(denies({ tool: 'Edit', input: { file_path: '~/README.md' }, env: { HOME: main } })).toBe(
       true,
     );
+  });
+
+  it('allows files under the top-level .remember/ of the main checkout', () => {
+    for (const file of ['.remember/remember.md', '.remember/new/dir/note.md']) {
+      expect(denies({ tool: 'Write', input: { file_path: join(main, file) } })).toBe(false);
+    }
+    expect(
+      denies({
+        tool: 'Edit',
+        input: { file_path: '.remember/remember.md' },
+        cwd: main,
+        project: main,
+      }),
+    ).toBe(false);
+  });
+
+  it('resolves symlinks before matching .remember/', () => {
+    expect(
+      denies({ tool: 'Edit', input: { file_path: join(main, '.remember/link-to-readme.md') } }),
+    ).toBe(true);
+    expect(denies({ tool: 'Edit', input: { file_path: join(main, 'link-to-note.md') } })).toBe(
+      false,
+    );
+  });
+
+  it('keeps denying near-misses of .remember/ in the main checkout', () => {
+    for (const file of [
+      '.remember',
+      '.remember-x/a.md',
+      '.remembered/a.md',
+      'sub/.remember/a.md',
+      '.remember/../README.md',
+    ]) {
+      expect(denies({ tool: 'Write', input: { file_path: join(main, file) } })).toBe(true);
+    }
   });
 
   it('allows an edit in a linked worktree, also when the project dir is the main checkout', () => {

@@ -7,6 +7,7 @@ export default defineConfig({
       'apps/*/src/**/*.test.{ts,tsx}',
       'tools/**/*.test.ts',
     ],
+    setupFiles: ['./vitest.setup.ts'],
     passWithNoTests: false,
     coverage: {
       provider: 'v8',

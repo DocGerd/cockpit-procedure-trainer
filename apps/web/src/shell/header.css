@@ -1,0 +1,309 @@
+.shell-header {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-target);
+}
+
+.shell-home {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: var(--size-target);
+  min-height: var(--size-target);
+  padding: 0;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.shell-brand-mark {
+  flex: none;
+  width: var(--space-6);
+  height: var(--space-6);
+  color: var(--color-accent);
+}
+
+.shell-brand-name {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.shell-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* The picker's intro eyebrow still uses this. */
+.shell-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: var(--leading-2xs);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.shell-breadcrumb {
+  display: flex;
+  flex: 999 1 0;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-1);
+}
+
+.shell-breadcrumb-separator {
+  color: var(--color-text-muted);
+}
+
+.shell-choice {
+  min-height: var(--size-target);
+  padding: 0 var(--space-1);
+  font: inherit;
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  text-align: start;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.shell-choice-value {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .shell-choice:hover,
+  .shell-home:hover .shell-brand-name {
+    color: var(--color-accent-strong);
+  }
+
+  .shell-choice:hover .shell-choice-value {
+    text-decoration-color: currentColor;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-choice {
+    transition: none;
+  }
+
+  .shell-choice-value {
+    transition: none;
+  }
+
+  .shell-brand-name {
+    transition: none;
+  }
+}
+
+.shell-checklist-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.shell-checklist-icon {
+  display: none;
+  flex: none;
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+.shell-progress {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.shell-deviation-badge {
+  min-width: var(--space-5);
+  padding: 0 var(--space-1);
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-pill);
+}
+
+/* The settings start at the datum: a hairline before the language pair. */
+.shell-header .language-switch {
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--color-divider);
+}
+
+.language-switch {
+  display: flex;
+}
+
+.language-switch-option {
+  position: relative;
+  min-width: var(--size-target);
+  padding: 0 var(--space-2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+.language-switch-option:not(:first-child) {
+  border-inline-start-width: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.language-switch-option:not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.language-switch-option[aria-pressed='true'] {
+  z-index: 1;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.language-switch-option:has(+ [aria-pressed='true']) {
+  border-inline-end-color: var(--color-accent);
+}
+
+.language-switch-option:focus-visible {
+  z-index: 2;
+}
+
+.chrome-button.theme-switch {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.theme-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+@media (min-width: 1024px) {
+  .shell-header {
+    gap: var(--space-2);
+  }
+
+  .shell-header > * {
+    flex-shrink: 0;
+  }
+
+  .shell-header .shell-breadcrumb {
+    flex-wrap: nowrap;
+  }
+
+  /* On a desktop a name wraps to two lines at most before the controls take a row of their own.
+     The floor sits on the inner span so a single long word still sets the button's minimum. */
+  @supports (min-width: calc-size(max-content, size)) {
+    .shell-header .shell-choice-value {
+      display: inline-block;
+      min-width: calc-size(max-content, size * 0.6);
+    }
+  }
+
+  .shell-header .shell-controls,
+  .shell-header .modes-control {
+    flex-wrap: nowrap;
+  }
+
+  .shell-header .modes-control {
+    gap: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header {
+    padding-inline: var(--space-4);
+  }
+
+  /* The toggle reads as its icon and progress; the word stays in its accessible name. */
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-icon {
+    display: block;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .language-switch {
+    padding-inline-start: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header[data-variant='trainer'] .shell-brand-name,
+  .shell[data-layout='tablet'] .shell-header .shell-checklist-word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .chrome-button {
+    padding-inline: var(--space-2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header .modes-segment {
+    padding-inline: var(--space-2);
+  }
+
+  /* One row of names on a tablet: the aircraft gives way first, with the full name in the title. */
+  .shell[data-layout='tablet'] .shell-header .shell-breadcrumb {
+    min-width: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice:first-child:not(:last-child) {
+    flex-shrink: 100;
+    min-width: calc(var(--space-12) * 2);
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice-value {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

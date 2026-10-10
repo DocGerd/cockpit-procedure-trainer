@@ -3,14 +3,13 @@ import { useSessionState, useTrainer } from '../trainer';
 import './checklist.css';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
-import { useItemText } from './item-text';
+import { ItemText } from './ItemText';
 import { ProcedureKind } from './ProcedureKind';
 
 /** A procedure's items read straight from the aircraft data, with no session behind it. */
 export function ProcedureViewer() {
   const text = useMessages(messages);
   const localize = useLocalize();
-  const itemText = useItemText();
   const { aircraft, procedureId, viewedProcedureId, viewProcedure, takeChecklist, flight } =
     useTrainer();
   // A full flight does not announce its surprise, so the answer waits for the failure.
@@ -38,8 +37,10 @@ export function ProcedureViewer() {
   const rows = procedure.items.map((item, index) => (
     <li key={index} className="checklist-item" data-state="reference">
       <span className="checklist-item-row">
-        <span className="checklist-number">{index + 1}</span>
-        <span className="checklist-item-text">{itemText(item)}</span>
+        <span className="checklist-number readout">{index + 1}</span>
+        <span className="checklist-item-text">
+          <ItemText item={item} />
+        </span>
       </span>
     </li>
   ));
@@ -70,7 +71,7 @@ export function ProcedureViewer() {
           </button>
         )}
       </div>
-      <ol className="checklist-items">
+      <ol className="checklist-items scroll-thin scroll-fade">
         {memoryCount > 0 && (
           <ItemGroup kind="memory" label={text.memoryItems}>
             {rows.slice(0, memoryCount)}

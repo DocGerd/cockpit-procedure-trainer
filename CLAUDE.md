@@ -16,7 +16,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   `pkill` by name (it kills other agents' servers). Wait loops wait on a PID,
   never on `pgrep -f` of text in their own command line (it matches itself
   forever); verifier scripts live in the scratchpad, never in another agent's
-  worktree
+  worktree. `pnpm test:e2e <spec>` filters (after `--` it runs every spec); a
+  direct `playwright test` runs from `apps/web`
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 - `pnpm test:perf` runs locally only (not in CI), for panel-art PRs; see
   `CONTRIBUTING.md` Checks
@@ -29,8 +30,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Branch prefixes, squash/backmerge and releases follow `CONTRIBUTING.md`
   (Flow, Releases). Review, merging and the release PR run through the skills
   `pr-selfreview`, `merge-train` and `milestone-release` in `.claude/skills/`;
-  `/release-cycle` (`.claude/commands/release-cycle.md`) drives a whole
-  milestone.
+  the `release-cycle` skill (`/release-cycle`) drives a whole milestone.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
 - Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line
@@ -39,6 +39,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   opens the release PR `develop` to `main`; the owner merges it.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
+- App settings (language, Hide upcoming) persist in browser storage: browser
+  checks set them explicitly. At tablet width the drawer covers the panel, so
+  walk the panel at 1920 and then resize.
 - A PR scored against a visual rubric stays a draft until a ui-verifier passes
   it; workflows and the merge train do not check scores. Brief scorers blind:
   no prior scores or "be strict" notes (they anchor).
@@ -50,8 +53,13 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Every agent works in its own git worktree; never switch branches or edit
   files in the main checkout. `.claude/hooks/main-checkout-guard.sh` refuses
   such edits (including `/revise-claude-md` and `.claude/settings.local.json`
-  in a main-checkout session); the owner overrides with
+  in a main-checkout session; `.remember/` is exempt); the owner overrides with
   `CPT_ALLOW_MAIN_EDIT=1`.
+- Harness worktrees start on a `worktree-agent-*` branch: switch to the work
+  branch from `origin/develop` first; cleanup deletes both branches.
+- Agents wait on CI in the foreground (a bounded `gh pr checks` loop); a
+  background monitor or an idle agent may never wake, so when a wait runs long
+  the orchestrator reads `commits/<sha>/check-runs` itself.
 - Rebase only before a branch's first push (force-push is blocked); after
   that the merge train updates the branch from `develop`.
 - A decision the spec does not settle: make it, state it and its reason in the
