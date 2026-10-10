@@ -352,16 +352,22 @@ for (const language of ['en', 'de'] as const) {
   }
 }
 
-test('the German picker fits 1024x768 with the surprise phase select in view', async ({ page }) => {
+test('the German CTSL picker fits 1024x768 in Practice with the surprise phase select in view', async ({
+  page,
+}) => {
+  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+  if (!ctsl) throw new Error('The aircraft registry has no CTSL');
   await page.setViewportSize({ width: 1024, height: 768 });
   await openPicker(page);
   await selectLanguage(page, 'de');
+  await page.getByRole('button', { name: ctsl.name.de }).click();
+  await page.getByRole('radio', { name: copyDe.shell.practice }).check();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
   );
   expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
   const [select, footer] = await Promise.all([
-    page.locator('.picker-surprise select').boundingBox(),
+    page.getByLabel(copyDe.shell.surprisePhase).boundingBox(),
     page.locator('.app-footer').boundingBox(),
   ]);
   if (!select || !footer) throw new Error('no select or footer box');

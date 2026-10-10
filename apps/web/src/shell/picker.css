@@ -404,6 +404,12 @@
   gap: var(--space-2);
 }
 
+.picker-surprise > label {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-target);
+}
+
 .picker-surprise > select {
   field-sizing: content;
   font-size: var(--text-sm);
@@ -538,7 +544,7 @@
 
   .shell[data-screen='picker'] .picker-row {
     flex: 1 0 auto;
-    max-height: calc(var(--space-12) * 2);
+    max-height: calc(var(--space-12) * 1.5);
   }
 }
 
@@ -609,7 +615,15 @@
     padding-block: var(--space-4) var(--space-3);
   }
 
+  .picker-card {
+    padding-block: var(--space-1);
+  }
+
   .picker-drill {
     padding-block: var(--space-1);
+  }
+
+  .picker-drill-body {
+    row-gap: 0;
   }
 }
