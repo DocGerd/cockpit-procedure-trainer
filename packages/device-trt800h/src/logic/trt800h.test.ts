@@ -376,6 +376,18 @@ describe('trt800hDevice', () => {
       expect(state).toMatchObject({ squawk: '7000', vfrCode: '7000', vfrShown: true });
     });
 
+    it('removes the cursor on a VFR short release', () => {
+      const state = tap(cursorAt(switchedOn, 1), 'vfr');
+      expect(state).toMatchObject({ cursor: null, vfrShown: true });
+    });
+
+    it('removes the cursor when the store hold completes', () => {
+      let state = step(cursorAt({ ...switchedOn, squawk: '1200' }, 1), { vfr: 'pressed' });
+      expect(state.cursor).toBe(1);
+      state = step(state, { vfr: 'pressed' }, { dtMs: VFR_STORE_HOLD_MS });
+      expect(state).toMatchObject({ cursor: null, vfrCode: '1200' });
+    });
+
     it('keeps the stored VFR code across power loss and a new power-on', () => {
       let state = hold({ ...switchedOn, squawk: '1200' }, 'vfr', VFR_STORE_HOLD_MS);
       state = step(state, {}, { powered: false });
