@@ -509,6 +509,8 @@ describe('CTSL view backdrops', () => {
         'KUNSTFLUG UND@238,626/37',
         'TRUDELN VERBOTEN@238,662/37',
         'Cabin Heat@979.5,85/38',
+        'TAKEOFF@1449,196/37',
+        'CHECKLIST@1449,238/37',
         'GPS@1049.5,306.5/40',
         'COM RADIO@765.2,589.25/40',
         'TRANSPONDER@1329.6,589.25/40',

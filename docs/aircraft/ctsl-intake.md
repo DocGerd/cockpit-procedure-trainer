@@ -156,8 +156,9 @@ wording either. The type-name script lettering is not reproduced.
   The upper-centre field is wider than the lower column and sits about 40 px left of
   it at HD, so that the radio slot reaches over the device dock, which stays left of
   the column under the panel. The FLARM display sits left of the GPS, not above it as
-  in the photos, and the version label and the second copy of the take-off checklist
-  summary are not drawn.
+  in the photos. The second copy of the take-off checklist summary stands right of the
+  GPS (heading and rules only) and a blank version label under the FLARM display,
+  **assumed (unverified)** places; the label's wording is not drawn.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
