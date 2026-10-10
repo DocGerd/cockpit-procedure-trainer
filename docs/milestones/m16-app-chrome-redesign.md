@@ -20,7 +20,7 @@ For pilots:
 
 Filed along the way, without milestone: #616 (split aircraft metadata from art so the landing skips the panel art, from PR #619), #618 (flaky `view-checklist` tablet-drawer summary e2e, seen on develop), #627 (spike: VOR/GPS navigation training).
 
-**Before you merge:** another session is working on the CTSL panel from the D-MPGO photos (M17, #629, worktree `629`). Nothing from M17 may land on `develop` before this release PR is merged.
+**Before you merge:** another session is working on the CTSL panel from the D-MPGO photos (M17, #629). Nothing from M17 may land on `develop` before this release PR is merged.
 
 ## Decisions made
 
@@ -49,7 +49,7 @@ Agent decisions you may overrule (reasons in the PRs):
 
 ## Open questions for the owner
 
-The whole-milestone review handed nine blocker/major findings to PR #636. Its minor findings are recorded locally; the ones #636 already fixed (accent-outlined secondary buttons, the second kicker in the flow block) and those settled above (Version button target, English changelog, leaders on action rows, cut row at 1024) are not repeated here. Filed as follow-ups without milestone: #639 (trim wheel: a tap at an end stop can step back), #640 (missing full stop after "Training aid only"), #641 (dead `.shell-eyebrow` CSS).
+The whole-milestone review handed nine blocker/major findings to PR #636. Its minor findings are the open questions below; the ones #636 already fixed (accent-outlined secondary buttons, the second kicker in the flow block) and those settled above (Version button target, English changelog, leaders on action rows, cut row at 1024) are not repeated here. Filed as follow-ups without milestone: #639 (trim wheel: a tap at an end stop can step back), #640 (missing full stop after "Training aid only"), #641 (dead `.shell-eyebrow` CSS).
 
 1. **Dead bands.** Practice with Hide upcoming leaves a large empty pane under the active row, and its footer is about twice Guided's (switch above Restart; the DE label wraps). At 1366x1024 the panel is top-aligned with a band under the dock; the empty dock box is a pre-existing band. Accept, or plan a follow-up (one-row footer, an "items hidden" hint, vertical centring)?
 2. **Picker rows.** Drill rows and the Demo aircraft row are tall for their content, and in DE the CTSL count wraps under the name, so row heights differ by language. Tighten?
@@ -60,7 +60,7 @@ The whole-milestone review handed nine blocker/major findings to PR #636. Its mi
 7. **Theme cross-fade** passes through low text contrast around its midpoint, as text and background move in opposite directions. Acceptable for a short fade?
 8. **About at 4K** keeps a small body text size. Scale it in the 4K block?
 9. **To confirm on UAT:** the pass (before #636) saw a bare dot leader on Practice rows whose text is hidden; the current tree draws the leader only on revealed checks, so it may be gone.
-10. **Still waiting from earlier milestones:** #536, #537, #538, #570 (now in M17), #590 icon licences, #185 device names.
+10. **Still waiting from earlier milestones:** #536, #537, #538 and #570 (all now in M17); #590 icon licences and #185 device names (no milestone).
 
 ## How to verify
 
