@@ -157,8 +157,9 @@ wording either. The type-name script lettering is not reproduced.
   it at HD, so that the radio slot reaches over the device dock, which stays left of
   the column under the panel. The FLARM display sits left of the GPS, not above it as
   in the photos. The second copy of the take-off checklist summary stands right of the
-  GPS (heading and rules only) and a blank version label under the FLARM display,
-  **assumed (unverified)** places; the label's wording is not drawn.
+  GPS (heading and rules only), an **assumed (unverified)** place. The blank version
+  label under the FLARM display is not drawn: its wording is unknown, so it would be a
+  plate with no function.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
