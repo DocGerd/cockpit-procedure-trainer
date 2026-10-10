@@ -74,8 +74,18 @@ export function aera500Readout(state: unknown, language: keyof Text, on: boolean
             : `altitude ${altitude} feet`,
       );
       break;
-    default:
+    case 'activeFpl':
+      parts.push(de ? 'kein Flugplan' : 'no flight plan');
+      break;
+    case 'directTo':
+      parts.push(de ? 'Suche nach Kennung, Name oder Ort' : 'search by identifier, name or city');
+      break;
+    case 'tools':
+      parts.push(de ? 'Eintrag GPS Status' : 'GPS Status entry');
+      break;
+    case 'nearest':
       parts.push(de ? 'keine Einträge' : 'no entries');
+      break;
   }
   return parts.filter((part) => part !== null).join(', ');
 }

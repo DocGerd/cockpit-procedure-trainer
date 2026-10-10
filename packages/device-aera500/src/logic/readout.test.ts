@@ -70,6 +70,37 @@ describe('aera500Readout', () => {
     expect(aera500Readout(position, 'de', true)).toContain('Höhe 2400 Fuß');
   });
 
+  it('reads the Tools page as its GPS Status entry, not as empty', () => {
+    const tools = { ...lit, page: 'tools' } as const;
+    expect(aera500Readout(tools, 'en', true)).toBe('Tools page, GPS Status entry');
+    expect(aera500Readout(tools, 'de', true)).toBe('Seite Tools, Eintrag GPS Status');
+  });
+
+  it('reads the Direct To page as its search choices', () => {
+    const directTo = { ...lit, page: 'directTo' } as const;
+    expect(aera500Readout(directTo, 'en', true)).toBe(
+      'Direct To page, search by identifier, name or city',
+    );
+    expect(aera500Readout(directTo, 'de', true)).toBe(
+      'Seite Direct To, Suche nach Kennung, Name oder Ort',
+    );
+  });
+
+  it('reads the empty Nearest and Active FPL pages as the glass does', () => {
+    expect(aera500Readout({ ...lit, page: 'nearest' }, 'en', true)).toBe(
+      'Nearest page, no entries',
+    );
+    expect(aera500Readout({ ...lit, page: 'nearest' }, 'de', true)).toBe(
+      'Seite Nearest, keine Einträge',
+    );
+    expect(aera500Readout({ ...lit, page: 'activeFpl' }, 'en', true)).toBe(
+      'Active FPL page, no flight plan',
+    );
+    expect(aera500Readout({ ...lit, page: 'activeFpl' }, 'de', true)).toBe(
+      'Seite Active FPL, kein Flugplan',
+    );
+  });
+
   it('reads the backlight level while the overlay is open', () => {
     const overlay = { ...fixed, overlay: true, backlight: 7 };
     expect(aera500Readout(overlay, 'en', true)).toBe('backlight 7 of 10');
