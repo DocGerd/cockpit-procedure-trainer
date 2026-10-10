@@ -433,7 +433,7 @@
       'aircraft procedures'
       'drills procedures'
       'drills launch';
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto auto 1fr;
     gap: var(--space-6) var(--space-8);
   }
@@ -455,7 +455,7 @@
   }
 
   .shell[data-screen='picker'] .picker-list {
-    max-height: max(calc(var(--space-12) * 5), calc(100dvh - var(--space-12) * 10));
+    max-height: max(calc(var(--space-12) * 5), calc(100dvh - var(--space-12) * 11));
   }
 }
 
@@ -475,10 +475,10 @@
     grid-template-areas:
       'aircraft procedures'
       'drills procedures'
-      'launch procedures'
-      '. procedures';
-    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-    grid-template-rows: auto minmax(0, auto) auto 1fr;
+      'drills launch';
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(min-content, 1fr) minmax(min-content, 1fr) auto;
+    align-items: stretch;
     column-gap: var(--space-12);
     min-height: 0;
   }
@@ -486,7 +486,6 @@
   /* Size containment keeps a long list from inflating the left column's rows. */
   .shell[data-screen='picker'] .picker-procedures {
     contain: size;
-    align-self: stretch;
     min-height: 0;
   }
 
@@ -497,13 +496,59 @@
     overflow-y: auto;
   }
 
+  .shell[data-screen='picker'] .picker-cards,
+  .shell[data-screen='picker'] .picker-drill-list {
+    flex: 1 1 auto;
+  }
+
+  .shell[data-screen='picker'] .picker-card {
+    flex: 1 1 auto;
+    justify-content: center;
+    max-height: calc(var(--space-12) * 2);
+  }
+
+  .shell[data-screen='picker'] .picker-drill-list {
+    grid-auto-rows: minmax(min-content, calc(var(--space-12) * 2));
+  }
+
+  .shell[data-screen='picker'] .picker-drill {
+    align-content: center;
+  }
+
   .shell[data-screen='picker'] .picker-index {
-    flex: 0 1 auto;
+    flex: 1 1 0;
     min-height: calc(var(--space-12) * 3);
   }
 
   .shell[data-screen='picker'] .picker-list {
+    display: flex;
+    flex-direction: column;
     max-height: none;
+  }
+
+  .shell[data-screen='picker'] .picker-list > [role='group'] {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  .shell[data-screen='picker'] .picker-group-label {
+    flex: none;
+  }
+
+  .shell[data-screen='picker'] .picker-row {
+    flex: 1 0 auto;
+    max-height: calc(var(--space-12) * 2);
+  }
+}
+
+@media (min-width: 1400px) and (min-height: 900px) {
+  .shell[data-screen='picker'] .picker-card {
+    max-height: calc(var(--space-12) * 3);
+  }
+
+  .shell[data-screen='picker'] .picker-drill-list {
+    grid-auto-rows: minmax(min-content, calc(var(--space-12) * 2.75));
   }
 }
 
@@ -555,5 +600,12 @@
 
   .picker-mode {
     padding-block: var(--space-1);
+  }
+}
+
+@media (max-height: 800px) {
+  .shell[data-screen='picker'] .picker {
+    gap: var(--space-4);
+    padding-block: var(--space-4) var(--space-3);
   }
 }

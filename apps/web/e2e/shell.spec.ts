@@ -307,6 +307,67 @@ for (const language of ['en', 'de'] as const)
     });
   }
 
+const bandLimit = 200;
+
+for (const language of ['en', 'de'] as const) {
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1920, height: 950 },
+    { width: 3840, height: 2160 },
+  ]) {
+    test(`the ${language} picker leaves no blank band and puts Mode under the index at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await openPicker(page);
+      await selectLanguage(page, language);
+
+      for (const entry of aircraftRegistry) {
+        await page.getByRole('button', { name: entry.name[language] }).click();
+        const boxes = await page.evaluate(() => {
+          const rect = (selector: string) => {
+            const element = document.querySelector(selector);
+            if (!element) throw new Error(`no ${selector}`);
+            const { left, top, bottom } = element.getBoundingClientRect();
+            return { left, top, bottom };
+          };
+          const bottoms = (selector: string) =>
+            [...document.querySelectorAll(selector)].map(
+              (element) => element.getBoundingClientRect().bottom,
+            );
+          return {
+            list: rect('.picker-list'),
+            modes: rect('.picker-modes'),
+            footer: rect('.app-footer'),
+            left: Math.max(...bottoms('.picker-card, .picker-drill')),
+            right: Math.max(...bottoms('.picker-actions > *')),
+          };
+        });
+        expect(boxes.modes.top, 'Mode under the index').toBeGreaterThanOrEqual(boxes.list.bottom);
+        expect(boxes.modes.left, 'Mode in the index column').toBeLessThanOrEqual(boxes.list.left);
+        expect(boxes.footer.top - boxes.left, 'left band').toBeLessThanOrEqual(bandLimit);
+        expect(boxes.footer.top - boxes.right, 'right band').toBeLessThanOrEqual(bandLimit);
+      }
+    });
+  }
+}
+
+test('the German picker fits 1024x768 with the surprise phase select in view', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await openPicker(page);
+  await selectLanguage(page, 'de');
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+  );
+  expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
+  const [select, footer] = await Promise.all([
+    page.locator('.picker-surprise select').boundingBox(),
+    page.locator('.app-footer').boundingBox(),
+  ]);
+  if (!select || !footer) throw new Error('no select or footer box');
+  expect(select.y + select.height, 'select above the footer').toBeLessThanOrEqual(footer.y);
+});
+
 for (const viewport of [
   { width: 1280, height: 800 },
   { width: 1024, height: 768 },
