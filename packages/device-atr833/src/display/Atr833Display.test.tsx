@@ -46,7 +46,7 @@ describe('Atr833Display', () => {
     expect(container.querySelectorAll('[data-knob]')).toHaveLength(2);
   });
 
-  it('is a square mirror, 272 units wide', () => {
+  it('is a square mirror', () => {
     expect(ATR833_MIRROR.aspectRatio).toBe('1 / 1');
     const bezel = show().querySelector<HTMLElement>('.pk-mirror-bezel');
     expect(bezel?.style.aspectRatio).toBe('1 / 1');

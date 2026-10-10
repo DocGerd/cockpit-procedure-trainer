@@ -22,7 +22,6 @@ const underlineStyle: CSSProperties = { textDecoration: 'underline' };
 
 type FieldProps = { name: Atr833Cursor; state: Atr833State; text: string };
 
-/** One field of the standby frequency; the cursor underlines the field it is on. */
 function Field({ name, state, text }: FieldProps) {
   const underlined = state.cursor === name;
   return (
@@ -37,7 +36,6 @@ function Field({ name, state, text }: FieldProps) {
 
 type FaceLinesProps = { on: boolean; state: Atr833State };
 
-/** The three display lines of the unit, shared by the operable screen and the panel mirror. */
 export function FaceLines({ on, state }: FaceLinesProps) {
   const lit = on && state.on;
   const preview = lit ? listPreview(state) : null;

@@ -6,11 +6,11 @@ const ITEM_NAMES: Readonly<Record<Atr833Item, Text>> = {
   vol: { de: 'Lautstärke', en: 'volume' },
   sql: { de: 'Squelch', en: 'squelch' },
   vox: { de: 'VOX', en: 'VOX' },
-  int: { de: 'Bordsprechanlage', en: 'intercom' },
+  int: { de: 'INT', en: 'INT' },
   stl: { de: 'STL', en: 'STL' },
   str: { de: 'STR', en: 'STR' },
-  ext: { de: 'Externer Eingang', en: 'external audio' },
-  brt: { de: 'Helligkeit', en: 'brightness' },
+  ext: { de: 'EXT', en: 'EXT' },
+  brt: { de: 'BRT', en: 'BRT' },
 };
 
 const LIST_NAMES = {

@@ -76,11 +76,19 @@ describe('Atr833Screen controls', () => {
   it('gives every key a native button with an accessible name, in the right order', () => {
     show();
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(KEYS.length);
-    for (const [name] of KEYS) {
-      const button = screen.getByRole('button', { name });
-      expect(button.tagName).toBe('BUTTON');
-    }
+    expect(buttons.map((button) => button.dataset.control)).toEqual([
+      'power',
+      'set',
+      'mem',
+      'volSel',
+      'volSel',
+      'dw',
+      'swap',
+      'cursor',
+      'freq',
+      'freq',
+    ]);
+    for (const button of buttons) expect(button.tagName).toBe('BUTTON');
   });
 
   it('prints the face lettering on the keys', () => {

@@ -155,7 +155,6 @@ export function listEntry(state: Atr833State): number | null {
 
 const pad = (value: number): string => String(value).padStart(2, '0');
 
-/** The text of display line 3: the SET item, the list and its entry number, or the save slot. */
 export function lineThree(state: Atr833State): string {
   const { list } = state;
   if (list?.kind === 'save') return `MEM SAVE ${pad(list.index + 1)}`;
@@ -165,14 +164,12 @@ export function lineThree(state: Atr833State): string {
   return `${state.item.toUpperCase()} ${shown}`;
 }
 
-/** What the standby line shows while a list is browsed: the entry's frequency, or dashes. */
 export function listPreview(state: Atr833State): string | null {
   if (state.list === null || state.list.kind === 'save') return null;
   const entry = listEntry(state);
   return entry === null ? '---' : formatFrequency(entry);
 }
 
-/** A frequency split into the three fields the cursor moves between. */
 export function frequencyParts(khz: number): Record<Atr833Cursor, string> {
   const [whole = '', fraction = ''] = formatFrequency(khz).split('.');
   return { mhz: whole, tenths: fraction.slice(0, 1), channel: fraction.slice(1) };
@@ -330,7 +327,7 @@ export const atr833Device = defineDevice({
     set: key(
       text('Einstellung', 'Set'),
       text(
-        'Schaltet die dritte Zeile durch Lautstärke, Squelch, VOX, Bordsprechanlage, Eigenhören, Helligkeit; in einer Liste: Eintrag in die Bereitschaftsfrequenz.',
+        'Schaltet die dritte Zeile durch ihre Einträge; in einer Liste: Eintrag in die Bereitschaftsfrequenz.',
         'Steps the third line through its items; in a list, loads the entry into the standby frequency.',
       ),
     ),

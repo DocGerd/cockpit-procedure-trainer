@@ -20,10 +20,10 @@ describe('atr833Readout', () => {
   it('reads dual watch, the chosen item and the saved mark', () => {
     const state: Atr833State = { ...start, dualWatch: true, item: 'ext', saved: true };
     expect(atr833Readout(state, 'en', true)).toBe(
-      'Active 118.000 MHz, dual watch 119.000 MHz, saved, external audio off',
+      'Active 118.000 MHz, dual watch 119.000 MHz, saved, EXT off',
     );
     expect(atr833Readout(state, 'de', true)).toBe(
-      'Aktiv 118,000 MHz, Doppelhören 119,000 MHz, gespeichert, Externer Eingang aus',
+      'Aktiv 118,000 MHz, Doppelhören 119,000 MHz, gespeichert, EXT aus',
     );
   });
 

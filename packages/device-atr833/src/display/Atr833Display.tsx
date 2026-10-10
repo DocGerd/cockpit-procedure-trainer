@@ -4,7 +4,6 @@ import type { CSSProperties } from 'react';
 import { FaceLines } from '../face/FaceLines';
 import type { Atr833State } from '../logic';
 
-/** The unit is a square bezel around a round face: a 1:1 mirror, 272 units wide. */
 export const ATR833_MIRROR: MirrorSize = {
   width: 'calc(var(--space-12) * 5 + var(--space-8))',
   aspectRatio: '1 / 1',
