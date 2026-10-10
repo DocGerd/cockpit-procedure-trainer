@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { writeSetting } from '../storage';
@@ -54,6 +54,7 @@ const themeColorMedia = () =>
 beforeEach(() => {
   localStorage.clear();
   delete document.documentElement.dataset.theme;
+  document.documentElement.classList.remove('theme-fading');
   for (const scheme of ['light', 'dark']) {
     const meta = document.createElement('meta');
     meta.name = 'theme-color';
@@ -156,5 +157,68 @@ describe('theme', () => {
     writeSetting('theme', 'dark');
     renderSwitch();
     expect(themeColorMedia()).toEqual(['not all', 'all']);
+  });
+});
+
+describe('theme fade', () => {
+  const fading = () => document.documentElement.classList.contains('theme-fading');
+  const toggle = (name: string) =>
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name }));
+    });
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('does not fade the first application, dark or light', () => {
+    mockSystemTheme('dark');
+    renderSwitch();
+    expect(theme()).toBe('dark');
+    expect(fading()).toBe(false);
+  });
+
+  it('does not fade a stored choice on load', () => {
+    mockSystemTheme('light');
+    writeSetting('theme', 'dark');
+    renderSwitch();
+    expect(fading()).toBe(false);
+  });
+
+  it('fades a switch from the toggle and stops afterwards', () => {
+    mockSystemTheme('light');
+    renderSwitch();
+    toggle('Switch to dark theme');
+    expect(theme()).toBe('dark');
+    expect(fading()).toBe(true);
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(fading()).toBe(false);
+  });
+
+  it('keeps fading through a second switch and clears once', () => {
+    mockSystemTheme('light');
+    renderSwitch();
+    toggle('Switch to dark theme');
+    toggle('Switch to light theme');
+    expect(theme()).toBe('light');
+    expect(fading()).toBe(true);
+    act(() => {
+      vi.runAllTimers();
+    });
+    expect(fading()).toBe(false);
+  });
+
+  it('does not fade a change of the system setting', () => {
+    const system = mockSystemTheme('light');
+    renderSwitch();
+    system.change('dark');
+    expect(theme()).toBe('dark');
+    expect(fading()).toBe(false);
   });
 });
