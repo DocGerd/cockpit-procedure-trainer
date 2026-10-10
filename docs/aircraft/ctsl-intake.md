@@ -754,7 +754,7 @@ visible lettering (§9 question 36).
 **Identification.** A round 57 mm funkwerk Mode S transponder with a yellow OLED, in
 a square bezel with three corner screws and the knob in the fourth corner, `ATC` printed vertically on the left. It is
 the TRT800H-OLED: the TRT800A-OLED is a different, rectangular unit with seven
-buttons (it adds `MOD` and `FID`) in another layout, so the round 57 mm body
+buttons (it adds a `FID` key and letters its mode key `MOD`) in another layout, so the round 57 mm body
 settles the variant. The older Filser TRT800 (a
 square face with four knobs and an LCD) is a different face. Certainty: high on the
 family and variant, from the housing; the software version and cradle contents are
