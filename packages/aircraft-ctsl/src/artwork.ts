@@ -8,11 +8,9 @@ export const images = {
   gaugeOilPressure: new URL('./assets/artwork/gauge-oil-pressure.svg', import.meta.url).href,
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
+  gaugeVoltmeter: new URL('./assets/artwork/gauge-voltmeter.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
   glassGauge: new URL('./assets/artwork/glass-gauge.svg', import.meta.url).href,
-  glassCompass: new URL('./assets/artwork/glass-compass.svg', import.meta.url).href,
-  compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
-  compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
@@ -110,24 +108,6 @@ const travel = (face: string, image: string, path: readonly Point[]): ArtworkApp
   artwork: { face, moving: { type: 'travel', image, path } },
 });
 
-// A panel compass: the card is printed reversed and turns clockwise, so the numbers in the window
-// increase to the left and the card slides right as the heading increases. The glass is the opaque
-// housing, open only at the window over the top of the card.
-const compassCard: ArtworkAppearance = {
-  options: { min: 0, max: 360, units: '°', decimals: 0 },
-  artwork: {
-    face: images.compassFace,
-    moving: {
-      type: 'needle',
-      image: images.compassCard,
-      pivot: { x: 100, y: 100 },
-      angleRange: { min: 0, max: 360 },
-      valueRange: { min: 0, max: 360 },
-    },
-    glass: images.glassCompass,
-  },
-};
-
 export const lampArtwork = {
   charge: {
     options: { lamp: 'red' },
@@ -137,13 +117,12 @@ export const lampArtwork = {
         type: 'positions',
         images: { false: images.lampChargeOff, true: images.lampChargeOn },
       },
-      lettering: ['CHARGE'],
+      lettering: ['Generator'],
     },
   },
 } as const satisfies Record<string, ArtworkAppearance>;
 
 export const gaugeArtwork = {
-  compass: compassCard,
   airspeed: needle(
     images.gaugeAirspeed,
     { min: 40, max: 340 },
@@ -231,6 +210,22 @@ export const gaugeArtwork = {
       ],
     },
   ),
+  voltmeter: needle(
+    images.gaugeVoltmeter,
+    { min: 9, max: 17 },
+    {
+      units: 'V',
+      decimals: 1,
+      ticks: [9, 10, 11, 12, 13, 14, 15, 16, 17],
+      arcs: [
+        { from: 9, to: 10.5, colour: 'red' },
+        { from: 10.5, to: 11.5, colour: 'yellow' },
+        { from: 11.5, to: 15, colour: 'green' },
+        { from: 15, to: 16, colour: 'yellow' },
+        { from: 16, to: 17, colour: 'red' },
+      ],
+    },
+  ),
 } as const;
 
 const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): ArtworkAppearance => ({
@@ -238,8 +233,8 @@ const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): Artwor
   artwork: { ...appearance.artwork, lettering },
 });
 
-const breaker = (face: string, lettering: string) =>
-  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), lettering);
+const breaker = (face: string, ...legend: string[]) =>
+  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), ...legend);
 const rocker = (face: string, ...title: string[]) =>
   lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), ...title, 'I', 'O');
 const pushPull = positions(images.pushpullFace, {
@@ -253,14 +248,14 @@ const aftEnd = { x: 56, y: 260 } as const;
 const pullSlide = [forwardEnd, aftEnd] as const;
 
 export const controlArtwork = {
-  comBreaker: breaker(images.breakerCom, 'COM'),
-  xpdrBreaker: breaker(images.breakerXpdr, 'XPDR'),
+  comBreaker: breaker(images.breakerCom, 'Com'),
+  xpdrBreaker: breaker(images.breakerXpdr, 'Transponder'),
   gpsBreaker: breaker(images.breakerGps, 'GPS'),
-  positionBreaker: breaker(images.breakerPosition, 'POS'),
-  strobeBreaker: breaker(images.breakerStrobe, 'STRB'),
-  landingBreaker: breaker(images.breakerLanding, 'LDG'),
-  intercomBreaker: breaker(images.breakerIntercom, 'INT'),
-  outletBreaker: breaker(images.breakerOutlet, '12 V'),
+  positionBreaker: breaker(images.breakerPosition, 'Position', 'Light'),
+  strobeBreaker: breaker(images.breakerStrobe, 'Beacon', 'Light'),
+  landingBreaker: breaker(images.breakerLanding, 'Landing', 'Light'),
+  intercomBreaker: breaker(images.breakerIntercom, 'Intercom'),
+  outletBreaker: breaker(images.breakerOutlet, '12V', 'Outlet'),
   flapBreaker: lettered(
     positions(images.breakerFlap, {
       in: images.breakerFlapIn,

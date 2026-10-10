@@ -1,5 +1,4 @@
 import type { PositionOf } from '@cpt/core';
-import { headingLabel, runway } from '../airfield';
 import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
@@ -73,18 +72,6 @@ const flapCheck = (angle: number) => {
     expected: text(shown, shown),
   } as const;
 };
-
-// Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
-const checkRunwayHeading = {
-  type: 'check',
-  target: { indicator: 'compass' },
-  condition: (state: State) => state.systems.headingDeg === runway.headingDeg,
-  text: text('Kompass (Ergänzung des Trainers)', 'Compass (trainer addition)'),
-  expected: text(
-    `${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator}`,
-    `${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`,
-  ),
-} as const;
 
 // Intake §3.4: close the valve, then pull the non-locking brake lever; the valve traps the pressure.
 const setParkingBrake = [
@@ -549,7 +536,7 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'chargeLamp' },
         condition: (state: State) => !chargeLampLit(state),
-        text: text('Ladekontrolle', 'Charge lamp'),
+        text: text('Generatorlampe', 'Generator lamp'),
         expected: text('aus', 'out'),
       },
       {
@@ -608,7 +595,6 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',
@@ -661,7 +647,6 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',

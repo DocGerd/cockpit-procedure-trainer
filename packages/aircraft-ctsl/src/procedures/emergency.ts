@@ -475,7 +475,7 @@ export const emergencyProcedures = {
         type: 'check',
         target: { indicator: 'chargeLamp' },
         condition: chargeLampLit,
-        text: text('Ladekontrolle leuchtet', 'Charge warning lamp is lit'),
+        text: text('Generatorlampe leuchtet', 'Generator lamp is lit'),
       },
       {
         type: 'action',

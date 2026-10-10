@@ -68,7 +68,7 @@ export const controls = {
     controlArtwork.positionBreaker,
   ),
   strobeBreaker: breakerOf(
-    text('Sicherung Blitzlicht', 'Strobe breaker'),
+    text('Sicherung Blitzlicht', 'Beacon light breaker'),
     text('Schützt das Blitzlicht (Beacon).', 'Protects the beacon strobe.'),
     controlArtwork.strobeBreaker,
   ),

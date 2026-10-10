@@ -15,7 +15,7 @@ import type { controls } from './controls';
 import type { CtslFailure } from './failures';
 
 export type CtslState = {
-  bus: { mainPowered: boolean; avionicsPowered: boolean; charging: boolean };
+  bus: { mainPowered: boolean; avionicsPowered: boolean; charging: boolean; volts: number };
   engine: PistonEngineState;
   rpm: number;
   oilPressureBar: number;
@@ -116,7 +116,7 @@ const bus = electricalBus({ batteryVolts: BATTERY_VOLTS, chargingVolts: CHARGING
 const engineBlock = pistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });
 
 export const initial: CtslState = {
-  bus: { mainPowered: false, avionicsPowered: false, charging: false },
+  bus: { mainPowered: false, avionicsPowered: false, charging: false, volts: 0 },
   engine: engineBlock.initial,
   rpm: 0,
   oilPressureBar: 0,
@@ -352,6 +352,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       mainPowered,
       avionicsPowered: mainPowered && on(controls, 'avionicsMaster'),
       charging: electrical.charging,
+      volts: electrical.volts,
     },
     engine,
     rpm,

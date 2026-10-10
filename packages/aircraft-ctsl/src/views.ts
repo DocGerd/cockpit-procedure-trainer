@@ -12,36 +12,36 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
 });
 
 export const deviceSlots = {
-  com: at(190, 360, 520, 150),
-  xpdr: at(190, 520, 520, 150),
-  gps: at(1168, 40, 400, 300),
+  com: at(487, 495, 556.4, 160.5),
+  xpdr: at(1051.4, 495, 556.4, 160.5),
+  gps: at(835.5, 132, 428, 321),
 } as const satisfies Record<string, Placement>;
 
 export const views = {
   panel: {
     name: text('Instrumententafel', 'Panel'),
     image: images.panel,
-    size: { width: 1900, height: 700 },
+    size: { width: 2372, height: 700 },
     controls: {
-      comBreaker: at(1606, 116, 84, 130),
-      xpdrBreaker: at(1606, 250, 84, 130),
-      positionBreaker: at(1694, 250, 84, 130),
-      intercomBreaker: at(1782, 250, 84, 130),
-      gpsBreaker: at(1606, 384, 84, 130),
-      strobeBreaker: at(1694, 384, 84, 130),
-      landingBreaker: at(1782, 384, 84, 130),
-      outletBreaker: at(1606, 518, 84, 130),
+      comBreaker: at(1650, 372, 100, 96),
+      xpdrBreaker: at(1850, 372, 100, 96),
+      landingBreaker: at(1650, 468, 100, 96),
+      strobeBreaker: at(1950, 468, 100, 96),
+      positionBreaker: at(2050, 468, 100, 96),
+      intercomBreaker: at(2150, 468, 100, 96),
+      gpsBreaker: at(2250, 468, 100, 96),
+      outletBreaker: at(1650, 564, 100, 96),
     },
     indicators: {
-      compass: at(878, 40, 150, 150),
-      airspeed: at(160, 90, 220, 220),
-      verticalSpeed: at(395, 32, 160, 160),
-      chargeLamp: at(570, 32, 110, 70),
-      altimeter: at(575, 115, 220, 220),
-      tachometer: at(872, 360, 220, 220),
-      oilPressure: at(1102, 390, 160, 160),
-      oilTemperature: at(1267, 390, 160, 160),
-      cht: at(1432, 390, 160, 160),
+      airspeed: at(22, 122, 220, 220),
+      altimeter: at(248, 134, 196, 196),
+      verticalSpeed: at(248, 358, 196, 196),
+      tachometer: at(1654, 40, 210, 210),
+      cht: at(1878, 40, 150, 150),
+      voltmeter: at(2034, 40, 150, 150),
+      oilTemperature: at(1878, 196, 150, 150),
+      oilPressure: at(2034, 196, 150, 150),
+      chargeLamp: at(2196, 36, 150, 90),
     },
   },
   centre: {
