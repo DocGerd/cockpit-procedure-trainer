@@ -1,4 +1,5 @@
 import type { Device } from '@cpt/core';
+import { aera500Device, aera500ScreenEntry } from '@cpt/device-aera500';
 import { comDevice, comScreenEntry } from '@cpt/device-com';
 import { flarmDevice, flarmScreenEntry } from '@cpt/device-flarm';
 import { gpsmap496Device, gpsmap496ScreenEntry } from '@cpt/device-gpsmap496';
@@ -10,6 +11,7 @@ import type { DeviceScreenEntry, DeviceScreenProps } from '@cpt/panel-kit';
 import type { ComponentType } from 'react';
 
 export const deviceRegistry: readonly Device[] = [
+  aera500Device,
   comDevice,
   sl40Device,
   gtx327Device,
@@ -21,6 +23,7 @@ export const deviceRegistry: readonly Device[] = [
 
 /** What each device draws, keyed by device id; a device without an entry shows a placeholder. */
 export const deviceEntries: Readonly<Record<string, DeviceScreenEntry>> = {
+  [aera500Device.id]: aera500ScreenEntry,
   [comDevice.id]: comScreenEntry,
   [sl40Device.id]: sl40ScreenEntry,
   [gtx327Device.id]: gtx327ScreenEntry,

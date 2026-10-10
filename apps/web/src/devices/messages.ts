@@ -27,6 +27,7 @@ export const unitNames = defineMessages({
     gtx327: 'Transponder',
     trt800h: 'Transponder',
     gpsmap496: 'GPS',
+    aera500: 'GPS',
   },
   de: {
     flarm: 'FLARM',
@@ -36,5 +37,6 @@ export const unitNames = defineMessages({
     gtx327: 'Transponder',
     trt800h: 'Transponder',
     gpsmap496: 'GPS',
+    aera500: 'GPS',
   },
 });
