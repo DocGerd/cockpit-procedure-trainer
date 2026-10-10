@@ -68,9 +68,9 @@ body {
 }
 
 .button-secondary {
-  color: var(--color-accent);
-  background: transparent;
-  border: 1px solid currentColor;
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+  border: 0;
 }
 
 @media (hover: hover) {
@@ -84,14 +84,17 @@ body {
   }
 
   :where(.button-secondary:enabled):hover {
-    background-color: var(--color-surface-muted);
+    background-color: var(--color-border);
   }
 }
 
-:where(.chrome-button:enabled):active,
-:where(.button-secondary:enabled):active {
+:where(.chrome-button:enabled):active {
   color: var(--color-text);
   background-color: var(--color-border);
+}
+
+:where(.button-secondary:enabled):active {
+  background-color: color-mix(in srgb, var(--color-text) 12%, var(--color-surface-muted));
 }
 
 :where(.button-primary:enabled):active {

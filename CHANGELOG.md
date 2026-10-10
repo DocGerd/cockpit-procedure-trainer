@@ -8,6 +8,26 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.17.0] - 2026-10-10
+
+### Added
+
+- Buttons respond to the pointer: Start and other primary buttons take a stronger accent on hover, other buttons a light fill (off when the system asks for reduced motion).
+- The version in the footer now opens an About dialog with the training-aid note, each aircraft's handbook revision, the licence, the exact build, links to the source and release notes, and the latest releases from the changelog; confirm dialogs keep focus inside on a backdrop click and show the discarding action in red, and the update prompt and error screen share one notice style.
+
+### Changed
+
+- The start screen reads like a quick reference index: the procedure list fills its column with dot leaders and Normal and Emergency thumb tabs, Mode and Start sit under it, aircraft and drills fill the left column as quiet rows, the training-aid note sits under the title, and the explore button is now called Free explore.
+- The trainer header reads as one calm row: the aircraft and procedure show as a breadcrumb that never cuts a name short, Free explore joins Guided and Practice in one Mode control, the settings sit apart behind a hairline, the title returns to the start, the browser tab names the procedure and aircraft, and the tablet checklist drawer has a close button.
+- The checklist pane shows more of the procedure: the current item is marked by a side rule with one primary button (Done, Checked or Verified, with Show me beside it), a deviation appears as a sheet over the bottom of the list instead of reserving space, checks show their expected value behind a dot leader, and the summary lists its figures as readouts.
+- The start screen loads faster: the trainer screen loads in the background, and only the Latin font files ship.
+- Switching between the light and dark theme now cross-fades the whole app frame instead of snapping; a dark-mode load and the system's reduced-motion setting skip the fade.
+
+### Fixed
+
+- The CTSL trim wheel now trims in five steps, nose down, half nose down, neutral, half nose up and nose up, so a pilot can trim toward a target setting; neutral stays the take-off setting and Guided still points at it.
+- Polish after the chrome redesign: a dark-theme load no longer starts light and fades, secondary buttons are neutral instead of accent outlines, the checklist flow block keeps the pane inset under a plain heading, picker procedure rows keep one title line, the tablet header keeps one line of names, and the control details scale up on 4K screens.
+
 ## [0.16.0] - 2026-10-09
 
 ### Fixed
@@ -328,7 +348,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.12.0...v0.14.0

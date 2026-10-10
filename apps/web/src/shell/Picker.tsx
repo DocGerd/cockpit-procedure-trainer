@@ -1,6 +1,6 @@
 import { flightLegs, phaseName } from '@cpt/core';
 import type { Aircraft } from '@cpt/core';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { aircraftRegistry } from '../aircraft-registry';
 import { StartupNotice } from '../errors/StartupNotice';
 import { format, useLanguage, useLocalize, useMessages } from '../i18n';
@@ -16,10 +16,13 @@ import { AppFooter } from './AppFooter';
 import { Header } from './Header';
 import { useLayout } from './layout';
 import { messages } from './messages';
+import { pickerMessages } from './picker.messages';
 import { relativeDate } from './relative-date';
 import './picker.css';
 
 type PickerMode = 'guided' | 'practice';
+
+type ProcedureType = 'normal' | 'emergency';
 
 const ANY_PHASE = '*';
 
@@ -36,24 +39,28 @@ function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: 
       aria-pressed={selected}
       onClick={() => selectAircraft(aircraft.id)}
     >
-      <span className="picker-card-title">{localize(aircraft.name)}</span>{' '}
-      <span className="picker-card-text">
-        {text.handbookRevision}: {localize(aircraft.handbookRevision)}
+      <span className="picker-card-head">
+        <span className="picker-card-title">{localize(aircraft.name)}</span>{' '}
+        <span className="picker-meta readout">
+          {count(Object.keys(aircraft.views).length, text.viewOne, text.viewOther)} ·{' '}
+          {count(Object.keys(aircraft.procedures).length, text.procedureOne, text.procedureOther)}
+        </span>
       </span>{' '}
-      <span className="picker-meta">
-        {count(Object.keys(aircraft.views).length, text.viewOne, text.viewOther)} ·{' '}
-        {count(Object.keys(aircraft.procedures).length, text.procedureOne, text.procedureOther)}
+      <span className="picker-card-revision">
+        {text.handbookRevision}: {localize(aircraft.handbookRevision)}
       </span>
     </button>
   );
 }
 
 function ProcedureGroup({
+  type,
   label,
   ids,
   selected,
   onSelect,
 }: {
+  type: ProcedureType;
   label: string;
   ids: readonly string[];
   selected: string | undefined;
@@ -69,7 +76,7 @@ function ProcedureGroup({
     format(n === 1 ? text.toggleDeviationOne : text.toggleDeviationOther, { count: n });
   if (ids.length === 0) return null;
   return (
-    <div role="group" aria-labelledby={labelId}>
+    <div role="group" aria-labelledby={labelId} data-type={type}>
       <div id={labelId} className="picker-group-label">
         {label}
       </div>
@@ -87,12 +94,13 @@ function ProcedureGroup({
             onClick={() => onSelect(id)}
           >
             <span className="picker-row-title">{localize(procedure.title)}</span>{' '}
-            <span className="picker-meta">
+            <span className="leader" />
+            <span className="picker-meta readout">
               {phase ? `${localize(phase)} · ` : ''}
               {count(procedure.items.length, text.itemOne, text.itemOther)}
             </span>
             {run && (
-              <span className="picker-history">
+              <span className="picker-history readout">
                 <span className="picker-meta">
                   {format(text.historyLast, {
                     result: deviationCount(run.last.deviations),
@@ -152,122 +160,105 @@ function Drills({ mode }: { mode: PickerMode }) {
   };
 
   return (
-    <section className="picker-drills" aria-labelledby={headingId}>
+    <section className="picker-drills scroll-thin scroll-fade" aria-labelledby={headingId}>
       <h2 id={headingId} className="picker-heading">
         {text.drills}
       </h2>
-      {suggestion && suggested && (
-        <div className="picker-drill">
-          <button
-            type="button"
-            className="button-secondary"
-            aria-describedby={nextHint}
-            onClick={() => run(suggestion.id)}
-          >
-            {text.practiseNext}
-          </button>
-          <p id={nextHint} className="picker-card-text">
-            {format(reasons[suggestion.reason], { title: localize(suggested.title) })}
-          </p>
-        </div>
-      )}
-      {flight && (
-        <div className="picker-drill">
-          {mode === 'practice' && (
-            <div className="picker-surprise">
-              {flightPhases.length > 0 && (
-                <>
-                  <label htmlFor={flightSurpriseSelect} className="picker-card-text">
-                    {text.flightSurprise}
-                  </label>
-                  <select
-                    id={flightSurpriseSelect}
-                    className="chrome-button"
-                    value={flightSurprise}
-                    onChange={(event) => setFlightChoice(event.target.value)}
-                  >
-                    <option value="">{text.flightSurpriseNone}</option>
-                    <option value={ANY_PHASE}>{text.flightSurpriseAny}</option>
-                    {flightPhases.map((id) => {
-                      const name = phaseName(id);
-                      return (
-                        <option key={id} value={id}>
-                          {name ? localize(name) : id}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </>
-              )}
-              <label className="picker-check picker-card-text">
-                <input
-                  type="checkbox"
-                  checked={flightRecall}
-                  onChange={(event) => setFlightRecall(event.target.checked)}
-                />
-                {text.hideUpcoming}
-              </label>
-            </div>
-          )}
-          <button
-            type="button"
-            className="button-secondary"
-            aria-describedby={flightHint}
-            onClick={() => {
-              trainer.setMode(mode);
-              trainer.startFlight({
-                recall: mode === 'practice' && flightRecall,
-                ...(flightSurprise === ''
-                  ? {}
-                  : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } }),
-              });
-            }}
-          >
-            {text.fullFlight}
-          </button>
-          <p id={flightHint} className="picker-card-text">
-            {text.fullFlightHint}
-          </p>
-        </div>
-      )}
-      {phase !== undefined && (
-        <>
+      <div className="picker-drill-list">
+        {suggestion && suggested && (
           <div className="picker-drill">
             <button
               type="button"
               className="button-secondary"
-              aria-describedby={randomHint}
+              aria-describedby={nextHint}
+              onClick={() => run(suggestion.id)}
+            >
+              {text.practiseNext}
+            </button>
+            <div className="picker-drill-body">
+              <p id={nextHint}>
+                {format(reasons[suggestion.reason], { title: localize(suggested.title) })}
+              </p>
+            </div>
+          </div>
+        )}
+        {flight && (
+          <div className="picker-drill">
+            <button
+              type="button"
+              className="button-secondary"
+              aria-describedby={flightHint}
               onClick={() => {
-                const id = randomEmergency(aircraft);
-                if (id !== undefined) run(id);
+                trainer.setMode(mode);
+                trainer.startFlight({
+                  recall: mode === 'practice' && flightRecall,
+                  ...(flightSurprise === ''
+                    ? {}
+                    : { surprise: flightSurprise === ANY_PHASE ? {} : { phase: flightSurprise } }),
+                });
               }}
             >
-              {text.randomEmergency}
+              {text.fullFlight}
             </button>
-            <p id={randomHint} className="picker-card-text">
-              {text.randomEmergencyHint}
-            </p>
+            <div className="picker-drill-body">
+              <p id={flightHint}>{text.fullFlightHint}</p>
+              {mode === 'practice' && (
+                <>
+                  {flightPhases.length > 0 && (
+                    <div className="picker-surprise">
+                      <label htmlFor={flightSurpriseSelect}>{text.flightSurprise}</label>
+                      <select
+                        id={flightSurpriseSelect}
+                        className="chrome-button"
+                        value={flightSurprise}
+                        onChange={(event) => setFlightChoice(event.target.value)}
+                      >
+                        <option value="">{text.flightSurpriseNone}</option>
+                        <option value={ANY_PHASE}>{text.flightSurpriseAny}</option>
+                        {flightPhases.map((id) => {
+                          const name = phaseName(id);
+                          return (
+                            <option key={id} value={id}>
+                              {name ? localize(name) : id}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  )}
+                  <label className="picker-check">
+                    <input
+                      type="checkbox"
+                      className="switch"
+                      checked={flightRecall}
+                      onChange={(event) => setFlightRecall(event.target.checked)}
+                    />
+                    {text.hideUpcoming}
+                  </label>
+                </>
+              )}
+            </div>
           </div>
-          <div className="picker-drill">
-            <div className="picker-surprise">
-              <label htmlFor={phaseSelect} className="picker-card-text">
-                {text.surprisePhase}
-              </label>
-              <select
-                id={phaseSelect}
-                className="chrome-button"
-                value={phase}
-                onChange={(event) => setPhase(event.target.value)}
+        )}
+        {phase !== undefined && (
+          <>
+            <div className="picker-drill">
+              <button
+                type="button"
+                className="button-secondary"
+                aria-describedby={randomHint}
+                onClick={() => {
+                  const id = randomEmergency(aircraft);
+                  if (id !== undefined) run(id);
+                }}
               >
-                {phases.map((id) => {
-                  const name = phaseName(id);
-                  return (
-                    <option key={id} value={id}>
-                      {name ? localize(name) : id}
-                    </option>
-                  );
-                })}
-              </select>
+                {text.randomEmergency}
+              </button>
+              <div className="picker-drill-body">
+                <p id={randomHint}>{text.randomEmergencyHint}</p>
+              </div>
+            </div>
+            <div className="picker-drill">
               <button
                 type="button"
                 className="button-secondary"
@@ -276,19 +267,38 @@ function Drills({ mode }: { mode: PickerMode }) {
               >
                 {text.surpriseFailure}
               </button>
+              <div className="picker-drill-body">
+                <p id={surpriseHint}>{text.surpriseHint}</p>
+                <div className="picker-surprise">
+                  <label htmlFor={phaseSelect}>{text.surprisePhase}</label>
+                  <select
+                    id={phaseSelect}
+                    className="chrome-button"
+                    value={phase}
+                    onChange={(event) => setPhase(event.target.value)}
+                  >
+                    {phases.map((id) => {
+                      const name = phaseName(id);
+                      return (
+                        <option key={id} value={id}>
+                          {name ? localize(name) : id}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
             </div>
-            <p id={surpriseHint} className="picker-card-text">
-              {text.surpriseHint}
-            </p>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </section>
   );
 }
 
 export function Picker() {
   const text = useMessages(messages);
+  const pickerText = useMessages(pickerMessages);
   const layout = useLayout();
   const trainer = useTrainer();
   const { aircraft } = trainer;
@@ -299,11 +309,19 @@ export function Picker() {
   const aircraftHeading = useId();
   const procedureHeading = useId();
   const modeName = useId();
-  const startHint = useId();
   const exploreHint = useId();
+  const list = useRef<HTMLDivElement>(null);
 
-  const byType = (type: 'normal' | 'emergency') =>
+  const byType = (type: ProcedureType) =>
     ids.filter((id) => aircraft.procedures[id]?.type === type);
+  const groups = (
+    [
+      ['normal', text.normalProcedures],
+      ['emergency', text.emergencyProcedures],
+    ] as const
+  )
+    .map(([type, label]) => ({ type, label, ids: byType(type) }))
+    .filter((group) => group.ids.length > 0);
 
   const start = () => {
     if (selected === undefined) return;
@@ -316,40 +334,68 @@ export function Picker() {
       <Header variant="picker" />
       <main className="picker">
         <div className="picker-intro">
-          <p className="shell-eyebrow">{text.pickerEyebrow}</p>
           <h1 className="picker-title">{text.pickerTitle}</h1>
+          <StartupNotice />
         </div>
         <div className="picker-columns">
           <section className="picker-aircraft" aria-labelledby={aircraftHeading}>
             <h2 id={aircraftHeading} className="picker-heading">
               {text.aircraft}
             </h2>
-            {aircraftRegistry.map((entry) => (
-              <AircraftChoice key={entry.id} aircraft={entry} selected={entry === aircraft} />
-            ))}
+            <div className="picker-cards">
+              {aircraftRegistry.map((entry) => (
+                <AircraftChoice key={entry.id} aircraft={entry} selected={entry === aircraft} />
+              ))}
+            </div>
           </section>
           <section className="picker-procedures" aria-labelledby={procedureHeading}>
             <h2 id={procedureHeading} className="picker-heading">
               {text.procedure}
             </h2>
             {ids.length === 0 ? (
-              <p className="picker-card-text">{text.noProcedures}</p>
+              <p className="picker-empty">{text.noProcedures}</p>
             ) : (
-              <div className="picker-list">
-                <ProcedureGroup
-                  label={text.normalProcedures}
-                  ids={byType('normal')}
-                  selected={selected}
-                  onSelect={setPicked}
-                />
-                <ProcedureGroup
-                  label={text.emergencyProcedures}
-                  ids={byType('emergency')}
-                  selected={selected}
-                  onSelect={setPicked}
-                />
+              <div className="picker-index">
+                <div ref={list} className="picker-list scroll-thin">
+                  {groups.map((group) => (
+                    <ProcedureGroup
+                      key={group.type}
+                      type={group.type}
+                      label={group.label}
+                      ids={group.ids}
+                      selected={selected}
+                      onSelect={setPicked}
+                    />
+                  ))}
+                </div>
+                <nav className="picker-tabs" aria-label={pickerText.procedureGroups}>
+                  {groups.map((group) => (
+                    <button
+                      key={group.type}
+                      type="button"
+                      className="picker-tab"
+                      data-type={group.type}
+                      onClick={() => {
+                        const box = list.current;
+                        const target = box?.querySelector(`:scope > [data-type='${group.type}']`);
+                        if (!box || !target) return;
+                        box.scrollTo({
+                          top:
+                            box.scrollTop +
+                            target.getBoundingClientRect().top -
+                            box.getBoundingClientRect().top,
+                        });
+                      }}
+                    >
+                      {group.label}{' '}
+                      <span className="picker-tab-count readout">{group.ids.length}</span>
+                    </button>
+                  ))}
+                </nav>
               </div>
             )}
+          </section>
+          <div className="picker-launch">
             <fieldset className="picker-modes">
               <legend className="picker-heading">{text.mode}</legend>
               {(
@@ -368,44 +414,33 @@ export function Picker() {
                   />
                   <span className="picker-mode-text">
                     <span className="picker-mode-label">{label}</span>{' '}
-                    <span className="picker-card-text">{hint}</span>
+                    <span className="picker-mode-hint">{hint}</span>
                   </span>
                 </label>
               ))}
             </fieldset>
             <div className="picker-actions">
-              <div className="picker-action">
-                <button
-                  type="button"
-                  className="button-primary"
-                  aria-describedby={startHint}
-                  disabled={selected === undefined}
-                  onClick={start}
-                >
-                  {text.startProcedure}
-                </button>
-                <p id={startHint} className="picker-card-text">
-                  {text.startHint}
-                </p>
-              </div>
-              <div className="picker-action">
-                <button
-                  type="button"
-                  className="button-secondary"
-                  aria-describedby={exploreHint}
-                  onClick={() => trainer.setMode('explore')}
-                >
-                  {text.exploreCockpit}
-                </button>
-                <p id={exploreHint} className="picker-card-text">
-                  {text.exploreHint}
-                </p>
-              </div>
+              <button
+                type="button"
+                className="button-primary"
+                disabled={selected === undefined}
+                onClick={start}
+              >
+                {text.startProcedure}
+              </button>
+              <button
+                type="button"
+                className="button-secondary"
+                aria-describedby={exploreHint}
+                onClick={() => trainer.setMode('explore')}
+              >
+                {text.exploreCockpit}
+              </button>
+              <p id={exploreHint}>{text.exploreHint}</p>
             </div>
-          </section>
+          </div>
           <Drills mode={mode} />
         </div>
-        <StartupNotice />
       </main>
       <AppFooter />
     </div>
