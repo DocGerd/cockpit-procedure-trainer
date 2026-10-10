@@ -224,7 +224,14 @@ export const trt800hDevice = defineDevice({
     if (!powered) return { ...switchedOff(state), held, heldMs: idle };
     if (!state.on) {
       if (!pressedNow('power')) return { ...switchedOff(state), held, heldMs: idle };
-      return { ...state, on: true, mode: 'stby', held, heldMs: { power: null, vfr: 0 } };
+      return {
+        ...state,
+        on: true,
+        mode: 'stby',
+        flightLevel: flightLevel(inputs[PRESSURE_ALTITUDE_INPUT]),
+        held,
+        heldMs: { power: null, vfr: 0 },
+      };
     }
 
     const heldMs = { ...state.heldMs };

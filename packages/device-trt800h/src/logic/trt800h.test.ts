@@ -208,6 +208,12 @@ describe('trt800hDevice', () => {
       expect(step(tap(acs, 'mode')).reporting).toBe(false);
     });
 
+    it('reads the level on the step that switches the unit on', () => {
+      const first = step(initial, { power: 'pressed' });
+      expect(first).toMatchObject({ on: true, flightLevel: 30, reporting: false });
+      expect(step(initial, { power: 'pressed' }, { altitude: 40_000 }).flightLevel).toBeNull();
+    });
+
     it('reads no level while switched off', () => {
       expect(step(initial).flightLevel).toBeNull();
     });

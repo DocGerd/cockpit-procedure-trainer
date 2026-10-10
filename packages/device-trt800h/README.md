@@ -18,6 +18,8 @@ funkwerk TRT800H Mode-S Transponder, OLED/LCD, Operation and Installation, docum
 - The initial codes 2000 and the factory VFR code 7000 are placeholders; the unit starts switched off, in standby.
 - A second VFR press while VFR is shown shows the standby code again and VFR stays active (the intake's second reading).
 - `►` puts the cursor on the first digit of the standby code, moves it on, and removes it after the fourth digit. The swap key moves the cursor back one digit and removes it from the first.
+- A press of `►` while `VFR` shows shows the standby code again, and a VFR release clears the cursor.
+- A level below zero prints as `FL -` and two digits (`FL -10`, `FL -05`); the intake gives the format only for levels from `FL 000`.
 - The knob wraps within the digits 0 to 7.
 - Pressing VFR when the active code already is the VFR code only shows `VFR`; the standby code is kept.
 - The `S` that confirms a store shows for `STORED_SHOW_MS`; the manual gives no duration.
