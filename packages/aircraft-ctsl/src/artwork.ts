@@ -55,6 +55,7 @@ export const images = {
   leverChokeFace: new URL('./assets/artwork/lever-choke-face.svg', import.meta.url).href,
   leverThrottleFace: new URL('./assets/artwork/lever-throttle-face.svg', import.meta.url).href,
   handleBrake: new URL('./assets/artwork/handle-brake.svg', import.meta.url).href,
+  handleChoke: new URL('./assets/artwork/handle-choke.svg', import.meta.url).href,
   handleThrottle: new URL('./assets/artwork/handle-throttle.svg', import.meta.url).href,
   leverCarbFace: new URL('./assets/artwork/lever-carb-face.svg', import.meta.url).href,
   handleCarb: new URL('./assets/artwork/handle-carb.svg', import.meta.url).href,
@@ -345,7 +346,7 @@ export const controlArtwork = {
     'ON',
   ),
   choke: lettered(
-    travel(images.leverChokeFace, images.handleBrake, pullSlide),
+    travel(images.leverChokeFace, images.handleChoke, pullSlide),
     'Choke',
     'OFF',
     'ON',
@@ -384,6 +385,6 @@ export const controlArtwork = {
         guardOpen: { stowed: images.rescueStowedOpen },
       },
     },
-    'RESCUE',
+    'Parachute',
   ),
 } as const satisfies Record<string, ArtworkAppearance>;

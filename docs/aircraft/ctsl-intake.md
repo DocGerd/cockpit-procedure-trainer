@@ -199,7 +199,9 @@ Handbook facts (checked 2026-10-08):
   control unit, with several detents and a catch under the grip that is lifted to
   move it (HB 7-5). That is the likely identity of the knob if D-MPGO has that
   propeller. A cabin heater is optional equipment (HB 6-8, 8-7) and gives a
-  second candidate.
+  second candidate. **Settled 2026-10-10** (M17 T2, #536): the photos show no such
+  knob and no propeller lever on the console, so the trainer draws none (§9,
+  questions 10 and 11).
 - **Carb heat** (Vergaservorwärmung): pulled to apply (HB 4-11, 4-13); named in
   seven checklists and on the take-off placard, but no figure or text shows the
   control (§9, question 3).
@@ -209,9 +211,8 @@ Handbook facts (checked 2026-10-08):
   cable to the rocket. Deploy by pulling it forward, hard, to the stop (HB 3-4).
   Secured on the ground by a pin through the release lever (HB 8-1). The rocket and
   canopy sit in the upper compartment behind the bulkhead (HB 7-13).
-- Not modelled as a control: the large knob aft of the parking-brake valve
-  (drawn as artwork only). Not modelled: the fire extinguisher (pocket behind
-  the passenger seat), the fuel dipstick.
+- Not modelled: the fire extinguisher (pocket behind the passenger seat), the
+  fuel dipstick, and the aileron- and rudder-trim wheels (drawn as inert art, M17 T2).
 
 What the trainer draws today, and where it departs from the above:
 
@@ -221,15 +222,17 @@ What the trainer draws today, and where it departs from the above:
   Each slides up (forward) and down (aft) in its own slot with its legend strip
   beside it: the throttle pushes up to FULL, the brake and choke pull down to ON,
   and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
-  it, DOWN forward. The parking-brake valve sits aft of the lever row, below the
-  brake lever.
+  it, DOWN forward. The parking-brake lever sits on the console's right side, aft of
+  the lever row (M17 T2). The grips follow the photos: a blue cylindrical throttle
+  grip, a black knurled crossbar on the brake lever, a plain choke lever, a green
+  trim strip, and a small stud slot beside the trim wheel for its indicator.
 - The throttle prints FULL at the forward end and IDLE at the aft end, as the
   aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
   check gives the end legends, not the title. The handbook treats the throttle as
   continuous; the trainer keeps it stepped, with three trainer stops between the
   ends (low, run-up and cruise power) that drive the rpm model and the procedures.
-  The trainer marks them with unworded detent ticks, which the aircraft's strip
-  does not have. Cues name those stops in words, not as printed legends.
+  The strip prints nothing between FULL and IDLE (M17 T2, #570). Cues name those
+  stops in words, not as printed legends.
 - The trim placard prints DOWN at the forward end and UP at the aft end, with no
   neutral mark, as the aircraft does (#532). Its title was assumed TRIM; the photos
   print "Stabilator Trim" (§3.7), which the trainer now uses (M17 T1). The
@@ -245,21 +248,38 @@ What the trainer draws today, and where it departs from the above:
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
   **Superseded 2026-10-10** (§2a, decision 1): the trainer prints "Brake" as the title
   with "Off" and "On" at the two ends (M17 T1); the title place of "Brake" on the
-  curved slot's arc is assumed (unverified).
-- The large knob is drawn as unlabelled artwork, not a control, until its
-  identity is known (§9, question 10). It stands directly aft of the valve (#535).
+  curved slot's arc is assumed (unverified). The lever sits in that curved slot
+  (M17 T2), forward end "Off" with an arrow up, aft end "On" with an arrow down.
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
-  right-seat side of the console top, clear of the lever row and the large knob;
-  this place is **assumed (unverified)** (§9, question 3).
-- The rescue handle sits low at the console's aft end, between the seats, on a
-  recessed shelf beside the valve at the bulkhead (#535). The large knob holds the
-  column aft of the valve, so the handle is drawn a little to the pilot's side of the
-  console's centreline, not on it; that offset is a trainer compromise. Pulled, it
-  slides forward (up the top view) to the stop at its guide block; the safety pin
-  goes across the guide block through the release lever. Its description and the E2
-  pull item say forward, hard, to the stop. The T-grip, the plate's RESCUE and
-  PULL HARD with its forward chevrons, a pin with a ring and no flag, and the
-  handle's place across the shelf are **assumed (unverified)** (§9, question 26).
+  right-seat side of the console top, clear of the lever row; this place is
+  **assumed (unverified)** (§9, question 3).
+- The aileron-trim wheel (a wide wheel in an oval recess, "Aileron Trim" between
+  L and R), a parachute warning placard and the rudder-trim wheel (in a slot,
+  "Rudder Trim" between L and R) are drawn as inert art aft of the lever row,
+  between the seats; the placard's wording is the trainer's own paraphrase and
+  the wheels' exact shape and the placards' order are **assumed (unverified)**.
+  The photos hide the rest of the rudder-trim legend (it starts "L Rud…"), so
+  its "Rudder Trim" wording is **assumed (unverified)** too.
+- The rescue handle sits low at the console's aft end, centred between the seats,
+  on a recessed shelf at the bulkhead (M17 T2). The photos put it on the
+  console's upright aft face; the shelf is how the top view shows that face, a
+  trainer compromise. It is red, with an orange-bordered label and a pin
+  carrying a red remove-before-flight flag. The label prints "Parachute": the
+  photos do not show the handle's own wording, so the word is a trainer
+  assumption from the parachute placard, kept so the handle has a printed label
+  (§9, question 26). Pulled, it slides forward (up the top view) to the stop at
+  its guide block; the safety pin goes across the guide block through the
+  release lever. Its description and the E2 pull item say forward, hard, to the
+  stop. The red handle's grip shape, the label's wording, the
+  flag's streamer shape and the handle's place on the shelf are **assumed
+  (unverified)**.
+- The fuel valve is a vertical strip "Open", "Fuel Valve" (printed on two lines)
+  and "Closed" with arrows; "Fuel" is inferred from the worn "F…" of the photos
+  (§3.7) and is **assumed (unverified)**. The strip stands beside a slot along
+  the column's left edge; its grip is a red horizontal bar. Closed, the grip
+  lies over the ignition key slot, as the handbook has it (HB 3-6); the photos
+  show it just below the key switch's face, a difference left as is because the
+  interlock rests on the handbook fact.
 
 ### 3.5 Not in the analog variant
 
@@ -894,13 +914,14 @@ verifies it on D-MPGO.
     rescue handle; the aileron-trim wheel may be what the handbook figure shows as
     the knob (inferred, unverified). **Contradicts current trainer** (unlabelled
     knob drawn aft of the valve). **Settled 2026-10-10** (§2a decision 1): no
-    large knob; "drawn as artwork" is superseded (M17 T2, #536).
+    large knob; "drawn as artwork" is superseded. **Answered (M17 T2, #536):** the
+    trainer draws no knob; cabin heat is the glareshield knob (M17 T4).
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
     **Photo survey 2026-10-10 (§3.7):** not visible: no propeller control in the
     cockpit photos, which fits the trainer's ground-adjustable propeller; the
     propeller itself is not identified. No change to the rpm model follows from the
-    photos.
+    photos. **Answered (M17 T2):** no propeller control, as the trainer has it.
 12. **Trim wheel position**: left of the throttle (text) or below the choke
     (photo)? Uses left of the throttle, with the choke between them (#534). **Handbook check 2026-10-08:** answered by inference from the
     handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
@@ -1063,6 +1084,10 @@ verifies it on D-MPGO.
     was assumed TRIM; answered 2026-10-10 (M17 T1): "Stabilator Trim". The trainer's half-down and half-up stops
     (#620) are assumed (unverified) and have no printed legend; the trainer's
     unworded tick at every stop, neutral included, is a trainer departure.
+    **Grips, answered from the photos (M17 T2):** blue cylindrical throttle grip,
+    black knurled crossbar on the brake lever, plain choke lever without a visible
+    grip, green trim strip with a small stud slot between wheel and choke; the
+    throttle strip carries no mark between FULL and IDLE (#570).
     **Photo survey 2026-10-10 (§3.7):** **confirmed:** the levers lie side by side
     and slide fore and aft; "Choke" "Off" forward / "On" aft, "Throttle" "Full"
     forward / "Idle" aft with no detent marks or words between (#570), "Brake" "On" aft (its forward legend hidden), trim "Down"
@@ -1097,6 +1122,10 @@ verifies it on D-MPGO.
     red and centred on the aft face, without the RESCUE and PULL HARD legends, with
     a flagged pin (M17 T2); the "Drawn so (#535)" place and legends are superseded.
     The forward pull stays (handbook, HB 3-4), not confirmed by the photos.
+    **Answered (M17 T2):** drawn so. The handle is red and centred, the label is
+    orange-bordered and prints "Parachute" (assumed (unverified): the photos do
+    not show the handle's own wording, and the printed-labels contract needs one),
+    and the pin carries a red flag without lettering.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);

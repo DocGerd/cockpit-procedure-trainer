@@ -122,7 +122,7 @@ legends    console    dials      layout
 - **Legends before geometry.** T1 changes words only and is the safest first step. T4, the largest change, comes last, so its rubric pass judges the final art.
 - **Voltmeter modelled.** The photos show a voltmeter, and §3.5 said there was none. T4 adds it as an indicator reading a bus voltage. The value model is a trainer assumption, recorded in the intake.
 - **Inert art.** The FLARM display, hour meter, cabin-heat knob, red-cross disc and rudder- and aileron-trim wheels are drawn but not operable. They are not used by any procedure, and the decisions table names no such control.
-- **Aircraft name.** "CT Supralight (representative panel)" stays until the owner rules on dropping "representative" once T4 lands. The milestone summary asks.
+- **Aircraft name.** "CT Supralight (representative panel)" stays until the D-MPGO avionics land in M18 (#633), then drops "(representative panel)" (owner decision, 2026-10-10).
 
 ## Review focus
 
