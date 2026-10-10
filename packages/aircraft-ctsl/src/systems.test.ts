@@ -159,7 +159,7 @@ describe('engine start', () => {
     expect(session.set('ignition', 'both')).toEqual({ applied: true });
   });
 
-  it('closes the fuel valve with the key still on; the key still turns to L and OFF but not on to BOTH, comes out at OFF and cannot go back in', () => {
+  it('closes the fuel valve with the key still on; the key still turns to 1 and OFF but not on to 1+2, comes out at OFF and cannot go back in', () => {
     const session = sessionAt('holding');
     expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
     expect(session.set('ignition', 'left')).toEqual({ applied: true });

@@ -65,6 +65,8 @@
 <text x="223" y="886" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">IGNITION</text>
 <text x="930" y="658" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">BAT</text>
 <text x="1090" y="658" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">GEN</text>
+<rect x="878" y="578" width="264" height="40" rx="4" fill="none" stroke="#ECEAE3" stroke-width="2.5"/>
+<text x="1010" y="608" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="middle">Master</text>
 <text x="150" y="434" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="end">OPEN</text>
 <text x="150" y="494" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="end">FUEL</text>
 <text x="150" y="528" font-family="Helvetica, Arial, sans-serif" font-size="29" font-weight="bold" fill="#ECEAE3" text-anchor="end">VALVE</text>

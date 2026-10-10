@@ -373,7 +373,7 @@ describe('CTSL control artwork', () => {
   describe('rocker switches', () => {
     // The lit paddle (the rect filled with gradient #b) marks the selected side, which is how a pilot
     // reads the panel (#464); the dark half is the empty side. Moving it off the active legend inverts the switch.
-    const legendY = (face: string, legend: 'ON' | 'OFF') =>
+    const legendY = (face: string, legend: 'I' | 'O') =>
       Number(
         new RegExp(String.raw`<text\b[^>]* y="([\d.]+)"[^>]*>${legend}</text>`).exec(face)?.[1],
       );
@@ -413,8 +413,8 @@ describe('CTSL control artwork', () => {
           const image = artwork.moving.images[state];
           if (image === undefined) throw new Error(`${id} has no ${state} image`);
           const face = read(artwork.face);
-          const [on, off] = [legendY(face, 'ON'), legendY(face, 'OFF')];
-          expect(on, `${id}: ON legend`).toBeLessThan(off);
+          const [on, off] = [legendY(face, 'I'), legendY(face, 'O')];
+          expect(on, `${id}: I legend`).toBeLessThan(off);
           const centre = paddleCentreY(read(image));
           const nearest = Math.abs(centre - on) < Math.abs(centre - off) ? 'on' : 'off';
           expect(nearest, `${id}: ${fileOf(image)}`).toBe(state);
@@ -574,6 +574,7 @@ describe('CTSL view backdrops', () => {
         'IGNITION@223,886/29',
         'BAT@930,658/29',
         'GEN@1090,658/29',
+        'Master@1010,608/29',
         'OPEN@150,434/29',
         'FUEL@150,494/29',
         'VALVE@150,528/29',

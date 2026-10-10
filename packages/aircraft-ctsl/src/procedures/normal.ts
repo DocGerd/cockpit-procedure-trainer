@@ -92,7 +92,7 @@ const setParkingBrake = [
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'closed',
-    text: text('Rückflusshahn zu', 'Parking-brake valve closed'),
+    text: text('Parkbremshebel auf On', 'Parking-brake lever On'),
   },
   {
     type: 'action',
@@ -115,7 +115,7 @@ const releaseParkingBrake = [
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'open',
-    text: text('Rückflusshahn auf', 'Parking-brake valve open'),
+    text: text('Parkbremshebel auf Off', 'Parking-brake lever Off'),
   },
   {
     type: 'check',
@@ -345,7 +345,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter BOTH', 'Ignition BOTH'),
+        text: text('Zündschalter 1+2', 'Ignition 1+2'),
       },
       {
         type: 'action',
@@ -410,8 +410,8 @@ export const normalProcedures = {
         control: 'parkingBrakeValve',
         position: 'open',
         text: text(
-          'Rückflusshahn auf (Ergänzung des Trainers)',
-          'Parking-brake valve open (trainer addition)',
+          'Parkbremshebel auf Off (Ergänzung des Trainers)',
+          'Parking-brake lever Off (trainer addition)',
         ),
       },
       {
@@ -500,7 +500,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'left',
-        text: text('Zündschalter auf L', 'Ignition to L'),
+        text: text('Zündschalter auf 1', 'Ignition to 1'),
       },
       {
         type: 'check',
@@ -513,13 +513,13 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter auf BOTH', 'Ignition to BOTH'),
+        text: text('Zündschalter auf 1+2', 'Ignition to 1+2'),
       },
       {
         type: 'action',
         control: 'ignition',
         position: 'right',
-        text: text('Zündschalter auf R', 'Ignition to R'),
+        text: text('Zündschalter auf 2', 'Ignition to 2'),
       },
       {
         type: 'check',
@@ -527,15 +527,15 @@ export const normalProcedures = {
         condition: circuitDropWithinLimit,
         text: text('Drehzahlabfall', 'Rpm drop'),
         expected: text(
-          'höchstens 300 U/min, höchstens 120 U/min Unterschied zu L',
-          'at most 300 rpm, and within 120 rpm of the drop on L',
+          'höchstens 300 U/min, höchstens 120 U/min Unterschied zu 1',
+          'at most 300 rpm, and within 120 rpm of the drop on 1',
         ),
       },
       {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter auf BOTH', 'Ignition to BOTH'),
+        text: text('Zündschalter auf 1+2', 'Ignition to 1+2'),
       },
       {
         type: 'check',

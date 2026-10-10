@@ -79,7 +79,7 @@ test('the CTSL fuel valve lets the key in only open and out only closed, and hol
 
   const spring = page.locator('[data-placement="ignition"] .cpt-artwork-spring');
   const box = await spring.boundingBox();
-  if (!box) throw new Error('no START button at BOTH');
+  if (!box) throw new Error('no START button at 1+2');
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await expect(key(page)).toHaveAttribute('aria-valuetext', 'start');

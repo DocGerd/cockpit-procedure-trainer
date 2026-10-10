@@ -37,15 +37,15 @@ const legends: Record<string, Record<string, string>> = {
   throttle: { idle: 'IDLE', full: 'FULL' },
   trim: { 'nose-down': 'DOWN', 'nose-up': 'UP' },
   flapSelector: {
-    'override-up': 'UP',
+    'override-up': 'up manually',
     '-12': '-12',
     '0': '0',
     '15': '15',
     '30': '30',
     '35': '35',
-    'override-down': 'DN',
+    'override-down': 'down manually',
   },
-  ignition: { off: 'OFF', left: 'L', right: 'R', both: 'BOTH' },
+  ignition: { off: 'OFF', left: '1', right: '2', both: '1+2' },
 };
 
 const printedAt = (svg: string, label: string): Point => {
@@ -145,10 +145,10 @@ describe('CTSL notched artwork controls', () => {
     const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
       ([, text]) => text,
     );
-    expect(printed).toEqual(['THROTTLE', 'FULL', 'IDLE']);
+    expect(printed).toEqual(['Throttle', 'FULL', 'IDLE']);
     const { appearance } = throttle.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
-      'THROTTLE',
+      'Throttle',
       'FULL',
       'IDLE',
     ]);
@@ -170,10 +170,10 @@ describe('CTSL notched artwork controls', () => {
     const printed = [...svg.matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g)].map(
       ([, text]) => text,
     );
-    expect(printed).toEqual(['TRIM', 'DOWN', 'UP']);
+    expect(printed).toEqual(['Stabilator Trim', 'DOWN', 'UP']);
     const { appearance } = trim.control;
     expect(appearance && 'artwork' in appearance ? appearance.artwork.lettering : []).toEqual([
-      'TRIM',
+      'Stabilator Trim',
       'DOWN',
       'UP',
     ]);

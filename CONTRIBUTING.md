@@ -91,7 +91,7 @@ viewport (`priorityViewports` in `apps/web/e2e/layout-probe.ts`), on one page ea
 | 3840x2160          | The cockpit scales up and stays one viewport.                                                |
 | 1024x768, 768x1024 | Tablets: tabs.                                                                               |
 
-Indicator faces print numerals and units at the lettering minimum from 1920x1080 up; captions marked `data-lettering="secondary"` print as small as on the real instrument (ADR 0002, realism).
+Indicator and control faces print numerals, units and function labels at the lettering minimum from 1920x1080 up; captions marked `data-lettering="secondary"` print as small as on the real instrument (ADR 0002, realism).
 
 Every row checks, in order:
 

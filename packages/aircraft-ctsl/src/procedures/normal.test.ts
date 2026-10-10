@@ -285,7 +285,7 @@ describe('CTSL normal procedures', () => {
 
     it('closes the valve, holds the lever, then checks the lever released', () => {
       expect(items.slice(valve, valve + 3).map(said)).toEqual([
-        'Parking-brake valve closed',
+        'Parking-brake lever On',
         'Brake lever pulled and held',
         'Parking brake: holds, brake lever released',
       ]);
@@ -325,7 +325,7 @@ describe('CTSL normal procedures', () => {
         item.type === 'action' && item.control === 'parkingBrakeValve' && item.position === 'open',
     );
     expect(items.slice(open).map(said)).toEqual([
-      'Parking-brake valve open',
+      'Parking-brake lever Off',
       'Parking brake: released',
     ]);
   });
@@ -366,7 +366,7 @@ describe('CTSL normal procedures', () => {
     expect(unread.map(([, , item]) => item.text.en)).toEqual(['Rpm drop', 'Rpm drop']);
   });
 
-  it('engineStart needs its ignition BOTH step because the engine starts with the key off', () => {
+  it('engineStart needs its ignition 1+2 step because the engine starts with the key off', () => {
     const items = normalProcedures.engineStart.items as readonly Item[];
     const toBoth = items.findIndex(
       (item) => item.type === 'action' && item.control === 'ignition' && item.position === 'both',
@@ -385,7 +385,7 @@ describe('CTSL normal procedures', () => {
       (item) => item.type === 'action' && item.control === control && item.position === position,
     );
 
-  it('engineStart inserts the key, once the fuel valve is open, before turning it to BOTH', () => {
+  it('engineStart inserts the key, once the fuel valve is open, before turning it to 1+2', () => {
     const keyIn = ignitionAt('engineStart', 'off');
     expect(ctslAircraft.phases.parking?.entry.controls.ignition).toBe('out');
     expect(keyIn).toBeGreaterThan(actionAt('engineStart', 'fuelValve', 'open'));
@@ -396,7 +396,7 @@ describe('CTSL normal procedures', () => {
     expect(session.set('ignition', 'off')).toEqual({ applied: true });
   });
 
-  it('engineStart takes the key in and round to BOTH one detent at a time, with no deviation', () => {
+  it('engineStart takes the key in and round to 1+2 one detent at a time, with no deviation', () => {
     const items = normalProcedures.engineStart.items as readonly Item[];
     const toBoth = ignitionAt('engineStart', 'both');
     const detents = controls.ignition.positions as readonly string[];

@@ -174,7 +174,7 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it('springs the ignition key back from START to BOTH', () => {
+  it('springs the ignition key back from START to 1+2', () => {
     const ignition = ctslAircraft.controls.ignition;
     expect(ignition?.kind === 'rotary' && ignition.springBack).toEqual({ start: 'both' });
     expect(ignition?.appearance).toHaveProperty('artwork');
