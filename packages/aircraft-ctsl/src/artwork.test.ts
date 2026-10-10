@@ -301,6 +301,43 @@ describe('CTSL gauges', () => {
     }
   });
 
+  // Scale values in the order each face prints its numerals.
+  const printedScales: Record<string, number[]> = {
+    airspeed: [40, 80, 120, 160, 200, 240, 280, 320],
+    verticalSpeed: [2000, 1500, 1000, 500, 0, -500, -1000, -1500, -2000],
+    altimeter: [0, 1000, 2000, 3000, 4000, 5000],
+    tachometer: [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000],
+    oilPressure: [0, 2, 4, 6, 8, 10],
+    oilTemperature: [50, 70, 90, 110, 130, 150],
+    cht: [50, 70, 90, 110, 130, 150],
+    voltmeter: [10, 12, 14, 16],
+  };
+
+  it.each(Object.entries(printedScales))('prints every %s numeral on its tick', (id, values) => {
+    const entry = gaugeArtwork.find((gauge) => gauge.id === id);
+    const moving = entry?.artwork.moving;
+    if (!entry || moving?.type !== 'needle') throw new Error(`${id} has no needle`);
+    const { angleRange, valueRange } = moving;
+    const numerals = [
+      ...read(entry.artwork.face).matchAll(
+        /<text x="([\d.]+)" y="([\d.]+)"[^>]*>(\d*\.?\d+)<\/text>/g,
+      ),
+    ]
+      .map(([, x, y, content]) => ({ dx: Number(x) - 100, dy: Number(y) - 100, content }))
+      .filter(({ dx, dy }) => Math.abs(Math.hypot(dx, dy) - 47) < 7);
+    expect(numerals).toHaveLength(values.length);
+    numerals.forEach(({ dx, dy, content }, index) => {
+      const value = values[index] ?? NaN;
+      const tick =
+        angleRange.min +
+        ((value - valueRange.min) / (valueRange.max - valueRange.min)) *
+          (angleRange.max - angleRange.min);
+      const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+      const off = Math.min(...[-360, 0, 360].map((turn) => Math.abs(angle + turn - tick)));
+      expect(off, `${id}: "${content}" for ${value} at ${angle.toFixed(1)}°`).toBeLessThan(1);
+    });
+  });
+
   it('keeps every round gauge on drawn artwork and its full name', () => {
     expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(Object.keys(scales).sort());
     for (const { indicator } of gaugeArtwork) {
@@ -417,10 +454,10 @@ describe('CTSL console levers (intake §3.4)', () => {
   });
 
   it.each([
-    ['brake', 'OFF', 'ON'],
-    ['choke', 'OFF', 'ON'],
-    ['throttle', 'FULL', 'IDLE'],
-    ['trim', 'DOWN', 'UP'],
+    ['brake', 'Off', 'On'],
+    ['choke', 'Off', 'On'],
+    ['throttle', 'Full', 'Idle'],
+    ['trim', 'Down', 'Up'],
   ] as const)('prints the %s legend strip beside its slot', (id, forward, aft) => {
     const path = travelOf(id);
     const face = faceOf(id);
@@ -434,7 +471,7 @@ describe('CTSL console levers (intake §3.4)', () => {
     expect(path[path.length - 1]?.y).toBeLessThan(path[0]?.y ?? 0);
   });
 
-  it.each(['brake', 'choke'] as const)('pulls %s aft, down, to ON', (id) => {
+  it.each(['brake', 'choke'] as const)('pulls %s aft, down, to On', (id) => {
     const path = travelOf(id);
     expect(path[1]?.y).toBeGreaterThan(path[0]?.y ?? 0);
   });
@@ -573,8 +610,8 @@ describe('CTSL view backdrops', () => {
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',
         '12 V@120,378/29',
-        'FLAPS@700,550/29',
-        'IGNITION@223,886/29',
+        'Flaps@700,550/29',
+        'Ignition@223,886/29',
         'BAT@930,658/29',
         'GEN@1090,658/29',
         'Master@1010,608/29',

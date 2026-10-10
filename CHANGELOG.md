@@ -13,9 +13,13 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 ### Changed
 
 - The CTSL panel prints the legends of D-MPGO's photos: the ignition reads OFF, 1, 2, 1+2 and START, the rockers carry two-word legends and I and O symbols, the flap selector reads "up manually" and "down manually", BAT and GEN sit under a boxed "Master", the trim title is "Stabilator Trim", and the parking-brake valve reads Off, Brake and On. Checklist texts follow.
-- The CT Supralight centre console now follows the photos of D-MPGO: the throttle strip prints only Full and Idle, the large knob is gone, the parking-brake valve's lever sits in a curved slot on the right side, and the aileron- and rudder-trim wheels and a parachute placard are drawn. The throttle grip is blue, the brake grip a black knurled crossbar, the choke a plain lever and the trim strip green; the rescue handle is red and centred, with a flagged pin, and the fuel valve has a red grip and an Open, Fuel Valve, Closed strip.
+- The CT Supralight centre console now follows the photos of D-MPGO: the throttle strip prints only Full and Idle, the large knob is gone, the parking-brake lever sits in a curved slot on the right side, and the aileron- and rudder-trim wheels and a parachute placard are drawn. The throttle grip is blue, the brake grip a black knurled crossbar, the choke a small ribbed grip (a trainer choice; the photos show a thin lever without one) and the trim strip green; the console strips print Off and On, Full and Idle, Down and Up in mixed case as the photos show; the rescue handle is red and centred, with a flagged pin, and the fuel valve has a red grip and an Open, Fuel Valve, Closed strip.
 - The CT Supralight airspeed indicator now reads 40 to 340 km/h with numbers every 40 and ticks every 20, arcs white 72 to 115, green 94 to 245 and yellow 245 to 300, and a red line at 300 (VNE 300 km/h); the maximum flap speed at -12 degrees is 300 km/h. The vertical speed indicator reads ft/min, plus or minus 2000 with ticks every 500, printed as thousands.
 - The CT Supralight panel now has four fields as in the aircraft: the instruments in a 2x2 at the upper left, the GPS, radio and transponder in a new upper-centre field, and the engine gauges, a new voltmeter, the red Generator lamp and a two-row breaker strip with full-word legends at the upper right. The panel compass and the second lamp are gone, and the take-off checks no longer open with the compass.
+
+### Fixed
+
+- The CT Supralight airspeed, vertical speed, altimeter, tachometer and oil pressure dials print every numeral at its own tick again, and the lower centre field prints its Ignition and Flaps legends in the photos' mixed case.
 
 ## [0.17.0] - 2026-10-10
 
