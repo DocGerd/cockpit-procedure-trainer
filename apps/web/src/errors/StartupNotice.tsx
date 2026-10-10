@@ -8,10 +8,10 @@ export function StartupNotice() {
   const titleId = useId();
   return (
     <div role="note" aria-labelledby={titleId} className="startup-notice">
-      <div id={titleId} className="startup-notice-title">
+      <span id={titleId} className="startup-notice-title">
         {text.noticeTitle}
-      </div>
-      <div className="startup-notice-body">{text.noticeBody}</div>
+      </span>{' '}
+      <span>{text.noticeBody}</span>
     </div>
   );
 }

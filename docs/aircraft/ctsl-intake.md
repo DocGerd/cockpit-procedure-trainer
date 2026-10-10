@@ -224,7 +224,7 @@ What the trainer draws today, and where it departs from the above:
   and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
   it, DOWN forward. The parking-brake lever sits on the console's right side, aft of
   the lever row (M17 T2). The grips follow the photos: a blue cylindrical throttle
-  grip, a black knurled crossbar on the brake lever, a plain choke lever, a green
+  grip, a black knurled crossbar on the brake lever, a small ribbed metal choke grip (the photo shows none; a trainer choice so the lever reads as a control), a green
   trim strip, and a small stud slot beside the trim wheel for its indicator.
 - The throttle prints FULL at the forward end and IDLE at the aft end, as the
   aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook

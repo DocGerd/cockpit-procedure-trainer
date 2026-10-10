@@ -6,11 +6,14 @@ import '@fontsource/geist/600.css';
 import '@fontsource/geist-mono/400.css';
 import '@fontsource/geist-mono/500.css';
 import { App } from './App';
+import { applyInitialTheme } from './theme';
 import './styles/tokens.css';
 import './styles/base.css';
+import './styles/theme-fade.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
+applyInitialTheme();
 createRoot(root).render(
   <StrictMode>
     <App />
