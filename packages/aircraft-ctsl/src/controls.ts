@@ -255,12 +255,21 @@ export const controls = {
   ),
   trim: {
     kind: 'lever',
-    positions: ['nose-down', 'neutral', 'nose-up'],
+    positions: ['nose-down', 'half-down', 'neutral', 'half-up', 'nose-up'],
     initial: 'neutral',
-    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for.
+    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for and the
+    // stops between are the trainer's own.
     legends: {
       'nose-down': 'DOWN',
       'nose-up': 'UP',
+      'half-down': {
+        state: text('halb kopflastig', 'half nose down'),
+        restore: text('Wieder halb kopflastig trimmen', 'Set the trim half nose down again'),
+      },
+      'half-up': {
+        state: text('halb schwanzlastig', 'half nose up'),
+        restore: text('Wieder halb schwanzlastig trimmen', 'Set the trim half nose up again'),
+      },
       neutral: {
         state: text('neutral', 'neutral'),
         restore: text('Wieder neutral trimmen', 'Set the trim neutral again'),
@@ -268,8 +277,8 @@ export const controls = {
     },
     name: text('Trimmrad', 'Trim wheel'),
     description: text(
-      'Trimmt das Pendelruder. Vorwärts ist kopflastig; für den Start neutral.',
-      'Trims the stabilator. Forward is nose down; neutral for take-off.',
+      'Trimmt das Pendelruder in Stufen. Vorwärts ist kopflastig; für den Start neutral.',
+      'Trims the stabilator in steps. Forward is nose down; neutral for take-off.',
     ),
     appearance: controlArtwork.trim,
   },

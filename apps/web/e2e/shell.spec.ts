@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { openAircraft, selectLanguage } from './legibility';
+import { pickerMessages } from '../src/shell/picker.messages';
 import {
   aircraft,
   copy,
@@ -249,45 +250,207 @@ for (const language of languages) {
   });
 }
 
-for (const viewport of [
-  { width: 1920, height: 1080 },
-  { width: 1920, height: 950 },
-]) {
-  test(`the CTSL picker keeps Mode and Start in view without page scroll at ${viewport.width}x${viewport.height}`, async ({
-    page,
-  }) => {
-    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-    if (!ctsl) throw new Error('The aircraft registry has no CTSL');
-    await page.setViewportSize(viewport);
-    await openPicker(page);
-    await page.getByRole('button', { name: ctsl.name.en }).click();
+for (const language of ['en', 'de'] as const)
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1920, height: 950 },
+  ]) {
+    test(`the ${language} CTSL picker keeps Mode and Start in view without page scroll at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+      await page.setViewportSize(viewport);
+      await openPicker(page);
+      await selectLanguage(page, language);
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
+      await page.getByRole('button', { name: ctsl.name[language] }).click();
 
-    const inside = async (locator: Locator, label: string) => {
-      const box = await locator.boundingBox();
-      if (!box) throw new Error(`${label} has no box`);
-      expect(box.y, `${label} top`).toBeGreaterThanOrEqual(0);
-      expect(box.y + box.height, `${label} bottom`).toBeLessThanOrEqual(viewport.height);
-    };
-    await inside(page.getByRole('group', { name: copy.shell.mode }), 'Mode');
-    await inside(
-      page.getByRole('button', { name: copy.shell.startProcedure, exact: true }),
-      'Start',
-    );
-    await inside(page.getByRole('button', { name: copy.shell.exploreCockpit }), 'Explore');
-
-    const overflow = await page.evaluate(() => {
-      const list = document.querySelector('.picker-list');
-      return {
-        page: document.documentElement.scrollHeight - document.documentElement.clientHeight,
-        list: list ? list.scrollHeight - list.clientHeight : -1,
-        listHeight: list?.clientHeight ?? 0,
+      const inside = async (locator: Locator, label: string) => {
+        const box = await locator.boundingBox();
+        if (!box) throw new Error(`${label} has no box`);
+        expect(box.y, `${label} top`).toBeGreaterThanOrEqual(0);
+        expect(box.y + box.height, `${label} bottom`).toBeLessThanOrEqual(viewport.height);
       };
+      await inside(page.getByRole('group', { name: shell.mode }), 'Mode');
+      await inside(page.getByRole('button', { name: shell.startProcedure, exact: true }), 'Start');
+      await inside(page.getByRole('button', { name: shell.exploreCockpit }), 'Explore');
+
+      const overflow = await page.evaluate(() => {
+        const list = document.querySelector('.picker-list');
+        return {
+          page: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+          list: list ? list.scrollHeight - list.clientHeight : -1,
+          listHeight: list?.clientHeight ?? 0,
+        };
+      });
+      expect(overflow.page, 'page scroll').toBeLessThanOrEqual(0);
+      expect(overflow.list, 'the list scrolls on its own').toBeGreaterThan(0);
+      expect(overflow.listHeight, 'rows the list shows').toBeGreaterThanOrEqual(6 * 44);
+
+      const tab = page
+        .getByRole('navigation', { name: pickerMessages[language].procedureGroups })
+        .getByRole('button', { name: new RegExp(`^${shell.emergencyProcedures} \\d+$`) });
+      await inside(tab, 'Emergency tab');
+      await tab.click();
+      const group = page.getByRole('group', { name: shell.emergencyProcedures, exact: true });
+      const first = group.getByRole('button').first();
+      const [row, list] = await Promise.all([
+        first.boundingBox(),
+        page.locator('.picker-list').boundingBox(),
+      ]);
+      if (!row || !list) throw new Error('no row or list box');
+      expect(row.y, 'first row top').toBeGreaterThanOrEqual(list.y);
+      expect(row.y + row.height, 'first row bottom').toBeLessThanOrEqual(list.y + list.height);
+      const scroll = await group.evaluate((element) => {
+        const box = element.parentElement;
+        if (!box) throw new Error('no list');
+        return {
+          offset: element.getBoundingClientRect().top - box.getBoundingClientRect().top,
+          top: box.scrollTop,
+          max: box.scrollHeight - box.clientHeight,
+        };
+      });
+      expect(scroll.top, 'the tab scrolled the list').toBeGreaterThan(0);
+      if (scroll.top < scroll.max - 1) {
+        expect(Math.abs(scroll.offset), 'group at the top of the list').toBeLessThanOrEqual(1);
+      }
     });
-    expect(overflow.page, 'page scroll').toBeLessThanOrEqual(0);
-    expect(overflow.list, 'the list scrolls on its own').toBeGreaterThan(0);
-    expect(overflow.listHeight, 'rows the list shows').toBeGreaterThanOrEqual(6 * 44);
-  });
+  }
+
+const bandLimit = 200;
+
+for (const language of ['en', 'de'] as const) {
+  for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1920, height: 950 },
+    { width: 3840, height: 2160 },
+  ]) {
+    test(`the ${language} picker leaves no blank band and puts Mode under the index at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      const run = { mode: 'practice', deviations: 1, at: 1 };
+      await page.addInitScript(
+        (history) => localStorage.setItem('cpt.history', history),
+        JSON.stringify(
+          Object.fromEntries(
+            aircraftRegistry.map((entry) => [
+              entry.id,
+              Object.fromEntries(
+                Object.keys(entry.procedures).map((id) => [id, { last: run, best: run }]),
+              ),
+            ]),
+          ),
+        ),
+      );
+      await openPicker(page);
+      await selectLanguage(page, language);
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
+
+      for (const [entry, mode] of aircraftRegistry.flatMap((entry) =>
+        [shell.guided, shell.practice].map((mode) => [entry, mode] as const),
+      )) {
+        await page.getByRole('button', { name: entry.name[language] }).click();
+        await page.getByRole('radio', { name: mode }).check();
+        const boxes = await page.evaluate(() => {
+          const rect = (selector: string) => {
+            const element = document.querySelector(selector);
+            if (!element) throw new Error(`no ${selector}`);
+            const { left, top, bottom } = element.getBoundingClientRect();
+            return { left, top, bottom };
+          };
+          const bottoms = (selector: string) =>
+            [...document.querySelectorAll(selector)].map(
+              (element) => element.getBoundingClientRect().bottom,
+            );
+          return {
+            list: rect('.picker-list'),
+            modes: rect('.picker-modes'),
+            footer: rect('.app-footer'),
+            left: Math.max(...bottoms('.picker-card, .picker-drill')),
+            right: Math.max(...bottoms('.picker-actions > *')),
+            page: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+          };
+        });
+        expect(boxes.modes.top, 'Mode under the index').toBeGreaterThanOrEqual(boxes.list.bottom);
+        expect(boxes.modes.left, 'Mode in the index column').toBeLessThanOrEqual(boxes.list.left);
+        const where = `${entry.id} ${mode}`;
+        expect(boxes.footer.top - boxes.left, `left band, ${where}`).toBeLessThanOrEqual(bandLimit);
+        expect(boxes.footer.top - boxes.right, `right band, ${where}`).toBeLessThanOrEqual(
+          bandLimit,
+        );
+        expect(
+          boxes.footer.top - boxes.left,
+          `left column above the footer, ${where}`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(
+          boxes.footer.top - boxes.right,
+          `launch above the footer, ${where}`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(boxes.page, `page scroll, ${where}`).toBeLessThanOrEqual(0);
+      }
+    });
+  }
 }
+
+for (const language of ['en', 'de'] as const)
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1366, height: 1024 },
+  ]) {
+    test(`the ${language} CTSL picker fits ${viewport.width}x${viewport.height} in Practice with nothing clipped and full-size targets`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
+      await page.setViewportSize(viewport);
+      await openPicker(page);
+      await selectLanguage(page, language);
+      await page.getByRole('button', { name: ctsl.name[language] }).click();
+      await page.getByRole('radio', { name: shell.practice }).check();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+      );
+      expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
+      const [select, footer] = await Promise.all([
+        page.getByLabel(shell.surprisePhase).boundingBox(),
+        page.locator('.app-footer').boundingBox(),
+      ]);
+      if (!select || !footer) throw new Error('no select or footer box');
+      expect(select.y + select.height, 'select above the footer').toBeLessThanOrEqual(footer.y);
+
+      const clipped = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll<HTMLElement>(
+            '.picker-drill-body > *, .picker-surprise > *, .picker-mode-text',
+          ),
+        ]
+          .filter(
+            (element) =>
+              element.scrollWidth > element.clientWidth + 1 ||
+              element.scrollHeight > element.clientHeight + 1,
+          )
+          .map((element) => element.textContent),
+      );
+      expect(clipped, 'clipped drill or mode text').toEqual([]);
+
+      const target = 44;
+      const hide = await page.getByRole('checkbox', { name: shell.hideUpcoming }).boundingBox();
+      if (!hide) throw new Error('no Hide upcoming box');
+      expect(hide.width, 'Hide upcoming width').toBeGreaterThanOrEqual(target);
+      expect(hide.height, 'Hide upcoming height').toBeGreaterThanOrEqual(target);
+      const labels = await page
+        .locator('.picker-surprise > label')
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getBoundingClientRect().height),
+        );
+      expect(labels.length, 'surprise labels').toBeGreaterThan(0);
+      for (const height of labels)
+        expect(height, 'surprise label height').toBeGreaterThanOrEqual(target);
+    });
+  }
 
 for (const viewport of [
   { width: 1280, height: 800 },
