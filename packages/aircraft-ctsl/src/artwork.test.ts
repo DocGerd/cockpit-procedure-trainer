@@ -114,6 +114,22 @@ describe('CTSL rescue handle safety pin', () => {
     expect(open).not.toBe(artwork.moving.images.stowed);
   });
 
+  it('flags the pin with a red tag drawn only with the pin', () => {
+    const artwork = rescue();
+    if (artwork?.moving.type !== 'positions') throw new Error('the rescue handle has positions');
+    const stowed = read(artwork.moving.images.stowed ?? '');
+    expect(stowed).toMatch(/<rect\b[^>]*data-pin=""[^>]*fill="url\(#fr\)"/);
+    expect(read(artwork.guardOpen?.stowed ?? '')).not.toContain('url(#fr)');
+  });
+
+  it('prints only the parachute label on the face, not RESCUE or PULL HARD', () => {
+    const artwork = rescue();
+    const inked = [
+      ...read(artwork?.face ?? '').matchAll(/<text\b(?![^>]*data-decor)[^>]*>([^<]*)<\/text>/g),
+    ];
+    expect(inked.map(([, text]) => text)).toEqual(['Parachute']);
+  });
+
   // The console is a top view with forward up; the open guard takes the top of the placement.
   const OPEN_GUARD_SHARE = 0.4;
   const gripY = (url: string) =>
@@ -512,6 +528,14 @@ describe('CTSL console levers (intake §3.4)', () => {
     );
   });
 
+  it('gives the choke its own plain lever, apart from the brake crossbar', () => {
+    expect(movingOf('choke').image).not.toBe(movingOf('brake').image);
+  });
+
+  it('prints the trim strip green', () => {
+    expect(faceOf('trim')).toContain('fill="url(#gn)"');
+  });
+
   it('draws the trim wheel rim inboard of its indicator', () => {
     const rim = /<rect x="([\d.]+)"[^>]*width="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(faceOf('trim'));
     expect(rim, 'the trim face draws a wheel rim').not.toBeNull();
@@ -575,12 +599,22 @@ describe('CTSL view backdrops', () => {
         'BAT@930,658/29',
         'GEN@1090,658/29',
         'Master@1010,608/29',
-        'OPEN@150,434/29',
-        'FUEL@150,494/29',
-        'VALVE@150,528/29',
-        'CLOSED@150,598/29',
+        'Open@150,456/29',
+        'Fuel@150,508/29',
+        'Valve@150,540/29',
+        'Closed@150,590/29',
       ],
-      console: [],
+      console: [
+        'Aileron Trim@166,430/28',
+        'L@68,460/28',
+        'R@264,460/28',
+        'Ballistic@452,368/28',
+        'rescue@452,400/28',
+        'parachute@452,432/28',
+        'Rudder Trim@770,422/28',
+        'L@676,462/28',
+        'R@864,462/28',
+      ],
     }[id];
     expect(lettering(backdrop(id))).toEqual(expected);
   });

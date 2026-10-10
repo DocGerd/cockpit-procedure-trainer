@@ -59,7 +59,7 @@ export const views = {
       flapBreaker: at(850, 372, 124, 169),
       ignition: at(93, 610, 260, 260, 'IGNITION'),
       // After the ignition, so the closed valve's handle lies over the key slot.
-      fuelValve: at(161, 392, 124, 382, 'FUEL', 'VALVE', 'OPEN', 'CLOSED'),
+      fuelValve: at(161, 392, 124, 382, 'Open', 'Fuel', 'Valve', 'Closed'),
       flapSelector: at(555, 590, 290, 290),
       battery: at(860, 640, 140, 220, 'BAT'),
       generator: at(1020, 640, 140, 220, 'GEN'),
@@ -78,9 +78,9 @@ export const views = {
       choke: at(242, 8, 180, 292),
       throttle: at(434, 8, 200, 292),
       brake: at(646, 8, 180, 292),
-      parkingBrakeValve: at(646, 302, 180, 180),
+      parkingBrakeValve: at(930, 332, 180, 180),
       carbHeat: at(940, 16, 150, 300),
-      rescueHandle: at(372, 494, 216, 290),
+      rescueHandle: at(492, 494, 216, 290),
     },
   },
 } as const satisfies Record<string, CtslView>;

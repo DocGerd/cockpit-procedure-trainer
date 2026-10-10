@@ -358,7 +358,7 @@ describe('CTSL aircraft', () => {
       const slot = { x: ignition.x + ignition.w / 2, y: ignition.y + ignition.h / 2 };
       const handle = (svg: string) => {
         const [, x, y, w, h] =
-          /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#a\)"/.exec(
+          /<rect data-grip="" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/.exec(
             svg,
           ) ?? [];
         return { x: valve.x + Number(x), y: valve.y + Number(y), w: Number(w), h: Number(h) };
@@ -416,17 +416,15 @@ describe('CTSL aircraft', () => {
       expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
-    it('puts the rescue handle low at the aft end, between the seats, inboard of the valve (§9 q26)', () => {
+    it('puts the rescue handle low at the aft end, centred between the seats (§9 q26)', () => {
       const rescue = rectOf('rescueHandle');
-      const valve = rectOf('parkingBrakeValve');
-      expect(rescue.y, 'aft of the valve row').toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
-      expect(right('rescueHandle'), 'inboard of the valve').toBeLessThanOrEqual(valve.x);
+      expect(rescue.y, 'aft of the lever row').toBeGreaterThanOrEqual(
+        Math.max(...['trim', 'choke', 'throttle', 'brake'].map(bottom)),
+      );
       expect(bottom('rescueHandle'), 'inside the console edge').toBeLessThanOrEqual(
         views.console.size.height,
       );
-      const middle = rescue.x + rescue.w / 2;
-      expect(middle, 'between the seats').toBeGreaterThan(views.console.size.width / 3);
-      expect(middle, 'between the seats').toBeLessThan((2 * views.console.size.width) / 3);
+      expect(rescue.x + rescue.w / 2, 'on the centreline').toBe(views.console.size.width / 2);
     });
 
     // A top view, forward up, the pilot's seat on the left.
@@ -453,17 +451,12 @@ describe('CTSL aircraft', () => {
       expect(rectOf('carbHeat').x).toBeGreaterThan(right('brake'));
     });
 
-    it('draws the large knob aft of the valve as unlabelled artwork, not a control (§9 q10)', () => {
-      const knob = /<circle\b[^>]*data-knob=""[^>]*>/.exec(viewConsole)?.[0] ?? '';
-      const at = (name: string) => Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(knob)?.[1]);
-      expect(at('r')).toBeGreaterThan(0);
-      expect(at('cy') - at('r')).toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
-      expect(at('cx')).toBeGreaterThan(rectOf('parkingBrakeValve').x);
-      expect(at('cx')).toBeLessThan(right('parkingBrakeValve'));
-      expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
-        views.console.size.height - 8,
-      );
-      expect(viewConsole).not.toMatch(/<text\b/);
+    it('puts the parking-brake lever on the console right side, aft of the lever row (intake §3.7)', () => {
+      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(right('brake'));
+    });
+
+    it('draws no large knob and places only the seven controls (§9 q10, q11)', () => {
+      expect(viewConsole).not.toMatch(/data-knob/);
       expect(Object.keys(consoleView.rects).sort()).toEqual(
         [
           'brake',
