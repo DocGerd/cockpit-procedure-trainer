@@ -285,7 +285,7 @@ describe('CTSL normal procedures', () => {
 
     it('closes the valve, holds the lever, then checks the lever released', () => {
       expect(items.slice(valve, valve + 3).map(said)).toEqual([
-        'Parking-brake lever On',
+        'Parking-brake valve On',
         'Brake lever pulled and held',
         'Parking brake: holds, brake lever released',
       ]);
@@ -325,7 +325,7 @@ describe('CTSL normal procedures', () => {
         item.type === 'action' && item.control === 'parkingBrakeValve' && item.position === 'open',
     );
     expect(items.slice(open).map(said)).toEqual([
-      'Parking-brake lever Off',
+      'Parking-brake valve Off',
       'Parking brake: released',
     ]);
   });

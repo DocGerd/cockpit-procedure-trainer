@@ -749,7 +749,7 @@ describe('CTSL aircraft', () => {
   });
 
   it.each(Object.keys(expectedPhases).filter((id) => !['parking', 'holding'].includes(id)))(
-    'enters %s rolling or flying, with the parking-brake valve open',
+    'enters %s rolling or flying, with the parking-brake valve at Off',
     (id) => {
       expect(ctslAircraft.phases[id]?.entry.controls.parkingBrakeValve).toBe('open');
       expect(entryState(id).parkingBrakeSet).toBe(false);

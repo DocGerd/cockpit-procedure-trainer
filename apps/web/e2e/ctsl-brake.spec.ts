@@ -19,7 +19,7 @@ async function closeValve(page: Page) {
   await expect(valve(page)).toHaveAttribute('aria-label', /: open$/i);
   await valve(page).click();
   await expect(valve(page)).toHaveAttribute('aria-label', /: closed$/i);
-  await expect(done(page, 'Parking-brake lever On')).toBeVisible();
+  await expect(done(page, 'Parking-brake valve On')).toBeVisible();
 }
 
 async function expectParkingBrakeHolds(page: Page) {

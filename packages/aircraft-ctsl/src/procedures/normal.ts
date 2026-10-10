@@ -92,7 +92,7 @@ const setParkingBrake = [
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'closed',
-    text: text('Parkbremshebel auf On', 'Parking-brake lever On'),
+    text: text('Rückflusshahn auf On', 'Parking-brake valve On'),
   },
   {
     type: 'action',
@@ -115,7 +115,7 @@ const releaseParkingBrake = [
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'open',
-    text: text('Parkbremshebel auf Off', 'Parking-brake lever Off'),
+    text: text('Rückflusshahn auf Off', 'Parking-brake valve Off'),
   },
   {
     type: 'check',
@@ -410,8 +410,8 @@ export const normalProcedures = {
         control: 'parkingBrakeValve',
         position: 'open',
         text: text(
-          'Parkbremshebel auf Off (Ergänzung des Trainers)',
-          'Parking-brake lever Off (trainer addition)',
+          'Rückflusshahn auf Off (Ergänzung des Trainers)',
+          'Parking-brake valve Off (trainer addition)',
         ),
       },
       {
