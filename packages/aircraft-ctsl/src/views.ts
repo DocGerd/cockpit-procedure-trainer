@@ -49,7 +49,7 @@ export const views = {
     image: images.centre,
     size: { width: 1200, height: 900 },
     controls: {
-      avionicsMaster: at(30, 20, 220, 220),
+      avionicsMaster: at(30, 20, 220, 245),
       beacon: at(260, 16, 150, 219),
       positionLights: at(420, 16, 150, 219),
       intercom: at(580, 16, 150, 219),

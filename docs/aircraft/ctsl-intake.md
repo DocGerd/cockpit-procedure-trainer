@@ -137,6 +137,10 @@ difference against the trainer.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
+  The trainer prints "up manually" and "down manually" (§3.7, M17 T1) on one line
+  each, beside its override detents at the ring's lower left and lower right; the
+  photos stack each over two lines, both on the ring's left. That placement is a
+  trainer departure.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
   The dial legends cannot be read in the handbook's figure (HB 7-18); its restart
@@ -374,7 +378,8 @@ a summary only and the full checklists are mandatory.
   "Beacon Light", "Position Light", "Intercom", "Cockpit Light", "Landing
   Light". The rockers carry the I and O symbols, not ON/OFF words. The first
   rocker's legend "Avionics Master" is **assumed (unverified)** from the visible
-  letters.
+  letters; the trainer prints it on two lines, "Avionics" over "Master"
+  (M17 T1).
 - A yellow placard under the row: avionics off before engine start or stop.
 - Left: a 12 V socket marked "MAX 20A"; under it a fuel-capacity placard (per
   side 65 l, 62 l usable, also in US gallons).
@@ -861,8 +866,8 @@ verifies it on D-MPGO.
 5. **Every contradiction in §8**: please confirm the value in the last column.
 6. **Generator failure procedure**: club-authored (§7); please confirm or replace.
 7. **ELT at shutdown**: off or left armed? Uses armed.
-8. **Ignition key labels**: OFF / 1 / 2 / 1+2 / START or L / R / BOTH? Uses
-   OFF, L, R, BOTH, START. **Answered 2026-10-10, applied in M17 T1 (#629): numbered.**
+8. **Ignition key labels**: OFF / 1 / 2 / 1+2 / START or L / R / BOTH? Used
+   OFF, L, R, BOTH, START until M17 (superseded). **Answered 2026-10-10, applied in M17 T1 (#629): numbered.**
    **Handbook check 2026-10-08:** still open, leaning to numbers. The restart item names the both
    position 1 + 2 (HB 3-5); the dial cannot be read in HB 7-18.
    **Photo survey 2026-10-10 (§3.7):** **confirmed: numbered.** The dial prints
@@ -1051,8 +1056,8 @@ verifies it on D-MPGO.
     pilot's side outward trim wheel, choke, throttle, brake (inferred from HB 7-19;
     §3.4). Handle shapes cannot be read in the figure and stay open.
     Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
-    low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
-    (unverified).
+    low, run-up and cruise stops are unprinted. The THROTTLE title was assumed
+    (unverified); superseded 2026-10-10 by the photo survey below ("Throttle").
     Trim legends (#532): the placard prints DOWN forward and UP aft, with no
     neutral mark; the trainer's neutral position has no printed legend. The title
     was assumed TRIM; answered 2026-10-10 (M17 T1): "Stabilator Trim". The trainer's half-down and half-up stops
