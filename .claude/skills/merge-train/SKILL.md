@@ -37,9 +37,12 @@ For each PR `N`:
    monitor. Any other conclusion: stop.
 4. **Threads.** Every review thread is resolved (enumerate query in
    `pr-selfreview`). One unresolved thread: stop.
-5. **Merge.** `gh pr merge N --squash --delete-branch --match-head-commit SHA`.
-   Run it as a single plain command, with no `--auto`, no quotes, no shell
-   expansion and nothing chained, and put the word merge in no other
+5. **Merge.** `gh pr merge N --squash --delete-branch --match-head-commit SHA`;
+   leave out `--delete-branch` for a parent with open children, listed by
+   `gh api repos/DocGerd/cockpit-procedure-trainer/pulls --raw-field base=<head.ref> --raw-field state=open --method GET --jq .[].number`
+   (step 7; this relies on the repository setting that deletes head branches
+   on landing staying off). Run it as a single plain command, with no
+   `--auto`, no quotes, no shell expansion and nothing chained, and put the word merge in no other
    command (use `--body-file` for PR text). In other `gh`, `curl` and `wget`
    commands, an expansion (`$`, backtick, `%`) is denied only in the
    subcommand words, the `gh api` endpoint, a GraphQL query or the URL; spell
@@ -50,13 +53,21 @@ For each PR `N`:
 6. **Confirm.** `gh pr view N --json state --jq .state` prints `MERGED`, and
    each `Closes #n` issue reads `closed`. If the merge call errored, read that
    state before any retry; never retry blind.
-7. **Children.** After a parent lands, check
-   `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<parent head.ref>`
-   (spelled literally). If the branch still exists (`--delete-branch` failed
-   while a worktree held it), delete it with
+7. **Children.** GitHub does not retarget a child PR when its base branch is
+   deleted: it closes the child. So after a parent lands, for each open child
+   whose base is the parent's head branch, run
+   `gh api --method PATCH repos/DocGerd/cockpit-procedure-trainer/pulls/<child> --field base=develop`
+   (spelled literally; `pr edit --base` is hook-denied). Confirm each child's
+   `baseRefName` is `develop`, and only then delete the parent branch with
    `gh api --method DELETE repos/DocGerd/cockpit-procedure-trainer/git/refs/heads/<branch>`.
-   GitHub then retargets each child to `develop`; if it does not, step 1 stops
-   on the child and the owner retargets it (`pr edit --base` is hook-denied).
+   For any landed PR, if
+   `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<head.ref>`
+   still finds the branch (`--delete-branch` failed while a worktree held it)
+   and no open PR targets it, delete it with the same DELETE call.
+   Recovery if a child was closed: recreate the ref at the parent's
+   `head.sha` (POST `git/refs` with `ref=refs/heads/<branch>` and
+   `sha=<head.sha>`), reopen the child (PATCH `pulls/<child>` `state=open`),
+   retarget it, then delete the ref.
 8. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
    wait for its checks again, and restart at step 2 for it. If `update-branch`
@@ -65,4 +76,4 @@ For each PR `N`:
    its own worktree (hook-allowed), resolves keeping its layer, and pushes
    fast-forward; never rebase or force-push. Then restart at step 2.
 
-GitHub Stacks (`gh-stack`) is not used: it needs force-push and `gh stack merge`, both guard-blocked; native retargeting covers chains.
+GitHub Stacks (`gh-stack`) is not used: it needs force-push and `gh stack merge`, both guard-blocked; the manual retarget in step 7 covers chains. Automatic retargeting on branch deletion exists only for registered GitHub Stacks.
