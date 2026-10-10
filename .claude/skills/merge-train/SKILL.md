@@ -11,11 +11,10 @@ Argument: one or more PR numbers, merged in the order given. Called by the
 For each PR `N`:
 
 1. **Base.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .base.ref` must print
-   `develop`. If `base.ref` is the `head.ref` of another open PR (the parent),
-   merge the parent first: it must come earlier in the argument list, or the
-   train stops. Never merge a PR while its base is a feature branch (the hook
-   refuses it anyway). Any other non-`develop` base: stop. Merging into `main`
-   is never done from here, by any source; the release PR `develop` to `main` is the owner's to merge.
+   `develop`. Anything else: stop (a base that is another open PR's branch
+   means its parent was not passed earlier in this train). Merging into `main`
+   is never done from here, by any source; the release PR `develop` to `main`
+   is the owner's to merge.
    A PreToolUse hook (`.claude/hooks/block-main-merge.sh`) is an accident
    tripwire, not a security boundary: it allows only the single plain
    `gh pr merge` shape in step 5 for a PR whose base is `develop`, and denies
@@ -54,13 +53,10 @@ For each PR `N`:
 7. **Children.** After a parent lands, check
    `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<parent head.ref>`
    (spelled literally). If the branch still exists (`--delete-branch` failed
-   while a worktree held it), remove the parent's worktree first, then delete
-   the branch with
+   while a worktree held it), delete it with
    `gh api --method DELETE repos/DocGerd/cockpit-procedure-trainer/git/refs/heads/<branch>`.
-   GitHub then retargets each child to `develop`. Re-read each child's
-   `base.ref`: it must be `develop`, otherwise stop and report (`pr edit --base`
-   is hook-denied, so retargeting falls to the owner). Continue with step 8 for
-   the child.
+   GitHub then retargets each child to `develop`; if it does not, step 1 stops
+   on the child and the owner retargets it (`pr edit --base` is hook-denied).
 8. **Next PR.** If the next PR is behind `develop`, run
    `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/M/update-branch --method PUT`,
    wait for its checks again, and restart at step 2 for it. If `update-branch`

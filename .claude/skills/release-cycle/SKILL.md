@@ -53,7 +53,8 @@ workflow changes. Each implementer:
 1. Works test-first and runs the project checks before pushing.
 2. Adds `changelog.d/<issue>.<category>.md`; every PR carries one.
 3. Opens a PR with base `develop`, except when the issue depends on an
-   unmerged PR: then the base is that PR's branch and the body carries
+   unmerged PR: then it branches from `origin/<parent branch>`, not
+   `origin/develop`, the base is that branch, and the body carries
    `Depends on #<parent PR>`. The body starts `Closes #<issue>`, has a
    `## Decisions` section for anything the spec and plan do not settle, and
    the attribution line `CLAUDE.md` requires.
