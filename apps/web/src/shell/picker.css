@@ -253,7 +253,7 @@
 }
 
 .picker-tab-count {
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-medium);
 }
 
 .picker-tab[data-type='normal'] .picker-tab-count {
