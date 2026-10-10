@@ -27,6 +27,7 @@ const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
   sl40: [352, 136],
   transponder: [584, 160],
   gtx327: [400, 132],
+  trt800h: [264, 252],
   gpsmap496: [220, 160],
 };
 

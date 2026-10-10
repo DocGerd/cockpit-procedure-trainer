@@ -24,6 +24,7 @@ export const unitNames = defineMessages({
     sl40: 'COM radio',
     transponder: 'Transponder',
     gtx327: 'Transponder',
+    trt800h: 'Transponder',
     gpsmap496: 'GPS',
   },
   de: {
@@ -31,6 +32,7 @@ export const unitNames = defineMessages({
     sl40: 'COM-Funkgerät',
     transponder: 'Transponder',
     gtx327: 'Transponder',
+    trt800h: 'Transponder',
     gpsmap496: 'GPS',
   },
 });

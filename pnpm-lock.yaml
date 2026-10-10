@@ -74,6 +74,9 @@ importers:
       '@cpt/device-transponder':
         specifier: workspace:*
         version: link:../../packages/device-transponder
+      '@cpt/device-trt800h':
+        specifier: workspace:*
+        version: link:../../packages/device-trt800h
       '@cpt/panel-kit':
         specifier: workspace:*
         version: link:../../packages/panel-kit
@@ -215,6 +218,28 @@ importers:
         version: 19.3.0(react@19.3.0)
 
   packages/device-transponder:
+    dependencies:
+      '@cpt/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cpt/panel-kit':
+        specifier: workspace:*
+        version: link:../panel-kit
+    devDependencies:
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      react:
+        specifier: ^19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.3.0
+        version: 19.3.0(react@19.3.0)
+
+  packages/device-trt800h:
     dependencies:
       '@cpt/core':
         specifier: workspace:*
