@@ -177,10 +177,10 @@ describe('CTSL notched artwork controls', () => {
       'DOWN',
       'UP',
     ]);
-    expect(svg.match(/<line\b/g)).toHaveLength(2);
+    expect(svg.match(/<line\b/g)).toHaveLength(trim.steps.length);
   });
 
-  it('rolls the trim wheel from a tap within a touch target of either end of its slot', () => {
+  it('rolls the trim wheel one step toward a tap within a touch target of either end of its slot', () => {
     const entry = sliders.find(({ id }) => id === 'trim');
     if (!entry) throw new Error('the CTSL draws no trim wheel');
     const { width, height } = sizeOf(faceSvg(entry.face));
@@ -191,15 +191,21 @@ describe('CTSL notched artwork controls', () => {
     const target = (44 * consoleView.size.width) / floor;
     expect(height, 'two touch targets fit along the slot').toBeGreaterThanOrEqual(2 * target);
 
-    const rollFrom = (at: Point) => {
-      const onSet = mount(entry, 'neutral');
+    const rollFrom = (position: string, at: Point) => {
+      const onSet = mount(entry, position);
       tapAt(at);
       const set = onSet.mock.calls[0]?.[0];
       cleanup();
       return set;
     };
-    expect(rollFrom({ x: width / 2, y: target / 2 })).toBe('nose-down');
-    expect(rollFrom({ x: width / 2, y: height - target / 2 })).toBe('nose-up');
+    const [top, bottom] = [
+      { x: width / 2, y: target / 2 },
+      { x: width / 2, y: height - target / 2 },
+    ];
+    expect(rollFrom('neutral', top)).toBe('half-down');
+    expect(rollFrom('half-down', top)).toBe('nose-down');
+    expect(rollFrom('neutral', bottom)).toBe('half-up');
+    expect(rollFrom('half-up', bottom)).toBe('nose-up');
   });
 
   it.each(sliders.map((entry) => [entry.id, entry] as const))(

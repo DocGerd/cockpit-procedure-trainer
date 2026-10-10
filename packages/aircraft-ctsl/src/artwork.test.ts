@@ -496,6 +496,19 @@ describe('CTSL console levers (intake §3.4)', () => {
     expect(path[path.length - 1]?.y).toBeGreaterThan(path[0]?.y ?? 0);
   });
 
+  it('marks every trim position with an unworded tick beside the slot', () => {
+    const ticks = [...faceOf('trim').matchAll(/<line x1="106" y1="([\d.]+)"/g)].map(([, y]) =>
+      Number(y),
+    );
+    const path = travelOf('trim');
+    const [first, last] = [path[0]?.y ?? 0, path[path.length - 1]?.y ?? 0];
+    const count = controls.trim?.positions.length ?? 0;
+    expect(ticks).toHaveLength(count);
+    ticks.forEach((y, index) =>
+      expect(y).toBeCloseTo(first + ((last - first) * index) / (count - 1), 1),
+    );
+  });
+
   it('draws the trim wheel rim inboard of its indicator', () => {
     const rim = /<rect x="([\d.]+)"[^>]*width="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(faceOf('trim'));
     expect(rim, 'the trim face draws a wheel rim').not.toBeNull();

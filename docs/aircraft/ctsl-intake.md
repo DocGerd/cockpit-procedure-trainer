@@ -189,6 +189,12 @@ What the trainer draws today, and where it departs from the above:
   (unverified): the handbook check gives the end legends, not the title. The
   trainer keeps neutral as a trim position because the take-off placard asks for
   neutral trim (HB 7-20); cues name it in words, not as a printed legend.
+  This intake gives no number of steps or travel for the wheel, so the trainer
+  steps it through five positions, nose down, half nose down, neutral, half nose
+  up and nose up (#620); the count, the spacing and the two half stops are
+  assumed (unverified). The trainer marks them with
+  unworded ticks beside the slot; cues name the half stops in words, not as
+  printed legends.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - The large knob is drawn as unlabelled artwork, not a control, until its
@@ -726,7 +732,8 @@ verifies it on D-MPGO.
     (unverified).
     Trim legends (#532): the placard prints DOWN forward and UP aft, with no
     neutral mark; the trainer's neutral position is unprinted. The TRIM title is
-    assumed (unverified).
+    assumed (unverified). The trainer's half-down and half-up stops (#620) are
+    assumed (unverified) and unprinted.
 26. **Rescue handle placement**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Before #535: a T-grip in a holder centred on the bulkhead between

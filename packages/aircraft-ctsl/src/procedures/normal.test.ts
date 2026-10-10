@@ -226,6 +226,43 @@ describe('CTSL normal procedures', () => {
     });
   });
 
+  describe('trim in steps before take-off', () => {
+    const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+    const trimStep = items.findIndex(
+      (item) => !isFlow(item) && item.type === 'action' && item.control === 'trim',
+    );
+
+    it.each(['nose-down', 'half-down', 'half-up', 'nose-up'])(
+      'holds the trim step at %s and completes it on stepping back to neutral',
+      (position) => {
+        const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+        session.startProcedure('beforeTakeoff');
+        for (
+          let at = session.checklist()?.current ?? 0;
+          at < trimStep;
+          at = session.checklist()?.current ?? trimStep
+        ) {
+          const item = items[at] as Item;
+          if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
+            session.press(item.control);
+            session.release(item.control);
+          } else if (
+            item.type === 'action' &&
+            session.state().controls[item.control] !== item.position
+          ) {
+            session.set(item.control, item.position);
+          } else {
+            session.checkOff();
+          }
+        }
+        session.set('trim', position);
+        expect(session.checklist()?.current).toBe(trimStep);
+        session.set('trim', 'neutral');
+        expect(session.checklist()?.current).toBe(trimStep + 1);
+      },
+    );
+  });
+
   describe('parking brake in shutdown, in the intake order', () => {
     const items = normalProcedures.shutdown.items as readonly Item[];
     const valve = items.findIndex(
