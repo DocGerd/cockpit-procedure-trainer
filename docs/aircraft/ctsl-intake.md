@@ -39,6 +39,30 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    banner tow procedures are out of scope, although the club aircraft has a tow
    coupling.
 
+Decision 1 is superseded in part by §2a: the trainer keeps these three devices
+until milestone M18 replaces them.
+
+## 2a. Owner decisions (2026-10-10)
+
+1. **The photos win.** The owner's photos (§3.7) show D-MPGO as it is today.
+   Where they contradict a 2026-10-08 owner confirmation, the photo stands: the
+   only warning lamp is the red "Generator" lamp in the upper-right field (not
+   CHARGE in the upper-left); the parking-brake valve reads "Off", "Brake", "On";
+   there is no panel compass; the panel has four fields, with an upper-centre
+   field for the avionics. The superseded answers stay in this file, marked. An
+   item the photos do not show (the ELT remote switch, the carb-heat control)
+   keeps its current intake answer and stays as the trainer draws it.
+2. **Avionics move, not change, in M17.** The installed units (FLARM display, a
+   Garmin aera-like GPS, funkwerk COM and transponder; §3.7) replace SL40,
+   GTX 327 and GPSMAP 496 in a separate milestone, M18 "D-MPGO avionics". In M17
+   the existing devices move into the upper-centre field.
+3. **The airspeed indicator follows the photos.** Its scale, red line and the
+   limit-speed placard replace VNE 260 km/h (§4.1, §4.3, §8), and every procedure
+   or text naming the old value follows.
+4. **M17 is a full rework** of the CTSL panel from the photos: layout, gauges,
+   breaker strip, console art, legends and texts. Plan:
+   `docs/superpowers/plans/2026-10-10-m17-panel-from-photos.md`.
+
 ## 3. Panel inventory (analog variant)
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
@@ -59,7 +83,9 @@ difference against the trainer.
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
   for this variant (§9) and is drawn unlit in the background. The charge lamp's
-  legend and colour are owner-confirmed (§9, question 22).
+  legend and colour are owner-confirmed (§9, question 22). **Superseded 2026-10-10** (§2a, decision 1): the
+  only lamp is the red "Generator" lamp at the top right of the upper-right field;
+  there is no second lamp.
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
@@ -73,7 +99,8 @@ difference against the trainer.
 - A small item at the top left next to the type name: the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
   phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
-  owner-confirmed (§9, question 20); the type name is not printed.
+  owner-confirmed (§9, question 20); the type name is not printed. **Superseded 2026-10-10** (§2a, decision 1):
+  there is no panel compass.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
@@ -152,6 +179,8 @@ Handbook facts (checked 2026-10-08):
   hand (HB 7-10). The figure shows a small lever with a printed tag aft of the
   lever row; the handbook's placard list names no legend for it. Its legends
   PARK BRAKE, OPEN and SHUT are correct as drawn, **owner-confirmed** 2026-10-08.
+  **Superseded 2026-10-10** (§2a, decision 1): the valve is a small lever in a curved slot on the console's
+  right side, printed "Off" (forward), "Brake", "On" (aft) (§3.7).
   Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Large knob aft of the valve** (§9, question 10): the hydraulic in-flight
   adjustable propeller is set by a lever on the centre console behind the engine
@@ -404,7 +433,9 @@ usable. This 63 l differs from the 62 l on the lower-column placard (see
 §3.1 to §3.6. Impact: high changes what a pilot learns or the panel's overall
 shape; medium misplaces or mislabels a control or indicator; low is detail.
 Rows marked **owner-confirmed** contradict a fact the owner confirmed on
-2026-10-08: the owner arbitrates those before any change.
+2026-10-08. The owner ruled on 2026-10-10 (§2a): the photos win, except where an
+item is only absent from the photos (the ELT remote switch, the carb-heat
+control), which stays as the trainer draws it; the avionics rows go to M18.
 
 | Item                     | Photo shows                                                                                                            | Trainer today                                                                                                        | Impact | Change kind                | Likely files                                                                                                     |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -463,7 +494,8 @@ converts. Altitudes are above the field; the trainer models no real aerodrome.
 | Max flap speed, 15°                       | 148             | 80           |
 | Max flap speed, 30° and 35°               | 115             | 62           |
 | Max flap speed, 0° (§8)                   | 184             | 99           |
-| **VNE (Junkers High Speed, the lowest)**  | **260**         | **140**      |
+| Max flap speed, −12° (placard, §3.7)      | 300             | 162          |
+| **VNE (airspeed red line, §2a)**          | **300**         | **162**      |
 | Max range cruise (4300 rpm)               | 180             | 97           |
 | Level flight, flaps −12°, 5500 rpm (VH)   | 240             | 130          |
 
@@ -502,20 +534,31 @@ propeller control in the cockpit (§9).
 
 | Gauge              | Scale used           | Markings                                                     |
 | ------------------ | -------------------- | ------------------------------------------------------------ |
-| Airspeed (km/h)    | 40–300               | white 72–115, green 94–245, yellow 245–260, red line **260** |
+| Airspeed (km/h)    | 40–340               | white 72–115, green 94–245, yellow 245–300, red line **300** |
 | Tachometer (rpm)   | 0–7000               | green 1400–5500, yellow 5500–5800, red line 5800             |
 | Oil pressure (bar) | 0–10                 | red below 0.8, yellow 0.8–2, green 2–5, red line 5           |
 | Oil temp (°C)      | 40–150               | yellow 50–90, green 90–110, yellow 110–130, red line **130** |
 | CHT (°C)           | 40–150               | green 50–120, red line **120**                               |
-| Vertical speed     | ±5 m/s               | none                                                         |
+| Vertical speed     | ±2000 ft/min         | none                                                         |
 | Altimeter (ft)     | implementer's choice | none                                                         |
 
 The handbook gives only the airspeed arcs and the red lines; the other arcs are
 derived from the limits table above, not copied markings.
 
+**Trainer uses (2026-10-10, §2a decision 3):** the airspeed dial of the photos,
+40 to 340 km/h with numbers every 20; the yellow arc from 245 to the red line at
+300 km/h; VNE 300 km/h (162 kt). The green arc's upper end (245) matches the
+photo; the white arc and the green arc's lower end are not legible in the photos,
+so 72–115 and 94 stay. The vertical speed indicator reads thousands of feet per
+minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
+ticks every 500. Systems may keep metres per second internally; the gauge shows
+ft/min (1 m/s ≈ 197 ft/min).
+
 ### 4.4 Fuel, flaps, masses
 
-- Two wing tanks, 65 l each. **Usable 124 l (62 per side)** (§8). Each tank has a
+- Two wing tanks, 65 l each. **Usable 124 l (62 per side)** (§8). The photos show
+  62 l usable per side on the lower-column placard and 63 l on the wing-root
+  placards (§3.7): the trainer uses the lower, 62 l per side, 124 l. Each tank has a
   baffle against starvation in a slip. A slip drains the tanks unevenly; raise the
   fuller wing.
 - Feed: tank outlets, two gravity lines, Y-piece, fine filter, **single fuel valve
@@ -572,7 +615,7 @@ intercom is on whenever the engine runs (N16 switches it off); the transponder i
 off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach`. The phase entry seeds device state as well as device
+about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state as well as device
 controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
 through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
 `taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
@@ -749,7 +792,7 @@ get out, fire risk).
 | Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                           | 260 km/h                                                                                       |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)      | 300 km/h (owner, §2a decision 3; was 260 until 2026-10-10)                                     |
 | Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
@@ -775,7 +818,7 @@ verifies it on D-MPGO.
    rescue handle names BRS (model not legible), so the Junkers options drop out. The
    airspeed indicator puts its red mark at about 300 km/h and the lower-column
    placard allows 300 km/h at −12°, against the trainer's VNE 260: **contradicts
-   current trainer**; the VNE to use is for the owner (§8 VNE row, §3.7.2).
+   current trainer**. **Settled 2026-10-10** (§2a decision 3): VNE 300 km/h.
 3. **Carb heat**: does D-MPGO have a carb-heat control, and where? Uses a
    provisional pull knob on the console, off/on.
    **Handbook check 2026-10-08:** still open. Carb heat is pulled to apply (HB 4-11, 4-13); no figure
@@ -799,7 +842,7 @@ verifies it on D-MPGO.
    position 1 + 2 (HB 3-5); the dial cannot be read in HB 7-18.
    **Photo survey 2026-10-10 (§3.7):** **confirmed: numbered.** The dial prints
    "OFF", then "1" and "2" clockwise; the positions beyond 2 (both and START) are
-   worn and not legible. **Contradicts current trainer** (L, R, BOTH).
+   worn and not legible. **Contradicts current trainer** (L, R, BOTH). **Trainer uses (2026-10-10):** OFF, 1, 2, 1+2, START (M17 T1, #629); the 1+2 and START legends are **assumed (unverified)**.
 9. **Second warning lamp** at the top of the upper-left field: what is it in the
    analog variant? Drawn unlit, not modelled.
    **Photo survey 2026-10-10 (§3.7):** not visible: the panel has one warning lamp,
@@ -868,13 +911,13 @@ verifies it on D-MPGO.
     control unit sits on the console just aft of the lower centre field (HB 7-19);
     the column's width and offset are not given.
     **Answered by the owner 2026-10-08:** the panel geometry as drawn matches the
-    aircraft. The one-screen compromise stays: the console beside the centre
+    aircraft (**Superseded 2026-10-10** (§2a, decision 1): four fields, with an upper-centre avionics field). The one-screen compromise stays: the console beside the centre
     column rather than below it.
     **Photo survey 2026-10-10 (§3.7):** **contradicts current trainer.** The panel
     has an upper-centre field between the two wide upper fields, holding the GPS and
     both radios; the lower column hangs below that centre field, not below a
     junction of two fields. This also differs from the owner's 2026-10-08 answer
-    that the geometry matches; the owner arbitrates.
+    that the geometry matches; settled 2026-10-10 for the photos (§2a).
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
@@ -886,11 +929,11 @@ verifies it on D-MPGO.
     vertical speed indicator. **Handbook check 2026-10-08:** still open. A magnetic compass with a
     deviation card under it is minimum equipment (HB 1-3, 7-20); type and card are
     not given. **Answered by the owner 2026-10-08:** correct as drawn,
-    owner-confirmed.
+    owner-confirmed. **Superseded 2026-10-10** (§2a, decision 1): no panel compass.
     **Photo survey 2026-10-10 (§3.7):** not visible: no compass on the panel; the
     top right of the upper-right field holds the "Generator" lamp. **Contradicts
-    current trainer**, which the owner confirmed on 2026-10-08; the owner arbitrates
-    (the compass may sit outside the photos).
+    current trainer**, which the owner confirmed on 2026-10-08. Settled 2026-10-10
+    (§2a): no panel compass.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
@@ -903,8 +946,8 @@ verifies it on D-MPGO.
     **Answered by the owner 2026-10-08:** the remote plate's legends and lamp are
     correct as drawn, owner-confirmed.
     **Photo survey 2026-10-10 (§3.7):** not visible: no ELT remote switch or lamp on
-    the lower column or the panel. **Contradicts current trainer**, which the owner
-    confirmed on 2026-10-08; the owner arbitrates.
+    the lower column or the panel. Settled 2026-10-10 (§2a decision 1): an item the
+    photos do not show keeps its answer, so the ELT remote stays as drawn.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
@@ -914,11 +957,12 @@ verifies it on D-MPGO.
     lights red and the panel prints CHARGE with it. **Handbook check 2026-10-08:** still open. The
     wiring diagram names an alternator warning light (HB 7-8); legend and colour
     are not given. **Answered by the owner 2026-10-08:** the CHARGE lamp is
-    correct as drawn, owner-confirmed.
+    correct as drawn, owner-confirmed. **Superseded 2026-10-10** (§2a, decision 1): the red "Generator" lamp in
+    the upper-right field.
     **Photo survey 2026-10-10 (§3.7):** **contradicts current trainer.** The only
     warning lamp is round, red and printed "Generator", at the top right of the
     upper-right field; the trainer prints CHARGE at the top of the upper-left field,
-    owner-confirmed on 2026-10-08; the owner arbitrates.
+    owner-confirmed on 2026-10-08. Settled 2026-10-10 (§2a): the "Generator" lamp.
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: the leading steps below are memory
     items; the rest of each procedure is read and done from the list. **Answered by
