@@ -100,7 +100,6 @@ const expectedControls: Record<string, Expected> = {
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {
-  compass: { widget: 'artwork', view: 'panel' },
   airspeed: { widget: 'artwork', view: 'panel' },
   altimeter: { widget: 'artwork', view: 'panel' },
   verticalSpeed: { widget: 'artwork', view: 'panel' },
@@ -108,6 +107,7 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
   oilPressure: { widget: 'artwork', view: 'panel' },
   oilTemperature: { widget: 'artwork', view: 'panel' },
   cht: { widget: 'artwork', view: 'panel' },
+  voltmeter: { widget: 'artwork', view: 'panel' },
   chargeLamp: { widget: 'artwork', view: 'panel' },
   flapReadout: { widget: 'digital-readout', view: 'centre' },
   eltLamp: { widget: 'annunciator', view: 'centre' },
@@ -174,7 +174,7 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it('springs the ignition key back from START to BOTH', () => {
+  it('springs the ignition key back from START to 1+2', () => {
     const ignition = ctslAircraft.controls.ignition;
     expect(ignition?.kind === 'rotary' && ignition.springBack).toEqual({ start: 'both' });
     expect(ignition?.appearance).toHaveProperty('artwork');
@@ -249,10 +249,10 @@ describe('CTSL aircraft', () => {
     expect(views).toEqual(['panel', 'panel', 'panel']);
   });
 
-  it('arranges its views and a dock, with the panel floor at 950', () => {
+  it('arranges its views and a dock, with the panel floor at 1110', () => {
     expect(Object.keys(ctslAircraft.cockpit?.views ?? {})).toEqual(['panel', 'centre', 'console']);
     expect(ctslAircraft.cockpit?.dock).toBeDefined();
-    expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBeGreaterThanOrEqual(950);
+    expect(ctslAircraft.cockpit?.views.panel?.minWidth).toBe(1110);
   });
 
   describe('cockpit arrangement (intake §3)', () => {
@@ -267,7 +267,7 @@ describe('CTSL aircraft', () => {
     const bottom = ({ rect }: { rect: { y: number; h: number } }) => rect.y + rect.h;
     const middle = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
 
-    // The two upper fields are the full-height rects of the panel artwork.
+    // The three upper fields are the full-height rects of the panel artwork.
     const fields = [
       ...viewPanel.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="([\d.]+)"/g),
     ]
@@ -275,20 +275,22 @@ describe('CTSL aircraft', () => {
       .filter(({ w, h }) => h >= 0.95 * panelSize.height && w < panelSize.width)
       .filter((field, index, all) => all.findIndex(({ x }) => x === field.x) === index)
       .sort((a, b) => a.x - b.x);
-    const [upperLeft, upperRight] = fields;
-    if (fields.length !== 2 || !upperLeft || !upperRight) {
-      throw new Error(`expected two upper fields in the panel art, found ${fields.length}`);
+    const [upperLeft, upperCentre, upperRight] = fields;
+    if (fields.length !== 3 || !upperLeft || !upperCentre || !upperRight) {
+      throw new Error(`expected three upper fields in the panel art, found ${fields.length}`);
     }
     const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
     const inCockpit = (artX: number) =>
       panel.rect.x + (panel.rect.w - panelFit) / 2 + (artX * panelFit) / panelSize.width;
-    const junction = inCockpit((upperLeft.x + upperLeft.w + upperRight.x) / 2);
+    const fieldLeft = inCockpit(upperCentre.x);
+    const fieldWidth = (upperCentre.w * panelFit) / panelSize.width;
 
-    it('hangs the centre field below the panel, under the junction of the two upper fields', () => {
+    it('hangs the centre field below the panel, under the middle of the upper-centre field', () => {
       expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
       expect(middle(centre)).toBeGreaterThan(panel.rect.x + panel.rect.w / 3);
       expect(middle(centre)).toBeLessThan(panel.rect.x + (2 * panel.rect.w) / 3);
-      expect(Math.abs(middle(centre) - junction)).toBeLessThanOrEqual(2);
+      expect(middle(centre)).toBeGreaterThan(fieldLeft + fieldWidth / 3);
+      expect(middle(centre)).toBeLessThan(fieldLeft + (2 * fieldWidth) / 3);
     });
 
     it('puts the console beside the centre field, toward the right seat', () => {
@@ -306,7 +308,7 @@ describe('CTSL aircraft', () => {
       expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
     });
 
-    it('reaches under the radio and transponder slots with the dock', () => {
+    it('reaches under the radio slot with the dock', () => {
       const { com } = deviceSlots;
       const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
       const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
@@ -358,7 +360,7 @@ describe('CTSL aircraft', () => {
       const slot = { x: ignition.x + ignition.w / 2, y: ignition.y + ignition.h / 2 };
       const handle = (svg: string) => {
         const [, x, y, w, h] =
-          /<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*fill="url\(#a\)"/.exec(
+          /<rect data-grip="" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/.exec(
             svg,
           ) ?? [];
         return { x: valve.x + Number(x), y: valve.y + Number(y), w: Number(w), h: Number(h) };
@@ -416,17 +418,15 @@ describe('CTSL aircraft', () => {
       expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
-    it('puts the rescue handle low at the aft end, between the seats, inboard of the valve (§9 q26)', () => {
+    it('puts the rescue handle low at the aft end, centred between the seats (§9 q26)', () => {
       const rescue = rectOf('rescueHandle');
-      const valve = rectOf('parkingBrakeValve');
-      expect(rescue.y, 'aft of the valve row').toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
-      expect(right('rescueHandle'), 'inboard of the valve').toBeLessThanOrEqual(valve.x);
+      expect(rescue.y, 'aft of the lever row').toBeGreaterThanOrEqual(
+        Math.max(...['trim', 'choke', 'throttle', 'brake'].map(bottom)),
+      );
       expect(bottom('rescueHandle'), 'inside the console edge').toBeLessThanOrEqual(
         views.console.size.height,
       );
-      const middle = rescue.x + rescue.w / 2;
-      expect(middle, 'between the seats').toBeGreaterThan(views.console.size.width / 3);
-      expect(middle, 'between the seats').toBeLessThan((2 * views.console.size.width) / 3);
+      expect(rescue.x + rescue.w / 2, 'on the centreline').toBe(views.console.size.width / 2);
     });
 
     // A top view, forward up, the pilot's seat on the left.
@@ -453,17 +453,15 @@ describe('CTSL aircraft', () => {
       expect(rectOf('carbHeat').x).toBeGreaterThan(right('brake'));
     });
 
-    it('draws the large knob aft of the valve as unlabelled artwork, not a control (§9 q10)', () => {
-      const knob = /<circle\b[^>]*data-knob=""[^>]*>/.exec(viewConsole)?.[0] ?? '';
-      const at = (name: string) => Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(knob)?.[1]);
-      expect(at('r')).toBeGreaterThan(0);
-      expect(at('cy') - at('r')).toBeGreaterThanOrEqual(bottom('parkingBrakeValve'));
-      expect(at('cx')).toBeGreaterThan(rectOf('parkingBrakeValve').x);
-      expect(at('cx')).toBeLessThan(right('parkingBrakeValve'));
-      expect(at('cy') + at('r'), 'inside the console edge').toBeLessThan(
-        views.console.size.height - 8,
+    it('puts the parking-brake lever on the console right side, aft of the lever row (intake §3.7)', () => {
+      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(right('brake'));
+      expect(rectOf('parkingBrakeValve').y).toBeGreaterThanOrEqual(
+        Math.max(...['trim', 'choke', 'throttle', 'brake'].map(bottom)),
       );
-      expect(viewConsole).not.toMatch(/<text\b/);
+    });
+
+    it('draws no large knob and places only the seven controls (§9 q10, q11)', () => {
+      expect(viewConsole).not.toMatch(/data-knob/);
       expect(Object.keys(consoleView.rects).sort()).toEqual(
         [
           'brake',
@@ -478,9 +476,11 @@ describe('CTSL aircraft', () => {
     });
   });
 
-  it('stacks the radio above the transponder', () => {
-    const { com, xpdr } = deviceSlots;
-    expect(com.rect.y + com.rect.h).toBeLessThanOrEqual(xpdr.rect.y);
+  it('sets the radio and the transponder side by side below the GPS', () => {
+    const { com, xpdr, gps } = deviceSlots;
+    expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
+    expect(com.rect.y).toBe(xpdr.rect.y);
+    expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
   });
 
   it('lists the phases of a whole flight in flight order', () => {
@@ -528,7 +528,12 @@ describe('CTSL aircraft', () => {
     for (const [id] of rockers) expect(entry[id], id).toBe('off');
     expect(entry).toMatchObject({ ignition: 'out', fuelValve: 'closed', brake: 'off' });
     const state = entryState('parking');
-    expect(state.bus).toEqual({ mainPowered: false, avionicsPowered: false, charging: false });
+    expect(state.bus).toEqual({
+      mainPowered: false,
+      avionicsPowered: false,
+      charging: false,
+      volts: 0,
+    });
     expect(Object.values(state.consumers).filter(Boolean)).toEqual([]);
   });
 
@@ -548,6 +553,7 @@ describe('CTSL aircraft', () => {
         mainPowered: true,
         avionicsPowered: true,
         charging: true,
+        volts: 14,
       });
     },
   );
@@ -557,6 +563,7 @@ describe('CTSL aircraft', () => {
       mainPowered: false,
       avionicsPowered: false,
       charging: false,
+      volts: 0,
     });
   });
 
@@ -605,7 +612,7 @@ describe('CTSL aircraft', () => {
     }
   });
 
-  it.each(Object.keys(expectedPhases))('enters %s with the charge lamp out', (id) => {
+  it.each(Object.keys(expectedPhases))('enters %s with the generator lamp out', (id) => {
     const state: CtslTrainerState = {
       controls: ctslAircraft.phases[id]?.entry.controls ?? {},
       guards: {},
@@ -616,10 +623,10 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
-    [{ mainPowered: true, avionicsPowered: false, charging: false }, true],
-    [{ mainPowered: true, avionicsPowered: false, charging: true }, false],
-    [{ mainPowered: false, avionicsPowered: false, charging: false }, false],
-  ])('lights the charge lamp only on a powered bus that is not charging: %o', (bus, lit) => {
+    [{ mainPowered: true, avionicsPowered: false, charging: false, volts: 12 }, true],
+    [{ mainPowered: true, avionicsPowered: false, charging: true, volts: 14 }, false],
+    [{ mainPowered: false, avionicsPowered: false, charging: false, volts: 0 }, false],
+  ])('lights the generator lamp only on a powered bus that is not charging: %o', (bus, lit) => {
     const systems = { ...entryState('parking'), bus };
     expect(chargeLampLit({ controls: {}, guards: {}, systems, devices: {} })).toBe(lit);
   });
@@ -756,7 +763,7 @@ describe('CTSL aircraft', () => {
   });
 
   it.each(Object.keys(expectedPhases).filter((id) => !['parking', 'holding'].includes(id)))(
-    'enters %s rolling or flying, with the parking-brake valve open',
+    'enters %s rolling or flying, with the parking-brake valve at Off',
     (id) => {
       expect(ctslAircraft.phases[id]?.entry.controls.parkingBrakeValve).toBe('open');
       expect(entryState(id).parkingBrakeSet).toBe(false);

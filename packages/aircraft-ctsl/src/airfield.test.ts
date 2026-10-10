@@ -13,7 +13,6 @@ import taxiOut from './assets/phase-taxi-out.svg?raw';
 import taxiIn from './assets/phase-taxi-in.svg?raw';
 import { phaseHeadings, runway, turn, windFromDeg } from './airfield';
 import { ctslAircraft } from './index';
-import { indicators } from './indicators';
 import type { CtslState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -62,7 +61,7 @@ describe('the airfield of one flight', () => {
     expect(runway.designator).toBe(String(angle(runway.headingDeg) / 10 || 36).padStart(2, '0'));
   });
 
-  it('enters every phase facing its heading on the compass', () => {
+  it('enters every phase facing its heading', () => {
     expect(Object.keys(phaseHeadings).sort()).toEqual(Object.keys(ctslAircraft.phases).sort());
     for (const [id, value] of Object.entries(phaseHeadings)) expect(heading(id), id).toBe(value);
     for (const id of Object.keys(ctslAircraft.phases)) {
@@ -73,11 +72,11 @@ describe('the airfield of one flight', () => {
     expect(turn(90, -90)).toBe(360);
   });
 
-  it.each(Object.keys(ctslAircraft.phases))('shows the %s heading on the compass', (id) => {
+  it.each(Object.keys(ctslAircraft.phases))('shows the %s heading', (id) => {
     const session = createSession(ctslAircraft, { devices, phase: id });
     session.advance(STEP_MS);
     const state = session.state() as TrainerState<CtslState>;
-    expect(indicators.compass.select(state)).toBe(heading(id));
+    expect(state.systems.headingDeg).toBe(heading(id));
   });
 
   it('holds short at a right angle to the runway, with the wind on the left', () => {
@@ -126,7 +125,7 @@ describe('a full flight carrying the cockpit into the next phase', () => {
       session.startLeg(leg);
       const state = session.state() as TrainerState<CtslState>;
       expect(session.phase()).toBe(into);
-      expect(indicators.compass.select(state)).toBe(phaseHeadings[into]);
+      expect(state.systems.headingDeg).toBe(phaseHeadings[into]);
       expect(state.systems.verticalSpeedMs).toBe(entryState(into).verticalSpeedMs);
       expect(state.systems.altitudeFt).toBe(entryState(into).altitudeFt);
       expect(state.systems.airspeedKmh).toBe(entryState(into).airspeedKmh);
@@ -142,7 +141,7 @@ describe('a full flight carrying the cockpit into the next phase', () => {
     const before = session.state() as TrainerState<CtslState>;
     session.startLeg('takeoff');
     const state = session.state() as TrainerState<CtslState>;
-    expect(indicators.compass.select(state)).toBe(runway.headingDeg);
+    expect(state.systems.headingDeg).toBe(runway.headingDeg);
     expect(state.controls.cockpitLight).toBe('on');
     expect(state.systems.consumers.cockpitLight).toBe(true);
     expect(state.systems.oilTempC).toBe(before.systems.oilTempC);

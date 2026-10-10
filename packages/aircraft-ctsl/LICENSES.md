@@ -4,7 +4,7 @@ Every image below was drawn for this project and is released under the MIT licen
 
 | File                                            | Use                                                                   |
 | ----------------------------------------------- | --------------------------------------------------------------------- |
-| `src/assets/view-panel.svg`                     | Panel view background (both upper fields)                             |
+| `src/assets/view-panel.svg`                     | Panel view background (the three upper fields)                        |
 | `src/assets/view-centre.svg`                    | Lower centre field view background                                    |
 | `src/assets/view-console.svg`                   | Centre console view background, seen from above                       |
 | `src/assets/phase-parking.svg`                  | Outside view, parking                                                 |
@@ -36,13 +36,11 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/gauge-oil-pressure.svg`     | Gauge face, oil pressure                                              |
 | `src/assets/artwork/gauge-oil-temperature.svg`  | Gauge face, oil temperature                                           |
 | `src/assets/artwork/gauge-cht.svg`              | Gauge face, cht                                                       |
+| `src/assets/artwork/gauge-voltmeter.svg`        | Gauge face, voltmeter                                                 |
 | `src/assets/artwork/needle.svg`                 | Shared gauge needle                                                   |
-| `src/assets/artwork/compass-face.svg`           | Compass bowl behind the card                                          |
-| `src/assets/artwork/compass-card.svg`           | Compass card, printed reversed                                        |
-| `src/assets/artwork/glass-compass.svg`          | Compass housing with its card window and lubber line                  |
-| `src/assets/artwork/lamp-charge-face.svg`       | Charge warning lamp bezel and legend                                  |
-| `src/assets/artwork/lamp-charge-off.svg`        | Charge warning lamp lens, unlit                                       |
-| `src/assets/artwork/lamp-charge-on.svg`         | Charge warning lamp lens, lit                                         |
+| `src/assets/artwork/lamp-charge-face.svg`       | Generator warning lamp bezel and legend                               |
+| `src/assets/artwork/lamp-charge-off.svg`        | Generator warning lamp lens, unlit                                    |
+| `src/assets/artwork/lamp-charge-on.svg`         | Generator warning lamp lens, lit                                      |
 | `src/assets/artwork/rocker-beacon.svg`          | Rocker switch plate, beacon                                           |
 | `src/assets/artwork/rocker-position.svg`        | Rocker switch plate, position                                         |
 | `src/assets/artwork/rocker-intercom.svg`        | Rocker switch plate, intercom                                         |
@@ -58,7 +56,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/breaker-position.svg`       | Breaker plate, position                                               |
 | `src/assets/artwork/breaker-intercom.svg`       | Breaker plate, intercom                                               |
 | `src/assets/artwork/breaker-gps.svg`            | Breaker plate, gps                                                    |
-| `src/assets/artwork/breaker-strobe.svg`         | Breaker plate, strobe                                                 |
+| `src/assets/artwork/breaker-strobe.svg`         | Breaker plate, beacon                                                 |
 | `src/assets/artwork/breaker-landing.svg`        | Breaker plate, landing                                                |
 | `src/assets/artwork/breaker-outlet.svg`         | Breaker plate, outlet                                                 |
 | `src/assets/artwork/breaker-flap.svg`           | Breaker plate, flap                                                   |
@@ -70,18 +68,19 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/pushpull-in.svg`            | BAT and GEN switch knob, in                                           |
 | `src/assets/artwork/pushpull-pulled.svg`        | BAT and GEN switch knob, pulled                                       |
 | `src/assets/artwork/fuel-valve-face.svg`        | Fuel valve slot                                                       |
-| `src/assets/artwork/fuel-valve-open.svg`        | Fuel valve handle, open                                               |
-| `src/assets/artwork/fuel-valve-closed.svg`      | Fuel valve handle, closed, over the ignition key slot                 |
+| `src/assets/artwork/fuel-valve-open.svg`        | Fuel valve red grip, open                                             |
+| `src/assets/artwork/fuel-valve-closed.svg`      | Fuel valve red grip, closed, over the ignition key slot               |
 | `src/assets/artwork/elt-face.svg`               | ELT remote switch plate                                               |
 | `src/assets/artwork/elt-armed.svg`              | ELT remote switch bat, armed                                          |
 | `src/assets/artwork/elt-on.svg`                 | ELT remote switch bat, on                                             |
-| `src/assets/artwork/valve-face.svg`             | Parking-brake valve slot                                              |
-| `src/assets/artwork/valve-open.svg`             | Parking-brake valve handle, open                                      |
-| `src/assets/artwork/valve-closed.svg`           | Parking-brake valve handle, closed                                    |
+| `src/assets/artwork/valve-face.svg`             | Parking-brake valve curved slot with its arc legend                   |
+| `src/assets/artwork/valve-open.svg`             | Parking-brake valve lever, open                                       |
+| `src/assets/artwork/valve-closed.svg`           | Parking-brake valve lever, closed                                     |
 | `src/assets/artwork/lever-brake-face.svg`       | Console lever slot, brake, fore and aft, seen from above              |
 | `src/assets/artwork/lever-choke-face.svg`       | Console lever slot, choke, fore and aft, seen from above              |
 | `src/assets/artwork/lever-throttle-face.svg`    | Console lever slot, throttle, fore and aft, seen from above           |
-| `src/assets/artwork/handle-brake.svg`           | Console lever grip, brake and choke                                   |
+| `src/assets/artwork/handle-brake.svg`           | Console lever grip, brake                                             |
+| `src/assets/artwork/handle-choke.svg`           | Console lever handle, choke                                           |
 | `src/assets/artwork/handle-throttle.svg`        | Console lever grip, throttle                                          |
 | `src/assets/artwork/lever-carb-face.svg`        | Console lever plate, carb                                             |
 | `src/assets/artwork/handle-carb.svg`            | Console lever handle, carb                                            |
@@ -102,7 +101,7 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/ignition-key-r.svg`         | Ignition key, r                                                       |
 | `src/assets/artwork/ignition-key-both.svg`      | Ignition key, both                                                    |
 | `src/assets/artwork/ignition-key-start.svg`     | Ignition key, start                                                   |
-| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate on the console's aft shelf, seen from above       |
+| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate with its label on the console's aft shelf         |
 | `src/assets/artwork/rescue-stowed.svg`          | Rescue handle, stowed                                                 |
 | `src/assets/artwork/rescue-stowed-open.svg`     | Rescue handle, stowed, safety pin removed                             |
 | `src/assets/artwork/rescue-pulled.svg`          | Rescue handle, pulled                                                 |

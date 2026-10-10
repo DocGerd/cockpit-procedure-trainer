@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
-import { headingLabel, runway } from '../airfield';
 import { normalProcedures } from './normal';
 
 const devices = testDevices;
@@ -26,8 +25,6 @@ const expected = [
   ['shutdown', 'parkingSecuring', undefined],
 ] as const;
 
-const runwayHeadingCheck = `Compass (trainer addition): ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`;
-
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
@@ -37,15 +34,15 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Flap readout: 0°',
   ],
   taxi: ['Parking brake: released'],
-  takeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
-  shortTakeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
+  takeoff: ['Flap readout: 15°'],
+  shortTakeoff: ['Flap readout: 15°'],
   beforeTakeoff: [
     'Parking brake: holds, brake lever released',
     'Oil pressure: in the green',
     'Oil temperature: below the red line',
     'Cylinder head temperature: in the green',
     'Oil temperature: at least 51 °C',
-    'Charge lamp: out',
+    'Generator lamp: out',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
@@ -285,7 +282,7 @@ describe('CTSL normal procedures', () => {
 
     it('closes the valve, holds the lever, then checks the lever released', () => {
       expect(items.slice(valve, valve + 3).map(said)).toEqual([
-        'Parking-brake valve closed',
+        'Parking-brake valve On',
         'Brake lever pulled and held',
         'Parking brake: holds, brake lever released',
       ]);
@@ -325,7 +322,7 @@ describe('CTSL normal procedures', () => {
         item.type === 'action' && item.control === 'parkingBrakeValve' && item.position === 'open',
     );
     expect(items.slice(open).map(said)).toEqual([
-      'Parking-brake valve open',
+      'Parking-brake valve Off',
       'Parking brake: released',
     ]);
   });
@@ -366,7 +363,7 @@ describe('CTSL normal procedures', () => {
     expect(unread.map(([, , item]) => item.text.en)).toEqual(['Rpm drop', 'Rpm drop']);
   });
 
-  it('engineStart needs its ignition BOTH step because the engine starts with the key off', () => {
+  it('engineStart needs its ignition 1+2 step because the engine starts with the key off', () => {
     const items = normalProcedures.engineStart.items as readonly Item[];
     const toBoth = items.findIndex(
       (item) => item.type === 'action' && item.control === 'ignition' && item.position === 'both',
@@ -385,7 +382,7 @@ describe('CTSL normal procedures', () => {
       (item) => item.type === 'action' && item.control === control && item.position === position,
     );
 
-  it('engineStart inserts the key, once the fuel valve is open, before turning it to BOTH', () => {
+  it('engineStart inserts the key, once the fuel valve is open, before turning it to 1+2', () => {
     const keyIn = ignitionAt('engineStart', 'off');
     expect(ctslAircraft.phases.parking?.entry.controls.ignition).toBe('out');
     expect(keyIn).toBeGreaterThan(actionAt('engineStart', 'fuelValve', 'open'));
@@ -396,7 +393,7 @@ describe('CTSL normal procedures', () => {
     expect(session.set('ignition', 'off')).toEqual({ applied: true });
   });
 
-  it('engineStart takes the key in and round to BOTH one detent at a time, with no deviation', () => {
+  it('engineStart takes the key in and round to 1+2 one detent at a time, with no deviation', () => {
     const items = normalProcedures.engineStart.items as readonly Item[];
     const toBoth = ignitionAt('engineStart', 'both');
     const detents = controls.ignition.positions as readonly string[];
@@ -460,18 +457,10 @@ describe('CTSL normal procedures', () => {
   });
 
   it.each(['takeoff', 'shortTakeoff'] as const)(
-    'starts %s lined up with a compass check against the runway heading',
+    'opens %s with the flaps, as the panel has no compass',
     (id) => {
       const first = normalProcedures[id].items[0] as Item;
-      if (first.type !== 'check') throw new Error(`${id} opens with a ${first.type}`);
-      expect(first.target).toEqual({ indicator: 'compass' });
-      const facing = (phase: string) => createSession(ctslAircraft, { devices, phase }).state();
-      expect(first.condition(facing('linedUp'))).toBe(true);
-      expect(first.condition(facing('holding'))).toBe(false);
-      expect(first.expected?.en).toContain(headingLabel(runway.headingDeg));
-      expect(first.expected?.en).toContain(`runway ${runway.designator}`);
-      expect(first.expected?.de).toContain(headingLabel(runway.headingDeg));
-      expect(first.expected?.de).toContain(`Piste ${runway.designator}`);
+      expect(first).toMatchObject({ type: 'action', control: 'flapSelector', position: '15' });
     },
   );
 

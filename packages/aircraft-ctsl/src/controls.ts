@@ -17,6 +17,17 @@ const rockerOf = (name: Text, description: Text, appearance: ArtworkAppearance) 
     kind: 'toggle',
     positions: ['off', 'on'],
     initial: 'off',
+    // The rocker prints the I and O symbols, so the cues name the position in words.
+    legends: {
+      off: {
+        state: text('aus', 'off'),
+        restore: text('Wieder ausschalten', 'Switch it off again'),
+      },
+      on: {
+        state: text('ein', 'on'),
+        restore: text('Wieder einschalten', 'Switch it on again'),
+      },
+    },
     name,
     description,
     appearance,
@@ -57,7 +68,7 @@ export const controls = {
     controlArtwork.positionBreaker,
   ),
   strobeBreaker: breakerOf(
-    text('Sicherung Blitzlicht', 'Strobe breaker'),
+    text('Sicherung Blitzlicht', 'Beacon light breaker'),
     text('Schützt das Blitzlicht (Beacon).', 'Protects the beacon strobe.'),
     controlArtwork.strobeBreaker,
   ),
@@ -133,6 +144,7 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'closed',
+    legends: { open: 'Open', closed: 'Closed' },
     name: text('Brandhahn', 'Fuel valve'),
     description: text(
       'Schieber für die Kraftstoffzufuhr, oben offen, unten zu. Geschlossen verdeckt sein Griff das Zündschloss: der Schlüssel lässt sich weder stecken noch aus OFF drehen, nur abziehen. Abziehen geht nur bei ganz geschlossenem Brandhahn.',
@@ -144,7 +156,7 @@ export const controls = {
     kind: 'rotary',
     positions: ['override-up', '-12', '0', '15', '30', '35', 'override-down'],
     initial: '0',
-    legends: { 'override-up': 'UP', 'override-down': 'DN' },
+    legends: { 'override-up': 'up manually', 'override-down': 'down manually' },
     name: text('Klappenwahlschalter', 'Flap selector'),
     description: text(
       'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
@@ -163,8 +175,9 @@ export const controls = {
         state: text('Schlüssel abgezogen', 'key out'),
         restore: text('Schlüssel wieder abziehen', 'Take the key out again'),
       },
-      left: 'L',
-      right: 'R',
+      left: '1',
+      right: '2',
+      both: '1+2',
     },
     interlock: [
       { control: 'fuelValve', at: 'closed', holds: ['out'] },
@@ -173,8 +186,8 @@ export const controls = {
     ],
     name: text('Zündschalter', 'Ignition'),
     description: text(
-      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. Der Schlüssel wird auf OFF gesteckt und abgezogen. START dreht das Triebwerk und springt auf BOTH zurück. Gesteckt wird er bei offenem Brandhahn, abgezogen nur bei geschlossenem: dann verdeckt dessen Griff das Schloss, und der Schlüssel lässt sich nicht stecken und nicht aus OFF drehen.',
-      'Ignition key with starter: OFF, L, R, BOTH, START. The key goes in and comes out at OFF. START cranks the engine and springs back to BOTH. The key goes in with the fuel valve open and comes out only with it closed; closed, its handle covers the slot, so the key can neither go in nor turn out of OFF.',
+      'Zündschloss mit Anlasser: OFF, 1, 2, 1+2, START. Der Schlüssel wird auf OFF gesteckt und abgezogen. START dreht das Triebwerk und springt auf 1+2 zurück. Gesteckt wird er bei offenem Brandhahn, abgezogen nur bei geschlossenem: dann verdeckt dessen Griff das Schloss, und der Schlüssel lässt sich nicht stecken und nicht aus OFF drehen.',
+      'Ignition key with starter: OFF, 1, 2, 1+2, START. The key goes in and comes out at OFF. START cranks the engine and springs back to 1+2. The key goes in with the fuel valve open and comes out only with it closed; closed, its handle covers the slot, so the key can neither go in nor turn out of OFF.',
     ),
     appearance: controlArtwork.ignition,
   },
@@ -204,10 +217,11 @@ export const controls = {
     kind: 'momentary',
     positions: ['off', 'on'],
     initial: 'off',
+    legends: { off: 'Off', on: 'On' },
     name: text('Bremshebel', 'Brake lever'),
     description: text(
-      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Mit geschlossenem Rückflusshahn hält der Druck als Parkbremse.',
-      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve closed the pressure holds as the parking brake.',
+      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Steht der Rückflusshahn auf On, hält der Druck als Parkbremse.',
+      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve at On the pressure holds as the parking brake.',
     ),
     appearance: controlArtwork.brake,
   },
@@ -215,8 +229,10 @@ export const controls = {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
-    // The placard prints only FULL and IDLE; the middle stops are the trainer's own.
+    // The placard prints only Full and Idle; the middle stops are the trainer's own.
     legends: {
+      idle: 'Idle',
+      full: 'Full',
       low: {
         state: text('niedrige Leistung', 'low power'),
         restore: text('Wieder auf niedrige Leistung stellen', 'Set low power again'),
@@ -237,14 +253,17 @@ export const controls = {
     ),
     appearance: controlArtwork.throttle,
   },
-  choke: pushPullOf(
-    text('Choke', 'Choke'),
-    text(
-      'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
-      'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
+  choke: {
+    ...pushPullOf(
+      text('Choke', 'Choke'),
+      text(
+        'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
+        'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
+      ),
+      controlArtwork.choke,
     ),
-    controlArtwork.choke,
-  ),
+    legends: { off: 'Off', on: 'On' },
+  },
   carbHeat: pushPullOf(
     text('Vergaservorwärmung', 'Carb heat'),
     text(
@@ -257,11 +276,11 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'half-down', 'neutral', 'half-up', 'nose-up'],
     initial: 'neutral',
-    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for and the
+    // The placard prints Down and Up only; neutral is what the take-off placard asks for and the
     // stops between are the trainer's own.
     legends: {
-      'nose-down': 'DOWN',
-      'nose-up': 'UP',
+      'nose-down': 'Down',
+      'nose-up': 'Up',
       'half-down': {
         state: text('halb kopflastig', 'half nose down'),
         restore: text('Wieder halb kopflastig trimmen', 'Set the trim half nose down again'),
@@ -286,11 +305,11 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'open',
-    legends: { closed: 'SHUT' },
+    legends: { open: 'Off', closed: 'On' },
     name: text('Rückflusshahn', 'Parking-brake valve'),
     description: text(
-      'Parkbremse: Hahn schließen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder öffnet.',
-      'Parking brake: close the valve, pull and release the brake lever. The pressure holds until the valve opens again.',
+      'Parkbremse, beschriftet Off, Brake, On: auf On stellen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder auf Off steht.',
+      'Parking brake, printed Off, Brake, On: set it to On, pull and release the brake lever. The pressure holds until the valve is back at Off.',
     ),
     appearance: controlArtwork.parkingBrakeValve,
   },

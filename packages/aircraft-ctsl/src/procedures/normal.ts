@@ -1,5 +1,4 @@
 import type { PositionOf } from '@cpt/core';
-import { headingLabel, runway } from '../airfield';
 import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
@@ -74,25 +73,13 @@ const flapCheck = (angle: number) => {
   } as const;
 };
 
-// Intake §6 N7 and N8 have no compass item, so the text marks it as the trainer's own.
-const checkRunwayHeading = {
-  type: 'check',
-  target: { indicator: 'compass' },
-  condition: (state: State) => state.systems.headingDeg === runway.headingDeg,
-  text: text('Kompass (Ergänzung des Trainers)', 'Compass (trainer addition)'),
-  expected: text(
-    `${headingLabel(runway.headingDeg)}°, die Richtung der Piste ${runway.designator}`,
-    `${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`,
-  ),
-} as const;
-
 // Intake §3.4: close the valve, then pull the non-locking brake lever; the valve traps the pressure.
 const setParkingBrake = [
   {
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'closed',
-    text: text('Rückflusshahn zu', 'Parking-brake valve closed'),
+    text: text('Rückflusshahn auf On', 'Parking-brake valve On'),
   },
   {
     type: 'action',
@@ -115,7 +102,7 @@ const releaseParkingBrake = [
     type: 'action',
     control: 'parkingBrakeValve',
     position: 'open',
-    text: text('Rückflusshahn auf', 'Parking-brake valve open'),
+    text: text('Rückflusshahn auf Off', 'Parking-brake valve Off'),
   },
   {
     type: 'check',
@@ -345,7 +332,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter BOTH', 'Ignition BOTH'),
+        text: text('Zündschalter 1+2', 'Ignition 1+2'),
       },
       {
         type: 'action',
@@ -410,8 +397,8 @@ export const normalProcedures = {
         control: 'parkingBrakeValve',
         position: 'open',
         text: text(
-          'Rückflusshahn auf (Ergänzung des Trainers)',
-          'Parking-brake valve open (trainer addition)',
+          'Rückflusshahn auf Off (Ergänzung des Trainers)',
+          'Parking-brake valve Off (trainer addition)',
         ),
       },
       {
@@ -500,7 +487,7 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'left',
-        text: text('Zündschalter auf L', 'Ignition to L'),
+        text: text('Zündschalter auf 1', 'Ignition to 1'),
       },
       {
         type: 'check',
@@ -513,13 +500,13 @@ export const normalProcedures = {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter auf BOTH', 'Ignition to BOTH'),
+        text: text('Zündschalter auf 1+2', 'Ignition to 1+2'),
       },
       {
         type: 'action',
         control: 'ignition',
         position: 'right',
-        text: text('Zündschalter auf R', 'Ignition to R'),
+        text: text('Zündschalter auf 2', 'Ignition to 2'),
       },
       {
         type: 'check',
@@ -527,15 +514,15 @@ export const normalProcedures = {
         condition: circuitDropWithinLimit,
         text: text('Drehzahlabfall', 'Rpm drop'),
         expected: text(
-          'höchstens 300 U/min, höchstens 120 U/min Unterschied zu L',
-          'at most 300 rpm, and within 120 rpm of the drop on L',
+          'höchstens 300 U/min, höchstens 120 U/min Unterschied zu 1',
+          'at most 300 rpm, and within 120 rpm of the drop on 1',
         ),
       },
       {
         type: 'action',
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter auf BOTH', 'Ignition to BOTH'),
+        text: text('Zündschalter auf 1+2', 'Ignition to 1+2'),
       },
       {
         type: 'check',
@@ -549,7 +536,7 @@ export const normalProcedures = {
         type: 'check',
         target: { indicator: 'chargeLamp' },
         condition: (state: State) => !chargeLampLit(state),
-        text: text('Ladekontrolle', 'Charge lamp'),
+        text: text('Generatorlampe', 'Generator lamp'),
         expected: text('aus', 'out'),
       },
       {
@@ -608,7 +595,6 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',
@@ -661,7 +647,6 @@ export const normalProcedures = {
     startPhase: 'linedUp',
     endPhase: 'departure',
     items: [
-      checkRunwayHeading,
       {
         type: 'action',
         control: 'flapSelector',

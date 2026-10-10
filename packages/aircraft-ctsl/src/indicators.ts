@@ -1,5 +1,6 @@
 import type { IndicatorDefinition } from '@cpt/core';
 import { gaugeArtwork, lampArtwork } from './artwork';
+import { FT_PER_MIN_PER_MS } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
 
@@ -10,11 +11,6 @@ const flapCircuitPowered = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && state.controls['flapBreaker'] === 'in';
 
 export const indicators = {
-  compass: {
-    name: text('Magnetkompass', 'Magnetic compass'),
-    select: (state: CtslTrainerState) => state.systems.headingDeg,
-    appearance: gaugeArtwork.compass,
-  },
   airspeed: {
     name: text('Fahrtmesser', 'Airspeed indicator'),
     select: (state: CtslTrainerState) => state.systems.airspeedKmh,
@@ -27,7 +23,7 @@ export const indicators = {
   },
   verticalSpeed: {
     name: text('Variometer', 'Vertical speed indicator'),
-    select: (state: CtslTrainerState) => state.systems.verticalSpeedMs,
+    select: (state: CtslTrainerState) => state.systems.verticalSpeedMs * FT_PER_MIN_PER_MS,
     appearance: gaugeArtwork.verticalSpeed,
   },
   tachometer: {
@@ -50,8 +46,13 @@ export const indicators = {
     select: (state: CtslTrainerState) => state.systems.chtC,
     appearance: gaugeArtwork.cht,
   },
+  voltmeter: {
+    name: text('Voltmeter', 'Voltmeter'),
+    select: (state: CtslTrainerState) => state.systems.bus.volts,
+    appearance: gaugeArtwork.voltmeter,
+  },
   chargeLamp: {
-    name: text('Ladekontrolle', 'Charge warning lamp'),
+    name: text('Generatorlampe', 'Generator warning lamp'),
     select: chargeLampLit,
     appearance: lampArtwork.charge,
   },

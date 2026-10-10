@@ -11,13 +11,14 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 ## 1. Handbook and aircraft
 
-| Field                   | Value                                                                                                                                                                                                                                               |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                      |
-| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                            |
-| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                         |
-| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                |
-| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". |
+| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                 |
+| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                       |
+| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                    |
+| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                           |
+| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is open for the owner once M17 T4 lands. |
+| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                        |
 
 ## 2. Owner decisions (2026-10-06)
 
@@ -38,13 +39,47 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    banner tow procedures are out of scope, although the club aircraft has a tow
    coupling.
 
-## 3. Panel inventory (analog variant)
+Decision 1 is superseded in part by §2a: the trainer keeps these three devices
+until milestone M18 replaces them.
+
+## 2a. Owner decisions (2026-10-10)
+
+1. **The photos win.** The owner's photos (§3.7) show D-MPGO as it is today.
+   Where they contradict a 2026-10-08 owner confirmation, the photo stands (the
+   parking-brake valve's identity is inferred from its place and legend): the
+   only warning lamp is the red "Generator" lamp in the upper-right field (not
+   CHARGE in the upper-left); the parking-brake valve reads "Off", "Brake", "On";
+   there is no panel compass; the panel has four fields, with an upper-centre
+   field for the avionics. The superseded answers stay in this file, marked. An
+   item the photos do not show (the ELT remote switch, the carb-heat control)
+   keeps its current intake answer and stays as the trainer draws it.
+2. **Avionics move, not change, in M17.** The installed units (FLARM display, a
+   Garmin aera-like GPS, funkwerk COM and transponder; §3.7) replace SL40,
+   GTX 327 and GPSMAP 496 in a separate milestone, M18 "D-MPGO avionics". In M17
+   the existing devices move into the upper-centre field.
+3. **The airspeed indicator follows the photos.** Its scale, red line and the
+   limit-speed placard replace VNE 260 km/h (§4.1, §4.3, §8), and every procedure
+   or text naming the old value follows. VNE 300 km/h is the owner's decision
+   against the handbook's BRS value of 276 km/h (§8); the red line is read from
+   the dial at about 300, so it stays **assumed (unverified)** until read on the
+   aircraft.
+4. **M17 is a full rework** of the CTSL panel from the photos: layout, gauges,
+   breaker strip, console art, legends and texts. Plan:
+   `docs/superpowers/plans/2026-10-10-m17-panel-from-photos.md`.
+
+## 3. Panel inventory (analog variant; superseded in part 2026-10-10, §2a)
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
 laid out for the left seat (pilot in command). The trainer draws three views:
 `panel` (both upper fields), `centre` (lower centre field) and `console` (the
 console top down to the rescue handle at its aft end, between the seats).
+
+§3.1 to §3.6 record the handbook's analog variant. The owner's photos of D-MPGO
+(§3.7) differ in many places and win (§2a), so the trainer follows the photos
+where they differ: the **Trainer** and **Superseded 2026-10-10** notes in each
+section say what it draws. §3.7.2 lists each difference against the trainer as
+it stood before M17.
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -54,11 +89,22 @@ console top down to the rescue handle at its aft end, between the seats).
 - Two round warning lamps at the top centre. One is the charge warning lamp
   (Ladekontrolle), driven by the generator rectifier. The second is unidentified
   for this variant (§9) and is drawn unlit in the background. The charge lamp's
-  legend and colour are owner-confirmed (§9, question 22).
+  legend and colour are owner-confirmed (§9, question 22). **Superseded 2026-10-10** (§2a, decision 1): the
+  only lamp is the red "Generator" lamp at the top right of the upper-right field;
+  there is no second lamp.
 - COM radio, then transponder below it, stacked in the lower centre of the field
   (device slots).
 - Two placards at the far left: a short take-off checklist and a limits placard.
   Draw them as placards with our own short wording, not the handbook's.
+
+**Trainer, M17 T4 (2026-10-10, §3.7):** four instruments in a 2×2: airspeed and
+altimeter above, a slip indicator (background art, not an indicator) and the vertical
+speed indicator below; no lamp. The radios and the GPS moved to the upper-centre field
+(§3.2a). Placards in our own wording: "Takeoff Checklist" at the top (the summary
+body is drawn as rules, since body print falls below the lettering floor) and, in
+German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
+The airspeed indicator stays 220 units wide because its numerals set the smallest
+size that reads at the lettering floor (§4.3).
 
 ### 3.2 Upper-right field (view `panel`)
 
@@ -68,11 +114,54 @@ console top down to the rescue handle at its aft end, between the seats).
 - A small item at the top left next to the type name: the magnetic
   compass. The trainer models it as an indicator that reads the heading of each
   phase from the airfield of `src/airfield.ts`. Its type, card sense and size are
-  owner-confirmed (§9, question 20); the type name is not printed.
+  owner-confirmed (§9, question 20); the type name is not printed. **Superseded 2026-10-10** (§2a, decision 1):
+  there is no panel compass.
 - The circuit-breaker block at the right edge, push to reset, labelled "Circuit
   Breakers - Push off". Rows, as fitted in the analog variant: COM; transponder,
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
   and autopilot positions are not fitted in this variant (draw blanks).
+
+**Trainer, M17 T4 (2026-10-10, §3.7):** the tachometer is the large gauge at the top
+left; right of it a 2×2 of CHT and a voltmeter above, oil temperature and oil
+pressure below, then the hour meter (inert art, no running value) and the red
+"Generator" lamp at the top right. There is no compass. The breaker strip runs along
+the lower edge, "Circuit Breakers" and "Push off" in the free space right of the
+single "12V Outlet" breaker in the third row (the header's place is **assumed
+(unverified)**). Top row: Com, Nav, Transponder, Autopilot, HS34, EFIS, EMS; bottom row:
+Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
+Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
+GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
+Cockpit Light and Instrument Light are inert caps drawn in the background, without
+legends (the trainer's cockpit light has no breaker). Two of these differ from the
+photos (§3.7.1), **assumed (unverified)**: the photos show EMS fitted, but the analog
+variant has no EMS (E10), so it is drawn as a cap; they show Intercom as a plain cap,
+but the handbook gives the intercom a 2 A breaker (§3.6) and the photo does not show
+whether the cap is a blank, so the trainer keeps that breaker. The legends of the eight trainer
+breakers print in full words on the control faces, small as on the aircraft: captions
+marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
+rank), because a legend like "Transponder" at the minimum does not fit the strip's
+pitch. The inert caps carry no legend for the same reason, since background lettering
+has no such exemption; the slip indicator, FLARM display and hour meter carry no
+wording either. The type-name script lettering is not reproduced.
+
+### 3.2a Upper-centre field (view `panel`), M17 T4
+
+- A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
+  disc with a red cross (not identified), both inert art.
+- The FLARM display (inert art) left of the GPS; the GPS in its cradle (device slot);
+  the COM radio and the transponder side by side below it (device slots). The
+  existing SL40, GTX 327 and GPSMAP 496 move here unchanged; the round funkwerk units
+  and the Garmin aera-like GPS come in M18.
+- **Layout compromises, assumed (unverified):** the slots are the old 520 by 150 and
+  400 by 300 units scaled by 1.07, because the mirror lettering must stay legible at
+  the panel floor, which rose from 950 to 1110 px with the wider panel (2372 units).
+  The upper-centre field is wider than the lower column and sits about 40 px left of
+  it at HD, so that the radio slot reaches over the device dock, which stays left of
+  the column under the panel. The FLARM display sits left of the GPS, not above it as
+  in the photos. The second copy of the take-off checklist summary stands right of the
+  GPS (heading and rules only), an **assumed (unverified)** place. The blank version
+  label under the FLARM display is not drawn: its wording is unknown, so it would be a
+  plate with no function.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
@@ -80,8 +169,11 @@ console top down to the rescue handle at its aft end, between the seats).
   Avionik), Beacon Light,
   Position Light, Intercom, Cockpit Light, Landing Light. A placard under the row
   says to switch the avionics off before engine start and stop.
-- Below the row: 12 V socket (left), intercom panel (centre), an audio-source
-  selector and audio jack (right). Background drawing only.
+- Below the row: 12 V socket marked "MAX 20A" (left), a fuel-capacity placard
+  (62 l usable per side) and a limit-speed placard (flap setting against km/h,
+  §3.7), all background art. **Trainer, M17 T4:** the intercom panel, the audio
+  selector and the jacks are gone from the background (§3.7). The "Instrument
+  Light" legend at the bottom centre is art, with no control.
 - ELT remote switch (ELT Fernschalter; checklist label Notsender) with its lamp,
   left of centre.
 - Flap position indicator (Klappenstellungsanzeige): a red seven-segment readout
@@ -97,15 +189,22 @@ console top down to the rescue handle at its aft end, between the seats).
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
   key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
+  **Superseded 2026-10-10** (§2a, decision 1): the strip prints "Open", "Fuel",
+  "Valve", "Closed" top to bottom, as the photos show (§3.7).
   For the key going in and out under the handle, see the ignition key below.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
   ("up" past −12°, "down" past 35°) for the manual override.
+  The trainer prints "up manually" and "down manually" (§3.7, M17 T1) on one line
+  each, beside its override detents at the ring's lower left and lower right; the
+  photos stack each over two lines, both on the ring's left. That placement is a
+  trainer departure.
 - Ignition key switch with starter (Zündschalter), bottom left, labelled
   "Ignition": OFF, left circuit, right circuit, both, START (springs back to both).
   The dial legends cannot be read in the handbook's figure (HB 7-18); its restart
   item names the both position 1 + 2 (HB 3-5), which points to numbered positions
-  (§9, question 8).
+  (§9, question 8). **Superseded 2026-10-10** (§2a, decision 1): the trainer prints
+  OFF, 1, 2, 1+2, START (M17 T1); 1+2 and START are assumed (unverified).
   The key goes in and comes out at OFF, and comes out only with the fuel valve
   fully closed (E6). Assumed (unverified), from the handle covering the slot and
   N3's order (#468): the key goes in only with the valve open (§9, key and fuel valve cover).
@@ -147,13 +246,20 @@ Handbook facts (checked 2026-10-08):
   hand (HB 7-10). The figure shows a small lever with a printed tag aft of the
   lever row; the handbook's placard list names no legend for it. Its legends
   PARK BRAKE, OPEN and SHUT are correct as drawn, **owner-confirmed** 2026-10-08.
+  **Superseded 2026-10-10** (§2a, decision 1): the valve is a small lever in a curved slot on the console's
+  right side, printed "Off" (forward), "Brake", "On" (aft) (§3.7). Read as a
+  two-position valve under the title "Brake": "Off" is the open valve (brake
+  free), "On" the shut valve (pressure held); this mapping is **inferred
+  (unverified)**.
   Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Large knob aft of the valve** (§9, question 10): the hydraulic in-flight
   adjustable propeller is set by a lever on the centre console behind the engine
   control unit, with several detents and a catch under the grip that is lifted to
   move it (HB 7-5). That is the likely identity of the knob if D-MPGO has that
   propeller. A cabin heater is optional equipment (HB 6-8, 8-7) and gives a
-  second candidate.
+  second candidate. **Settled 2026-10-10** (M17 T2, #536): the photos show no such
+  knob and no propeller lever on the console, so the trainer draws none (§9,
+  questions 10 and 11).
 - **Carb heat** (Vergaservorwärmung): pulled to apply (HB 4-11, 4-13); named in
   seven checklists and on the take-off placard, but no figure or text shows the
   control (§9, question 3).
@@ -163,9 +269,8 @@ Handbook facts (checked 2026-10-08):
   cable to the rocket. Deploy by pulling it forward, hard, to the stop (HB 3-4).
   Secured on the ground by a pin through the release lever (HB 8-1). The rocket and
   canopy sit in the upper compartment behind the bulkhead (HB 7-13).
-- Not modelled as a control: the large knob aft of the parking-brake valve
-  (drawn as artwork only). Not modelled: the fire extinguisher (pocket behind
-  the passenger seat), the fuel dipstick.
+- Not modelled: the fire extinguisher (pocket behind the passenger seat), the
+  fuel dipstick, and the aileron- and rudder-trim wheels (drawn as inert art, M17 T2).
 
 What the trainer draws today, and where it departs from the above:
 
@@ -173,20 +278,26 @@ What the trainer draws today, and where it departs from the above:
   (#534). The trim wheel, CHOKE, THROTTLE and BRAKE lie side by side in that
   order, left to right; the order is **assumed (unverified)** (§9, question 31).
   Each slides up (forward) and down (aft) in its own slot with its legend strip
-  beside it: the throttle pushes up to FULL, the brake and choke pull down to ON,
+  beside it: the throttle pushes up to Full, the brake and choke pull down to On,
   and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
-  it, DOWN forward. The parking-brake valve sits aft of the lever row, below the
-  brake lever.
-- The throttle prints FULL at the forward end and IDLE at the aft end, as the
-  aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
-  check gives the end legends, not the title. The handbook treats the throttle as
+  it, Down forward. The strips print their legends in the photos' mixed case
+  (§3.7.1): "Off" and "On" (choke, brake), "Full" and "Idle", "Down" and "Up".
+  The photos hide the brake's forward legend, so its "Off" is **assumed
+  (unverified)** in the case of the "On" beside it. The parking-brake lever sits on the console's right side, aft of
+  the lever row (M17 T2). The grips follow the photos: a blue cylindrical throttle
+  grip, a black knurled crossbar on the brake lever, a small ribbed metal choke grip (the photo shows none; a trainer choice so the lever reads as a control), a green
+  trim strip, and a small stud slot beside the trim wheel for its indicator.
+- The throttle prints "Full" at the forward end and "Idle" at the aft end, as the
+  photos show (§3.7.1). **Superseded 2026-10-10** (photos): the handbook's FULL
+  and IDLE in capitals (#531); its title "Throttle" is the photos' too. The handbook treats the throttle as
   continuous; the trainer keeps it stepped, with three trainer stops between the
   ends (low, run-up and cruise power) that drive the rpm model and the procedures.
-  The trainer marks them with unworded detent ticks, which the aircraft's strip
-  does not have. Cues name those stops in words, not as printed legends.
-- The trim placard prints DOWN at the forward end and UP at the aft end, with no
-  neutral mark, as the aircraft does (#532). Its title TRIM is assumed
-  (unverified): the handbook check gives the end legends, not the title. The
+  The strip prints nothing between Full and Idle (M17 T2, #570). Cues name those
+  stops in words, not as printed legends.
+- The trim placard prints "Down" at the forward end and "Up" at the aft end, with
+  no neutral mark, as the aircraft does (#532; mixed case as the photos show,
+  §3.7.1). Its title was assumed TRIM; the photos
+  print "Stabilator Trim" (§3.7), which the trainer now uses (M17 T1). The
   trainer keeps neutral as a trim position because the take-off placard asks for
   neutral trim (HB 7-20); cues name it in words, not as a printed legend.
   This intake gives no number of steps or travel for the wheel, so the trainer
@@ -197,27 +308,54 @@ What the trainer draws today, and where it departs from the above:
   Cues name the half stops in words, not as printed legends.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
-- The large knob is drawn as unlabelled artwork, not a control, until its
-  identity is known (§9, question 10). It stands directly aft of the valve (#535).
+  **Superseded 2026-10-10** (§2a, decision 1): the trainer prints "Brake" as the title
+  with "Off" and "On" at the two ends (M17 T1); the title place of "Brake" on the
+  curved slot's arc is assumed (unverified). The lever sits in that curved slot
+  (M17 T2), forward end "Off" with an arrow up, aft end "On" with an arrow down.
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
-  right-seat side of the console top, clear of the lever row and the large knob;
-  this place is **assumed (unverified)** (§9, question 3).
-- The rescue handle sits low at the console's aft end, between the seats, on a
-  recessed shelf beside the valve at the bulkhead (#535). The large knob holds the
-  column aft of the valve, so the handle is drawn a little to the pilot's side of the
-  console's centreline, not on it; that offset is a trainer compromise. Pulled, it
-  slides forward (up the top view) to the stop at its guide block; the safety pin
-  goes across the guide block through the release lever. Its description and the E2
-  pull item say forward, hard, to the stop. The T-grip, the plate's RESCUE and
-  PULL HARD with its forward chevrons, a pin with a ring and no flag, and the
-  handle's place across the shelf are **assumed (unverified)** (§9, question 26).
+  right-seat side of the console top, clear of the lever row; this place is
+  **assumed (unverified)** (§9, question 3).
+- The aileron-trim wheel (a wide wheel in an oval recess, "Aileron Trim" between
+  L and R), a parachute warning placard and the rudder-trim wheel (in a slot,
+  "Rudder Trim" between L and R) are drawn as inert art aft of the lever row,
+  between the seats; the placard's wording is the trainer's own paraphrase and
+  the wheels' exact shape and the placards' order are **assumed (unverified)**.
+  The photos hide the rest of the rudder-trim legend (it starts "L Rud…"), so
+  its "Rudder Trim" wording is **assumed (unverified)** too.
+- The rescue handle sits low at the console's aft end, centred between the seats,
+  on a recessed shelf at the bulkhead (M17 T2). The photos put it on the
+  console's upright aft face; the shelf is how the top view shows that face, a
+  trainer compromise. It is red, with an orange-bordered label and a pin
+  carrying a red remove-before-flight flag. The label prints "Parachute": the
+  photos do not show the handle's own wording, so the word is a trainer
+  assumption from the parachute placard, kept so the handle has a printed label
+  (§9, question 26). Pulled, it slides forward (up the top view) to the stop at
+  its guide block; the safety pin goes across the guide block through the
+  release lever. Its description and the E2 pull item say forward, hard, to the
+  stop. The red handle's grip shape, the label's wording, the
+  flag's streamer shape and the handle's place on the shelf are **assumed
+  (unverified)**.
+- The fuel valve is a vertical strip "Open", "Fuel Valve" (printed on two lines)
+  and "Closed" with arrows; "Fuel" is inferred from the worn "F…" of the photos
+  (§3.7) and is **assumed (unverified)**. The strip stands beside a slot along
+  the column's left edge; its grip is a red horizontal bar. Closed, the grip
+  lies over the ignition key slot, as the handbook has it (HB 3-6); the photos
+  show it just below the key switch's face, a difference left as is because the
+  interlock rests on the handbook fact.
 
 ### 3.5 Not in the analog variant
 
 No EFIS/EMS (Dynon D180), no autopilot, no fuel quantity gauge (sight tubes at the
-wing roots and a dipstick only), no ammeter or voltmeter, no outside air
+wing roots and a dipstick only), no ammeter or voltmeter (D-MPGO has a
+voltmeter, §3.7; M17 T4 adds it), no outside air
 temperature readout. The altitude encoder feeds the transponder and has no
 controls.
+
+**Voltmeter model, M17 T4 (assumed (unverified)):** the indicator reads the bus
+voltage of the systems model: 0 V with the bus dead, 12 V on the battery, 14 V while the
+generator charges (the constants of the electrical block). The dial runs 9 to 17 V;
+arcs red 9 to 10.5, yellow 10.5 to 11.5, green 11.5 to 15, yellow 15 to 16, red 16 to
+17 are the trainer's own.
 
 ### 3.6 Electrical bus map
 
@@ -239,13 +377,211 @@ controls.
 
 - The ignition is independent of the electrical system: the engine keeps running
   with BAT and GEN off (HB 3-7). The starter needs the main bus.
-- The charge warning lamp lights when the bus is powered and the generator is not
+- The generator warning lamp (indicator id `chargeLamp`) lights when the bus is powered and the generator is not
   charging (engine stopped, GEN off, or generator failed).
 - Switch the consumers and the generator off before stopping the engine (HB 4-14).
 
+### 3.7 Photo survey, D-MPGO, 2026-10-10 (owner photos)
+
+What the owner's eight photos (§1) show, field by field, forward to aft. Photos
+only: nothing here was cross-checked against the handbook. Short printed legends
+are recorded as printed (in quotes, with the panel's own capitalisation); longer
+placards are paraphrased. "Not legible" marks what the photos do not resolve.
+Registration-specific running values (hour meter, frequencies, squawk, rescue
+system serial and service dates, the panel's version label) are left out.
+
+#### 3.7.1 What the photos show
+
+**Overall layout.** The panel has **four** fields, not three: a wide upper-left
+field, a narrow upper-centre field for the avionics, a wide upper-right field,
+and the lower centre column hanging below the upper-centre field. The console
+continues straight aft from the column between the seats. A loose yellow
+T-shaped item hangs over the dash edge above the rocker row; it carries no
+legend and is not identified.
+
+**Glareshield, top centre.** Two round items side by side above the upper-centre
+field: a knob in a square bezel printed "Cabin Heat" around its face (left), and
+a plain disc with a red cross and no legend (right; not identified).
+
+**Upper-left field.** Registration lettering at the top left. Four instruments
+in a 2×2 grid:
+
+- Top left: airspeed indicator, "AIRSPEED" over "KmH", scale 40 to 340 km/h. A
+  green arc runs up to about 245, a yellow arc from there to about 300, and a
+  red mark at about 300 (read from the dial; tick precision limited). The
+  white arc is washed out by glare: not legible. A small orange triangle sits on
+  the bezel's right edge near 100; its meaning is not legible.
+- Top right: altimeter in feet with a pressure window, a knob at its lower left.
+- Bottom left: a round "SLIP INDICATOR" (ball in a curved tube).
+- Bottom right: vertical speed indicator scaled in **thousands of feet per
+  minute** (0, .5, 1, 1.5, 2 each way, "1000 ft per min").
+
+Placards: a "Takeoff Checklist Summary" at the top right (paraphrased below), and
+a German placard at the bottom saying that aerobatics and spins are prohibited.
+**No warning lamp** in this field.
+
+**Upper-centre field**, top to bottom: a FLARM traffic display (small, top
+left, with its status LEDs); a version label; a second copy of the take-off
+checklist summary; the GPS, a Garmin unit in a cradle (the model plate reads
+like aera 500, not fully legible); then two round radios side by
+side: a funkwerk **COM** radio (left; printed "COM", keys "I/O", "SET", "MEM",
+"VOL/SQL", "DW" and arrows, an active and a standby frequency, a volume line)
+and a funkwerk transponder (right; printed "ATC", keys "I/O", "VFR", "ID",
+"MODE" and arrows, a code, a flight-level and a "STBY" line). Model names not
+legible.
+
+The take-off checklist summary, paraphrased: confirm the pre-flight and the
+before-take-off checklists complete, belts fastened, fuel quantity checked,
+pitch trim neutral, flight controls checked; all doors closed, fuel valve open,
+choke and carb heat off, flaps set, parachute armed. A warning strip says it is
+a summary only and the full checklists are mandatory.
+
+**Upper-right field.**
+
+- Top left: the largest gauge, the tachometer, "TACH", "RPM x100", scale 0 to
+  70, arcs at the top of the scale (colours not legible in detail).
+- Top right: one round red lamp with the legend "Generator" above it. It is
+  the only warning lamp on the panel.
+- The type name in script lettering across the middle (manufacturer lettering:
+  not to be reproduced).
+- Below, a 2×2 block of small gauges: "CHT" (°C, 40 to 150) and "VOLTMETER"
+  (9 to 17 V; the trainer's voltmeter value model, a main-bus voltage, is
+  **assumed (unverified)**) on top; "OIL TEMP" (°C, 40 to 150) and "OIL PRESS" ("BAR", 0 to 10) below. An hour meter ("HOURS") to their right.
+- No compass anywhere on the panel.
+- Along the lower edge, the breaker block, "Circuit Breakers" / "Push off". Two
+  rows of seven, a single breaker below the left end:
+  - top row: "Com", "Nav", "Transponder", "Autopilot", "HS34", "EFIS", "EMS";
+  - bottom row: "Landing Light", "Cockpit Light", "Instrument Light", "Beacon
+    Light", "Position Light", "Intercom", "GPS";
+  - below: "12V Outlet".
+  - Fitted (button in a bezel) as far as the photos show: Com, Transponder, EMS,
+    Landing Light, Beacon Light, Position Light, GPS, 12V Outlet. Nav,
+    Autopilot, HS34, EFIS, Cockpit Light, Instrument Light and Intercom show a
+    plain black cap; whether each is a blank or a breaker is not legible.
+
+**Lower centre column**, top to bottom:
+
+- Rocker row, left to right: a larger rocker whose legend is mostly hidden by
+  the yellow item (starts "Av…" over "M…", read as Avionics Master), then
+  "Beacon Light", "Position Light", "Intercom", "Cockpit Light", "Landing
+  Light". The rockers carry the I and O symbols, not ON/OFF words. The first
+  rocker's legend "Avionics Master" is **assumed (unverified)** from the visible
+  letters; the trainer prints it on two lines, "Avionics" over "Master"
+  (M17 T1).
+- A yellow placard under the row: avionics off before engine start or stop.
+- Left: a 12 V socket marked "MAX 20A"; under it a fuel-capacity placard (per
+  side 65 l, 62 l usable, also in US gallons).
+- Right: a German limit-speed placard, flap setting against km/h: −12° 300,
+  0° 184, 15° 148, 30° 115, 35° 115.
+- Centre: the flap readout, a red seven-segment display under "Flaps", and to
+  its right a round breaker "Flap Fuse".
+- Left edge: the fuel valve. A vertical legend strip, "Open" with an arrow up
+  at the top, "Valve" with a letter before it (read "F…", the rest worn) in the
+  middle, "Closed" with an arrow down at the bottom; a slot runs down the
+  column's left edge beside it, and the red horizontal grip stands at its lower
+  end, which by the strip is closed. The grip lies just below the key switch's
+  face, not over the key.
+- Centre: the flap selector, a lever knob in a worn printed ring. "up" over
+  "manually" at its upper left and "down" over "manually" at its lower left;
+  the detent numbers on the right of the ring are worn (0, 15 and 30 partly
+  legible; −12 and 35 not legible).
+- Bottom left: "Ignition", a key switch. Legends "OFF" (left), "1" and "2"
+  clockwise over the top; any further positions are worn and not legible. The
+  key is in, at OFF, with the fuel-valve grip at its closed end.
+- Bottom centre: the legend "Instrument Light"; no control is visible beside
+  it in the photos (not identified).
+- Bottom right: a boxed "Master" group with two round push-pull switches,
+  "BAT" and "GEN".
+- No ELT remote switch, no intercom panel, no audio selector and no headset
+  jacks are visible on this column.
+
+**Console, lever row**, left to right from the left seat:
+
+- A green legend strip on the console's left edge: "Down" with an arrow forward,
+  "Stabilator Trim", "Up" aft. A small black knob protrudes from the console's
+  left flank beside it (not identified).
+- The trim wheel, its rim showing in a fore-and-aft slot.
+- A short slot with a small stud, between wheel and choke (read as the trim
+  position indicator).
+- "Choke": a white strip, "Off" forward, "On" aft; a thin lever without a
+  visible grip.
+- "Throttle": a blue strip, "Full" forward, "Idle" aft, **nothing printed or
+  marked between**. Its lever runs aft to a blue cylindrical grip; at Idle the
+  grip lies aft of the row.
+- "Brake": a black strip, "On" aft; the forward legend is hidden by the lever.
+  Its lever stands up forward to a black knurled crossbar grip.
+
+**Console, aft of the lever row**, forward to aft:
+
+- On the right side of the console top, a small lever in a curved slot with an
+  arc legend "Off" (arrow up, forward), "Brake", "On" (arrow down, aft): the
+  parking-brake valve, read so from its place and legend.
+- The aileron-trim wheel, a wide wheel in an oval recess, a placard "L Aileron
+  Trim R" with arrows.
+- A placard with a parachute warning symbol, saying the aircraft carries a
+  ballistically deployed emergency parachute.
+- The rudder-trim wheel in a slot, a placard starting "L Rud…" (the rest hidden).
+- The rescue handle on the console's upright aft face at the bulkhead, centred
+  between the seats: a red handle with an orange-bordered warning label, held by
+  a pin carrying a red "remove before flight" flag. A rescue-system data plate
+  beside it names BRS; the model is not legible.
+- Above, a blank four-screw plate.
+- No large knob, propeller lever or carb-heat control is visible on the console.
+
+**Wing roots, overhead.** On each side a sight gauge, "Fuel Indicator (Left)"
+and "Fuel Indicator (Right)", scaled 5 to 40 "Liter", beside the tank access.
+Next to each, an approved-fuel placard: motor gasoline to EN 228 at RON 95 or
+better (and equivalents), or avgas 100LL or UL91; per side 65 l total and 63 l
+usable. This 63 l differs from the 62 l on the lower-column placard (see
+§3.7.2).
+
+#### 3.7.2 Photo against trainer
+
+"Trainer today" is the current package (`packages/aircraft-ctsl/src/`) and
+§3.1 to §3.6. Impact: high changes what a pilot learns or the panel's overall
+shape; medium misplaces or mislabels a control or indicator; low is detail.
+Rows marked **owner-confirmed** contradict a fact the owner confirmed on
+2026-10-08. The owner ruled on 2026-10-10 (§2a): the photos win, except where an
+item is only absent from the photos (the ELT remote switch, the carb-heat
+control), which stays as the trainer draws it; the avionics rows go to M18.
+
+| Item                     | Photo shows                                                                                                            | Trainer today                                                                                                        | Impact | Change kind                | Likely files                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Panel fields             | four fields: upper left, upper centre (avionics), upper right, lower centre column under the centre field              | two upper fields and the lower column; radios in the upper-left field, GPS in the upper-right (owner-confirmed, q19) | high   | layout, art                | `views.ts`, `cockpit.ts`, `assets/view-panel.svg`, `assets/view-centre.svg`                                      |
+| Avionics units           | FLARM display; Garmin GPS (reads like aera 500); funkwerk round COM; funkwerk round ATC transponder                    | Garmin SL40, GTX 327, GPSMAP 496 (§2 decision 1)                                                                     | high   | systems (devices)          | `devices.ts`, `views.ts` (`deviceSlots`), `apps/web/src/device-registry.ts`, new `packages/device-*`             |
+| Airspeed markings        | scale to 340; yellow arc to a red mark at about 300                                                                    | scale 40–300, yellow 245–260, red line 260 (VNE 260, §4.1, §8)                                                       | high   | art, systems, procedure    | `artwork.ts` (airspeed gauge), `indicators.ts`, intake §4.1, §4.3, §8                                            |
+| Upper-left instruments   | 2×2: airspeed, altimeter / slip indicator, VSI; no lamp                                                                | airspeed left, VSI top middle, charge lamp, altimeter right; slip ball in the background                             | medium | layout, art                | `views.ts` (`panel.indicators`), `assets/view-panel.svg`                                                         |
+| VSI units                | thousands of ft/min, to 2 each way                                                                                     | ±5 m/s                                                                                                               | medium | art, systems               | `artwork.ts` (VSI gauge), `indicators.ts`, `systems.ts` (`verticalSpeedMs`), intake §4.3                         |
+| Charge lamp              | one red lamp, legend "Generator", top right of the upper-right field                                                   | red lamp "CHARGE" at the top of the upper-left field (owner-confirmed, q22)                                          | medium | legends-text, layout       | `artwork.ts` (`lampArtwork.charge`), `views.ts` (`chargeLamp`), `indicators.ts`                                  |
+| Second lamp              | none                                                                                                                   | a second unlit lamp in the background (q9)                                                                           | low    | art                        | `assets/view-panel.svg`                                                                                          |
+| Compass                  | none on the panel                                                                                                      | small panel compass, top left of the upper-right field (owner-confirmed, q20)                                        | medium | layout, art                | `views.ts` (`compass`), `indicators.ts`, `artwork.ts`                                                            |
+| Engine gauges            | tach (large) top left; CHT, voltmeter / oil temp, oil pressure in 2×2; hour meter                                      | tach, oil pressure, oil temp, CHT in one row under the GPS; no voltmeter (§3.5)                                      | medium | layout, systems            | `views.ts`, `indicators.ts`, `systems.ts` (a bus-voltage value for a voltmeter), `artwork.ts`                    |
+| Breaker block            | along the lower edge of the upper-right field, 2×7 plus 12V Outlet, full-word legends, several capped                  | 4×3 block at the right edge, legends COM, XPDR, POS, INT, GPS, STRB, LDG and the outlet                              | medium | layout, legends-text       | `views.ts` (breakers), `artwork.ts` (`breaker` lettering), `controls.ts`, `assets/view-panel.svg`                |
+| Rocker legends           | two-word legends ("Beacon Light" …), I/O symbols on the rockers                                                        | one-word legends, ON and OFF lettering                                                                               | low    | legends-text               | `artwork.ts` (`rocker`)                                                                                          |
+| ELT remote switch        | not visible on the panel or column                                                                                     | ELT toggle (ON/ARM) and lamp in the lower column (owner-confirmed, q21); in N2, N6, N15, N16 and E5                  | medium | layout, procedure, systems | `views.ts` (`elt`, `eltLamp`), `controls.ts`, `indicators.ts`, `procedures/normal.ts`, `procedures/emergency.ts` |
+| Upper-left placards      | "Takeoff Checklist Summary" at the top right; a German aerobatics and spins placard at the bottom                      | a short take-off checklist and a limits placard at the far left (§3.1)                                               | low    | art                        | `assets/view-panel.svg`                                                                                          |
+| Lower column contents    | 12 V socket, fuel-capacity and limit-speed placards; no intercom panel, audio selector or jacks                        | intercom panel, audio selector and jacks drawn in the background                                                     | low    | art                        | `assets/view-centre.svg`                                                                                         |
+| Ignition legends         | "OFF", "1", "2", further positions not legible                                                                         | OFF, L, R, BOTH, START                                                                                               | medium | legends-text, procedure    | `controls.ts` (`ignition.legends`), `artwork.ts`, `procedures/normal.ts` (N6 checks)                             |
+| Fuel valve               | strip "Open" / "…Valve" / "Closed" at the column's left edge; red grip in a slot; key in at OFF beside the closed grip | FUEL, VALVE, OPEN, CLOSED; the closed handle covers the key slot                                                     | low    | art                        | `views.ts` (`fuelValve`), `artwork.ts`                                                                           |
+| Flap selector legends    | "up manually", "down manually"                                                                                         | UP, DN                                                                                                               | low    | legends-text               | `controls.ts` (`flapSelector.legends`), `artwork.ts`                                                             |
+| Master and light legends | BAT/GEN boxed "Master"; an "Instrument Light" legend in the column                                                     | BAT, GEN; no instrument light                                                                                        | low    | legends-text, art          | `artwork.ts`, `assets/view-centre.svg`                                                                           |
+| Lever order              | trim wheel, choke, throttle, brake, left to right                                                                      | the same (q31)                                                                                                       | none   | none                       | none                                                                                                             |
+| Throttle strip           | "Full" and "Idle" only, no marks between                                                                               | FULL and IDLE, plus unworded detent ticks at the three trainer stops (#570)                                          | low    | art                        | `artwork.ts` (throttle)                                                                                          |
+| Strip titles and grips   | "Stabilator Trim", "Choke", "Throttle", "Brake" titles; blue throttle grip, black knurled brake grip                   | TRIM, CHOKE, THROTTLE, BRAKE titles (TRIM and THROTTLE assumed)                                                      | low    | legends-text, art          | `artwork.ts`                                                                                                     |
+| Parking-brake valve      | lever in a curved slot, right side of the console aft of the row, arc legend "Off" / "Brake" / "On"                    | PARK BRAKE, OPEN, SHUT, below the brake lever (owner-confirmed, §3.4)                                                | medium | legends-text, layout       | `controls.ts` (`parkingBrakeValve`), `artwork.ts`, `views.ts`                                                    |
+| Large knob               | no such knob on the console                                                                                            | unlabelled artwork knob aft of the valve (#535)                                                                      | low    | art, layout                | `assets/view-console.svg`, `views.ts` (`rescueHandle` offset)                                                    |
+| Carb heat                | no carb-heat control visible; the checklist placard names carb heat                                                    | provisional pull knob on the right-seat side of the console (q3)                                                     | medium | layout, procedure          | `controls.ts` (`carbHeat`), `views.ts`, `procedures/normal.ts`                                                   |
+| Cabin heat               | knob "Cabin Heat" on the glareshield, top centre                                                                       | not drawn                                                                                                            | low    | art                        | `assets/view-panel.svg`                                                                                          |
+| Rudder and aileron trim  | both trim wheels on the console between the seats, L/R placards                                                        | not drawn; §4.4 says the tabs are ground-adjustable only                                                             | low    | art, systems               | `assets/view-console.svg`, intake §4.4                                                                           |
+| Rescue handle            | red handle on the console's upright aft face, centred; pin with a red flag; BRS                                        | T-grip on the aft shelf, left of centre; RESCUE, PULL HARD; pin with a ring, no flag (q26)                           | medium | art, layout, legends-text  | `artwork.ts` (`rescueHandle`), `views.ts`, `assets/view-console.svg`                                             |
+| Usable fuel              | 62 l per side (column placard) and 63 l per side (wing-root placards)                                                  | 124 l (§4.4, §8)                                                                                                     | low    | procedure (intake value)   | intake §4.4, §8                                                                                                  |
+| Wing-root fuel gauges    | sight gauges, Left and Right, 5 to 40 l                                                                                | not drawn (named in §3.5)                                                                                            | low    | art                        | none today (outside the three views)                                                                             |
+| FLARM, hour meter        | a FLARM display and an hour meter                                                                                      | not drawn                                                                                                            | low    | art                        | `assets/view-panel.svg`                                                                                          |
+
 ## 4. Limits and values used by the trainer
 
-Conservative choices per owner decisions 3 and 4 are in **bold**. Phase presets
+Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
+in **bold**. Phase presets
 feed `Environment` in knots and feet; the conversions are given so no implementer
 converts. Altitudes are above the field; the trainer models no real aerodrome.
 
@@ -268,9 +604,14 @@ converts. Altitudes are above the field; the trainer models no real aerodrome.
 | Max flap speed, 15°                       | 148             | 80           |
 | Max flap speed, 30° and 35°               | 115             | 62           |
 | Max flap speed, 0° (§8)                   | 184             | 99           |
-| **VNE (Junkers High Speed, the lowest)**  | **260**         | **140**      |
+| Max flap speed, −12° (placard, §3.7)      | 300             | 162          |
+| **VNE (airspeed red line, §2a)**          | **300**         | **162**      |
 | Max range cruise (4300 rpm)               | 180             | 97           |
 | Level flight, flaps −12°, 5500 rpm (VH)   | 240             | 130          |
+
+VNE 300 km/h follows D-MPGO's airspeed dial by owner ruling (§2a decision 3). It
+is above the handbook's VNE for a BRS rescue system (276 km/h, §8), the system
+the photos identify (§9, question 2); it is not the conservative choice.
 
 Crosswind limit 30 km/h with flaps 0°, 20 km/h with 35°. Bank at most 60°; no
 turns steeper than 30° below 100 km/h. Load factors +4/−2 g up to VA. Day VFR, no
@@ -307,20 +648,36 @@ propeller control in the cockpit (§9).
 
 | Gauge              | Scale used           | Markings                                                     |
 | ------------------ | -------------------- | ------------------------------------------------------------ |
-| Airspeed (km/h)    | 40–300               | white 72–115, green 94–245, yellow 245–260, red line **260** |
+| Airspeed (km/h)    | 40–340               | white 72–115, green 94–245, yellow 245–300, red line **300** |
 | Tachometer (rpm)   | 0–7000               | green 1400–5500, yellow 5500–5800, red line 5800             |
 | Oil pressure (bar) | 0–10                 | red below 0.8, yellow 0.8–2, green 2–5, red line 5           |
 | Oil temp (°C)      | 40–150               | yellow 50–90, green 90–110, yellow 110–130, red line **130** |
 | CHT (°C)           | 40–150               | green 50–120, red line **120**                               |
-| Vertical speed     | ±5 m/s               | none                                                         |
+| Vertical speed     | ±2000 ft/min         | none                                                         |
 | Altimeter (ft)     | implementer's choice | none                                                         |
 
 The handbook gives only the airspeed arcs and the red lines; the other arcs are
 derived from the limits table above, not copied markings.
 
+**Trainer uses (2026-10-10, §2a decision 3):** the airspeed dial of the photos,
+40 to 340 km/h with numbers every 20; the yellow arc from 245 to the red line at
+300 km/h; VNE 300 km/h (162 kt). The green arc's upper end (245) matches the
+photo; the white arc and the green arc's lower end are not legible in the photos,
+so 72–115 and 94 stay. The vertical speed indicator reads thousands of feet per
+minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
+ticks every 500. Systems may keep metres per second internally; the gauge shows
+ft/min (1 m/s ≈ 197 ft/min).
+
+Trainer deviation (agent decision, M17 T3, open for the owner): the drawn
+airspeed dial prints numbers every 40 (40 to 320) with ticks every 20, because
+fifteen three-digit numerals do not fit the ring at the lettering floor; numbers
+every 20 need a larger gauge (M17 T4's layout) or an owner exemption.
+
 ### 4.4 Fuel, flaps, masses
 
-- Two wing tanks, 65 l each. **Usable 124 l (62 per side)** (§8). Each tank has a
+- Two wing tanks, 65 l each. **Usable 124 l (62 per side)** (§8). The photos show
+  62 l usable per side on the lower-column placard and 63 l on the wing-root
+  placards (§3.7): the trainer uses the lower, 62 l per side, 124 l. Each tank has a
   baffle against starvation in a slip. A slip drains the tanks unevenly; raise the
   fuller wing.
 - Feed: tank outlets, two gravity lines, Y-piece, fine filter, **single fuel valve
@@ -337,7 +694,10 @@ derived from the limits table above, not copied markings.
   detent; the motor drives while it stays there; return to the end detent to stop;
   left there, the motor runs to its end switch.
 - Pitch trim: anti-tab on the stabilator, wheel on the console, neutral for
-  take-off. Rudder and aileron tabs are ground-adjustable only.
+  take-off. Rudder and aileron tabs are ground-adjustable only. **Photo survey
+  2026-10-10 (§3.7):** D-MPGO has an aileron-trim wheel and a rudder-trim wheel on
+  the console between the seats. The trainer draws them as inert art (M17 T2) and
+  models no rudder or aileron trim.
 - Brakes: hydraulic, main wheels, one central non-locking lever. Parking brake as in §3.4;
   always use chocks too.
 - MTOW 472.5 kg; baggage 25 kg per side.
@@ -377,7 +737,7 @@ intercom is on whenever the engine runs (N16 switches it off); the transponder i
 off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach`. The phase entry seeds device state as well as device
+about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state as well as device
 controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
 through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
 `taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
@@ -435,7 +795,7 @@ transponder on, standby _(action: set the GTX 327 mode to standby, then a check 
 powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
-both; oil temperature at least 51 °C; charge lamp out; throttle idle; flaps 15°; trim
+both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
 neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
@@ -530,7 +890,7 @@ breaker may also have tripped after an overload.
 **E10 EMS failure (HB 3-2, 3-8).** _Not applicable: the analog variant has no EMS._
 
 **Generator failure (club-authored, not in the handbook).** Derived from the
-charge-lamp check and the flap reset: charge lamp lit; GEN out, then in once; lamp
+generator-lamp check and the flap reset: generator lamp lit; GEN out, then in once; lamp
 stays lit: the battery is the only source; non-essential consumers off (landing
 light, avionics not needed); land as soon as practical. Mark the procedure in the
 app and README as club-authored, for instructor confirmation.
@@ -554,7 +914,7 @@ get out, fire risk).
 | Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | rescue system unknown                                           | 260 km/h                                                                                       |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)      | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
 | Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
@@ -571,8 +931,17 @@ verifies it on D-MPGO.
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
+   **Photo survey 2026-10-10 (§3.7):** not visible. No engine type plate is in the
+   photos. The wing-root fuel placards ask for RON 95 or better, which matches the
+   trainer value of §4.2 but does not settle UL or ULS.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
    VNE 260 km/h and the yellow arc 245–260.
+   **Photo survey 2026-10-10 (§3.7):** partly answered. The data plate beside the
+   rescue handle names BRS (model not legible), so the Junkers options drop out. The
+   airspeed indicator puts its red mark at about 300 km/h and the lower-column
+   placard allows 300 km/h at −12°, against the trainer's VNE 260: **contradicts
+   current trainer**. **Settled 2026-10-10** (§2a decision 3): VNE 300 km/h,
+   yellow arc 245–300 (§4.1, §4.3).
 3. **Carb heat**: does D-MPGO have a carb-heat control, and where? Uses a
    provisional pull knob on the console, off/on.
    **Handbook check 2026-10-08:** still open. Carb heat is pulled to apply (HB 4-11, 4-13); no figure
@@ -580,36 +949,73 @@ verifies it on D-MPGO.
    Provisional place (#534): the knob stood where the figure shows the large knob,
    so it moved to the right-seat side of the console top, outboard of the lever row
    and clear of it, pulled aft to ON. This place is **assumed (unverified)**.
+   **Photo survey 2026-10-10 (§3.7):** not visible. No carb-heat control appears on
+   the panel, the lower column or the console, and nothing stands where the
+   trainer's provisional knob sits. The take-off checklist placard does name carb
+   heat with the choke. The only heat knob seen is "Cabin Heat" on the glareshield.
 4. **Engine fire ending**: the handbook allows a rescue deployment at about 200 m
    after the flames die; the same page forbids it with fire on board. Uses: never
    deploy, emergency landing.
 5. **Every contradiction in §8**: please confirm the value in the last column.
 6. **Generator failure procedure**: club-authored (§7); please confirm or replace.
 7. **ELT at shutdown**: off or left armed? Uses armed.
-8. **Ignition key labels**: OFF / 1 / 2 / 1+2 / START or L / R / BOTH? Uses
-   OFF, L, R, BOTH, START.
+8. **Ignition key labels**: OFF / 1 / 2 / 1+2 / START or L / R / BOTH? Used
+   OFF, L, R, BOTH, START until M17 (superseded). **Answered 2026-10-10, applied in M17 T1 (#629): numbered.**
    **Handbook check 2026-10-08:** still open, leaning to numbers. The restart item names the both
    position 1 + 2 (HB 3-5); the dial cannot be read in HB 7-18.
+   **Photo survey 2026-10-10 (§3.7):** **confirmed: numbered.** The dial prints
+   "OFF", then "1" and "2" clockwise; the positions beyond 2 (both and START) are
+   worn and not legible. **Contradicts current trainer** (L, R, BOTH). **Trainer uses (2026-10-10):** OFF, 1, 2, 1+2, START (M17 T1, #629); the 1+2 and START legends are **assumed (unverified)**.
 9. **Second warning lamp** at the top of the upper-left field: what is it in the
    analog variant? Drawn unlit, not modelled.
+   **Photo survey 2026-10-10 (§3.7):** not visible: the panel has one warning lamp,
+   "Generator", in the upper-right field (question 22). Nothing is at the top of the
+   upper-left field. **Contradicts current trainer** (a second unlit lamp is drawn).
+   **Settled 2026-10-10** (§2a decision 1): no second lamp; "Drawn unlit" is
+   superseded (M17 T4). **Done in M17 T4:** the background draws no second lamp.
 10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
     Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
     in-flight adjustable propeller has its lever on the centre console behind the
     engine control unit, with detents and a catch under the grip (HB 7-5), where
     the figure shows the knob; a cabin heater is optional equipment (HB 6-8, 8-7).
     Goes with question 11.
+    **Photo survey 2026-10-10 (§3.7):** not visible. No large knob, propeller lever
+    or catch-and-detent lever is on the console in the photos. Cabin heat is
+    excluded as its identity: the "Cabin Heat" knob is on the glareshield, top
+    centre. Aft of the lever row the console carries the parking-brake valve (right
+    side), the aileron-trim wheel in an oval recess, the rudder-trim wheel and the
+    rescue handle; the aileron-trim wheel may be what the handbook figure shows as
+    the knob (inferred, unverified). **Contradicts current trainer** (unlabelled
+    knob drawn aft of the valve). **Settled 2026-10-10** (§2a decision 1): no
+    large knob; "drawn as artwork" is superseded. **Answered (M17 T2, #536):** the
+    trainer draws no knob; cabin heat is the glareshield knob (M17 T4).
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
+    **Photo survey 2026-10-10 (§3.7):** not visible: no propeller control in the
+    cockpit photos, which fits the trainer's ground-adjustable propeller; the
+    propeller itself is not identified. No change to the rpm model follows from the
+    photos. **Answered (M17 T2):** no propeller control, as the trainer has it.
 12. **Trim wheel position**: left of the throttle (text) or below the choke
     (photo)? Uses left of the throttle, with the choke between them (#534). **Handbook check 2026-10-08:** answered by inference from the
     handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
     read as a top view with forward to the left: its bottom slot is then the pilot-side one, and the trim wheel is left of the throttle with the choke
     between them (HB 7-12, 7-19; §3.4).
+    **Photo survey 2026-10-10 (§3.7):** **confirmed:** the trim wheel is the
+    leftmost item of the lever row, left of the choke and the throttle.
 13. **Cockpit-light switch**: present on the panel but absent from the wiring
     diagram. Modelled as a main-bus consumer.
+    **Photo survey 2026-10-10 (§3.7):** confirmed present: a "Cockpit Light" rocker
+    in the row and a "Cockpit Light" position in the breaker block (fitted or blank
+    not legible). **Trainer (M17 T4):** the breaker position is an inert cap, since the
+    cockpit light has no breaker in the model.
 14. **Avionics as installed**: the units, their software versions and the pilot's
     guide revisions for SL40, GTX 327 and GPSMAP 496; any later changes (e.g. a
     Dynon retrofit) or handbook supplements on board.
+    **Photo survey 2026-10-10 (§3.7):** partly answered. Installed: a FLARM display,
+    a Garmin GPS whose plate reads like aera 500, a funkwerk COM radio and a
+    funkwerk transponder (printed "ATC"); model names and software versions not
+    legible. **Contradicts current trainer** (SL40, GTX 327, GPSMAP 496; decision 1
+    of §2).
 15. **Club checklist card**: if the club has its own card, it is authoritative for
     wording (spec §7) and replaces §6 and §7 wording.
 16. **Handbook copy**: is AE04300003 Rev 01 the book on board D-MPGO, with no later
@@ -633,8 +1039,16 @@ verifies it on D-MPGO.
     control unit sits on the console just aft of the lower centre field (HB 7-19);
     the column's width and offset are not given.
     **Answered by the owner 2026-10-08:** the panel geometry as drawn matches the
-    aircraft. The one-screen compromise stays: the console beside the centre
+    aircraft (**Superseded 2026-10-10** (§2a, decision 1): four fields, with an upper-centre avionics field). The one-screen compromise stays: the console beside the centre
     column rather than below it.
+    **Photo survey 2026-10-10 (§3.7):** **contradicts current trainer.** The panel
+    has an upper-centre field between the two wide upper fields, holding the GPS and
+    both radios; the lower column hangs below that centre field, not below a
+    junction of two fields. This also differs from the owner's 2026-10-08 answer
+    that the geometry matches; settled 2026-10-10 for the photos (§2a).
+    **Done in M17 T4 (compromises assumed (unverified), §3.2a):** the panel has three
+    upper fields and the column hangs below the middle one, about 40 px right of the
+    field's centre at HD; the console stays beside the column.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
@@ -646,7 +1060,13 @@ verifies it on D-MPGO.
     vertical speed indicator. **Handbook check 2026-10-08:** still open. A magnetic compass with a
     deviation card under it is minimum equipment (HB 1-3, 7-20); type and card are
     not given. **Answered by the owner 2026-10-08:** correct as drawn,
-    owner-confirmed.
+    owner-confirmed. **Superseded 2026-10-10** (§2a, decision 1): no panel compass.
+    **Photo survey 2026-10-10 (§3.7):** not visible: no compass on the panel; the
+    top right of the upper-right field holds the "Generator" lamp. **Contradicts
+    current trainer**, which the owner confirmed on 2026-10-08. Settled 2026-10-10
+    (§2a): no panel compass. **Done in M17 T4:** the compass indicator is gone, and
+    with it the compass checks (a trainer addition) that N7 and N8 opened with; the
+    heading of each phase still feeds the GPS track.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
@@ -658,6 +1078,9 @@ verifies it on D-MPGO.
     when the ELT has been triggered (HB 4-15, 7-18); its legends cannot be read.
     **Answered by the owner 2026-10-08:** the remote plate's legends and lamp are
     correct as drawn, owner-confirmed.
+    **Photo survey 2026-10-10 (§3.7):** not visible: no ELT remote switch or lamp on
+    the lower column or the panel. Settled 2026-10-10 (§2a decision 1): an item the
+    photos do not show keeps its answer, so the ELT remote stays as drawn.
 22. **Charge lamp legend**: does the charge warning lamp carry a printed legend,
     and in which colour does it light? Today: a round red lamp with the legend
     CHARGE printed below it; the second lamp is round at the same size, without a
@@ -667,7 +1090,14 @@ verifies it on D-MPGO.
     lights red and the panel prints CHARGE with it. **Handbook check 2026-10-08:** still open. The
     wiring diagram names an alternator warning light (HB 7-8); legend and colour
     are not given. **Answered by the owner 2026-10-08:** the CHARGE lamp is
-    correct as drawn, owner-confirmed.
+    correct as drawn, owner-confirmed. **Superseded 2026-10-10** (§2a, decision 1): the red "Generator" lamp in
+    the upper-right field.
+    **Photo survey 2026-10-10 (§3.7):** **contradicts current trainer.** The only
+    warning lamp is round, red and printed "Generator", at the top right of the
+    upper-right field; the trainer prints CHARGE at the top of the upper-left field,
+    owner-confirmed on 2026-10-08. Settled 2026-10-10 (§2a): the "Generator" lamp.
+    **Done in M17 T4:** the lamp keeps its indicator id and behaviour; procedure items
+    that named the charge lamp now say "Generator lamp".
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: the leading steps below are memory
     items; the rest of each procedure is read and done from the list. **Answered by
@@ -728,13 +1158,23 @@ verifies it on D-MPGO.
     pilot's side outward trim wheel, choke, throttle, brake (inferred from HB 7-19;
     §3.4). Handle shapes cannot be read in the figure and stay open.
     Throttle legends (#531): the placard prints FULL and IDLE only; the trainer's
-    low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
-    (unverified).
+    low, run-up and cruise stops are unprinted. The THROTTLE title was assumed
+    (unverified); superseded 2026-10-10 by the photo survey below ("Throttle").
     Trim legends (#532): the placard prints DOWN forward and UP aft, with no
-    neutral mark; the trainer's neutral position has no printed legend. The TRIM
-    title is assumed (unverified). The trainer's half-down and half-up stops
+    neutral mark; the trainer's neutral position has no printed legend. The title
+    was assumed TRIM; answered 2026-10-10 (M17 T1): "Stabilator Trim". The trainer's half-down and half-up stops
     (#620) are assumed (unverified) and have no printed legend; the trainer's
     unworded tick at every stop, neutral included, is a trainer departure.
+    **Grips, answered from the photos (M17 T2):** blue cylindrical throttle grip,
+    black knurled crossbar on the brake lever, plain choke lever without a visible
+    grip, green trim strip with a small stud slot between wheel and choke; the
+    throttle strip carries no mark between FULL and IDLE (#570).
+    **Photo survey 2026-10-10 (§3.7):** **confirmed:** the levers lie side by side
+    and slide fore and aft; "Choke" "Off" forward / "On" aft, "Throttle" "Full"
+    forward / "Idle" aft with no detent marks or words between (#570), "Brake" "On" aft (its forward legend hidden), trim "Down"
+    forward / "Up" aft. Handles: a blue cylindrical throttle grip and a black
+    knurled crossbar on the brake; the choke shows no grip. The trim title prints
+    "Stabilator Trim", not TRIM; the throttle title "Throttle" is confirmed.
 26. **Rescue handle placement**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Before #535: a T-grip in a holder centred on the bulkhead between
@@ -755,6 +1195,18 @@ verifies it on D-MPGO.
     T-grip, the plate's legends, a pin with a ring but no flag, and the handle's
     place across the shelf, drawn to the pilot's side of the centreline because the
     large knob holds the column aft of the valve.
+    **Photo survey 2026-10-10 (§3.7):** **contradicts current trainer.** The handle
+    is red with an orange-bordered warning label, on the console's upright aft face
+    at the bulkhead, centred between the seats, with nothing printed RESCUE or PULL
+    HARD; the pin carries a red remove-before-flight flag. The grip's pull direction
+    is not legible. **Settled 2026-10-10** (§2a decision 1): the handle is drawn
+    red and centred on the aft face, without the RESCUE and PULL HARD legends, with
+    a flagged pin (M17 T2); the "Drawn so (#535)" place and legends are superseded.
+    The forward pull stays (handbook, HB 3-4), not confirmed by the photos.
+    **Answered (M17 T2):** drawn so. The handle is red and centred, the label is
+    orange-bordered and prints "Parachute" (assumed (unverified): the photos do
+    not show the handle's own wording, and the printed-labels contract needs one),
+    and the pin carries a red flag without lettering.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
@@ -766,6 +1218,10 @@ verifies it on D-MPGO.
     handle covering the lock is a handbook fact (HB 3-6), and the valve is shaped so
     the key can hardly be operated past it (HB 4-6). Whether the key goes in under
     the closed handle, and the N16 order, are not given.
+    **Photo survey 2026-10-10 (§3.7):** partly answered. The photos show the key in
+    at OFF while the valve grip is at its closed end, just below the key face rather
+    than over it. That fits the trainer's closed valve holding a key at OFF; whether
+    the key can go in under the closed grip is not visible.
 28. **Engine fire cues**: what does the pilot perceive first? Today: smoke from the
     engine bay streams over the windscreen in the outside view, and the CHT and oil
     temperature climb past their red lines within seconds while the fire burns; both
@@ -815,6 +1271,8 @@ verifies it on D-MPGO.
     owner confirms it on D-MPGO. Today (#534): the console is drawn from above,
     forward up, with the trim wheel, choke, throttle and brake side by side in
     that order from the pilot's side, each sliding fore and aft (§3.4).
+    **Photo survey 2026-10-10 (§3.7):** **confirmed:** from the left seat, left to
+    right: trim wheel, choke, throttle, brake.
 32. **GPS and intercom switch-on steps**: which normal-procedure step switches
     the GPS on, and which the intercom? The handbook checklists name neither (§6).
     The trainer switches the intercom on in N3 right after Avionics Master on, and

@@ -156,7 +156,7 @@ export const emergencyProcedures = {
         memory: true,
         control: 'ignition',
         position: 'both',
-        text: text('Zündschalter BOTH', 'Ignition BOTH'),
+        text: text('Zündschalter 1+2', 'Ignition 1+2'),
       },
       {
         type: 'action',
@@ -436,8 +436,8 @@ export const emergencyProcedures = {
         position: 'override-up',
         holdUntil: flapsStoppedBeyondLastUpDetent,
         text: text(
-          'Klappenwahlschalter über −12° hinaus (UP), bis die Klappen voll negativ stehen',
-          'Flap selector past −12° (UP) until the flaps reach full negative',
+          'Klappenwahlschalter über −12° hinaus (up manually), bis die Klappen voll negativ stehen',
+          'Flap selector past −12° (up manually) until the flaps reach full negative',
         ),
       },
       {
@@ -475,7 +475,7 @@ export const emergencyProcedures = {
         type: 'check',
         target: { indicator: 'chargeLamp' },
         condition: chargeLampLit,
-        text: text('Ladekontrolle leuchtet', 'Charge warning lamp is lit'),
+        text: text('Generatorlampe leuchtet', 'Generator lamp is lit'),
       },
       {
         type: 'action',

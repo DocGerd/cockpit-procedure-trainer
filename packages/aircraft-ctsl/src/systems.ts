@@ -15,7 +15,7 @@ import type { controls } from './controls';
 import type { CtslFailure } from './failures';
 
 export type CtslState = {
-  bus: { mainPowered: boolean; avionicsPowered: boolean; charging: boolean };
+  bus: { mainPowered: boolean; avionicsPowered: boolean; charging: boolean; volts: number };
   engine: PistonEngineState;
   rpm: number;
   oilPressureBar: number;
@@ -54,6 +54,7 @@ type Throttle = 'idle' | 'low' | 'runup' | 'cruise' | 'full';
 
 // Intake values: docs/aircraft/ctsl-intake.md §4 and §5.
 export const KMH_PER_KT = 1.852;
+export const FT_PER_MIN_PER_MS = 60 / 0.3048;
 const STARTER_LIMIT_MS = 10_000;
 const STARTER_COOLING_MS = 120_000;
 const WARM_OIL_C = 50;
@@ -74,7 +75,7 @@ const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
 type FlapDetent = (typeof FLAP_DETENTS)[number];
 const LAST_FLAP_DETENT: FlapDetent = 35;
 const MAX_FLAP_SPEED_KMH: Record<FlapDetent, number> = {
-  [-12]: Infinity,
+  [-12]: 300,
   0: 184,
   15: 148,
   30: 115,
@@ -115,7 +116,7 @@ const bus = electricalBus({ batteryVolts: BATTERY_VOLTS, chargingVolts: CHARGING
 const engineBlock = pistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });
 
 export const initial: CtslState = {
-  bus: { mainPowered: false, avionicsPowered: false, charging: false },
+  bus: { mainPowered: false, avionicsPowered: false, charging: false, volts: 0 },
   engine: engineBlock.initial,
   rpm: 0,
   oilPressureBar: 0,
@@ -351,6 +352,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
       mainPowered,
       avionicsPowered: mainPowered && on(controls, 'avionicsMaster'),
       charging: electrical.charging,
+      volts: electrical.volts,
     },
     engine,
     rpm,

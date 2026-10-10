@@ -8,11 +8,9 @@ export const images = {
   gaugeOilPressure: new URL('./assets/artwork/gauge-oil-pressure.svg', import.meta.url).href,
   gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
   gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
+  gaugeVoltmeter: new URL('./assets/artwork/gauge-voltmeter.svg', import.meta.url).href,
   needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
   glassGauge: new URL('./assets/artwork/glass-gauge.svg', import.meta.url).href,
-  glassCompass: new URL('./assets/artwork/glass-compass.svg', import.meta.url).href,
-  compassFace: new URL('./assets/artwork/compass-face.svg', import.meta.url).href,
-  compassCard: new URL('./assets/artwork/compass-card.svg', import.meta.url).href,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
@@ -55,6 +53,7 @@ export const images = {
   leverChokeFace: new URL('./assets/artwork/lever-choke-face.svg', import.meta.url).href,
   leverThrottleFace: new URL('./assets/artwork/lever-throttle-face.svg', import.meta.url).href,
   handleBrake: new URL('./assets/artwork/handle-brake.svg', import.meta.url).href,
+  handleChoke: new URL('./assets/artwork/handle-choke.svg', import.meta.url).href,
   handleThrottle: new URL('./assets/artwork/handle-throttle.svg', import.meta.url).href,
   leverCarbFace: new URL('./assets/artwork/lever-carb-face.svg', import.meta.url).href,
   handleCarb: new URL('./assets/artwork/handle-carb.svg', import.meta.url).href,
@@ -109,24 +108,6 @@ const travel = (face: string, image: string, path: readonly Point[]): ArtworkApp
   artwork: { face, moving: { type: 'travel', image, path } },
 });
 
-// A panel compass: the card is printed reversed and turns clockwise, so the numbers in the window
-// increase to the left and the card slides right as the heading increases. The glass is the opaque
-// housing, open only at the window over the top of the card.
-const compassCard: ArtworkAppearance = {
-  options: { min: 0, max: 360, units: '°', decimals: 0 },
-  artwork: {
-    face: images.compassFace,
-    moving: {
-      type: 'needle',
-      image: images.compassCard,
-      pivot: { x: 100, y: 100 },
-      angleRange: { min: 0, max: 360 },
-      valueRange: { min: 0, max: 360 },
-    },
-    glass: images.glassCompass,
-  },
-};
-
 export const lampArtwork = {
   charge: {
     options: { lamp: 'red' },
@@ -136,25 +117,24 @@ export const lampArtwork = {
         type: 'positions',
         images: { false: images.lampChargeOff, true: images.lampChargeOn },
       },
-      lettering: ['CHARGE'],
+      lettering: ['Generator'],
     },
   },
 } as const satisfies Record<string, ArtworkAppearance>;
 
 export const gaugeArtwork = {
-  compass: compassCard,
   airspeed: needle(
     images.gaugeAirspeed,
-    { min: 40, max: 300 },
+    { min: 40, max: 340 },
     {
       units: 'km/h',
       decimals: 0,
-      ticks: [40, 80, 120, 160, 200, 240, 280],
+      ticks: [40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340],
       arcs: [
         { from: 72, to: 115, colour: 'white' },
         { from: 94, to: 245, colour: 'green' },
-        { from: 245, to: 260, colour: 'yellow' },
-        { from: 260, to: 300, colour: 'red' },
+        { from: 245, to: 300, colour: 'yellow' },
+        { from: 299, to: 301, colour: 'red' },
       ],
     },
   ),
@@ -165,8 +145,12 @@ export const gaugeArtwork = {
   ),
   verticalSpeed: needle(
     images.gaugeVsi,
-    { min: -5, max: 5 },
-    { units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
+    { min: -2000, max: 2000 },
+    {
+      units: 'ft/min',
+      decimals: 0,
+      ticks: [-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000],
+    },
     { min: -225, max: 45 },
   ),
   tachometer: needle(
@@ -226,6 +210,22 @@ export const gaugeArtwork = {
       ],
     },
   ),
+  voltmeter: needle(
+    images.gaugeVoltmeter,
+    { min: 9, max: 17 },
+    {
+      units: 'V',
+      decimals: 1,
+      ticks: [9, 10, 11, 12, 13, 14, 15, 16, 17],
+      arcs: [
+        { from: 9, to: 10.5, colour: 'red' },
+        { from: 10.5, to: 11.5, colour: 'yellow' },
+        { from: 11.5, to: 15, colour: 'green' },
+        { from: 15, to: 16, colour: 'yellow' },
+        { from: 16, to: 17, colour: 'red' },
+      ],
+    },
+  ),
 } as const;
 
 const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): ArtworkAppearance => ({
@@ -233,10 +233,10 @@ const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): Artwor
   artwork: { ...appearance.artwork, lettering },
 });
 
-const breaker = (face: string, lettering: string) =>
-  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), lettering);
-const rocker = (face: string, lettering: string) =>
-  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), lettering, 'ON', 'OFF');
+const breaker = (face: string, ...legend: string[]) =>
+  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), ...legend);
+const rocker = (face: string, ...title: string[]) =>
+  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), ...title, 'I', 'O');
 const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
@@ -248,14 +248,14 @@ const aftEnd = { x: 56, y: 260 } as const;
 const pullSlide = [forwardEnd, aftEnd] as const;
 
 export const controlArtwork = {
-  comBreaker: breaker(images.breakerCom, 'COM'),
-  xpdrBreaker: breaker(images.breakerXpdr, 'XPDR'),
+  comBreaker: breaker(images.breakerCom, 'Com'),
+  xpdrBreaker: breaker(images.breakerXpdr, 'Transponder'),
   gpsBreaker: breaker(images.breakerGps, 'GPS'),
-  positionBreaker: breaker(images.breakerPosition, 'POS'),
-  strobeBreaker: breaker(images.breakerStrobe, 'STRB'),
-  landingBreaker: breaker(images.breakerLanding, 'LDG'),
-  intercomBreaker: breaker(images.breakerIntercom, 'INT'),
-  outletBreaker: breaker(images.breakerOutlet, '12 V'),
+  positionBreaker: breaker(images.breakerPosition, 'Position', 'Light'),
+  strobeBreaker: breaker(images.breakerStrobe, 'Beacon', 'Light'),
+  landingBreaker: breaker(images.breakerLanding, 'Landing', 'Light'),
+  intercomBreaker: breaker(images.breakerIntercom, 'Intercom'),
+  outletBreaker: breaker(images.breakerOutlet, '12V', 'Outlet'),
   flapBreaker: lettered(
     positions(images.breakerFlap, {
       in: images.breakerFlapIn,
@@ -268,15 +268,16 @@ export const controlArtwork = {
       off: images.rockerMasterOff,
       on: images.rockerMasterOn,
     }),
-    'AVIONICS',
-    'ON',
-    'OFF',
+    'Avionics',
+    'Master',
+    'I',
+    'O',
   ),
-  beacon: rocker(images.rockerBeacon, 'BEACON'),
-  positionLights: rocker(images.rockerPosition, 'POSITION'),
-  intercom: rocker(images.rockerIntercom, 'INTERCOM'),
-  cockpitLight: rocker(images.rockerCockpit, 'COCKPIT'),
-  landingLight: rocker(images.rockerLanding, 'LANDING'),
+  beacon: rocker(images.rockerBeacon, 'Beacon', 'Light'),
+  positionLights: rocker(images.rockerPosition, 'Position', 'Light'),
+  intercom: rocker(images.rockerIntercom, 'Intercom'),
+  cockpitLight: rocker(images.rockerCockpit, 'Cockpit', 'Light'),
+  landingLight: rocker(images.rockerLanding, 'Landing', 'Light'),
   // Open, the handle stands up in its slot clear of the key switch below, so only the slot takes a
   // tap; closed, the whole box does, its handle over the key slot.
   fuelValve: {
@@ -297,9 +298,9 @@ export const controlArtwork = {
       open: images.valveOpen,
       closed: images.valveClosed,
     }),
-    'PARK BRAKE',
-    'OPEN',
-    'SHUT',
+    'Brake',
+    'Off',
+    'On',
   ),
   flapSelector: lettered(
     positions(images.flapSelectorFace, {
@@ -311,14 +312,14 @@ export const controlArtwork = {
       '35': images.flapKnob5,
       'override-down': images.flapKnob6,
     }),
-    'FLAPS',
-    'UP',
+    'Flaps',
+    'up manually',
     '-12',
     '0',
     '15',
     '30',
     '35',
-    'DN',
+    'down manually',
   ),
   ignition: lettered(
     positions(images.ignitionFace, {
@@ -330,30 +331,30 @@ export const controlArtwork = {
       start: images.ignitionKeyStart,
     }),
     'OFF',
-    'L',
-    'R',
-    'BOTH',
+    '1',
+    '2',
+    '1+2',
     'START',
   ),
   battery: pushPull,
   generator: pushPull,
   brake: lettered(
     travel(images.leverBrakeFace, images.handleBrake, pullSlide),
-    'BRAKE',
-    'OFF',
-    'ON',
+    'Brake',
+    'Off',
+    'On',
   ),
   choke: lettered(
-    travel(images.leverChokeFace, images.handleBrake, pullSlide),
-    'CHOKE',
-    'OFF',
-    'ON',
+    travel(images.leverChokeFace, images.handleChoke, pullSlide),
+    'Choke',
+    'Off',
+    'On',
   ),
   throttle: lettered(
     travel(images.leverThrottleFace, images.handleThrottle, [aftEnd, forwardEnd]),
-    'THROTTLE',
-    'FULL',
-    'IDLE',
+    'Throttle',
+    'Full',
+    'Idle',
   ),
   carbHeat: lettered(
     travel(images.leverCarbFace, images.handleCarb, [
@@ -369,9 +370,9 @@ export const controlArtwork = {
       { x: 104, y: 70 },
       { x: 104, y: 260 },
     ]),
-    'TRIM',
-    'DOWN',
-    'UP',
+    'Stabilator Trim',
+    'Down',
+    'Up',
   ),
   rescueHandle: lettered(
     {
@@ -383,6 +384,6 @@ export const controlArtwork = {
         guardOpen: { stowed: images.rescueStowedOpen },
       },
     },
-    'RESCUE',
+    'Parachute',
   ),
 } as const satisfies Record<string, ArtworkAppearance>;

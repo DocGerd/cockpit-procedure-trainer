@@ -2,7 +2,7 @@ import type { ControlId, Environment, PhaseDefinition, PhaseId, PositionOf } fro
 import { phaseHeadings } from './airfield';
 import { images } from './assets';
 import type { controls } from './controls';
-import { initial, runningFrom } from './systems';
+import { FT_PER_MIN_PER_MS, initial, runningFrom } from './systems';
 import type { CtslState } from './systems';
 
 type Controls = typeof controls;
@@ -81,8 +81,8 @@ const squawking = { xpdr: { squawk: '7000' } };
 const navigating = { ...squawking, gps: { on: true, page: 'map', fix: true } };
 
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
-const CLIMB_MS = 3;
-const APPROACH_DESCENT_MS = -2;
+const CLIMB_MS = 600 / FT_PER_MIN_PER_MS;
+const APPROACH_DESCENT_MS = -400 / FT_PER_MIN_PER_MS;
 
 const ground = (): Environment => ({ airspeedKt: 0, altitudeFt: 0, onGround: true });
 const departureEnvironment: Environment = { airspeedKt: 57, altitudeFt: 200, onGround: false };

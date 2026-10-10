@@ -159,7 +159,7 @@ describe('engine start', () => {
     expect(session.set('ignition', 'both')).toEqual({ applied: true });
   });
 
-  it('closes the fuel valve with the key still on; the key still turns to L and OFF but not on to BOTH, comes out at OFF and cannot go back in', () => {
+  it('closes the fuel valve with the key still on; the key still turns to 1 and OFF but not on to 1+2, comes out at OFF and cannot go back in', () => {
     const session = sessionAt('holding');
     expect(session.set('fuelValve', 'closed')).toEqual({ applied: true });
     expect(session.set('ignition', 'left')).toEqual({ applied: true });
@@ -407,19 +407,33 @@ describe('engine running', () => {
 });
 
 describe('electrical system', () => {
-  it('lights the charge lamp with BAT in and the engine stopped', () => {
+  it('lights the generator lamp with BAT in and the engine stopped', () => {
     const session = sessionAt('parking');
     session.set('battery', 'in');
     session.set('generator', 'in');
     expect(chargeLampLit(trainerState(session))).toBe(true);
   });
 
-  it('puts the charge lamp out once the engine runs with GEN in', () => {
+  it('puts the generator lamp out once the engine runs with GEN in', () => {
     const session = coldStart();
     expect(chargeLampLit(trainerState(session))).toBe(true);
     session.set('generator', 'in');
     expect(systems(session).bus.charging).toBe(true);
     expect(chargeLampLit(trainerState(session))).toBe(false);
+  });
+
+  it('reads the bus voltage on the voltmeter: dead, battery, then charging (assumed)', () => {
+    const volts = (session: ReturnType<typeof sessionAt>) =>
+      indicators.voltmeter.select(trainerState(session));
+    const session = sessionAt('parking');
+    expect(volts(session)).toBe(0);
+    session.set('battery', 'in');
+    session.advance(1);
+    expect(volts(session)).toBe(12);
+    const running = coldStart();
+    running.set('generator', 'in');
+    running.advance(1);
+    expect(volts(running)).toBe(14);
   });
 
   it('powers the main bus from BAT only', () => {
@@ -518,6 +532,24 @@ describe('flaps', () => {
     cruise.set('flapSelector', '0');
     cruise.advance(30);
     expect(cruise.state().flaps).toEqual({ angle: -12, moving: true });
+  });
+
+  it('do not return to -12° above its max flap speed of 300 km/h', () => {
+    const climbOut = (airspeedKt: number) => {
+      const fast = rig('cruise', [], { airspeedKt, altitudeFt: 2500, onGround: false });
+      fast.set('flapSelector', 'override-up');
+      fast.advance(10);
+      expect(fast.state().flaps.angle).toBeLessThan(-12);
+      fast.set('flapSelector', '-12');
+      fast.advance(10);
+      return fast.state();
+    };
+    const over = climbOut(170);
+    expect(over.airspeedKmh).toBeGreaterThan(300);
+    expect(over.flaps.angle).toBeLessThan(-12);
+    const under = climbOut(160);
+    expect(under.airspeedKmh).toBeLessThan(300);
+    expect(under.flaps).toEqual({ angle: -12, moving: false });
   });
 
   it('extend below the max flap speed', () => {
@@ -622,7 +654,7 @@ describe('ELT and rescue system', () => {
 });
 
 describe('failures', () => {
-  it('generatorFailure: no charging, charge lamp lit', () => {
+  it('generatorFailure: no charging, generator lamp lit', () => {
     const failed = rig('cruise', ['generatorFailure']);
     expect(failed.state().bus.charging).toBe(false);
     expect(failed.state().bus.mainPowered).toBe(true);
@@ -797,6 +829,16 @@ describe('entry snapshots', () => {
 });
 
 describe('indicators', () => {
+  it('read the vertical speed in ft/min while the model keeps m/s', () => {
+    const reading = (phase: PhaseId) =>
+      indicators.verticalSpeed.select(trainerState(sessionAt(phase)));
+    expect(reading('departure')).toBeCloseTo(600, 0);
+    expect(reading('approach')).toBeCloseTo(-400, 0);
+    expect(reading('cruise')).toBe(0);
+    expect(phases.departure.entry.state.verticalSpeedMs).toBeCloseTo(3.048, 3);
+    expect(phases.approach.entry.state.verticalSpeedMs).toBeCloseTo(-2.032, 3);
+  });
+
   it('leave the flap readout dark while its circuit has no power', () => {
     const session = sessionAt('cruise');
     const readout = () => indicators.flapReadout.select(trainerState(session));
