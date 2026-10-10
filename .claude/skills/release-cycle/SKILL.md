@@ -1,12 +1,14 @@
 ---
 name: release-cycle
-description: Run one milestone through the release cycle (triaging the backlog when none is open), from implementation and review to the release PR and close-out.
+description: Run one milestone through the release cycle (triaging the backlog when none is open), from implementation and review to the release PR, close-out and session end. Use for /release-cycle and for any /goal session that builds, finishes or releases a milestone.
 argument-hint: '[milestone number or title, or steering text]'
-disable-model-invocation: true
 ---
 
 Input: $ARGUMENTS. It is a milestone number or title, free-text steering
-(e.g. "only aircraft content"), or empty.
+(e.g. "only aircraft content"), or empty. In a `/goal` session the goal text
+is the steering: it names the milestone and may add issues, order or limits
+(a time box, steps that must run in parallel); the goal governs where it is
+more specific than a phase below.
 
 - A token matching an existing milestone number or title is a milestone;
   anything else is steering text.
@@ -52,9 +54,12 @@ workflow changes. Each implementer:
 
 1. Works test-first and runs the project checks before pushing.
 2. Adds `changelog.d/<issue>.<category>.md`; every PR carries one.
-3. Opens a PR with base `develop`, body starting `Closes #<issue>`, a
-   `## Decisions` section for anything the spec and plan do not settle, and the
-   attribution line `CLAUDE.md` requires.
+3. Opens a PR with base `develop`, except when the issue depends on an
+   unmerged PR: then it branches from `origin/<parent branch>`, not
+   `origin/develop`, the base is that branch, and the body carries
+   `Depends on #<parent PR>`. The body starts `Closes #<issue>`, has a
+   `## Decisions` section for anything the spec and plan do not settle, and
+   the attribution line `CLAUDE.md` requires.
 4. Writes its report to a scratch location outside the repository, because a
    worktree agent cannot write elsewhere, and returns the PR number, the head
    SHA and a summary of at most 25 lines.
@@ -66,7 +71,8 @@ each PR. Reviewers must be an agent type that can run `gh` and post comments;
 a read-only agent type cannot post review threads. The implementer fixes the
 findings and the reviewer's threads are resolved. At most two fix waves per
 PR; leftovers become follow-up issues.
-Then the `merge-train` skill merges the PRs into `develop`, one at a time.
+Then the `merge-train` skill merges the PRs into `develop`, one at a time;
+pass parents before children.
 Never merge into `main`; a tripwire hook denies the usual forms, but the rule
 is yours to keep.
 
@@ -76,8 +82,33 @@ When the milestone has no open issues, run the `milestone-release` skill. It
 ends with the release PR `develop` to `main` open. You never merge it. Report
 to the owner: the release PR URL, decisions made, open questions, how to
 verify. The owner merges; a workflow tags and publishes the release.
-Then wait for the owner to report the merge and continue with Phase 5.
+Then wait for the owner to report the merge and continue with Phase 5; if the
+session ends first, run Session end.
 
 ## Phase 5 - Close out
 
 Once the owner reports the release PR merged, in this session or the next, read [close-out.md](close-out.md) and follow it.
+
+## Session end
+
+Runs once whenever the session ends: after Phase 4 while the owner holds the
+release PR, after Phase 5, or when the time box runs out.
+
+1. Follow-ups: every open decision or question in the owner summary that
+   needs work gets an issue without milestone (one per topic, grouped where
+   small), unless one exists. Questions only the owner can check get none.
+2. CLAUDE.md: if the session taught something durable that `CLAUDE.md` lacks
+   or gets wrong, the main session runs `/revise-claude-md` itself, never a
+   subagent (it reflects on this session's transcript). The main-checkout
+   guard refuses that edit there, so first create a worktree on
+   `chore/claude-md-<slug>` from `origin/develop`. The command has no Bash, so
+   verify each empirical claim before invoking it, and have a delegated agent
+   commit and open the PR afterwards. Approved edits ship like any change: an
+   issue, a PR reviewed with `pr-selfreview`, the `merge-train`. Nothing
+   durable: say so and open no PR. Once per session.
+3. Processes: stop every dev server, poll loop and background task this
+   session's agents started, by PID; agents leave servers behind and later
+   misread them as another session's, so match by the ports you assigned.
+4. Report to the owner in one block: the follow-up issues, the CLAUDE.md PR
+   or "none", and the processes stopped.
+5. Run `remember:remember` last.
