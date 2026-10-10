@@ -192,9 +192,9 @@ What the trainer draws today, and where it departs from the above:
   This intake gives no number of steps or travel for the wheel, so the trainer
   steps it through five positions, nose down, half nose down, neutral, half nose
   up and nose up (#620); the count, the spacing and the two half stops are
-  assumed (unverified). The trainer marks them with
-  unworded ticks beside the slot; cues name the half stops in words, not as
-  printed legends.
+  assumed (unverified). The trainer draws an unworded tick beside the slot at
+  every stop, neutral included, which the aircraft's placard does not have.
+  Cues name the half stops in words, not as printed legends.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
 - The large knob is drawn as unlabelled artwork, not a control, until its
@@ -731,9 +731,10 @@ verifies it on D-MPGO.
     low, run-up and cruise stops are unprinted. The THROTTLE title is assumed
     (unverified).
     Trim legends (#532): the placard prints DOWN forward and UP aft, with no
-    neutral mark; the trainer's neutral position is unprinted. The TRIM title is
-    assumed (unverified). The trainer's half-down and half-up stops (#620) are
-    assumed (unverified) and unprinted.
+    neutral mark; the trainer's neutral position has no printed legend. The TRIM
+    title is assumed (unverified). The trainer's half-down and half-up stops
+    (#620) are assumed (unverified) and have no printed legend; the trainer's
+    unworded tick at every stop, neutral included, is a trainer departure.
 26. **Rescue handle placement**: how high and where across the main
     bulkhead does the handle sit, what shape is its grip, and where does the
     safety pin go? Before #535: a T-grip in a holder centred on the bulkhead between

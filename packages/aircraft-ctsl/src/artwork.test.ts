@@ -500,10 +500,13 @@ describe('CTSL console levers (intake §3.4)', () => {
     const ticks = [...faceOf('trim').matchAll(/<line x1="106" y1="([\d.]+)"/g)].map(([, y]) =>
       Number(y),
     );
+    const trim = controls.trim;
+    if (!trim) throw new Error('the CTSL has no trim control');
     const path = travelOf('trim');
+    expect(path.length, 'the trim wheel travels along a path').toBeGreaterThan(1);
     const [first, last] = [path[0]?.y ?? 0, path[path.length - 1]?.y ?? 0];
-    const count = controls.trim?.positions.length ?? 0;
-    expect(ticks).toHaveLength(count);
+    const count = trim.positions.length;
+    expect(ticks, 'trim-wheel-face.svg draws one tick per trim position').toHaveLength(count);
     ticks.forEach((y, index) =>
       expect(y).toBeCloseTo(first + ((last - first) * index) / (count - 1), 1),
     );

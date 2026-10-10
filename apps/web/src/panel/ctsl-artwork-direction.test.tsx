@@ -163,7 +163,7 @@ describe('CTSL notched artwork controls', () => {
     expect([...ticks].sort((a, b) => a - b)).toEqual(stops.sort((a, b) => a - b));
   });
 
-  it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no neutral mark', () => {
+  it('prints the trim as the aircraft does: its title, DOWN forward, UP aft and no printed neutral legend', () => {
     const trim = drawn.find(({ id }) => id === 'trim');
     if (!trim) throw new Error('the CTSL draws no trim wheel');
     const svg = faceSvg(trim.face);
@@ -206,6 +206,8 @@ describe('CTSL notched artwork controls', () => {
     expect(rollFrom('half-down', top)).toBe('nose-down');
     expect(rollFrom('neutral', bottom)).toBe('half-up');
     expect(rollFrom('half-up', bottom)).toBe('nose-up');
+    expect(rollFrom('nose-down', { x: width / 2, y: 0 })).toBeUndefined();
+    expect(rollFrom('nose-up', { x: width / 2, y: height })).toBeUndefined();
   });
 
   it.each(sliders.map((entry) => [entry.id, entry] as const))(
