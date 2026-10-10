@@ -180,7 +180,10 @@ Handbook facts (checked 2026-10-08):
   lever row; the handbook's placard list names no legend for it. Its legends
   PARK BRAKE, OPEN and SHUT are correct as drawn, **owner-confirmed** 2026-10-08.
   **Superseded 2026-10-10** (§2a, decision 1): the valve is a small lever in a curved slot on the console's
-  right side, printed "Off" (forward), "Brake", "On" (aft) (§3.7).
+  right side, printed "Off" (forward), "Brake", "On" (aft) (§3.7). Read as a
+  two-position valve under the title "Brake": "Off" is the open valve (brake
+  free), "On" the shut valve (pressure held); this mapping is **inferred
+  (unverified)**.
   Assumed (unverified): closing the valve while the lever is held traps it as well.
 - **Large knob aft of the valve** (§9, question 10): the hydraulic in-flight
   adjustable propeller is set by a lever on the centre console behind the engine
@@ -231,6 +234,7 @@ What the trainer draws today, and where it departs from the above:
   Cues name the half stops in words, not as printed legends.
 - The parking-brake valve prints PARK BRAKE, OPEN and SHUT. #529 called this
   trainer wording; the owner confirmed it as the aircraft's legends on 2026-10-08.
+  **Superseded 2026-10-10** (§2a, decision 1): "Off", "Brake", "On" as above.
 - The large knob is drawn as unlabelled artwork, not a control, until its
   identity is known (§9, question 10). It stands directly aft of the valve (#535).
 - The provisional carb-heat pull knob stands outboard of the lever row, on the
@@ -451,6 +455,7 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 | Breaker block            | along the lower edge of the upper-right field, 2×7 plus 12V Outlet, full-word legends, several capped                  | 4×3 block at the right edge, legends COM, XPDR, POS, INT, GPS, STRB, LDG and the outlet                              | medium | layout, legends-text       | `views.ts` (breakers), `artwork.ts` (`breaker` lettering), `controls.ts`, `assets/view-panel.svg`                |
 | Rocker legends           | two-word legends ("Beacon Light" …), I/O symbols on the rockers                                                        | one-word legends, ON and OFF lettering                                                                               | low    | legends-text               | `artwork.ts` (`rocker`)                                                                                          |
 | ELT remote switch        | not visible on the panel or column                                                                                     | ELT toggle (ON/ARM) and lamp in the lower column (owner-confirmed, q21); in N2, N6, N15, N16 and E5                  | medium | layout, procedure, systems | `views.ts` (`elt`, `eltLamp`), `controls.ts`, `indicators.ts`, `procedures/normal.ts`, `procedures/emergency.ts` |
+| Upper-left placards      | "Takeoff Checklist Summary" at the top right; a German aerobatics and spins placard at the bottom                      | a short take-off checklist and a limits placard at the far left (§3.1)                                               | low    | art                        | `assets/view-panel.svg`                                                                                          |
 | Lower column contents    | 12 V socket, fuel-capacity and limit-speed placards; no intercom panel, audio selector or jacks                        | intercom panel, audio selector and jacks drawn in the background                                                     | low    | art                        | `assets/view-centre.svg`                                                                                         |
 | Ignition legends         | "OFF", "1", "2", further positions not legible                                                                         | OFF, L, R, BOTH, START                                                                                               | medium | legends-text, procedure    | `controls.ts` (`ignition.legends`), `artwork.ts`, `procedures/normal.ts` (N6 checks)                             |
 | Fuel valve               | strip "Open" / "…Valve" / "Closed" at the column's left edge; red grip in a slot; key in at OFF beside the closed grip | FUEL, VALVE, OPEN, CLOSED; the closed handle covers the key slot                                                     | low    | art                        | `views.ts` (`fuelValve`), `artwork.ts`                                                                           |
@@ -471,7 +476,8 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 
 ## 4. Limits and values used by the trainer
 
-Conservative choices per owner decisions 3 and 4 are in **bold**. Phase presets
+Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
+in **bold**. Phase presets
 feed `Environment` in knots and feet; the conversions are given so no implementer
 converts. Altitudes are above the field; the trainer models no real aerodrome.
 
@@ -498,6 +504,10 @@ converts. Altitudes are above the field; the trainer models no real aerodrome.
 | **VNE (airspeed red line, §2a)**          | **300**         | **162**      |
 | Max range cruise (4300 rpm)               | 180             | 97           |
 | Level flight, flaps −12°, 5500 rpm (VH)   | 240             | 130          |
+
+VNE 300 km/h follows D-MPGO's airspeed dial by owner ruling (§2a decision 3). It
+is above the handbook's VNE for a BRS rescue system (276 km/h, §8), the system
+the photos identify (§9, question 2); it is not the conservative choice.
 
 Crosswind limit 30 km/h with flaps 0°, 20 km/h with 35°. Bank at most 60°; no
 turns steeper than 30° below 100 km/h. Load factors +4/−2 g up to VA. Day VFR, no
@@ -575,7 +585,10 @@ ft/min (1 m/s ≈ 197 ft/min).
   detent; the motor drives while it stays there; return to the end detent to stop;
   left there, the motor runs to its end switch.
 - Pitch trim: anti-tab on the stabilator, wheel on the console, neutral for
-  take-off. Rudder and aileron tabs are ground-adjustable only.
+  take-off. Rudder and aileron tabs are ground-adjustable only. **Photo survey
+  2026-10-10 (§3.7):** D-MPGO has an aileron-trim wheel and a rudder-trim wheel on
+  the console between the seats. The trainer draws them as inert art (M17 T2) and
+  models no rudder or aileron trim.
 - Brakes: hydraulic, main wheels, one central non-locking lever. Parking brake as in §3.4;
   always use chocks too.
 - MTOW 472.5 kg; baggage 25 kg per side.
@@ -818,7 +831,8 @@ verifies it on D-MPGO.
    rescue handle names BRS (model not legible), so the Junkers options drop out. The
    airspeed indicator puts its red mark at about 300 km/h and the lower-column
    placard allows 300 km/h at −12°, against the trainer's VNE 260: **contradicts
-   current trainer**. **Settled 2026-10-10** (§2a decision 3): VNE 300 km/h.
+   current trainer**. **Settled 2026-10-10** (§2a decision 3): VNE 300 km/h,
+   yellow arc 245–300 (§4.1, §4.3).
 3. **Carb heat**: does D-MPGO have a carb-heat control, and where? Uses a
    provisional pull knob on the console, off/on.
    **Handbook check 2026-10-08:** still open. Carb heat is pulled to apply (HB 4-11, 4-13); no figure

@@ -24,7 +24,7 @@
 | T1 Legends and texts       | #629  | #537        | ignition, rocker, flap-selector, master and lever-title legends; parking-brake legend                                                                                                                                | aircraft |
 | T2 Console art             | #630  | #570, #536  | throttle strip, large knob, parking-brake place, rudder and aileron trim, rescue handle, grips, fuel valve                                                                                                          | aircraft |
 | T3 Airspeed, VSI and limits | #631  |             | airspeed markings, VSI units                                                                                                                                                                                        | aircraft |
-| T4 Panel layout            | #632  |             | panel fields, upper-left instruments, charge lamp, second lamp, compass, engine gauges, breaker block, lower column contents, cabin heat, FLARM and hour meter                                                       | aircraft |
+| T4 Panel layout            | #632  |             | panel fields, upper-left instruments, charge lamp, second lamp, compass, engine gauges, breaker block, upper-left placards, lower column contents and its "Instrument Light" legend, cabin heat, FLARM and hour meter                                                       | aircraft |
 
 #538 (lever order) is confirmed by the photos and needs no change; #628 closes it. Each issue holds its scope, likely files, acceptance criteria and the §9 questions it answers; the issue is the task's brief.
 
@@ -77,7 +77,7 @@ legends    console    dials      layout
 - [ ] Remove the throttle detent ticks (#570).
 - [ ] Remove the large knob (#536); record q10/q11 answered.
 - [ ] Parking-brake lever in a curved slot on the right side.
-- [ ] Aileron- and rudder-trim wheels as inert art, plus the parachute warning placard.
+- [ ] Aileron- and rudder-trim wheels as inert art, plus the parachute warning placard (intake §4.4: no rudder or aileron trim model).
 - [ ] Rescue handle red and centred on the aft face, pin with a flag.
 - [ ] Grips: blue throttle, black knurled brake, plain choke.
 - [ ] Fuel-valve strip and red grip on the column's left edge.
@@ -99,7 +99,8 @@ legends    console    dials      layout
 - [ ] Upper-right: tachometer, then the CHT / voltmeter / oil temperature / oil pressure 2×2 and the hour meter. The "Generator" lamp replaces CHARGE. No compass and no second lamp.
 - [ ] Breaker strip: 2×7 plus 12V Outlet with full-word legends; unmodelled positions as inert caps.
 - [ ] Glareshield "Cabin Heat" knob as inert art.
-- [ ] Lower-column background as in the photos.
+- [ ] Upper-left placards as in the photos: the take-off checklist summary at the top right and the aerobatics placard at the bottom, in our own short wording.
+- [ ] Lower-column background as in the photos, with the "Instrument Light" legend as art (no control).
 - [ ] Answers §9 q9, q13, q19, q20 and q22.
 
 ## Settled values (intake §2a, §4)
@@ -113,7 +114,7 @@ legends    console    dials      layout
 | VSI               | ±2000 ft/min, ticks every 500; phases about +600 and −400 ft/min                                |
 | Usable fuel       | 124 l (62 per side; the wing-root placards print 63)                                            |
 | Ignition legends  | OFF, 1, 2, 1+2, START (1+2 and START assumed)                                                   |
-| Parking brake     | "Off", "Brake", "On"                                                                            |
+| Parking brake     | "Off" (forward, valve open), "On" (aft, valve shut), title "Brake"; mapping inferred            |
 
 ## Decisions (agent, overrulable)
 
