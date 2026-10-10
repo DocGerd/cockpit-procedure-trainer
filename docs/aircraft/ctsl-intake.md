@@ -258,23 +258,28 @@ What the trainer draws today, and where it departs from the above:
   "Rudder Trim" between L and R) are drawn as inert art aft of the lever row,
   between the seats; the placard's wording is the trainer's own paraphrase and
   the wheels' exact shape and the placards' order are **assumed (unverified)**.
-  The photos hide the rest of the rudder-trim legend (it starts "L Rud…").
+  The photos hide the rest of the rudder-trim legend (it starts "L Rud…"), so
+  its "Rudder Trim" wording is **assumed (unverified)** too.
 - The rescue handle sits low at the console's aft end, centred between the seats,
-  on a recessed shelf at the bulkhead (M17 T2). It is red, with an orange-bordered
-  label and a pin carrying a red remove-before-flight flag. The label prints
-  "Parachute": the photos do not show the handle's own wording, so the word is a
-  trainer assumption from the parachute placard, kept so the handle has a
-  printed label (§9, question 26). Pulled, it slides forward (up the top view) to
-  the stop at its guide block; the safety pin goes across the guide block
-  through the release lever. Its description and the E2 pull item say forward,
-  hard, to the stop. The red handle's grip shape, the label's wording, the
+  on a recessed shelf at the bulkhead (M17 T2). The photos put it on the
+  console's upright aft face; the shelf is how the top view shows that face, a
+  trainer compromise. It is red, with an orange-bordered label and a pin
+  carrying a red remove-before-flight flag. The label prints "Parachute": the
+  photos do not show the handle's own wording, so the word is a trainer
+  assumption from the parachute placard, kept so the handle has a printed label
+  (§9, question 26). Pulled, it slides forward (up the top view) to the stop at
+  its guide block; the safety pin goes across the guide block through the
+  release lever. Its description and the E2 pull item say forward, hard, to the
+  stop. The red handle's grip shape, the label's wording, the
   flag's streamer shape and the handle's place on the shelf are **assumed
   (unverified)**.
 - The fuel valve is a vertical strip "Open", "Fuel Valve" (printed on two lines)
-  and "Closed" with arrows, beside a slot along the column's left edge; its grip
-  is a red horizontal bar. Closed, the grip lies over the ignition key slot, as
-  the handbook has it (HB 3-6); the photos show it just below the key switch's
-  face, a difference left as is because the interlock rests on the handbook fact.
+  and "Closed" with arrows; "Fuel" is inferred from the worn "F…" of the photos
+  (§3.7) and is **assumed (unverified)**. The strip stands beside a slot along
+  the column's left edge; its grip is a red horizontal bar. Closed, the grip
+  lies over the ignition key slot, as the handbook has it (HB 3-6); the photos
+  show it just below the key switch's face, a difference left as is because the
+  interlock rests on the handbook fact.
 
 ### 3.5 Not in the analog variant
 

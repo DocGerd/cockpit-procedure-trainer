@@ -453,6 +453,9 @@ describe('CTSL aircraft', () => {
 
     it('puts the parking-brake lever on the console right side, aft of the lever row (intake §3.7)', () => {
       expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(right('brake'));
+      expect(rectOf('parkingBrakeValve').y).toBeGreaterThanOrEqual(
+        Math.max(...['trim', 'choke', 'throttle', 'brake'].map(bottom)),
+      );
     });
 
     it('draws no large knob and places only the seven controls (§9 q10, q11)', () => {
