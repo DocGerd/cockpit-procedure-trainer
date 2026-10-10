@@ -545,12 +545,12 @@
   .shell[data-screen='picker'] .picker-index {
     flex: 1 1 0;
     min-height: calc(var(--space-12) * 3);
+    max-height: none;
   }
 
   .shell[data-screen='picker'] .picker-list {
     display: flex;
     flex-direction: column;
-    max-height: none;
   }
 
   .shell[data-screen='picker'] .picker-list > [role='group'] {

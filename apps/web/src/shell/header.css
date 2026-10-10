@@ -233,16 +233,12 @@
     flex-wrap: nowrap;
   }
 
-  /* A name wraps to two lines at most (three on a tablet) before the controls take a row of their own.
+  /* On a desktop a name wraps to two lines at most before the controls take a row of their own.
      The floor sits on the inner span so a single long word still sets the button's minimum. */
   @supports (min-width: calc-size(max-content, size)) {
     .shell-header .shell-choice-value {
       display: inline-block;
       min-width: calc-size(max-content, size * 0.6);
-    }
-
-    .shell[data-layout='tablet'] .shell-header .shell-choice-value {
-      min-width: calc-size(max-content, size * 0.4);
     }
   }
 
