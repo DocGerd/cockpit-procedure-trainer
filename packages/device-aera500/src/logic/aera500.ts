@@ -107,6 +107,11 @@ const touchLegends = {
   brighter: '+',
 } as const satisfies Record<'rest' | TouchIcon, unknown>;
 
+/** The icon names the unit prints on its touchscreen. */
+export const ICON_NAMES = Object.fromEntries(
+  TOUCH_ICONS.map((icon) => [icon, touchLegends[icon]]),
+) as Readonly<Record<TouchIcon, string>>;
+
 const springBack = Object.fromEntries(TOUCH_ICONS.map((icon) => [icon, 'rest'])) as Record<
   TouchIcon,
   'rest'

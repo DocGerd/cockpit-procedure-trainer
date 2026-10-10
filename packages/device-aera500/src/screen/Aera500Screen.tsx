@@ -1,28 +1,10 @@
 import { useHold } from '@cpt/panel-kit';
 import type { DeviceScreenProps } from '@cpt/panel-kit';
 import type { CSSProperties } from 'react';
-import { shownIcons } from '../logic';
+import { ICON_NAMES, shownIcons } from '../logic';
 import type { Aera500State, TouchIcon } from '../logic';
 import { AeraFace } from './AeraFace';
 import './Aera500Screen.css';
-
-/** The icon names the unit prints on its touchscreen. */
-export const ICON_NAMES: Readonly<Record<TouchIcon, string>> = {
-  accept: 'Press To Accept',
-  home: 'Home',
-  back: 'Back',
-  map: 'Map',
-  nearest: 'Nearest',
-  activeFpl: 'Active FPL',
-  directTo: 'Direct To',
-  position: 'Position',
-  tools: 'Tools',
-  gpsStatus: 'GPS Status',
-  zoomOut: 'Out',
-  zoomIn: 'In',
-  dimmer: '−',
-  brighter: '+',
-};
 
 const screenStyle: CSSProperties = {
   boxSizing: 'border-box',

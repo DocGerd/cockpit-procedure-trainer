@@ -72,8 +72,8 @@ describe('aera500Readout', () => {
 
   it('reads the backlight level while the overlay is open', () => {
     const overlay = { ...fixed, overlay: true, backlight: 7 };
-    expect(aera500Readout(overlay, 'en', true)).toContain('backlight 7 of 10');
-    expect(aera500Readout(overlay, 'de', true)).toContain('Beleuchtung 7 von 10');
+    expect(aera500Readout(overlay, 'en', true)).toBe('backlight 7 of 10');
+    expect(aera500Readout(overlay, 'de', true)).toBe('Beleuchtung 7 von 10');
   });
 
   it('leaves the backlight out of the reading with the overlay closed', () => {

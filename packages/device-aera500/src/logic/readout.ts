@@ -30,6 +30,12 @@ export function aera500Readout(state: unknown, language: keyof Text, on: boolean
   const de = language === 'de';
   if (!on || !unit.on) return de ? 'Aus' : 'Off';
 
+  if (unit.overlay) {
+    return de
+      ? `Beleuchtung ${unit.backlight} von ${BACKLIGHT_MAX}`
+      : `backlight ${unit.backlight} of ${BACKLIGHT_MAX}`;
+  }
+
   const parts: (string | null)[] = [PAGE_NAMES[unit.page][language]];
   const range = RANGES_NM[unit.rangeIndex];
   const speed = rounded(unit.groundSpeedKt);
@@ -70,13 +76,6 @@ export function aera500Readout(state: unknown, language: keyof Text, on: boolean
       break;
     default:
       parts.push(de ? 'keine Einträge' : 'no entries');
-  }
-  if (unit.overlay) {
-    parts.push(
-      de
-        ? `Beleuchtung ${unit.backlight} von ${BACKLIGHT_MAX}`
-        : `backlight ${unit.backlight} of ${BACKLIGHT_MAX}`,
-    );
   }
   return parts.filter((part) => part !== null).join(', ');
 }

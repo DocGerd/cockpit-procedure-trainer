@@ -8,6 +8,7 @@ import {
   PAGE_ICONS,
   POWER_OFF_HOLD_MS,
   RANGES_NM,
+  ICON_NAMES,
   TOUCH_ICONS,
   TRACK_INPUT,
   aera500Device,
@@ -63,6 +64,11 @@ describe('aera500Device definition', () => {
       expect(touch?.legends?.[position], position).toBeDefined();
     }
     expect(touch?.legends?.accept).toBe('Press To Accept');
+  });
+
+  it('prints every icon under the legend the control declares', () => {
+    const { touch } = aera500Device.controls;
+    for (const icon of TOUCH_ICONS) expect(ICON_NAMES[icon], icon).toBe(touch?.legends?.[icon]);
   });
 
   it('starts dark at the start-up page with its settings', () => {

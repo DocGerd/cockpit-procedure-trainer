@@ -1,1 +1,1 @@
-export { Aera500Screen, ICON_NAMES } from './Aera500Screen';
+export { Aera500Screen } from './Aera500Screen';
