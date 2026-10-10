@@ -176,6 +176,37 @@ test('a dark-mode load does not fade', async ({ page }) => {
   await expect(page.locator('html')).not.toHaveClass(/theme-fading/);
 });
 
+test('no picker surface paints light on a dark-mode load', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.addInitScript(() => {
+    const frames: string[][] = [];
+    Object.assign(window, { __pickerFrames: frames });
+    const started = performance.now();
+    const sample = () => {
+      const surfaces = [
+        '.picker-card[aria-pressed="true"]',
+        '.picker-row[aria-pressed="true"]',
+        '.picker-mode:has(input:checked)',
+        '.chrome-button',
+      ];
+      const found = surfaces.map((selector) => document.querySelector(selector));
+      if (found.every(Boolean)) {
+        frames.push(found.map((element) => getComputedStyle(element as Element).backgroundColor));
+      }
+      if (performance.now() - started < 1000) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+  await openPicker(page);
+  await page.waitForTimeout(1200);
+  const frames = await page.evaluate(
+    () => (window as unknown as { __pickerFrames: string[][] }).__pickerFrames,
+  );
+  expect(frames.length, 'frames sampled').toBeGreaterThan(5);
+  const settled = frames[frames.length - 1] as string[];
+  for (const frame of frames) expect(frame).toEqual(settled);
+});
+
 for (const viewport of [
   { width: 1920, height: 1080 },
   { width: 3840, height: 2160 },

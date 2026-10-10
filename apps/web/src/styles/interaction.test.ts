@@ -19,9 +19,19 @@ describe('pointer feedback', () => {
     );
   });
 
-  it.each(['chrome-button', 'button-secondary'])('gives .%s the mist fill on hover', (name) => {
-    expect(rules(new RegExp(`\\.${name}[^,{]*:hover`)).join()).toMatch(
+  it('gives .chrome-button the mist fill on hover', () => {
+    expect(rules(/\.chrome-button[^,{]*:hover/).join()).toMatch(
       /background(-color)?:\s*var\(--color-surface-muted\)/,
+    );
+  });
+
+  it('rests the secondary button on the mist fill in ink, and darkens it to the hairline on hover', () => {
+    const rest = rules(/^\s*\.button-secondary\s*$/).join();
+    expect(rest).toMatch(/color:\s*var\(--color-text\)/);
+    expect(rest).toMatch(/background:\s*var\(--color-surface-muted\)/);
+    expect(rest).not.toMatch(/accent/);
+    expect(rules(/\.button-secondary[^,{]*:hover/).join()).toMatch(
+      /background(-color)?:\s*var\(--color-border\)/,
     );
   });
 

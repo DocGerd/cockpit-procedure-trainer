@@ -27,6 +27,12 @@ function applyThemeColorChoice(choice: Theme) {
   }
 }
 
+// Run before the first render, so no surface paints in the other theme and then transitions.
+export function applyInitialTheme() {
+  document.documentElement.dataset.theme =
+    storedTheme() ?? (systemMedia()?.matches ? 'dark' : 'light');
+}
+
 const FADE_CLASS = 'theme-fading';
 const FADE_SETTLE_MS = 50;
 
