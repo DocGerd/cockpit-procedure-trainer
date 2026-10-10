@@ -107,7 +107,7 @@ legends    console    dials      layout
 
 | Value             | Trainer uses                                                                                    |
 | ----------------- | ----------------------------------------------------------------------------------------------- |
-| ASI scale         | 40–340 km/h, numbers every 20                                                                   |
+| ASI scale         | 40–340 km/h, numbers every 40, ticks every 20 |
 | ASI arcs          | white 72–115, green 94–245, yellow 245–300 (white and green lower end not legible; values kept) |
 | VNE / red line    | 300 km/h (162 kt)                                                                               |
 | Max flap −12°     | 300 km/h (placard)                                                                              |

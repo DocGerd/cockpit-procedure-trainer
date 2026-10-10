@@ -592,7 +592,7 @@ The handbook gives only the airspeed arcs and the red lines; the other arcs are
 derived from the limits table above, not copied markings.
 
 **Trainer uses (2026-10-10, §2a decision 3):** the airspeed dial of the photos,
-40 to 340 km/h with numbers every 20; the yellow arc from 245 to the red line at
+40 to 340 km/h with numbers every 40 (every 20 does not fit the ring at the lettering floor) and ticks every 20; the yellow arc from 245 to the red line at
 300 km/h; VNE 300 km/h (162 kt). The green arc's upper end (245) matches the
 photo; the white arc and the green arc's lower end are not legible in the photos,
 so 72–115 and 94 stay. The vertical speed indicator reads thousands of feet per
