@@ -62,7 +62,7 @@ describe('a guard item', () => {
   it('offers Verified, which records the guard left elsewhere as a wrong position', async () => {
     renderPane();
     start();
-    expect(screen.queryByRole('button', { name: 'Check off' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Checked' })).toBeNull();
     expect(
       screen.getByText(/Remove the safety pin, or verify it if it is already set/),
     ).toBeTruthy();

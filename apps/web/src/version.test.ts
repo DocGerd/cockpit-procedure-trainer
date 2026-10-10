@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { copyrightNotice, latestRelease, versionLabel } from './version';
+import { buildLabel, copyrightNotice, latestRelease, versionLabel } from './version';
 
 const repoFile = (name: string) =>
   readFileSync(resolve(import.meta.dirname, '../../..', name), 'utf8');
@@ -58,5 +58,20 @@ describe('versionLabel', () => {
 
   it('marks a build without a release version', () => {
     expect(versionLabel({ release: undefined, deployEnv: 'prod', commit: undefined })).toBe('dev');
+  });
+});
+
+describe('buildLabel', () => {
+  it('names the release and its short commit', () => {
+    expect(buildLabel({ release: '0.7.0', commit: 'abcdef0123456789' })).toBe('v0.7.0 · abcdef0');
+  });
+
+  it('keeps the commit of a build without a release version', () => {
+    expect(buildLabel({ release: undefined, commit: 'abcdef0123456789' })).toBe('dev · abcdef0');
+  });
+
+  it('shows the release alone when the commit is unknown', () => {
+    expect(buildLabel({ release: '0.7.0', commit: undefined })).toBe('v0.7.0');
+    expect(buildLabel({ release: '0.7.0', commit: '' })).toBe('v0.7.0');
   });
 });

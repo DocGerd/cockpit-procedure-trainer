@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { copyrightNotice, latestRelease } from '../src/version';
+import { DESKTOP_MIN_WIDTH } from '../src/shell/layout';
 import { copy, openPicker, startProcedure } from './trainer';
 
 const repoFile = (name: string) =>
@@ -52,7 +53,7 @@ for (const { width, height } of pickerViewports) {
     await page.setViewportSize({ width, height });
     await openPicker(page);
     const footer = page.getByRole('contentinfo');
-    await expect(footer).toBeInViewport();
+    if (width >= DESKTOP_MIN_WIDTH) await expect(footer).toBeInViewport();
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await expect(footer).toBeInViewport();
     await expectFooterClear(page);

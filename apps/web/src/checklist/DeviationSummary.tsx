@@ -8,6 +8,7 @@ import { useDeviationText } from './deviation-text';
 import { ItemGroup, leadingCount } from './ItemGroup';
 import { messages } from './messages';
 import { useItemText } from './item-text';
+import { ItemText } from './ItemText';
 import { flowLength } from './useCurrentTarget';
 
 const KINDS: readonly DeviationKind[] = [
@@ -102,10 +103,12 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
             role="img"
             aria-label={deviated ? text.stateDeviated : text.stateDone}
           >
-            {deviated ? '▲' : '✓'}
+            {deviated ? 'Δ' : '✓'}
           </span>
-          <span className="checklist-number">{index + 1}</span>
-          <span className="checklist-item-text">{itemText(item)}</span>
+          <span className="checklist-number readout">{index + 1}</span>
+          <span className="checklist-item-text">
+            <ItemText item={item} />
+          </span>
         </span>
       </li>
     );
@@ -144,10 +147,10 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
   return (
     <section className="checklist" aria-labelledby={headingId}>
       <div className="checklist-header">
-        <div className="checklist-eyebrow">
+        <p className="kicker checklist-kicker">
           {localize(aircraft.name)} · {mode === 'practice' ? text.modePractice : text.modeGuided}
           {flight && ` · ${format(text.flightLeg, { n: leg + 1, total: flight.legs.length })}`}
-        </div>
+        </p>
         <h1 id={headingId} ref={heading} tabIndex={-1} className="checklist-title">
           {format(text.summaryTitle, { title: localize(procedure.title) })}
         </h1>
@@ -155,23 +158,23 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
 
       <dl className="checklist-stats">
         <div className="checklist-stat">
-          <dt className="checklist-eyebrow">{text.elapsed}</dt>
-          <dd className="checklist-stat-value">{clock(checklist.elapsedMs)}</dd>
+          <dt>{text.elapsed}</dt>
+          <dd className="checklist-stat-value readout">{clock(checklist.elapsedMs)}</dd>
         </div>
         <div className="checklist-stat">
-          <dt className="checklist-eyebrow">{text.deviations}</dt>
-          <dd className="checklist-stat-value" data-deviated={deviations.length > 0}>
+          <dt>{text.deviations}</dt>
+          <dd className="checklist-stat-value readout" data-deviated={deviations.length > 0}>
             {deviations.length}
           </dd>
         </div>
         <div className="checklist-stat">
-          <dt className="checklist-eyebrow">{text.assists}</dt>
-          <dd className="checklist-stat-value">{checklist.assists + assisted.length}</dd>
+          <dt>{text.assists}</dt>
+          <dd className="checklist-stat-value readout">{checklist.assists + assisted.length}</dd>
         </div>
         {answer && (
           <div className="checklist-stat">
-            <dt className="checklist-eyebrow">{text.recognition}</dt>
-            <dd className="checklist-stat-value">
+            <dt>{text.recognition}</dt>
+            <dd className="checklist-stat-value readout">
               {answer.recognitionMs === undefined
                 ? text.recognisedEarly
                 : clock(answer.recognitionMs)}
@@ -217,7 +220,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           <ol className="checklist-deviation-list">
             {deviations.map((deviation, index) => (
               <li key={index} className="checklist-deviation">
-                <div className="checklist-deviation-where">{describe.where(deviation)}</div>
+                <div className="checklist-deviation-where readout">{describe.where(deviation)}</div>
                 <div className="checklist-deviation-body">
                   <div className="checklist-deviation-title">{describe.title(deviation)}</div>
                   <dl className="checklist-deviation-detail">
@@ -250,7 +253,7 @@ export function DeviationSummary({ checklist }: { checklist: ChecklistState<unkn
           <ol className="checklist-assisted-list">
             {assisted.map((index) => (
               <li key={index} className="checklist-assisted-item">
-                <span className="checklist-assisted-number">
+                <span className="checklist-assisted-number readout">
                   {format(text.itemNumber, { n: index + 1 })}
                 </span>
                 <span>{procedure.items[index] && itemText(procedure.items[index])}</span>

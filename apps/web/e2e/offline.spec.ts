@@ -2,6 +2,7 @@ import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
 import { messages as updateMessages } from '../src/pwa/messages';
+import { messages as aboutMessages } from '../src/shell/about.messages';
 import { checklistPane, copy, openPicker, procedure, startProcedure } from './trainer';
 
 const engineStart = 'engineStart';
@@ -24,6 +25,17 @@ test('the trainer reloads and starts a procedure while offline', async ({ page, 
   const [firstItem] = procedure(engineStart).items;
   if (!firstItem) throw new Error(`The demo procedure "${engineStart}" has no items`);
   await expect(checklistPane(page).getByRole('listitem').first()).toContainText(firstItem.text.en);
+});
+
+test('About opens offline from the precache', async ({ page, context }) => {
+  await openPicker(page);
+  await isControlled(page);
+
+  await context.setOffline(true);
+  await page.getByRole('contentinfo').getByRole('button').click();
+  const dialog = page.getByRole('dialog', { name: aboutMessages.en.aboutTitle });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('heading', { level: 4 }).first()).toBeVisible();
 });
 
 // The browser fetches the worker script outside Playwright's routing, so the built file is changed.

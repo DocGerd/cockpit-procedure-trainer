@@ -78,6 +78,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 describe('error boundary', () => {
@@ -102,6 +103,14 @@ describe('error boundary', () => {
     renderBoundary();
     expect(screen.getByRole('contentinfo').textContent).toContain('Version');
     expect(screen.getByRole('alertdialog').getAttribute('aria-modal')).toBeNull();
+  });
+
+  it('names the exact build in the error dialog', () => {
+    vi.stubEnv('VITE_APP_RELEASE', '0.7.0');
+    vi.stubEnv('VITE_BUILD_SHA', 'abcdef0123456');
+    broken = true;
+    renderBoundary();
+    expect(screen.getByRole('alertdialog').textContent).toContain('Version v0.7.0 · abcdef0');
   });
 
   it('puts keyboard focus on the reset button', () => {

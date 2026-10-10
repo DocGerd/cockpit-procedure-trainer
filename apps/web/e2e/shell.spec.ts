@@ -135,7 +135,10 @@ for (const viewport of headerViewports) {
           const { left, right, top, bottom } = target.getBoundingClientRect();
           return right - left > 1 && bottom - top > 1 ? { left, right, top, bottom } : undefined;
         };
-        return [...element.children].flatMap((item) => {
+        const items = [...element.children].flatMap((child) =>
+          child.classList.contains('shell-controls') ? [...child.children] : [child],
+        );
+        return items.flatMap((item) => {
           const box = visible(item);
           if (!box) return [];
           const parts = [...item.querySelectorAll('*')].flatMap((part) => {
@@ -303,3 +306,146 @@ for (const language of ['en', 'de'] as const)
       expect(row.y + row.height, 'first row bottom').toBeLessThanOrEqual(list.y + list.height);
     });
   }
+
+for (const viewport of [
+  { width: 1280, height: 800 },
+  { width: 1024, height: 768 },
+]) {
+  // The rescue title is the longest name; the preflight title is one long German word.
+  for (const procedureId of ['rescueDeployment', 'preflight']) {
+    test(`the header keeps one row and shows both names in full in German with ${procedureId} at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      const chosen = ctsl?.procedures[procedureId];
+      if (!ctsl || !chosen) throw new Error(`The CTSL has no ${procedureId} procedure`);
+      await page.setViewportSize(viewport);
+      await openAircraft(page, ctsl, procedureId);
+      await selectLanguage(page, 'de');
+
+      const header = page.getByRole('banner');
+      const boxes = await header.evaluate((element) =>
+        ['.shell-brand', '.shell-breadcrumb', '.shell-controls'].map((selector) => {
+          const box = element.querySelector(selector)?.getBoundingClientRect();
+          if (!box) throw new Error(`no ${selector}`);
+          return { top: box.top, bottom: box.bottom };
+        }),
+      );
+      const lowestTop = Math.max(...boxes.map(({ top }) => top));
+      const highestBottom = Math.min(...boxes.map(({ bottom }) => bottom));
+      expect(lowestTop, 'brand, names and controls share one row').toBeLessThan(highestBottom);
+      for (const name of [ctsl.name.de, chosen.title.de]) {
+        const crumb = header.getByRole('button', { name, exact: true });
+        await expect(crumb).toBeInViewport({ ratio: 1 });
+        await expect(crumb).toHaveText(name);
+        const clipped = await crumb.evaluate(
+          (element) =>
+            element.scrollWidth > element.clientWidth + 0.5 ||
+            element.scrollHeight > element.clientHeight + 0.5,
+        );
+        expect(clipped, `${name} clipped`).toBe(false);
+      }
+    });
+  }
+}
+
+test('the phase select is no wider than its longest phase at 1920x1080', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await pickProcedure(page, 'engineStart', 'guided');
+  const select = page.getByRole('banner').getByRole('combobox');
+  const { width, longest } = await select.evaluate((element: HTMLSelectElement) => {
+    const style = getComputedStyle(element);
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) throw new Error('no canvas');
+    context.font = style.font;
+    const text = Math.max(...[...element.options].map((o) => context.measureText(o.text).width));
+    const chrome =
+      Number.parseFloat(style.paddingLeft) +
+      Number.parseFloat(style.paddingRight) +
+      Number.parseFloat(style.borderLeftWidth) +
+      Number.parseFloat(style.borderRightWidth);
+    return { width: element.getBoundingClientRect().width, longest: text + chrome };
+  });
+  // The drop-down arrow sits beside the text and is not part of the options.
+  expect(width).toBeLessThanOrEqual(longest + 32);
+});
+
+for (const viewport of [
+  { width: 1920, height: 1080 },
+  { width: 1024, height: 768 },
+]) {
+  test.describe(`the header title at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport });
+
+    const home = (page: Page) =>
+      page.getByRole('banner').getByRole('button', { name: copy.shell.brandName });
+    const picker = (page: Page) =>
+      page.getByRole('heading', { level: 1, name: copy.shell.pickerTitle });
+
+    test('goes back to the picker in one step when nothing would be lost', async ({ page }) => {
+      await pickProcedure(page, 'engineStart', 'guided');
+      await home(page).click();
+      await expect(page.getByRole('alertdialog')).toHaveCount(0);
+      await expect(picker(page)).toBeVisible();
+      await expect(page).toHaveTitle('Cockpit Procedure Trainer');
+    });
+
+    test('asks before it discards a deviation', async ({ page }) => {
+      await pickProcedure(page, 'engineStart', 'guided');
+      await expect(page).toHaveTitle(
+        `${procedure('engineStart').title.en} · ${aircraft.name.en} — Cockpit Procedure Trainer`,
+      );
+      await operateUnrelatedControl(page, 'flaps');
+      await home(page).click();
+      const dialog = page.getByRole('alertdialog', { name: 'Back to the start?' });
+      await expect(dialog).toContainText('1 deviation');
+      await dialog.getByRole('button', { name: copy.shell.cancel }).click();
+      await expect(picker(page)).toHaveCount(0);
+
+      await home(page).click();
+      await page
+        .getByRole('alertdialog')
+        .getByRole('button', { name: 'Back to the start', exact: true })
+        .click();
+      await expect(picker(page)).toBeVisible();
+    });
+  });
+}
+
+test('the tablet drawer closes from the button in its head', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await pickProcedure(page, 'engineStart', 'guided');
+  const toggle = page.getByRole('banner').getByRole('button', { name: /^Checklist/ });
+  await toggle.click();
+  const close = page.getByRole('button', { name: 'Close checklist' });
+  await expect(close).toBeInViewport({ ratio: 1 });
+  await close.click();
+  await expect(page.getByRole('complementary', { name: 'Checklist' })).toHaveCount(0);
+  await expect(toggle).toBeFocused();
+});
+
+// base.css loads last, so header rules must outrank its focus ring and .chrome-button padding.
+test('the header controls keep their own focus ring and square icon buttons', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await pickProcedure(page, 'engineStart', 'guided');
+  const segment = page.locator('.modes-segment').last();
+  await page.keyboard.press('Shift');
+  await segment.focus();
+  const offset = await segment.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).outlineOffset),
+  );
+  expect(offset, 'focus ring drawn inside the clipped segment row').toBeLessThan(0);
+
+  const square = async (button: Locator) => {
+    const box = await button.boundingBox();
+    if (!box) throw new Error('button not rendered');
+    expect(Math.round(box.width)).toBe(Math.round(box.height));
+  };
+  await square(page.locator('.theme-switch'));
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page
+    .getByRole('banner')
+    .getByRole('button', { name: /^Checklist/ })
+    .click();
+  await square(page.getByRole('button', { name: 'Close checklist' }));
+});

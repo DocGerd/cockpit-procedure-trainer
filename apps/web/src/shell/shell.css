@@ -112,6 +112,22 @@
   border-radius: 0;
   border-block: 0;
   border-inline-end: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.chrome-button.shell-drawer-close {
+  display: grid;
+  flex: none;
+  order: -1;
+  place-items: center;
+  align-self: flex-end;
+  margin: var(--space-2) var(--space-2) 0;
+  padding: 0;
+}
+
+.shell-drawer-close svg {
+  width: var(--space-5);
+  height: var(--space-5);
 }
 
 .shell-scrim {
