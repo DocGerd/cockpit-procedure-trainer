@@ -293,10 +293,8 @@ for (const language of ['en', 'de'] as const)
         .getByRole('button', { name: new RegExp(`^${shell.emergencyProcedures} \\d+$`) });
       await inside(tab, 'Emergency tab');
       await tab.click();
-      const first = page
-        .getByRole('group', { name: shell.emergencyProcedures, exact: true })
-        .getByRole('button')
-        .first();
+      const group = page.getByRole('group', { name: shell.emergencyProcedures, exact: true });
+      const first = group.getByRole('button').first();
       const [row, list] = await Promise.all([
         first.boundingBox(),
         page.locator('.picker-list').boundingBox(),
@@ -304,6 +302,19 @@ for (const language of ['en', 'de'] as const)
       if (!row || !list) throw new Error('no row or list box');
       expect(row.y, 'first row top').toBeGreaterThanOrEqual(list.y);
       expect(row.y + row.height, 'first row bottom').toBeLessThanOrEqual(list.y + list.height);
+      const scroll = await group.evaluate((element) => {
+        const box = element.parentElement;
+        if (!box) throw new Error('no list');
+        return {
+          offset: element.getBoundingClientRect().top - box.getBoundingClientRect().top,
+          top: box.scrollTop,
+          max: box.scrollHeight - box.clientHeight,
+        };
+      });
+      expect(scroll.top, 'the tab scrolled the list').toBeGreaterThan(0);
+      if (scroll.top < scroll.max - 1) {
+        expect(Math.abs(scroll.offset), 'group at the top of the list').toBeLessThanOrEqual(1);
+      }
     });
   }
 
@@ -319,11 +330,29 @@ for (const language of ['en', 'de'] as const) {
       page,
     }) => {
       await page.setViewportSize(viewport);
+      const run = { mode: 'practice', deviations: 1, at: 1 };
+      await page.addInitScript(
+        (history) => localStorage.setItem('cpt.history', history),
+        JSON.stringify(
+          Object.fromEntries(
+            aircraftRegistry.map((entry) => [
+              entry.id,
+              Object.fromEntries(
+                Object.keys(entry.procedures).map((id) => [id, { last: run, best: run }]),
+              ),
+            ]),
+          ),
+        ),
+      );
       await openPicker(page);
       await selectLanguage(page, language);
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
 
-      for (const entry of aircraftRegistry) {
+      for (const [entry, mode] of aircraftRegistry.flatMap((entry) =>
+        [shell.guided, shell.practice].map((mode) => [entry, mode] as const),
+      )) {
         await page.getByRole('button', { name: entry.name[language] }).click();
+        await page.getByRole('radio', { name: mode }).check();
         const boxes = await page.evaluate(() => {
           const rect = (selector: string) => {
             const element = document.querySelector(selector);
@@ -341,38 +370,87 @@ for (const language of ['en', 'de'] as const) {
             footer: rect('.app-footer'),
             left: Math.max(...bottoms('.picker-card, .picker-drill')),
             right: Math.max(...bottoms('.picker-actions > *')),
+            page: document.documentElement.scrollHeight - document.documentElement.clientHeight,
           };
         });
         expect(boxes.modes.top, 'Mode under the index').toBeGreaterThanOrEqual(boxes.list.bottom);
         expect(boxes.modes.left, 'Mode in the index column').toBeLessThanOrEqual(boxes.list.left);
-        expect(boxes.footer.top - boxes.left, 'left band').toBeLessThanOrEqual(bandLimit);
-        expect(boxes.footer.top - boxes.right, 'right band').toBeLessThanOrEqual(bandLimit);
+        const where = `${entry.id} ${mode}`;
+        expect(boxes.footer.top - boxes.left, `left band, ${where}`).toBeLessThanOrEqual(bandLimit);
+        expect(boxes.footer.top - boxes.right, `right band, ${where}`).toBeLessThanOrEqual(
+          bandLimit,
+        );
+        expect(
+          boxes.footer.top - boxes.left,
+          `left column above the footer, ${where}`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(
+          boxes.footer.top - boxes.right,
+          `launch above the footer, ${where}`,
+        ).toBeGreaterThanOrEqual(0);
+        expect(boxes.page, `page scroll, ${where}`).toBeLessThanOrEqual(0);
       }
     });
   }
 }
 
-test('the German CTSL picker fits 1024x768 in Practice with the surprise phase select in view', async ({
-  page,
-}) => {
-  const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
-  if (!ctsl) throw new Error('The aircraft registry has no CTSL');
-  await page.setViewportSize({ width: 1024, height: 768 });
-  await openPicker(page);
-  await selectLanguage(page, 'de');
-  await page.getByRole('button', { name: ctsl.name.de }).click();
-  await page.getByRole('radio', { name: copyDe.shell.practice }).check();
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
-  );
-  expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
-  const [select, footer] = await Promise.all([
-    page.getByLabel(copyDe.shell.surprisePhase).boundingBox(),
-    page.locator('.app-footer').boundingBox(),
-  ]);
-  if (!select || !footer) throw new Error('no select or footer box');
-  expect(select.y + select.height, 'select above the footer').toBeLessThanOrEqual(footer.y);
-});
+for (const language of ['en', 'de'] as const)
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1366, height: 1024 },
+  ]) {
+    test(`the ${language} CTSL picker fits ${viewport.width}x${viewport.height} in Practice with nothing clipped and full-size targets`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+      const shell = language === 'de' ? copyDe.shell : copy.shell;
+      await page.setViewportSize(viewport);
+      await openPicker(page);
+      await selectLanguage(page, language);
+      await page.getByRole('button', { name: ctsl.name[language] }).click();
+      await page.getByRole('radio', { name: shell.practice }).check();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+      );
+      expect(overflow, 'page scroll').toBeLessThanOrEqual(0);
+      const [select, footer] = await Promise.all([
+        page.getByLabel(shell.surprisePhase).boundingBox(),
+        page.locator('.app-footer').boundingBox(),
+      ]);
+      if (!select || !footer) throw new Error('no select or footer box');
+      expect(select.y + select.height, 'select above the footer').toBeLessThanOrEqual(footer.y);
+
+      const clipped = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll<HTMLElement>(
+            '.picker-drill-body > *, .picker-surprise > *, .picker-mode-text',
+          ),
+        ]
+          .filter(
+            (element) =>
+              element.scrollWidth > element.clientWidth + 1 ||
+              element.scrollHeight > element.clientHeight + 1,
+          )
+          .map((element) => element.textContent),
+      );
+      expect(clipped, 'clipped drill or mode text').toEqual([]);
+
+      const target = 44;
+      const hide = await page.getByRole('checkbox', { name: shell.hideUpcoming }).boundingBox();
+      if (!hide) throw new Error('no Hide upcoming box');
+      expect(hide.width, 'Hide upcoming width').toBeGreaterThanOrEqual(target);
+      expect(hide.height, 'Hide upcoming height').toBeGreaterThanOrEqual(target);
+      const labels = await page
+        .locator('.picker-surprise > label')
+        .evaluateAll((elements) =>
+          elements.map((element) => element.getBoundingClientRect().height),
+        );
+      expect(labels.length, 'surprise labels').toBeGreaterThan(0);
+      for (const height of labels)
+        expect(height, 'surprise label height').toBeGreaterThanOrEqual(target);
+    });
+  }
 
 for (const viewport of [
   { width: 1280, height: 800 },

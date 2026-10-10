@@ -54,14 +54,12 @@ function AircraftChoice({ aircraft, selected }: { aircraft: Aircraft; selected: 
 }
 
 function ProcedureGroup({
-  id: groupId,
   type,
   label,
   ids,
   selected,
   onSelect,
 }: {
-  id: string;
   type: ProcedureType;
   label: string;
   ids: readonly string[];
@@ -78,7 +76,7 @@ function ProcedureGroup({
     format(n === 1 ? text.toggleDeviationOne : text.toggleDeviationOther, { count: n });
   if (ids.length === 0) return null;
   return (
-    <div role="group" id={groupId} aria-labelledby={labelId} data-type={type}>
+    <div role="group" aria-labelledby={labelId} data-type={type}>
       <div id={labelId} className="picker-group-label">
         {label}
       </div>
@@ -312,7 +310,6 @@ export function Picker() {
   const procedureHeading = useId();
   const modeName = useId();
   const exploreHint = useId();
-  const groupId = useId();
   const list = useRef<HTMLDivElement>(null);
 
   const byType = (type: ProcedureType) =>
@@ -323,7 +320,7 @@ export function Picker() {
       ['emergency', text.emergencyProcedures],
     ] as const
   )
-    .map(([type, label]) => ({ type, label, id: `${groupId}-${type}`, ids: byType(type) }))
+    .map(([type, label]) => ({ type, label, ids: byType(type) }))
     .filter((group) => group.ids.length > 0);
 
   const start = () => {
@@ -363,7 +360,6 @@ export function Picker() {
                   {groups.map((group) => (
                     <ProcedureGroup
                       key={group.type}
-                      id={group.id}
                       type={group.type}
                       label={group.label}
                       ids={group.ids}
@@ -381,7 +377,7 @@ export function Picker() {
                       data-type={group.type}
                       onClick={() => {
                         const box = list.current;
-                        const target = document.getElementById(group.id);
+                        const target = box?.querySelector(`:scope > [data-type='${group.type}']`);
                         if (!box || !target) return;
                         box.scrollTo({
                           top:

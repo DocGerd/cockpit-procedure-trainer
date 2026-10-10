@@ -556,6 +556,11 @@
   .shell[data-screen='picker'] .picker-drill-list {
     grid-auto-rows: minmax(min-content, calc(var(--space-12) * 2.75));
   }
+
+  /* The capped rows size the left column, so a fourth drill (Practise next) takes the smaller cap. */
+  .shell[data-screen='picker'] .picker-drill-list:has(> :nth-child(4)) {
+    grid-auto-rows: minmax(min-content, calc(var(--space-12) * 2));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -606,6 +611,14 @@
 
   .picker-mode {
     padding-block: var(--space-1);
+  }
+
+  .picker-drill-list:has(> :nth-child(4)) > .picker-drill {
+    padding-block: var(--space-1);
+  }
+
+  .picker-drill-list:has(> :nth-child(4)) .picker-drill-body {
+    row-gap: 0;
   }
 }
 

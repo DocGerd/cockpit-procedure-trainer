@@ -13,7 +13,7 @@ import type { Trainer } from '../trainer';
 import { testAircraft } from '../trainer/test-aircraft';
 import { Shell } from './Shell';
 
-const real = vi.hoisted(() => ({ use: false }));
+const real = vi.hoisted(() => ({ use: false, registry: undefined as unknown }));
 
 vi.mock('../aircraft-registry', async () => {
   const actual =
@@ -21,7 +21,7 @@ vi.mock('../aircraft-registry', async () => {
   const { testAircraft: fixtures } = await import('../trainer/test-aircraft');
   return {
     get aircraftRegistry() {
-      return real.use ? actual.aircraftRegistry : fixtures;
+      return real.registry ?? (real.use ? actual.aircraftRegistry : fixtures);
     },
   };
 });
@@ -67,6 +67,7 @@ afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   real.use = false;
+  real.registry = undefined;
 });
 
 describe('aircraft and procedure picker', () => {
@@ -189,19 +190,58 @@ describe('procedure index thumb tabs', () => {
     expect(procedureButtons()).toHaveLength(procedures.length);
   });
 
-  it('scrolls the list to the group of the tab without picking a procedure', async () => {
+  it('scrolls the list so the group of each tab starts at its top, without picking a procedure', async () => {
+    const original = Element.prototype.scrollTo;
     const scrolled: [Element, ScrollToOptions | undefined][] = [];
-    Element.prototype.scrollTo = vi.fn(function (this: Element, options?: ScrollToOptions) {
+    Element.prototype.scrollTo = function (this: Element, options?: ScrollToOptions) {
       scrolled.push([this, options]);
-    }) as typeof Element.prototype.scrollTo;
-    localStorage.setItem('cpt.aircraft', second.id);
+    } as typeof Element.prototype.scrollTo;
+    try {
+      localStorage.setItem('cpt.aircraft', second.id);
+      renderPicker();
+      const section = procedureSection();
+      const box = section.querySelector<HTMLElement>('.picker-list');
+      if (!box) throw new Error('no list');
+      box.scrollTop = 40;
+      box.getBoundingClientRect = () => ({ top: 300 }) as DOMRect;
+      const groupTops = { Normal: 310, Emergency: 420 };
+      for (const [name, top] of Object.entries(groupTops)) {
+        within(section).getByRole('group', { name }).getBoundingClientRect = () =>
+          ({ top }) as DOMRect;
+      }
+      const before = procedureButtons().map((button) => button.getAttribute('aria-pressed'));
+      await userEvent.click(screen.getByRole('button', { name: /^Emergency/ }));
+      await userEvent.click(screen.getByRole('button', { name: /^Normal/ }));
+      expect(scrolled).toEqual([
+        [box, { top: 40 + 420 - 300 }],
+        [box, { top: 40 + 310 - 300 }],
+      ]);
+      expect(procedureButtons().map((button) => button.getAttribute('aria-pressed'))).toEqual(
+        before,
+      );
+    } finally {
+      Element.prototype.scrollTo = original;
+    }
+  });
+
+  it('shows a single tab for an aircraft with normal procedures only', () => {
+    expect(Object.values(first.procedures).every((entry) => entry.type === 'normal')).toBe(true);
     renderPicker();
-    const group = within(procedureSection()).getByRole('group', { name: 'Emergency' });
-    group.getBoundingClientRect = () => ({ top: 120 }) as DOMRect;
-    const before = procedureButtons().map((button) => button.getAttribute('aria-pressed'));
-    await userEvent.click(screen.getByRole('button', { name: /^Emergency/ }));
-    expect(scrolled).toEqual([[group.parentElement, { top: 120 }]]);
-    expect(procedureButtons().map((button) => button.getAttribute('aria-pressed'))).toEqual(before);
+    const tabs = within(procedureSection()).getByRole('navigation', { name: 'Procedure groups' });
+    expect(
+      within(tabs)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual([`Normal ${Object.keys(first.procedures).length}`]);
+  });
+
+  it('shows the empty note and no tabs for an aircraft without procedures', () => {
+    real.registry = [{ ...first, procedures: {} }];
+    renderPicker();
+    expect(
+      within(procedureSection()).getByText('This aircraft has no procedures yet.'),
+    ).toBeTruthy();
+    expect(within(procedureSection()).queryByRole('navigation')).toBeNull();
   });
 
   it('names the tabs in German', () => {
