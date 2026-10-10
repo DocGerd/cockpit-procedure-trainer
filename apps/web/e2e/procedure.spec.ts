@@ -339,6 +339,37 @@ test.describe('a CTSL flow', () => {
     await expect(pane.getByText(copy.checklist.flowVerify)).toBeVisible();
     for (const { item } of flow) await expect(pane.getByText(item.text.en).first()).toBeVisible();
   });
+
+  test('Practice keeps the flow block and its Show me inside the rows inset, under one heading', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: copy.shell.practice, exact: true }).click();
+    const pane = checklistPane(page);
+    const group = pane.locator('.checklist-group[data-group="flow"]');
+    const showMe = group.getByRole('button', { name: copy.checklist.showMe });
+    const [paneBox, showBox, rowBox] = await Promise.all([
+      pane.boundingBox(),
+      showMe.boundingBox(),
+      group.locator('li.checklist-item').first().boundingBox(),
+    ]);
+    if (!paneBox || !showBox || !rowBox) throw new Error('no flow boxes');
+    const inset = 16;
+    expect(showBox.x + showBox.width, 'Show me right edge').toBeLessThanOrEqual(
+      paneBox.x + paneBox.width - inset,
+    );
+    expect(showBox.x, 'Show me starts at the item text').toBeGreaterThan(rowBox.x + inset);
+    expect(showBox.width, 'Show me sizes to its content').toBeLessThan(paneBox.width / 2);
+    const kickers = await pane.evaluate(
+      (element) =>
+        [...element.querySelectorAll<HTMLElement>('*')].filter(
+          (node) =>
+            node.children.length === 0 &&
+            getComputedStyle(node).textTransform === 'uppercase' &&
+            node.textContent?.trim() !== '',
+        ).length,
+    );
+    expect(kickers, 'uppercase mono kickers in the pane').toBe(1);
+  });
 });
 
 test.describe('the Alternator failure opens with its memory items', () => {

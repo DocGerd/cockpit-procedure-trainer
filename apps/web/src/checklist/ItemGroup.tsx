@@ -29,7 +29,7 @@ export function ItemGroup({
   const id = useId();
   return (
     <li className="checklist-group" data-group={kind} data-state={state}>
-      <span id={id} className="checklist-eyebrow checklist-group-label">
+      <span id={id} className="checklist-group-label">
         {label}
       </span>
       <ol className="checklist-group-items" aria-labelledby={id}>

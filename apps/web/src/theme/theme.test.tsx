@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { writeSetting } from '../storage';
-import { parseDurationMs, ThemeProvider, ThemeSwitch } from './index';
+import { applyInitialTheme, parseDurationMs, ThemeProvider, ThemeSwitch } from './index';
 
 const labels = {
   switchToLight: 'Switch to light theme',
@@ -70,6 +70,27 @@ afterEach(() => {
   document.head.querySelectorAll('meta[name="theme-color"]').forEach((meta) => meta.remove());
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+});
+
+describe('applyInitialTheme', () => {
+  it('sets the stored theme before anything renders', () => {
+    mockSystemTheme('light');
+    writeSetting('theme', 'dark');
+    applyInitialTheme();
+    expect(theme()).toBe('dark');
+  });
+
+  it('falls back to the system theme', () => {
+    mockSystemTheme('dark');
+    applyInitialTheme();
+    expect(theme()).toBe('dark');
+  });
+
+  it('is light with no stored choice and a light system', () => {
+    mockSystemTheme('light');
+    applyInitialTheme();
+    expect(theme()).toBe('light');
+  });
 });
 
 describe('theme', () => {

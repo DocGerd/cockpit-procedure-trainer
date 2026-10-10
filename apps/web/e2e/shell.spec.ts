@@ -452,10 +452,49 @@ for (const language of ['en', 'de'] as const)
     });
   }
 
-for (const viewport of [
-  { width: 1280, height: 800 },
-  { width: 1024, height: 768 },
-]) {
+// A title never wraps and squeezes the dot leader to a stub: the row either keeps title,
+// leader and value on one line, or sets the value under the title.
+for (const language of ['en', 'de'] as const)
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1366, height: 768 },
+    { width: 1920, height: 1080 },
+  ]) {
+    test(`the ${language} CTSL procedure rows keep one title line at ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+      if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+      await page.setViewportSize(viewport);
+      await openPicker(page);
+      await selectLanguage(page, language);
+      await page.getByRole('button', { name: ctsl.name[language] }).click();
+      const rows = await page.locator('.picker-row').evaluateAll((elements) =>
+        elements.map((element) => {
+          const box = (selector: string) =>
+            element.querySelector(selector)?.getBoundingClientRect();
+          const title = box('.picker-row-title');
+          const meta = box('.picker-meta');
+          const leader = box('.leader');
+          const leaderShown = leader !== undefined && leader.width > 0;
+          return {
+            name: element.querySelector('.picker-row-title')?.textContent ?? '',
+            titleHeight: title?.height ?? 0,
+            leader: leaderShown ? leader.width : undefined,
+            below: meta !== undefined && title !== undefined && meta.top >= title.bottom - 1,
+          };
+        }),
+      );
+      expect(rows.length, 'procedure rows').toBeGreaterThan(5);
+      for (const row of rows) {
+        expect(row.titleHeight, `${row.name} on one line`).toBeLessThanOrEqual(26);
+        if (row.leader !== undefined) expect(row.leader, `${row.name} leader`).toBeGreaterThan(40);
+        else expect(row.below, `${row.name} value under the title`).toBe(true);
+      }
+    });
+  }
+
+for (const viewport of [{ width: 1280, height: 800 }]) {
   // The rescue title is the longest name; the preflight title is one long German word.
   for (const procedureId of ['rescueDeployment', 'preflight']) {
     test(`the header keeps one row and shows both names in full in German with ${procedureId} at ${viewport.width}x${viewport.height}`, async ({
@@ -492,6 +531,39 @@ for (const viewport of [
       }
     });
   }
+}
+
+// A tablet has no room for both names in full: each stays on one line, the aircraft gives way
+// first, and the full name stays in the button's title.
+for (const procedureId of ['rescueDeployment', 'preflight']) {
+  test(`the tablet header keeps one row of single-line names in German with ${procedureId}`, async ({
+    page,
+  }) => {
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    const chosen = ctsl?.procedures[procedureId];
+    if (!ctsl || !chosen) throw new Error(`The CTSL has no ${procedureId} procedure`);
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await openAircraft(page, ctsl, procedureId);
+    await selectLanguage(page, 'de');
+
+    const header = page.getByRole('banner');
+    const crumbs = await header.locator('.shell-choice').evaluateAll((elements) =>
+      elements.map((element) => ({
+        title: element.getAttribute('title') ?? '',
+        text: element.textContent ?? '',
+        height: element.querySelector('.shell-choice-value')?.getBoundingClientRect().height ?? 0,
+        right: element.getBoundingClientRect().right,
+      })),
+    );
+    expect(crumbs.map((crumb) => crumb.text)).toEqual([ctsl.name.de, chosen.title.de]);
+    for (const crumb of crumbs) {
+      expect(crumb.height, `${crumb.text} on one line`).toBeLessThanOrEqual(24);
+      expect(crumb.title, `${crumb.text} title`).toContain(crumb.text);
+    }
+    const controls = await header.locator('.shell-controls').boundingBox();
+    if (!controls) throw new Error('no controls');
+    expect(Math.max(...crumbs.map((crumb) => crumb.right))).toBeLessThanOrEqual(controls.x);
+  });
 }
 
 test('the phase select is no wider than its longest phase at 1920x1080', async ({ page }) => {

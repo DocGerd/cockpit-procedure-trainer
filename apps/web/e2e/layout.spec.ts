@@ -2,7 +2,7 @@ import { expect, test } from './fixtures';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
-import { openPicker } from './trainer';
+import { copy, openPicker } from './trainer';
 import {
   TOUCH_TARGET_PX,
   deviceTargets,
@@ -447,6 +447,28 @@ test('the picker text at 3840x2160 is at least 1.5 times its 1920x1080 size', as
     await page.setViewportSize(viewport);
     await openPicker(page);
     sizes.push(await chromeFontSizes(page, pickerText));
+  }
+  const [hd, uhd] = sizes;
+  expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
+});
+
+test('the control details at 3840x2160 are at least 1.5 times their 1920x1080 size', async ({
+  page,
+}) => {
+  const detailText: ChromeText = {
+    title: ['.modes-details-title', 'fontSize'],
+    purpose: ['.modes-purpose', 'fontSize'],
+    'operate label': ['.modes-details .modes-operate-label', 'fontSize'],
+    'operate hint': ['.modes-details .modes-operate-hint', 'fontSize'],
+  };
+  const sizes: Map<string, number>[] = [];
+  for (const viewport of desktops) {
+    await page.setViewportSize(viewport);
+    await openAircraft(page, ctsl);
+    await page.getByRole('button', { name: copy.shell.exploreCockpit }).click();
+    await page.locator('[data-pan-through]').first().click({ force: true });
+    await expect(page.locator('.modes-details')).toBeVisible();
+    sizes.push(await chromeFontSizes(page, detailText));
   }
   const [hd, uhd] = sizes;
   expectChromeScaled(hd ?? new Map(), uhd ?? new Map());
