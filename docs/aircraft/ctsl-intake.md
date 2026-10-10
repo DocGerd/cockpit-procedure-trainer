@@ -75,9 +75,11 @@ laid out for the left seat (pilot in command). The trainer draws three views:
 `panel` (both upper fields), `centre` (lower centre field) and `console` (the
 console top down to the rescue handle at its aft end, between the seats).
 
-§3.1 to §3.6 describe the handbook's analog variant as the trainer draws it. The
-owner's photos of D-MPGO (§3.7) differ in many places; §3.7.2 lists each
-difference against the trainer.
+§3.1 to §3.6 record the handbook's analog variant. The owner's photos of D-MPGO
+(§3.7) differ in many places and win (§2a), so the trainer follows the photos
+where they differ: the **Trainer** and **Superseded 2026-10-10** notes in each
+section say what it draws. §3.7.2 lists each difference against the trainer as
+it stood before M17.
 
 ### 3.1 Upper-left field (view `panel`)
 
@@ -187,6 +189,8 @@ wording either. The type-name script lettering is not reproduced.
   above the key switch and its handle comes down over the slot, so the key cannot
   be turned out of OFF while the valve is closed; the valve still closes with the
   key turned on, as E6 requires; legends FUEL VALVE, OPEN and CLOSED beside the slide.
+  **Superseded 2026-10-10** (§2a, decision 1): the strip prints "Open", "Fuel",
+  "Valve", "Closed" top to bottom, as the photos show (§3.7).
   For the key going in and out under the handle, see the ignition key below.
 - Flap selector (Klappenwahlschalter), a rotary knob centre right, detents
   −12°, 0°, 15°, 30°, 35°, with an overtravel position beyond each end detent
@@ -274,21 +278,25 @@ What the trainer draws today, and where it departs from the above:
   (#534). The trim wheel, CHOKE, THROTTLE and BRAKE lie side by side in that
   order, left to right; the order is **assumed (unverified)** (§9, question 31).
   Each slides up (forward) and down (aft) in its own slot with its legend strip
-  beside it: the throttle pushes up to FULL, the brake and choke pull down to ON,
+  beside it: the throttle pushes up to Full, the brake and choke pull down to On,
   and the trim wheel's rim shows in a fore-and-aft slot with its indicator beside
-  it, DOWN forward. The parking-brake lever sits on the console's right side, aft of
+  it, Down forward. The strips print their legends in the photos' mixed case
+  (§3.7.1): "Off" and "On" (choke, brake), "Full" and "Idle", "Down" and "Up".
+  The photos hide the brake's forward legend, so its "Off" is **assumed
+  (unverified)** in the case of the "On" beside it. The parking-brake lever sits on the console's right side, aft of
   the lever row (M17 T2). The grips follow the photos: a blue cylindrical throttle
   grip, a black knurled crossbar on the brake lever, a small ribbed metal choke grip (the photo shows none; a trainer choice so the lever reads as a control), a green
   trim strip, and a small stud slot beside the trim wheel for its indicator.
-- The throttle prints FULL at the forward end and IDLE at the aft end, as the
-  aircraft does (#531). Its title THROTTLE is assumed (unverified): the handbook
-  check gives the end legends, not the title. The handbook treats the throttle as
+- The throttle prints "Full" at the forward end and "Idle" at the aft end, as the
+  photos show (§3.7.1). **Superseded 2026-10-10** (photos): the handbook's FULL
+  and IDLE in capitals (#531); its title "Throttle" is the photos' too. The handbook treats the throttle as
   continuous; the trainer keeps it stepped, with three trainer stops between the
   ends (low, run-up and cruise power) that drive the rpm model and the procedures.
-  The strip prints nothing between FULL and IDLE (M17 T2, #570). Cues name those
+  The strip prints nothing between Full and Idle (M17 T2, #570). Cues name those
   stops in words, not as printed legends.
-- The trim placard prints DOWN at the forward end and UP at the aft end, with no
-  neutral mark, as the aircraft does (#532). Its title was assumed TRIM; the photos
+- The trim placard prints "Down" at the forward end and "Up" at the aft end, with
+  no neutral mark, as the aircraft does (#532; mixed case as the photos show,
+  §3.7.1). Its title was assumed TRIM; the photos
   print "Stabilator Trim" (§3.7), which the trainer now uses (M17 T1). The
   trainer keeps neutral as a trim position because the take-off placard asks for
   neutral trim (HB 7-20); cues name it in words, not as a printed legend.

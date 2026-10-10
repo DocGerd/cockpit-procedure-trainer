@@ -217,6 +217,7 @@ export const controls = {
     kind: 'momentary',
     positions: ['off', 'on'],
     initial: 'off',
+    legends: { off: 'Off', on: 'On' },
     name: text('Bremshebel', 'Brake lever'),
     description: text(
       'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Steht der Rückflusshahn auf On, hält der Druck als Parkbremse.',
@@ -228,8 +229,10 @@ export const controls = {
     kind: 'lever',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
-    // The placard prints only FULL and IDLE; the middle stops are the trainer's own.
+    // The placard prints only Full and Idle; the middle stops are the trainer's own.
     legends: {
+      idle: 'Idle',
+      full: 'Full',
       low: {
         state: text('niedrige Leistung', 'low power'),
         restore: text('Wieder auf niedrige Leistung stellen', 'Set low power again'),
@@ -250,14 +253,17 @@ export const controls = {
     ),
     appearance: controlArtwork.throttle,
   },
-  choke: pushPullOf(
-    text('Choke', 'Choke'),
-    text(
-      'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
-      'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
+  choke: {
+    ...pushPullOf(
+      text('Choke', 'Choke'),
+      text(
+        'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
+        'Cold-start aid. Pull fully for a cold start, with the throttle at idle.',
+      ),
+      controlArtwork.choke,
     ),
-    controlArtwork.choke,
-  ),
+    legends: { off: 'Off', on: 'On' },
+  },
   carbHeat: pushPullOf(
     text('Vergaservorwärmung', 'Carb heat'),
     text(
@@ -270,11 +276,11 @@ export const controls = {
     kind: 'lever',
     positions: ['nose-down', 'half-down', 'neutral', 'half-up', 'nose-up'],
     initial: 'neutral',
-    // The placard prints DOWN and UP only; neutral is what the take-off placard asks for and the
+    // The placard prints Down and Up only; neutral is what the take-off placard asks for and the
     // stops between are the trainer's own.
     legends: {
-      'nose-down': 'DOWN',
-      'nose-up': 'UP',
+      'nose-down': 'Down',
+      'nose-up': 'Up',
       'half-down': {
         state: text('halb kopflastig', 'half nose down'),
         restore: text('Wieder halb kopflastig trimmen', 'Set the trim half nose down again'),
