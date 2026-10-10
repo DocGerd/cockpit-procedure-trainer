@@ -567,6 +567,22 @@ describe('CTSL console levers (intake §3.4)', () => {
     expect(ribs.length).toBeGreaterThan(6);
   });
 
+  it.each(['throttle', 'choke', 'brake'] as const)(
+    'casts the %s grip shadow like the carb-heat grip',
+    (id) => {
+      for (const grip of [read(movingOf(id).image), read(images.handleCarb)]) {
+        expect(grip).toContain('fill="url(#oc)"');
+        expect(grip).toContain('fill="url(#sk)"');
+      }
+    },
+  );
+
+  it('keeps the brake grip clear of the top of its slot', () => {
+    const grip = read(movingOf('brake').image);
+    const top = Number(/<clipPath id="cp"><path d="M[\d.]+ ([\d.]+)H/.exec(grip)?.[1]);
+    expect(top).toBeGreaterThanOrEqual(59);
+  });
+
   it('draws the rescue pocket as a screwed plate like its neighbours', () => {
     const backdrop = readFileSync(new URL('./assets/view-console.svg', import.meta.url), 'utf8');
     expect(backdrop).not.toContain('<rect x="446" y="490" width="308" height="300"');
