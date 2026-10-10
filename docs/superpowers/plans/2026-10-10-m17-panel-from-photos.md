@@ -78,7 +78,7 @@ legends    console    dials      layout
 - [ ] Remove the large knob (#536); record q10/q11 answered.
 - [ ] Parking-brake lever in a curved slot on the right side.
 - [ ] Aileron- and rudder-trim wheels as inert art, plus the parachute warning placard (intake §4.4: no rudder or aileron trim model).
-- [ ] Rescue handle red and centred on the aft face, pin with a flag.
+- [ ] Rescue handle red and centred on the aft face, pin with a flag; remove the RESCUE and PULL HARD legends (keep a printed label per the printed-labels contract, named in the PR). The forward pull stays (handbook).
 - [ ] Grips: blue throttle, black knurled brake, plain choke.
 - [ ] Fuel-valve strip and red grip on the column's left edge.
 - [ ] Answers §9 q10, q11 and q26.

@@ -11,14 +11,14 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 ## 1. Handbook and aircraft
 
-| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                          |
-| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                |
-| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                             |
-| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                    |
-| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)".                                                                                                                     |
-| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9. |
+| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                 |
+| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                       |
+| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                    |
+| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                           |
+| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is open for the owner once M17 T4 lands. |
+| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                        |
 
 ## 2. Owner decisions (2026-10-06)
 
@@ -45,7 +45,8 @@ until milestone M18 replaces them.
 ## 2a. Owner decisions (2026-10-10)
 
 1. **The photos win.** The owner's photos (§3.7) show D-MPGO as it is today.
-   Where they contradict a 2026-10-08 owner confirmation, the photo stands: the
+   Where they contradict a 2026-10-08 owner confirmation, the photo stands (the
+   parking-brake valve's identity is inferred from its place and legend): the
    only warning lamp is the red "Generator" lamp in the upper-right field (not
    CHARGE in the upper-left); the parking-brake valve reads "Off", "Brake", "On";
    there is no panel compass; the panel has four fields, with an upper-centre
@@ -58,12 +59,15 @@ until milestone M18 replaces them.
    the existing devices move into the upper-centre field.
 3. **The airspeed indicator follows the photos.** Its scale, red line and the
    limit-speed placard replace VNE 260 km/h (§4.1, §4.3, §8), and every procedure
-   or text naming the old value follows.
+   or text naming the old value follows. VNE 300 km/h is the owner's decision
+   against the handbook's BRS value of 276 km/h (§8); the red line is read from
+   the dial at about 300, so it stays **assumed (unverified)** until read on the
+   aircraft.
 4. **M17 is a full rework** of the CTSL panel from the photos: layout, gauges,
    breaker strip, console art, legends and texts. Plan:
    `docs/superpowers/plans/2026-10-10-m17-panel-from-photos.md`.
 
-## 3. Panel inventory (analog variant)
+## 3. Panel inventory (analog variant; superseded in part 2026-10-10, §2a)
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
 column. An engine control unit sits on the centre console below it. Everything is
@@ -253,7 +257,8 @@ What the trainer draws today, and where it departs from the above:
 ### 3.5 Not in the analog variant
 
 No EFIS/EMS (Dynon D180), no autopilot, no fuel quantity gauge (sight tubes at the
-wing roots and a dipstick only), no ammeter or voltmeter, no outside air
+wing roots and a dipstick only), no ammeter or voltmeter (D-MPGO has a
+voltmeter, §3.7; M17 T4 adds it), no outside air
 temperature readout. The altitude encoder feeds the transponder and has no
 controls.
 
@@ -345,7 +350,8 @@ a summary only and the full checklists are mandatory.
 - The type name in script lettering across the middle (manufacturer lettering:
   not to be reproduced).
 - Below, a 2×2 block of small gauges: "CHT" (°C, 40 to 150) and "VOLTMETER"
-  (9 to 17 V) on top; "OIL TEMP" (°C, 40 to 150) and "OIL PRESS" ("BAR", 0 to 10) below. An hour meter ("HOURS") to their right.
+  (9 to 17 V; the trainer's voltmeter value model, a main-bus voltage, is
+  **assumed (unverified)**) on top; "OIL TEMP" (°C, 40 to 150) and "OIL PRESS" ("BAR", 0 to 10) below. An hour meter ("HOURS") to their right.
 - No compass anywhere on the panel.
 - Along the lower edge, the breaker block, "Circuit Breakers" / "Push off". Two
   rows of seven, a single breaker below the left end:
@@ -363,7 +369,9 @@ a summary only and the full checklists are mandatory.
 - Rocker row, left to right: a larger rocker whose legend is mostly hidden by
   the yellow item (starts "Av…" over "M…", read as Avionics Master), then
   "Beacon Light", "Position Light", "Intercom", "Cockpit Light", "Landing
-  Light". The rockers carry the I and O symbols, not ON/OFF words.
+  Light". The rockers carry the I and O symbols, not ON/OFF words. The first
+  rocker's legend "Avionics Master" is **assumed (unverified)** from the visible
+  letters.
 - A yellow placard under the row: avionics off before engine start or stop.
 - Left: a 12 V socket marked "MAX 20A"; under it a fuel-capacity placard (per
   side 65 l, 62 l usable, also in US gallons).
@@ -805,7 +813,7 @@ get out, fire risk).
 | Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)      | 300 km/h (owner, §2a decision 3; was 260 until 2026-10-10)                                     |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)      | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
 | Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
@@ -862,6 +870,8 @@ verifies it on D-MPGO.
    **Photo survey 2026-10-10 (§3.7):** not visible: the panel has one warning lamp,
    "Generator", in the upper-right field (question 22). Nothing is at the top of the
    upper-left field. **Contradicts current trainer** (a second unlit lamp is drawn).
+   **Settled 2026-10-10** (§2a decision 1): no second lamp; "Drawn unlit" is
+   superseded (M17 T4).
 10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
     Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
     in-flight adjustable propeller has its lever on the centre console behind the
@@ -875,7 +885,8 @@ verifies it on D-MPGO.
     side), the aileron-trim wheel in an oval recess, the rudder-trim wheel and the
     rescue handle; the aileron-trim wheel may be what the handbook figure shows as
     the knob (inferred, unverified). **Contradicts current trainer** (unlabelled
-    knob drawn aft of the valve).
+    knob drawn aft of the valve). **Settled 2026-10-10** (§2a decision 1): no
+    large knob; "drawn as artwork" is superseded (M17 T2, #536).
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
     constant speed? Uses ground-adjustable (no cockpit control).
     **Photo survey 2026-10-10 (§3.7):** not visible: no propeller control in the
@@ -1074,7 +1085,10 @@ verifies it on D-MPGO.
     is red with an orange-bordered warning label, on the console's upright aft face
     at the bulkhead, centred between the seats, with nothing printed RESCUE or PULL
     HARD; the pin carries a red remove-before-flight flag. The grip's pull direction
-    is not legible.
+    is not legible. **Settled 2026-10-10** (§2a decision 1): the handle is drawn
+    red and centred on the aft face, without the RESCUE and PULL HARD legends, with
+    a flagged pin (M17 T2); the "Drawn so (#535)" place and legends are superseded.
+    The forward pull stays (handbook, HB 3-4), not confirmed by the photos.
 27. **Key and fuel valve cover**: can the key go in while the closed valve's handle
     covers the slot, and does N16 close the valve? Today: the key is out in
     `parking`; it comes out only with the valve fully closed (E6, a handbook fact);
