@@ -9,7 +9,7 @@ import {
 } from './flarm';
 
 export type Leds = {
-  /** Clockwise from the first LED, 18 degrees right of the nose, to the last, 18 degrees left. */
+  /** Clockwise from the first LED, just right of the nose, to the last, just left of it. */
   readonly ring: readonly boolean[];
   readonly above: boolean;
   readonly below: boolean;

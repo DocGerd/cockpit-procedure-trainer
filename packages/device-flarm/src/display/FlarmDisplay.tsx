@@ -3,7 +3,7 @@ import type { DeviceDisplayProps, MirrorSize } from '@cpt/panel-kit';
 import { FlarmFace } from '../face/FlarmFace';
 import type { FlarmState } from '../logic';
 
-/** The FLARM slot is 320 by 160 units. */
+/** The mirror of the FLARM slot: twice as wide as tall, like the face. */
 export const FLARM_MIRROR: MirrorSize = {
   width: 'calc(var(--space-12) * 6 + var(--space-8))',
   aspectRatio: '2 / 1',

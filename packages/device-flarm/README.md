@@ -19,6 +19,11 @@ a source (intake section 9, questions 33, 34 and 39):
   seconds") and the 1 Hz rate of the flashing and blinking LEDs are the trainer's own values.
 - The mode swap and its confirmation run also work on the ground; the manuals describe them in
   flight.
+- The `above` and `below` LEDs are red like the ring; the intake gives red for the ring only.
+- `BLINK_MS` (the brief blink or flash of the GPS LED each second) is the trainer's own value.
+- The confirmation run lights the two ring LEDs that mirror each other across the aircraft's
+  axis, from the nose pair to the tail pair going into Nearest and back going out; the manuals
+  say only that two LEDs run top to bottom.
 - A missing `supplyVolts` reading counts as a good supply.
 
 ## Controls
