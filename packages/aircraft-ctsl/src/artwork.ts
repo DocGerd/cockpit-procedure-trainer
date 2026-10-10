@@ -235,8 +235,8 @@ const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): Artwor
 
 const breaker = (face: string, lettering: string) =>
   lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), lettering);
-const rocker = (face: string, lettering: string) =>
-  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), lettering, 'ON', 'OFF');
+const rocker = (face: string, ...title: string[]) =>
+  lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), ...title, 'I', 'O');
 const pushPull = positions(images.pushpullFace, {
   in: images.pushpullIn,
   pulled: images.pushpullPulled,
@@ -268,15 +268,16 @@ export const controlArtwork = {
       off: images.rockerMasterOff,
       on: images.rockerMasterOn,
     }),
-    'AVIONICS',
-    'ON',
-    'OFF',
+    'Avionics',
+    'Master',
+    'I',
+    'O',
   ),
-  beacon: rocker(images.rockerBeacon, 'BEACON'),
-  positionLights: rocker(images.rockerPosition, 'POSITION'),
-  intercom: rocker(images.rockerIntercom, 'INTERCOM'),
-  cockpitLight: rocker(images.rockerCockpit, 'COCKPIT'),
-  landingLight: rocker(images.rockerLanding, 'LANDING'),
+  beacon: rocker(images.rockerBeacon, 'Beacon', 'Light'),
+  positionLights: rocker(images.rockerPosition, 'Position', 'Light'),
+  intercom: rocker(images.rockerIntercom, 'Intercom'),
+  cockpitLight: rocker(images.rockerCockpit, 'Cockpit', 'Light'),
+  landingLight: rocker(images.rockerLanding, 'Landing', 'Light'),
   // Open, the handle stands up in its slot clear of the key switch below, so only the slot takes a
   // tap; closed, the whole box does, its handle over the key slot.
   fuelValve: {
@@ -297,9 +298,9 @@ export const controlArtwork = {
       open: images.valveOpen,
       closed: images.valveClosed,
     }),
-    'PARK BRAKE',
-    'OPEN',
-    'SHUT',
+    'Brake',
+    'Off',
+    'On',
   ),
   flapSelector: lettered(
     positions(images.flapSelectorFace, {
@@ -312,13 +313,13 @@ export const controlArtwork = {
       'override-down': images.flapKnob6,
     }),
     'FLAPS',
-    'UP',
+    'up manually',
     '-12',
     '0',
     '15',
     '30',
     '35',
-    'DN',
+    'down manually',
   ),
   ignition: lettered(
     positions(images.ignitionFace, {
@@ -330,28 +331,28 @@ export const controlArtwork = {
       start: images.ignitionKeyStart,
     }),
     'OFF',
-    'L',
-    'R',
-    'BOTH',
+    '1',
+    '2',
+    '1+2',
     'START',
   ),
   battery: pushPull,
   generator: pushPull,
   brake: lettered(
     travel(images.leverBrakeFace, images.handleBrake, pullSlide),
-    'BRAKE',
+    'Brake',
     'OFF',
     'ON',
   ),
   choke: lettered(
     travel(images.leverChokeFace, images.handleBrake, pullSlide),
-    'CHOKE',
+    'Choke',
     'OFF',
     'ON',
   ),
   throttle: lettered(
     travel(images.leverThrottleFace, images.handleThrottle, [aftEnd, forwardEnd]),
-    'THROTTLE',
+    'Throttle',
     'FULL',
     'IDLE',
   ),
@@ -369,7 +370,7 @@ export const controlArtwork = {
       { x: 104, y: 70 },
       { x: 104, y: 260 },
     ]),
-    'TRIM',
+    'Stabilator Trim',
     'DOWN',
     'UP',
   ),

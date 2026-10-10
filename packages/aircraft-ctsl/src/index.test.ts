@@ -174,7 +174,7 @@ describe('CTSL aircraft', () => {
     },
   );
 
-  it('springs the ignition key back from START to BOTH', () => {
+  it('springs the ignition key back from START to 1+2', () => {
     const ignition = ctslAircraft.controls.ignition;
     expect(ignition?.kind === 'rotary' && ignition.springBack).toEqual({ start: 'both' });
     expect(ignition?.appearance).toHaveProperty('artwork');
@@ -756,7 +756,7 @@ describe('CTSL aircraft', () => {
   });
 
   it.each(Object.keys(expectedPhases).filter((id) => !['parking', 'holding'].includes(id)))(
-    'enters %s rolling or flying, with the parking-brake valve open',
+    'enters %s rolling or flying, with the parking-brake valve at Off',
     (id) => {
       expect(ctslAircraft.phases[id]?.entry.controls.parkingBrakeValve).toBe('open');
       expect(entryState(id).parkingBrakeSet).toBe(false);

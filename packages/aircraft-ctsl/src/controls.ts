@@ -17,6 +17,17 @@ const rockerOf = (name: Text, description: Text, appearance: ArtworkAppearance) 
     kind: 'toggle',
     positions: ['off', 'on'],
     initial: 'off',
+    // The rocker prints the I and O symbols, so the cues name the position in words.
+    legends: {
+      off: {
+        state: text('aus', 'off'),
+        restore: text('Wieder ausschalten', 'Switch it off again'),
+      },
+      on: {
+        state: text('ein', 'on'),
+        restore: text('Wieder einschalten', 'Switch it on again'),
+      },
+    },
     name,
     description,
     appearance,
@@ -144,7 +155,7 @@ export const controls = {
     kind: 'rotary',
     positions: ['override-up', '-12', '0', '15', '30', '35', 'override-down'],
     initial: '0',
-    legends: { 'override-up': 'UP', 'override-down': 'DN' },
+    legends: { 'override-up': 'up manually', 'override-down': 'down manually' },
     name: text('Klappenwahlschalter', 'Flap selector'),
     description: text(
       'Wählt die Klappenstellung in Grad vor. Hinter den Endrasten liegt je eine Notbetätigung: der Motor läuft, solange der Schalter dort steht.',
@@ -163,8 +174,9 @@ export const controls = {
         state: text('Schlüssel abgezogen', 'key out'),
         restore: text('Schlüssel wieder abziehen', 'Take the key out again'),
       },
-      left: 'L',
-      right: 'R',
+      left: '1',
+      right: '2',
+      both: '1+2',
     },
     interlock: [
       { control: 'fuelValve', at: 'closed', holds: ['out'] },
@@ -173,8 +185,8 @@ export const controls = {
     ],
     name: text('Zündschalter', 'Ignition'),
     description: text(
-      'Zündschloss mit Anlasser: OFF, L, R, BOTH, START. Der Schlüssel wird auf OFF gesteckt und abgezogen. START dreht das Triebwerk und springt auf BOTH zurück. Gesteckt wird er bei offenem Brandhahn, abgezogen nur bei geschlossenem: dann verdeckt dessen Griff das Schloss, und der Schlüssel lässt sich nicht stecken und nicht aus OFF drehen.',
-      'Ignition key with starter: OFF, L, R, BOTH, START. The key goes in and comes out at OFF. START cranks the engine and springs back to BOTH. The key goes in with the fuel valve open and comes out only with it closed; closed, its handle covers the slot, so the key can neither go in nor turn out of OFF.',
+      'Zündschloss mit Anlasser: OFF, 1, 2, 1+2, START. Der Schlüssel wird auf OFF gesteckt und abgezogen. START dreht das Triebwerk und springt auf 1+2 zurück. Gesteckt wird er bei offenem Brandhahn, abgezogen nur bei geschlossenem: dann verdeckt dessen Griff das Schloss, und der Schlüssel lässt sich nicht stecken und nicht aus OFF drehen.',
+      'Ignition key with starter: OFF, 1, 2, 1+2, START. The key goes in and comes out at OFF. START cranks the engine and springs back to 1+2. The key goes in with the fuel valve open and comes out only with it closed; closed, its handle covers the slot, so the key can neither go in nor turn out of OFF.',
     ),
     appearance: controlArtwork.ignition,
   },
@@ -206,8 +218,8 @@ export const controls = {
     initial: 'off',
     name: text('Bremshebel', 'Brake lever'),
     description: text(
-      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Mit geschlossenem Rückflusshahn hält der Druck als Parkbremse.',
-      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve closed the pressure holds as the parking brake.',
+      'Hydraulische Bremse beider Haupträder. Bremst nur, solange er gezogen gehalten wird; federt beim Loslassen zurück. Steht der Rückflusshahn auf On, hält der Druck als Parkbremse.',
+      'Hydraulic brake on both main wheels. Brakes only while held; springs back when released. With the parking-brake valve at On the pressure holds as the parking brake.',
     ),
     appearance: controlArtwork.brake,
   },
@@ -286,11 +298,11 @@ export const controls = {
     kind: 'toggle',
     positions: ['open', 'closed'],
     initial: 'open',
-    legends: { closed: 'SHUT' },
+    legends: { open: 'Off', closed: 'On' },
     name: text('Rückflusshahn', 'Parking-brake valve'),
     description: text(
-      'Parkbremse: Hahn schließen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder öffnet.',
-      'Parking brake: close the valve, pull and release the brake lever. The pressure holds until the valve opens again.',
+      'Parkbremse, beschriftet Off, Brake, On: auf On stellen, Bremshebel ziehen und loslassen. Der Druck hält, bis der Hahn wieder auf Off steht.',
+      'Parking brake, printed Off, Brake, On: set it to On, pull and release the brake lever. The pressure holds until the valve is back at Off.',
     ),
     appearance: controlArtwork.parkingBrakeValve,
   },
