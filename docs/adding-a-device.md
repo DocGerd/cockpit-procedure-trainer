@@ -8,9 +8,9 @@ complete examples. Spec: section 4.9 of the design spec.
 
 ## Content policy
 
-Read `docs/content-policy.md` first. A device is generic: no manufacturer or
-model name, no manufacturer layout or artwork, no handbook text. Write every
-text in your own words, in German and English.
+Read `docs/content-policy.md` first. A device models the specific unit an
+aircraft carries (spec section 4.9): no manufacturer artwork, logos or lettering,
+no handbook text. Write every text in your own words, in German and English.
 
 ## Package layout
 
@@ -39,7 +39,7 @@ relative path.
 Build the device with `defineDevice` from `@cpt/core`:
 
 - `id`: the id aircraft use to install it.
-- `manual`: a `Text` naming the revision the logic follows. A generic unit says so.
+- `manual`: a `Text` naming the revision the logic follows. A unit modelled from a general pattern says so.
 - `notModelled`: a list of `Text`, one per function left out. The README's
   `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
@@ -111,8 +111,9 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `Display` is a `ComponentType<DeviceDisplayProps>`, `{ on: boolean; state: unknown }`:
   the same display contents as the screen, with no buttons and no `send`. Wrap it
   in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (the 520 by 150
-  radio and transponder slot) or `GPS_MIRROR` (the 400 by 300 GPS slot); the frame
-  scales with the slot. Its printed label is the unit name (for example `COM`,
+  radio and transponder slot) or `GPS_MIRROR` (the 400 by 300 GPS slot), or pass a
+  device-local `MirrorSize` for a unit of another shape; the frame scales with
+  the slot. Its printed label is the unit name (for example `COM`,
   `XPDR`, `GPS`), never "open". Keep the display lettering readable at the panel
   floor.
 - `readout(state, language, on)` returns a short text of what the display shows,
@@ -188,9 +189,11 @@ the package as a dependency of `apps/web` and register both halves:
 Also add the unit's name in both languages to `unitNames` in
 `apps/web/src/devices/messages.ts`; the slot's accessible name uses it, and
 `unit-names.test.ts` fails without it. In `tools/device-entry.test.ts` add the
-device to `NATURAL_SCREEN` (the powered `Screen`'s measured natural size) and
-`SLOT_OF` (the CTSL slot its mirror is checked against). Nothing else in `apps/web`
-changes.
+device to `NATURAL_SCREEN` (the powered `Screen`'s measured natural size). The
+mirror's fit is checked per install, not per package: `apps/web/src/devices/slot-fit.test.tsx`
+renders each installed device's `Display` against the slot its aircraft gives it
+(same aspect, smallest lettering legible at the panel floor), and the package test
+checks that the bezel's size parses. Nothing else in `apps/web` changes.
 
 ## Checks
 

@@ -18,7 +18,8 @@ Touch points, each detailed in that doc:
 - [ ] `apps/web/src/device-registry.ts`: add the logic to `deviceRegistry` and
       `<id>ScreenEntry` to `deviceEntries`. Never edit `deviceScreens`, it is derived.
 - [ ] `apps/web/src/devices/messages.ts`: the unit name in both languages in `unitNames`.
-- [ ] `tools/device-entry.test.ts`: a row in `NATURAL_SCREEN` and one in `SLOT_OF`.
+- [ ] `tools/device-entry.test.ts`: a row in `NATURAL_SCREEN`. The slot fit is checked per install in
+      `apps/web/src/devices/slot-fit.test.tsx`; it needs no row.
 - [ ] Package `README.md` sections that `tools/device-readme.test.ts` checks.
 - [ ] A changelog fragment, see the `changelog-fragment` skill.
 
