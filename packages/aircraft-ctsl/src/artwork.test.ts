@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { images } from './artwork';
+import { gaugeArtwork as gauges, images } from './artwork';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
@@ -311,17 +311,40 @@ describe('CTSL warning lamps', () => {
 });
 
 describe('CTSL gauges', () => {
+  it('marks the airspeed dial with the photographed arcs and VNE 300 km/h', () => {
+    const { options, artwork } = gauges.airspeed;
+    expect(options).toMatchObject({ min: 40, max: 340, units: 'km/h' });
+    expect(options?.['arcs']).toEqual([
+      { from: 72, to: 115, colour: 'white' },
+      { from: 94, to: 245, colour: 'green' },
+      { from: 245, to: 300, colour: 'yellow' },
+      { from: 299, to: 301, colour: 'red' },
+    ]);
+    const face = read(artwork.face);
+    const labels = [...face.matchAll(/>(\d+)<\/text>/g)].map(([, value]) => Number(value));
+    expect(labels).toEqual([40, 80, 120, 160, 200, 240, 280, 320]);
+  });
+
+  it('reads the vertical speed in ft/min, ±2000, ticks every 500, printed as thousands', () => {
+    const { options, artwork } = gauges.verticalSpeed;
+    expect(options).toMatchObject({ min: -2000, max: 2000, units: 'ft/min' });
+    expect(options?.['ticks']).toEqual([-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000]);
+    const face = read(artwork.face);
+    const labels = [...face.matchAll(/<text\b[^>]*>([\d.]+)<\/text>/g)].map(([, value]) => value);
+    expect(labels.slice(0, 9)).toEqual(['2', '1.5', '1', '.5', '0', '.5', '1', '1.5', '2']);
+  });
+
   const gaugeArtwork = indicatorArtwork.filter(
     ({ id, artwork }) => id !== 'compass' && artwork.moving.type === 'needle',
   );
 
   const scales: Record<string, { min: number; max: number }> = {
-    airspeed: { min: 40, max: 300 },
+    airspeed: { min: 40, max: 340 },
     tachometer: { min: 0, max: 7000 },
     oilPressure: { min: 0, max: 10 },
     oilTemperature: { min: 40, max: 150 },
     cht: { min: 40, max: 150 },
-    verticalSpeed: { min: -5, max: 5 },
+    verticalSpeed: { min: -2000, max: 2000 },
     altimeter: { min: 0, max: 5000 },
   };
   const sweeps: Record<string, { min: number; max: number }> = {
@@ -349,7 +372,7 @@ describe('CTSL gauges', () => {
       let lettering = 0;
       for (const [, x, y, size, anchor, content] of read(artwork.face).matchAll(textTag)) {
         const [cx, cy, fontSize] = [Number(x) - 100, Number(y) - 100, Number(size)];
-        if (/^\d+$/.test(content ?? '') && Math.abs(Math.hypot(cx, cy) - 46) < 3) continue;
+        if (/^\d*\.?\d+$/.test(content ?? '') && Math.abs(Math.hypot(cx, cy) - 46) < 3) continue;
         lettering += 1;
         const width = (content?.length ?? 0) * 0.72 * fontSize;
         const left = anchor === 'start' ? cx : cx - width / 2;

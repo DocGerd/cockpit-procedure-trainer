@@ -146,16 +146,16 @@ export const gaugeArtwork = {
   compass: compassCard,
   airspeed: needle(
     images.gaugeAirspeed,
-    { min: 40, max: 300 },
+    { min: 40, max: 340 },
     {
       units: 'km/h',
       decimals: 0,
-      ticks: [40, 80, 120, 160, 200, 240, 280],
+      ticks: [40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340],
       arcs: [
         { from: 72, to: 115, colour: 'white' },
         { from: 94, to: 245, colour: 'green' },
-        { from: 245, to: 260, colour: 'yellow' },
-        { from: 260, to: 300, colour: 'red' },
+        { from: 245, to: 300, colour: 'yellow' },
+        { from: 299, to: 301, colour: 'red' },
       ],
     },
   ),
@@ -166,8 +166,12 @@ export const gaugeArtwork = {
   ),
   verticalSpeed: needle(
     images.gaugeVsi,
-    { min: -5, max: 5 },
-    { units: 'm/s', decimals: 1, ticks: [-5, -3, -1, 0, 1, 3, 5] },
+    { min: -2000, max: 2000 },
+    {
+      units: 'ft/min',
+      decimals: 0,
+      ticks: [-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000],
+    },
     { min: -225, max: 45 },
   ),
   tachometer: needle(
