@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
-import { headingLabel, runway } from '../airfield';
 import { normalProcedures } from './normal';
 
 const devices = testDevices;
@@ -26,8 +25,6 @@ const expected = [
   ['shutdown', 'parkingSecuring', undefined],
 ] as const;
 
-const runwayHeadingCheck = `Compass (trainer addition): ${headingLabel(runway.headingDeg)}°, the heading of runway ${runway.designator}`;
-
 // Checks that verify the entry snapshot (intake §5) rather than an earlier action of the same
 // procedure, keyed by procedure and English item text.
 const snapshotChecks: Record<string, readonly string[]> = {
@@ -37,15 +34,15 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Flap readout: 0°',
   ],
   taxi: ['Parking brake: released'],
-  takeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
-  shortTakeoff: [runwayHeadingCheck, 'Flap readout: 15°'],
+  takeoff: ['Flap readout: 15°'],
+  shortTakeoff: ['Flap readout: 15°'],
   beforeTakeoff: [
     'Parking brake: holds, brake lever released',
     'Oil pressure: in the green',
     'Oil temperature: below the red line',
     'Cylinder head temperature: in the green',
     'Oil temperature: at least 51 °C',
-    'Charge lamp: out',
+    'Generator lamp: out',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
@@ -460,18 +457,10 @@ describe('CTSL normal procedures', () => {
   });
 
   it.each(['takeoff', 'shortTakeoff'] as const)(
-    'starts %s lined up with a compass check against the runway heading',
+    'opens %s with the flaps, as the panel has no compass',
     (id) => {
       const first = normalProcedures[id].items[0] as Item;
-      if (first.type !== 'check') throw new Error(`${id} opens with a ${first.type}`);
-      expect(first.target).toEqual({ indicator: 'compass' });
-      const facing = (phase: string) => createSession(ctslAircraft, { devices, phase }).state();
-      expect(first.condition(facing('linedUp'))).toBe(true);
-      expect(first.condition(facing('holding'))).toBe(false);
-      expect(first.expected?.en).toContain(headingLabel(runway.headingDeg));
-      expect(first.expected?.en).toContain(`runway ${runway.designator}`);
-      expect(first.expected?.de).toContain(headingLabel(runway.headingDeg));
-      expect(first.expected?.de).toContain(`Piste ${runway.designator}`);
+      expect(first).toMatchObject({ type: 'action', control: 'flapSelector', position: '15' });
     },
   );
 

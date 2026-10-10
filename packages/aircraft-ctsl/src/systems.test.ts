@@ -422,6 +422,20 @@ describe('electrical system', () => {
     expect(chargeLampLit(trainerState(session))).toBe(false);
   });
 
+  it('reads the bus voltage on the voltmeter: dead, battery, then charging (assumed)', () => {
+    const volts = (session: ReturnType<typeof sessionAt>) =>
+      indicators.voltmeter.select(trainerState(session));
+    const session = sessionAt('parking');
+    expect(volts(session)).toBe(0);
+    session.set('battery', 'in');
+    session.advance(1);
+    expect(volts(session)).toBe(12);
+    const running = coldStart();
+    running.set('generator', 'in');
+    running.advance(1);
+    expect(volts(running)).toBe(14);
+  });
+
   it('powers the main bus from BAT only', () => {
     const session = sessionAt('parking');
     session.set('generator', 'in');

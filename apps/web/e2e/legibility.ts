@@ -333,7 +333,7 @@ export async function letteringProblems(
     .evaluate((image) => image.getBoundingClientRect().width);
   const backdrop = source(view.image);
   return [
-    ...tooSmall(backdrop, background / viewBoxWidth(backdrop)).map(
+    ...tooSmall(withoutSecondary(backdrop), background / viewBoxWidth(backdrop)).map(
       (label) => `${viewId}: ${label}`,
     ),
     ...(await faceProblems(root, aircraft, viewId, 'controls')),

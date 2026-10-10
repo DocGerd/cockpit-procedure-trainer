@@ -95,6 +95,14 @@ difference against the trainer.
 - Two placards at the far left: a short take-off checklist and a limits placard.
   Draw them as placards with our own short wording, not the handbook's.
 
+**Trainer, M17 T4 (2026-10-10, §3.7):** four instruments in a 2×2: airspeed and
+altimeter above, a slip indicator (background art, not an indicator) and the vertical
+speed indicator below; no lamp. The radios and the GPS moved to the upper-centre field
+(§3.2a). Placards in our own wording: a take-off checklist summary at the top right
+and, in German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
+The airspeed indicator stays 220 units wide because its numerals set the smallest
+size that reads at the lettering floor (§4.3).
+
 ### 3.2 Upper-right field (view `panel`)
 
 - GPS in its cradle in the centre (device slot).
@@ -110,14 +118,47 @@ difference against the trainer.
   position lights, intercom; GPS, strobe, landing light; 12 V outlet. The D-180
   and autopilot positions are not fitted in this variant (draw blanks).
 
+**Trainer, M17 T4 (2026-10-10, §3.7):** the tachometer is the large gauge at the top
+left; right of it a 2×2 of CHT and a voltmeter above, oil temperature and oil
+pressure below, then the hour meter (inert art, no running value) and the red
+"Generator" lamp at the top right. There is no compass. The breaker strip runs along
+the lower edge, "Circuit Breakers" and "Push off" in the free space right of the
+single "12V Outlet" breaker in the third row (the header's place is **assumed
+(unverified)**). Top row: Com, Nav, Transponder, Autopilot, HS34, EFIS, EMS; bottom row:
+Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
+Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
+GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
+Cockpit Light and Instrument Light are inert caps drawn in the background (the
+trainer's cockpit light has no breaker). The breaker legends print in full words,
+small as on the aircraft (captions marked secondary, ADR 0002 realism). The type-name
+script lettering is not reproduced.
+
+### 3.2a Upper-centre field (view `panel`), M17 T4
+
+- A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
+  disc with a red cross (not identified), both inert art.
+- The FLARM display (inert art) left of the GPS; the GPS in its cradle (device slot);
+  the COM radio and the transponder side by side below it (device slots). The
+  existing SL40, GTX 327 and GPSMAP 496 move here unchanged; the round funkwerk units
+  and the Garmin aera-like GPS come in M18.
+- **Layout compromises, assumed (unverified):** the slots are the old 520 by 150 and
+  400 by 300 units scaled by 1.07, because the mirror lettering must stay legible at
+  the panel floor, which rose from 950 to 1110 px with the wider panel (2372 units).
+  The upper-centre field is wider than the lower column and sits about 40 px left of
+  it at HD, so that the radio slot reaches over the device dock, which stays left of
+  the column under the panel.
+
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
 - Rocker-switch row, left to right: **Avionics Master** (larger; checklist label
   Avionik), Beacon Light,
   Position Light, Intercom, Cockpit Light, Landing Light. A placard under the row
   says to switch the avionics off before engine start and stop.
-- Below the row: 12 V socket (left), intercom panel (centre), an audio-source
-  selector and audio jack (right). Background drawing only.
+- Below the row: 12 V socket marked "MAX 20A" (left), a fuel-capacity placard
+  (62 l usable per side) and a limit-speed placard (flap setting against km/h,
+  §3.7), all background art. **Trainer, M17 T4:** the intercom panel, the audio
+  selector and the jacks are gone from the background (§3.7). The "Instrument
+  Light" legend at the bottom centre is art, with no control.
 - ELT remote switch (ELT Fernschalter; checklist label Notsender) with its lamp,
   left of centre.
 - Flap position indicator (Klappenstellungsanzeige): a red seven-segment readout
@@ -289,6 +330,12 @@ voltmeter, §3.7; M17 T4 adds it), no outside air
 temperature readout. The altitude encoder feeds the transponder and has no
 controls.
 
+**Voltmeter model, M17 T4 (assumed (unverified)):** the indicator reads the bus
+voltage of the systems model: 0 V with the bus dead, 12 V on the battery, 14 V while the
+generator charges (the constants of the electrical block). The dial runs 9 to 17 V;
+arcs red 9 to 10.5, yellow 10.5 to 11.5, green 11.5 to 15, yellow 15 to 16, red 16 to
+17 are the trainer's own.
+
 ### 3.6 Electrical bus map
 
 | Source or consumer  | Protection                    | Fed from                       |
@@ -309,7 +356,7 @@ controls.
 
 - The ignition is independent of the electrical system: the engine keeps running
   with BAT and GEN off (HB 3-7). The starter needs the main bus.
-- The charge warning lamp lights when the bus is powered and the generator is not
+- The generator warning lamp (indicator id `chargeLamp`) lights when the bus is powered and the generator is not
   charging (engine stopped, GEN off, or generator failed).
 - Switch the consumers and the generator off before stopping the engine (HB 4-14).
 
@@ -727,7 +774,7 @@ transponder on, standby _(action: set the GTX 327 mode to standby, then a check 
 powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
-both; oil temperature at least 51 °C; charge lamp out; throttle idle; flaps 15°; trim
+both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
 neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
@@ -822,7 +869,7 @@ breaker may also have tripped after an overload.
 **E10 EMS failure (HB 3-2, 3-8).** _Not applicable: the analog variant has no EMS._
 
 **Generator failure (club-authored, not in the handbook).** Derived from the
-charge-lamp check and the flap reset: charge lamp lit; GEN out, then in once; lamp
+generator-lamp check and the flap reset: generator lamp lit; GEN out, then in once; lamp
 stays lit: the battery is the only source; non-essential consumers off (landing
 light, avionics not needed); land as soon as practical. Mark the procedure in the
 app and README as club-authored, for instructor confirmation.
@@ -904,7 +951,7 @@ verifies it on D-MPGO.
    "Generator", in the upper-right field (question 22). Nothing is at the top of the
    upper-left field. **Contradicts current trainer** (a second unlit lamp is drawn).
    **Settled 2026-10-10** (§2a decision 1): no second lamp; "Drawn unlit" is
-   superseded (M17 T4).
+   superseded (M17 T4). **Done in M17 T4:** the background draws no second lamp.
 10. **Large knob** aft of the parking-brake valve: cabin heat, propeller, other?
     Not modelled as a control (drawn as artwork, #535). **Handbook check 2026-10-08:** still open, one candidate. The hydraulic
     in-flight adjustable propeller has its lever on the centre console behind the
@@ -938,7 +985,8 @@ verifies it on D-MPGO.
     diagram. Modelled as a main-bus consumer.
     **Photo survey 2026-10-10 (§3.7):** confirmed present: a "Cockpit Light" rocker
     in the row and a "Cockpit Light" position in the breaker block (fitted or blank
-    not legible).
+    not legible). **Trainer (M17 T4):** the breaker position is an inert cap, since the
+    cockpit light has no breaker in the model.
 14. **Avionics as installed**: the units, their software versions and the pilot's
     guide revisions for SL40, GTX 327 and GPSMAP 496; any later changes (e.g. a
     Dynon retrofit) or handbook supplements on board.
@@ -977,6 +1025,9 @@ verifies it on D-MPGO.
     both radios; the lower column hangs below that centre field, not below a
     junction of two fields. This also differs from the owner's 2026-10-08 answer
     that the geometry matches; settled 2026-10-10 for the photos (§2a).
+    **Done in M17 T4 (compromises assumed (unverified), §3.2a):** the panel has three
+    upper fields and the column hangs below the middle one, about 40 px right of the
+    field's centre at HD; the console stays beside the column.
 20. **Compass**: panel compass with a reversed card in a narrow window, or a
     vertical card? Its size and exact mount (panel or windscreen frame)? Today: a
     small round panel compass at the top left of the upper-right field, no larger
@@ -992,7 +1043,9 @@ verifies it on D-MPGO.
     **Photo survey 2026-10-10 (§3.7):** not visible: no compass on the panel; the
     top right of the upper-right field holds the "Generator" lamp. **Contradicts
     current trainer**, which the owner confirmed on 2026-10-08. Settled 2026-10-10
-    (§2a): no panel compass.
+    (§2a): no panel compass. **Done in M17 T4:** the compass indicator is gone, and
+    with it the compass checks (a trainer addition) that N7 and N8 opened with; the
+    heading of each phase still feeds the GPS track.
 21. **ELT remote switch legends**: what does the remote panel print beside its
     positions (for example ON and ARM, or a TEST or RESET position), and what
     colour is its lamp? Today: a toggle on a small remote plate printed "ELT",
@@ -1022,6 +1075,8 @@ verifies it on D-MPGO.
     warning lamp is round, red and printed "Generator", at the top right of the
     upper-right field; the trainer prints CHARGE at the top of the upper-left field,
     owner-confirmed on 2026-10-08. Settled 2026-10-10 (§2a): the "Generator" lamp.
+    **Done in M17 T4:** the lamp keeps its indicator id and behaviour; procedure items
+    that named the charge lamp now say "Generator lamp".
 23. **Memory items**: which steps of the §7 procedures does the club expect from
     memory before the checklist is read? Today: the leading steps below are memory
     items; the rest of each procedure is read and done from the list. **Answered by

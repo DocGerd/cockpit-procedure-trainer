@@ -20,8 +20,6 @@ const textSizes = ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'];
 
 const FRAME_CHROME_PX = 2 * (token('space-2') + token('space-1'));
 const MIN_TEXT_PX = token('text-2xs');
-// The panel's narrowest width (decision on #339); slots scale with it.
-const PANEL_FLOOR_PX = 950;
 
 // The operable Screen's natural size with the unit powered, in its widest state, measured in
 // Chromium. Re-measure when a Screen's layout changes.
@@ -199,7 +197,11 @@ describe('mirror lettering at the panel floor', () => {
     } = await import(resolve(packagesDir, 'aircraft-ctsl/src/views.ts'));
     const slot = ctsl.deviceSlots[SLOT_OF[id] ?? ''];
     if (!slot) throw new Error(`no slot for ${id}`);
-    const unit = PANEL_FLOOR_PX / ctsl.views.panel.size.width;
+    // The panel's narrowest width (decision on #339); slots scale with it.
+    const cockpit: { cockpit: { views: { panel: { minWidth: number } } } } = await import(
+      resolve(packagesDir, 'aircraft-ctsl/src/cockpit.ts')
+    );
+    const unit = cockpit.cockpit.views.panel.minWidth / ctsl.views.panel.size.width;
     const [slotW, slotH] = [slot.rect.w * unit, slot.rect.h * unit];
     const natural = mirrorSize(markup);
     expect(natural.width / natural.height).toBeCloseTo(slotW / slotH, 2);

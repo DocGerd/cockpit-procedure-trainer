@@ -11,11 +11,6 @@ const flapCircuitPowered = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && state.controls['flapBreaker'] === 'in';
 
 export const indicators = {
-  compass: {
-    name: text('Magnetkompass', 'Magnetic compass'),
-    select: (state: CtslTrainerState) => state.systems.headingDeg,
-    appearance: gaugeArtwork.compass,
-  },
   airspeed: {
     name: text('Fahrtmesser', 'Airspeed indicator'),
     select: (state: CtslTrainerState) => state.systems.airspeedKmh,
@@ -51,8 +46,13 @@ export const indicators = {
     select: (state: CtslTrainerState) => state.systems.chtC,
     appearance: gaugeArtwork.cht,
   },
+  voltmeter: {
+    name: text('Voltmeter', 'Voltmeter'),
+    select: (state: CtslTrainerState) => state.systems.bus.volts,
+    appearance: gaugeArtwork.voltmeter,
+  },
   chargeLamp: {
-    name: text('Ladekontrolle', 'Charge warning lamp'),
+    name: text('Ladekontrolle', 'Generator warning lamp'),
     select: chargeLampLit,
     appearance: lampArtwork.charge,
   },
