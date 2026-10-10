@@ -548,6 +548,31 @@ describe('CTSL console levers (intake §3.4)', () => {
     expect(Number(paint?.[1])).toBeLessThan(0.7);
   });
 
+  it('paints the trim strip as a lacquered plate with a soft glare', () => {
+    const face = faceOf('trim');
+    expect(face).toContain('data-paint=""');
+    expect(face).toContain('fill="url(#gg)"');
+  });
+
+  it('moulds the throttle grip as a lit knob, not a flat fill', () => {
+    const grip = read(movingOf('throttle').image);
+    for (const layer of ['bd', 'cs', 'hl', 'tx']) expect(grip, layer).toContain(`url(#${layer})`);
+  });
+
+  it.each(['brake', 'choke'] as const)('ribs and shades the %s grip', (id) => {
+    const grip = read(movingOf(id).image);
+    expect(grip).toContain('clip-path="url(#cp)"');
+    expect(grip).toContain('fill="url(#cs)"');
+    const ribs = grip.match(/stroke-opacity="\.\d+" stroke-width="1\.[4-7]"/g) ?? [];
+    expect(ribs.length).toBeGreaterThan(6);
+  });
+
+  it('draws the rescue pocket as a screwed plate like its neighbours', () => {
+    const backdrop = readFileSync(new URL('./assets/view-console.svg', import.meta.url), 'utf8');
+    expect(backdrop).not.toContain('<rect x="446" y="490" width="308" height="300"');
+    expect(backdrop).toContain('<g transform="translate(432 0)">');
+  });
+
   it('draws the trim wheel rim inboard of its indicator', () => {
     const rim = /<rect x="([\d.]+)"[^>]*width="([\d.]+)"[^>]*fill="url\(#w\)"/.exec(faceOf('trim'));
     expect(rim, 'the trim face draws a wheel rim').not.toBeNull();
