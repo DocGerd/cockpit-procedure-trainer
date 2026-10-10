@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { writeSetting } from '../storage';
-import { ThemeProvider, ThemeSwitch } from './index';
+import { parseDurationMs, ThemeProvider, ThemeSwitch } from './index';
 
 const labels = {
   switchToLight: 'Switch to light theme',
@@ -161,6 +161,8 @@ describe('theme', () => {
 });
 
 describe('theme fade', () => {
+  // jsdom has no tokens.css, so the fade lasts only the settle time.
+  const FADE_END_MS = 50;
   const fading = () => document.documentElement.classList.contains('theme-fading');
   const toggle = (name: string) =>
     act(() => {
@@ -201,16 +203,31 @@ describe('theme fade', () => {
     expect(fading()).toBe(false);
   });
 
-  it('keeps fading through a second switch and clears once', () => {
+  it('restarts the fade on a second switch and clears once', () => {
     mockSystemTheme('light');
     renderSwitch();
     toggle('Switch to dark theme');
+    act(() => {
+      vi.advanceTimersByTime(FADE_END_MS - 10);
+    });
     toggle('Switch to light theme');
     expect(theme()).toBe('light');
+    act(() => {
+      vi.advanceTimersByTime(FADE_END_MS - 10);
+    });
     expect(fading()).toBe(true);
     act(() => {
-      vi.runAllTimers();
+      vi.advanceTimersByTime(20);
     });
+    expect(fading()).toBe(false);
+  });
+
+  it('clears the fade when the provider unmounts mid-fade', () => {
+    mockSystemTheme('light');
+    const { unmount } = renderSwitch();
+    toggle('Switch to dark theme');
+    expect(fading()).toBe(true);
+    unmount();
     expect(fading()).toBe(false);
   });
 
@@ -220,5 +237,13 @@ describe('theme fade', () => {
     system.change('dark');
     expect(theme()).toBe('dark');
     expect(fading()).toBe(false);
+  });
+});
+
+describe('parseDurationMs', () => {
+  it('reads milliseconds, seconds and a missing value', () => {
+    expect(parseDurationMs('350ms')).toBe(350);
+    expect(parseDurationMs(' 0.35s ')).toBeCloseTo(350);
+    expect(parseDurationMs('')).toBe(0);
   });
 });

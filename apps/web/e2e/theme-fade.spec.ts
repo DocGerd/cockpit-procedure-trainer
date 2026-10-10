@@ -61,13 +61,16 @@ const toggleAndSample = (page: Page, probes: Probe[], label: string, ms: number)
           const frame: Record<string, string> = {};
           for (const { selector, property } of list) {
             const element = document.querySelector(selector);
-            frame[`${selector} ${property}`] = element ? getComputedStyle(element)[property] : '';
+            if (!element) throw new Error(`no ${selector}`);
+            frame[`${selector} ${property}`] = getComputedStyle(element)[property];
           }
           frames.push(frame);
           if (performance.now() - started < duration) requestAnimationFrame(sample);
           else resolve(frames);
         };
-        document.querySelector<HTMLElement>(`button[aria-label="${name}"]`)?.click();
+        const button = document.querySelector<HTMLElement>(`button[aria-label="${name}"]`);
+        if (!button) throw new Error(`no theme switch "${name}"`);
+        button.click();
         requestAnimationFrame(sample);
       }),
     { list: probes, name: label, duration: ms },
@@ -92,8 +95,10 @@ async function expectTogetherFade(page: Page, probes: Probe[]) {
     series.every((s) => (s[i] ?? 0) > 0.1 && (s[i] ?? 0) < 0.9),
   );
   expect(middle.length, 'frames caught mid-transition').toBeGreaterThanOrEqual(3);
-  console.log(JSON.stringify(series.map((s) => s.slice(0, 26).map((v) => +v.toFixed(2)))));
   const spans = probes.map((probe) => spanOf(before[key(probe)] ?? '', after[key(probe)] ?? ''));
+  probes.forEach((probe, i) => {
+    expect(spans[i], `${key(probe)} colour channels move`).toBeGreaterThan(0);
+  });
   // Computed colours are whole 8-bit channels, so a short span resolves coarsely.
   const slack = (...indexes: number[]) =>
     0.03 + 2 / Math.min(...indexes.map((index) => spans[index] ?? 1));
@@ -181,10 +186,14 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await openPicker(page);
     const heights = () =>
-      page.evaluate(() => ({
-        header: document.querySelector('.shell-header')?.getBoundingClientRect().height,
-        footer: document.querySelector('.app-footer')?.getBoundingClientRect().height,
-      }));
+      page.evaluate(() => {
+        const height = (selector: string) => {
+          const element = document.querySelector(selector);
+          if (!element) throw new Error(`no ${selector}`);
+          return element.getBoundingClientRect().height;
+        };
+        return { header: height('.shell-header'), footer: height('.app-footer') };
+      });
     const before = await heights();
     const frames = await toggleAndSample(page, header, copy.shell.switchToDark, 500);
     expect(frames.length).toBeGreaterThan(5);

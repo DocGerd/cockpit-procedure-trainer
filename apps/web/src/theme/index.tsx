@@ -32,10 +32,14 @@ const FADE_SETTLE_MS = 50;
 
 // The class turns the chrome's colour transitions on (styles/theme-fade.css) only while a
 // user-chosen change plays, so the first application and hover transitions are left alone.
+export function parseDurationMs(raw: string): number {
+  const value = Number.parseFloat(raw.trim());
+  if (!Number.isFinite(value)) return 0;
+  return raw.trim().endsWith('ms') ? value : value * 1000;
+}
+
 function fadeDurationMs(root: HTMLElement): number {
-  const raw = getComputedStyle(root).getPropertyValue('--duration-theme').trim();
-  const value = Number.parseFloat(raw) || 0;
-  return raw.endsWith('ms') ? value : value * 1000;
+  return parseDurationMs(getComputedStyle(root).getPropertyValue('--duration-theme'));
 }
 
 type ThemeContextValue = { theme: Theme; setTheme(theme: Theme): void };
@@ -73,7 +77,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.dataset.theme = theme;
   }, [theme]);
 
-  useEffect(() => () => window.clearTimeout(fadeTimer.current), []);
+  useEffect(
+    () => () => {
+      window.clearTimeout(fadeTimer.current);
+      document.documentElement.classList.remove(FADE_CLASS);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (choice) applyThemeColorChoice(choice);
