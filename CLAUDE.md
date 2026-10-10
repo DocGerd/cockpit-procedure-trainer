@@ -34,6 +34,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   in `/goal` sessions, and its Session end closes every such session.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
+- A squash makes the PR body the commit message: close/fix/resolve before
+  `#N` closes that issue or PR, so prose writes `Refs #N`.
 - Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line
   `No changelog: <reason>` when it has no user-visible effect.
 - Agents merge reviewed PRs into `develop` only, never into `main`. An agent
@@ -43,6 +45,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   it, unless the release needs the change.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
+  A failed pass blocks landing until a re-run on the final head passes.
 - App settings (language, Hide upcoming) persist in browser storage: browser
   checks set them explicitly. At tablet width the drawer covers the panel, so
   walk the panel at 1920 and then resize.
@@ -51,6 +54,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   no prior scores or "be strict" notes (they anchor).
 - Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
   review-toolkit passes that a reviewer agent asks for.
+- The main checkout is pulled only at close-out, so it lags `develop`: give
+  read-only checkers (`intake-checker` has no git) a detached worktree at the
+  PR head or `origin/develop` and a saved diff.
 - One agent owns a worktree at a time. A message to a finished subagent
   resumes it with that order, so wait for its hand-back before giving the
   worktree to another agent.
