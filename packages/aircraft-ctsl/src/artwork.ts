@@ -312,7 +312,7 @@ export const controlArtwork = {
       '35': images.flapKnob5,
       'override-down': images.flapKnob6,
     }),
-    'FLAPS',
+    'Flaps',
     'up manually',
     '-12',
     '0',

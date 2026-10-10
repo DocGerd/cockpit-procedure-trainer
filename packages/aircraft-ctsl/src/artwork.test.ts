@@ -308,6 +308,9 @@ describe('CTSL gauges', () => {
     altimeter: [0, 1000, 2000, 3000, 4000, 5000],
     tachometer: [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000],
     oilPressure: [0, 2, 4, 6, 8, 10],
+    oilTemperature: [50, 70, 90, 110, 130, 150],
+    cht: [50, 70, 90, 110, 130, 150],
+    voltmeter: [10, 12, 14, 16],
   };
 
   it.each(Object.entries(printedScales))('prints every %s numeral on its tick', (id, values) => {
@@ -321,7 +324,7 @@ describe('CTSL gauges', () => {
       ),
     ]
       .map(([, x, y, content]) => ({ dx: Number(x) - 100, dy: Number(y) - 100, content }))
-      .filter(({ dx, dy }) => Math.abs(Math.hypot(dx, dy) - 46) < 3);
+      .filter(({ dx, dy }) => Math.abs(Math.hypot(dx, dy) - 47) < 7);
     expect(numerals).toHaveLength(values.length);
     numerals.forEach(({ dx, dy, content }, index) => {
       const value = values[index] ?? NaN;

@@ -194,8 +194,8 @@ bottom).
 The floor test owns the numbers. Constraints this design sets:
 
 - The CTSL panel floor is its cockpit's declared panel `minWidth`
-  (`packages/aircraft-ctsl/src/cockpit.ts`): 950 px rendered width (#339),
-  raised to 1110 px so the device mirrors fit their slots (#656). The four breaker-row
+  (`packages/aircraft-ctsl/src/cockpit.ts`; #339, raised for the device
+  mirrors in #656). The four breaker-row
   target-overlap acceptances of the CTSL are dropped; the panel is laid out
   and sized to have none.
 - The CTSL panel spans the top; the dock, the centre field and the console
@@ -352,7 +352,7 @@ and dark, each mode; one tablet size to confirm tabs still work.
    what a tap loses there (a position only partly tappable, or its centre
    landing on the next position) and fails once an accepted overlap is gone.
    The four CTSL breaker-row acceptances are dropped (#339): the CTSL panel
-   floor is raised to 950 px instead (later 1110 px, #656). Quality sacrificed: none ranked beyond
+   floor is raised instead (again in #656). Quality sacrificed: none ranked beyond
    the existing acceptances. The remaining acceptances are dropped too (#470):
    the panel kit clips overlapping positions of one control to the points
    nearer their own centre, so each stays tappable (`reach.spec.ts`), and the
