@@ -44,12 +44,19 @@ volume and starts the GPS search. Power lost drops the search and the confirmati
 
 ## Display
 
-`flarmScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot (its
-bezel is lettered FLARM), a `readout` of the status LEDs in German and English, and the `floor`:
-the smallest frame size at which the operable screen keeps full touch targets (see
-`src/entry.ts`). The Display shows the status column and the ring; the words `above`, `below`
-and the key are on the operable screen only, because the slot's text size leaves no room for
-them.
+`flarmScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot, a
+`readout` of the status LEDs in German and English, and the `floor`: the smallest frame size at
+which the operable screen keeps full touch targets (see `src/entry.ts`).
+
+The unit draws its own face (`face: 'own'`), laid out as intake section 3.8.4 "Face layout
+(photos)" gives it: a slate rounded rectangle with the status column, the `Mode` key in its
+printed frame, the `above` and `below` LEDs on their bar, and the ring of ten LEDs with spokes
+around a straight-wing aircraft. `src/face/geometry.ts` holds the positions, and one face
+component draws both the dock's Screen and the slot's Display, so the slot shows the same face
+at panel scale. In the dock the whole printed key frame is the `Mode` key's touch target and the
+face prints the unit word `FLARM` where the maker's wordmark stands; in the slot the frame label
+prints it there, and the face words are secondary lettering. The face has no screen, so it
+wears no glass. No logo is drawn.
 
 ## Not modelled
 
