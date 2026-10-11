@@ -94,7 +94,7 @@ viewport (`priorityViewports` in `apps/web/e2e/layout-probe.ts`), on one page ea
 | 3840x2160          | The cockpit scales up and stays one viewport.                                                |
 | 1024x768, 768x1024 | Tablets: tabs.                                                                               |
 
-Indicator and control faces print numerals, units and function labels at the lettering minimum from 1920x1080 up; captions marked `data-lettering="secondary"` print as small as on the real instrument (ADR 0002, realism), and are held only to half the lettering minimum (`SECONDARY_MIN_PX`); at the tablet viewports the CTSL's breaker and dial captions fall below that, listed in `secondaryCaptionGaps` in `layout.spec.ts`, and pinch-zoom is the route to read them.
+Indicator and control faces print numerals, units and function labels at the lettering minimum from 1920x1080 up; captions marked `data-lettering="secondary"` print as small as on the real instrument (ADR 0002, realism), and are held only to half the lettering minimum (`SECONDARY_MIN_PX`); at the tablet viewports the CTSL's breaker and dial captions fall below that, listed in `secondaryCaptionGaps` in `layout.spec.ts`, and pinch-zoom is the route to read them. In a slot mirror, face legends, LED captions, on-screen captions and the readouts the real unit prints at about half its main size are secondary in the same way (`slot-fit.test.tsx`), while main values and the slot label keep the full minimum, and the dock prints everything at the full minimum.
 
 Every row checks, in order:
 

@@ -62,3 +62,17 @@ test('a Mode push of about two seconds runs the confirmation on the ring', async
   await page.clock.runFor(CONFIRM_MS);
   await expect(ringLit).toHaveCount(0);
 });
+
+test('the Mode key darkens while it is held down', async ({ page }) => {
+  const unit = await openInDock(page);
+  const key = unit.getByRole('button', { name: 'Mode', exact: true });
+  const background = () => key.evaluate((element) => getComputedStyle(element).backgroundColor);
+  const clear = 'rgba(0, 0, 0, 0)';
+  expect(await background()).toBe(clear);
+
+  await key.hover();
+  await page.mouse.down();
+  expect(await background()).not.toBe(clear);
+  await page.mouse.up();
+  expect(await background()).toBe(clear);
+});

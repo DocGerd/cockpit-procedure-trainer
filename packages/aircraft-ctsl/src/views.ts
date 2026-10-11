@@ -11,11 +11,13 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
   ...(printed.length > 0 ? { printed } : {}),
 });
 
-// Each slot is its mirror's natural size, so the mirror lettering stays legible at the panel
-// floor; the positions follow D-MPGO's panel as far as the sizes allow (intake §3.2a).
+// Each slot keeps its mirror's aspect and is at least its natural size, so the mirror lettering
+// stays legible at the panel floor; the GPS takes the field's height between the glareshield strip
+// and the radio row, toward its photographed size. Positions follow D-MPGO's panel as far as the
+// sizes allow (intake §3.2a).
 export const deviceSlots = {
   flarm: at(500, 150, 320, 160),
-  gps: at(880, 132, 400, 250),
+  gps: at(850, 123, 440, 275),
   com: at(540, 404, 272, 272),
   xpdr: at(832, 404, 272, 272),
 } as const satisfies Record<string, Placement>;

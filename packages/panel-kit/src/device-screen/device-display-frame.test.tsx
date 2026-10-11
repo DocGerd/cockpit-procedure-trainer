@@ -2,6 +2,7 @@
 import { act, cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DeviceDisplayFrame, GPS_MIRROR, RADIO_MIRROR } from './index';
+import type { MirrorLabelAt, MirrorSize } from './index';
 
 afterEach(() => {
   cleanup();
@@ -48,6 +49,83 @@ describe('DeviceDisplayFrame', () => {
 
   it('offers nothing to operate', () => {
     expect(mount().querySelectorAll('button, input, [tabindex]')).toHaveLength(0);
+  });
+});
+
+describe('DeviceDisplayFrame for a device that draws its own face', () => {
+  const SIZE: MirrorSize = {
+    width: 'calc(var(--space-12) * 5 + var(--space-8))',
+    aspectRatio: '1 / 1',
+  };
+  const own = (on = true, labelAt?: MirrorLabelAt) =>
+    render(
+      <DeviceDisplayFrame on={on} size={SIZE} label="COM" face="own" {...(labelAt && { labelAt })}>
+        <div data-face-art>
+          <span data-display>118.000</span>
+        </div>
+      </DeviceDisplayFrame>,
+    ).container;
+  const labelOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>('[data-mirror-label]');
+
+  it('keeps the bezel hook with its natural size, so the slot fit still parses it', () => {
+    const bezel = own().querySelector<HTMLElement>('.pk-mirror-bezel');
+    expect(bezel?.getAttribute('class')).toBe('pk-mirror-bezel');
+    expect(bezel?.style.width).toBe(SIZE.width);
+    expect(bezel?.style.aspectRatio).toBe('1 / 1');
+  });
+
+  it('prints the label as one text node in the label class', () => {
+    const label = labelOf(own());
+    expect(label?.classList.contains('pk-mirror-label')).toBe(true);
+    expect(label?.childNodes).toHaveLength(1);
+    expect(label?.textContent).toBe('COM');
+  });
+
+  it('places the label at its centre, in percent of the mirror, upright when vertical', () => {
+    const vertical = labelOf(own(true, { left: 0.055, top: 0.5, vertical: true }));
+    expect(vertical?.style.left).toBe('5.5%');
+    expect(vertical?.style.top).toBe('50%');
+    expect(vertical?.hasAttribute('data-vertical')).toBe(true);
+    expect(vertical?.textContent).toBe('COM');
+    cleanup();
+
+    const level = labelOf(own(true, { left: 0.5, top: 0.9 }));
+    expect(level?.style.top).toBe('90%');
+    expect(level?.hasAttribute('data-vertical')).toBe(false);
+  });
+
+  it('draws no label column, screen well or scrim: the face fills the bezel box', () => {
+    const off = own(false);
+    expect(off.querySelector('.pk-mirror-screen')).toBeNull();
+    expect(off.querySelector('[data-screen-off]')).toBeNull();
+    const mirror = off.querySelector('[data-device-mirror]');
+    expect(mirror?.getAttribute('data-face')).toBe('own');
+    expect(mirror?.getAttribute('data-on')).toBe('false');
+    const face = off.querySelector('.pk-mirror-face');
+    expect(face?.parentElement?.classList.contains('pk-mirror-bezel')).toBe(true);
+    expect(face?.querySelector('[data-display]')?.textContent).toBe('118.000');
+  });
+
+  it('offers nothing to operate', () => {
+    expect(own().querySelectorAll('button, input, [tabindex]')).toHaveLength(0);
+  });
+
+  it('draws the framed mirror unchanged when the face is framed', () => {
+    const framed = (face?: 'framed') => {
+      const { container } = render(
+        <DeviceDisplayFrame on={false} size={RADIO_MIRROR} label="COM" {...(face && { face })}>
+          <span>118.000</span>
+        </DeviceDisplayFrame>,
+      );
+      const markup = container.innerHTML;
+      cleanup();
+      return markup;
+    };
+    const plain = framed();
+    expect(framed('framed')).toBe(plain);
+    expect(plain).not.toContain('data-face');
+    expect(plain).toContain('data-screen-off');
   });
 });
 

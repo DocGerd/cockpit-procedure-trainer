@@ -2,8 +2,9 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ARC_CENTRE, CHART, FACE_SIZE_CSS, KEYS, MAP_FIELDS, placeIn } from '../face/geometry';
 import { PAGES, aera500Device } from '../logic';
-import type { Aera500State } from '../logic';
+import type { Aera500State, TouchIcon } from '../logic';
 import { Aera500Screen } from './Aera500Screen';
 
 afterEach(cleanup);
@@ -15,7 +16,7 @@ const fixed: Aera500State = {
   page: 'map',
   fix: true,
   groundSpeedKt: 61.4,
-  trackDeg: 270,
+  trackDeg: 20,
   altitudeFt: 2400,
 };
 
@@ -30,9 +31,13 @@ const show = (state: Aera500State = lit, on = true) => {
 };
 
 describe('Aera500Screen glass', () => {
-  it('puts the display window first, so the glass lies over it and not over the keys', () => {
+  it('draws its own face at the natural size, with the glass on the display window', () => {
     const { view, window } = show();
-    expect(view.container.firstElementChild?.firstElementChild).toBe(window());
+    const face = view.container.firstElementChild as HTMLElement;
+    expect(face.style.width).toBe(FACE_SIZE_CSS.width);
+    expect(face.style.height).toBe(FACE_SIZE_CSS.height);
+    expect(window()?.classList.contains('pk-glass')).toBe(true);
+    expect(window()?.querySelector('button')).toBeNull();
   });
 
   it('asks for the database acceptance at the start-up page', () => {
@@ -64,17 +69,38 @@ describe('Aera500Screen glass', () => {
     expect(window()?.querySelector('[data-field="unknown"]')).toBeNull();
   });
 
+  it.each(Object.entries(MAP_FIELDS))(
+    'centres the %s label on its photographed row',
+    (field, spec) => {
+      const at = show(fixed).window()?.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      const percent = (value: number) => `${Number((value * 100).toFixed(4))}%`;
+      expect(at?.style.top).toBe(percent((spec.row[0] + spec.row[1]) / 2));
+      expect(at?.style.transform).toBe('translateY(calc(var(--text-2xs) / -2))');
+      const edge = spec.end ? at?.style.right : at?.style.left;
+      expect(edge).toBe(percent(spec.end ? 1 - spec.edge : spec.edge));
+    },
+  );
+
   it('shows a question mark over the aircraft and no GS without a fix', () => {
     const { text } = show({ ...lit, page: 'map' });
     expect(text('unknown')).toBe('?');
     expect(text('speed')).toBe('GS ---KT');
   });
 
+  it('prints the range at the lower right of the map, over DIST NEXT', () => {
+    const range = show(fixed).window()?.querySelector<HTMLElement>('[data-field="range"]');
+    const share = (value = '') => Number.parseFloat(value) / 100;
+    expect(range?.style.top).toBe('');
+    expect(share(range?.style.right)).toBeCloseTo(1 - MAP_FIELDS.dist.edge);
+    expect(share(range?.style.bottom)).toBeGreaterThan(1 - MAP_FIELDS.dist.row[0]);
+    expect(share(range?.style.bottom)).toBeLessThan(0.25);
+  });
+
   it('follows the range step', () => {
     expect(show({ ...fixed, rangeIndex: 6 }).text('range')).toBe('50NM');
   });
 
-  it('turns the north marker around the aircraft opposite to the track', () => {
+  it('turns the north marker on the range arc opposite to the track', () => {
     const north = (trackDeg: number) => {
       const { view } = show({ ...fixed, trackDeg });
       const at = view.container.querySelector('[data-north]')?.getAttribute('transform') ?? '';
@@ -84,10 +110,15 @@ describe('Aera500Screen glass', () => {
         .map(Number);
       return { x, y };
     };
-    const ownship = { x: 100, y: 58 };
-    expect(north(360).y).toBeLessThan(ownship.y);
-    expect(north(90).x).toBeLessThan(ownship.x);
-    expect(north(270).x).toBeGreaterThan(ownship.x);
+    const chartX = ARC_CENTRE.x - CHART.x;
+    const chartY = ARC_CENTRE.y - CHART.y;
+    expect(north(360).y).toBeLessThan(chartY);
+    expect(north(360).x).toBeCloseTo(chartX);
+    expect(north(30).x).toBeLessThan(chartX);
+    expect(north(330).x).toBeGreaterThan(chartX);
+    expect(
+      show({ ...fixed, trackDeg: 180 }).view.container.querySelector('[data-north]'),
+    ).toBeNull();
   });
 
   it('reads the GPS altitude on the Position page', () => {
@@ -148,8 +179,36 @@ describe('Aera500Screen keys', () => {
     expect(show({ ...lit, page: 'home', overlay: true }).names()).toEqual(['POWER', '−', '+']);
   });
 
-  it('keeps the keys while the display is dark', () => {
-    expect(show(base, false).names()).toEqual(['POWER', 'Press To Accept']);
+  it('keeps the keys while the display is dark, their names unprinted on the dark glass', () => {
+    const { names, view } = show(base, false);
+    expect(names()).toEqual(['POWER', 'Press To Accept']);
+    const label = (name: string) =>
+      screen.getByRole('button', { name }).querySelector<HTMLElement>('[data-key-label]');
+    expect(label('Press To Accept')?.style.opacity).toBe('0');
+    expect(label('POWER')?.style.opacity).toBe('');
+    expect(view.container.querySelector('[data-display] [data-face-dark]')).not.toBeNull();
+  });
+
+  it('draws Menu on the map soft-key column but offers no Menu key', () => {
+    const { window } = show(fixed);
+    expect(window()?.querySelector('[data-key="menu"]')?.textContent).toBe('Menu');
+    expect(screen.queryByRole('button', { name: 'Menu' })).toBeNull();
+  });
+
+  it.each([
+    ['startup', ['accept']],
+    ['home', ['map', 'nearest', 'activeFpl', 'directTo', 'position', 'tools']],
+    ['map', ['home', 'zoomOut', 'zoomIn']],
+    ['tools', ['back', 'home', 'gpsStatus']],
+  ] as const)('places each %s key over its drawn key', (page, icons) => {
+    const { view } = show({ ...lit, page });
+    for (const icon of icons as readonly TouchIcon[]) {
+      const key = view.container.querySelector<HTMLElement>(`[data-position="${icon}"]`);
+      expect(key?.style.left, icon).toBe(placeIn(KEYS[icon].hit).left);
+      expect(key?.style.top, icon).toBe(placeIn(KEYS[icon].hit).top);
+      expect(key?.style.width, icon).toBe(placeIn(KEYS[icon].hit).width);
+      expect(key?.style.height, icon).toBe(placeIn(KEYS[icon].hit).height);
+    }
   });
 
   it('gives every key a data-control, and each icon its position', () => {
@@ -186,6 +245,14 @@ describe('Aera500Screen keys', () => {
 });
 
 describe('Aera500Screen styling and size', () => {
+  it('leaves the key background to the stylesheet, so a press can shade the hit box', () => {
+    const { view } = show({ ...lit, page: 'home' });
+    for (const key of view.container.querySelectorAll<HTMLElement>('button')) {
+      expect(key.style.background).toBe('');
+      expect(key.style.backgroundColor).toBe('');
+    }
+  });
+
   it('renders no style element, which a strict content security policy would block', () => {
     for (const state of [lit, fixed, { ...fixed, overlay: true }]) {
       expect(show(state).view.container.querySelector('style')).toBeNull();

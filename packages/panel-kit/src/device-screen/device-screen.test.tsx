@@ -35,6 +35,59 @@ describe('DeviceScreenFrame', () => {
   });
 });
 
+describe('DeviceScreenFrame for a device that draws its own face', () => {
+  const mount = (on: boolean, onClick = vi.fn()) =>
+    render(
+      <DeviceScreenFrame on={on} label="atr833" face="own">
+        <div>
+          <div data-display className="pk-glass" />
+          <button type="button" onClick={onClick}>
+            Key
+          </button>
+        </div>
+      </DeviceScreenFrame>,
+    );
+
+  it('is still the device-named group that holds the keys', () => {
+    mount(true);
+    const frame = screen.getByRole('group', { name: 'atr833' });
+    expect(frame.hasAttribute('data-device-frame')).toBe(true);
+    expect(frame.getAttribute('data-face')).toBe('own');
+    expect(frame.contains(screen.getByRole('button', { name: 'Key' }))).toBe(true);
+  });
+
+  it('leaves darkening to the device: no scrim while off, and the power state stays readable', () => {
+    const onClick = vi.fn();
+    mount(false, onClick);
+    const frame = screen.getByRole('group', { name: 'atr833' });
+    expect(frame.getAttribute('data-on')).toBe('false');
+    expect(frame.querySelector('[data-screen-off]')).toBeNull();
+    screen.getByRole('button', { name: 'Key' }).click();
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('scales the face in its own content box, out of reach of the framed glass and keycaps', () => {
+    mount(true);
+    const frame = screen.getByRole('group', { name: 'atr833' });
+    expect(frame.querySelector('.pk-device-content')).toBeNull();
+    const content = frame.querySelector<HTMLElement>('.pk-face-content');
+    expect(content?.parentElement?.classList.contains('pk-device-screen')).toBe(true);
+    expect(content?.style.getPropertyValue('--pk-device-scale')).toBe('1');
+  });
+
+  it.each([undefined, 'framed'] as const)('draws the framed unit for face %s', (face) => {
+    render(
+      <DeviceScreenFrame on={false} label="Radio" {...(face && { face })}>
+        <button type="button">Key</button>
+      </DeviceScreenFrame>,
+    );
+    const frame = screen.getByRole('group', { name: 'Radio' });
+    expect(frame.hasAttribute('data-face')).toBe(false);
+    expect(frame.querySelector('.pk-device-content')).not.toBeNull();
+    expect(frame.querySelector('[data-screen-off]')).not.toBeNull();
+  });
+});
+
 describe('DeviceScreenFrame scaling', () => {
   type Size = { width: number; height: number };
   let box: Size = { width: 400, height: 300 };

@@ -1,3 +1,16 @@
+.cpt-device-aera500 button {
+  background: transparent;
+}
+
 .cpt-device-aera500 button:focus-visible {
   outline: var(--space-1) solid var(--panel-focus);
+}
+
+.cpt-device-aera500 button:active {
+  background-color: color-mix(in srgb, var(--panel-shadow) 25%, transparent);
+}
+
+/* The map screen is evenly lit top to bottom: its glass keeps the sheen, not the depth shade. */
+.cpt-device-aera500 .pk-glass::after {
+  background-image: var(--pk-glass-sheen);
 }

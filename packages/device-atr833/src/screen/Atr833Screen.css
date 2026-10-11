@@ -1,4 +1,0 @@
-.cpt-device-atr833 button:focus-visible {
-  outline: var(--space-1) solid var(--panel-focus);
-  outline-offset: calc(var(--space-1) * -1);
-}
