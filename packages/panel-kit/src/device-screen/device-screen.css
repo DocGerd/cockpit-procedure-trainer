@@ -284,8 +284,9 @@
     var(--pk-hair) var(--pk-hair) 0 var(--pk-hair)
       color-mix(in srgb, var(--panel-metal-light) 80%, var(--panel-metal-shade));
 
-  /* One soft canopy sweep up-left, a faint counter-reflection down-right, a little depth. */
-  --pk-glass:
+  /* One soft canopy sweep up-left and a faint counter-reflection down-right; the glass adds a
+     little depth below. */
+  --pk-glass-sheen:
     radial-gradient(
       ellipse 120% 160% at 0% -60%,
       color-mix(in srgb, var(--panel-glare) 16%, transparent),
@@ -293,11 +294,9 @@
       color-mix(in srgb, var(--panel-glare) 6%, transparent) 66%,
       transparent 67%
     ),
-    linear-gradient(
-      298deg,
-      color-mix(in srgb, var(--panel-glare) 3%, transparent),
-      transparent 16%
-    ),
+    linear-gradient(298deg, color-mix(in srgb, var(--panel-glare) 3%, transparent), transparent 16%);
+  --pk-glass:
+    var(--pk-glass-sheen),
     linear-gradient(
       to bottom,
       color-mix(in srgb, var(--panel-glare) 2%, transparent),

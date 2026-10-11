@@ -181,8 +181,8 @@ not use these.
 | `--panel-face-slate`      | `#323B4F` | `#323B4F` | slate face of a traffic display     |
 | `--panel-led-lit`         | `#9BE04A` | `#9BE04A` | lit status LED                      |
 | `--panel-body-grey`       | `#4A4B50` | `#4A4B50` | grey body of a portable GPS         |
-| `--panel-chart-land`      | `#DFE2C4` | `#DFE2C4` | land on a generic moving-map chart  |
-| `--panel-chart-water`     | `#A9CBE3` | `#A9CBE3` | water on a generic moving-map chart |
+| `--panel-chart-land`      | `#D0E880` | `#D0E880` | land on a generic moving-map chart  |
+| `--panel-chart-water`     | `#6E9CD6` | `#6E9CD6` | water on a generic moving-map chart |
 | `--panel-chart-airspace`  | `#4A6FB5` | `#4A6FB5` | airspace on a generic moving map    |
 | `--panel-chart-line`      | `#3A3D42` | `#3A3D42` | lines on a generic moving-map chart |
 

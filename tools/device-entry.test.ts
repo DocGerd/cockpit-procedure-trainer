@@ -31,7 +31,7 @@ const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
   gtx327: [400, 132],
   trt800h: [336, 284],
   gpsmap496: [220, 160],
-  aera500: [336, 280],
+  aera500: [340, 234],
 };
 
 // The tools project resolves no React types; components are opaque here.
