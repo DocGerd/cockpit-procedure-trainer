@@ -184,18 +184,19 @@ wording either. The type-name script lettering is not reproduced.
   disc with a red cross (not identified), both inert art.
 - The FLARM display left of the GPS; the GPS in its cradle; the COM radio and the
   transponder side by side below the GPS. All four are device slots of D-MPGO's own
-  units since M18 (§3.8): the panel art draws a recess for the FLARM display, the
-  cradle frame with its rail at the foot of the aera 500, and square recesses for the
-  two round funkwerk units, with no captions, which the aircraft does not have.
-  **Corrected from the photos (face fidelity fix):** the aircraft has no such recess,
-  frame or caption. The field is light brushed aluminium (§3.7.1) and each unit draws
-  its own whole face on it, the cradle included; the art is to drop the recesses and
-  the cradle frame and paint the aluminium.
-- **Layout compromises, assumed (unverified):** each slot is its mirror's natural
-  size, because the mirror lettering must stay legible at the panel floor (1110 px for
-  the 2372-unit panel): FLARM 320 by 160 units, GPS 400 by 250, COM and transponder
-  272 by 272 each. The round units are drawn at about 1.8 times their 57 mm and the
-  FLARM display at about twice its size, so the field reads fuller than the aircraft.
+  units since M18 (§3.8). **Corrected from the photos (face fidelity fix):** the
+  aircraft has no recess, frame or caption around any unit, so the panel art draws
+  none. The field is light brushed aluminium (§3.7.1), and each unit draws its own
+  whole face on it, the aera 500's cradle included.
+- **Layout compromises, assumed (unverified):** each slot keeps its mirror's aspect and
+  is at least its natural size, because the mirror lettering must stay legible at the
+  panel floor (1110 px for the 2372-unit panel): FLARM 320 by 160 units, GPS 440 by
+  275, COM and transponder 272 by 272 each. The round units are drawn at about 1.8
+  times their 57 mm and the FLARM display at about twice its size, so the field reads
+  fuller than the aircraft. The GPS takes the whole height between the glareshield
+  strip and the radio row, and so reaches about 1.6 D wide against its photographed
+  2.8 D (§3.8): it cannot grow further without shrinking the round units below their
+  legible size or moving the take-off checklist summary beside it.
   The upper-centre field is wider than the lower column and sits about 40 px left of
   it at HD, so that the radio slot reaches over the device dock, which stays left of
   the column under the panel. The FLARM display sits left of the GPS, not above it as
