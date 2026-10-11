@@ -5,11 +5,13 @@ import { aircraftRegistry } from '../src/aircraft-registry';
 import { messages as dockMessages } from '../src/devices/messages';
 import { copy, openPicker } from './trainer';
 import {
+  SECONDARY_MIN_PX,
   TOUCH_TARGET_PX,
   deviceTargets,
   indicatorLetteringProblems,
   letteringProblems,
   openAircraft,
+  secondaryCaptionProblems,
   selectLanguage,
   showView,
   viewRoot,
@@ -33,6 +35,12 @@ const TOLERANCE_PX = 0.5;
 const indicatorFaceGaps: Readonly<
   Record<string, readonly (typeof priorityViewports)[number]['name'][]>
 > = {
+  ctsl: ['tablet landscape', 'tablet portrait'],
+};
+
+// The same for secondary captions (#661), against the lower `SECONDARY_MIN_PX`: the breaker and
+// dial captions fit no larger at tablet width without redrawing the faces.
+const secondaryCaptionGaps: typeof indicatorFaceGaps = {
   ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
@@ -273,6 +281,24 @@ for (const aircraft of aircraftRegistry) {
         problems.push(...(await indicatorLetteringProblems(root, aircraft, viewId)));
       }
       expect(problems).toEqual([]);
+    });
+
+    // Secondary captions are exempt from the lettering minimum, not from every floor (#661).
+    test(`${aircraft.id} prints secondary captions at half the minimum size at ${viewport.name} ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      test.fail(
+        secondaryCaptionGaps[aircraft.id]?.includes(viewport.name) ?? false,
+        'Breaker and dial captions render below half the minimum at tablet sizes (#661)',
+      );
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const problems: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        problems.push(...(await secondaryCaptionProblems(root, aircraft, viewId)));
+      }
+      expect(problems, `secondary captions below ${SECONDARY_MIN_PX - TOLERANCE_PX}px`).toEqual([]);
     });
   }
 

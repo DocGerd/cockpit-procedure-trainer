@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { messages as modeMessages } from '../src/modes/messages';
 import { openAircraft, selectLanguage } from './legibility';
 import { pickerMessages } from '../src/shell/picker.messages';
 import {
@@ -564,6 +565,50 @@ for (const procedureId of ['rescueDeployment', 'preflight']) {
     if (!controls) throw new Error('no controls');
     expect(Math.max(...crumbs.map((crumb) => crumb.right))).toBeLessThanOrEqual(controls.x);
   });
+}
+
+// The aircraft name is the first crumb to give way on a tablet, and no aircraft's name may need
+// to: with any of its procedures and in Free explore, in either language, it prints whole. A long
+// procedure title may still truncate; the full text stays in the button's title.
+for (const entry of aircraftRegistry) {
+  for (const language of ['en', 'de'] as const) {
+    test(`the tablet header prints the ${entry.id} name whole in ${language} at 1024x768`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1024, height: 768 });
+      const clipped: string[] = [];
+      const crumbOverflow = async () => {
+        const crumb = page.getByRole('banner').locator('.shell-choice-value').first();
+        await expect(crumb).toHaveText(entry.name[language]);
+        return crumb.evaluate((element) => element.scrollWidth - element.clientWidth);
+      };
+      for (const procedureId of Object.keys(entry.procedures)) {
+        await page.goto('./');
+        await page.evaluate(() => localStorage.clear());
+        await page.reload();
+        await openAircraft(page, entry, procedureId);
+        await selectLanguage(page, language);
+        const overflow = await crumbOverflow();
+        if (overflow > 0.5) clipped.push(`${procedureId} by ${overflow}px`);
+      }
+      await page
+        .getByRole('group', { name: modeMessages[language].mode })
+        .getByRole('button', { name: modeMessages[language].explore })
+        .click();
+      const explored = await crumbOverflow();
+      if (explored > 0.5) clipped.push(`Free explore after a procedure by ${explored}px`);
+      await page.goto('./');
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await openPicker(page);
+      await page.getByRole('button', { name: entry.name.en }).click();
+      await selectLanguage(page, language);
+      await page.getByRole('button', { name: modeMessages[language].explore }).click();
+      const bare = await crumbOverflow();
+      if (bare > 0.5) clipped.push(`Free explore from the picker by ${bare}px`);
+      expect(clipped, 'views that clip the aircraft name').toEqual([]);
+    });
+  }
 }
 
 test('the phase select is no wider than its longest phase at 1920x1080', async ({ page }) => {
