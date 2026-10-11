@@ -7,5 +7,6 @@ export const flarmScreenEntry: DeviceScreenEntry = {
   Screen: FlarmScreen,
   Display: FlarmDisplay,
   readout: flarmReadout,
-  floor: { width: 360, height: 284 },
+  floor: { width: 364, height: 213 },
+  face: 'own',
 };
