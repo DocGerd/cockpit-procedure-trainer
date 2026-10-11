@@ -10,10 +10,20 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 ## [0.19.0] - 2026-10-11
 
+### Added
+
+- Avionics device packages can draw their whole face (`face: 'own'`) on bare panel metal, with face keys, knob touch helpers, display glass and new panel colour tokens for the D-MPGO unit faces.
+
 ### Changed
 
 - Soften the glare over the avionics device screens so the display reads through the glass.
 - The CT Supralight now carries D-MPGO's own avionics in place of the Garmin SL40, GTX 327 and GPSMAP 496: the funkwerk ATR833 COM radio and TRT800H transponder (round faces), the Garmin aera 500 in its cradle and the classic FLARM LED display, which runs on the avionics master. The before take-off checks press the transponder's I/O, accept the aera's databases and open its map page, and check that the FLARM shows Power, GPS and TX lit; the radio and transponder procedure uses FREQ, swap, I/O, VFR and MODE. The aircraft is now named "CT Supralight", without "(representative panel)".
+- The CT Supralight's COM radio now looks like D-MPGO's ATR833: a round black disc on the panel metal with the keys, legends, knobs, screws and yellow OLED lines where the real unit has them, the same face in the slot and the dock, and plus and minus helpers beside the knobs in the dock.
+- The CT Supralight's TRT800H transponder now looks like D-MPGO's unit, in the dock and in its panel slot: a round black disc on the panel metal with its keys, legends, screws, knurled knob, vertical ATC and yellow OLED lines where the real unit has them, plus CODE + and − touch helpers beside the knob in the dock.
+- The aera 500 now looks like D-MPGO's unit in the dock and in its panel slot: the touchscreen in its dark cradle with the latch rail and the POWER key on the top edge, a light yellow-green VFR-chart map with its four fields where the real unit prints them and the Out, In, Menu and Home soft keys down its right side, and every touch key on the screen itself.
+- The FLARM display now looks like D-MPGO's unit in the dock and in its panel slot: a slate face with the status LEDs, the Mode key in its printed frame, the above and below LEDs on their bar and the ring of ten LEDs with spokes around a straight-wing aircraft, on bare panel metal with no bezel.
+- The CT Supralight's avionics field is light brushed aluminium with no recesses, frame or GPS cradle drawn behind the units, and its GPS slot is larger.
+- The intake records the photographed face layout of D-MPGO's four avionics units (COM radio, transponder, aera 500, FLARM display), corrects four facts about them, and the M18 plan gains the face fidelity fix addendum.
 
 ### Fixed
 
