@@ -20,6 +20,9 @@ Touch points, each detailed in that doc:
 - [ ] `apps/web/src/devices/messages.ts`: the unit name in both languages in `unitNames`.
 - [ ] `tools/device-entry.test.ts`: a row in `NATURAL_SCREEN`. The slot fit is checked per install in
       `apps/web/src/devices/slot-fit.test.tsx`; it needs no row.
+- [ ] A unit whose real face has no square bezel: `face: 'own'` in the entry, with
+      `labelAt`, `pk-glass`, `FaceKey` and `KnobHelpers` ("A device that draws its own
+      face" in the doc).
 - [ ] Package `README.md` sections that `tools/device-readme.test.ts` checks.
 - [ ] A changelog fragment, see the `changelog-fragment` skill.
 

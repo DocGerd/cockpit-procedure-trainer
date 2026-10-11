@@ -177,6 +177,14 @@ not use these.
 | `--panel-lamp-glow-blue`  | `#CFE3FF` | `#CFE3FF` | hot core of a lit blue lamp         |
 | `--panel-lamp-glow-white` | `#FFFFFF` | `#FFFFFF` | hot core of a lit white lamp        |
 | `--panel-blink-period`    | `1s`      | `1s`      | on-off cycle of a blinking readout  |
+| `--panel-oled`            | `#F0D840` | `#F0D840` | lit OLED text of a radio            |
+| `--panel-face-slate`      | `#323B4F` | `#323B4F` | slate face of a traffic display     |
+| `--panel-led-lit`         | `#9BE04A` | `#9BE04A` | lit status LED                      |
+| `--panel-body-grey`       | `#4A4B50` | `#4A4B50` | grey body of a portable GPS         |
+| `--panel-chart-land`      | `#DFE2C4` | `#DFE2C4` | land on a generic moving-map chart  |
+| `--panel-chart-water`     | `#A9CBE3` | `#A9CBE3` | water on a generic moving-map chart |
+| `--panel-chart-airspace`  | `#4A6FB5` | `#4A6FB5` | airspace on a generic moving map    |
+| `--panel-chart-line`      | `#3A3D42` | `#3A3D42` | lines on a generic moving-map chart |
 
 ## Delta mark
 

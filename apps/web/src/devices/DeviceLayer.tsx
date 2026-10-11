@@ -58,7 +58,7 @@ function InstalledDevice({ installId, box }: { installId: string; box: PanelBox 
           onActivate={() => mirror.dock.open(installId)}
         />
       ) : (
-        <DeviceScreenFrame on={device.on} label={deviceId}>
+        <DeviceScreenFrame on={device.on} label={deviceId} face={entry?.face}>
           <Screen on={device.on} state={device.state} send={send} />
         </DeviceScreenFrame>
       )}

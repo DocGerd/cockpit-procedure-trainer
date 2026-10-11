@@ -1,7 +1,7 @@
 import { DeviceScreenFrame, DeviceScreenPlaceholder } from '@cpt/panel-kit';
 import { useRef } from 'react';
 import type { CSSProperties } from 'react';
-import { deviceScreens } from '../device-registry';
+import { deviceEntries } from '../device-registry';
 import { format, useMessages } from '../i18n';
 import { useGuidedInstall } from '../modes/guided-install';
 import { useKeyRing } from '../modes/key-ring';
@@ -30,7 +30,7 @@ function DockedDevice({ installId }: { installId: string }) {
   useKeyRing(unit, installId, device);
   if (deviceId === undefined || device === undefined) return null;
 
-  const Screen = Object.hasOwn(deviceScreens, deviceId) ? deviceScreens[deviceId] : undefined;
+  const entry = Object.hasOwn(deviceEntries, deviceId) ? deviceEntries[deviceId] : undefined;
   const floor = deviceFloor(deviceId);
   const sizes =
     floor &&
@@ -44,9 +44,9 @@ function DockedDevice({ installId }: { installId: string }) {
       data-target={targeted ? 'true' : undefined}
       style={sizes}
     >
-      {Screen ? (
-        <DeviceScreenFrame on={device.on} label={deviceId}>
-          <Screen on={device.on} state={device.state} send={send} />
+      {entry ? (
+        <DeviceScreenFrame on={device.on} label={deviceId} face={entry.face}>
+          <entry.Screen on={device.on} state={device.state} send={send} />
         </DeviceScreenFrame>
       ) : (
         <DeviceScreenPlaceholder label={format(text.noScreen, { device: deviceId })} />

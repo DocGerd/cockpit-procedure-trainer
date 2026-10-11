@@ -90,10 +90,11 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `send` takes the device's local control id (`coarse`, not `radio.coarse`); the
   panel routes it to the session as `<installId>.<controlId>`. Use `'set'` for a
   position, and `'press'` then `'release'` for a momentary or spring-back control.
-- The screen draws display contents only. The bezel, the glass, the keycaps and
+- A framed screen draws display contents only. The bezel, the glass, the keycaps and
   the dark powered-off screen come from the panel's device frame: it lays glass
   over the screen's first block, so put the display window first, and moulds every
-  `<button>` as a keycap. Blank the display when `on` is false.
+  `<button>` as a keycap. Blank the display when `on` is false. A device that draws
+  its own face gets none of this ("A device that draws its own face" below).
 - Every operable element is a native `<button>` or a native range input with an
   accessible name, so keyboard operation needs no device code. Screens have no
   language prop, so use unit-neutral aviation labels (`SWAP`, `STBY MHz +`).
@@ -123,9 +124,48 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `floor` is `{ width, height }`, the smallest size at which the `Screen` keeps
   every button at least `--size-target`. The dock renders the screen at that
   size or larger, and a test checks the aircraft's dock cell against it.
+- `face` is `'framed'` (the default) or `'own'`; see the next section.
 - A slot mirrors the device: `IN_SLOT_OPERATION` is off, and `slotMode()` in the
   app is the pure rule that could let a large slot be operated in place. Only where the cockpit has no dock (an aircraft without
   `cockpit`) is the `Screen` itself drawn in the slot.
+
+### A device that draws its own face
+
+A unit whose real face has no square bezel (a round radio, a slate traffic display, a
+GPS in its cradle) sets `face: 'own'` in its entry. The dock and the in-slot frame
+then draw no bezel, screws, recess, glass, keycaps or off scrim: the `Screen` sits
+on a borderless brushed plate of panel metal (`--panel-metal-light`) and draws the
+whole face itself, darkening its own window while `on` is false. The frame keeps its
+`role="group"` named by the device id and its `data-on`.
+
+- The `Display` passes `face="own"` to `DeviceDisplayFrame` with a `labelAt` of
+  `{ left, top, vertical? }`: the label's centre in fractions of the mirror box,
+  stacked upright when `vertical`. The label stays one text node at its framed size,
+  in `--panel-legend`, and the mirror box keeps its `MirrorSize`, so the slot fit
+  measures it the same way. The face fills the whole box.
+- Put the `pk-glass` class on the display window to give it the framed units'
+  glass. The class positions the window; set `position: absolute` inline to place it.
+- `FaceKey` is one key printed as a legend above a round cap: its hit box covers
+  both, from the top of the legend to the bottom of the cap, and is never smaller
+  than `--size-target`. Its `cap` centre is in fractions of the face width (x) and
+  height (y), `capSize` in fractions of the width, `legendGap` from the legend's
+  centre down to the cap's centre in fractions of the height, and `aspect` the
+  face's width over its height. It needs a positioned parent at the face's size.
+  The face's art draws the cap; the key shades it while pressed.
+- `KnobHelpers` stand in for a knob too small to turn by finger: `+` over `−`, each
+  a `--size-target` button named `<word> +` and `<word> −`, with the knob word
+  printed above them. They press the knob's `up` and `down` positions (or the ones
+  given) while held. Place them on the plate beside the knob, outside the face.
+- In the dock the plate keeps a `--space-2` margin around the `Screen`. The room
+  is tightest in the combined layout with the dock at its `minWidth` in German,
+  whose Close label is the wider; in the tabs layout the device is as tall as its
+  `floor` or `6 × --space-12`, whichever is more. Set the `floor` to at least the
+  natural size plus `2 × --space-2`; `apps/web/e2e/layout.spec.ts` checks both.
+- In a slot mirror, lettering the real unit prints small (face legends, LED
+  captions, on-screen captions, small readouts) carries `data-lettering="secondary"`
+  and is held to half the lettering minimum; main values and the slot label keep
+  the full minimum (`apps/web/src/devices/slot-fit.test.tsx`). The dock prints all
+  lettering at the full minimum.
 
 ## Installing in an aircraft
 

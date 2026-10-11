@@ -1,4 +1,5 @@
 import type { Aircraft } from '@cpt/core';
+import { DeviceDisplayFrame } from '@cpt/panel-kit';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createElement } from 'react';
@@ -25,19 +26,28 @@ function mirrorSize(markup: string): { width: number; height: number } {
   return { width: w, height: (w * Number(ratio[2])) / Number(ratio[1]) };
 }
 
-const smallestTextPx = (markup: string): number =>
-  Math.min(
-    token(`text-${labelSize}`),
-    ...[...markup.matchAll(/font-size:var\(--text-(\w+)\)/g)].map(([, name = '']) =>
-      token(`text-${name}`),
-    ),
-  );
+// Secondary lettering prints as small as the real unit prints it: half the lettering minimum, the
+// floor `SECONDARY_MIN_PX` sets for panel captions in the e2e legibility checks.
+const SECONDARY_MIN_PX = MIN_TEXT_PX / 2;
+
+/** The smallest inline type size of each lettering tier, the slot label counting as primary. */
+function smallestTextPx(markup: string): { primary: number; secondary: number } {
+  const primary = [token(`text-${labelSize}`)];
+  const secondary: number[] = [];
+  for (const [tag = ''] of markup.matchAll(/<[a-z][^>]*>/g)) {
+    const tier = /\sdata-lettering="secondary"/.test(tag) ? secondary : primary;
+    for (const [, name = ''] of tag.matchAll(/font-size:var\(--text-(\w+)\)/g)) {
+      tier.push(token(`text-${name}`));
+    }
+  }
+  return { primary: Math.min(...primary), secondary: Math.min(...secondary) };
+}
 
 /** Why this markup does not fit, or is illegible, in a slot of the given size. */
 function markupProblems(where: string, markup: string, slotW: number, slotH: number): string[] {
   const natural = mirrorSize(markup);
   const smallestNatural = smallestTextPx(markup);
-  const measures = [natural.width, natural.height, smallestNatural, slotW, slotH];
+  const measures = [natural.width, natural.height, smallestNatural.primary, slotW, slotH];
   if (!measures.every((measure) => Number.isFinite(measure) && measure > 0)) {
     return [`${where}: unmeasurable mirror or slot`];
   }
@@ -48,9 +58,15 @@ function markupProblems(where: string, markup: string, slotW: number, slotH: num
     );
   }
   const scale = Math.min(slotW / natural.width, slotH / natural.height);
-  const smallest = smallestNatural * scale;
+  const smallest = smallestNatural.primary * scale;
   if (smallest < MIN_TEXT_PX) {
     problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${MIN_TEXT_PX} px`);
+  }
+  const secondary = smallestNatural.secondary * scale;
+  if (secondary < SECONDARY_MIN_PX) {
+    problems.push(
+      `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${SECONDARY_MIN_PX} px`,
+    );
   }
   return problems;
 }
@@ -139,6 +155,77 @@ describe('the mirror in each installed slot', () => {
     expect(markupProblems('x', '<div></div>', Number.NaN, 100).join('\n')).toContain(
       'unmeasurable',
     );
+  });
+
+  describe('the lettering tiers of a test-local mirror', () => {
+    const MIRROR = 'width:calc(var(--space-12) * 5 + var(--space-8));aspect-ratio:1 / 1';
+    const natural = token('space-12') * 5 + token('space-8');
+    const span = (size: string, secondary: boolean) =>
+      `<span${secondary ? ' data-lettering="secondary"' : ''} style="font-size:var(--text-${size})">x</span>`;
+    const markup = (...spans: string[]) =>
+      `<div class="pk-mirror-bezel" style="${MIRROR}">${spans.join('')}</div>`;
+    /** The slot side at which `size` px of natural type renders at `px`. */
+    const slotFor = (px: number, size: number) => (natural * px) / size;
+    const label = token(`text-${labelSize}`);
+
+    // The smallest size renders between half the minimum and the minimum.
+    const between = slotFor(MIN_TEXT_PX * 0.6, token('text-2xs'));
+
+    it('holds a secondary caption to half the minimum only', () => {
+      const side = between;
+      expect(markupProblems('x', markup(span('2xs', true)), side, side)).toEqual([]);
+      expect(markupProblems('x', markup(span('2xs', false)), side, side).join('\n')).toContain(
+        'smallest text',
+      );
+    });
+
+    it('reports a secondary caption below half the minimum', () => {
+      const side = slotFor(SECONDARY_MIN_PX * 0.95, token('text-2xs'));
+      expect(side).toBeGreaterThan(slotFor(MIN_TEXT_PX, label));
+      expect(markupProblems('x', markup(span('2xs', true)), side, side)).toEqual([
+        expect.stringContaining('smallest secondary text'),
+      ]);
+    });
+
+    it('reports a primary value below the full minimum beside a legible secondary caption', () => {
+      const side = slotFor(MIN_TEXT_PX * 0.95, token('text-md'));
+      const problems = markupProblems(
+        'x',
+        markup(span('md', false), span('2xs', true)),
+        side,
+        side,
+      );
+      expect(problems).toEqual([expect.stringContaining('smallest text')]);
+    });
+
+    it('measures an own-face mirror by the same bezel and label hooks', () => {
+      const own = renderToStaticMarkup(
+        <DeviceDisplayFrame
+          on
+          size={{ width: 'calc(var(--space-12) * 5 + var(--space-8))', aspectRatio: '1 / 1' }}
+          label="COM"
+          face="own"
+          labelAt={{ left: 0.055, top: 0.5, vertical: true }}
+        >
+          <span data-lettering="secondary" style={{ fontSize: 'var(--text-2xs)' }}>
+            MEM
+          </span>
+        </DeviceDisplayFrame>,
+      );
+      expect(mirrorSize(own)).toEqual({ width: natural, height: natural });
+      expect(markupProblems('x', own, between, between)).toEqual([]);
+      const tooSmall = slotFor(SECONDARY_MIN_PX * 0.95, token('text-2xs'));
+      expect(markupProblems('x', own, tooSmall, tooSmall)).toEqual([
+        expect.stringContaining('smallest secondary text'),
+      ]);
+    });
+
+    it('reads the tier from the tag that carries it, in either attribute order', () => {
+      const side = between;
+      const reordered =
+        '<span style="font-size:var(--text-2xs)" data-lettering="secondary">x</span>';
+      expect(markupProblems('x', markup(reordered), side, side)).toEqual([]);
+    });
   });
 
   describe('a test-local aircraft with a mismatched slot', () => {
