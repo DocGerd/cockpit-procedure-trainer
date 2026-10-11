@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { OVERLAY_ICONS, PAGE_ICONS, PAGES } from '../logic';
 import {
+  ARC_CENTRE,
   ARC_HALF_SPAN,
+  ARC_RADIUS,
   BODY,
   BRAND_FOOTPRINT,
   CRADLE,
@@ -90,8 +92,17 @@ describe('aera 500 face geometry', () => {
     }
   });
 
-  it('ends the range arc about half way down the screen', () => {
-    expect(ARC_HALF_SPAN).toBeGreaterThan(Math.PI / 4);
-    expect(ARC_HALF_SPAN).toBeLessThan(Math.PI / 2);
+  it('runs the range arc through the photographed ends and apex', () => {
+    const at = (angle: number) => ({
+      x: (ARC_CENTRE.x + ARC_RADIUS * Math.sin(angle) - SCREEN.x) / SCREEN.width,
+      y: (ARC_CENTRE.y - ARC_RADIUS * Math.cos(angle) - SCREEN.y) / SCREEN.height,
+    });
+    const close = 3;
+    expect(at(-ARC_HALF_SPAN).x).toBeCloseTo(0.055, close);
+    expect(at(ARC_HALF_SPAN).x).toBeCloseTo(0.79, close);
+    expect(at(-ARC_HALF_SPAN).y).toBeCloseTo(0.54, close);
+    expect(at(ARC_HALF_SPAN).y).toBeCloseTo(0.54, close);
+    expect(at(0).x).toBeCloseTo(0.4225, close);
+    expect(at(0).y).toBeCloseTo(0.14, close);
   });
 });

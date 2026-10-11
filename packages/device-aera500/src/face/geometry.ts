@@ -172,11 +172,19 @@ export const MAP_FIELDS: Readonly<Record<MapField, FieldSpec>> = {
   dist: { edge: 0.79, row: [0.82, 0.86], end: true },
 };
 
-// The map's overlays, in screen fractions: the four fields, the range arc around the own ship.
 export const OWNSHIP = { x: sx(0.4), y: sy(0.87) };
-export const ARC_RADIUS = OWNSHIP.y - sy(0.14);
-/** The arc's half span: it ends at the height the photos show, sy 0.54. */
-export const ARC_HALF_SPAN = Math.acos((OWNSHIP.y - sy(0.54)) / ARC_RADIUS);
+
+/** The range arc's photographed ends and apex, in screen fractions. */
+const ARC_ENDS = { left: 0.055, right: 0.79, y: 0.54, apex: 0.14 } as const;
+const arcHalfChord = (sx(ARC_ENDS.right) - sx(ARC_ENDS.left)) / 2;
+const arcRise = sy(ARC_ENDS.y) - sy(ARC_ENDS.apex);
+/** The circle through both ends and the apex; its centre falls just below the own ship. */
+export const ARC_RADIUS = (arcHalfChord ** 2 + arcRise ** 2) / (2 * arcRise);
+export const ARC_CENTRE = {
+  x: sx((ARC_ENDS.left + ARC_ENDS.right) / 2),
+  y: sy(ARC_ENDS.apex) + ARC_RADIUS,
+};
+export const ARC_HALF_SPAN = Math.atan2(arcHalfChord, ARC_CENTRE.y - sy(ARC_ENDS.y));
 
 const percent = (fraction: number) => `${Number((fraction * 100).toFixed(4))}%`;
 

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import type { CSSProperties } from 'react';
-import { ARC_HALF_SPAN, ARC_RADIUS, CHART, OWNSHIP } from './geometry';
+import { ARC_CENTRE, ARC_HALF_SPAN, ARC_RADIUS, CHART, OWNSHIP } from './geometry';
 
 // A generic VFR-chart look, drawn for this trainer: no real geography, names or airspace.
 
@@ -32,8 +32,8 @@ const ChartBackdrop = memo(function ChartBackdrop() {
   );
 });
 
-const cx = OWNSHIP.x - CHART.x;
-const cy = OWNSHIP.y - CHART.y;
+const cx = ARC_CENTRE.x - CHART.x;
+const cy = ARC_CENTRE.y - CHART.y;
 const onCircle = (radius: number, angle: number) =>
   `${(cx + radius * Math.sin(angle)).toFixed(2)} ${(cy - radius * Math.cos(angle)).toFixed(2)}`;
 const arc = (radius: number) =>
@@ -68,7 +68,7 @@ export function MapChart({ trackDeg, style }: { trackDeg: number | null; style: 
       )}
       <path
         d={OWNSHIP_PATH}
-        transform={`translate(${cx.toFixed(2)} ${cy.toFixed(2)})`}
+        transform={`translate(${(OWNSHIP.x - CHART.x).toFixed(2)} ${(OWNSHIP.y - CHART.y).toFixed(2)})`}
         style={{ fill: 'var(--panel-legend)', stroke: 'var(--panel-shadow)', strokeWidth: 0.6 }}
       />
     </svg>

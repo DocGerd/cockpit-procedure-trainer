@@ -247,24 +247,48 @@ function PageText({ mode, state }: { mode: FaceMode; state: Aera500State }) {
     case 'map':
       return <MapPage mode={mode} state={state} />;
     case 'nearest':
-      return page(besideColumn, [title('NEAREST'), line('Airport: no entries')]);
+      return page(
+        besideColumn,
+        <>
+          {title('NEAREST')}
+          {line('Airport: no entries')}
+        </>,
+      );
     case 'activeFpl':
-      return page(besideColumn, [title('ACTIVE FPL'), line('No flight plan')]);
+      return page(
+        besideColumn,
+        <>
+          {title('ACTIVE FPL')}
+          {line('No flight plan')}
+        </>,
+      );
     case 'directTo':
-      return page(besideColumn, [title('DIRECT TO'), line('ID · Name · City')]);
+      return page(
+        besideColumn,
+        <>
+          {title('DIRECT TO')}
+          {line('ID · Name · City')}
+        </>,
+      );
     case 'position':
-      return page(besideColumn, [
-        title('POSITION'),
-        line(`ALT ${dashed(state.altitudeFt)}FT`, 'altitude', {}),
-      ]);
+      return page(
+        besideColumn,
+        <>
+          {title('POSITION')}
+          {line(`ALT ${dashed(state.altitudeFt)}FT`, 'altitude', {})}
+        </>,
+      );
     case 'tools':
       return page({ ...besideColumn, height: SCREEN.height * 0.4 }, title('TOOLS'));
     case 'gpsStatus':
-      return page(besideColumn, [
-        title('GPS STATUS'),
-        line(STATUS_NAMES[status], 'status', {}),
-        <SignalBars key="bars" status={status} height="var(--space-6)" />,
-      ]);
+      return page(
+        besideColumn,
+        <>
+          {title('GPS STATUS')}
+          {line(STATUS_NAMES[status], 'status', {})}
+          <SignalBars status={status} height="var(--space-6)" />
+        </>,
+      );
   }
 }
 

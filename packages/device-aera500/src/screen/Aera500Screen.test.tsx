@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CHART, FACE_SIZE_CSS, KEYS, MAP_FIELDS, OWNSHIP, placeIn } from '../face/geometry';
+import { ARC_CENTRE, CHART, FACE_SIZE_CSS, KEYS, MAP_FIELDS, placeIn } from '../face/geometry';
 import { PAGES, aera500Device } from '../logic';
 import type { Aera500State, TouchIcon } from '../logic';
 import { Aera500Screen } from './Aera500Screen';
@@ -101,8 +101,8 @@ describe('Aera500Screen glass', () => {
         .map(Number);
       return { x, y };
     };
-    const chartX = OWNSHIP.x - CHART.x;
-    const chartY = OWNSHIP.y - CHART.y;
+    const chartX = ARC_CENTRE.x - CHART.x;
+    const chartY = ARC_CENTRE.y - CHART.y;
     expect(north(360).y).toBeLessThan(chartY);
     expect(north(360).x).toBeCloseTo(chartX);
     expect(north(30).x).toBeLessThan(chartX);
