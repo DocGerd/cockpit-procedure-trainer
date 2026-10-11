@@ -197,6 +197,50 @@ describe('action items', () => {
     expect(checkOff(checklist, stateOf())).toBe(checklist);
   });
 
+  describe('a momentary press with doneWhen', () => {
+    const procedure: ProcedureDefinition<FixtureState> = {
+      ...beforeStart,
+      items: [
+        {
+          type: 'action',
+          control: 'lampTest',
+          position: 'pressed',
+          doneWhen: (state) => state.systems.busPowered,
+          text: { de: 'x', en: 'x' },
+        },
+      ],
+    };
+    const powered = stateOf({}, { busPowered: true });
+
+    it('takes a verify tick', () => {
+      expect(takesTick(startChecklist(procedure, stateOf(), controls))).toBe(true);
+    });
+
+    it('completes cleanly on a tick while the condition holds', () => {
+      const checklist = checkOff(startChecklist(procedure, powered, controls), powered);
+      expect(checklist.done).toBe(true);
+      expect(checklist.deviations).toEqual([]);
+    });
+
+    it('records the target left wrong on a tick while the condition fails', () => {
+      const checklist = checkOff(startChecklist(procedure, stateOf(), controls), stateOf());
+      expect(checklist.done).toBe(true);
+      expect(checklist.deviations).toEqual([
+        { kind: 'wrong-position', itemIndex: 0, controlId: 'lampTest', position: 'released' },
+      ]);
+    });
+
+    it('still completes on a press of its own', () => {
+      const checklist = observeControl(
+        startChecklist(procedure, stateOf(), controls),
+        position('lampTest', 'released', 'pressed'),
+        stateOf({ lampTest: 'pressed' }),
+      );
+      expect(checklist.done).toBe(true);
+      expect(checklist.deviations).toEqual([]);
+    });
+  });
+
   it('complete a holdUntil action at once on a verify tick while the target is elsewhere', () => {
     const procedure: ProcedureDefinition<FixtureState> = {
       ...beforeStart,

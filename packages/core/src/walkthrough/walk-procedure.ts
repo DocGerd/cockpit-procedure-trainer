@@ -83,6 +83,10 @@ function performAction(
   }
 
   const pressed = isPressed(definition, position);
+  if (pressed && item.doneWhen?.(session.state())) {
+    session.checkOff();
+    return undefined;
+  }
   const stranded = pressed ? restMismatch(session, definition, item) : undefined;
   if (stranded) return stranded;
   if (!pressed && session.state().controls[control] === position) {

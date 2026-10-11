@@ -244,7 +244,10 @@ of:
   on the state. It completes when the pilot sets the control to the position while
   the item is current, or ticks it verified, and `holdUntil` holds; it never
   completes just because the control already held. The demo holds the `starter` at
-  `'held'` until the engine runs.
+  `'held'` until the engine runs. A spring-back press takes no verify tick unless it
+  carries `doneWhen`, a condition on the state that shows it already done: the
+  CTSL's database acceptance on the aera, whose key only the start-up page offers,
+  is ticked when the pilot accepted earlier.
 - `check`: a `target`, `{ indicator }` or `{ control }`, and a `condition` on the
   state. Leave the `target` out when there is nothing to read on the panel, such
   as smoke seen outside: Guided then rings nothing, rather than a control of a

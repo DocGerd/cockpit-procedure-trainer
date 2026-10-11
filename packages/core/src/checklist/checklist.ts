@@ -85,7 +85,10 @@ function flowTargets<S>(procedure: ProcedureDefinition<S>, id: string): boolean 
 export function takesTick<S>(checklist: ChecklistState<S>): boolean {
   const item = currentItem(checklist);
   if (item?.type !== 'action') return item !== undefined;
-  return !item.flow && !springsBack(checklist.controls[item.control], item.position);
+  return (
+    !item.flow &&
+    (item.doneWhen !== undefined || !springsBack(checklist.controls[item.control], item.position))
+  );
 }
 
 type Operated<S> = Extract<ProcedureItem<S>, { type: 'action' | 'guard' }>;
@@ -308,9 +311,9 @@ export function retryItem<S>(checklist: ChecklistState<S>): ChecklistState<S> {
 }
 
 /**
- * Ticks the current item. A guard item, or an action other than a spring-back press, counts as
- * verified: it then completes like an operated one, and a target not at its position is recorded
- * as wrong.
+ * Ticks the current item. A guard item, or an action other than a spring-back press without
+ * `doneWhen`, counts as verified: it then completes like an operated one, and a target not at its
+ * position is recorded as wrong, unless the action's `doneWhen` holds.
  */
 export function checkOff<S>(
   checklist: ChecklistState<S>,
@@ -320,6 +323,7 @@ export function checkOff<S>(
   const item = currentItem(checklist);
   if (!item || !takesTick(checklist)) return checklist;
   if (isOperated(item)) {
+    if (item.type === 'action' && item.doneWhen?.(state)) return settle(complete(checklist), state);
     const left = leftAt(checklist, state);
     if (left) return settle(complete(deviate(checklist, left)), state);
     return settle({ ...checklist, operated: true }, state);

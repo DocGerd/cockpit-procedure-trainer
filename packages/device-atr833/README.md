@@ -2,8 +2,8 @@
 
 The funkwerk ATR833-OLED COM radio, the unit on D-MPGO's panel: a round 57 mm face in a square bezel,
 three keys above the display (I/O, SET, MEM), three below (DW, ▼▲, ►), the VOL/SEL knob at the upper
-right and an unlettered frequency knob at the lower right. An aircraft installs it by id (`atr833`).
-The package is registered in the app but no aircraft installs it yet.
+right and an unlettered frequency knob at the lower right. An aircraft installs it by id (`atr833`);
+the CT Supralight does.
 
 ## Source revision
 
@@ -17,6 +17,7 @@ is open (intake section 9, question 36). Assumptions, none checked against a uni
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
 - Dual watch needs a squelch of at least 1, and ends when either frequency changes, a swap included. Switching off also ends it.
 - A frequency that becomes active joins the last-active list once, newest first, up to 10. A third MEM release closes the lists.
+- SET held 5 s or more would open the setup menu, which is not modelled, so the release that ends such a hold does nothing.
 - Saving writes the standby frequency (key table and worked example) and shows `>` before it until the standby frequency changes. The hold is 1.5 s, the shorter of the manual's two times.
 - A browsed list entry shows its frequency on the standby line, without the `SBY` label; the manual does not say where. Loading an empty entry does nothing.
 - Setting ranges: VOL, INT, STL and STR 1 to 20; SQL, VOX and BRT 0 to 9; EXT 0 to 20, shown as off at 0. The intake gives no default for any setting, so every default (SQL 5 included) is a placeholder.
@@ -26,7 +27,7 @@ is open (intake section 9, question 36). Assumptions, none checked against a uni
 ## Controls
 
 - `power`: momentary `I/O`. Any press switches the unit on while it is off and powered. Held for `POWER_OFF_HOLD_MS` while on it switches off; the press that switched it on does not count.
-- `set`: momentary `SET`. On release steps line 3 through VOL, SQL, VOX, INT, STL, STR, EXT and BRT; in a MEM or LST list it loads the entry into the standby frequency.
+- `set`: momentary `SET`. On release steps line 3 through VOL, SQL, VOX, INT, STL, STR, EXT and BRT; in a MEM or LST list it loads the entry into the standby frequency. A release after `SETUP_MENU_HOLD_MS` ends a setup-menu hold and does nothing.
 - `mem`: momentary `MEM`. On release opens the MEM list, then the LST list. Held for `MEM_SAVE_HOLD_MS` it opens save mode; the release that ends this hold does nothing more.
 - `dw`: momentary `DW`. Toggles dual watch; in a menu, list or save mode it returns to the standard display.
 - `swap`: momentary `▼▲` (accessible name SWAP). Exchanges active and standby; in a list it loads the entry into the active frequency.

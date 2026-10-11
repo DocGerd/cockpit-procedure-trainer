@@ -110,11 +110,11 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 
 - `Display` is a `ComponentType<DeviceDisplayProps>`, `{ on: boolean; state: unknown }`:
   the same display contents as the screen, with no buttons and no `send`. Wrap it
-  in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (the 520 by 150
-  radio and transponder slot) or `GPS_MIRROR` (the 400 by 300 GPS slot), or pass a
-  device-local `MirrorSize` for a unit of another shape; the frame scales with
-  the slot. Its printed label is the unit name (for example `COM`,
-  `XPDR`, `GPS`), never "open". Keep the display lettering readable at the panel
+  in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (a 520 by 150
+  radio or transponder) or `GPS_MIRROR` (a 400 by 300 GPS), or pass a
+  device-local `MirrorSize` for a unit of another shape, as the CTSL's units do; the
+  frame scales with the slot. Its printed label is the unit's face word or name (for
+  example `COM`, `ATC`, `GPS`), never "open". Keep the display lettering readable at the panel
   floor.
 - `readout(state, language, on)` returns a short text of what the display shows,
   in `'de'` or `'en'`, and a text for the powered-off unit when `on` is false. It
@@ -171,7 +171,8 @@ the install id, which prefixes the device's control ids:
 ## Procedure items on device controls
 
 An action item targets `<installId>.<controlId>`, for example `radio.swap` at
-`pressed` or `xpdr.mode` at `alt`, and may carry `holdUntil`. A check item can
+`pressed` or `xpdr.mode` at `alt`, and may carry `holdUntil`, or `doneWhen` for a
+press whose key goes away once pressed (a touch key on a page the press leaves). A check item can
 target a device control and read the device state with a condition:
 
     type TransponderReading = { readonly squawk: string };

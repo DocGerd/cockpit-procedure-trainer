@@ -5,13 +5,13 @@ import './styles';
 /** The mirror's natural size: a token width and the aspect of the slot it is drawn for, bezel included. */
 export type MirrorSize = { width: string; aspectRatio: string };
 
-/** Radio and transponder slots are 520 by 150 units. */
+/** A 520 by 150 unit radio or transponder mirror. */
 export const RADIO_MIRROR: MirrorSize = {
   width: 'calc(var(--space-12) * 10 + var(--space-10))',
   aspectRatio: '520 / 150',
 };
 
-/** The GPS slot is 400 by 300 units. */
+/** A 400 by 300 unit GPS mirror. */
 export const GPS_MIRROR: MirrorSize = {
   width: 'calc(var(--space-12) * 8 + var(--space-4))',
   aspectRatio: '400 / 300',
@@ -20,7 +20,7 @@ export const GPS_MIRROR: MirrorSize = {
 export type DeviceDisplayFrameProps = {
   on: boolean;
   size: MirrorSize;
-  /** The unit name, printed on the bezel. */
+  /** The unit's face word or name, printed on the bezel. */
   label: string;
   children: ReactNode;
 };

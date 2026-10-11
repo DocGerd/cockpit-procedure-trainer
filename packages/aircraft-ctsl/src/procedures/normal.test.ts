@@ -619,6 +619,30 @@ describe('CTSL normal procedures', () => {
       });
     });
 
+    describe('Transponder: STBY after landing (intake §3.8.2)', () => {
+      const stby = 'Transponder: STBY';
+
+      it('closes the after-landing checklist after two MODE presses from ACS', () => {
+        const items = normalProcedures.afterLanding.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === stby);
+        expect(at).toBe(items.length - 1);
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'xpdr.mode' } });
+        for (const press of [items[at - 2], items[at - 1]]) {
+          expect(press).toMatchObject({
+            type: 'action',
+            control: 'xpdr.mode',
+            position: 'pressed',
+          });
+        }
+      });
+
+      it('records an unmet check when ticked with the transponder still at ACS', () => {
+        expect(tickedAt(only('afterLanding', [stby]), 'afterLanding', () => {})).toEqual([
+          expect.objectContaining({ kind: 'unmet-check' }),
+        ]);
+      });
+    });
+
     describe('GPS has a position fix (assumed, intake §9 questions 32 and 38)', () => {
       const fix = 'GPS: position fix (3D GPS Location)';
       const aircraft = only('beforeTakeoff', [fix]);
@@ -640,6 +664,40 @@ describe('CTSL normal procedures', () => {
           text: { en: 'GPS: map page', de: 'GPS: Kartenseite' },
         });
         expect(accept).toBeLessThan(at);
+      });
+
+      describe('databases accepted early, while the aera still showed its start-up page', () => {
+        const steps = only('beforeTakeoff', ['GPS: databases accepted', 'GPS: map page']);
+        const atAccept = (prepare: (session: Session) => void) => {
+          const session = createSession(steps, { devices, phase: 'holding' });
+          session.advance(100);
+          prepare(session);
+          session.takeChecklist('beforeTakeoff');
+          return session;
+        };
+        const accept = (session: Session) => {
+          session.press('gps.touch', 'accept');
+          session.release('gps.touch');
+          session.advance(100);
+        };
+
+        it('takes a tick once the aera has left its start-up page, then opens the map', () => {
+          const session = atAccept(accept);
+          session.checkOff();
+          expect(session.checklist()?.current).toBe(1);
+          session.press('gps.touch', 'map');
+          session.release('gps.touch');
+          session.advance(100);
+          expect(session.checklist()).toMatchObject({ done: true, deviations: [] });
+        });
+
+        it('records the step undone when ticked on the start-up page', () => {
+          const session = atAccept(() => {});
+          session.checkOff();
+          expect(session.checklist()?.deviations).toEqual([
+            expect.objectContaining({ kind: 'wrong-position', controlId: 'gps.touch' }),
+          ]);
+        });
       });
 
       it('records an unmet check when ticked with the GPS breaker pulled', () => {

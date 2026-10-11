@@ -4,6 +4,7 @@ import {
   MEM_SAVE_HOLD_MS,
   MENU_TIMEOUT_MS,
   POWER_OFF_HOLD_MS,
+  SETUP_MENU_HOLD_MS,
   atr833Device,
   formatFrequency,
   lineThree,
@@ -318,6 +319,11 @@ describe('SET items and the VOL/SEL knob', () => {
     const pressed = step(running, { set: 'pressed' });
     expect(pressed.item).toBe('vol');
     expect(release(pressed).item).toBe('sql');
+  });
+
+  it('takes the release that ends a setup-menu hold of SET as nothing', () => {
+    expect(release(hold(running, 'set', SETUP_MENU_HOLD_MS - 500)).item).toBe('sql');
+    expect(release(hold(running, 'set', SETUP_MENU_HOLD_MS + 1000)).item).toBe('vol');
   });
 
   it('returns to the standard display after the menu time-out without input', () => {

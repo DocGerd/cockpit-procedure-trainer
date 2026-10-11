@@ -1,8 +1,10 @@
 # @cpt/device-sl40
 
-The Garmin SL40 VHF COM radio as fitted to the CT Supralight's analog panel: standby
+The Garmin SL40 VHF COM radio, the unit of the CT Supralight's analog panel variant: standby
 frequency entry with a coarse and a fine knob, an active/standby swap, a monitor button,
 a volume knob and bus power. An aircraft installs it by id (`sl40`).
+It is kept in the repository but not registered in the app (`UNREGISTERED` in
+`tools/device-entry.test.ts`): the CT Supralight carries D-MPGO's own units instead.
 
 ## Source revision
 
