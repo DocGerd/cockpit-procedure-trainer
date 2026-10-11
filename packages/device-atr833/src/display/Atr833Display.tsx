@@ -1,58 +1,21 @@
 import { DeviceDisplayFrame } from '@cpt/panel-kit';
 import type { DeviceDisplayProps, MirrorSize } from '@cpt/panel-kit';
-import type { CSSProperties } from 'react';
-import { FaceLines } from '../face/FaceLines';
+import { Atr833Face } from '../face/Atr833Face';
+import { COM_LABEL, MIRROR_DIAMETER } from '../face/geometry';
 import type { Atr833State } from '../logic';
 
-export const ATR833_MIRROR: MirrorSize = {
-  width: 'calc(var(--space-12) * 5 + var(--space-8))',
-  aspectRatio: '1 / 1',
-};
+export const ATR833_MIRROR: MirrorSize = { width: MIRROR_DIAMETER, aspectRatio: '1 / 1' };
 
-const windowStyle: CSSProperties = {
-  position: 'relative',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  boxSizing: 'border-box',
-  width: '100%',
-  height: '100%',
-  background: 'var(--panel-screen)',
-  overflow: 'hidden',
-};
-
-const faceStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  boxSizing: 'border-box',
-  width: '100%',
-  aspectRatio: '1 / 1',
-  borderRadius: 'var(--radius-pill)',
-  background: 'var(--panel-dial)',
-};
-
-const knobStyle: CSSProperties = {
-  position: 'absolute',
-  right: 0,
-  width: 'var(--space-8)',
-  height: 'var(--space-8)',
-  borderRadius: 'var(--radius-pill)',
-  background: 'var(--panel-plastic)',
-  boxShadow: 'inset 0 0 0 var(--space-1) var(--panel-bezel-dark)',
+const LABEL_AT = {
+  left: COM_LABEL.x,
+  top: (COM_LABEL.top + COM_LABEL.bottom) / 2,
+  vertical: true,
 };
 
 export function Atr833Display({ on, state }: DeviceDisplayProps) {
-  const unit = state as Atr833State;
   return (
-    <DeviceDisplayFrame on={on} size={ATR833_MIRROR} label="COM">
-      <div style={windowStyle}>
-        <div style={faceStyle}>
-          <FaceLines on={on} state={unit} />
-        </div>
-        <span aria-hidden="true" data-knob="volSel" style={{ ...knobStyle, top: 0 }} />
-        <span aria-hidden="true" data-knob="freq" style={{ ...knobStyle, bottom: 0 }} />
-      </div>
+    <DeviceDisplayFrame on={on} size={ATR833_MIRROR} label="COM" face="own" labelAt={LABEL_AT}>
+      <Atr833Face mode="mirror" diameter={MIRROR_DIAMETER} on={on} state={state as Atr833State} />
     </DeviceDisplayFrame>
   );
 }

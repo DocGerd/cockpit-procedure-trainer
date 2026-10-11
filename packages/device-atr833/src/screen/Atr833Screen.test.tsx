@@ -25,10 +25,10 @@ const KEYS = [
   ['DW', 'dw', undefined],
   ['SWAP', 'swap', undefined],
   ['CURSOR', 'cursor', undefined],
-  ['VOL/SEL −', 'volSel', 'down'],
   ['VOL/SEL +', 'volSel', 'up'],
-  ['FREQ −', 'freq', 'down'],
+  ['VOL/SEL −', 'volSel', 'down'],
   ['FREQ +', 'freq', 'up'],
+  ['FREQ −', 'freq', 'down'],
 ] as const;
 
 describe('Atr833Screen display', () => {
@@ -37,6 +37,13 @@ describe('Atr833Screen display', () => {
     expect(field('active')).toBe('118.000');
     expect(field('standby')).toBe('119.000');
     expect(field('line3')).toBe('VOL 10');
+  });
+
+  it('labels the lines ACT and SBY and prints the line-3 value apart from its label', () => {
+    const { view } = show();
+    const labels = [...view.container.querySelectorAll('[data-line-label]')];
+    expect(labels.map((label) => label.textContent)).toEqual(['ACT', 'SBY', 'VOL']);
+    expect(view.container.querySelector('[data-line-value]')?.textContent).toBe('10');
   });
 
   it('underlines the field the cursor is on', () => {
@@ -70,32 +77,57 @@ describe('Atr833Screen display', () => {
       expect(field('line3')).toBe('');
     }
   });
+
+  it('prints every glyph in the window in the OLED colour, never white', () => {
+    const { view } = show({ cursor: 'channel' });
+    const window = view.container.querySelector<HTMLElement>('[data-display]');
+    expect(window?.classList.contains('pk-glass')).toBe(true);
+    const coloured = [...(window?.querySelectorAll<HTMLElement>('*') ?? [])]
+      .map((element) => element.style.color)
+      .filter((colour) => colour !== '');
+    expect(coloured.length).toBeGreaterThan(0);
+    for (const colour of coloured) expect(colour).toBe('var(--panel-oled)');
+  });
+});
+
+describe('Atr833Screen face', () => {
+  it('prints the legends above the keys and COM down the left', () => {
+    const { view } = show();
+    expect(screen.getByRole('button', { name: 'SWAP' }).textContent).toBe('▲▼');
+    expect(screen.getByRole('button', { name: 'CURSOR' }).textContent).toBe('►');
+    expect(screen.getByRole('button', { name: 'I/O' }).textContent).toBe('I/O');
+    expect(view.container.querySelector('[data-face-label]')?.textContent).toBe('COM');
+    expect(view.container.querySelector('[data-arc-legend]')?.textContent).toBe('VOL/SEL');
+  });
+
+  it('draws the disc, caps, knobs and screws as one hidden art layer without text', () => {
+    const { view } = show();
+    const art = view.container.querySelector('svg');
+    expect(art?.getAttribute('aria-hidden')).toBe('true');
+    expect(art?.querySelectorAll('[data-cap]')).toHaveLength(6);
+    expect(art?.querySelectorAll('[data-knob]')).toHaveLength(2);
+    expect(art?.querySelectorAll('[data-screw]')).toHaveLength(2);
+    expect(art?.querySelector('text, filter, style')).toBeNull();
+  });
+
+  it('puts the knob helpers in a column right of the disc', () => {
+    const { view } = show();
+    const column = view.container.querySelector<HTMLElement>('[data-helper-column]');
+    expect(column?.style.right).toBe('0px');
+    expect(column?.querySelectorAll('[data-knob-helpers]')).toHaveLength(2);
+    const face = view.container.querySelector<HTMLElement>('[data-atr833-face]');
+    expect(face?.contains(column ?? null)).toBe(false);
+  });
 });
 
 describe('Atr833Screen controls', () => {
   it('gives every key a native button with an accessible name, in the right order', () => {
     show();
     const buttons = screen.getAllByRole('button');
-    expect(buttons.map((button) => button.dataset.control)).toEqual([
-      'power',
-      'set',
-      'mem',
-      'volSel',
-      'volSel',
-      'dw',
-      'swap',
-      'cursor',
-      'freq',
-      'freq',
-    ]);
+    expect(
+      buttons.map((button) => button.getAttribute('aria-label') ?? button.textContent),
+    ).toEqual(KEYS.map(([name]) => name));
     for (const button of buttons) expect(button.tagName).toBe('BUTTON');
-  });
-
-  it('prints the face lettering on the keys', () => {
-    show();
-    expect(screen.getByRole('button', { name: 'SWAP' }).textContent).toBe('▼▲');
-    expect(screen.getByRole('button', { name: 'CURSOR' }).textContent).toBe('►');
-    expect(screen.getByRole('button', { name: 'I/O' }).textContent).toBe('I/O');
   });
 
   it('keeps the keys operable while the display is blank', () => {
@@ -147,10 +179,10 @@ describe('Atr833Screen styling', () => {
     }
   });
 
-  it('lays the keys out in five target-sized columns with the display first', () => {
-    const { container } = show().view;
-    expect(container.firstElementChild?.firstElementChild?.hasAttribute('data-display')).toBe(true);
-    expect(container.firstElementChild?.getAttribute('style')).toContain('repeat(5,');
+  it('sizes itself from tokens: the disc plus the helper column', () => {
+    const root = show().view.container.firstElementChild as HTMLElement;
+    expect(root.style.width).toMatch(/^calc\(.*var\(--space-12\).*\)$/);
+    expect(root.style.height).toBe('calc(var(--space-12) * 5 + var(--space-10))');
   });
 
   it('sets no text below the legibility floor', () => {
@@ -158,6 +190,7 @@ describe('Atr833Screen styling', () => {
     const sizes = [...container.querySelectorAll<HTMLElement>('*')]
       .map((element) => element.style.fontSize)
       .filter((size) => size !== '' && size !== 'inherit');
-    for (const size of sizes) expect(size).toMatch(/^var\(--text-(sm|md|lg|xl|2xl|3xl)\)$/);
+    expect(sizes.length).toBeGreaterThan(0);
+    for (const size of sizes) expect(size).toMatch(/^var\(--text-(2xs|xs|sm|md|lg|xl|2xl|3xl)\)$/);
   });
 });

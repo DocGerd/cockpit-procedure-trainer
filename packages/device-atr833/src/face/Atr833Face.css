@@ -1,0 +1,4 @@
+/* The face prints its legends bold; a button does not inherit the weight on its own. */
+.cpt-atr833-face .pk-face-key {
+  font-weight: inherit;
+}
