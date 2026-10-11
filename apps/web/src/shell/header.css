@@ -299,6 +299,13 @@
     min-width: calc(var(--space-12) * 2);
   }
 
+  /* A name shorter than the floor keeps all of it; only a longer one gives way. */
+  @supports (min-width: calc-size(max-content, size)) {
+    .shell[data-layout='tablet'] .shell-header .shell-choice:first-child:not(:last-child) {
+      min-width: calc-size(max-content, min(size, var(--space-12) * 3));
+    }
+  }
+
   .shell[data-layout='tablet'] .shell-header .shell-choice-value {
     display: block;
     min-width: 0;

@@ -344,6 +344,45 @@ export async function letteringProblems(
 export const indicatorLetteringProblems = (root: Locator, aircraft: Aircraft, viewId: string) =>
   faceProblems(root, aircraft, viewId, 'indicators');
 
+// Secondary captions print as small as on the real instrument, so they answer to a lower floor:
+// half the lettering minimum is where a caption stops being a caption.
+export const SECONDARY_MIN_PX = MIN_TEXT_PX / 2;
+
+const secondaryCaptions = (svg: string) =>
+  [...svg.matchAll(/<text\b([^>]*data-lettering="secondary"[^>]*)>([^<]*)<\/text>/g)].map(
+    ([, attributes, text]) => ({
+      text: text ?? '',
+      size: Number(/font-size="([\d.]+)"/.exec(attributes ?? '')?.[1]),
+    }),
+  );
+
+/** Secondary captions of every control and indicator face at the size the view renders. */
+export async function secondaryCaptionProblems(
+  root: Locator,
+  aircraft: Aircraft,
+  viewId: string,
+): Promise<string[]> {
+  const problems: string[] = [];
+  for (const kind of ['controls', 'indicators'] as const) {
+    for (const { id, face } of faces(aircraft, viewId, kind)) {
+      const svg = source(face);
+      const captions = secondaryCaptions(svg);
+      if (captions.length === 0) continue;
+      const rendered = await root
+        .locator(`[data-placement="${id}"] img`)
+        .first()
+        .evaluate((image) => image.getBoundingClientRect().width);
+      const scale = rendered / viewBoxWidth(svg);
+      problems.push(
+        ...captions
+          .filter(({ size }) => size * scale < SECONDARY_MIN_PX - TOLERANCE_PX)
+          .map(({ text, size }) => `${viewId}/${id}: ${text} ${(size * scale).toFixed(1)}px`),
+      );
+    }
+  }
+  return problems;
+}
+
 // Tall enough that the stage is bound by its width alone, never by the viewport height.
 const TALL_VIEWPORT_PX = 4000;
 const NARROWEST_VIEWPORT_PX = 320;

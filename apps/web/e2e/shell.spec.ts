@@ -566,6 +566,32 @@ for (const procedureId of ['rescueDeployment', 'preflight']) {
   });
 }
 
+// The aircraft name is the first crumb to give way on a tablet, and the CTSL's short name must
+// never need to: with any of its procedures, in either language, it prints whole. A long
+// procedure title may still truncate; the full text stays in the button's title.
+for (const language of ['en', 'de'] as const) {
+  test(`the tablet header prints the CTSL name whole in ${language} with every procedure at 1024x768`, async ({
+    page,
+  }) => {
+    const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
+    if (!ctsl) throw new Error('The aircraft registry has no CTSL');
+    await page.setViewportSize({ width: 1024, height: 768 });
+    const clipped: string[] = [];
+    for (const procedureId of Object.keys(ctsl.procedures)) {
+      await page.goto('./');
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await openAircraft(page, ctsl, procedureId);
+      await selectLanguage(page, language);
+      const crumb = page.getByRole('banner').locator('.shell-choice-value').first();
+      await expect(crumb).toHaveText(ctsl.name[language]);
+      const overflow = await crumb.evaluate((element) => element.scrollWidth - element.clientWidth);
+      if (overflow > 0.5) clipped.push(`${procedureId} by ${overflow}px`);
+    }
+    expect(clipped, 'procedures that clip the aircraft name').toEqual([]);
+  });
+}
+
 test('the phase select is no wider than its longest phase at 1920x1080', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   await pickProcedure(page, 'engineStart', 'guided');
