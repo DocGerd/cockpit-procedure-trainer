@@ -455,8 +455,8 @@ export const normalProcedures = {
         text: text('Transponder', 'Transponder'),
         expected: text('ein, Standby', 'on, standby'),
       },
-      // Assumed (unverified), intake §9 questions 32 and 38: the GPS starts with cradle power, so
-      // its step is the database acceptance, then its map page, which the line-up seed shows.
+      // Intake §9 question 38 (owner): the start-up step is the database acceptance, then the map
+      // page, which the line-up seed shows; its place in N6 is assumed (unverified), question 32.
       // Only the start-up page offers the accept key, so a pilot who accepted earlier ticks it.
       {
         type: 'action',

@@ -1020,8 +1020,6 @@ functions. The manual does not mention emergency squawks.
 
 **Uncertain.**
 
-- The set-up of D-MPGO's unit is owner-confirmed (§9 question 37): a Mode S cradle,
-  no ground switch and the VFR code 7000.
 - A second `VFR` press while VFR is active: one passage says activate or deactivate,
   another says it shows the standby code and VFR stays active. The trainer follows the
   second reading.
@@ -1171,9 +1169,11 @@ The guide has no checklist; these steps are inferred from its functions.
   38, still unknown). The guide covers only power-on on external power and Charge Mode.
 - The exact Home grid order and size, the layout of the POWER overlay, and any lettering
   on the POWER button (the trainer prints `POWER`, **assumed (unverified)**).
-- D-MPGO's software version (§9 question 38). Owner-confirmed there: the map is track up
-  with the fields GS, ETE NEXT, BRG and DIST NEXT, there is no traffic or weather source,
-  and the start-up step is accepting the databases and opening the map.
+- D-MPGO's software version (§9 question 38).
+
+Owner-confirmed (§9 question 38): the map is track up with the fields GS, ETE NEXT, BRG and
+DIST NEXT, there is no traffic or weather source, and the start-up step is accepting the
+databases and opening the map.
 
 **Trainer (M18).** The `aera500` device models: cradle power switching it on at the
 database-acceptance page, accepting (Home opens), a Map page (schematic, Track Up, range
@@ -2100,7 +2100,9 @@ verifies it on D-MPGO.
     **Answered.**
     **Trainer (#717):** the `atr833` no longer switches on when power arrives; an `I/O` press does.
     `radioAndTransponder` and N6 gain a COM `I/O` press; the phases from `linedUp` seed the COM
-    on and powered.
+    on and powered. Where the club presses `I/O` is not answered: the step's place in N6, at the
+    holding point, is the trainer's choice, **assumed (unverified)**; §3.8.1's typical use puts
+    the switch-on with avionics power, before engine start.
 36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
     ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
     II features the original may lack are unconfirmed: the last-10 list (LST), named
