@@ -443,12 +443,12 @@ A device's natural Screen is therefore **at most 340 x 286**, and its `floor` (n
 
 | Device  | Natural Screen (expected)                                                                                                                       | Floor           | Mirror (unchanged)                       |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------- |
-| atr833  | about 340 x 280: D = `calc(var(--space-12) * 5 + var(--space-10))` (280) plus a 52 to 60 px helper column                                       | about 364 x 304 | 272 x 272, 1:1                           |
-| trt800h | about 340 x 280, as atr833                                                                                                                      | about 364 x 304 | 272 x 272, 1:1                           |
+| atr833  | about 340 x 284: D = `calc(var(--space-12) * 5 + var(--space-10) + var(--space-1))` (284) plus a helper column of 56 px at most                  | about 364 x 308 | 272 x 272, 1:1                           |
+| trt800h | about 340 x 284, as atr833                                                                                                                      | about 364 x 308 | 272 x 272, 1:1                           |
 | aera500 | about 340 x 227: cradle 340 wide at 1.68:1 (about 202 high) plus about 25 for the POWER key and its word on the top edge; screen about 234 x 131 | about 364 x 251 | 400 x 250, 8:5, cradle and rail held     |
 | flarm   | about 340 x 189 (1.8:1); the Mode frame is about 65 x 70                                                                                        | about 364 x 213 | 320 x 160, 2:1, a 288 x 160 face centred |
 
-Round units: the top-row pitch is 0.155 D, so centred 44 px hit boxes need D of at least 284, which only fits if the helper column is 56 px or narrower; at D = 280 the three boxes abut and the outer two sit within 3 px of their caps. The mirror sizes and slot aspects stay, so the slot-fit proof holds in every landing order.
+Round units: the top-row pitch is 0.155 D (43.4 px at D = 280), so centred 44 px hit boxes overlap at D = 280 and need D of at least 284. Binding rule: D = 284 and a helper column of 56 px or less, so the natural Screen is 340 x 284 with no box overlap (the pitch is then 44.0 px, the boxes touch edge to edge without overlapping); F1's measured cap may not lower D. The mirror sizes and slot aspects stay, so the slot-fit proof holds in every landing order.
 
 ### Build rules for a device face
 

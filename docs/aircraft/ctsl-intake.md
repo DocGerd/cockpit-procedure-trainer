@@ -85,7 +85,7 @@ decisions of 2026-10-10:
    the GPS is confirmed from its bezel; the COM radio is most likely the original
    ATR833-OLED (an ATR833A-OLED cannot be ruled out); the transponder is the
    TRT800H-OLED, settled by its round housing; and the FLARM display is
-   **rectangular**, about twice as wide as tall, not the round 57 mm unit the owner
+   **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
    expected, so the owner approved the rectangular display. The device ids are
    `atr833`, `trt800h`, `aera500` and `flarm`.
 6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
@@ -1056,8 +1056,8 @@ no icon, figure or screen copied. Options of the 510 and 560 (weather, XM radio)
 of the GDL 39 (traffic) do not apply to a plain aera 500.
 
 **Face and controls.** A 4.3 inch colour touchscreen in landscape. Exactly one
-physical control: the POWER button. The photos settle its place (corrected from the
-photos): the front face has no keys, and the button is a raised bump on the cradle frame's top edge at the right (see the face layout below). Its lettering is not visible. Everything else is a touch icon that appears with the page.
+physical control: the POWER button. The photos show the front face has no keys (corrected from the
+photos); the button's place is **assumed (unverified)**: a raised bump on the cradle frame's top edge at the right is consistent with it, and no legend is visible (see the face layout below). Its lettering is not visible. Everything else is a touch icon that appears with the page.
 POWER: a long hold switches the unit on or off; with external power connected, a long
 hold enters Charge Mode (screen off, battery charging) instead of switching off; a
 short press opens a quick overlay for backlight brightness and volume. In the
