@@ -112,6 +112,9 @@ function aircraftPath(): string {
   const tailEnd = (tailBottom - tailTop) / 2;
   const wingRight = toViewX(WING.right) - wingEnd;
   const wingLeft = toViewX(WING.left) + wingEnd;
+  const tail = toViewY(FUSELAGE.tail);
+  const taper = (tailTop - wingBottom) / (tail - wingBottom);
+  const rootHalf = half + (tailHalf - half) * taper;
   const tailRight = toViewX(TAILPLANE.right) - tailEnd;
   const tailLeft = toViewX(TAILPLANE.left) + tailEnd;
   return [
@@ -120,11 +123,11 @@ function aircraftPath(): string {
     `C ${x + half * 0.55} ${nose} ${x + half} ${nose + half * 0.4} ${x + half} ${shoulder}`,
     `L ${x + half} ${wingTop} L ${wingRight} ${wingTop}`,
     `A ${wingEnd} ${wingEnd} 0 0 1 ${wingRight} ${wingBottom}`,
-    `L ${x + half} ${wingBottom} L ${x + tailHalf} ${tailTop} L ${tailRight} ${tailTop}`,
+    `L ${x + half} ${wingBottom} L ${x + rootHalf} ${tailTop} L ${tailRight} ${tailTop}`,
     `A ${tailEnd} ${tailEnd} 0 0 1 ${tailRight} ${tailBottom}`,
     `L ${tailLeft} ${tailBottom}`,
     `A ${tailEnd} ${tailEnd} 0 0 1 ${tailLeft} ${tailTop}`,
-    `L ${x - tailHalf} ${tailTop} L ${x - half} ${wingBottom} L ${wingLeft} ${wingBottom}`,
+    `L ${x - rootHalf} ${tailTop} L ${x - half} ${wingBottom} L ${wingLeft} ${wingBottom}`,
     `A ${wingEnd} ${wingEnd} 0 0 1 ${wingLeft} ${wingTop}`,
     `L ${x - half} ${wingTop} Z`,
   ].join(' ');

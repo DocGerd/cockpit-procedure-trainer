@@ -56,7 +56,7 @@ export function ringLed(bearing: number): { x: number; y: number } {
   };
 }
 
-/** A straight-wing light aircraft seen from above; the fuselage width is a fraction of W. */
+/** A straight-wing light aircraft seen from above; widths are fractions of W. The fuselage tapers towards tailWidth at tail, inside the tailplane. */
 export const FUSELAGE = { x: 0.735, nose: 0.23, tail: 0.73, width: 0.045, tailWidth: 0.02 };
 export const WING: Box = { left: 0.6, right: 0.87, top: 0.45, bottom: 0.53 };
 export const TAILPLANE: Box = { left: 0.68, right: 0.79, top: 0.7, bottom: 0.75 };

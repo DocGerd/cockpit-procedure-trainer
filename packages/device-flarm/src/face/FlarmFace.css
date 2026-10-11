@@ -12,6 +12,6 @@
 }
 
 .cpt-flarm-key:focus-visible {
-  outline: 2px solid var(--panel-focus);
-  outline-offset: 2px;
+  outline: var(--space-1) solid var(--panel-focus);
+  outline-offset: calc(var(--space-1) * -1);
 }
