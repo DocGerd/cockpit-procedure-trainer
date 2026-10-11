@@ -944,6 +944,31 @@ describe('CTSL aircraft', () => {
     expect(session.state().devices.com?.state).toMatchObject({ on: true });
   });
 
+  it('keeps the COM radio dark after its breaker is pushed back in until I/O is pressed', () => {
+    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    const com = () => session.state().devices.com?.state as { active: number; standby: number };
+    session.advance(100);
+    session.press('com.freq', 'up');
+    session.release('com.freq');
+    session.advance(100);
+    const tuned = com();
+    expect(tuned).toMatchObject({ on: true, powered: true, standby: 120000 });
+
+    session.set('comBreaker', 'pulled');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: false, powered: false });
+
+    session.set('comBreaker', 'in');
+    session.advance(5000);
+    expect(com()).toMatchObject({ on: false, powered: true });
+
+    session.press('com.power');
+    session.advance(100);
+    session.release('com.power');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: true, active: tuned.active, standby: tuned.standby });
+  });
+
   it.each([
     ['departure', 'climbing', 1],
     ['approach', 'descending', -1],

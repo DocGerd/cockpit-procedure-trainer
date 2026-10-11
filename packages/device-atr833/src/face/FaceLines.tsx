@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { formatFrequency, frequencyParts, lineThree, listPreview } from '../logic';
+import { formatFrequency, frequencyParts, lineThree } from '../logic';
 import type { Atr833Cursor, Atr833State } from '../logic';
 import { LABEL_LEFT, LINE3_VALUE_LEFT, LINE_CENTRES, VALUE_RIGHT, WINDOW } from './geometry';
 import { percent } from './percent';
@@ -76,7 +76,6 @@ type FaceLinesProps = {
 /** The three OLED lines, placed in the display window as the unit prints them. */
 export function FaceLines({ on, state, labelTier }: FaceLinesProps) {
   const lit = on && state.on;
-  const preview = lit ? listPreview(state) : null;
   const parts = frequencyParts(state.standby);
   const [item = '', ...rest] = lit ? lineThree(state).split(' ') : [];
 
@@ -92,12 +91,10 @@ export function FaceLines({ on, state, labelTier }: FaceLinesProps) {
       <span data-field="active" style={valueAt(0)}>
         {lit ? formatFrequency(state.active) : ''}
       </span>
-      {label(1, lit && preview === null ? (state.dualWatch ? 'DW' : 'SBY') : '')}
+      {label(1, lit ? (state.dualWatch ? 'DW' : 'SBY') : '')}
       <span data-field="standby" style={valueAt(1)}>
-        {lit && preview !== null && preview}
-        {lit && preview === null && (
+        {lit && (
           <>
-            {state.saved && '>'}
             <Field name="mhz" state={state} text={parts.mhz} />.
             <Field name="tenths" state={state} text={parts.tenths} />
             <Field name="channel" state={state} text={parts.channel} />
