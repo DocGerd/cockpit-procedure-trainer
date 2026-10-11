@@ -43,8 +43,14 @@ function smallestTextPx(markup: string): { primary: number; secondary: number } 
   return { primary: Math.min(...primary), secondary: Math.min(...secondary) };
 }
 
-/** Why this markup does not fit, or is illegible, in a slot of the given size. */
-function markupProblems(where: string, markup: string, slotW: number, slotH: number): string[] {
+/** Why this markup does not fit, or (unless `lettering` is off) is illegible, in a slot of the given size. */
+function markupProblems(
+  where: string,
+  markup: string,
+  slotW: number,
+  slotH: number,
+  lettering = true,
+): string[] {
   const natural = mirrorSize(markup);
   const smallestNatural = smallestTextPx(markup);
   const measures = [natural.width, natural.height, smallestNatural.primary, slotW, slotH];
@@ -57,6 +63,7 @@ function markupProblems(where: string, markup: string, slotW: number, slotH: num
       `${where}: mirror aspect ${(natural.width / natural.height).toFixed(2)} differs from slot ${(slotW / slotH).toFixed(2)}`,
     );
   }
+  if (!lettering) return problems;
   const scale = Math.min(slotW / natural.width, slotH / natural.height);
   const smallest = smallestNatural.primary * scale;
   if (smallest < MIN_TEXT_PX) {
@@ -107,6 +114,16 @@ function mirrorMarkups(aircraft: Aircraft): (MirrorRenders & { readonly where: s
   });
 }
 
+// Slots drawn at the real unit's size against the panel's gauges, as a pilot recognises the panel
+// (ADR 0002: recognition over in-slot legibility). Their mirrors are read in the dock, so here only
+// their aspect is held.
+const recognitionSlots: Readonly<Record<string, readonly string[]>> = {
+  ctsl: ['com', 'flarm', 'xpdr'],
+};
+
+const isRecognitionSlot = (aircraft: Aircraft, installId: string) =>
+  recognitionSlots[aircraft.id]?.includes(installId) ?? false;
+
 /** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 function slotFitProblems(aircraft: Aircraft): string[] {
   const cockpit = aircraft.cockpit;
@@ -121,9 +138,10 @@ function slotFitProblems(aircraft: Aircraft): string[] {
     const unit = minWidth / viewWidth;
     const slotW = install.placement.rect.w * unit;
     const slotH = install.placement.rect.h * unit;
+    const held = !isRecognitionSlot(aircraft, installId);
     return [
-      ...markupProblems(where, renders.dark, slotW, slotH),
-      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH),
+      ...markupProblems(where, renders.dark, slotW, slotH, held),
+      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH, held),
     ];
   });
 }
@@ -138,6 +156,21 @@ describe('the mirror in each installed slot', () => {
     const withDock = aircraftRegistry.filter((aircraft) => aircraft.cockpit);
     expect(withDock.length).toBeGreaterThan(0);
     expect(withDock.flatMap(slotFitProblems)).toEqual([]);
+  });
+
+  it('lists as recognition slots only installs whose lettering would fall below the minimum', () => {
+    for (const [aircraftId, installIds] of Object.entries(recognitionSlots)) {
+      const aircraft = aircraftRegistry.find(({ id }) => id === aircraftId);
+      if (!aircraft) throw new Error(`The registry has no ${aircraftId}`);
+      for (const installId of installIds) {
+        const install = aircraft.devices?.[installId];
+        if (!install) throw new Error(`${aircraftId} installs no ${installId}`);
+        const alone: Aircraft = { ...aircraft, id: 'alone', devices: { [installId]: install } };
+        expect(slotFitProblems(alone).join('\n'), `${aircraftId}/${installId}`).toContain(
+          'smallest text',
+        );
+      }
+    }
   });
 
   it('measures every CTSL mirror lit as well as dark', () => {

@@ -10,9 +10,14 @@
   inset: 0;
 }
 
+/* At least the touch target around the slot's centre, for slots drawn smaller than it. */
 .slot-mirror-button {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  width: max(100%, var(--size-target));
+  height: max(100%, var(--size-target));
+  transform: translate(-50%, -50%);
   padding: 0;
   appearance: none;
   background: transparent;

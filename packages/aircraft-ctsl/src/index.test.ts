@@ -265,10 +265,10 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
-    ['flarm', 314, 157],
+    ['flarm', 120, 60],
     ['gps', 392, 245],
-    ['com', 267, 267],
-    ['xpdr', 267, 267],
+    ['com', 139, 139],
+    ['xpdr', 139, 139],
   ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
     expect(deviceSlots[id].rect).toMatchObject({ w, h });
     expect(installs[id].placement).toBe(deviceSlots[id]);
@@ -538,6 +538,19 @@ describe('CTSL aircraft', () => {
 
     it('centres the GPS under the FLARM display and the checklist card', () => {
       expect(Math.abs(centreX(deviceSlots.gps) - middleX)).toBeLessThan(0.05 * plate.w);
+    });
+
+    it('sizes the units against the airspeed indicator as on D-MPGO, the GPS dominating', () => {
+      const { flarm, gps, com, xpdr } = deviceSlots;
+      const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
+      for (const radio of [com, xpdr]) {
+        expect(radio.rect.w / airspeed).toBeGreaterThanOrEqual(0.6);
+        expect(radio.rect.w / airspeed).toBeLessThanOrEqual(0.75);
+      }
+      expect(flarm.rect.w / airspeed).toBeGreaterThanOrEqual(0.55);
+      expect(flarm.rect.w / airspeed).toBeLessThanOrEqual(0.7);
+      expect(gps.rect.w / com.rect.w).toBeGreaterThanOrEqual(2.5);
+      expect(xpdr.rect.x - (com.rect.x + com.rect.w)).toBeGreaterThan(0.25 * airspeed);
     });
 
     it('draws the GPS cradle wider than the radio pair is tall, and the FLARM the smallest unit', () => {

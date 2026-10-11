@@ -1877,15 +1877,23 @@ above are what makes the panel recognisable; the fractions do not change with th
   the breaker grid keeps its 7 + 7 + 1 arrangement at 98 by 94 units, a 44 px target
   at the floor each way, and the outlet breaker sits 62 units under column 2; the
   tachometer and the engine block move 45 units up to make room, at their true
-  spacings. Centre plate 578 × 696 (true 434 × 668), as large as the mirrors need.
-- **Mirrors at their legible minimum** at the floor, D-MPGO's arrangement kept: FLARM
-  314 × 157, GPS cradle 392 × 245, COM and transponder 267 each (§9 questions 44, 45).
+  spacings. Centre plate 578 × 696 (true 434 × 668).
+- **Units at D-MPGO's relative sizes** (photo-fidelity gate, round 1): FLARM 120 × 60
+  (0.62 A), COM and transponder 139 each (0.72 A), D-MPGO's arrangement kept, the radio
+  centres at 0.84 of the plate height with clear plate between and around them, and the
+  faded blank label drawn in the gap under the GPS. The GPS cradle stays 392 × 245
+  (2.03 A, 2.82 radio diameters; true 1.80 A, 2.50 D) so that its mirror stays legible.
+  The FLARM, COM and transponder mirrors fall below the lettering minimum at the floor
+  and are read in the dock (ADR 0002: recognition over in-slot legibility); the FLARM
+  slot's tap area grows to the touch target around it. The checklist card (212 × 96)
+  sits top right at its photographed centre, wider than the FLARM display as on D-MPGO
+  (§9 questions 44, 45).
   The radio pair sits right of the dock; the lower column hangs 0.37 A left of the
   centre plate's middle, as on the aircraft.
 - **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
   display, §9 question 42); the "Push off" label (owner, §3.9.5); the Cockpit Light
   breaker legend (the 12V Outlet breaker sits right under that breaker, §3.9.4); the
-  plates' corner screws (the mirrors leave no room on the centre plate); gauge screws,
+  plates' corner screws; gauge screws,
   which belong to the gauge faces (#719 to #721).
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
   console's lever row; on the console only the parachute placard and, beside it, the
@@ -3607,8 +3615,9 @@ verifies it on D-MPGO.
     of the plate), shrunk to the margin's height (about 34 units under T).
     **Assumed (unverified)** (§3.9.1, §3.9.7). The red-cross disc is still
     unidentified (§3.7.1).
-    **Trainer (M19, #716):** both left out: at legible mirror sizes the FLARM display
-    and the checklist card fill the centre plate's top margin (§3.9.7).
+    **Trainer (M19, #716):** both left out: the view box has no room above the centre
+    plate, and inside it they would stand in the FLARM display's and the checklist's
+    top band (§3.9.7).
 43. **Lower column proportions** (#716): the column is taller than wide (0.75), a T
     with the rocker row across its top and a lower part 0.59 as wide; the `centre` view
     is 1.33 and drawn as a full rectangle (§3.9.6). Its rockers are 0.21 A apart and the
@@ -3630,9 +3639,10 @@ verifies it on D-MPGO.
     440 × 275 beside radios at 272? Trainer uses: the photographed ratio, at the scale
     of §9 question 41 (cradle 347 × 213 under T, 0.79 of natural). **Assumed
     (unverified)** (§3.9.3).
-    **Trainer (M19, #716):** neither: each mirror sits at the smallest size its lettering
-    allows at the panel floor, cradle 392 × 245 units (2.03 × 1.27 A) and radios 267
-    (1.38 A), so the cradle is 1.47 radio diameters wide, against 2.50 on D-MPGO.
+    **Trainer (M19, #716):** the radios at their photographed size, 139 units (0.72 A),
+    read in the dock; the cradle at the smallest size its mirror lettering allows at the
+    panel floor, 392 × 245 units (2.03 × 1.27 A), so it is 2.82 radio diameters wide,
+    against 2.50 on D-MPGO (§3.9.7).
 45. **FLARM display size** (#712): the classic FLARM display on D-MPGO is a small strip,
     0.87 by 0.44 COM diameters (0.63 × 0.32 A), at the centre field's top left beside
     the checklist summary; today's slot is 1.18 by 0.59 COM diameters (320 × 160 at
@@ -3640,9 +3650,9 @@ verifies it on D-MPGO.
     shrink to its photographed size, with its LED legends below the lettering floor, or
     keep a legible minimum? Trainer uses: the photographed size, at the scale of §9
     question 41 (121 × 61 under T). **Assumed (unverified)** (§3.9.3).
-    **Trainer (M19, #716):** the legible minimum, 314 × 157 units (1.63 × 0.81 A, 1.18 ×
-    0.59 COM diameters), at the top left beside the checklist card: its LED legends
-    stay at the lettering minimum at the floor.
+    **Trainer (M19, #716):** the photographed size, 120 × 60 units (0.62 A), at the top
+    left beside the checklist card; its LED legends are read in the dock, and its tap
+    area grows to the touch target around the slot (§3.9.7).
 
 <!-- prettier-ignore-start -->
 
