@@ -26,12 +26,12 @@ const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
   flarm: [400, 260],
   com: [456, 204],
   sl40: [352, 136],
-  atr833: [440, 194],
+  atr833: [400, 194],
   transponder: [584, 160],
   gtx327: [400, 132],
   trt800h: [264, 252],
   gpsmap496: [220, 160],
-  aera500: [456, 300],
+  aera500: [400, 300],
 };
 
 // The tools project resolves no React types; components are opaque here.

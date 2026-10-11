@@ -507,8 +507,7 @@ describe('CTSL aircraft', () => {
     }
     rects.forEach((a, i) =>
       rects.slice(i + 1).forEach((b) => {
-        const apart =
-          a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
         expect(apart).toBe(true);
       }),
     );
@@ -875,7 +874,11 @@ describe('CTSL aircraft', () => {
     'enters %s with the GPS on its map page with a fix and the FLARM operational',
     (phase) => {
       const session = createSession(ctslAircraft, { devices, phase });
-      expect(session.state().devices.gps?.state).toMatchObject({ on: true, page: 'map', fix: true });
+      expect(session.state().devices.gps?.state).toMatchObject({
+        on: true,
+        page: 'map',
+        fix: true,
+      });
       expect(session.state().devices.flarm?.state).toMatchObject({ operational: true });
     },
   );

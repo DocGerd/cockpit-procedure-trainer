@@ -114,7 +114,10 @@ const aera500StandIn = defineDevice({
       kind: 'rotary',
       positions: ['rest', ...touchIcons],
       initial: 'rest',
-      springBack: Object.fromEntries(touchIcons.map((icon) => [icon, 'rest'])),
+      springBack: Object.fromEntries(touchIcons.map((icon) => [icon, 'rest'])) as Record<
+        (typeof touchIcons)[number],
+        'rest'
+      >,
       name: text('Touchscreen', 'Touchscreen'),
       description: text('Touchscreen', 'Touchscreen'),
     },

@@ -10,7 +10,7 @@ const screenStyle: CSSProperties = {
   boxSizing: 'border-box',
   display: 'grid',
   gap: 'var(--space-2)',
-  width: 'calc(var(--space-12) * 9 + var(--space-6))',
+  width: 'calc(var(--space-12) * 8 + var(--space-4))',
   padding: 'var(--space-2)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
