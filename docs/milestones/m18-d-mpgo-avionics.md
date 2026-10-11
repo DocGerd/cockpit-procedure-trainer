@@ -48,7 +48,7 @@ Agent decisions (reasons in the PRs):
 20. **Header: a long procedure title truncates before the aircraft name** (PR #689): the name floors at its full width (capped 144 px). Sacrificed: full titles on a tablet for the longest names.
 21. **Tablet breaker and dial captions stay small, no art change** (PR #689): reaching the minimum needs about 1.8 times the font, which does not fit the breaker pitch and would redraw rubric-passed art. The guard `SECONDARY_MIN_PX` (half `MIN_TEXT_PX`) is on, the CTSL tablet rows are known `test.fail` gaps, and the fix wave stopped there under the two-fix-wave rule (open question 4).
 22. **Glare lowered, not removed** (PR #671): the depth shadow and the glass rim stay; a test ceiling keeps the shares at or below 18 percent (canopy band 6 percent).
-23. **Old-unit READMEs now say unregistered** (PR #696, which closes the follow-up #688), and the mirror docs call `RADIO_MIRROR` and `GPS_MIRROR` mirror sizes.
+23. **Old-unit READMEs now say unregistered** (PR #696, which completes the follow-up #688), and the mirror docs call `RADIO_MIRROR` and `GPS_MIRROR` mirror sizes.
 
 ## Open questions for the owner
 
