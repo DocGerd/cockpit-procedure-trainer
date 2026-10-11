@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+// @ts-expect-error the device package declares no node types
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { DOCK_DIAMETER } from '../face/AtcFace';
 import { BOTTOM_KEYS, KEY_CAP, KEYS, KNOB, TOP_KEYS, WINDOW } from '../face/geometry';
 import { trt800hDevice } from '../logic';
 import type { Trt800hState } from '../logic';
@@ -134,24 +137,71 @@ describe('Trt800hScreen controls', () => {
   });
 });
 
-// The dock face's diameter and the type it uses, in px: tokens.css.
-const D = 48 * 6 - 4;
-const TARGET = 44;
-const LEGEND_LEADING = 22;
+// The panel's own scale: the :root block of tokens.css, in px.
+const rootTokens = (() => {
+  const { dirname } = import.meta as ImportMeta & { dirname: string };
+  const css = readFileSync(`${dirname}/../../../../apps/web/src/styles/tokens.css`, 'utf8');
+  const root = /:root\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+  return new Map(
+    [...root.matchAll(/--([\w-]+):\s*([\d.]+)px;/g)].map(([, name = '', px = '']) => [
+      name,
+      Number(px),
+    ]),
+  );
+})();
+
+/** Evaluates a CSS length (px, var(), calc() with + - * /, and % of `base`) in px. */
+const cssPx = (length: string, base = 0): number => {
+  const tokens = length
+    .replace(/var\(--([\w-]+)\)/g, (_, name: string) => {
+      const px = rootTokens.get(name);
+      if (px === undefined) throw new Error(`tokens.css :root has no px --${name}`);
+      return String(px);
+    })
+    .replace(/([\d.]+)%/g, (_, value: string) => String((Number(value) / 100) * base))
+    .replace(/([\d.]+)px/g, '$1')
+    .replace(/calc\(/g, '(')
+    .match(/[\d.]+|[-+*/()]/g);
+  if (tokens === null) throw new Error(`not a length: ${length}`);
+  let at = 0;
+  const factor = (): number => {
+    const token = tokens[at++];
+    if (token === '(') {
+      const value = sum();
+      at++;
+      return value;
+    }
+    if (token === '-') return -factor();
+    return Number(token);
+  };
+  const product = (): number => {
+    let value = factor();
+    while (tokens[at] === '*' || tokens[at] === '/')
+      value = tokens[at++] === '*' ? value * factor() : value / factor();
+    return value;
+  };
+  const sum = (): number => {
+    let value = product();
+    while (tokens[at] === '+' || tokens[at] === '-')
+      value = tokens[at++] === '+' ? value + product() : value - product();
+    return value;
+  };
+  return sum();
+};
+
+const D = cssPx(DOCK_DIAMETER);
 
 type Box = { name: string; left: number; right: number; top: number; bottom: number };
 
-/** A key's hit box as FaceKey lays it out: centred on the cap, from the legend top to the cap bottom. */
-const hitBox = (key: (typeof KEYS)[number]): Box => {
-  const width = Math.max(KEY_CAP * D, TARGET);
-  const top = key.legendAt.y * D - LEGEND_LEADING / 2;
-  const height = Math.max(
-    (key.cap.y - key.legendAt.y + KEY_CAP / 2) * D + LEGEND_LEADING / 2,
-    TARGET,
-  );
-  const centre = key.cap.x * D;
+/** A key's hit box from its rendered style in the square dock face; .pk-face-key centres it on `left`. */
+const hitBox = (button: HTMLElement): Box => {
+  const { style } = button;
+  const width = Math.max(cssPx(style.width, D), cssPx(style.minWidth));
+  const height = Math.max(cssPx(style.height, D), cssPx(style.minHeight));
+  const centre = cssPx(style.left, D);
+  const top = cssPx(style.top, D);
   return {
-    name: key.legend,
+    name: button.textContent ?? '',
     left: centre - width / 2,
     right: centre + width / 2,
     top,
@@ -163,7 +213,7 @@ describe('Trt800hScreen face', () => {
   it('draws the face at the dock diameter, with the art behind and no style element', () => {
     const { view } = show();
     const face = view.container.querySelector<HTMLElement>('[data-face-unit]');
-    expect(face?.style.width).toBe('calc(var(--space-12) * 6 - var(--space-1))');
+    expect(face?.style.width).toBe(DOCK_DIAMETER);
     expect(face?.style.aspectRatio).toBe('1 / 1');
     const art = face?.querySelector('svg');
     expect(art?.getAttribute('aria-hidden')).toBe('true');
@@ -180,8 +230,8 @@ describe('Trt800hScreen face', () => {
     for (const key of TOP_KEYS) expect(key.cap.y + KEY_CAP / 2).toBeLessThan(WINDOW.top);
     for (const key of BOTTOM_KEYS) expect(key.legendAt.y).toBeGreaterThan(WINDOW.bottom);
     const lefts = (keys: readonly (typeof KEYS)[number][]) => keys.map((key) => key.cap.x);
-    expect(lefts(TOP_KEYS)).toEqual([...lefts(TOP_KEYS)].sort());
-    expect(lefts(BOTTOM_KEYS)).toEqual([...lefts(BOTTOM_KEYS)].sort());
+    expect(lefts(TOP_KEYS)).toEqual([...lefts(TOP_KEYS)].sort((a, b) => a - b));
+    expect(lefts(BOTTOM_KEYS)).toEqual([...lefts(BOTTOM_KEYS)].sort((a, b) => a - b));
   });
 
   it('places each key on its cap and gives it the touch-target minimum', () => {
@@ -197,7 +247,10 @@ describe('Trt800hScreen face', () => {
   });
 
   it('keeps the key hit boxes inside the unit box and clear of each other', () => {
-    const boxes = KEYS.map(hitBox);
+    show();
+    const boxes = KEYS.map((key) =>
+      hitBox(screen.getByRole('button', { name: key.name ?? key.legend })),
+    );
     for (const box of boxes) {
       expect(box.left, box.name).toBeGreaterThanOrEqual(0);
       expect(box.right, box.name).toBeLessThanOrEqual(D);
@@ -235,6 +288,50 @@ describe('Trt800hScreen face', () => {
     for (const line of lines)
       expect(line.style.color, line.dataset.field).toBe('var(--panel-oled)');
     expect(window?.innerHTML).not.toMatch(/--panel-legend|--panel-needle|--panel-lamp-white/);
+  });
+
+  it('aligns the display lines as the photographed unit does', () => {
+    const { view } = show();
+    const width = WINDOW.right - WINDOW.left;
+    const fraction = (value: string) => Number.parseFloat(value) / 100;
+    const at = (name: string) => {
+      const style = view.container.querySelector<HTMLElement>(`[data-field="${name}"]`)?.style;
+      if (style === undefined) throw new Error(`no ${name} field`);
+      return {
+        y: WINDOW.top + fraction(style.top) * (WINDOW.bottom - WINDOW.top),
+        left: style.left === '' ? null : WINDOW.left + fraction(style.left) * width,
+        right: style.right === '' ? null : WINDOW.right - fraction(style.right) * width,
+      };
+    };
+    const near = (value: number | null, target: number, field: string) =>
+      expect(Math.abs((value ?? Number.NaN) - target), field).toBeLessThanOrEqual(0.01);
+
+    const [mode, code, ident, level, status, standby] = [
+      'mode',
+      'code',
+      'ident',
+      'level',
+      'status',
+      'standby',
+    ].map(at);
+    for (const [line, y] of [
+      [[mode, code], 0.33],
+      [[ident, level], 0.475],
+      [[status, standby], 0.565],
+    ] as const)
+      for (const field of line) near(field?.y ?? null, y, `line at ${y}`);
+
+    for (const [name, field] of Object.entries({ mode, ident, status })) {
+      near(field?.left ?? null, 0.18, name);
+      expect(field?.right, name).toBeNull();
+    }
+    near(code?.right ?? null, 0.69, 'code');
+    near(standby?.right ?? null, 0.69, 'standby');
+    near(level?.right ?? null, 0.64, 'level');
+    for (const [name, field] of Object.entries({ code, level, standby })) {
+      expect(field?.left, name).toBeNull();
+      expect(field?.right, name).toBeLessThanOrEqual(0.7);
+    }
   });
 
   it('prints ATC upright down the left of the display', () => {
