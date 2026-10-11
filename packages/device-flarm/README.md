@@ -44,6 +44,14 @@ The unit has no switch: it is on whenever the install's `powered` condition hold
 runs the self-test (ring, above, below, then the status column), ends in Nearest mode at loud
 volume and starts the GPS search. Power lost drops the search and the confirmation.
 
+## Power cycle
+
+Intake section 3.8.4, "Power loss and return" and "Power cycle (trainer, #727)"; assumptions in intake section 9 questions 33 and 69.
+
+- Modelled, from the manuals: the unit switches on by itself with its supply and every start is in Nearest mode at loud volume; a low supply flashes `Power`.
+- Assumed (questions 33 and 69): the unit has no breaker of its own, so only the avionics bus takes it down; the chosen volume and mode do not survive a power loss; the self-test and the GPS search restart from nothing, with the trainer's own timings.
+- A pull during the self-test, the search or a mode-swap confirmation drops it; a Mode key held through the return counts from the end of the self-test.
+
 ## Display
 
 `flarmScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot, a

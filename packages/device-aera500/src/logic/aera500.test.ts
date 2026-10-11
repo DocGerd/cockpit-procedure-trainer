@@ -187,6 +187,92 @@ describe('power', () => {
   });
 });
 
+describe('power cycle', () => {
+  const lost = (state: Aera500State, controls: Controls = {}) =>
+    stepWith(state, controls, { powered: false });
+
+  it('pull and push back on the map: dark, then the start-up page again with a new search', () => {
+    const running = idle(
+      { ...tap(tap(onPage('home'), 'map'), 'zoomOut'), backlight: 6 },
+      ACQUIRE_MS,
+    );
+    expect(running).toMatchObject({ page: 'map', fix: true, groundSpeedKt: 61 });
+
+    const pulled = lost(running);
+    expect(pulled).toMatchObject({ on: false, powered: false, fix: false, groundSpeedKt: null });
+    expect(tap(pulled, 'map').page).toBe('startup');
+
+    const back = stepWith(pulled);
+    expect(back).toMatchObject({
+      on: true,
+      page: 'startup',
+      fix: false,
+      acquiringMs: 0,
+      groundSpeedKt: null,
+      backlight: 6,
+      rangeIndex: running.rangeIndex,
+    });
+    expect(receiverStatus(back)).toBe('searching');
+    expect(shownIcons(back)).toEqual(['accept']);
+
+    const accepted = tap(back, 'accept');
+    expect(accepted.page).toBe('home');
+    expect(idle(accepted, ACQUIRE_MS).fix).toBe(true);
+  });
+
+  it('pull during the start-up page: the page and the search start over, accept still works', () => {
+    const waiting = idle(lit(), ACQUIRE_MS / 2);
+    expect(waiting).toMatchObject({ page: 'startup', fix: false });
+    expect(waiting.acquiringMs).toBeGreaterThan(0);
+
+    const back = stepWith(lost(waiting));
+    expect(back).toMatchObject({ on: true, page: 'startup', fix: false, acquiringMs: 0 });
+    expect(tap(back, 'accept').page).toBe('home');
+  });
+
+  it('pull during the search: the fix comes a full search after power returns, not before', () => {
+    const searching = idle(tap(lit(), 'accept'), ACQUIRE_MS - 1000);
+    expect(searching.fix).toBe(false);
+    const back = stepWith(lost(searching));
+    expect(idle(back, ACQUIRE_MS - 1).fix).toBe(false);
+    expect(idle(back, ACQUIRE_MS).fix).toBe(true);
+  });
+
+  it('pull with the backlight overlay open closes it, and the key is not toggled by the return', () => {
+    const open = clickPower(onPage('map'));
+    expect(open.overlay).toBe(true);
+    const back = stepWith(lost(open));
+    expect(back.overlay).toBe(false);
+    expect(releasePower(back).overlay).toBe(false);
+  });
+
+  it('pull while the POWER hold is running does not switch it off after power returns', () => {
+    const holding = idle(pressPower(onPage('map')), POWER_OFF_HOLD_MS - 100, { power: 'pressed' });
+    const pulled = lost(holding, { power: 'pressed' });
+    const back = stepWith(pulled, { power: 'pressed' });
+    expect(back.on).toBe(true);
+    expect(idle(back, 2 * POWER_OFF_HOLD_MS, { power: 'pressed' }).on).toBe(true);
+    expect(releasePower(back).overlay).toBe(false);
+  });
+
+  it('comes back on by itself after being held off (charge mode), the way external power does', () => {
+    const off = dark(onPage('map'));
+    expect(off).toMatchObject({ on: false, powered: true });
+    const back = stepWith(lost(off));
+    expect(back).toMatchObject({ on: true, powered: true, page: 'startup', fix: false });
+  });
+
+  it('survives repeated pulls however short', () => {
+    let state = tap(onPage('home'), 'map');
+    for (let cycle = 0; cycle < 3; cycle++) {
+      state = stepWith(lost(lost(state)));
+      expect(state).toMatchObject({ on: true, page: 'startup', acquiringMs: 0 });
+      state = tap(tap(state, 'accept'), 'map');
+      expect(state.page).toBe('map');
+    }
+  });
+});
+
 describe('pages', () => {
   it('accepts the databases at the start-up page and opens Home', () => {
     expect(tap(lit(), 'accept').page).toBe('home');

@@ -1090,6 +1090,27 @@ Mode A/C transponder. It then starts in STBY, except that with a ground switch
 fitted and in-flight state selected it starts active. It keeps its codes, VFR code,
 brightness and altitude offset itself.
 
+**Power loss and return (#727).** The installation manual (§3.6.1.3 Auto-On, §3.10 Starting
+Up, §3.11) settles three things and leaves the rest open.
+
+- _Switch-on after power returns._ An installation pin, Auto-On, decides. Wired to the
+  supply behind an avionics master switch, the unit starts by itself whenever power is
+  supplied and its `I/O` key then has no function. Left unconnected, the unit stays dark
+  until `I/O` is held for about 0.5 s. The manual asks for the first wiring where an
+  avionics master switch feeds the unit, but D-MPGO's wiring is not known (§9 question 66).
+- _What survives._ The unit stores the active, standby and VFR codes, the display
+  contrast and the altitude offset internally, and the aircraft record (address, category,
+  Flight-ID, ground switch, speed category, data ports) in the cradle's memory. Power
+  loss therefore keeps the codes. It does not keep the operating mode: every start is in
+  STBY, except with a ground switch fitted and in-flight state selected. Ident, a
+  half-made entry and the word `VFR` on the bottom line are not mentioned as stored (§9
+  question 67).
+- _Start-up sequence._ After switch-on the unit shows its name and software and firmware
+  versions, then the record list (only with more than one record, picked with the knob
+  and `MODE`), or `Cradle OFF` without an address, and then the code, level and `STBY`
+  screen. The manual names no self-test and gives no duration for any of these screens;
+  whether a key is accepted while they show is not stated (§9 question 67).
+
 **Squawk entry and swap.** The active code is on the top line, the standby code on the
 bottom. Press `►` to put the cursor on a digit, turn the knob, press `►` for the next
 digit; `▲▼` makes the standby code active and the old active code standby.
@@ -1127,6 +1148,18 @@ lock-out and reply indicators, squitter and ADS-B, Flight-ID and setup menus,
 operation without the cradle address, brightness, error codes and the `BAT` warning,
 test mode, the ground-switch state, the start screen and the remote head. The knob
 prints `CODE`, the trainer's word; the unit prints nothing there.
+
+**Power cycle (trainer, #727).** The `trt800h` device follows the `powered` condition the
+aircraft gives it: with the Transponder breaker pulled, or the Avionics Master off, or the
+battery off with no generator running, it is dark and ignores every key. When power
+returns it stays dark until `I/O` is pressed, as for an Auto-On pin left unconnected
+(**assumed (unverified)**, §9 question 66; the trainer's `I/O` steps in N6 and in
+`radioAndTransponder` are the trainer's own, and a wired pin would leave the key without
+function). It returns in STBY with the
+active, standby and VFR codes of before; ident, the cursor, the stored-code flash and a
+pending key hold are gone, and the word `VFR` is not shown again. A key still held when
+power returns does not count as a press. The start screens are not shown and no key is
+blocked after the press (§9 question 67).
 
 #### 3.8.3 GPS: Garmin aera 500
 
@@ -1220,7 +1253,9 @@ power key, the side-edge controls (the card slot), and the backlight-off look.
 **Power-on.** External power switches the unit on by itself. First use runs AutoLocate,
 which can take several minutes. A database initialisation page lists each database's
 dates and cycle; the pilot reviews it and touches **Press To Accept**. Then Home
-appears with GPS signal bars. The receiver's status text runs Autolocate, Searching
+appears with GPS signal bars. The page comes at every switch-on, not only the first: the guide
+says that when the unit is turned on, the initialisation shows whether the databases are
+current, out of date or not available (#727). The receiver's status text runs Autolocate, Searching
 the Sky, Acquiring Satellites, 2D GPS Location (three satellites), 3D GPS Location
 (four) or Lost Satellite Reception. The unit is a VFR aid only.
 
@@ -1241,6 +1276,24 @@ city (keypad, OK), or from the plan, nearest airports or recent waypoints; touch
 Activate. Stop Navigation ends it. A flight plan is built on Active FPL with "Touch to
 add Waypoint" and activated from the plan list. The unit has no radio tuning, no
 squawk entry and no swap.
+
+**Power loss and return (#727).** The guide (Rev. C) settles the return and is nearly silent on
+the loss.
+
+- _Return._ Applying external power turns the unit on for full operation by itself; there
+  is nothing to press. The initialisation page follows (above). A unit that was held off
+  with external power connected sits in Charge Mode, and it too comes on when external
+  power is applied again.
+- _Loss._ The guide never says what the unit does when external power is removed while it
+  runs. It does say that the unit has a lithium-ion battery which must stay installed
+  whenever the unit is on, that the battery charges from external power, and that a Setup
+  item `Power Loss Warning` exists. Read together this suggests that a unit with a battery
+  keeps running and warns, but the guide does not say so, and whether D-MPGO's unit carries
+  a battery is unknown (§9 question 68).
+- _What survives._ After a start the receiver searches again from its last known position
+  and stored satellite data, so a repeat search is probably shorter than the first; the
+  guide gives no time. Settings such as the backlight level and the map range are the
+  unit's own; the guide does not list which survive a power loss (§9 question 68).
 
 **Settings a trainer may touch.** Backlight level and time-out, day or night colours,
 sound volumes, alarms, power-loss warning, simulator mode.
@@ -1276,6 +1329,15 @@ terrain, weather and traffic, the map pointer and panning, page menus, flight pl
 guidance, alarms, messages, sound, the battery and Charge Mode, database dates, automotive
 and simulator modes, calibration and dimming. Its touchscreen is one control with a position
 per icon, shown only on the page that has it. Every icon prints the guide's name for it.
+
+**Power cycle (trainer, #727).** The `aera500` device follows the `powered` condition: with the
+GPS breaker pulled, or the Avionics Master off, or the battery off with no generator running, it
+is dark, and the touchscreen and POWER are inert. When power returns it switches on by itself at
+the database page, whatever it showed before, even if it had been held off (Charge Mode). The
+fix, the readings, the page and the backlight overlay are gone and the search starts from
+nothing; the backlight level and the map range stay. A pull during the database page or during
+the search starts both over. A POWER key held while power returns is spent. The battery is not
+modelled, so a pull always goes dark (**assumed (unverified)**, §9 question 68).
 
 #### 3.8.4 FLARM display: classic external LED display
 
@@ -1410,6 +1472,28 @@ degrees above or below; fixed obstacles flash the two topmost LED pairs in turn.
 Only the single most dangerous threat is shown. Faults flash all four status LEDs for
 30 s with a binary code on the red LEDs.
 
+**Power loss and return (#727).** The unit manual (version 242, §7 Start-Up, §10 and §4)
+settles most of it; the display sheet (V 5.1e) was not fetched again for this item.
+
+- _Return._ The unit is always on whenever it is connected to an adequate supply, so power
+  returning switches it on by itself, and the display starts its sequence again (see Start-up
+  above). The unit manual puts its own self-test at about 8 seconds, depending on the size
+  of the obstacle data, and says that without the firmware version display and its beep the
+  unit is not ready. A GPS fix after switch-on can take several minutes.
+- _What survives._ Every start is in Nearest mode at loud volume (the manual's defaults;
+  that a pilot's volume or mode would persist across a power loss is not stated, and the
+  display sheet's "starts in Nearest mode at loud volume" is followed). Warning suppression
+  ends (it is not modelled). Flight recording ends with the supply: pulling power within
+  about a minute of landing, at the recommended 2 s interval, loses the last part of the
+  flight (not modelled).
+- _Switching it off in flight._ The manual requires the pilot to have direct sight of and
+  immediate access to a switch or circuit breaker that disconnects the FLARM from the
+  aircraft supply without affecting other essential systems. D-MPGO's panel shows no
+  FLARM breaker or switch (§3.6, §9 question 33).
+- _Low supply._ Below 8 V the `Power` LED flashes and the unit does not operate.
+
+The self-test duration and the search time of the trainer are its own (§9 question 69).
+
 **Typical use.** Before engine start: the FLARM supply is on (switch or breaker, §9
 question 33); the beep, version display and self-test follow; choose volume and mode.
 Before take-off: `Power`, `GPS` and `TX` steady (the manual's check; the club does not do it,
@@ -1442,6 +1526,14 @@ sound (the volume level is kept but never heard), the version display, reboot, f
 reset, display setup, fault codes and flight recording. The trainer's timings for the
 self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
 the manuals give none.
+
+**Power cycle (trainer, #727).** With the Avionics Master off, or the battery off with no
+generator running, the display is dark (the FLARM has no breaker of its own in the trainer,
+§9 question 33; the other breakers do not affect it). When power returns it starts over:
+the self-test from its first LED, Nearest mode, loud volume, and the GPS search from nothing,
+whatever it showed before, including a mode-swap run in progress; a Mode key held through
+the return counts from the end of the self-test. The trainer's self-test is shorter than the
+unit manual's figure and its search is a fixed time (**assumed (unverified)**, §9 question 69).
 
 ### 3.9 Panel layout (photos, M19)
 
@@ -3753,5 +3845,33 @@ verifies it on D-MPGO.
     swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
     VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
     **Assumed (unverified)** (§3.8.1).
+
+66. **TRT800H Auto-On wiring** (#727): is the transponder's Auto-On pin wired to the supply
+    behind the Avionics Master (the unit then starts by itself whenever power arrives and
+    its `I/O` key does nothing), or left open (the pilot presses `I/O` after every power
+    return)? The installation manual asks for the wiring where an avionics master feeds the
+    unit (§3.8.2). Trainer uses: left open, so power returning leaves the unit dark until
+    `I/O` is pressed, and the trainer's `I/O` steps stay. **Assumed (unverified)**; the
+    owner's answer for the COM radio's AUTO ON (question 35) is the nearest evidence.
+67. **TRT800H after a power loss** (#727): after the breaker is pulled and pushed back, does
+    the unit show the word `VFR` again when its active code equals the VFR code, does the
+    unit accept keys at once or only after its start screens (name and versions, then the
+    code screen), and how long do those screens last? Trainer uses: codes kept, STBY, no
+    `VFR` word, no start screens and no blocked keys. **Assumed (unverified)** (§3.8.2).
+68. **aera 500 power loss and return** (#727): when the GPS breaker is pulled or the
+    Avionics Master goes off with the aera running, does the unit go dark, or does it
+    keep running on its own battery and warn (the guide has a `Power Loss Warning`
+    item)? Is a battery fitted in D-MPGO's unit? When power returns, which settings does
+    it keep, and how long is the repeat search? Trainer uses: dark at once, backlight and
+    map range kept, the full search time again. The return on its own and the database
+    page at every switch-on are from the guide; the rest is **assumed (unverified)**
+    (§3.8.3, question 38).
+69. **FLARM start-up and power loss** (#727): how long does the display's start-up take on
+    D-MPGO, is the volume or mode the pilot chose kept across a power loss, and how long
+    does the GPS fix take to return? Which switch or breaker, if any, cuts the FLARM in
+    flight (question 33)? Trainer uses: the display sheet's start-up sequence at the
+    trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
+    start in Nearest at loud volume is from the display sheet; the timings and the
+    absence of a breaker are **assumed (unverified)** (§3.8.4).
 
 <!-- prettier-ignore-end -->

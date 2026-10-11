@@ -154,4 +154,44 @@ describe('aera500 in an aircraft', () => {
     session.advance(200);
     expect(gps(session.state()).on).toBe(false);
   });
+  it('pulls and pushes back the supply: start-up page again, fix lost and searched anew', () => {
+    const session = createSession(testAircraft, options);
+    session.set('bus', 'on');
+    session.advance(50);
+    session.press('gps.touch', 'accept');
+    session.advance(50);
+    session.release('gps.touch');
+    session.advance(ACQUIRE_MS);
+    expect(gps(session.state())).toMatchObject({ page: 'home', fix: true });
+
+    session.set('bus', 'off');
+    session.advance(50);
+    expect(gps(session.state())).toMatchObject({ on: false, fix: false, groundSpeedKt: null });
+
+    session.set('bus', 'on');
+    session.advance(50);
+    expect(gps(session.state())).toMatchObject({ on: true, page: 'startup', fix: false });
+    session.advance(ACQUIRE_MS - 500);
+    expect(gps(session.state()).fix).toBe(false);
+    session.advance(1000);
+    expect(gps(session.state()).fix).toBe(true);
+  });
+
+  it('accepts the databases after a pull during the start-up page', () => {
+    const session = createSession(testAircraft, options);
+    session.set('bus', 'on');
+    session.advance(500);
+    expect(gps(session.state())).toMatchObject({ on: true, page: 'startup' });
+    session.set('bus', 'off');
+    session.advance(50);
+    expect(gps(session.state()).on).toBe(false);
+    session.set('bus', 'on');
+    session.advance(50);
+    expect(gps(session.state())).toMatchObject({ on: true, page: 'startup' });
+    session.press('gps.touch', 'accept');
+    session.advance(50);
+    session.release('gps.touch');
+    session.advance(50);
+    expect(gps(session.state()).page).toBe('home');
+  });
 });

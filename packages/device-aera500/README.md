@@ -16,7 +16,7 @@ question 38). Assumptions, none of them settled by the guide:
 - The POWER button prints `POWER` (the guide shows its place and lettering only in a figure).
 - Cradle power arriving switches the unit on at the start-up page; losing it switches the unit
   off and the next start shows the start-up page again (battery not modelled, intake section 9
-  question 38).
+  questions 38 and 68).
 - `POWER_OFF_HOLD_MS`, the hold that switches the unit off, is 2 s; the guide gives no time.
   With cradle power the real unit enters Charge Mode, which has the same screen-off result.
 - The search for satellites ends with a fix `ACQUIRE_MS` after switching on, on any page. The
@@ -32,6 +32,14 @@ question 38). Assumptions, none of them settled by the guide:
 - The backlight has levels 1 to 10, stepped in its overlay; it affects nothing else.
 - Page icons are named as the guide names them, in English, whatever the app language: the
   unit prints its own wording.
+
+## Power cycle
+
+Intake section 3.8.3, "Power loss and return" and "Power cycle (trainer, #727)"; assumptions in intake section 9 question 68.
+
+- Modelled, from the guide: external power switches the unit on by itself, also a unit that was held off (Charge Mode), and the database page shows at every switch-on.
+- Assumed (question 68): power loss always switches the unit off (the battery is not modelled; the real unit may keep running on it and warn). On return the page, the fix, the readings and the overlay are gone and the search runs its full `ACQUIRE_MS` again. The backlight level and the map range stay.
+- A pull during the database page or during the search starts both over; a POWER key held while power returns is spent.
 
 ## Controls
 
