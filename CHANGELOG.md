@@ -8,6 +8,18 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.19.0] - 2026-10-11
+
+### Changed
+
+- Soften the glare over the avionics device screens so the display reads through the glass.
+- The CT Supralight now carries D-MPGO's own avionics in place of the Garmin SL40, GTX 327 and GPSMAP 496: the funkwerk ATR833 COM radio and TRT800H transponder (round faces), the Garmin aera 500 in its cradle and the classic FLARM LED display, which runs on the avionics master. The before take-off checks press the transponder's I/O, accept the aera's databases and open its map page, and check that the FLARM shows Power, GPS and TX lit; the radio and transponder procedure uses FREQ, swap, I/O, VFR and MODE. The aircraft is now simply named "CT Supralight".
+
+### Fixed
+
+- On a tablet, the header always prints the aircraft name in full: it no longer loses its last letters beside a long procedure title.
+- In the CT Supralight's before take-off checklist, a pilot who already accepted the aera's databases can now tick that step instead of being stuck, and Guided no longer rings the aera's keys for it; the after-landing checklist sets the transponder to STBY with two MODE presses; the TRT800H keeps I/O, VFR and ID above its display in the dock, and the ATR833 no longer steps line 3 when SET is released after a 5 s setup-menu hold.
+
 ## [0.18.0] - 2026-10-10
 
 ### Changed
@@ -361,7 +373,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.15.0...v0.16.0
