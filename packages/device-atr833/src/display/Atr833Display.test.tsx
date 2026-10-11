@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { atr833Device } from '../logic';
 import type { Atr833State } from '../logic';
+import { Atr833Screen } from '../screen/Atr833Screen';
 import { ATR833_MIRROR, Atr833Display } from './Atr833Display';
 
 afterEach(cleanup);
@@ -29,21 +30,56 @@ describe('Atr833Display', () => {
     expect(text(container, 'line3')).toBe('SQL 5');
   });
 
-  it('blanks everything while the install is dark or the unit is switched off', () => {
+  it('blanks the window while the install is dark or the unit is switched off, and keeps the face', () => {
     const dark = show(false);
     const off = show(true, { on: false });
     for (const container of [dark, off]) {
       for (const field of ['active', 'standby', 'line3']) expect(text(container, field)).toBe('');
+      expect(container.querySelectorAll('[data-cap]')).toHaveLength(6);
+      expect(container.querySelector('[data-arc-legend]')?.textContent).toBe('VOL/SEL');
     }
   });
 
-  it('prints COM on the bezel', () => {
-    expect(show().querySelector('[data-mirror-label]')?.textContent).toBe('COM');
+  it('draws its own face and prints COM down the left of it', () => {
+    const container = show();
+    expect(container.querySelector('[data-device-mirror]')?.getAttribute('data-face')).toBe('own');
+    const label = container.querySelector<HTMLElement>('[data-mirror-label]');
+    expect(label?.textContent).toBe('COM');
+    expect(label?.hasAttribute('data-vertical')).toBe(true);
+    expect(container.querySelector('[data-face-label]')).toBeNull();
   });
 
-  it('draws the two knobs as plain discs', () => {
+  it('draws the same face as the dock: caps, knobs, screws and the key legends', () => {
     const container = show();
+    expect(container.querySelectorAll('[data-cap]')).toHaveLength(6);
     expect(container.querySelectorAll('[data-knob]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-screw]')).toHaveLength(2);
+    const legends = [...container.querySelectorAll('[data-key-legend]')];
+    expect(legends.map((legend) => legend.textContent)).toEqual([
+      'I/O',
+      'SET',
+      'MEM',
+      'DW',
+      '▲▼',
+      '►',
+    ]);
+  });
+
+  it('places each key legend where the dock prints it', () => {
+    const mirror = [...show().querySelectorAll<HTMLElement>('[data-key-legend]')];
+    const dock = [
+      ...render(
+        <Atr833Screen on state={base} send={vi.fn()} />,
+      ).container.querySelectorAll<HTMLElement>('.pk-face-key'),
+    ];
+    expect(dock.map((key) => key.textContent)).toEqual(mirror.map((legend) => legend.textContent));
+    for (const [index, legend] of mirror.entries()) {
+      const key = dock[index];
+      expect(legend.style.left, legend.textContent ?? '').toBe(key?.style.left);
+      expect(key?.style.top, legend.textContent ?? '').toMatch(
+        new RegExp(`^calc\\(${legend.style.top.replace('.', '\\.')} - `),
+      );
+    }
   });
 
   it('is a square mirror', () => {
@@ -58,11 +94,29 @@ describe('Atr833Display', () => {
     expect(container.querySelector('style, script')).toBeNull();
   });
 
-  it('sets its text only in the large type scale', () => {
-    const sizes = [...show().querySelectorAll<HTMLElement>('*')]
-      .map((element) => element.style.fontSize)
-      .filter((size) => size !== '');
-    expect(sizes.length).toBeGreaterThan(0);
-    for (const size of sizes) expect(size).toMatch(/^var\(--text-(2xl|3xl)\)$/);
+  it('prints the face legends and line labels secondary and the values primary', () => {
+    const container = show();
+    const sized = [...container.querySelectorAll<HTMLElement>('*')].filter(
+      (element) => element.style.fontSize !== '',
+    );
+    expect(sized.length).toBeGreaterThan(0);
+    for (const element of sized) {
+      const size = element.style.fontSize;
+      if (element.dataset.lettering === 'secondary') {
+        expect(size).toMatch(/^var\(--text-(xs|sm|md|lg|xl|2xl|3xl)\)$/);
+      } else {
+        expect(size).toMatch(/^var\(--text-(2xl|3xl)\)$/);
+      }
+    }
+    for (const selector of ['[data-key-legend]', '[data-line-label]', '[data-arc-legend] > *']) {
+      const tagged = [...container.querySelectorAll<HTMLElement>(selector)];
+      expect(tagged.length, selector).toBeGreaterThan(0);
+      for (const element of tagged) expect(element.dataset.lettering, selector).toBe('secondary');
+    }
+    for (const field of ['active', 'standby']) {
+      const value = container.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      expect(value?.dataset.lettering).toBeUndefined();
+      expect(value?.style.fontSize).toBe('var(--text-3xl)');
+    }
   });
 });

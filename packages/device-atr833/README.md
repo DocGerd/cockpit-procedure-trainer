@@ -1,8 +1,8 @@
 # @cpt/device-atr833
 
-The funkwerk ATR833-OLED COM radio, the unit on D-MPGO's panel: a round 57 mm face in a square bezel,
-three keys above the display (I/O, SET, MEM), three below (DW, ▼▲, ►), the VOL/SEL knob at the upper
-right and an unlettered frequency knob at the lower right. An aircraft installs it by id (`atr833`);
+The funkwerk ATR833-OLED COM radio, the unit on D-MPGO's panel: a round 57 mm disc straight on the
+panel, three keys above the display (I/O, SET, MEM), three below (DW, ▲▼, ►), the VOL/SEL knob at the
+upper right and an unlettered frequency knob at the lower right. An aircraft installs it by id (`atr833`);
 the CT Supralight does.
 
 ## Source revision
@@ -30,7 +30,7 @@ is open (intake section 9, question 36). Assumptions, none checked against a uni
 - `set`: momentary `SET`. On release steps line 3 through VOL, SQL, VOX, INT, STL, STR, EXT and BRT; in a MEM or LST list it loads the entry into the standby frequency. A release after `SETUP_MENU_HOLD_MS` ends a setup-menu hold and does nothing.
 - `mem`: momentary `MEM`. On release opens the MEM list, then the LST list. Held for `MEM_SAVE_HOLD_MS` it opens save mode; the release that ends this hold does nothing more.
 - `dw`: momentary `DW`. Toggles dual watch; in a menu, list or save mode it returns to the standard display.
-- `swap`: momentary `▼▲` (accessible name SWAP). Exchanges active and standby; in a list it loads the entry into the active frequency.
+- `swap`: momentary `▲▼` (accessible name SWAP). Exchanges active and standby; in a list it loads the entry into the active frequency.
 - `cursor`: momentary `►` (accessible name CURSOR). Moves the underline to the next field of the standby frequency.
 - `volSel`: rotary `rest`, `down`, `up` with spring-back, `VOL/SEL −` and `VOL/SEL +`. Steps the line 3 value, the list entry or the save slot.
 - `freq`: rotary `rest`, `down`, `up` with spring-back, `FREQ −` and `FREQ +`. Steps the underlined field of the standby frequency.
@@ -47,9 +47,14 @@ None. The unit is powered by the install's `powered` condition.
 
 `atr833ScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot, a `readout` of what
 the display shows in German and English, and the `floor`: the smallest frame size at which the operable screen
-keeps full touch targets (see `src/entry.ts`). The `Display` draws the round face with the three lines `ACT`,
-`SBY` (or `DW`) and line 3, and the two knobs as plain discs at the right-hand corners of the window. Its mirror
-is square (`ATR833_MIRROR`) and its bezel is lettered `COM`.
+keeps full touch targets (see `src/entry.ts`). The unit draws its own face (`face: 'own'`) from the photographed
+layout in `docs/aircraft/ctsl-intake.md` section 3.8.1, kept in `src/face/geometry.ts`: the black disc with its
+rim, six round key caps with the legends printed above them, the two knurled knobs in the right-hand corners,
+two screws at the left, `COM` down the left, the curved `VOL/SEL` and the yellow OLED window with `ACT`, `SBY`
+(or `DW`) and line 3. One face component draws both views. In the dock each key is one touch target over its
+legend and cap, and a column of plus and minus helpers on the panel metal right of the disc turns each knob
+(`VOL/SEL` and `FREQ`). The slot mirror is the same face at panel scale, square (`ATR833_MIRROR`), with no
+keys; its legends and line labels print in the secondary lettering tier and the frame prints `COM`.
 
 ## Not modelled
 

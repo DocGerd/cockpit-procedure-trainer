@@ -23,13 +23,13 @@ const FRAME_CHROME_PX = 2 * (token('space-2') + token('space-1'));
 // The operable Screen's natural size with the unit powered, in its widest state, measured in
 // Chromium. Re-measure when a Screen's layout changes.
 const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
-  flarm: [336, 260],
+  flarm: [340, 189],
   com: [456, 204],
   sl40: [352, 136],
-  atr833: [320, 194],
+  atr833: [340, 280],
   transponder: [584, 160],
   gtx327: [400, 132],
-  trt800h: [264, 252],
+  trt800h: [336, 284],
   gpsmap496: [220, 160],
   aera500: [340, 234],
 };

@@ -93,6 +93,28 @@ describe('FlarmScreen controls', () => {
   });
 });
 
+describe('FlarmScreen face', () => {
+  it('is the face itself at its natural size: a token width at nine to five', () => {
+    const face = show().view.container.firstElementChild as HTMLElement | null;
+    expect(face?.hasAttribute('data-display')).toBe(true);
+    expect(face?.style.width).toBe('calc(var(--space-12) * 7 + var(--space-1))');
+    expect(face?.style.aspectRatio).toBe('9 / 5');
+  });
+
+  it('prints FLARM and every face word in the primary tier', () => {
+    const { container } = show().view;
+    expect(container.textContent).toContain('FLARM');
+    expect(container.querySelector('[data-lettering]')).toBeNull();
+  });
+
+  it('sizes the Mode key to the printed frame around its cap', () => {
+    show();
+    const key = screen.getByRole('button', { name: 'Mode' });
+    expect(key.style.width).toBe('19%');
+    expect(key.style.height).toBe('37%');
+  });
+});
+
 describe('FlarmScreen styling', () => {
   it('renders no style element, which a strict content security policy would block', () => {
     expect(show().view.container.querySelector('style')).toBeNull();
