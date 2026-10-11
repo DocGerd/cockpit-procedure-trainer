@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { flarmDevice } from '../logic';
+import { RING_LEDS, SELF_TEST_STEP_MS, flarmDevice } from '../logic';
 import type { FlarmState } from '../logic';
 import { FlarmFace } from './FlarmFace';
 import {
@@ -110,13 +110,35 @@ describe.each(['dock', 'mirror'] as const)('the %s face', (mode) => {
     for (const colour of colours) expect(colour).toMatch(/^var\(--panel-[\w-]+\)$/);
   });
 
-  it('lights a status LED in the lit LED colour and leaves the others milky', () => {
+  it('lights a status LED and its glow in the lit LED colour and leaves the others milky', () => {
     const container = show(mode);
-    const fill = (id: string) =>
-      container.querySelector<SVGElement>(`[data-led="${id}"]`)?.style.fill;
-    expect(fill('power')).toBe('var(--panel-led-lit)');
-    expect(fill('rx')).toBe('var(--panel-cap-light)');
-    expect(fill('ring-0')).toBe('var(--panel-cap-light)');
+    const fill = (selector: string) => container.querySelector<SVGElement>(selector)?.style.fill;
+    expect(fill('[data-led="power"]')).toBe('var(--panel-led-lit)');
+    expect(fill('[data-glow="power"]')).toBe('var(--panel-led-lit)');
+    expect(fill('[data-led="rx"]')).toBe('var(--panel-cap-light)');
+    expect(container.querySelector('[data-glow="rx"]')).toBeNull();
+    expect(fill('[data-led="ring-0"]')).toBe('var(--panel-cap-light)');
+  });
+
+  it('lights every ring LED and the above and below LEDs, with their glow, in the red lamp colour', () => {
+    const red = [
+      ...Array.from({ length: RING_LEDS }, (_, index) => `ring-${index}`),
+      'above',
+      'below',
+    ];
+    red.forEach((id, step) => {
+      const selfTest: FlarmState = {
+        ...operational,
+        stage: 'selfTest',
+        stageMs: step * SELF_TEST_STEP_MS,
+      };
+      const container = show(mode, true, selfTest);
+      const fill = (selector: string) => container.querySelector<SVGElement>(selector)?.style.fill;
+      expect(container.querySelector(`[data-led="${id}"]`)?.getAttribute('data-lit')).toBe('true');
+      expect(fill(`[data-led="${id}"]`)).toBe('var(--panel-lamp-red)');
+      expect(fill(`[data-glow="${id}"]`)).toBe('var(--panel-lamp-red)');
+      cleanup();
+    });
   });
 
   it('prints the status, side and key words', () => {

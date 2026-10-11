@@ -4,6 +4,7 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   appearance: none;
+  background-color: transparent;
 }
 
 .cpt-flarm-key:active {

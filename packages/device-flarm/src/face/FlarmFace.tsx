@@ -200,6 +200,7 @@ function Led({
     <>
       {lit && (
         <circle
+          data-glow={id}
           cx={cx}
           cy={cy}
           r={toViewH(GLOW_DIAMETER) / 2}
@@ -271,7 +272,6 @@ function ModeKey({ send }: { send: DeviceScreenProps['send'] }) {
         margin: 0,
         border: 'none',
         borderRadius: 'var(--radius-md)',
-        background: 'transparent',
         color: 'var(--panel-legend)',
         fontFamily: 'inherit',
         fontSize: TYPE.dock.key,
