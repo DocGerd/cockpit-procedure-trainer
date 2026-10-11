@@ -27,9 +27,11 @@ function mirrorSize(markup: string): { width: number; height: number } {
 }
 
 // A slot mirror is read-only and the dock holds the full-size unit, so its lettering floor is
-// half the panel's: recognising the unit by its layout and proportions outranks reading its small
-// print (ADR-0002).
+// half the panel's. Only slot mirrors take it: `markupProblems` defaults to the full floor.
 const SLOT_FLOOR = 0.5;
+
+// The smallest secondary lettering a slot may show, however far the slot floor is relaxed.
+const SLOT_SECONDARY_MIN_PX = 3;
 
 // Secondary lettering prints as small as the real unit prints it: half the lettering minimum, the
 // floor `SECONDARY_MIN_PX` sets for panel captions in the e2e legibility checks.
@@ -75,7 +77,7 @@ function markupProblems(
     problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${minPx} px`);
   }
   const secondary = smallestNatural.secondary * scale;
-  const secondaryMinPx = SECONDARY_MIN_PX * floor;
+  const secondaryMinPx = Math.max(SECONDARY_MIN_PX * floor, SLOT_SECONDARY_MIN_PX);
   if (secondary < secondaryMinPx) {
     problems.push(
       `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${secondaryMinPx} px`,
@@ -231,6 +233,35 @@ describe('the mirror in each installed slot', () => {
       expect(markupProblems('x', own, tooSmall, tooSmall)).toEqual([
         expect.stringContaining('smallest secondary text'),
       ]);
+    });
+
+    it('holds a slot to half the primary minimum, no lower', () => {
+      const primary = markup(span('2xs', false));
+      const above = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 1.05, token('text-2xs'));
+      const below = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 0.95, token('text-2xs'));
+      expect(markupProblems('x', primary, above, above, SLOT_FLOOR)).toEqual([]);
+      expect(markupProblems('x', primary, below, below, SLOT_FLOOR).join('\n')).toContain(
+        'smallest text',
+      );
+    });
+
+    it('keeps the full minimum for a mirror not in a slot', () => {
+      const side = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 1.05, token('text-2xs'));
+      expect(markupProblems('x', markup(span('2xs', false)), side, side).join('\n')).toContain(
+        'smallest text',
+      );
+    });
+
+    it('holds a slot secondary caption to an absolute minimum', () => {
+      const caption = markup(span('2xs', true));
+      const above = slotFor(SLOT_SECONDARY_MIN_PX * 1.05, token('text-2xs'));
+      const below = slotFor(SLOT_SECONDARY_MIN_PX * 0.95, token('text-2xs'));
+      expect(markupProblems('x', caption, above, above, SLOT_FLOOR).join('\n')).not.toContain(
+        'secondary',
+      );
+      expect(markupProblems('x', caption, below, below, SLOT_FLOOR).join('\n')).toContain(
+        'smallest secondary text',
+      );
     });
 
     it('reads the tier from the tag that carries it, in either attribute order', () => {

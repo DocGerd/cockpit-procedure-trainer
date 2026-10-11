@@ -14,7 +14,7 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
 // Each slot keeps its mirror's aspect. The slots follow D-MPGO's three tiers (intake §3.9.3): the
 // FLARM display top left, the GPS in its own row below, centred over the radio pair. The GPS keeps
 // its photographed width against the round units, so the slots draw below their natural size;
-// the dock holds the full-size unit (ADR-0002: recognition ranks above mirror lettering).
+// the dock holds the full-size unit.
 export const deviceSlots = {
   flarm: at(574, 128, 224, 112),
   gps: at(619, 264, 378, 236),

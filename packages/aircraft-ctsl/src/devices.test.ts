@@ -245,5 +245,8 @@ describe('pulling and pushing back power on the CTSL', () => {
     session.set('avionicsMaster', 'on');
     session.advance(100);
     expect(powered()).toEqual([true, false, true, true]);
+    session.set('xpdrBreaker', 'in');
+    session.advance(100);
+    expect(powered()).toEqual([true, true, true, true]);
   });
 });

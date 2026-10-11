@@ -1,21 +1,21 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
+import { ACQUIRE_MS, SELF_TEST_MS, SELF_TEST_STEP_MS } from '@cpt/device-flarm/logic';
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { copy, dockedUnit, openPicker } from './trainer';
 
 const descent = ctslAircraft.procedures.descent;
-if (descent?.startPhase !== 'cruise')
-  throw new Error('The CTSL descent no longer starts in cruise');
+if (!descent) throw new Error('The CTSL has no descent procedure');
+if (descent.startPhase !== 'cruise') throw new Error('The CTSL descent no longer starts in cruise');
 const descentTitle = descent.title.en;
 
-// Each wait outlasts its stage in packages/device-flarm (self-test, GPS search).
-const SELF_TEST_MS = 2000;
-const ACQUIRE_MS = 31_000;
+const MARGIN_MS = SELF_TEST_STEP_MS;
 
 /** Sets a CTSL breaker or rocker through its panel button, whose label ends in its position. */
 async function setControl(page: Page, id: string, position: 'in' | 'pulled' | 'on' | 'off') {
   const button = page.locator(`[data-placement="${id}"] button`);
   const atPosition = new RegExp(`: ${position}$`, 'i');
+  await expect(button).toHaveAttribute('aria-label', /: (in|pulled|on|off)$/i);
   if (!atPosition.test((await button.getAttribute('aria-label')) ?? '')) await button.click();
   await expect(button).toHaveAttribute('aria-label', atPosition);
 }
@@ -84,7 +84,7 @@ test('pulling and resetting the GPS breaker restarts the aera 500 at its databas
   await expect(display.locator('[data-page="map"]')).toBeVisible();
 });
 
-test('the aera 500 goes back to its start-up page when the pull comes during the start-up page', async ({
+test('a second pull of the GPS breaker during the aera 500 start-up page still ends on the start-up page', async ({
   page,
 }) => {
   await startInCruise(page);
@@ -115,10 +115,10 @@ test('the FLARM has no breaker: the avionics master takes it down and it starts 
   await expect(led(unit, 'ring-0')).toHaveAttribute('data-lit', 'true');
   await expect(led(unit, 'power')).toHaveAttribute('data-lit', 'false');
 
-  await page.clock.runFor(SELF_TEST_MS);
+  await page.clock.runFor(SELF_TEST_MS + MARGIN_MS);
   await expect(led(unit, 'power')).toHaveAttribute('data-lit', 'true');
   await expect(led(unit, 'tx')).toHaveAttribute('data-lit', 'false');
-  await page.clock.runFor(ACQUIRE_MS);
+  await page.clock.runFor(ACQUIRE_MS + 1000);
   await expect(led(unit, 'tx')).toHaveAttribute('data-lit', 'true');
 });
 
@@ -127,12 +127,16 @@ test('the FLARM restarts its self-test when the master comes back during it', as
   const unit = await dockedUnit(page, 'flarm', 'flarm');
   await setControl(page, 'avionicsMaster', 'off');
   await setControl(page, 'avionicsMaster', 'on');
-  await page.clock.runFor(SELF_TEST_MS / 2);
+  await page.clock.runFor(SELF_TEST_STEP_MS * 3);
   await expect(led(unit, 'power')).toHaveAttribute('data-lit', 'false');
   await setControl(page, 'avionicsMaster', 'off');
   await expect(led(unit, 'ring-0')).toHaveAttribute('data-lit', 'false');
   await setControl(page, 'avionicsMaster', 'on');
   await expect(led(unit, 'ring-0')).toHaveAttribute('data-lit', 'true');
-  await page.clock.runFor(SELF_TEST_MS);
+
+  // Power is the chase's last LED: a self-test that carried on would have lit it by now.
+  await page.clock.runFor(SELF_TEST_MS - SELF_TEST_STEP_MS * 2);
+  await expect(led(unit, 'power')).toHaveAttribute('data-lit', 'false');
+  await page.clock.runFor(SELF_TEST_STEP_MS * 3);
   await expect(led(unit, 'power')).toHaveAttribute('data-lit', 'true');
 });
