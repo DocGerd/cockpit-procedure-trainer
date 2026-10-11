@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CHART, FACE_SIZE_CSS, KEYS, OWNSHIP, placeIn } from '../face/geometry';
+import { CHART, FACE_SIZE_CSS, KEYS, MAP_FIELDS, OWNSHIP, placeIn } from '../face/geometry';
 import { PAGES, aera500Device } from '../logic';
 import type { Aera500State, TouchIcon } from '../logic';
 import { Aera500Screen } from './Aera500Screen';
@@ -68,6 +68,18 @@ describe('Aera500Screen glass', () => {
     expect(window()?.querySelector('[data-field="map"] [data-north]')).not.toBeNull();
     expect(window()?.querySelector('[data-field="unknown"]')).toBeNull();
   });
+
+  it.each(Object.entries(MAP_FIELDS))(
+    'centres the %s label on its photographed row',
+    (field, spec) => {
+      const at = show(fixed).window()?.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      const percent = (value: number) => `${Number((value * 100).toFixed(4))}%`;
+      expect(at?.style.top).toBe(percent((spec.row[0] + spec.row[1]) / 2));
+      expect(at?.style.transform).toBe('translateY(calc(var(--text-2xs) / -2))');
+      const edge = spec.end ? at?.style.right : at?.style.left;
+      expect(edge).toBe(percent(spec.end ? 1 - spec.edge : spec.edge));
+    },
+  );
 
   it('shows a question mark over the aircraft and no GS without a fix', () => {
     const { text } = show({ ...lit, page: 'map' });
@@ -224,6 +236,14 @@ describe('Aera500Screen keys', () => {
 });
 
 describe('Aera500Screen styling and size', () => {
+  it('leaves the key background to the stylesheet, so a press can shade the hit box', () => {
+    const { view } = show({ ...lit, page: 'home' });
+    for (const key of view.container.querySelectorAll<HTMLElement>('button')) {
+      expect(key.style.background).toBe('');
+      expect(key.style.backgroundColor).toBe('');
+    }
+  });
+
   it('renders no style element, which a strict content security policy would block', () => {
     for (const state of [lit, fixed, { ...fixed, overlay: true }]) {
       expect(show(state).view.container.querySelector('style')).toBeNull();

@@ -6,17 +6,20 @@ import type { TouchIcon } from '../logic';
 
 export type Rect = { x: number; y: number; width: number; height: number };
 
-/** The face's natural size; FACE_SIZE_CSS is the same size in tokens. */
+/** The face's natural size, in CSS pixels at the base token scale. */
 export const FACE = { width: 340, height: 234 } as const;
-export const FACE_SIZE_CSS = {
-  width: 'calc(var(--space-12) * 7 + var(--space-1))',
-  height: 'calc(var(--space-12) * 5 - var(--space-1) * 1.5)',
-} as const;
 
-/** `--size-target` at the base token scale. */
+/** `--space-1` and `--size-target` at the base token scale; a tools contract test ties them. */
+export const SPACE_1 = 4;
 export const TARGET = 44;
 
-// Above the cradle: room for the POWER word over its bump on the top edge.
+/** FACE in tokens, so the face scales with them. */
+export const FACE_SIZE_CSS = {
+  width: `calc(var(--space-1) * ${FACE.width / SPACE_1})`,
+  height: `calc(var(--space-1) * ${FACE.height / SPACE_1})`,
+} as const;
+
+// Above the cradle: room for the POWER word over its bump on the top edge, in face units.
 const STRIP = 32;
 
 export const CRADLE: Rect = { x: 0, y: STRIP, width: FACE.width, height: FACE.height - STRIP };
@@ -155,6 +158,19 @@ export const KEYS: Readonly<Record<TouchIcon, KeySpec>> = {
 
 /** The text area of a page beside the soft-key column. */
 export const CONTENT = screenRect(0, COLUMN[0], 0, 1);
+
+export type MapField = 'speed' | 'ete' | 'bearing' | 'dist';
+
+/** A map field's label row (sy) and its outer edge (sx): the start edge, or the end for `end`. */
+export type FieldSpec = { edge: number; row: readonly [number, number]; end: boolean };
+
+/** The label rows of the four map fields as the photos place them; each value prints under it. */
+export const MAP_FIELDS: Readonly<Record<MapField, FieldSpec>> = {
+  speed: { edge: 0.1, row: [0.04, 0.07], end: false },
+  ete: { edge: 0.82, row: [0.02, 0.07], end: true },
+  bearing: { edge: 0.075, row: [0.83, 0.87], end: false },
+  dist: { edge: 0.79, row: [0.82, 0.86], end: true },
+};
 
 // The map's overlays, in screen fractions: the four fields, the range arc around the own ship.
 export const OWNSHIP = { x: sx(0.4), y: sy(0.87) };

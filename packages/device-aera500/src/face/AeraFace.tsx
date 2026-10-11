@@ -11,6 +11,7 @@ import {
   FACE_SIZE_CSS,
   HOME_STRIP,
   KEYS,
+  MAP_FIELDS,
   MENU_KEY,
   MIRROR_FACE_WIDTH,
   OWNSHIP,
@@ -21,7 +22,7 @@ import {
   pointIn,
   screenRect,
 } from './geometry';
-import type { KeySpec, Rect } from './geometry';
+import type { KeySpec, MapField, Rect } from './geometry';
 import { MapChart } from './MapChart';
 
 /** `dock`: the operable face. `mirror`: the same face, read only, for a panel slot. */
@@ -71,6 +72,8 @@ const outlined: CSSProperties = {
   textShadow:
     '0 0 calc(var(--space-1) / 2) var(--panel-shadow), 0 0 calc(var(--space-1) / 2) var(--panel-shadow)',
 };
+// One line per em, so a field's label row is its font size tall.
+const tight: CSSProperties = { lineHeight: 1 };
 const muted: CSSProperties = { color: 'var(--panel-legend-muted)' };
 const centred: CSSProperties = {
   display: 'flex',
@@ -127,32 +130,29 @@ function TextBlock({ area, children }: { area: Rect; children: ReactNode }) {
   );
 }
 
-/** A map field: its label over its value, outlined to read on the chart. */
-function Field(props: {
-  mode: FaceMode;
-  field: string;
-  label: string;
-  value: string;
-  at: CSSProperties;
-  end?: boolean;
-}) {
-  const { mode, field, label, value, at, end = false } = props;
+/** A map field: its label centred on the photographed row, its value under it, outlined. */
+function Field(props: { mode: FaceMode; field: MapField; label: string; value: string }) {
+  const { mode, field, label, value } = props;
+  const { edge, row, end } = MAP_FIELDS[field];
+  const size = SIZES[mode].body;
   return (
     <span
       data-field={field}
       style={{
         position: 'absolute',
-        ...at,
+        ...(end ? { right: fraction(1 - edge) } : { left: fraction(edge) }),
+        top: fraction((row[0] + row[1]) / 2),
+        transform: `translateY(calc(var(--text-${size}) / -2))`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: end ? 'flex-end' : 'flex-start',
         ...outlined,
       }}
     >
-      <Text mode={mode} tier="body">
+      <Text mode={mode} tier="body" style={tight}>
         {label}
       </Text>{' '}
-      <Text mode={mode} tier="body">
+      <Text mode={mode} tier="body" style={tight}>
         {value}
       </Text>
     </span>
@@ -168,36 +168,10 @@ function MapPage({ mode, state }: { mode: FaceMode; state: Aera500State }) {
   return (
     <div data-page="map" style={fillStyle}>
       <MapChart trackDeg={state.trackDeg} style={{ ...inScreen(CHART), display: 'block' }} />
-      <Field
-        mode={mode}
-        field="speed"
-        label="GS"
-        value={`${dashed(state.groundSpeedKt)}KT`}
-        at={{ left: fraction(0.1), top: fraction(0.02) }}
-      />
-      <Field
-        mode={mode}
-        field="ete"
-        label="ETE NEXT"
-        value={DASHES}
-        at={{ right: fraction(0.18), top: fraction(0.02) }}
-        end
-      />
-      <Field
-        mode={mode}
-        field="bearing"
-        label="BRG"
-        value={DASHES}
-        at={{ left: fraction(0.075), bottom: fraction(0.02) }}
-      />
-      <Field
-        mode={mode}
-        field="dist"
-        label="DIST NEXT"
-        value={DASHES}
-        at={{ right: fraction(0.21), bottom: fraction(0.02) }}
-        end
-      />
+      <Field mode={mode} field="speed" label="GS" value={`${dashed(state.groundSpeedKt)}KT`} />
+      <Field mode={mode} field="ete" label="ETE NEXT" value={DASHES} />
+      <Field mode={mode} field="bearing" label="BRG" value={DASHES} />
+      <Field mode={mode} field="dist" label="DIST NEXT" value={DASHES} />
       <Text
         mode={mode}
         tier="body"
@@ -361,7 +335,6 @@ const keyStyle: CSSProperties = {
   padding: 0,
   margin: 0,
   border: 'none',
-  background: 'transparent',
   color: 'var(--panel-legend)',
   fontFamily: 'inherit',
   fontWeight: 'inherit',

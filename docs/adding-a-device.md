@@ -145,6 +145,8 @@ whole face itself, darkening its own window while `on` is false. The frame keeps
   measures it the same way. The face fills the whole box.
 - Put the `pk-glass` class on the display window to give it the framed units'
   glass. The class positions the window; set `position: absolute` inline to place it.
+  An evenly lit screen sets its `.pk-glass::after` to `var(--pk-glass-sheen)`, the
+  glass without its depth shade at the bottom.
 - `FaceKey` is one key printed as a legend above a round cap: its hit box covers
   both, from the top of the legend to the bottom of the cap, and is never smaller
   than `--size-target`. Its `cap` centre is in fractions of the face width (x) and

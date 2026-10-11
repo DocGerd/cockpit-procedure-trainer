@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { FACE, LABEL_AT } from '../face/geometry';
+import { FACE, LABEL_AT, MAP_FIELDS } from '../face/geometry';
 import { PAGES, aera500Device } from '../logic';
 import type { Aera500State } from '../logic';
 import { AERA500_MIRROR, Aera500Display } from './Aera500Display';
@@ -36,6 +36,16 @@ describe('Aera500Display', () => {
     expect(text(container, 'ete')).toBe('ETE NEXT ---');
     expect(text(container, 'dist')).toBe('DIST NEXT ---');
   });
+
+  it.each(Object.entries(MAP_FIELDS))(
+    'centres the %s label on its photographed row',
+    (field, spec) => {
+      const at = show().querySelector<HTMLElement>(`[data-field="${field}"]`);
+      const percent = (value: number) => `${Number((value * 100).toFixed(4))}%`;
+      expect(at?.style.top).toBe(percent((spec.row[0] + spec.row[1]) / 2));
+      expect(at?.style.transform).toBe('translateY(calc(var(--text-xs) / -2))');
+    },
+  );
 
   it('draws the Map soft keys, Menu among them, as art', () => {
     const keys = [...show().querySelectorAll('[data-key]')].map((key) => key.textContent);

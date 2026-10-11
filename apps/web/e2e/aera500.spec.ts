@@ -92,3 +92,46 @@ test('the aera 500 shows a position fix and ground speed on its map in cruise', 
   const display = unit.locator('[data-display]');
   await expect(display.locator('[data-field="speed"]')).toHaveText(`GS ${airspeedKt}KT`);
 });
+
+// The label rows of intake 3.8.3 ("Face layout (photos)"), in screen fractions, within ±0.02.
+const FIELD_ROWS = {
+  speed: [0.04, 0.07],
+  ete: [0.02, 0.07],
+  bearing: [0.83, 0.87],
+  dist: [0.82, 0.86],
+} as const;
+const ROW_TOLERANCE = 0.02;
+
+test('the aera 500 prints its map field labels on the photographed rows, dock and slot', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const descent = ctslAircraft.procedures.descent;
+  const unit = await openInDock(page, descent?.title.en);
+  const mirror = page.locator('[data-placement="gps"] [data-device-mirror]');
+  for (const [where, display] of [
+    ['dock', unit.locator('[data-display]')],
+    ['slot', mirror.locator('[data-display]')],
+  ] as const) {
+    await expect(display.locator('[data-page="map"]')).toBeVisible();
+    const rows = await display.evaluate((window, fields) => {
+      const box = window.getBoundingClientRect();
+      return fields.map((field) => {
+        const [label, value] = [...window.querySelectorAll(`[data-field="${field}"] > span`)].map(
+          (span) => span.getBoundingClientRect(),
+        );
+        return {
+          field,
+          centre: ((label?.top ?? 0) + (label?.height ?? 0) / 2 - box.top) / box.height,
+          valueBottom: ((value?.bottom ?? Infinity) - box.top) / box.height,
+        };
+      });
+    }, Object.keys(FIELD_ROWS));
+    for (const { field, centre, valueBottom } of rows) {
+      const [top, bottom] = FIELD_ROWS[field as keyof typeof FIELD_ROWS];
+      expect(centre, `${where} ${field} label`).toBeGreaterThanOrEqual(top - ROW_TOLERANCE);
+      expect(centre, `${where} ${field} label`).toBeLessThanOrEqual(bottom + ROW_TOLERANCE);
+      expect(valueBottom, `${where} ${field} value`).toBeLessThanOrEqual(1);
+    }
+  }
+});
