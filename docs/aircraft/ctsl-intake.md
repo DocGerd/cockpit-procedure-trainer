@@ -85,7 +85,7 @@ decisions of 2026-10-10:
    the GPS is confirmed from its bezel; the COM radio is most likely the original
    ATR833-OLED (an ATR833A-OLED cannot be ruled out); the transponder is the
    TRT800H-OLED, settled by its round housing; and the FLARM display is
-   **rectangular**, about twice as wide as tall, not the round 57 mm unit the owner
+   **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
    expected, so the owner approved the rectangular display. The device ids are
    `atr833`, `trt800h`, `aera500` and `flarm`.
 6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
@@ -187,6 +187,10 @@ wording either. The type-name script lettering is not reproduced.
   units since M18 (§3.8): the panel art draws a recess for the FLARM display, the
   cradle frame with its rail at the foot of the aera 500, and square recesses for the
   two round funkwerk units, with no captions, which the aircraft does not have.
+  **Corrected from the photos (face fidelity fix):** the aircraft has no such recess,
+  frame or caption. The field is light brushed aluminium (§3.7.1) and each unit draws
+  its own whole face on it, the cradle included; the art is to drop the recesses and
+  the cradle frame and paint the aluminium.
 - **Layout compromises, assumed (unverified):** each slot is its mirror's natural
   size, because the mirror lettering must stay legible at the panel floor (1110 px for
   the 2372-unit panel): FLARM 320 by 160 units, GPS 400 by 250, COM and transponder
@@ -472,6 +476,12 @@ and a funkwerk transponder (right; printed "ATC", keys "I/O", "VFR", "ID",
 "MODE" and arrows, a code, a flight-level and a "STBY" line). Model names not
 legible.
 
+The field's surface is **light brushed aluminium** (a cool grey-blue in the photos,
+hint #6c747c). The units sit directly on it, so the black radio discs read as strong
+black circles on a light panel: **no recess, frame, label strip or caption** surrounds
+any of the four (added from the photos). The radios' "square bezel" of the first
+reading is not there (§3.8.1, §3.8.2).
+
 The take-off checklist summary, paraphrased: confirm the pre-flight and the
 before-take-off checklists complete, belts fastened, fuel quantity checked,
 pitch trim neutral, flight controls checked; all doors closed, fuel valve open,
@@ -637,10 +647,36 @@ describe the real panel; the trainer's slots are the compromise §3.2a records
 **assumed (unverified)** and, where the club could settle it, points to a §9
 question. "Manual §n" is the manual's own section number.
 
+Each unit also has a **Face layout (photos)** block, from the owner's photos (§3.7),
+so that an implementer can draw the face without seeing them (face fidelity fix,
+plan addendum). Conventions for those blocks:
+
+- Each unit has a unit box: for a round unit the bounding square of its disc
+  (diameter D, 57 mm), for the aera 500 the outer cradle frame, for the FLARM display
+  the rounded-rectangle face. The origin is the top left, x runs right and y down, as
+  fractions of the box (the FLARM display uses its width W and height H).
+- Camera perspective is already removed, and the photos' slight tilt is averaged out,
+  so every row and column below is horizontal or vertical.
+- Positions are good to ±0.02 and sizes to ±15 percent unless marked **low
+  confidence**.
+- Display values (frequencies, codes, volume, map) are illustrative: what a block
+  fixes is the line layout, the alignment, the relative glyph size and the colour.
+- A maker's logo, wordmark or model lettering is **never reproduced**; its footprint
+  is listed only so that the area stays blank. Real chart content is likewise not
+  reproduced.
+- Colours are given in words, with an approximate hex hint after allowing for the
+  photos' cool cast. The hint only guides the choice of the nearest `tokens.css`
+  token.
+- Real-panel scale, in units of D: the COM and ATC discs are 1.00 D, the FLARM face
+  about 1.05 D wide and 0.58 D tall, the aera cradle about 2.8 D wide and 1.67 D
+  tall (its body about 2.45 D by 1.42 D).
+- The units sit directly on the panel's light brushed aluminium (§3.7.1), with no
+  frame, box or label strip around any of them.
+
 #### 3.8.1 COM radio: funkwerk ATR833-OLED
 
 **Identification.** A round 57 mm funkwerk COM radio with a yellow OLED and 8.33
-kHz channel names, in a square bezel. Most likely the original ATR833-OLED. The
+kHz channel names. It has no visible bezel: the disc sits directly on the panel, with screws and knobs in the corners of its bounding square (corrected from the photos). Most likely the original ATR833-OLED. The
 variant letter of an ATR833A-OLED is not visible on the face and cannot be ruled
 out. The ATR833-II OLED is less likely: D-MPGO's face carries the funkwerk logo
 used before the maker was renamed f.u.n.k.e. AVIONICS and no "Mk II" lettering.
@@ -650,8 +686,8 @@ generation is open (§9 question 36). §3.7.1's reading of the knob legend as
 "VOL/SQL" is corrected here: the legend reads VOL/SEL.
 
 **Panel position.** Upper-centre field, bottom row, left unit: directly below the
-GPS, left of the transponder. Its two knobs take the right-hand corners of the
-bezel.
+GPS, left of the transponder. Its two knobs take the right-hand corners of its
+bounding square.
 
 **Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833-II VHF Communication Transceiver,
 OLED / LCD, Operation and Installation", document 01.143.010.71e, revision 1.06
@@ -662,11 +698,87 @@ II whose control D-MPGO's face lacks is out of scope.
 **Face.** Top row, three push keys printed `I/O`, `SET`, `MEM`. A knob at the
 upper right with a curved legend `VOL/SEL`. The display in the middle, three text
 lines, with `COM` printed vertically down its left. Bottom row, three push keys
-printed `DW`, `▼▲` (a down and an up triangle) and `►`; the funkwerk logo under
+printed `DW`, `▲▼` (an up and a down triangle, side by side, up first: corrected
+from the photos, which show `▲▼` and not `▼▲`) and `►`; the funkwerk logo under
 the row. A second knob at the lower right with no printed legend in the manual's
 figure. Two separate single knobs, not a concentric pair; the manual gives no push
 function for either. The II's figure also prints `Mk II` down the right; D-MPGO
 does not.
+
+**Face layout (photos).** Unit box: the bounding square of the black disc, whose
+diameter is D (57 mm). Origin at the top left, x to the right, y down; the disc
+centre is (0.5, 0.5) and its radius 0.5. Screws and knobs sit in the corners of the
+square, outside the circle, so some values are below 0 or above 1. Source: the
+owner's photos (§3.7). The conventions are those of the §3.8 introduction.
+
+- **Outline.** A circular matte disc, near-black with a very slight blue cast
+  (hint #10181c), darker than the FLARM face (§3.8.4). A very thin, slightly lighter
+  rim highlight (about 0.01 D) runs round the edge. There is no chrome ring and no
+  visible square body (corrected from the photos: §3.8.1 used to say "square
+  bezel"). The key caps are slightly glossier than the disc.
+- **Mounting.** The disc sits directly on the light brushed-aluminium panel (§3.7.1)
+  with no frame, box or label strip around it.
+
+_Printed lettering_ (white, bold, uppercase sans; legends are printed on the face
+**above** each key and never on a cap):
+
+| Item         | Position and size                                                                                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `COM`        | Three upright letters stacked top to bottom (C, O, M), not a rotated word. Column centre x 0.055, spanning y 0.44 to 0.62; each letter about 0.05 D tall, pitch about 0.065                                                                                    |
+| `VOL/SEL`    | Curved along the rim at the upper right, on a circle of radius about 0.42 D, from about (0.72, 0.09) to (0.85, 0.21). It reads clockwise and descends to the right, average tilt about +35 degrees; letter height about 0.035 D. It marks the upper-right knob |
+| Key legends  | About 0.035 D cap height, centred over the cap, with a gap of about 0.02 D above it                                                                                                                                                                            |
+| Maker's logo | Footprint at the bottom centre, x 0.38 to 0.63, y 0.90 to 0.96. **Not reproduced**: the area stays blank                                                                                                                                                       |
+
+_Keys_: six round push buttons in two rows of three. Each cap is a round black dome
+of diameter about 0.10 D with a soft highlight at its upper left. Pitch is about 0.17
+D in both rows. The top row sits left of centre (row centre about x 0.48), which
+leaves the upper right free for `VOL/SEL`; the bottom row is centred at x 0.50.
+
+| Key    | Legend (printed above the cap)                                                                                                                                             | Legend centre (x, y) | Cap centre (x, y) |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ----------------- |
+| `I/O`  | `I/O`                                                                                                                                                                      | 0.315, 0.09          | 0.32, 0.165       |
+| `SET`  | `SET`                                                                                                                                                                      | 0.486, 0.09          | 0.49, 0.16        |
+| `MEM`  | `MEM`                                                                                                                                                                      | 0.635, 0.085         | 0.65, 0.155       |
+| `DW`   | `DW`                                                                                                                                                                       | 0.33, 0.765          | 0.32, 0.85        |
+| swap   | `▲▼`: a filled up-triangle **then** a filled down-triangle, side by side, each about 0.03 D (corrected from the photos: the face prints up first, §3.8.1 used to say `▼▲`) | 0.50, 0.765          | 0.50, 0.85        |
+| cursor | `►`: one filled right-pointing triangle, about 0.045 D wide                                                                                                                | 0.67, 0.76           | 0.67, 0.85        |
+
+_Knobs_: two, both outside the disc in the right-hand corners. Each is a black
+knurled cylinder (fine vertical ribs, about 18 to 20 around) seen end-on with a flat
+black end, no pointer, diameter about 0.16 D, its edge clearing the disc by about
+0.01 D.
+
+| Knob                          | Centre (x, y) | Legend on the face   |
+| ----------------------------- | ------------- | -------------------- |
+| upper right (volume / select) | 0.92, 0.09    | the curved `VOL/SEL` |
+| lower right (frequency)       | 0.92, 0.92    | none                 |
+
+_Screws_: two silver Phillips pan-head screws, diameter about 0.10 D, at the upper
+left (0.10, 0.12) and the lower left (0.10, 0.95). The knobs take the right-hand
+corners, so there are none on the right.
+
+_Display_ (yellow OLED). A black glass window, x 0.14 to 0.85 and y 0.24 to 0.63,
+corner radius about 0.02 D. Its bevel shows as a thin lighter line along the bottom
+edge (y about 0.62, x 0.17 to 0.80) and a faint lighter strip along the right edge
+(x 0.83 to 0.86). The window is almost the same black as the disc, so an unlit
+display is nearly invisible. Every glyph, label and value alike, is one saturated
+warm yellow on black (hint #f0d840), never white, grey or amber-orange.
+
+| Line | Centre y | Content and alignment                                                                                                                                                      |
+| ---- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 0.335    | Label `ACT` at x 0.205 to 0.285; the active frequency right-aligned to x 0.80 (seven characters including the dot, starting near x 0.41 to 0.47)                           |
+| 2    | 0.44     | Label `SBY`; the standby frequency right-aligned to x 0.80. The edit cursor is an underline below the MHz digits (x about 0.41 to 0.57, y about 0.475, about 0.01 D thick) |
+| 3    | 0.555    | Label `VOL` at x 0.205 to 0.275 and its value left-aligned straight after it (x about 0.33 to 0.38). The rest of the line is empty                                         |
+
+Digits are about 0.075 D tall with an advance of about 0.06 D. The labels `ACT`,
+`SBY` and `VOL` are about as tall as the digits but in a condensed face, about 0.026
+D per character. Both are bold with slightly rounded strokes, like an OLED pixel
+font. A faint vertical divider at x about 0.335, from y 0.28 to 0.60, separates
+labels from values (**low confidence**, optional). The frequencies and volume shown
+in the photos are illustrative only.
+
+_Not visible_: the OLED pixel structure, the knobs' detents and any pointer, a
+legend for the lower knob, edge-lit key legends, and the display in other modes.
 
 **Controls** (the manual's names in parentheses).
 
@@ -680,7 +792,7 @@ does not.
 | `MEM`                                       | short                                                    | opens the 20 user memories; a second short press opens the list of the last 10 active frequencies (LST)                      |
 | `MEM`                                       | hold (2 s in the key table, 1.5 s in the worked example) | opens save mode: pick a slot, then a short press writes the frequency                                                        |
 | `DW` (dual watch)                           | short                                                    | toggles dual watch, line 2 reads `DW` instead of `SBY`; in any menu or list it returns to the standard display               |
-| `▼▲` (swap)                                 | short                                                    | exchanges active and standby; in a MEM or LST list it loads the entry into the active frequency                              |
+| `▲▼` (swap)                                 | short                                                    | exchanges active and standby; in a MEM or LST list it loads the entry into the active frequency                              |
 | `►` (cursor)                                | short                                                    | moves the underline to the next editable field of the standby frequency                                                      |
 | `►`                                         | more than 2 s                                            | REPLAY of the last received call (not modelled)                                                                              |
 | `VOL/SEL` knob (volume/select)              | turn                                                     | receive volume by default; otherwise the value of the line-3 item chosen with `SET`, the list entry number, or the save slot |
@@ -717,7 +829,7 @@ the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names. The
 setup item SPACING can restrict entry to 25 kHz names.
 
 **Memories.** 20 user slots, optionally named (up to 8 characters), and a list of
-the last 10 active frequencies. Recall: `MEM`, turn the VOL/SEL knob, then `▼▲` for
+the last 10 active frequencies. Recall: `MEM`, turn the VOL/SEL knob, then `▲▼` for
 active or `SET` for standby. Save: set the frequency as standby, hold `MEM`, turn
 the knob to a slot, press `MEM` briefly; a `>` confirms.
 
@@ -765,7 +877,7 @@ visible lettering (§9 question 36).
 #### 3.8.2 Transponder: funkwerk TRT800H-OLED
 
 **Identification.** A round 57 mm funkwerk Mode S transponder with a yellow OLED, in
-a square bezel with three corner screws and the knob in the fourth corner, `ATC` printed vertically on the left. It is
+no visible bezel (corrected from the photos): the disc sits directly on the panel, with three screws and the knob in the corners of its bounding square, and `ATC` printed vertically on the left. It is
 the TRT800H-OLED: the TRT800A-OLED is a different, rectangular unit with seven
 buttons (it adds a `FID` key and letters its mode key `MOD`) in another layout, so the round 57 mm body
 settles the variant. The older Filser TRT800 (a
@@ -784,9 +896,74 @@ and the OLED; their controls are identical.
 
 **Face.** Top row, three push keys printed `I/O`, `VFR`, `ID`. A four-line display in
 the middle, `ATC` printed vertically at its left. Bottom row, three push keys
-printed `MODE`, `▲▼` (an up and a down triangle) and `►`; the logo under the row. One
+printed `MODE`, `▲▼` (an up and a down triangle, side by side, up first) and `►`; the logo under the row. One
 rotary knob at the lower right with no printed legend. The manual sometimes writes
-the swap glyph as `▼▲`; the face prints up over down.
+the swap glyph as `▼▲`; the face prints up then down, side by side (corrected from
+the photos: not stacked).
+
+**Face layout (photos).** Unit box, origin and corner conventions as for the COM
+radio (§3.8.1): the bounding square of a disc of diameter D (57 mm), centre (0.5, 0.5),
+radius 0.5. Source: the owner's photos (§3.7). The conventions are those of the §3.8
+introduction.
+
+- **Outline.** The same disc as the COM radio: matte near-black (hint #0c1a20), a
+  thin lighter rim highlight, no chrome ring and no visible square body (corrected
+  from the photos: §3.8.2 used to say "square bezel"). It sits directly on the
+  light brushed-aluminium panel (§3.7.1) with no frame, box or label strip.
+
+_Printed lettering_ (white, bold, uppercase sans, as on the COM radio; legends stand
+above the keys, never on a cap):
+
+| Item         | Position and size                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `ATC`        | Three upright letters stacked top to bottom (A, T, C). Column centre x 0.068, spanning y 0.43 to 0.61; each letter about 0.05 D tall |
+| Key legends  | As on the COM radio. There is no curved legend on this unit                                                                          |
+| Maker's logo | Footprint at the bottom centre, x 0.38 to 0.62, y 0.90 to 0.97. **Not reproduced**: the area stays blank                             |
+
+_Keys_: six round caps in two rows of three, diameter about 0.10 D. The top row is
+centred at x about 0.53, offset to the right of the COM radio's. Pitch is about 0.155
+D on top and about 0.165 D on the bottom row.
+
+| Key    | Legend                                                                                     | Legend centre (x, y) | Cap centre (x, y) |
+| ------ | ------------------------------------------------------------------------------------------ | -------------------- | ----------------- |
+| `I/O`  | `I/O`                                                                                      | 0.375, 0.095         | 0.37, 0.17        |
+| `VFR`  | `VFR`                                                                                      | 0.535, 0.09          | 0.535, 0.17       |
+| `ID`   | `ID`                                                                                       | 0.686, 0.085         | 0.69, 0.165       |
+| `MODE` | `MODE`, a wide word about 0.14 D across                                                    | 0.33, 0.77           | 0.33, 0.85        |
+| change | `▲▼`, up-triangle then down-triangle side by side (corrected from the photos: not stacked) | 0.495, 0.763         | 0.50, 0.85        |
+| cursor | `►`                                                                                        | 0.657, 0.755         | 0.66, 0.845       |
+
+**Low confidence, optional**: in all the photos the `I/O`, `ID`, `▲▼` and `►` caps
+look dark grey, slightly lighter than `VFR` and `MODE`, which look black. This may be
+wear or gloss.
+
+_Knob_: one, outside the disc at the lower right, centre (0.91, 0.92), diameter about
+0.15 D. A black knurled skirt with a light grey or white circular end cap about 0.6
+times the knob diameter, crossed by a dark straight line that acts as pointer or slot.
+The face prints no legend for it.
+
+_Screws_: three silver Phillips screws, diameter about 0.10 D, at the upper left
+(0.10, 0.11), the upper right (0.92, 0.08) and the lower left (0.09, 0.94).
+
+_Display_ (yellow OLED). A black glass window, x 0.13 to 0.84 and y 0.24 to 0.63, with
+the COM radio's bevel cues; the lighter line along its bottom edge (y about 0.62) is
+quite visible. Every line, `STBY` included, is the same warm yellow as the COM
+radio's (hint #f0d840) on black.
+
+| Line | Centre y | Content and alignment                                                                                                                                   |
+| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 0.33     | The four-digit squawk code, right edge at x about 0.69, spanning x 0.50 to 0.695. It is not pushed to the window's right edge                           |
+| 2    | 0.475    | The pressure-level readout `FL 000` in small glyphs, about 0.04 D tall (about 0.6 times the digit height), x about 0.46 to 0.64                         |
+| 3    | 0.565    | The status word `STBY` in large glyphs, as tall as the digits and not condensed, at x 0.18 to 0.40; a second four-digit value follows at x 0.47 to 0.69 |
+
+Digits are about 0.067 D tall with an advance of about 0.049 D; `STBY` takes about
+0.055 D per character. The values form a column whose right edge is near x 0.69, and
+the window right of x 0.70 stays empty. One photo caught line 2 mid-refresh (dashes
+at the left, then `FL 000`); treat it as a refresh frame, not as a layout. The code
+and level shown are illustrative only.
+
+_Not visible_: the display in other modes (ALT, ON, ident), the knob's detents and
+function legend, and key backlighting.
 
 **Controls** (the manual's names in parentheses).
 
@@ -847,7 +1024,7 @@ functions. The manual does not mention emergency squawks.
 - A second `VFR` press while VFR is active: one passage says activate or deactivate,
   another says it shows the standby code and VFR stays active. The trainer follows the
   second reading.
-- The glyph order on `▲▼`, the counter thresholds of the held-`ID` menus, and the
+- The counter thresholds of the held-`ID` menus, and the
   cursor behaviour after the last digit, which the manual does not state.
 
 **Trainer (M18).** The `trt800h` device models: power (a press switches on, in STBY;
@@ -879,8 +1056,8 @@ no icon, figure or screen copied. Options of the 510 and 560 (weather, XM radio)
 of the GDL 39 (traffic) do not apply to a plain aera 500.
 
 **Face and controls.** A 4.3 inch colour touchscreen in landscape. Exactly one
-physical control: the POWER button (its place on the case and any lettering are
-shown only in a figure). Everything else is a touch icon that appears with the page.
+physical control: the POWER button. The photos show the front face has no keys (corrected from the
+photos); the button's place is **assumed (unverified)**: a raised bump on the cradle frame's top edge at the right is consistent with it, and no legend is visible (see the face layout below). Its lettering is not visible. Everything else is a touch icon that appears with the page.
 POWER: a long hold switches the unit on or off; with external power connected, a long
 hold enters Charge Mode (screen off, battery charging) instead of switching off; a
 short press opens a quick overlay for backlight brightness and volume. In the
@@ -891,6 +1068,65 @@ held, Home), **OK**, **Menu**, a combined **Menu / Direct-to** icon, **Up** and
 **Down** arrows, **Direct-to**, **Out** and **In** (map range), **Cancel**, and a
 keypad (OK, BKSP, Numeric, Alpha, Cancel) when a text field is touched. A touched
 icon briefly turns blue.
+
+**Face layout (photos).** Unit box: the outer cradle frame, true width to height
+about 1.67 to 1.70, origin at the top left. Screen content is also given in a nested
+frame (sx, sy), both from 0 to 1 across the screen. Source: the owner's photos
+(§3.7). The conventions are those of the §3.8 introduction.
+
+- **Cradle frame.** A near-black charcoal rounded rectangle (hint #252f37), outer
+  corner radius about 0.09 H. Band widths: left 0.055 W, right 0.05 W, top 0.07 H,
+  bottom 0.075 H. It stands proud of the panel and casts a slight shadow; a thin
+  darker seam (about 0.01) separates it from the unit's body.
+- **Top-edge features** (corrected from the photos: the front has no keys, §3.8.3
+  used to leave the POWER place open). A raised dark bar, the cradle's latch or top
+  rail, sits on the frame at x 0.33 to 0.61 and protrudes about 0.03 H above the top
+  edge. A shorter raised bump sits at the top right, x 0.81 to 0.92: it is
+  consistent with the aera's power key on its top edge, and no legend is visible.
+  The aera's physical POWER key is **not on the front face**.
+- **Body (the unit's bezel).** A dark neutral grey clearly lighter than the cradle
+  (hint #4a4b50), x 0.066 to 0.945 and y 0.075 to 0.925, corner radius about 0.05 H.
+  A slightly lighter lip runs along the bottom inner edge. The bottom band is taller
+  than the top band (0.125 H against 0.075 H).
+- **Light sensor.** A small dark dot on the right band at (0.92, 0.44), diameter about
+  0.012 W.
+- **Brand lettering.** Brand and model lettering in the body's lower left, x 0.11 to
+  0.31, y 0.89 to 0.93. **Not reproduced**: the area stays blank.
+- **Controls on the front.** None. No keys, knobs or joystick; the face is a
+  touchscreen only.
+
+_Screen_: x 0.151 to 0.838 and y 0.150 to 0.799 in unit coordinates. Landscape 16:9
+(a 480 by 272 pixel panel), square corners, a thin black inner frame about 0.008
+wide. The side bands are about 0.08 W (left) and 0.10 W (right).
+
+_Soft-key column_ (part of the display; the Map page): at sx 0.83 to 1.00, the right
+17 percent of the screen at full screen height. Four keys top to bottom: `Out`, `In`,
+`Menu`, `Home`. Each takes about a quarter of the height (sy 0 to 0.25, 0.26 to 0.49,
+0.51 to 0.73, 0.75 to 1.0) with thin gaps. Each is near-black or charcoal with a
+slightly lighter top gradient and a thin light separator. A white pictogram fills the
+upper 60 percent (a magnifier with a minus, a magnifier with a plus, a page or list,
+a house) and a bold white label stands centred in the lower 35 percent.
+
+_Map page_ (the only page the photos show), at sx 0 to 0.83: a VFR-chart look with
+light yellow-green land, thin grey-blue lines, a thick blue river, thick red lines,
+dotted light-blue airspace lines and small white labels with a dark outline. **Chart
+content is not reproduced**: no real names or geography; the trainer draws a generic
+chart. Overlays carry no boxes: small bold white field labels with a dark outline,
+each over a dashed value line.
+
+| Field       | Position (sx, sy)                        |
+| ----------- | ---------------------------------------- |
+| `GS`        | top left, 0.10 to 0.135, 0.04 to 0.07    |
+| `ETE NEXT`  | top right, 0.68 to 0.82, 0.02 to 0.07    |
+| `BRG`       | bottom left, 0.075 to 0.13, 0.83 to 0.87 |
+| `DIST NEXT` | bottom right, 0.63 to 0.79, 0.82 to 0.86 |
+
+A white double-line range arc, about a semicircle, runs from (0.055, 0.54) over an
+apex near (0.42, 0.14) to (0.79, 0.54). The white own-ship symbol stands near (0.40,
+0.87). A small "detail map" tag sits at sx 0.47 to 0.59 and sy 0.93 to 0.98.
+
+_Not visible_: the Home menu page, the start-up and database pages, any legend on the
+power key, the side-edge controls (the card slot), and the backlight-off look.
 
 **Power-on.** External power switches the unit on by itself. First use runs AutoLocate,
 which can take several minutes. A database initialisation page lists each database's
@@ -952,9 +1188,9 @@ per icon, shown only on the page that has it. Every icon prints the guide's name
 
 #### 3.8.4 FLARM display: classic external LED display
 
-**Identification.** A small rectangular dark face with rounded corners, about twice as wide
+**Identification.** A small rectangular dark face with rounded corners, about 1.8 times as wide
 as tall, LED-only, with a FLARM wordmark, four status LEDs, a square push button
-printed `Mode`, two LEDs printed `above` and `below`, and an aircraft outline ringed by
+printed `Mode` on the face, two LEDs printed `above` and `below`, and an aircraft outline ringed by
 ten direction LEDs (pairs flank the nose and the tail, no LED at 12 or 6 o'clock). That is
 16 LEDs and one button: the classic external display of the FLARM system. **It is not
 round 57 mm.** The owner's expectation of a round display does not hold; the owner
@@ -977,11 +1213,76 @@ FLARM Technology, "Operating Manual FLARM Collision Avoidance System", version 2
 
 **Face.** At the top left the FLARM wordmark. Under it a column of four green status
 LEDs printed, top to bottom, `RX`, `TX`, `GPS`, `Power`. Right of that the `Mode` key,
-the only control. Right of that an aircraft symbol pointing up inside a ring of ten red
-LEDs at 36 degree steps, the first at 18 degrees and the last at 342 degrees clockwise
-from the nose. At the ring's right edge, the `above` LED at the top and the `below` LED
-at the bottom (hardware 2.0 only). A sound emitter sits behind the symbol. No power switch:
+the only control, a square key on the face itself. Right of the key a thin vertical bar
+with the `above` LED at its top and the `below` LED at its bottom, their labels on its
+left (hardware 2.0 only; corrected from the photos: they are not at the ring's edge).
+Right of the bar an aircraft symbol pointing up inside a ring of ten LEDs (red per
+the sheet; the photos show them unlit) at 36 degree steps, the first at 18 degrees
+and the last at 342 degrees clockwise from the nose, the ring centred about three
+quarters across the face. A sound emitter sits behind the symbol. No power switch:
 the display takes power from the FLARM unit, and FLARM is on whenever it has supply.
+
+**Face layout (photos).** Unit box: the rounded-rectangle face. x is a fraction of the
+face width W and y of its height H; W:H is about 1.8 (plausible range 1.65 to 1.9),
+origin at the top left. Source: the owner's photos (§3.7). The conventions are those
+of the §3.8 introduction.
+
+- **Outline.** A rounded rectangle, corner radius about 0.08 H. Colour: dark slate
+  navy (hint #323b4f), clearly bluer and lighter than the radio discs. A thin
+  darker edge or shadow runs round it.
+- **No screen.** Everything is an LED or printed line on the flat face, and the
+  Mode key sits **on** the face, with no separate housing (corrected from the
+  photos: it is a square outline and cap inside the face box). Screws are not visible.
+
+_Printed artwork_ (thin white or light grey lines and text):
+
+| Item               | Position and size                                                                                                                                                                                                                                              |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wordmark footprint | Top left, x 0.06 to 0.27, y 0.15 to 0.33. **Not reproduced**: the logo has its own lettering style and a red mark. A plain unit word in the panel's generic type (the trainer prints uppercase FLARM, plan addendum D20) may stand there, with no logo styling |
+| Status labels      | `RX`, `TX`, `GPS`, `Power` (only `Power` is in mixed case). White sans, cap height about 0.075 H, left-aligned at x 0.13, centred vertically on their LEDs                                                                                                     |
+| `above`            | Lowercase, about 0.06 H, right-aligned to end at x 0.47 (spanning about 0.34 to 0.47), centred at y 0.165                                                                                                                                                      |
+| `below`            | Lowercase, about 0.06 H, spanning about 0.355 to 0.47, centred at y 0.835                                                                                                                                                                                      |
+| Vertical bar       | A thin light line at x 0.497 joining the `above` LED to the `below` LED, y 0.20 to 0.80                                                                                                                                                                        |
+
+_Aircraft outline_ (top view, one thin light line): a straight-wing light aircraft or
+glider, **not** a swept-wing jet.
+
+- Fuselage along x about 0.735 with a rounded nose at y 0.23, tapering to the tail at
+  y 0.73; width about 0.04 to 0.06 W.
+- A long, thin, straight wing drawn as a pill shape, x 0.60 to 0.87 at y 0.45 to 0.53
+  (chord about 0.07 H).
+- A short straight tailplane, x 0.68 to 0.79 at y 0.70 to 0.75.
+- Ten thin straight light spokes run radially from the outline to each direction LED
+  and continue about 0.05 H past it as a short tail.
+
+_LEDs_: 16 in all. Each is a round dome of diameter about 0.055 H (about 0.03 W).
+Unlit it looks milky white or light grey. A lit status LED is a bright yellow-green
+with a glow (hint #9be04a).
+
+| Group                              | Positions (x, y)                                                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status column (below the wordmark) | x 0.10; `RX` y 0.47, `TX` 0.59, `GPS` 0.705, `Power` 0.82 (pitch about 0.117 H)                                                                |
+| `above` and `below`                | (0.50, 0.165) and (0.50, 0.83)                                                                                                                 |
+| Direction ring                     | Centre (0.734, 0.485), radius about 0.33 H in true units; ten LEDs at bearings of ±18, ±54, ±90, ±126 and ±162 degrees clockwise from the nose |
+
+The ring pairs flank the nose and the tail; no LED stands at 12 or 6 o'clock.
+Measured ring positions, for checking: nose pair (0.671, 0.150) and (0.786, 0.150);
+(0.586, 0.281) and (0.875, 0.268); 9 and 3 o'clock (0.557, 0.49) and (0.91, 0.477);
+(0.593, 0.693) and (0.879, 0.68); tail pair (0.686, 0.817) and (0.793, 0.817).
+
+_Mode key_ (the only control, on the face between the status column and the
+`above`/`below` bar):
+
+- Outer frame: a thin light-grey rounded-square outline, x 0.28 to 0.47 and y 0.38
+  to 0.75, near-square in true units.
+- Cap: inside the frame, x 0.31 to 0.44 and y 0.43 to 0.70, darker than the face
+  (near-black navy) with a faint light rim.
+- Lettering: `Mode` is printed **on the cap**, centred at (0.375, 0.57), white, title
+  case, cap height about 0.07 H.
+
+_Not visible_: the lit colour of the direction LEDs and of `above`/`below` (all unlit
+in every photo), blink timing (`RX` and `TX` are lit in one photo and off in two),
+screws, and the unit that drives the display.
 
 **Status LEDs.** `RX` is lit while another FLARM aircraft is within the set range (3 km
 by default) and 500 m vertically, and flashes while warnings are suppressed but traffic is
