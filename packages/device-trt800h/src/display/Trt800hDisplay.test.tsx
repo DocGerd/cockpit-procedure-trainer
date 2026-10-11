@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { KEYS, LABEL } from '../face/geometry';
 import { trt800hDevice } from '../logic';
 import type { Trt800hState } from '../logic';
 import { Trt800hDisplay } from './Trt800hDisplay';
@@ -17,8 +18,9 @@ const state: Trt800hState = {
 };
 const show = (on = true, patch: Partial<Trt800hState> = {}) =>
   render(<Trt800hDisplay on={on} state={{ ...state, ...patch }} />).container;
-const text = (container: HTMLElement, field: string) =>
-  container.querySelector(`[data-field="${field}"]`)?.textContent;
+const field = (container: HTMLElement, name: string) =>
+  container.querySelector<HTMLElement>(`[data-field="${name}"]`);
+const text = (container: HTMLElement, name: string) => field(container, name)?.textContent;
 
 describe('Trt800hDisplay', () => {
   it('shows the mode, the codes and the flight level', () => {
@@ -36,18 +38,37 @@ describe('Trt800hDisplay', () => {
     expect(text(container, 'standby')).toBe('VFR');
   });
 
-  it('blanks everything while the unit is switched off or dark', () => {
+  it('blanks everything while the unit is switched off or dark, and still draws the face', () => {
     for (const container of [show(true, { on: false }), show(false)]) {
-      for (const field of ['mode', 'code', 'level', 'status', 'standby', 'ident']) {
-        expect(text(container, field)).toBe('');
+      for (const name of ['mode', 'code', 'level', 'status', 'standby', 'ident']) {
+        expect(text(container, name)).toBe('');
       }
+      expect(container.querySelector('[data-face-unit] svg')).not.toBeNull();
     }
   });
 
-  it('prints ATC on the bezel and draws the knob', () => {
+  it('draws its own face: no bezel chrome, with ATC upright down the left of the display', () => {
     const container = show();
-    expect(container.querySelector('[data-mirror-label]')?.textContent).toBe('ATC');
-    expect(container.querySelector('[data-knob]')).not.toBeNull();
+    expect(container.querySelector('[data-device-mirror]')?.getAttribute('data-face')).toBe('own');
+    const label = container.querySelector<HTMLElement>('[data-mirror-label]');
+    expect(label?.textContent).toBe('ATC');
+    expect(label?.hasAttribute('data-vertical')).toBe(true);
+    expect(label?.style.left).toBe(`${Number((LABEL.x * 100).toFixed(4))}%`);
+    expect(container.querySelector('[data-face-label]')).toBeNull();
+  });
+
+  it('prints the key legends as secondary lettering and the main values as primary', () => {
+    const container = show(true, { identMs: 1 });
+    const legends = [...container.querySelectorAll<HTMLElement>('[data-face-legend]')];
+    expect(legends.map((legend) => legend.textContent)).toEqual(KEYS.map((key) => key.legend));
+    for (const legend of legends) expect(legend.dataset.lettering).toBe('secondary');
+    for (const name of ['level', 'ident']) {
+      expect(field(container, name)?.dataset.lettering, name).toBe('secondary');
+    }
+    for (const name of ['mode', 'code', 'status', 'standby']) {
+      expect(field(container, name)?.dataset.lettering, name).toBeUndefined();
+      expect(field(container, name)?.style.fontSize, name).toBe('var(--text-2xl)');
+    }
   });
 
   it('offers nothing to operate and renders no style element', () => {

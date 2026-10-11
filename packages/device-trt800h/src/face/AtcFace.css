@@ -1,0 +1,12 @@
+/* The face prints its legends bold; a button resets the weight. */
+.cpt-trt800h-face .pk-face-key {
+  font-weight: inherit;
+}
+
+/* The face prints ATC in its legend type. Upright letters advance by the font's full line box;
+   the unit prints them closer together. */
+.pk-mirror-bezel:has(.cpt-trt800h-face) > .pk-mirror-label {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  letter-spacing: calc(var(--space-2) * -1);
+}

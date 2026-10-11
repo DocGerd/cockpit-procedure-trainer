@@ -7,5 +7,6 @@ export const trt800hScreenEntry: DeviceScreenEntry = {
   Screen: Trt800hScreen,
   Display: Trt800hDisplay,
   readout: trt800hReadout,
-  floor: { width: 288, height: 276 },
+  floor: { width: 360, height: 308 },
+  face: 'own',
 };
