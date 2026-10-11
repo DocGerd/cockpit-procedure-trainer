@@ -88,9 +88,11 @@ decisions of 2026-10-10:
    **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
    expected, so the owner approved the rectangular display. The device ids are
    `atr833`, `trt800h`, `aera500` and `flarm`.
-6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
-   controls on D-MPGO's face. A function of the II whose control the face lacks (for
-   example the push-to-talk and external interfaces) is out.
+6. **COM facts come only from the ATR833A-OLED manual** (document 01.1411.010.71e,
+   revision 3.00, read on ManualsLib), and only for controls on D-MPGO's face. The
+   owner chose it on 2026-10-11 (#718) in place of the ATR833-II manual; that the A
+   variant behaves like the original unit is §9 question 64. A function whose control
+   the face lacks (for example the push-to-talk and external interfaces) is out.
 7. **Sources for the rest:** the TRT800H manual, revision 3.00; for the FLARM display
    the EDIATec display sheet V5.1e and the FLARM operating manual; for the GPS the
    aera 500 Series Pilot's Guide. All are paraphrased, never copied (§3.8,
@@ -834,23 +836,25 @@ in the photos are illustrative only.
 _Not visible_: the OLED pixel structure, the knobs' detents and any pointer, a
 legend for the lower knob, edge-lit key legends, and the display in other modes.
 
-**Controls** (the manual's names in parentheses; manual §2.1).
+**Controls** (manual §2.1, summarised per control).
 
-| Control                                     | Press or turn                          | Effect                                                                                             |
-| ------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `I/O` (on/off)                              | about 0.5 s                            | switches on                                                                                        |
-| `I/O`                                       | about 2 s                              | switches off                                                                                       |
-| `SET` (set)                                 | short                                  | steps the third display line through VOL, SQL, DIM, VOX, DWM, INT, EXT, then VOL again             |
-| `SET`                                       | 1.5 s or more                          | returns the third line to VOL                                                                      |
-| `SET`                                       | 5 s or more                            | opens the configuration menu (not modelled)                                                        |
-| `MEM` (memory)                              | short                                  | opens the user memory list; a second short press opens the list of the last used frequencies (LST) |
-| `MEM`                                       | 1.5 s or more, in the user memory list | writes the **active** frequency into the shown entry and clears the entry's name                   |
-| `DW` (dual watch)                           | short                                  | toggles dual watch; line 2 reads `DW` instead of `SBY`                                             |
-| `▲▼` (change)                               | short                                  | exchanges active and standby; in a list it also leaves the list                                    |
-| `►` (cursor)                                | short                                  | moves the underline to the next field of the standby frequency                                     |
-| `►`                                         | 1.5 s or more, in the user memory list | starts naming the entry (not modelled)                                                             |
-| `VOL/SEL` knob (volume/select)              | turn                                   | the value of the line-3 item; in a list, the entry, which at once replaces the standby frequency   |
-| lower-right knob (the manual calls it FREQ) | turn                                   | changes the underlined field of the standby frequency                                              |
+- **`I/O`**: a press of about half a second switches the radio on; holding it about
+  2 s switches it off.
+- **`SET`**: each short press moves the third display line on to its next setting,
+  in the order VOL, SQL, DIM, VOX, DWM, INT, EXT and round to VOL again; a hold of
+  1.5 s or more goes straight back to VOL; a hold of 5 s or more opens the
+  configuration menu (not modelled).
+- **`MEM`**: a short press opens the user memory list, and a second one the list of
+  recently used frequencies (LST). Held 1.5 s or more while the memory list is open,
+  it stores the **active** frequency in the shown entry and clears the entry's name.
+- **`DW`**: dual watch on or off; line 2 then reads `DW` in place of `SBY`.
+- **`▲▼`**: swaps active and standby, and also closes an open list.
+- **`►`**: moves the underline to the next field of the standby frequency; held 1.5 s
+  or more in the memory list, it starts naming the entry (not modelled).
+- **`VOL/SEL` knob**: sets the value of the line-3 setting; in a list it picks the
+  entry, which becomes the standby frequency at once.
+- **Lower-right knob** (FREQ in the manual): changes the underlined field of the
+  standby frequency.
 
 The A manual has no REPLAY and no split sidetone items; those are ATR833-II features.
 
@@ -858,28 +862,21 @@ Not on the face and out of scope: the push-to-talk button on the stick, an exter
 intercom switch, the serial remote interface, the PC tool for the memory list and the
 external audio input.
 
-**Line-3 items** (manual §2.4). `SET` picks the item and `VOL/SEL` sets it. The
-display prints each value with two digits. Line 3 falls back to VOL after 12 s
-without input.
+**Line-3 settings** (manual §2.4). `SET` chooses the setting and `VOL/SEL` changes
+it; values always show two digits, and line 3 returns to VOL after 12 s untouched.
+Receive volume (`VOL`) runs 01 to 16. Squelch (`SQL`, higher needs a stronger
+signal, default 05 and the only default the manual gives), display brightness
+(`DIM`), the speech level that opens the intercom (`VOX`, 01 meaning always open)
+and intercom volume (`INT`, shown as `INT --` when the wiring disables the intercom)
+each run 01 to 10. The external audio volume (`EXT`) runs 00 to 10, 00 switching the
+input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
+runs from 00 (none) down to −8, the minus sign printed.
 
-| Item  | What it sets                                                                            | Range                        |
-| ----- | --------------------------------------------------------------------------------------- | ---------------------------- |
-| `VOL` | receive volume                                                                          | 01 to 16                     |
-| `SQL` | squelch; higher needs a stronger signal. Default 05, the only default the manual states | 01 to 10                     |
-| `DIM` | display brightness                                                                      | 01 to 10                     |
-| `VOX` | speech level that opens the intercom; 01 keeps it always open                           | 01 to 10                     |
-| `DWM` | how much quieter standby reception is in dual watch; 00 is no reduction                 | −8 to 00, minus sign printed |
-| `INT` | intercom volume; `INT --` when the wiring disables the intercom                         | 01 to 10                     |
-| `EXT` | external audio volume; 00 switches the input off                                        | 00 to 10                     |
-
-**Configuration menu** (manual §3, `SET` held 5 s). Its items, in order: SPC
-(channel spacing, 8.33 or 25 kHz), DPY (automatic display darkening after 1 to 30
-minutes without input), PTT (which push-to-talk key transmits), EXT (priority of the
-external audio input), MLS, MLD, MRS and MRD (sensitivity of the four microphone
-inputs) and TST (maintenance test mode). The knob picks an item and its value; the
-last entry or a long press leaves the menu. A master reset (manual §3.7, two keys
-held while switching on) restores the factory configuration. The manual has **no
-AUTO ON** item and names no automatic switch-on.
+**Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
+settings: channel spacing, automatic display darkening, push-to-talk assignment,
+external audio priority, microphone sensitivities and a maintenance test mode. A
+master reset (manual §3.7) restores the factory configuration. The manual has **no
+AUTO ON** setting and names no automatic switch-on.
 
 **Display.** Three lines on the OLED. Line 1: `ACT`, a status field (`RX`
 receiving, `TX` transmitting, `Te` after two minutes of continuous transmission) and
@@ -906,7 +903,8 @@ MHz. The radio takes the channel width from the channel's name: 25 kHz channels 
 named in steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a
 carrier is named 5 kHz higher (.005, .030, .055, .080), with the two names between
 them for the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names.
-The configuration item SPC can restrict entry to 25 kHz names.
+The channel-spacing setting in the configuration menu can restrict entry to 25 kHz
+names.
 
 **Memories** (manual §2.5.3 to §2.5.5). 100 user entries, numbered 00 to 99, each
 optionally named with up to 8 characters. Recall: `MEM` opens the list at entry 00;
@@ -3446,6 +3444,10 @@ verifies it on D-MPGO.
     printed at the lower-right knob. **Answered.** The slot mirror stays plain; `FREQ −` and
     `FREQ +` stay only as the dock touch helpers' wording. Trimming the II-only features is a
     separate issue.
+    **Trainer (#718):** the `atr833` follows the ATR833A-OLED manual in place of the II's for every
+    control on the face (question 64): the II-only STL, STR and BRT items, the save
+    mode and its mark are gone, REPLAY is absent, the A manual's last-used list (LST) stays and
+    memory names stay unmodelled. Points that manual leaves open are question 65 (§3.8.1).
 37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
     ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
@@ -3641,15 +3643,17 @@ verifies it on D-MPGO.
     list, and does it also do its own job; how long the list time-out is; what an
     unused memory entry holds; whether `LST 00` holds the standby frequency the
     memory list last set; whether memories and the last-used list survive switch-off;
-    what a `MEM` hold does outside the memory list; how long the `I/O` press must be.
+    what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
+    whether a cursor field carries into the next when it wraps.
     Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
     the last-used list and closes it, any other key leaves the list without its own
     effect, and the frequency knob leaves it and then steps the standby frequency;
     the 12 s line-3 time-out; unused entries are empty and leave the standby
     frequency as it is; `LST 00` holds the last standby frequency the memory list set;
     memories and the last-used list survive; a `MEM` hold outside the memory list
-    acts as a short press; any `I/O` press switches on; the defaults VOL 10, DIM 10,
-    VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's). **Assumed (unverified)**
+    acts as a short press; any `I/O` press switches on; the cursor fields wrap without
+    carry; the defaults VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the
+    manual's). **Assumed (unverified)**
     (§3.8.1).
 
 <!-- prettier-ignore-end -->
