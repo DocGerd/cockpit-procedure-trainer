@@ -23,5 +23,10 @@ Touch points, each detailed in that doc:
 - [ ] Package `README.md` sections that `tools/device-readme.test.ts` checks.
 - [ ] A changelog fragment, see the `changelog-fragment` skill.
 
+Unregistering a package that stays in the repository: drop its registry, `unitNames`
+and dependency rows and list its id in `UNREGISTERED` in `tools/device-entry.test.ts`
+("Registering the device" in the doc). A dock must hold the widest installed floor
+plus its Close button column ("Installing in an aircraft").
+
 Nothing else in `apps/web` changes. Registry files are shared hot spots: serialise
 them with other agents' device or aircraft PRs. Run the `CONTRIBUTING.md` Checks chain.

@@ -11,14 +11,14 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 ## 1. Handbook and aircraft
 
-| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                                    |
-| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                                          |
-| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                                       |
-| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                                              |
-| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is settled by §2a item 9: it drops when the M18 units land. |
-| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                                           |
+| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                                                                                                                                                      |
+| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                                                                                                                                                             |
+| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is settled by §2a item 9: it drops when the M18 units land. **Trainer (M18, #678):** dropped; the app and the package name the aircraft "CT Supralight" in both languages. |
+| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                                                                                                                                                          |
 
 ## 2. Owner decisions (2026-10-06)
 
@@ -180,17 +180,21 @@ wording either. The type-name script lettering is not reproduced.
 
 - A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
   disc with a red cross (not identified), both inert art.
-- The FLARM display (inert art here; M18 builds it, §2a item 5) left of the GPS; the GPS in its cradle (device slot);
-  the COM radio and the transponder side by side below it (device slots). The
-  existing SL40, GTX 327 and GPSMAP 496 move here unchanged; the round funkwerk units
-  and the Garmin aera-like GPS come in M18.
-- **Layout compromises, assumed (unverified):** the slots are the old 520 by 150 and
-  400 by 300 units scaled by 1.07, because the mirror lettering must stay legible at
-  the panel floor, which rose from 950 to 1110 px with the wider panel (2372 units).
+- The FLARM display left of the GPS; the GPS in its cradle; the COM radio and the
+  transponder side by side below the GPS. All four are device slots of D-MPGO's own
+  units since M18 (§3.8): the panel art draws a recess for the FLARM display, the
+  cradle frame with its rail at the foot of the aera 500, and square recesses for the
+  two round funkwerk units, with no captions, which the aircraft does not have.
+- **Layout compromises, assumed (unverified):** each slot is its mirror's natural
+  size, because the mirror lettering must stay legible at the panel floor (1110 px for
+  the 2372-unit panel): FLARM 320 by 160 units, GPS 400 by 250, COM and transponder
+  272 by 272 each. The round units are drawn at about 1.8 times their 57 mm and the
+  FLARM display at about twice its size, so the field reads fuller than the aircraft.
   The upper-centre field is wider than the lower column and sits about 40 px left of
   it at HD, so that the radio slot reaches over the device dock, which stays left of
   the column under the panel. The FLARM display sits left of the GPS, not above it as
-  in the photos. The second copy of the take-off checklist summary stands right of the
+  in the photos (the field cannot hold the FLARM, the GPS and the radio row stacked at
+  legible sizes). The second copy of the take-off checklist summary stands right of the
   GPS (heading and rules only), an **assumed (unverified)** place. The blank version
   label under the FLARM display is not drawn: its wording is unknown, so it would be a
   plate with no function.
@@ -408,6 +412,9 @@ arcs red 9 to 10.5, yellow 10.5 to 11.5, green 11.5 to 15, yellow 15 to 16, red 
 | GPS                 | 3 A                           | avionics bus                                            |
 | FLARM display       | no own breaker shown          | avionics bus (**assumed (unverified)**, §9 question 33) |
 
+- **Trainer (M18):** the FLARM install has power whenever the avionics bus has it:
+  the Avionics Master switches it, no breaker, no legend added (§9 question 33). It
+  reads the bus voltage as its supply.
 - The ignition is independent of the electrical system: the engine keeps running
   with BAT and GEN off (HB 3-7). The starter needs the main bus.
 - The generator warning lamp (indicator id `chargeLamp`) lights when the bus is powered and the generator is not
@@ -610,6 +617,10 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 | Usable fuel              | 62 l per side (column placard) and 63 l per side (wing-root placards)                                                  | 124 l (§4.4, §8)                                                                                                     | low    | procedure (intake value)   | intake §4.4, §8                                                                                                  |
 | Wing-root fuel gauges    | sight gauges, Left and Right, 5 to 40 l                                                                                | not drawn (named in §3.5)                                                                                            | low    | art                        | none today (outside the three views)                                                                             |
 | FLARM, hour meter        | a FLARM display and an hour meter                                                                                      | not drawn                                                                                                            | low    | art                        | `assets/view-panel.svg`                                                                                          |
+
+**Trainer (M18, #678):** the rows "Avionics units" and the FLARM half of "FLARM, hour
+meter" are resolved: the CTSL installs D-MPGO's four units (§3.8), the FLARM display
+included, as device slots. The hour meter stays inert art.
 
 ### 3.8 Avionics units (M18)
 
@@ -1177,7 +1188,7 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set        |
 | `taxiOut`         | yes       | 0   | 0              | as `holding` but low power and parking brake released; oil temp a trainer estimate |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set         |
-| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ALT |
+| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ACS |
 | `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                         |
 | `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate             |
 | `approach`        | no        | 59  | 500            | low power, flaps 15°, landing light on, descending                                 |
@@ -1194,16 +1205,22 @@ whenever the engine runs; the landing light is not needed in cruise.
 
 Assumed (unverified), from general-aviation practice, for the running phases: the
 intercom is on whenever the engine runs (N16 switches it off); the transponder is
-off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
+off while taxiing out and at the holding point until N6 sets it, at ACS from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state as well as device
-controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
-through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
-`taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
-The GPS also starts with its position fix in those phases, so the map page shows ground
-speed and track (taken from the airspeed and heading) at once; switched on by hand it
-searches first. The fix and the ground speed and track it shows are assumed (unverified).
+about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state
+(#476; since M18 the transponder's MODE is a key, so no phase presets a device control):
+the transponder is on and squawks 7000 (German VFR, SERA) from `linedUp` through
+`parkingSecuring`, at ACS until `taxiIn` and at STBY in `parkingSecuring`; the GPS is on
+at its map page and the FLARM display ready, each with its position fix, from `linedUp`
+through `parkingSecuring`, so neither restarts its start-up page or self-test when the
+parking-and-securing leg begins. All assumed (unverified). The COM radio has no seed: it
+switches on with avionics power (§9 question 35). Before `linedUp` every unit starts as
+power finds it: at the holding point the GPS is at its database page and the FLARM runs
+its self-test and searches. The map page shows ground speed and track (taken from the
+airspeed and heading) at once in the seeded phases; powered up at the holding point the
+units search first. The fix and the ground speed and track it shows are assumed
+(unverified).
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -1251,12 +1268,14 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
-powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
+transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
+and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
+questions 32 and 38); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
-neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; FLARM
+Power, GPS and TX lit _(check, assumed, §9 question 34)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
@@ -1590,9 +1609,9 @@ verifies it on D-MPGO.
     open; the handbook marks no memory items.
 
 24. **Phase start states**: which switches does the club have on in each phase? Today
-    (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
-    and standby once parked, squawk 7000 from line-up and the GPS on at its map page
-    from line-up to taxi-in (#476), landing light on from the approach until N15, vertical
+    (§5): intercom on while the engine runs, transponder ACS from line-up to taxi-in
+    and standby once parked, squawk 7000 from line-up, and the GPS on at its map page and
+    the FLARM ready from line-up to parking and securing (#476, M18), landing light on from the approach until N15, vertical
     speed climbing in `departure` and descending in `approach`. No procedure step
     switches the landing light on (N12 says "as needed"), so the approach, landing
     and `taxiIn` entries carry it. **Answered by assumption pending owner
@@ -1748,17 +1767,26 @@ verifies it on D-MPGO.
     **Update (M18):** the GPS is the aera 500, which starts with cradle power, so the
     GPS step becomes accepting its databases, then opening its map page (§3.8.3,
     question 38). The step is still **assumed (unverified)**.
+    **Trainer (M18, #678):** N6 presses the aera's Press To Accept, then its Map icon, right after the
+    transponder; the fix check stays after "radio set". The map step keeps the line-up
+    seed's map page true for a whole flight.
 33. **FLARM power source**: which breaker or switch feeds the FLARM display and its
     unit? The breaker rows show no FLARM legend; Com, Nav, Transponder, GPS and others
     exist (§3.7.1). Trainer uses: powered from the avionics bus with no breaker of its
     own, so the "avionics off before engine start or stop" placard covers it and no
     legend is added. **Assumed (unverified)** (§3.6, §3.8.4).
+    **Trainer (M18, #678):** the `flarm` install is powered by the avionics bus alone and reads its
+    voltage; the Com, Transponder and GPS breaker legends stay as they are.
 34. **FLARM check before take-off**: does the club check that Power, GPS and TX are
     steady before take-off, as the FLARM manual asks? Trainer uses: one check in N6.
     **Assumed (unverified)**, from the manual (§3.8.4).
+    **Trainer (M18, #678):** the check "FLARM: Power, GPS and TX lit" follows the GPS fix check in N6
+    and rings the Mode key; it passes once the self-test is over and the fix found.
 35. **ATR833 AUTO ON**: is the installer setting on, so the radio starts when avionics
     power arrives, or must the pilot press `I/O`? Trainer uses: on, so no COM switch-on
     step exists, as before. **Assumed (unverified)** (§3.8.1).
+    **Trainer (M18, #678):** the `atr833` switches on when the avionics bus and the Com breaker give it
+    power; no phase seeds it.
 36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
     ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
     II features the original may lack are unconfirmed: the last-10 list (LST), named
@@ -1766,10 +1794,14 @@ verifies it on D-MPGO.
     lower-right knob? Trainer uses: the II manual's behaviour for every control on the
     face, REPLAY and names not modelled, and the knob printed `FREQ`. **Assumed
     (unverified)** (§3.8.1).
+    **Trainer (M18, #678):** the dock prints `FREQ −` and `FREQ +`; the slot mirror draws both knobs as
+    plain discs, with no lettering.
 37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
     ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
     knob printed `CODE`. **Assumed (unverified)** (§3.8.2).
+    **Trainer (M18, #678):** `radioAndTransponder` presses I/O (on, STBY), VFR (7000) and MODE (ACS),
+    and N6 presses I/O; the seeded phases start the unit on at ACS or STBY.
 38. **aera 500 on D-MPGO**: what happens when cradle power drops (off, or on battery)?
     Which map orientation and data fields does the club use, and what is the start-up
     step? Which software version, and is there a traffic or weather source? Trainer uses:
@@ -1777,9 +1809,14 @@ verifies it on D-MPGO.
     the map, orientation track-up (the unit's own default is north up), the fields GS,
     ETE NEXT, BRG and DIST NEXT, no traffic or weather, and power loss switching it off.
     **Assumed (unverified)** (§3.8.3).
+    **Trainer (M18, #678):** the aera starts at its database page whenever the GPS breaker and the
+    avionics bus give the cradle power; the seeded phases start it on the map page with
+    its fix.
 39. **FLARM display hardware, pairing and traffic**: is the display hardware 1.0 or 2.0
     (the 16 LEDs imply 2.0), which FLARM unit is it paired with (the reboot hold depends
     on it), and does the club want simulated traffic on the display? Traffic would
     change the spec's scope (§4.9): a decision for the owner, with no code in M18. Trainer
     uses: a 2.0 face, no traffic, the manual's push timings. **Assumed (unverified)**
     (§3.8.4).
+    **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
+    lights only in the self-test and the Nearest and Collision confirmation.

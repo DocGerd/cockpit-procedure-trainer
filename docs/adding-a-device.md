@@ -147,7 +147,11 @@ the install id, which prefixes the device's control ids:
   The device has no view of its own.
 - The aircraft's `cockpit` arrangement needs a `dock` cell, and the dock must be
   at least as wide and as tall as the `floor` of every installed device
-  (`docs/adding-an-aircraft.md`, Cockpit arrangement).
+  (`docs/adding-an-aircraft.md`, Cockpit arrangement). The dock's Close button
+  stands beside the device, so the dock's width must also hold that column and the
+  dock's padding, as the demo's `cockpit.ts` allows for; the validator checks the
+  bare floor only, and `apps/web/e2e/layout.spec.ts` catches a device that overflows
+  the dock at 1920 px.
 - `powered` is the bus condition. The device is off when it is false.
 - `inputs` maps each input name the device reads to a function of the state. The
   transponder reads `pressureAltitude`; the COM radio takes none.
@@ -194,6 +198,13 @@ mirror's fit is checked per install, not per package: `apps/web/src/devices/slot
 renders each installed device's `Display` against the slot its aircraft gives it
 (same aspect, smallest lettering legible at the panel floor), and the package test
 checks that the bezel's size parses. Nothing else in `apps/web` changes.
+
+A package can stay in the repository without being registered, for example a unit
+an aircraft no longer installs. Remove it from `deviceRegistry`, `deviceEntries`,
+`unitNames` and the `apps/web` dependencies, and list its id in `UNREGISTERED` in
+`tools/device-entry.test.ts`, which checks that every listed id is a package the app
+does not register. Its own tests and the `tools/` per-package tests (including its
+`NATURAL_SCREEN` row) still run.
 
 ## Checks
 
