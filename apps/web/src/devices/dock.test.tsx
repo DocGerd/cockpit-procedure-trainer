@@ -13,6 +13,7 @@ import { useDock } from './dock-state';
 const state = vi.hoisted(() => ({
   withDock: true,
   floor: undefined as object | undefined,
+  face: undefined as 'framed' | 'own' | undefined,
   api: undefined as { open(installId: string): void } | undefined,
 }));
 
@@ -44,7 +45,14 @@ vi.mock('../device-registry', async () => {
   return {
     deviceRegistry: fixtures.devices,
     deviceScreens: fixtures.deviceScreens,
-    deviceEntries: fixtures.deviceEntries,
+    get deviceEntries() {
+      return Object.fromEntries(
+        Object.entries(fixtures.deviceEntries).map(([id, entry]) => [
+          id,
+          state.face ? { ...entry, face: state.face } : entry,
+        ]),
+      );
+    },
   };
 });
 
@@ -101,6 +109,7 @@ beforeEach(() => {
   localStorage.clear();
   state.withDock = true;
   state.floor = undefined;
+  state.face = undefined;
 });
 
 afterEach(cleanup);
@@ -195,6 +204,23 @@ describe('the device dock in the tabs layout', () => {
     const box = dock()?.querySelector<HTMLElement>('[data-dock-device]');
     expect(box?.style.getPropertyValue('--dock-floor-width')).toBe('520');
     expect(box?.style.getPropertyValue('--dock-floor-height')).toBe('150');
+  });
+
+  it('frames a device that declares no face of its own', async () => {
+    render();
+    await userEvent.click(slot('radio'));
+    const frame = dock()?.querySelector('[data-device-frame]');
+    expect(frame?.hasAttribute('data-face')).toBe(false);
+    expect(frame?.querySelector('.pk-device-content')).not.toBeNull();
+  });
+
+  it.each(['framed', 'own'] as const)('hands the device its %s face', async (face) => {
+    state.face = face;
+    render();
+    await userEvent.click(slot('radio'));
+    const frame = within(dock() as HTMLElement).getByRole('group', { name: 'fixture-radio' });
+    expect(frame.getAttribute('data-face')).toBe(face === 'own' ? 'own' : null);
+    expect(within(frame).getByRole('button', { name: 'Page B' })).toBeTruthy();
   });
 
   it('is absent for an aircraft that declares no dock', () => {

@@ -8,7 +8,7 @@ import { TrainerProvider, useTrainer } from '../trainer';
 import type { Trainer } from '../trainer';
 import { aircraft, deviceScreens, devices, screenInput } from './test-fixtures';
 
-const state = vi.hoisted(() => ({ withDock: false }));
+const state = vi.hoisted(() => ({ withDock: false, face: undefined as 'own' | undefined }));
 
 vi.mock('../aircraft-registry', async () => {
   const fixtures = await import('./test-fixtures');
@@ -32,7 +32,14 @@ vi.mock('../device-registry', async () => {
   return {
     deviceRegistry: fixtures.devices,
     deviceScreens: fixtures.deviceScreens,
-    deviceEntries: fixtures.deviceEntries,
+    get deviceEntries() {
+      return Object.fromEntries(
+        Object.entries(fixtures.deviceEntries).map(([id, entry]) => [
+          id,
+          state.face ? { ...entry, face: state.face } : entry,
+        ]),
+      );
+    },
   };
 });
 
@@ -63,6 +70,7 @@ const powerBus = () => act(() => void trainer.session.set('bus', 'on'));
 
 beforeEach(() => {
   localStorage.clear();
+  state.face = undefined;
 });
 
 afterEach(() => {
@@ -142,6 +150,15 @@ describe('device layer', () => {
     expect(within(frame('radio')).getByText('a')).toBeTruthy();
     act(() => void trainer.session.set('radio.page', 'b'));
     expect(within(frame('radio')).getByText('b')).toBeTruthy();
+  });
+
+  it('frames a screen drawn in its slot as the device asks', () => {
+    renderPanel();
+    expect(frame('radio').hasAttribute('data-face')).toBe(false);
+    cleanup();
+    state.face = 'own';
+    renderPanel();
+    expect(frame('radio').getAttribute('data-face')).toBe('own');
   });
 
   it('keeps the screen dark while its bus is unpowered and lights it when powered', () => {
