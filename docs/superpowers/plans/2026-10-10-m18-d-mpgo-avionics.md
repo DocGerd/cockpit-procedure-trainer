@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **Superseded in part (2026-10-11):** the device faces, the dock cap and decisions D3, D6 (swap glyph, pictograms) and D15 are replaced by the "Addendum: face fidelity fix" at the end of this plan.
+
 **Goal:** the CTSL carries D-MPGO's own avionics, so a pilot practises the radio, transponder, GPS and FLARM display that are in the aircraft, where the aircraft has them.
 
 **Design:** spec §4.9 (avionics devices) and the decisions-table row "Avionics (CTSL)" added by W1; `docs/aircraft/ctsl-intake.md` §2a items 5 to 9 (owner decisions), §3.8 (one paraphrased section per unit, with its panel position) and §9 questions 33 to 39; `docs/adding-a-device.md`. ADR 0002: rank 1 procedural correctness, rank 2 realism; accessibility ranks lowest.
@@ -404,3 +406,85 @@ After W3: the shorter name changes the header measurement. Files: `apps/web/src/
 3. No logo, wordmark or manufacturer lettering; no status colour on the panel.
 4. W2: shared rows at their pre-assigned places; Screen natural at most 456 x 303; Display text at 2xl or larger.
 5. W3: slot sizes equal the mirrors; `walk-procedure`, floors, layout and perf green; the rubric pass is on the final head.
+
+## Addendum: face fidelity fix
+
+The owner rejected the four device faces at acceptance (2026-10-11): each must match D-MPGO's real unit. This addendum is binding for the fix and **supersedes D3, D6's `▼▲` and its "pictograms are not drawn" clause, D15, and the "at most 456 x 303" Screen cap** above. Implementers read intake §3.8.n (its **Face layout (photos)** block) and this addendum, and nothing else; the photos themselves are never in the repository. Owner decisions: all four faces match the real units; the dock shows the real face scaled up plus touch helpers where a real control is awkward by touch; the slot mirror is the same face at panel scale.
+
+v0.19.0 is held for the fix (the release PR stays open and is refreshed after the last fix PR lands), so the fix PRs carry `changelog.d` fragments and belong to milestone M18.
+
+### Waves
+
+| Wave | Title                             | Scope                                                                                                                                      |
+| ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| F0   | Intake: face layout of the units  | Intake §3.8 face blocks and corrections; this addendum. Docs only (#698)                                                                   |
+| F1   | Device frames: own face           | panel-kit `face: 'own'` frames, `FaceKey`, `KnobHelpers`, `.pk-glass`, lettering tier in slot-fit, tokens, dock wiring. No device package  |
+| F2   | atr833 face                       | `packages/device-atr833` only                                                                                                              |
+| F3   | trt800h face                      | `packages/device-trt800h` only                                                                                                             |
+| F4   | aera500 face                      | `packages/device-aera500` only                                                                                                             |
+| F5   | flarm face                        | `packages/device-flarm` only                                                                                                               |
+| F6   | CTSL panel art for own-face units | `view-panel.svg` and its art test: no recess, frame or caption under a device slot; light brushed-aluminium field. Slot aspects stay       |
+
+F2 to F5 start when F0 and F1 have landed; F6 starts when F0 has landed and should land first. Each device PR may touch its own package, its own `NATURAL_SCREEN` row in `tools/device-entry.test.ts`, its fragment, and `apps/web/e2e/<id>.spec.ts` only where an assertion on drawn text must change. Control ids, positions, state fields, readouts, `views.ts` and the logic are off limits. Device PRs also may not touch tokens, panel-kit, the intake or the plan.
+
+### Dock content cap (decision D26)
+
+The M18 plan's 456 x 303 overlooked the dock's own padding and border and the close button, which shares the dock's row. Measured at 1920x1080 (CT Supralight, combined layout), the Screen box inside the device frame is **395 x 305 in English and 368 x 305 in German** (close button 63 and 90 wide). The dock scrolls if a device floor exceeds the unit, so the binding cap is the **narrowest combined layout**, where the dock is near its 480 floor:
+
+| Condition                                                                            | Screen box (width x height), EN / DE |
+| ------------------------------------------------------------------------------------ | ------------------------------------ |
+| 1920x1080 (measured)                                                                 | 395 x 305 / 368 x 305                |
+| 1920x900, near the floor (measured)                                                  | 374 x 290 / 347 x 290                |
+| Dock at its 480 floor (derived: dock width minus 50 minus the close button)          | 367 x 286 / 340 x 286                |
+
+A device's natural Screen is therefore **at most 340 x 286**, and its `floor` (natural plus 24) at most 364 x 310 (at the exact 480 floor the unit is about 310 tall; the 1920x900 row runs with the dock near 486 wide, where the unit is 314 tall, so a device at 286 natural height relies on that slack). The e2e rows "dock near its floor" and "the ctsl dock holds every device without scrolling at 1920x900 in de" enforce this. At 1024x768 (tabs layout) the unit height is the larger of the floor and 288, so a floor keeps the Screen at scale 1. The earlier estimate of 367 wide holds for English only and would scroll in German; the natural sizes below use the German cap.
+
+### Natural sizes and floors (to be confirmed by measurement in each PR)
+
+| Device  | Natural Screen (expected)                                                                                                                       | Floor           | Mirror (unchanged)                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------- |
+| atr833  | about 340 x 284: D = `calc(var(--space-12) * 5 + var(--space-10) + var(--space-1))` (284) plus a helper column of 56 px at most                  | about 364 x 308 | 272 x 272, 1:1                           |
+| trt800h | about 340 x 284, as atr833                                                                                                                      | about 364 x 308 | 272 x 272, 1:1                           |
+| aera500 | about 340 x 227: cradle 340 wide at 1.68:1 (about 202 high) plus about 25 for the POWER key and its word on the top edge; screen about 234 x 131 | about 364 x 251 | 400 x 250, 8:5, cradle and rail held     |
+| flarm   | about 340 x 189 (1.8:1); the Mode frame is about 65 x 70                                                                                        | about 364 x 213 | 320 x 160, 2:1, a 288 x 160 face centred |
+
+Round units: the top-row pitch is 0.155 D (43.4 px at D = 280), so centred 44 px hit boxes overlap at D = 280 and need D of at least 284. Binding rule: D = 284 and a helper column of 56 px or less, so the natural Screen is 340 x 284 with no box overlap (the pitch is then 44.0 px, the boxes touch edge to edge without overlapping); F1's measured cap may not lower D. The mirror sizes and slot aspects stay, so the slot-fit proof holds in every landing order.
+
+### Build rules for a device face
+
+- One `face/geometry.ts` holds the intake fractions as named constants; one face component renders in two modes: `dock` (`FaceKey`, `KnobHelpers`, primary type) and `mirror` (caps and knobs as art, legends as `data-lettering="secondary"`). Sharing the component is what makes the mirror the same face at panel scale.
+- Lettering is DOM spans placed in percent with token sizes (condensing by `scaleX`, vertical lettering by `writing-mode`). Shapes are an `aria-hidden` inline SVG art layer with `var(--panel-*)` colours only: no `<style>`, no filter, no `<text>` (curved `VOL/SEL` may use `textPath` if the viewBox equals the natural pixel box and the size is a token).
+- The display window keeps `data-display` and gains `.pk-glass`. The entry sets `face: 'own'` and `floor` to the measured natural size plus 24.
+- Accessible names stay exact: `I/O SET MEM DW SWAP CURSOR VFR ID MODE CHANGE Mode`, `Press To Accept`, `Map`, `In`, `Home`, and the helper names `VOL/SEL −/+`, `FREQ −/+`, `CODE −/+`.
+- No logo, wordmark styling or maker lettering; no real chart content; the aera pictograms and chart are generic and self-drawn. The brand footprints in the intake stay blank.
+
+### Settled values
+
+| Value                  | Trainer uses                                                                                                                                                                                                                            |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Own-face dock surface  | A borderless light brushed-metal plate (`--panel-metal-light` with the faceplate stripes); no bezel, screws, glass over the Screen, keycap moulding or off-scrim from the frame                                                         |
+| Mirror lettering tiers | Face legends, LED captions, on-screen captions and readouts the real unit prints at about half its main size are **secondary** (half the minimum at the panel floor); main values and the slot label keep the full minimum              |
+| Touch helper           | Two 44 x 44 zones, `+` over `−`, in one column right of the knob and outside the unit box, aligned to the knob's edge of the face; flat hairline outline, no keycap, no fill; the knob word at `--text-2xs` or larger inside the column |
+| Hit boxes              | May exceed the drawn control and reach into non-operable bezel or a drawn non-operable key (the aera Menu); never below 44 px and never overlapping another operable control                                                                                                        |
+| New tokens             | `--panel-oled`, `--panel-face-slate`, `--panel-led-lit`, `--panel-body-grey`, `--panel-chart-land`, `--panel-chart-water`, `--panel-chart-airspace`, `--panel-chart-line`; the same in both themes, none a status colour                  |
+| Existing tokens        | Disc `--panel-face`/`--panel-dial`, cradle `--panel-bezel-dark`, unlit LED `--panel-cap-light`, screws `--panel-screw*`, red chart line `--panel-arc-red`, panel aluminium `--panel-metal-light`                                         |
+
+### Decisions (agent, overrulable)
+
+- **D16 A device may own its whole face.** Supersedes D3: `face: 'own'` switches off the frame's bezel, screws, glass and keycap moulding (and in a mirror the bezel chrome and label strip). The `pk-mirror-bezel` size hooks and the single-text-node mirror label stay, so the slot-fit proof still reads them.
+- **D17 Mirror lettering tier.** In a slot mirror, face legends and secondary readouts use the secondary tier; main values and the slot label keep the full minimum. The dock prints everything at the full minimum. Quality sacrificed: legend legibility at the panel floor, for realism. If the owner disagrees, the alternative is caps without legends in the mirror.
+- **D18 Own-face surface.** The dock plate is light brushed metal, so a black disc reads as it does on D-MPGO's aluminium panel.
+- **D19 Knob touch helpers.** A flat `+`/`−` pair outside the unit box right of each knob, printing the knob word (`VOL/SEL`, `FREQ`, `CODE`) and keeping the names above. The knob itself is art; wheel input is optional.
+- **D20 FLARM label.** Uppercase "FLARM" in the wordmark's footprint, as the unit word, not the logo.
+- **D21 GPS label.** "GPS" in the aera body's bottom band at x about 0.45 to 0.55, outside the brand footprint.
+- **D22 Pictograms.** Generic self-drawn soft-key pictograms are allowed (magnifier −/+, list, house). Supersedes D6's "pictograms are not drawn". `Menu` is drawn but not operable, because page menus are not modelled.
+- **D23 The device draws the cradle.** The panel art drops its cradle frame and rail (F6).
+- **D24 Slot aspects frozen.** F6 may resize slots but keeps 1:1, 8:5 and 2:1.
+- **D25 Hit boxes may exceed the drawn control.** They may reach into non-operable bezel, or into a drawn but non-operable key (the aera Menu, which the In box overlaps by a few px at the roughly 33 px soft-key quarters), but never overlap another operable control and never fall below 44 px. This covers the aera soft keys, the aera POWER key on the top edge, and the round-unit keys whose box spans the legend and the cap.
+- **D26 The dock content cap is measured**, not taken from the M18 plan: see "Dock content cap".
+- **Superseded D6 glyph.** The swap glyph on both radios is `▲▼`, up then down, side by side. This supersedes D6's `▼▲` for the ATR833; the TRT800H already read `▲▼`.
+- **Superseded D15.** Each face PR gets a ui-verifier pass and a blind photo-fidelity check on its final head, and stays a draft until both pass.
+
+### Verification
+
+Per PR: the Checks chain, a ui-verifier pass (1920x1080 first, then 3840x2160 and 1024x768; language and Hide upcoming set explicitly; slot mirror lit and dark; dock face, helpers, holds and Guided rings; no status colour, no CSP violation, both themes) and a blind photo-fidelity check with the intake as its only input, two rounds at most before the approach is reconsidered. Display values and panel art behind the slot are ignored by the device checks until F6 lands. Tablet widths keep the existing secondary-caption gaps; they are recorded, not fixed here.
