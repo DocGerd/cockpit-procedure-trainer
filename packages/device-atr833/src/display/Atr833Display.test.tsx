@@ -23,11 +23,11 @@ describe('Atr833Display', () => {
     expect(text(container, 'line3')).toBe('VOL 10');
   });
 
-  it('shows dual watch, the saved mark and the chosen item', () => {
-    const container = show(true, { dualWatch: true, saved: true, item: 'sql' });
+  it('shows dual watch and the chosen item with a two-digit value', () => {
+    const container = show(true, { dualWatch: true, item: 'sql' });
     expect(container.textContent).toContain('DW');
-    expect(text(container, 'standby')).toBe('>119.000');
-    expect(text(container, 'line3')).toBe('SQL 5');
+    expect(text(container, 'standby')).toBe('119.000');
+    expect(text(container, 'line3')).toBe('SQL 05');
   });
 
   it('blanks the window while the install is dark or the unit is switched off, and keeps the face', () => {

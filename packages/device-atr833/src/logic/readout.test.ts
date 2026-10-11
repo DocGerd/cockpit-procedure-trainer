@@ -17,26 +17,35 @@ describe('atr833Readout', () => {
     );
   });
 
-  it('reads dual watch, the chosen item and the saved mark', () => {
-    const state: Atr833State = { ...start, dualWatch: true, item: 'ext', saved: true };
+  it('reads dual watch and the chosen item, a negative DWM included', () => {
+    const state: Atr833State = {
+      ...start,
+      dualWatch: true,
+      item: 'dwm',
+      settings: { ...start.settings, dwm: -2 },
+    };
     expect(atr833Readout(state, 'en', true)).toBe(
-      'Active 118.000 MHz, dual watch 119.000 MHz, saved, EXT off',
+      'Active 118.000 MHz, dual watch 119.000 MHz, DWM -2',
     );
-    expect(atr833Readout(state, 'de', true)).toBe(
-      'Aktiv 118,000 MHz, Doppelhören 119,000 MHz, gespeichert, EXT aus',
+    expect(atr833Readout({ ...state, item: 'dim' }, 'de', true)).toBe(
+      'Aktiv 118,000 MHz, Doppelhören 119,000 MHz, Helligkeit 10',
     );
   });
 
-  it('reads a list entry, an empty slot and the save slot', () => {
-    const entry: Atr833State = { ...start, memory, list: { kind: 'mem', index: 2 } };
-    expect(atr833Readout(entry, 'en', true)).toContain('memory 3, 123.450 MHz');
-    expect(atr833Readout(entry, 'de', true)).toContain('Speicher 3, 123,450 MHz');
+  it('reads a list entry by its number and an empty one as empty', () => {
+    const entry: Atr833State = {
+      ...start,
+      memory,
+      standby: 123450,
+      list: { kind: 'mem', index: 2 },
+    };
+    expect(atr833Readout(entry, 'en', true)).toBe(
+      'Active 118.000 MHz, standby 123.450 MHz, memory 2',
+    );
+    expect(atr833Readout(entry, 'de', true)).toContain('Standby 123,450 MHz, Speicher 2');
     const empty: Atr833State = { ...start, list: { kind: 'lst', index: 0 } };
-    expect(atr833Readout(empty, 'en', true)).toContain('last frequencies 1, empty');
-    expect(atr833Readout(empty, 'de', true)).toContain('Letzte Frequenzen 1, leer');
-    const save: Atr833State = { ...start, list: { kind: 'save', index: 4 } };
-    expect(atr833Readout(save, 'en', true)).toContain('save to memory 5');
-    expect(atr833Readout(save, 'de', true)).toContain('Speichern auf Platz 5');
+    expect(atr833Readout(empty, 'en', true)).toContain('last frequencies 0, empty');
+    expect(atr833Readout(empty, 'de', true)).toContain('Letzte Frequenzen 0, leer');
   });
 
   it('reads off when the install is dark or the unit is switched off', () => {
