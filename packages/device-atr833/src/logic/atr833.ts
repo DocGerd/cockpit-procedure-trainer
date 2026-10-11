@@ -145,7 +145,7 @@ function stepFrequency(khz: number, cursor: Atr833Cursor, direction: number): nu
   return next.mhz * KHZ_PER_MHZ + next.tenths * KHZ_PER_BLOCK + (CHANNEL_NAMES[next.channel] ?? 0);
 }
 
-// LST 00 comes before the ten last-used frequencies.
+// LST 00 comes before the last-used frequencies.
 const listLength = (state: Atr833State, kind: ListKind): number =>
   kind === 'lst' ? 1 + state.recent.length : MEMORY_SLOTS;
 

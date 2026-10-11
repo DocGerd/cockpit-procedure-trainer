@@ -946,8 +946,9 @@ these steps are assembled from its functions.
 - The manual leaves open: which key leaves a list and whether that key also does its
   own job; the list time-out; what an unused memory entry holds; what `LST 00` holds
   exactly; whether the memories and the last-used list survive switch-off; what a
-  `MEM` hold does outside the memory list; where the cursor starts after power-on or
-  a swap; and the cursor fields in 25 kHz spacing (§9 question 65).
+  `MEM` hold does outside the memory list; how long the `I/O` press must be; whether
+  a cursor field carries into the next when it wraps; where the cursor starts after
+  power-on or a swap; and the cursor fields in 25 kHz spacing (§9 question 65).
 
 **Trainer (#718).** The `atr833` device models the A manual: power (any `I/O` press
 switches on while powered, a 2 s hold switches off; power arriving leaves it dark,
@@ -3739,7 +3740,8 @@ verifies it on D-MPGO.
     unused memory entry holds; whether `LST 00` holds the standby frequency the
     memory list last set; whether memories and the last-used list survive switch-off;
     what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
-    whether a cursor field carries into the next when it wraps.
+    whether a cursor field carries into the next when it wraps; where the cursor starts
+    after power-on or a swap; which fields the cursor has in 25 kHz spacing.
     Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
     the last-used list and closes it, any other key leaves the list without its own
     effect, and the frequency knob leaves it and then steps the standby frequency;
@@ -3747,8 +3749,9 @@ verifies it on D-MPGO.
     frequency as it is; `LST 00` holds the last standby frequency the memory list set;
     memories and the last-used list survive; a `MEM` hold outside the memory list
     acts as a short press; any `I/O` press switches on; the cursor fields wrap without
-    carry; the defaults VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the
-    manual's). **Assumed (unverified)**
-    (§3.8.1).
+    carry; the cursor starts on the MHz field at power-on and stays where it was on a
+    swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
+    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
+    **Assumed (unverified)** (§3.8.1).
 
 <!-- prettier-ignore-end -->

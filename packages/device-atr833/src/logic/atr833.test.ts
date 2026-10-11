@@ -485,6 +485,13 @@ describe('the last-used list', () => {
     expect(listEntry(lst)).toBe(123450);
   });
 
+  it('stores nothing on a MEM hold in the last-used list, and its release closes the list', () => {
+    const held = hold(tap(tap(flown, 'mem'), 'mem'), 'mem', LONG_PRESS_MS + 500);
+    expect(held.memory.every((slot) => slot === null)).toBe(true);
+    expect(held.list).toEqual({ kind: 'lst', index: 0 });
+    expect(release(held).list).toBeNull();
+  });
+
   it('shows an empty LST 00 and a list of one entry before anything was used', () => {
     const lst = tap(tap(running, 'mem'), 'mem');
     expect(listEntry(lst)).toBeNull();

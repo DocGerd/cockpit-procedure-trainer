@@ -19,7 +19,7 @@ switches it off. Assumptions, none checked against a unit (intake section 9, que
 - Spacing is fixed at 8.33 kHz. The range is 118.000 to 136.990: the last name of the 136.975 block.
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
 - Any I/O press switches the unit on; the manual's about 0.5 s is not enforced.
-- In a list, `▲▼` swaps and leaves it, `MEM` steps from the memory list to the last-used list and then closes it, and SET, DW, `►` and the frequency knob leave it without their own effect (the knob then steps the standby frequency). Lists close after the same 12 s as line 3.
+- In a list, `▲▼` swaps and leaves it, `MEM` steps from the memory list to the last-used list and then closes it, and SET, DW, `►` and the frequency knob leave it without their own effect (the knob then steps the standby frequency). Lists close after `MENU_TIMEOUT_MS`, as line 3 does.
 - An unused memory entry is empty; browsing onto it leaves the standby frequency as it is.
 - `LST 00` holds the last standby frequency the memory list set; `LST 01` to `LST 10` hold the last active frequencies, newest first.
 - A MEM hold outside the memory list acts as a short press on its release.
