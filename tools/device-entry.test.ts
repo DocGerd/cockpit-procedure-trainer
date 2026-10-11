@@ -26,7 +26,7 @@ const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
   flarm: [340, 189],
   com: [456, 204],
   sl40: [352, 136],
-  atr833: [320, 194],
+  atr833: [340, 280],
   transponder: [584, 160],
   gtx327: [400, 132],
   trt800h: [336, 284],
