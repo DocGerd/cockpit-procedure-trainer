@@ -74,6 +74,7 @@ describe('device hardware', () => {
     '.pk-mirror-screen::after',
     '.pk-device-screen::after',
     '.pk-device-content > * > :first-child::after',
+    '.pk-glass::after',
   ])('lays %s over the display without taking pointer input', (selector) => {
     const body = rule(selector);
     expect(body).toMatch(/position:\s*absolute/);
@@ -95,6 +96,23 @@ describe('device hardware', () => {
     expect(rule('.pk-mirror-screen::after')).toMatch(/var\(--pk-glass\)/);
     expect(rule('.pk-device-content > * > :first-child::after')).toMatch(/var\(--pk-glass\)/);
     expect(rule('.pk-device-screen::after')).not.toMatch(/--pk-glass/);
+    expect(rule('.pk-glass::after')).toMatch(/background-image:\s*var\(--pk-glass\);/);
+  });
+
+  it('keeps the glare faint enough for the screen to read through', () => {
+    const glareShares = (source: string): number[] =>
+      [...source.matchAll(/var\(--panel-glare\)\s+(\d+)%/g)].map(([, share = '']) => Number(share));
+    const glass = /--pk-glass:([^;]*);/.exec(css)?.[1] ?? '';
+    const glassShares = glareShares(glass);
+    expect(glassShares.length).toBeGreaterThan(0);
+    expect(Math.max(...glassShares)).toBeLessThanOrEqual(18);
+
+    const bandShares = glareShares(rule('.pk-device-content > * > :first-child::after'));
+    expect(bandShares.length).toBeGreaterThan(0);
+    expect(Math.max(...bandShares)).toBeLessThanOrEqual(6);
+
+    // A face's own window takes the same glass and adds no glare of its own.
+    expect(glareShares(rule('.pk-glass::after'))).toEqual([]);
   });
 
   it('paints keycaps between the key face and its legend, outside the hit region', () => {
@@ -106,5 +124,88 @@ describe('device hardware', () => {
       expect(body).toMatch(/z-index:\s*-\d/);
       expect(body).toMatch(/pointer-events:\s*none/);
     }
+  });
+});
+
+describe('a device that draws its own face', () => {
+  const OWN_DEVICE = ".pk-device[data-face='own']";
+  const OWN_MIRROR = ".pk-mirror[data-face='own']";
+
+  it('sits on a borderless brushed light-metal plate, without screws or a cast shadow', () => {
+    const plate = rule(OWN_DEVICE);
+    expect(plate).toMatch(/border-width:\s*0;/);
+    expect(plate).toMatch(/box-shadow:\s*none;/);
+    expect(plate).toMatch(/background-color:\s*var\(--panel-metal-light\);/);
+    expect(plate).toMatch(/background-image:\s*var\(--pk-brush\);/);
+    expect(rule(`${OWN_DEVICE}::before`)).toMatch(/content:\s*none;/);
+  });
+
+  it('keeps the brushed stripes of the faceplate', () => {
+    const faceplate = /--pk-faceplate:([^;]*);/.exec(css)?.[1] ?? '';
+    expect(faceplate.trim().startsWith('var(--pk-brush)')).toBe(true);
+    expect(/--pk-brush:([^;]*);/.exec(css)?.[1]).toMatch(/repeating-linear-gradient/);
+  });
+
+  it('has no faceplate recess around its box', () => {
+    const box = rule(`${OWN_DEVICE} .pk-device-screen`);
+    expect(box).toMatch(/background-color:\s*transparent;/);
+    expect(box).toMatch(/background-image:\s*none;/);
+    expect(rule(`${OWN_DEVICE} .pk-device-screen::after`)).toMatch(/content:\s*none;/);
+  });
+
+  it('scales its face like a framed screen, out of reach of the lip, glass and keycaps', () => {
+    const content = rule('.pk-face-content');
+    expect(content).toMatch(/width:\s*max-content/);
+    expect(content).toMatch(
+      /transform:\s*translate\(-50%,\s*-50%\)\s*scale\(var\(--pk-device-scale/,
+    );
+    expect(css).not.toMatch(/\.pk-face-content[^{,]*(?:button|:first-child|>)/);
+  });
+
+  it('draws the mirror without bezel, screws or label column', () => {
+    const bezel = rule(`${OWN_MIRROR} .pk-mirror-bezel`);
+    expect(bezel).toMatch(/display:\s*block;/);
+    expect(bezel).toMatch(/border-width:\s*0;/);
+    expect(bezel).toMatch(/padding:\s*0;/);
+    expect(bezel).toMatch(/box-shadow:\s*none;/);
+    expect(bezel).toMatch(/background-color:\s*transparent;/);
+    expect(bezel).toMatch(/background-image:\s*none;/);
+    expect(rule(`${OWN_MIRROR} .pk-mirror-bezel::before`)).toMatch(/content:\s*none;/);
+  });
+
+  it('places the mirror label on the face in the legend colour, at its framed size', () => {
+    const label = rule(`${OWN_MIRROR} .pk-mirror-label`);
+    expect(label).toMatch(/position:\s*absolute;/);
+    expect(label).toMatch(/color:\s*var\(--panel-legend\);/);
+    expect(label).not.toMatch(/font-size/);
+    expect(rule('.pk-mirror-label')).toMatch(/font-size:\s*var\(--text-2xl\);/);
+  });
+
+  it('stacks a vertical label upright, letter over letter', () => {
+    const vertical = rule('.pk-mirror-label[data-vertical]');
+    expect(vertical).toMatch(/writing-mode:\s*vertical-lr;/);
+    expect(vertical).toMatch(/text-orientation:\s*upright;/);
+  });
+});
+
+describe('face keys and knob helpers', () => {
+  it.each(['.pk-face-key', '.pk-knob-helper'])(
+    '%s draws no keycap and rings focus in the panel colour',
+    (selector) => {
+      const body = rule(selector);
+      expect(body).toMatch(/background-color:\s*transparent;/);
+      expect(body).not.toMatch(/gradient|box-shadow/);
+      expect(rule(`${selector}:focus-visible`)).toMatch(
+        /outline:\s*2px solid var\(--panel-focus\);/,
+      );
+    },
+  );
+
+  it('outlines a knob helper flat, with a hairline', () => {
+    expect(rule('.pk-knob-helper')).toMatch(/border:\s*1px solid var\(--panel-/);
+  });
+
+  it('keeps the face key without a border, so its hit box is all there is', () => {
+    expect(rule('.pk-face-key')).toMatch(/border-width:\s*0;/);
   });
 });

@@ -45,9 +45,18 @@ export type DeviceLanguage = keyof Text;
 /** Outer size of the device frame around the operable screen at which every key is a full touch target. */
 export type DeviceFloor = { width: number; height: number };
 
+/**
+ * Who draws the unit around its display. `framed`: the dock and the slot draw a bezel, screws, glass
+ * and keycaps around the device's screen. `own`: the device draws its whole face, and the dock and
+ * the slot draw only the panel metal it sits on.
+ */
+export type DeviceFace = 'framed' | 'own';
+
 export type DeviceScreenEntry = {
   Screen: ComponentType<DeviceScreenProps>;
   Display: ComponentType<DeviceDisplayProps>;
   readout(state: unknown, language: DeviceLanguage, on: boolean): string;
   floor: DeviceFloor;
+  /** `framed` when absent. */
+  face?: DeviceFace;
 };

@@ -30,11 +30,11 @@ test('the dock shows the operable device, swaps it and empties with the close bu
   page,
 }) => {
   await open(page, 'xpdr');
-  await expect(dock(page).getByRole('group', { name: 'gtx327', exact: true })).toBeVisible();
+  await expect(dock(page).getByRole('group', { name: 'trt800h', exact: true })).toBeVisible();
   await expect(dock(page).getByText(hint)).toHaveCount(0);
 
   await open(page, 'gps');
-  await expect(dock(page).getByRole('group', { name: 'gpsmap496', exact: true })).toBeVisible();
+  await expect(dock(page).getByRole('group', { name: 'aera500', exact: true })).toBeVisible();
   await expect(dock(page).getByRole('group')).toHaveCount(1);
 
   const close = dock(page).getByRole('button', { name: 'Close device' });
@@ -81,7 +81,7 @@ test('a docked device sits on the panel surface with a panel-plastic close butto
   page,
 }) => {
   await open(page, 'xpdr');
-  await expect(dock(page).getByRole('group', { name: 'gtx327', exact: true })).toBeVisible();
+  await expect(dock(page).getByRole('group', { name: 'trt800h', exact: true })).toBeVisible();
   for (const theme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: theme });
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -110,7 +110,7 @@ test('a docked device sits on the panel surface with a panel-plastic close butto
 
 test('the docked device operates and the dock is not modal', async ({ page }) => {
   await open(page, 'xpdr');
-  const unit = dock(page).getByRole('group', { name: 'gtx327', exact: true });
+  const unit = dock(page).getByRole('group', { name: 'trt800h', exact: true });
   await unit.getByRole('button').first().click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
@@ -124,6 +124,12 @@ test('each device slot mirrors its device with one button of the touch-target si
   page,
 }) => {
   const installs = Object.values(ctslAircraft.devices ?? {});
+  expect(installs.map((install) => install.device).sort()).toEqual([
+    'aera500',
+    'atr833',
+    'flarm',
+    'trt800h',
+  ]);
   const viewIds = [...new Set(installs.map((install) => install.view))];
   expect(viewIds.length).toBeGreaterThan(0);
   for (const viewId of viewIds) {

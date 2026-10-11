@@ -428,24 +428,34 @@ export const normalProcedures = {
       confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
       {
         type: 'action',
-        control: 'xpdr.mode',
-        position: 'sby',
-        text: text('Transponder auf Bereitschaft', 'Transponder to standby'),
+        control: 'xpdr.power',
+        position: 'pressed',
+        text: text('Transponder ein, Standby', 'Transponder on, standby'),
       },
+      // The unit's own on, not the install's power: it rests in STBY while switched off.
       {
         type: 'check',
-        target: { control: 'xpdr.mode' },
+        target: { control: 'xpdr.power' },
         condition: (state: State) =>
-          state.devices.xpdr?.on === true && state.controls['xpdr.mode'] === 'sby',
+          field(state, 'xpdr', 'on') === true && field(state, 'xpdr', 'mode') === 'stby',
         text: text('Transponder', 'Transponder'),
         expected: text('ein, Standby', 'on, standby'),
       },
-      // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
+      // Assumed (unverified), intake §9 questions 32 and 38: the GPS starts with cradle power, so
+      // its step is the database acceptance, then its map page, which the line-up seed shows.
+      // Only the start-up page offers the accept key, so a pilot who accepted earlier ticks it.
       {
         type: 'action',
-        control: 'gps.power',
-        position: 'pressed',
-        text: text('GPS ein', 'GPS on'),
+        control: 'gps.touch',
+        position: 'accept',
+        doneWhen: (state: State) => field(state, 'gps', 'page') !== 'startup',
+        text: text('GPS: Datenbanken bestätigt', 'GPS: databases accepted'),
+      },
+      {
+        type: 'action',
+        control: 'gps.touch',
+        position: 'map',
+        text: text('GPS: Kartenseite', 'GPS: map page'),
       },
       {
         type: 'action',
@@ -564,7 +574,15 @@ export const normalProcedures = {
         target: { control: 'gps.power' },
         condition: (state: State) => field(state, 'gps', 'fix') === true,
         text: text('GPS', 'GPS'),
-        expected: text('Position gefunden (3D FIX)', 'position fix (3D FIX)'),
+        expected: text('Position gefunden (3D GPS Location)', 'position fix (3D GPS Location)'),
+      },
+      // Assumed (unverified), intake §9 question 34: the FLARM manual's check before departure.
+      {
+        type: 'check',
+        target: { control: 'flarm.mode' },
+        condition: (state: State) => field(state, 'flarm', 'operational') === true,
+        text: text('FLARM', 'FLARM'),
+        expected: text('Power, GPS und TX leuchten', 'Power, GPS and TX lit'),
       },
       {
         type: 'guard',
@@ -869,6 +887,26 @@ export const normalProcedures = {
         'Auf 121,5 MHz hören, ob der Notsender versehentlich sendet',
         'Listen on 121.5 MHz for an accidental ELT activation',
       ),
+      // Trainer addition, intake §3.8.2: MODE cycles STBY, ACS, A-S, so ACS reaches STBY in two.
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'pressed',
+        text: text('Transponder auf A-S (MODE)', 'Transponder to A-S (MODE)'),
+      },
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'pressed',
+        text: text('Transponder auf STBY (MODE)', 'Transponder to STBY (MODE)'),
+      },
+      {
+        type: 'check',
+        target: { control: 'xpdr.mode' },
+        condition: (state: State) => field(state, 'xpdr', 'mode') === 'stby',
+        text: text('Transponder', 'Transponder'),
+        expected: text('STBY', 'STBY'),
+      },
     ],
   },
   shutdown: {

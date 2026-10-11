@@ -81,8 +81,8 @@
     linear-gradient(
       105deg,
       transparent 6%,
-      color-mix(in srgb, var(--panel-glare) 12%, transparent) 7%,
-      color-mix(in srgb, var(--panel-glare) 6%, transparent) 18%,
+      color-mix(in srgb, var(--panel-glare) 5%, transparent) 7%,
+      color-mix(in srgb, var(--panel-glare) 3%, transparent) 18%,
       transparent 19%
     );
   box-shadow: var(--pk-lip), var(--pk-glass-edge);
@@ -240,12 +240,13 @@
 /* Satin black anodised faceplate, window lip and glass, shared by the slot and the dock frame. */
 .pk-device,
 .pk-mirror-bezel {
+  --pk-brush: repeating-linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--panel-glare) 3%, transparent) 0 1px,
+    transparent 1px 2px
+  );
   --pk-faceplate:
-    repeating-linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--panel-glare) 3%, transparent) 0 1px,
-      transparent 1px 2px
-    ),
+    var(--pk-brush),
     radial-gradient(
       ellipse 70% 120% at 15% 0%,
       color-mix(in srgb, var(--panel-glare) 10%, transparent),
@@ -283,23 +284,22 @@
     var(--pk-hair) var(--pk-hair) 0 var(--pk-hair)
       color-mix(in srgb, var(--panel-metal-light) 80%, var(--panel-metal-shade));
 
-  /* One soft canopy sweep up-left, a faint counter-reflection down-right, a little depth. */
-  --pk-glass:
+  /* One soft canopy sweep up-left and a faint counter-reflection down-right; the glass adds a
+     little depth below. */
+  --pk-glass-sheen:
     radial-gradient(
       ellipse 120% 160% at 0% -60%,
-      color-mix(in srgb, var(--panel-glare) 36%, transparent),
-      color-mix(in srgb, var(--panel-glare) 20%, transparent) 50%,
-      color-mix(in srgb, var(--panel-glare) 14%, transparent) 66%,
+      color-mix(in srgb, var(--panel-glare) 16%, transparent),
+      color-mix(in srgb, var(--panel-glare) 9%, transparent) 50%,
+      color-mix(in srgb, var(--panel-glare) 6%, transparent) 66%,
       transparent 67%
     ),
-    linear-gradient(
-      298deg,
-      color-mix(in srgb, var(--panel-glare) 7%, transparent),
-      transparent 16%
-    ),
+    linear-gradient(298deg, color-mix(in srgb, var(--panel-glare) 3%, transparent), transparent 16%);
+  --pk-glass:
+    var(--pk-glass-sheen),
     linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--panel-glare) 4%, transparent),
+      color-mix(in srgb, var(--panel-glare) 2%, transparent),
       transparent 50%,
       color-mix(in srgb, var(--panel-shadow) 18%, transparent)
     );
@@ -406,4 +406,161 @@
     right var(--pk-square-at) bottom var(--pk-square-at),
     right var(--pk-at) bottom var(--pk-at),
     right var(--pk-at) bottom var(--pk-drop-bottom);
+}
+
+/* A device that draws its own face sits on bare brushed panel metal: no bezel, screws, cast
+   shadow or recess. Its face scales in .pk-face-content, out of reach of the framed lip, glass
+   and keycaps, and it darkens its own window while off. */
+.pk-device[data-face='own'] {
+  background-color: var(--panel-metal-light);
+  background-image: var(--pk-brush);
+  border-width: 0;
+  box-shadow: none;
+}
+
+.pk-device[data-face='own']::before {
+  content: none;
+}
+
+.pk-face-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  transform: translate(-50%, -50%) scale(var(--pk-device-scale, 1));
+}
+
+.pk-device[data-face='own'] .pk-device-screen {
+  background-color: transparent;
+  background-image: none;
+}
+
+.pk-device[data-face='own'] .pk-device-screen::after {
+  content: none;
+}
+
+/* The own face's mirror: the bezel box keeps its natural size and holds the face edge to edge. */
+.pk-mirror[data-face='own'] .pk-mirror-bezel {
+  display: block;
+  padding: 0;
+  background-color: transparent;
+  background-image: none;
+  border-width: 0;
+  box-shadow: none;
+}
+
+.pk-mirror[data-face='own'] .pk-mirror-bezel::before {
+  content: none;
+}
+
+.pk-mirror-face {
+  position: absolute;
+  inset: 0;
+}
+
+/* Printed on the face, centred where the device places it. */
+.pk-mirror[data-face='own'] .pk-mirror-label {
+  position: absolute;
+  z-index: 1;
+  color: var(--panel-legend);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.pk-mirror-label[data-vertical] {
+  writing-mode: vertical-lr;
+  text-orientation: upright;
+}
+
+/* An own face's display window wears the framed units' glass. Absolute placement goes inline. */
+.pk-glass {
+  position: relative;
+}
+
+.pk-glass::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background-image: var(--pk-glass);
+  border-radius: inherit;
+  box-shadow: var(--pk-glass-edge);
+}
+
+/* A bare hit box from the top of a printed legend to the bottom of the cap the art draws below it. */
+.pk-face-key {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  color: var(--panel-legend);
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  background-color: transparent;
+  border-width: 0;
+  transform: translateX(-50%);
+}
+
+.pk-face-key-cap {
+  position: absolute;
+  aspect-ratio: 1;
+  pointer-events: none;
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -50%);
+}
+
+.pk-face-key:active + .pk-face-key-cap {
+  background-color: color-mix(in srgb, var(--panel-shadow) 35%, transparent);
+}
+
+/* Knob helpers are trainer aids on the panel metal: flat outlines, never a part of the unit. */
+.pk-knob-helpers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--panel-face);
+}
+
+.pk-knob-word {
+  font-size: var(--text-2xs);
+  line-height: var(--leading-2xs);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pk-knob-helper {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--text-lg);
+  line-height: 1;
+  color: var(--panel-face);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  background-color: transparent;
+  border: 1px solid var(--panel-face);
+  border-radius: var(--radius-sm);
+}
+
+.pk-knob-helper:active {
+  background-color: color-mix(in srgb, var(--panel-shadow) 20%, transparent);
+}
+
+.pk-face-key:focus-visible,
+.pk-knob-helper:focus-visible {
+  outline: 2px solid var(--panel-focus);
+  outline-offset: 2px;
 }

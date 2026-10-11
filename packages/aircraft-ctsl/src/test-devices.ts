@@ -1,5 +1,5 @@
 import { defineDevice } from '@cpt/core';
-import type { Device, Text } from '@cpt/core';
+import type { Device, Positions, Text } from '@cpt/core';
 
 const text = (de: string, en: string): Text => ({ de, en });
 
@@ -22,85 +22,139 @@ const knob = (name: Text) =>
     description: name,
   }) as const;
 
-const sl40StandIn = defineDevice({
-  id: 'sl40',
+type Held = Readonly<Record<string, string>>;
+
+const heldOf = (controls: Positions): Held =>
+  Object.fromEntries(Object.entries(controls).map(([id, position]) => [id, String(position)]));
+
+/** A key or detent that moved to `position` since the last step. */
+const reached = (held: Held, previous: Held, id: string, position = 'pressed') =>
+  held[id] === position && previous[id] !== position;
+
+const atr833StandIn = defineDevice({
+  id: 'atr833',
   manual: text('Platzhalter für Tests', 'Test stand-in'),
   notModelled: [text('alles', 'everything')],
   controls: {
-    volume: {
-      kind: 'lever',
-      positions: 'continuous',
-      initial: 0.5,
-      name: text('Lautstärke', 'Volume'),
-      description: text('Lautstärke', 'Volume'),
-    },
-    coarse: knob(text('Grobabstimmung', 'Coarse knob')),
-    fine: knob(text('Feinabstimmung', 'Fine knob')),
+    power: momentary(text('Ein/Aus', 'On/off')),
+    set: momentary(text('SET', 'SET')),
+    mem: momentary(text('Speicher', 'Memory')),
+    dw: momentary(text('Zweikanalhören', 'Dual watch')),
     swap: momentary(text('Tausch', 'Swap')),
-    monitor: momentary(text('Mithören', 'Monitor')),
+    cursor: momentary(text('Cursor', 'Cursor')),
+    volSel: knob(text('VOL/SEL', 'VOL/SEL')),
+    freq: knob(text('Frequenz', 'Frequency')),
   },
-  initial: {},
-  step: (state) => state,
+  initial: { on: false, powered: false, active: 118_000, standby: 119_000, held: {} as Held },
+  // Switches on with the bus (AUTO ON) and steps the standby frequency in whole MHz.
+  step: (state, { controls, powered }) => {
+    const held = heldOf(controls);
+    if (!powered) return { ...state, on: false, powered: false, held };
+    let { active, standby } = state;
+    if (reached(held, state.held, 'freq', 'up')) standby += 1000;
+    if (reached(held, state.held, 'freq', 'down')) standby -= 1000;
+    if (reached(held, state.held, 'swap')) [active, standby] = [standby, active];
+    return { on: true, powered: true, active, standby, held };
+  },
 });
 
-const gtx327Keys = [
-  ['key0', 'Ziffer 0', 'Digit 0'],
-  ['key1', 'Ziffer 1', 'Digit 1'],
-  ['key2', 'Ziffer 2', 'Digit 2'],
-  ['key3', 'Ziffer 3', 'Digit 3'],
-  ['key4', 'Ziffer 4', 'Digit 4'],
-  ['key5', 'Ziffer 5', 'Digit 5'],
-  ['key6', 'Ziffer 6', 'Digit 6'],
-  ['key7', 'Ziffer 7', 'Digit 7'],
-  ['clr', 'Löschen', 'Clear'],
-  ['crsr', 'Cursor', 'Cursor'],
-  ['vfr', 'VFR', 'VFR'],
-  ['ident', 'Ident', 'Ident'],
-  ['func', 'Funktion', 'Function'],
-  ['startStop', 'Start/Stopp', 'Start/Stop'],
+const trt800hStandIn = defineDevice({
+  id: 'trt800h',
+  manual: text('Platzhalter für Tests', 'Test stand-in'),
+  notModelled: [text('alles', 'everything')],
+  controls: {
+    power: momentary(text('Ein/Aus', 'On/off')),
+    vfr: momentary(text('VFR', 'VFR')),
+    ident: momentary(text('Ident', 'Ident')),
+    mode: momentary(text('Betriebsart', 'Mode')),
+    swap: momentary(text('Wechsel', 'Change')),
+    cursor: momentary(text('Cursor', 'Cursor')),
+    knob: knob(text('Drehknopf', 'Knob')),
+  },
+  initial: { on: false, mode: 'stby', squawk: '2000', reporting: false, held: {} as Held },
+  // A tap switches it on in standby; switching off needs a hold, which no procedure uses.
+  step: (state, { controls, powered }) => {
+    const held = heldOf(controls);
+    if (!powered) return { ...state, on: false, mode: 'stby', reporting: false, held };
+    const on = state.on || reached(held, state.held, 'power');
+    if (!on) return { ...state, held };
+    const modes = ['stby', 'acs', 'as'];
+    const mode = reached(held, state.held, 'mode')
+      ? (modes[(modes.indexOf(state.mode) + 1) % modes.length] ?? 'stby')
+      : state.mode;
+    const squawk = reached(held, state.held, 'vfr') ? '7000' : state.squawk;
+    return { on, mode, squawk, reporting: mode === 'acs', held };
+  },
+});
+
+const touchIcons = [
+  'accept',
+  'home',
+  'back',
+  'map',
+  'nearest',
+  'activeFpl',
+  'directTo',
+  'position',
+  'tools',
+  'gpsStatus',
+  'zoomOut',
+  'zoomIn',
+  'dimmer',
+  'brighter',
 ] as const;
 
-const gtx327StandIn = defineDevice({
-  id: 'gtx327',
-  manual: text('Platzhalter für Tests', 'Test stand-in'),
-  notModelled: [text('alles', 'everything')],
-  controls: {
-    mode: {
-      kind: 'rotary',
-      positions: ['off', 'sby', 'tst', 'gnd', 'on', 'alt'],
-      initial: 'off',
-      name: text('Betriebsart', 'Mode'),
-      description: text('Betriebsart', 'Mode'),
-    },
-    ...Object.fromEntries(gtx327Keys.map(([id, de, en]) => [id, momentary(text(de, en))])),
-  },
-  initial: { squawk: '2000' },
-  step: (state) => state,
-});
-
-const gpsmap496StandIn = defineDevice({
-  id: 'gpsmap496',
+const aera500StandIn = defineDevice({
+  id: 'aera500',
   manual: text('Platzhalter für Tests', 'Test stand-in'),
   notModelled: [text('alles', 'everything')],
   controls: {
     power: momentary(text('Ein/Aus', 'Power')),
-    backlight: momentary(text('Beleuchtung', 'Backlight')),
-    page: momentary(text('Seite', 'Page')),
-    quit: momentary(text('Zurück', 'Quit')),
+    touch: {
+      kind: 'rotary',
+      positions: ['rest', ...touchIcons],
+      initial: 'rest',
+      springBack: Object.fromEntries(touchIcons.map((icon) => [icon, 'rest'])) as Record<
+        (typeof touchIcons)[number],
+        'rest'
+      >,
+      name: text('Touchscreen', 'Touchscreen'),
+      description: text('Touchscreen', 'Touchscreen'),
+    },
   },
-  initial: { on: false, page: 'map', fix: false, power: 'released' },
-  // Finds its fix at once: the real unit's search time is the device's own concern.
+  initial: { on: false, powered: false, page: 'startup', fix: false, held: {} as Held },
+  // Starts with cradle power and finds its fix at once: the search is the device's own concern.
   step: (state, { controls, powered }) => {
-    const tapped = controls.power === 'pressed' && state.power !== 'pressed';
-    const on = powered && (tapped ? !state.on : state.on);
-    return { ...state, on, fix: on, power: String(controls.power) };
+    const held = heldOf(controls);
+    if (!powered) return { ...state, on: false, powered: false, page: 'startup', fix: false, held };
+    let page = state.powered ? state.page : 'startup';
+    if (page === 'startup' && reached(held, state.held, 'touch', 'accept')) page = 'home';
+    else if (page === 'home' && reached(held, state.held, 'touch', 'map')) page = 'map';
+    return { on: true, powered: true, page, fix: true, held };
   },
 });
 
+const flarmStandIn = defineDevice({
+  id: 'flarm',
+  manual: text('Platzhalter für Tests', 'Test stand-in'),
+  notModelled: [text('alles', 'everything')],
+  controls: { mode: momentary(text('Mode-Taste', 'Mode key')) },
+  initial: { powered: false, stage: 'selfTest', fix: false, operational: false },
+  // Ready with a fix as soon as power arrives: the self-test and search are the device's concern.
+  step: (state, { powered }) => ({
+    ...state,
+    powered,
+    stage: powered ? 'ready' : 'selfTest',
+    fix: powered,
+    operational: powered,
+  }),
+});
+
 // An aircraft depends on core only, so its tests install stand-ins that share the control ids of
-// the real devices. Each device task adds its stand-in here.
+// the real devices and the state fields its procedures and phase seeds read.
 export const testDevices: readonly Device[] = [
-  sl40StandIn as Device,
-  gtx327StandIn as Device,
-  gpsmap496StandIn as Device,
+  atr833StandIn as Device,
+  trt800hStandIn as Device,
+  aera500StandIn as Device,
+  flarmStandIn as Device,
 ];

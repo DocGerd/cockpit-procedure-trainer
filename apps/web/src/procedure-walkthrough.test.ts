@@ -72,19 +72,23 @@ describe('full-flight walk-through', () => {
   );
 });
 
-describe('the CTSL GPS and intercom in a full flight', () => {
+describe('the CTSL GPS, FLARM and intercom in a full flight', () => {
   const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
   if (!ctsl) throw new Error('The registry has no CTSL');
   const lineUp = ctsl.phases.linedUp?.entry;
   if (!lineUp) throw new Error('The CTSL has no line-up phase');
 
-  it('switches both on before line-up and carries them on as the line-up phase starts them', () => {
-    const carried: Record<string, { intercom: unknown; gps: unknown }> = {};
+  it('brings them up before line-up and carries them on as the line-up phase starts them', () => {
+    const carried: Record<string, { intercom: unknown; gps: unknown; flarm: unknown }> = {};
     const result = walkFlight(ctsl, {
       devices: deviceRegistry,
       afterChecklist: (session, id) => {
         const state = session.state();
-        carried[id] = { intercom: state.controls.intercom, gps: state.devices.gps?.state };
+        carried[id] = {
+          intercom: state.controls.intercom,
+          gps: state.devices.gps?.state,
+          flarm: state.devices.flarm?.state,
+        };
       },
     });
     expect(result).toEqual({ ok: true });
@@ -97,8 +101,44 @@ describe('the CTSL GPS and intercom in a full flight', () => {
       expect(carried[id], id).toMatchObject({
         intercom: lineUp.controls.intercom,
         gps: lineUp.deviceStates?.gps,
+        flarm: lineUp.deviceStates?.flarm,
       });
     }
+  });
+});
+
+describe('the CTSL device seeds in a full flight', () => {
+  const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+  if (!ctsl) throw new Error('The registry has no CTSL');
+
+  it('match what the leg before left in every device, the transponder included', () => {
+    const carried: Record<string, Record<string, unknown>> = {};
+    const result = walkFlight(ctsl, {
+      devices: deviceRegistry,
+      afterChecklist: (session, id) => {
+        carried[id] = Object.fromEntries(
+          Object.entries(session.state().devices).map(([install, device]) => [
+            install,
+            device.state,
+          ]),
+        );
+      },
+    });
+    expect(result).toEqual({ ok: true });
+    const legs = flightLegs(ctsl);
+    const seeded = new Set<string>();
+    legs.slice(1).forEach((id, at) => {
+      const before = legs[at] ?? '';
+      const phase = ctsl.procedures[id]?.startPhase ?? '';
+      const seeds = ctsl.phases[phase]?.entry.deviceStates ?? {};
+      for (const [install, seed] of Object.entries(seeds)) {
+        seeded.add(install);
+        expect(carried[before]?.[install], `${install} from ${before} into ${id}`).toMatchObject(
+          seed,
+        );
+      }
+    });
+    expect([...seeded].sort()).toEqual(['flarm', 'gps', 'xpdr']);
   });
 });
 

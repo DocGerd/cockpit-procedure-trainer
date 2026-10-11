@@ -18,9 +18,18 @@ Touch points, each detailed in that doc:
 - [ ] `apps/web/src/device-registry.ts`: add the logic to `deviceRegistry` and
       `<id>ScreenEntry` to `deviceEntries`. Never edit `deviceScreens`, it is derived.
 - [ ] `apps/web/src/devices/messages.ts`: the unit name in both languages in `unitNames`.
-- [ ] `tools/device-entry.test.ts`: a row in `NATURAL_SCREEN` and one in `SLOT_OF`.
+- [ ] `tools/device-entry.test.ts`: a row in `NATURAL_SCREEN`. The slot fit is checked per install in
+      `apps/web/src/devices/slot-fit.test.tsx`; it needs no row.
+- [ ] A unit whose real face has no square bezel: `face: 'own'` in the entry, with
+      `labelAt`, `pk-glass`, `FaceKey` and `KnobHelpers` ("A device that draws its own
+      face" in the doc).
 - [ ] Package `README.md` sections that `tools/device-readme.test.ts` checks.
 - [ ] A changelog fragment, see the `changelog-fragment` skill.
+
+Unregistering a package that stays in the repository: drop its registry, `unitNames`
+and dependency rows and list its id in `UNREGISTERED` in `tools/device-entry.test.ts`
+("Registering the device" in the doc). A dock must hold the widest installed floor
+plus its Close button column ("Installing in an aircraft").
 
 Nothing else in `apps/web` changes. Registry files are shared hot spots: serialise
 them with other agents' device or aircraft PRs. Run the `CONTRIBUTING.md` Checks chain.

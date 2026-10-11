@@ -68,7 +68,9 @@ describe('About', () => {
   it('names each aircraft with its handbook revision', async () => {
     renderFooter();
     const about = await openAbout();
-    expect(about.textContent).toContain('CT Supralight (representative panel)');
+    expect(about.textContent).toContain('CT Supralight');
+    const aircraft = (about.textContent ?? '').split('Recent releases')[0];
+    expect(aircraft).not.toContain('representative');
     expect(about.textContent).toContain('revision 01 (14 Jan 2010)');
     expect(about.textContent).toContain('fictional aircraft; no handbook');
   });

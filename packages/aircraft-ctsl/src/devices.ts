@@ -11,21 +11,21 @@ const avionicsOn =
 
 export const devices = {
   com: {
-    device: 'sl40',
+    device: 'atr833',
     view: 'panel',
     placement: deviceSlots.com,
     powered: avionicsOn('comBreaker'),
     inputs: {},
   },
   xpdr: {
-    device: 'gtx327',
+    device: 'trt800h',
     view: 'panel',
     placement: deviceSlots.xpdr,
     powered: avionicsOn('xpdrBreaker'),
     inputs: { pressureAltitude: (state) => state.systems.altitudeFt },
   },
   gps: {
-    device: 'gpsmap496',
+    device: 'aera500',
     view: 'panel',
     placement: deviceSlots.gps,
     powered: avionicsOn('gpsBreaker'),
@@ -33,6 +33,15 @@ export const devices = {
     inputs: {
       groundSpeedKt: (state) => state.systems.airspeedKmh / KMH_PER_KT,
       trackDeg: (state) => state.systems.headingDeg,
+      altitudeFt: (state) => state.systems.altitudeFt,
     },
+  },
+  // No breaker of its own: the avionics master switches it (intake §3.6, §9 question 33).
+  flarm: {
+    device: 'flarm',
+    view: 'panel',
+    placement: deviceSlots.flarm,
+    powered: (state) => state.systems.bus.avionicsPowered,
+    inputs: { supplyVolts: (state) => state.systems.bus.volts },
   },
 } as const satisfies Record<string, DeviceInstall<CtslState, ViewId>>;

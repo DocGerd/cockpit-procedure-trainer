@@ -2,16 +2,21 @@ import { expect, test } from './fixtures';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { messages as dockMessages } from '../src/devices/messages';
 import { copy, openPicker } from './trainer';
 import {
+  SECONDARY_MIN_PX,
   TOUCH_TARGET_PX,
   deviceTargets,
   indicatorLetteringProblems,
   letteringProblems,
   openAircraft,
+  secondaryCaptionProblems,
+  selectLanguage,
   showView,
   viewRoot,
 } from './legibility';
+import type { Language } from './legibility';
 import {
   derivedState,
   expectedStates,
@@ -33,6 +38,12 @@ const indicatorFaceGaps: Readonly<
   ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
+// The same for secondary captions (#661), against the lower `SECONDARY_MIN_PX`: the breaker and
+// dial captions fit no larger at tablet width without redrawing the faces.
+const secondaryCaptionGaps: typeof indicatorFaceGaps = {
+  ctsl: ['tablet landscape', 'tablet portrait'],
+};
+
 const desktops = [
   { width: 1920, height: 1080 },
   { width: 3840, height: 2160 },
@@ -43,7 +54,8 @@ const shortDesktop = { width: 1920, height: 800 };
 
 const cockpitLayout = (page: Page) => page.locator('.shell');
 const outsideView = (page: Page) => page.locator('.shell-outside-view');
-const dockRegion = (page: Page) => page.getByRole('region', { name: 'Device dock' });
+const dockRegion = (page: Page, language: Language = 'en') =>
+  page.getByRole('region', { name: dockMessages[language].dock });
 
 const boxOf = async (locator: Locator) => {
   const box = await locator.boundingBox();
@@ -144,12 +156,13 @@ async function expectEveryDeviceDocks(
   page: Page,
   aircraft: Aircraft,
   combined: boolean,
+  language: Language = 'en',
 ): Promise<void> {
-  const empty = await boxOf(dockRegion(page));
+  const empty = await boxOf(dockRegion(page, language));
   for (const [installId, install] of Object.entries(aircraft.devices ?? {})) {
-    await showView(page, aircraft, install.view, 'en');
+    await showView(page, aircraft, install.view, language);
     await page.locator(`[data-placement="${installId}"]`).getByRole('button').click();
-    const dock = dockRegion(page);
+    const dock = dockRegion(page, language);
     await expect(dock).toHaveAttribute('data-dock', 'held');
     const unit = dock.getByRole('group', { name: install.device, exact: true });
     await expect(unit).toBeVisible();
@@ -175,8 +188,14 @@ async function expectEveryDeviceDocks(
       );
       await expectNoPageScroll(page);
     }
+    // A centred unit wider than the dock also spills past its left edge, where scrolling cannot reach.
+    const overflow = await dock.evaluate((element) => ({
+      x: element.scrollWidth - element.clientWidth,
+      y: element.scrollHeight - element.clientHeight,
+    }));
+    expect(overflow, `${installId} dock scroll`).toEqual({ x: 0, y: 0 });
 
-    const close = dock.getByRole('button', { name: 'Close device' });
+    const close = dock.getByRole('button', { name: dockMessages[language].dockClose });
     expectTarget(await boxOf(close), `${installId} close button`);
     await close.click();
     await expect(dock).toHaveAttribute('data-dock', 'empty');
@@ -263,6 +282,24 @@ for (const aircraft of aircraftRegistry) {
       }
       expect(problems).toEqual([]);
     });
+
+    // Secondary captions are exempt from the lettering minimum, not from every floor (#661).
+    test(`${aircraft.id} prints secondary captions at half the minimum size at ${viewport.name} ${viewport.width}x${viewport.height}`, async ({
+      page,
+    }) => {
+      test.fail(
+        secondaryCaptionGaps[aircraft.id]?.includes(viewport.name) ?? false,
+        'Breaker and dial captions render below half the minimum at tablet sizes (#661)',
+      );
+      await page.setViewportSize(viewport);
+      await openAircraft(page, aircraft);
+      const problems: string[] = [];
+      for (const viewId of Object.keys(aircraft.views)) {
+        const root = await showView(page, aircraft, viewId, 'en');
+        problems.push(...(await secondaryCaptionProblems(root, aircraft, viewId)));
+      }
+      expect(problems, `secondary captions below ${SECONDARY_MIN_PX - TOLERANCE_PX}px`).toEqual([]);
+    });
   }
 
   test(`${aircraft.id} does not scroll the page at ${shortDesktop.width}x${shortDesktop.height}`, async ({
@@ -334,6 +371,29 @@ for (const { aircraft: id, height, folded } of strips) {
     }
     await expectNoPageScroll(page);
   });
+}
+
+// Just above the breakpoint the dock is at its narrowest, and the close label is wider in German.
+// The demo joins this table once #687 is fixed.
+const narrowDocks = [{ aircraft: 'ctsl', height: 900 }];
+
+for (const { aircraft: id, height } of narrowDocks) {
+  for (const language of ['en', 'de'] as const) {
+    test(`the ${id} dock holds every device without scrolling at 1920x${height} in ${language}`, async ({
+      page,
+    }) => {
+      const aircraft = aircraftRegistry.find((entry) => entry.id === id);
+      const dock = aircraft?.cockpit?.dock;
+      if (!aircraft || !dock) throw new Error(`The aircraft registry has no ${id} with a dock`);
+      await page.setViewportSize({ width: 1920, height });
+      await openAircraft(page, aircraft);
+      await selectLanguage(page, language);
+      await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+      const { width } = await boxOf(dockRegion(page, language));
+      expect(width, 'dock near its floor').toBeLessThan(dock.minWidth * 1.02);
+      await expectEveryDeviceDocks(page, aircraft, true, language);
+    });
+  }
 }
 
 // #226: holding the key on START while watching the tachometer.

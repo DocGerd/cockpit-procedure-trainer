@@ -11,14 +11,14 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
 
 ## 1. Handbook and aircraft
 
-| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                 |
-| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                       |
-| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                    |
-| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                           |
-| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is open for the owner once M17 T4 lands. |
-| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                        |
+| Field                   | Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aircraft type           | Flight Design CT Supralight (CTSL): high wing, stabilator with anti-tab, tricycle gear, two side-by-side seats, gull-wing doors. Not the CTLS.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Handbook                | CT Supralight flight and maintenance manual (Flug- und Wartungshandbuch), document AE04300003, revision 01 of 14 Jan 2010 (revision 00 was 28 Oct 2009).                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Club aircraft           | D-MPGO, Sportfliegerclub Schwetzingen, Herrenteich (EDEH). The handbook copy does not name the registration, and its equipment list and weighing report are factory examples, not D-MPGO's.                                                                                                                                                                                                                                                                                                                                                                      |
+| `handbookRevision` text | `Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)`. The package `README.md` `## Source revision` uses the same words.                                                                                                                                                                                                                                                                                                                                                                                             |
+| Panel wording           | The app and the package call the panel a **representative CTSL panel** drawn from the handbook's description, not a photo of D-MPGO's panel. Aircraft name: "CT Supralight (representative panel)", German "CT Supralight (repräsentatives Panel)". **Superseded 2026-10-10** (§2a): M17 redraws the panel from the owner's photos of D-MPGO; whether the name drops "representative" is settled by §2a item 9: it drops when the M18 units land. **Trainer (M18, #678):** dropped; the app and the package name the aircraft "CT Supralight" in both languages. |
+| Photo survey            | Eight photos of D-MPGO's cockpit taken by the owner on 2026-10-10 and supplied for this intake: the panel from the left seat (four views), the lower centre field and console, the console between the seats aft to the bulkhead, and the two wing-root fuel sight gauges. Local-only: no photo, crop or derived image is in the repo. Findings in §3.7, answers in §9.                                                                                                                                                                                          |
 
 ## 2. Owner decisions (2026-10-06)
 
@@ -26,10 +26,16 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    first variant, HB 7-16). Avionics: COM radio Garmin SL40, Mode A/C transponder
    Garmin GTX 327 with an altitude encoder, GPS Garmin GPSMAP 496. Where the handbook
    leaves an item optional, the analog variant's default is taken and flagged (§9).
+   **Superseded (M18, §2a item 5):** the CTSL carries D-MPGO's own units instead:
+   funkwerk ATR833-OLED COM radio, funkwerk TRT800H-OLED transponder, Garmin aera 500
+   GPS and the classic FLARM LED display (§3.8). The three Garmin devices stay in the
+   repository, unregistered.
 2. **No club photos.** View backgrounds, outside views and artwork are drawn for
    this project from the descriptions below and labelled a representative CTSL
    panel. No photos, scans, handbook drawings or manufacturer artwork in the repo.
    Outside views are first-person from the left seat.
+   **Superseded in part (M18, §2a items 1 and 9):** the panel follows D-MPGO's photos
+   and the name no longer says "representative panel"; the rest stands.
 3. **Engine (912 UL or ULS) and rescue system are unknown.** The most conservative
    limits apply (§4) and each is an open question (§9).
 4. **Handbook contradictions:** the conservative value or step is used (§8) and
@@ -39,8 +45,8 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    banner tow procedures are out of scope, although the club aircraft has a tow
    coupling.
 
-Decision 1 is superseded in part by §2a: the trainer keeps these three devices
-until milestone M18 replaces them.
+Decision 1 is superseded by §2a item 5: milestone M18 replaces these three devices
+with D-MPGO's own units (§3.8).
 
 ## 2a. Owner decisions (2026-10-10)
 
@@ -66,6 +72,34 @@ until milestone M18 replaces them.
 4. **M17 is a full rework** of the CTSL panel from the photos: layout, gauges,
    breaker strip, console art, legends and texts. Plan:
    `docs/superpowers/plans/2026-10-10-m17-panel-from-photos.md`.
+
+Milestone M18 "D-MPGO avionics" (issue #633, plan
+`docs/superpowers/plans/2026-10-10-m18-d-mpgo-avionics.md`) rests on these owner
+decisions of 2026-10-10:
+
+5. **D-MPGO's own avionics replace SL40, GTX 327 and GPSMAP 496 in the CTSL** (a
+   spec change, approved; decisions table row "Avionics (CTSL)"). The units are the
+   Garmin aera 500 in its panel cradle; the funkwerk ATR833-OLED COM radio and the
+   funkwerk TRT800H-OLED transponder, both round 57 mm; and the classic FLARM
+   external LED display, built as a full device. **Identification outcome** (§3.8):
+   the GPS is confirmed from its bezel; the COM radio is most likely the original
+   ATR833-OLED (an ATR833A-OLED cannot be ruled out); the transponder is the
+   TRT800H-OLED, settled by its round housing; and the FLARM display is
+   **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
+   expected, so the owner approved the rectangular display. The device ids are
+   `atr833`, `trt800h`, `aera500` and `flarm`.
+6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
+   controls on D-MPGO's face. A function of the II whose control the face lacks (for
+   example the push-to-talk and external interfaces) is out.
+7. **Sources for the rest:** the TRT800H manual, revision 3.00; for the FLARM display
+   the EDIATec display sheet V5.1e and the FLARM operating manual; for the GPS the
+   aera 500 Series Pilot's Guide. All are paraphrased, never copied (§3.8,
+   `docs/content-policy.md`).
+8. **The old devices stay.** `device-sl40`, `device-gtx327` and `device-gpsmap496` stay
+   in the repository with their tests and READMEs, unregistered. The generic
+   `device-com` and `device-transponder` stay as they are (demo aircraft).
+9. **The aircraft name drops "(representative panel)"** when the units land, resolving
+   the open point of §1. The Com, Transponder and GPS breaker legends stay.
 
 ## 3. Panel inventory (analog variant; superseded in part 2026-10-10, §2a)
 
@@ -148,17 +182,26 @@ wording either. The type-name script lettering is not reproduced.
 
 - A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
   disc with a red cross (not identified), both inert art.
-- The FLARM display (inert art) left of the GPS; the GPS in its cradle (device slot);
-  the COM radio and the transponder side by side below it (device slots). The
-  existing SL40, GTX 327 and GPSMAP 496 move here unchanged; the round funkwerk units
-  and the Garmin aera-like GPS come in M18.
-- **Layout compromises, assumed (unverified):** the slots are the old 520 by 150 and
-  400 by 300 units scaled by 1.07, because the mirror lettering must stay legible at
-  the panel floor, which rose from 950 to 1110 px with the wider panel (2372 units).
+- The FLARM display left of the GPS; the GPS in its cradle; the COM radio and the
+  transponder side by side below the GPS. All four are device slots of D-MPGO's own
+  units since M18 (§3.8). **Corrected from the photos (face fidelity fix):** the
+  aircraft has no recess, frame or caption around any unit, so the panel art draws
+  none. The field is light brushed aluminium (§3.7.1), and each unit draws its own
+  whole face on it, the aera 500's cradle included.
+- **Layout compromises, assumed (unverified):** each slot keeps its mirror's aspect and
+  is at least its natural size, because the mirror lettering must stay legible at the
+  panel floor (1110 px for the 2372-unit panel): FLARM 320 by 160 units, GPS 440 by
+  275, COM and transponder 272 by 272 each. The round units are drawn at about 1.8
+  times their 57 mm and the FLARM display at about twice its size, so the field reads
+  fuller than the aircraft. The GPS takes the whole height between the glareshield
+  strip and the radio row, and so reaches about 1.6 D wide against its photographed
+  2.8 D (§3.8): it cannot grow further without shrinking the round units below their
+  legible size or moving the take-off checklist summary beside it.
   The upper-centre field is wider than the lower column and sits about 40 px left of
   it at HD, so that the radio slot reaches over the device dock, which stays left of
   the column under the panel. The FLARM display sits left of the GPS, not above it as
-  in the photos. The second copy of the take-off checklist summary stands right of the
+  in the photos (the field cannot hold the FLARM, the GPS and the radio row stacked at
+  legible sizes). The second copy of the take-off checklist summary stands right of the
   GPS (heading and rules only), an **assumed (unverified)** place. The blank version
   label under the FLARM display is not drawn: its wording is unknown, so it would be a
   plate with no function.
@@ -359,22 +402,26 @@ arcs red 9 to 10.5, yellow 10.5 to 11.5, green 11.5 to 15, yellow 15 to 16, red 
 
 ### 3.6 Electrical bus map
 
-| Source or consumer  | Protection                    | Fed from                       |
-| ------------------- | ----------------------------- | ------------------------------ |
-| Battery 12 V, 7 Ah  | BAT switch-breaker 25 A       | to the main bus                |
-| Generator (≤ 250 W) | GEN switch-breaker 30 A       | to the main bus, via rectifier |
-| Flaps               | flap breaker 8 A              | main bus                       |
-| Beacon/strobe       | 5 A, Beacon rocker            | main bus                       |
-| Position lights     | 2 A, Position rocker          | main bus                       |
-| Intercom            | 2 A, Intercom rocker          | main bus                       |
-| Landing light       | 10 A, Landing rocker          | main bus                       |
-| Cockpit light       | rocker (no own breaker shown) | main bus                       |
-| 12 V outlet         | 3 A                           | main bus                       |
-| Avionics bus        | Avionics Master rocker        | main bus                       |
-| COM radio           | 5 A                           | avionics bus                   |
-| Transponder         | 3 A                           | avionics bus                   |
-| GPS                 | 3 A                           | avionics bus                   |
+| Source or consumer  | Protection                    | Fed from                                                |
+| ------------------- | ----------------------------- | ------------------------------------------------------- |
+| Battery 12 V, 7 Ah  | BAT switch-breaker 25 A       | to the main bus                                         |
+| Generator (≤ 250 W) | GEN switch-breaker 30 A       | to the main bus, via rectifier                          |
+| Flaps               | flap breaker 8 A              | main bus                                                |
+| Beacon/strobe       | 5 A, Beacon rocker            | main bus                                                |
+| Position lights     | 2 A, Position rocker          | main bus                                                |
+| Intercom            | 2 A, Intercom rocker          | main bus                                                |
+| Landing light       | 10 A, Landing rocker          | main bus                                                |
+| Cockpit light       | rocker (no own breaker shown) | main bus                                                |
+| 12 V outlet         | 3 A                           | main bus                                                |
+| Avionics bus        | Avionics Master rocker        | main bus                                                |
+| COM radio           | 5 A                           | avionics bus                                            |
+| Transponder         | 3 A                           | avionics bus                                            |
+| GPS                 | 3 A                           | avionics bus                                            |
+| FLARM display       | no own breaker shown          | avionics bus (**assumed (unverified)**, §9 question 33) |
 
+- **Trainer (M18):** the FLARM install has power whenever the avionics bus has it:
+  the Avionics Master switches it, no breaker, no legend added (§9 question 33). It
+  reads the bus voltage as its supply.
 - The ignition is independent of the electrical system: the engine keeps running
   with BAT and GEN off (HB 3-7). The starter needs the main bus.
 - The generator warning lamp (indicator id `chargeLamp`) lights when the bus is powered and the generator is not
@@ -425,10 +472,16 @@ left, with its status LEDs); a version label; a second copy of the take-off
 checklist summary; the GPS, a Garmin unit in a cradle (the model plate reads
 like aera 500, not fully legible); then two round radios side by
 side: a funkwerk **COM** radio (left; printed "COM", keys "I/O", "SET", "MEM",
-"VOL/SQL", "DW" and arrows, an active and a standby frequency, a volume line)
+"VOL/SQL" (corrected to VOL/SEL in §3.8.1), "DW" and arrows, an active and a standby frequency, a volume line)
 and a funkwerk transponder (right; printed "ATC", keys "I/O", "VFR", "ID",
 "MODE" and arrows, a code, a flight-level and a "STBY" line). Model names not
 legible.
+
+The field's surface is **light brushed aluminium** (a cool grey-blue in the photos,
+hint #6c747c). The units sit directly on it, so the black radio discs read as strong
+black circles on a light panel: **no recess, frame, label strip or caption** surrounds
+any of the four (added from the photos). The radios' "square bezel" of the first
+reading is not there (§3.8.1, §3.8.2).
 
 The take-off checklist summary, paraphrased: confirm the pre-flight and the
 before-take-off checklists complete, belts fastened, fuel quantity checked,
@@ -578,6 +631,728 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 | Wing-root fuel gauges    | sight gauges, Left and Right, 5 to 40 l                                                                                | not drawn (named in §3.5)                                                                                            | low    | art                        | none today (outside the three views)                                                                             |
 | FLARM, hour meter        | a FLARM display and an hour meter                                                                                      | not drawn                                                                                                            | low    | art                        | `assets/view-panel.svg`                                                                                          |
 
+**Trainer (M18, #678):** the rows "Avionics units" and the FLARM half of "FLARM, hour
+meter" are resolved: the CTSL installs D-MPGO's four units (§3.8), the FLARM display
+included, as device slots. The hour meter stays inert art.
+
+### 3.8 Avionics units (M18)
+
+The four units below replace SL40, GTX 327 and GPSMAP 496 in the CTSL (§2a item
+5). Each subsection is paraphrased from the manual it names; no wording, table,
+figure or icon is copied, and none of the manuals is in the repository.
+Implementers read this section and the M18 plan
+(`docs/superpowers/plans/2026-10-10-m18-d-mpgo-avionics.md`), never the manuals.
+Panel positions come from the photo identification of 2026-10-10 (§3.7) and
+describe the real panel; the trainer's slots are the compromise §3.2a records
+(M18). A value the manuals do not give is marked
+**assumed (unverified)** and, where the club could settle it, points to a §9
+question. "Manual §n" is the manual's own section number.
+
+Each unit also has a **Face layout (photos)** block, from the owner's photos (§3.7),
+so that an implementer can draw the face without seeing them (face fidelity fix,
+plan addendum). Conventions for those blocks:
+
+- Each unit has a unit box: for a round unit the bounding square of its disc
+  (diameter D, 57 mm), for the aera 500 the outer cradle frame, for the FLARM display
+  the rounded-rectangle face. The origin is the top left, x runs right and y down, as
+  fractions of the box (the FLARM display uses its width W and height H).
+- Camera perspective is already removed, and the photos' slight tilt is averaged out,
+  so every row and column below is horizontal or vertical.
+- Positions are good to ±0.02 and sizes to ±15 percent unless marked **low
+  confidence**.
+- Display values (frequencies, codes, volume, map) are illustrative: what a block
+  fixes is the line layout, the alignment, the relative glyph size and the colour.
+- A maker's logo, wordmark or model lettering is **never reproduced**; its footprint
+  is listed only so that the area stays blank. Real chart content is likewise not
+  reproduced.
+- Colours are given in words, with an approximate hex hint after allowing for the
+  photos' cool cast. The hint only guides the choice of the nearest `tokens.css`
+  token.
+- Real-panel scale, in units of D: the COM and ATC discs are 1.00 D, the FLARM face
+  about 1.05 D wide and 0.58 D tall, the aera cradle about 2.8 D wide and 1.67 D
+  tall (its body about 2.45 D by 1.42 D).
+- The units sit directly on the panel's light brushed aluminium (§3.7.1), with no
+  frame, box or label strip around any of them.
+
+#### 3.8.1 COM radio: funkwerk ATR833-OLED
+
+**Identification.** A round 57 mm funkwerk COM radio with a yellow OLED and 8.33
+kHz channel names. It has no visible bezel: the disc sits directly on the panel, with screws and knobs in the corners of its bounding square (corrected from the photos). Most likely the original ATR833-OLED. The
+variant letter of an ATR833A-OLED is not visible on the face and cannot be ruled
+out. The ATR833-II OLED is less likely: D-MPGO's face carries the funkwerk logo
+used before the maker was renamed f.u.n.k.e. AVIONICS and no "Mk II" lettering.
+Rejected: the older ATR 500 (its memory rotary switch and exchange key are not on
+this face) and every LCD type (this display is OLED). The family is certain, the
+generation is open (§9 question 36). §3.7.1's reading of the knob legend as
+"VOL/SQL" is corrected here: the legend reads VOL/SEL.
+
+**Panel position.** Upper-centre field, bottom row, left unit: directly below the
+GPS, left of the transponder. Its two knobs take the right-hand corners of its
+bounding square.
+
+**Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833-II VHF Communication Transceiver,
+OLED / LCD, Operation and Installation", document 01.143.010.71e, revision 1.06
+(24 Jan 2024), downloaded from the manufacturer's own site. It is the only source
+(§2a item 6): the manual of the II describes D-MPGO's unit, and a function of the
+II whose control D-MPGO's face lacks is out of scope.
+
+**Face.** Top row, three push keys printed `I/O`, `SET`, `MEM`. A knob at the
+upper right with a curved legend `VOL/SEL`. The display in the middle, three text
+lines, with `COM` printed vertically down its left. Bottom row, three push keys
+printed `DW`, `▲▼` (an up and a down triangle, side by side, up first: corrected
+from the photos, which show `▲▼` and not `▼▲`) and `►`; the funkwerk logo under
+the row. A second knob at the lower right with no printed legend in the manual's
+figure. Two separate single knobs, not a concentric pair; the manual gives no push
+function for either. The II's figure also prints `Mk II` down the right; D-MPGO
+does not.
+
+**Face layout (photos).** Unit box: the bounding square of the black disc, whose
+diameter is D (57 mm). Origin at the top left, x to the right, y down; the disc
+centre is (0.5, 0.5) and its radius 0.5. Screws and knobs sit in the corners of the
+square, outside the circle, so some values are below 0 or above 1. Source: the
+owner's photos (§3.7). The conventions are those of the §3.8 introduction.
+
+- **Outline.** A circular matte disc, near-black with a very slight blue cast
+  (hint #10181c), darker than the FLARM face (§3.8.4). A very thin, slightly lighter
+  rim highlight (about 0.01 D) runs round the edge. There is no chrome ring and no
+  visible square body (corrected from the photos: §3.8.1 used to say "square
+  bezel"). The key caps are slightly glossier than the disc.
+- **Mounting.** The disc sits directly on the light brushed-aluminium panel (§3.7.1)
+  with no frame, box or label strip around it.
+
+_Printed lettering_ (white, bold, uppercase sans; legends are printed on the face
+**above** each key and never on a cap):
+
+| Item         | Position and size                                                                                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `COM`        | Three upright letters stacked top to bottom (C, O, M), not a rotated word. Column centre x 0.055, spanning y 0.44 to 0.62; each letter about 0.05 D tall, pitch about 0.065                                                                                    |
+| `VOL/SEL`    | Curved along the rim at the upper right, on a circle of radius about 0.42 D, from about (0.72, 0.09) to (0.85, 0.21). It reads clockwise and descends to the right, average tilt about +35 degrees; letter height about 0.035 D. It marks the upper-right knob |
+| Key legends  | About 0.035 D cap height, centred over the cap, with a gap of about 0.02 D above it                                                                                                                                                                            |
+| Maker's logo | Footprint at the bottom centre, x 0.38 to 0.63, y 0.90 to 0.96. **Not reproduced**: the area stays blank                                                                                                                                                       |
+
+_Keys_: six round push buttons in two rows of three. Each cap is a round black dome
+of diameter about 0.10 D with a soft highlight at its upper left. Pitch is about 0.17
+D in both rows. The top row sits left of centre (row centre about x 0.48), which
+leaves the upper right free for `VOL/SEL`; the bottom row is centred at x 0.50.
+
+| Key    | Legend (printed above the cap)                                                                                                                                             | Legend centre (x, y) | Cap centre (x, y) |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ----------------- |
+| `I/O`  | `I/O`                                                                                                                                                                      | 0.315, 0.09          | 0.32, 0.165       |
+| `SET`  | `SET`                                                                                                                                                                      | 0.486, 0.09          | 0.49, 0.16        |
+| `MEM`  | `MEM`                                                                                                                                                                      | 0.635, 0.085         | 0.65, 0.155       |
+| `DW`   | `DW`                                                                                                                                                                       | 0.33, 0.765          | 0.32, 0.85        |
+| swap   | `▲▼`: a filled up-triangle **then** a filled down-triangle, side by side, each about 0.03 D (corrected from the photos: the face prints up first, §3.8.1 used to say `▼▲`) | 0.50, 0.765          | 0.50, 0.85        |
+| cursor | `►`: one filled right-pointing triangle, about 0.045 D wide                                                                                                                | 0.67, 0.76           | 0.67, 0.85        |
+
+_Knobs_: two, both outside the disc in the right-hand corners. Each is a black
+knurled cylinder (fine vertical ribs, about 18 to 20 around) seen end-on with a flat
+black end, no pointer, diameter about 0.16 D, its edge clearing the disc by about
+0.01 D.
+
+| Knob                          | Centre (x, y) | Legend on the face   |
+| ----------------------------- | ------------- | -------------------- |
+| upper right (volume / select) | 0.92, 0.09    | the curved `VOL/SEL` |
+| lower right (frequency)       | 0.92, 0.92    | none                 |
+
+_Screws_: two silver Phillips pan-head screws, diameter about 0.10 D, at the upper
+left (0.10, 0.12) and the lower left (0.10, 0.95). The knobs take the right-hand
+corners, so there are none on the right.
+
+_Display_ (yellow OLED). A black glass window, x 0.14 to 0.85 and y 0.24 to 0.63,
+corner radius about 0.02 D. Its bevel shows as a thin lighter line along the bottom
+edge (y about 0.62, x 0.17 to 0.80) and a faint lighter strip along the right edge
+(x 0.83 to 0.86). The window is almost the same black as the disc, so an unlit
+display is nearly invisible. Every glyph, label and value alike, is one saturated
+warm yellow on black (hint #f0d840), never white, grey or amber-orange.
+
+| Line | Centre y | Content and alignment                                                                                                                                                      |
+| ---- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 0.335    | Label `ACT` at x 0.205 to 0.285; the active frequency right-aligned to x 0.80 (seven characters including the dot, starting near x 0.41 to 0.47)                           |
+| 2    | 0.44     | Label `SBY`; the standby frequency right-aligned to x 0.80. The edit cursor is an underline below the MHz digits (x about 0.41 to 0.57, y about 0.475, about 0.01 D thick) |
+| 3    | 0.555    | Label `VOL` at x 0.205 to 0.275 and its value left-aligned straight after it (x about 0.33 to 0.38). The rest of the line is empty                                         |
+
+Digits are about 0.075 D tall with an advance of about 0.06 D. The labels `ACT`,
+`SBY` and `VOL` are about as tall as the digits but in a condensed face, about 0.026
+D per character. Both are bold with slightly rounded strokes, like an OLED pixel
+font. A faint vertical divider at x about 0.335, from y 0.28 to 0.60, separates
+labels from values (**low confidence**, optional). The frequencies and volume shown
+in the photos are illustrative only.
+
+_Not visible_: the OLED pixel structure, the knobs' detents and any pointer, a
+legend for the lower knob, edge-lit key legends, and the display in other modes.
+
+**Controls** (the manual's names in parentheses).
+
+| Control                                     | Press or turn                                            | Effect                                                                                                                       |
+| ------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `I/O` (on/off)                              | about 0.5 s                                              | switches on                                                                                                                  |
+| `I/O`                                       | about 3 s                                                | switches off                                                                                                                 |
+| `SET` (entry)                               | short                                                    | steps the third display line through VOL, SQL, VOX, INT, STL, STR, EXT, BRT, then VOL again                                  |
+| `SET`                                       | short, inside a MEM or LST list                          | loads the shown entry into the standby frequency                                                                             |
+| `SET`                                       | 5 s or more                                              | opens the setup menu: pilot items (spacing, display, dual watch, PTT select), then installer items (not modelled)            |
+| `MEM`                                       | short                                                    | opens the 20 user memories; a second short press opens the list of the last 10 active frequencies (LST)                      |
+| `MEM`                                       | hold (2 s in the key table, 1.5 s in the worked example) | opens save mode: pick a slot, then a short press writes the frequency                                                        |
+| `DW` (dual watch)                           | short                                                    | toggles dual watch, line 2 reads `DW` instead of `SBY`; in any menu or list it returns to the standard display               |
+| `▲▼` (swap)                                 | short                                                    | exchanges active and standby; in a MEM or LST list it loads the entry into the active frequency                              |
+| `►` (cursor)                                | short                                                    | moves the underline to the next editable field of the standby frequency                                                      |
+| `►`                                         | more than 2 s                                            | REPLAY of the last received call (not modelled)                                                                              |
+| `VOL/SEL` knob (volume/select)              | turn                                                     | receive volume by default; otherwise the value of the line-3 item chosen with `SET`, the list entry number, or the save slot |
+| lower-right knob (the manual calls it FREQ) | turn                                                     | changes the underlined field of the standby frequency                                                                        |
+
+Not on the face and out of scope: the push-to-talk button on the stick, an external
+swap button, an external intercom switch, the serial remote interface, the PC tool
+for the memory list, the external audio input, and the display contrast (LCD only).
+
+**Display.** Three lines on a 128 by 64 dot display. Line 1: `ACT`, a status field
+(`RX` receiving, `TX` transmitting, `Te` transmit time-out) and the active
+frequency. Line 2: `SBY` or `DW`, a status field and the standby frequency with
+the edit cursor as an underline below one field. Line 3: the chosen item and its
+value (default `VOL nn`), or `MEM nn` / `LST nn` while browsing a list, with
+`BAT` for a very low supply. After a memory save a `>` stands before the standby
+frequency. The manual's own example and D-MPGO's display show the same layout, with
+the cursor on the MHz field. A menu or list falls back to the standard display
+after 10 s without input.
+
+**Power.** Holding `I/O` for about 0.5 s switches the unit on; it shows a start
+screen with the type and software version and returns to the frequencies and
+settings it had at switch-off. About 3 s switches it off. The installer setting
+AUTO ON makes the unit start as soon as supply arrives; with it off the pilot must
+press `I/O` (manual §3.9; D-MPGO's setting is §9 question 35).
+
+**Frequency entry and swap.** Tuning is two steps: set the standby frequency, then
+swap. With 8.33 kHz spacing the standby frequency has three fields: the MHz part,
+the first decimal digit, and the last two digits. `►` moves from field to field and
+the lower-right knob changes the field. The range is 118.000 to 136.975 MHz. The
+radio takes the channel width from the channel's name: 25 kHz channels are named in
+steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a carrier
+is named 5 kHz higher (.005, .030, .055, .080), with the two names between them for
+the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names. The
+setup item SPACING can restrict entry to 25 kHz names.
+
+**Memories.** 20 user slots, optionally named (up to 8 characters), and a list of
+the last 10 active frequencies. Recall: `MEM`, turn the VOL/SEL knob, then `▲▼` for
+active or `SET` for standby. Save: set the frequency as standby, hold `MEM`, turn
+the knob to a slot, press `MEM` briefly; a `>` confirms.
+
+**Dual watch.** With one receiver, dual watch listens mainly to the standby
+frequency and samples the active one at intervals; a signal on the active one takes
+priority. Transmission is always on the active frequency. Changing either
+frequency ends dual watch. It needs squelch of at least 1. The pilot swaps before
+answering a call heard on standby.
+
+**Typical use.** Before engine start: with avionics power on, switch on (unless
+AUTO ON), check that `BAT` is absent, set the volume, check that squelch is at
+least 1. Before take-off: the first frequency in standby, swap, then the next
+frequency in standby. In flight: swap at each hand-off; optional dual watch; the
+pilot saves frequencies to memory when it helps. After landing: hold `I/O` about 3 s
+to switch off before the avionics master goes off. The manual has no checklist;
+these steps are assembled from its functions.
+
+**Uncertain.**
+
+- AUTO ON on D-MPGO: **assumed (unverified)** on (§9 question 35).
+- Whether the original ATR833-OLED has the II's REPLAY, last-10 list, named
+  memories, split sidetone items or other II features; whether anything is printed
+  at the lower-right knob (§9 question 36).
+- The manual contradicts itself on several small points: the MEM hold time; whether
+  a save stores the active or the standby frequency (the key table, §2.1, and the
+  worked example say standby, the display table, §2.3, says active); whether REPLAY needs a hold or a press; the volume range
+  (1 to 20 or 0 to 20); how a list is left (`DW` or `SET`); and a memory-clear hold
+  of `►` that only a flow chart shows. The trainer's choice for each is in the
+  Trainer paragraph below or the M18 plan.
+- The cursor fields in 25 kHz spacing, and where the cursor starts after power-on
+  or a swap, are not stated.
+
+**Trainer (M18).** The `atr833` device models: power (any press switches on while
+powered, a hold switches off), active and standby frequencies of 8.33 kHz names
+with the three-field cursor (fixed spacing; fields wrap without carry, **assumed
+(unverified)**), swap, dual watch, the MEM list (20 unnamed slots) and the LST list,
+saving the standby frequency to a slot, the SET items VOL to BRT as numbers, and
+the menu time-out. Power arriving switches the unit on (AUTO ON assumed, §9 question
+35); frequencies, settings and memories survive power loss. It leaves out reception,
+transmission and audio (so no `RX`, `TX`, `Te`), REPLAY, the setup menu, memory names
+and clearing, the `BAT` warning, the start screen, factory reset and every external
+interface. The lower-right knob prints `FREQ`, which is the manual's name and not
+visible lettering (§9 question 36).
+
+#### 3.8.2 Transponder: funkwerk TRT800H-OLED
+
+**Identification.** A round 57 mm funkwerk Mode S transponder with a yellow OLED, in
+no visible bezel (corrected from the photos): the disc sits directly on the panel, with three screws and the knob in the corners of its bounding square, and `ATC` printed vertically on the left. It is
+the TRT800H-OLED: the TRT800A-OLED is a different, rectangular unit with seven
+buttons (it adds a `FID` key and letters its mode key `MOD`) in another layout, so the round 57 mm body
+settles the variant. The older Filser TRT800 (a
+square face with four knobs and an LCD) is a different face. Certainty: high on the
+family and variant, from the housing; the software version and cradle contents are
+not visible (§9 question 37).
+
+**Panel position.** Upper-centre field, bottom row, right unit: below the GPS, right
+of the COM radio and next to the right-hand breaker rows. Its knob takes the lower
+right corner.
+
+**Source.** f.u.n.k.e. AVIONICS GmbH, "TRT800H Mode-S Transponder, OLED/LCD,
+Operation and Installation", document 03.2126.010.71e, revision 3.00 (15 Mar 2021),
+downloaded from the manufacturer's own site (§2a item 7). One manual covers the LCD
+and the OLED; their controls are identical.
+
+**Face.** Top row, three push keys printed `I/O`, `VFR`, `ID`. A four-line display in
+the middle, `ATC` printed vertically at its left. Bottom row, three push keys
+printed `MODE`, `▲▼` (an up and a down triangle, side by side, up first) and `►`; the logo under the row. One
+rotary knob at the lower right with no printed legend. The manual sometimes writes
+the swap glyph as `▼▲`; the face prints up then down, side by side (corrected from
+the photos: not stacked).
+
+**Face layout (photos).** Unit box, origin and corner conventions as for the COM
+radio (§3.8.1): the bounding square of a disc of diameter D (57 mm), centre (0.5, 0.5),
+radius 0.5. Source: the owner's photos (§3.7). The conventions are those of the §3.8
+introduction.
+
+- **Outline.** The same disc as the COM radio: matte near-black (hint #0c1a20), a
+  thin lighter rim highlight, no chrome ring and no visible square body (corrected
+  from the photos: §3.8.2 used to say "square bezel"). It sits directly on the
+  light brushed-aluminium panel (§3.7.1) with no frame, box or label strip.
+
+_Printed lettering_ (white, bold, uppercase sans, as on the COM radio; legends stand
+above the keys, never on a cap):
+
+| Item         | Position and size                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `ATC`        | Three upright letters stacked top to bottom (A, T, C). Column centre x 0.068, spanning y 0.43 to 0.61; each letter about 0.05 D tall |
+| Key legends  | As on the COM radio. There is no curved legend on this unit                                                                          |
+| Maker's logo | Footprint at the bottom centre, x 0.38 to 0.62, y 0.90 to 0.97. **Not reproduced**: the area stays blank                             |
+
+_Keys_: six round caps in two rows of three, diameter about 0.10 D. The top row is
+centred at x about 0.53, offset to the right of the COM radio's. Pitch is about 0.155
+D on top and about 0.165 D on the bottom row.
+
+| Key    | Legend                                                                                     | Legend centre (x, y) | Cap centre (x, y) |
+| ------ | ------------------------------------------------------------------------------------------ | -------------------- | ----------------- |
+| `I/O`  | `I/O`                                                                                      | 0.375, 0.095         | 0.37, 0.17        |
+| `VFR`  | `VFR`                                                                                      | 0.535, 0.09          | 0.535, 0.17       |
+| `ID`   | `ID`                                                                                       | 0.686, 0.085         | 0.69, 0.165       |
+| `MODE` | `MODE`, a wide word about 0.14 D across                                                    | 0.33, 0.77           | 0.33, 0.85        |
+| change | `▲▼`, up-triangle then down-triangle side by side (corrected from the photos: not stacked) | 0.495, 0.763         | 0.50, 0.85        |
+| cursor | `►`                                                                                        | 0.657, 0.755         | 0.66, 0.845       |
+
+**Low confidence, optional**: in all the photos the `I/O`, `ID`, `▲▼` and `►` caps
+look dark grey, slightly lighter than `VFR` and `MODE`, which look black. This may be
+wear or gloss.
+
+_Knob_: one, outside the disc at the lower right, centre (0.91, 0.92), diameter about
+0.15 D. A black knurled skirt with a light grey or white circular end cap about 0.6
+times the knob diameter, crossed by a dark straight line that acts as pointer or slot.
+The face prints no legend for it.
+
+_Screws_: three silver Phillips screws, diameter about 0.10 D, at the upper left
+(0.10, 0.11), the upper right (0.92, 0.08) and the lower left (0.09, 0.94).
+
+_Display_ (yellow OLED). A black glass window, x 0.13 to 0.84 and y 0.24 to 0.63, with
+the COM radio's bevel cues; the lighter line along its bottom edge (y about 0.62) is
+quite visible. Every line, `STBY` included, is the same warm yellow as the COM
+radio's (hint #f0d840) on black.
+
+| Line | Centre y | Content and alignment                                                                                                                                   |
+| ---- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 0.33     | The four-digit squawk code, right edge at x about 0.69, spanning x 0.50 to 0.695. It is not pushed to the window's right edge                           |
+| 2    | 0.475    | The pressure-level readout `FL 000` in small glyphs, about 0.04 D tall (about 0.6 times the digit height), x about 0.46 to 0.64                         |
+| 3    | 0.565    | The status word `STBY` in large glyphs, as tall as the digits and not condensed, at x 0.18 to 0.40; a second four-digit value follows at x 0.47 to 0.69 |
+
+Digits are about 0.067 D tall with an advance of about 0.049 D; `STBY` takes about
+0.055 D per character. The values form a column whose right edge is near x 0.69, and
+the window right of x 0.70 stays empty. One photo caught line 2 mid-refresh (dashes
+at the left, then `FL 000`); treat it as a refresh frame, not as a layout. The code
+and level shown are illustrative only.
+
+_Not visible_: the display in other modes (ALT, ON, ident), the knob's detents and
+function legend, and key backlighting.
+
+**Controls** (the manual's names in parentheses).
+
+| Control        | Press or turn                | Effect                                                                                                                            |
+| -------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `I/O` (on/off) | about 0.5 s                  | switches on                                                                                                                       |
+| `I/O`          | about 3 s                    | switches off                                                                                                                      |
+| `VFR`          | short                        | makes the VFR code active; the old active code goes to standby and the standby place reads `VFR`                                  |
+| `VFR`          | about 3 s                    | stores the current active code as the new VFR code (an `S` shows, then `VFR`)                                                     |
+| `▲▼` (change)  | short                        | exchanges active and standby; while a value is edited it moves the cursor back; while `VFR` shows it shows the standby code again |
+| `ID` (ident)   | short                        | sends the ident pulse for 18 s, `IDT` on line 3                                                                                   |
+| `ID`           | held in STBY                 | a counter opens the Flight-ID, setup and altitude-correction menus by release point (not modelled)                                |
+| `MODE`         | short                        | steps the operating mode; also confirms picks in menus                                                                            |
+| `►` (cursor)   | short                        | puts the cursor on a standby digit and moves it on                                                                                |
+| `►`            | about 2 s, in an active mode | opens display brightness, `DIM` (not modelled)                                                                                    |
+| knob           | turn                         | changes the digit under the cursor; selects records and brightness                                                                |
+
+**Display.** Top line: the mode (`ACS`, `A-S`) at the left and the active code at the
+right, with a solid diamond for a reply and a bar for a lock-out. In STBY the mode
+text moves to the bottom line as `STBY`. Line 2: error codes at the left (PLL, TRX,
+DC, FPG), `BAT` or `DIM` at the right. Line 3: `IDT` at the left during ident, the
+flight level (`FL 030`, in 100 ft steps) at the right; `FLerr` for an invalid altitude
+outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code at the
+right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
+switch if one is fitted. `TM` at the far right of the top line marks test mode.
+
+**Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
+software versions. If the cradle's external memory holds several aircraft records, a
+list by 24-bit address appears; the pilot picks one with the knob and confirms with
+`MODE`. With no memory or no address the unit shows `Cradle OFF` and works only as a
+Mode A/C transponder. It then starts in STBY, except that with a ground switch
+fitted and in-flight state selected it starts active. It keeps its codes, VFR code,
+brightness and altitude offset itself.
+
+**Squawk entry and swap.** The active code is on the top line, the standby code on the
+bottom. Press `►` to put the cursor on a digit, turn the knob, press `►` for the next
+digit; `▲▼` makes the standby code active and the old active code standby.
+
+**Modes.** `MODE` cycles STBY, ACS (Mode A, C and S, the normal mode) and A-S (A and
+S without altitude). Without a 24-bit address the choices are AC- and A-- besides
+STBY. There is no separate ALT position: ACS reports altitude. STBY makes the
+aircraft invisible to ATC and to collision-avoidance systems: the manual says not to
+use it in flight unless asked, and to select an active mode before take-off.
+
+**Typical use.** Before engine start: with avionics on, switch on; check the start
+screen and that `Cradle OFF` is absent. Before take-off or at line-up: set the
+assigned code or VFR, then `MODE` until `ACS`; never take off in STBY. In flight:
+`ID` only when ATC asks; change codes through the standby code and `▲▼`. After
+landing: the manual gives no step; the derived one is `MODE` until STBY. At shutdown:
+hold `I/O` about 3 s. The manual has no checklist; the steps are assembled from its
+functions. The manual does not mention emergency squawks.
+
+**Uncertain.**
+
+- The set-up of D-MPGO's unit: whether a Mode S cradle with a 24-bit address is
+  fitted, whether a ground switch is, and the stored VFR code (§9 question 37). The
+  trainer's choice below is **assumed (unverified)**.
+- A second `VFR` press while VFR is active: one passage says activate or deactivate,
+  another says it shows the standby code and VFR stays active. The trainer follows the
+  second reading.
+- The counter thresholds of the held-`ID` menus, and the
+  cursor behaviour after the last digit, which the manual does not state.
+
+**Trainer (M18).** The `trt800h` device models: power (a press switches on, in STBY;
+a hold switches off), the mode cycle STBY, ACS and A-S, active and standby codes with
+the cursor and the knob (digits 0 to 7), swap and cursor-back, the VFR key with its
+store hold, ident for 18 s in an active mode, and the flight level taken from the
+pressure altitude (`FLerr` outside the valid range). A Mode S cradle is assumed
+fitted, with no ground switch (§9 question 37); initial codes 2000 and VFR 7000 are
+placeholders and the factory VFR value. It leaves out interrogations, replies and the
+lock-out and reply indicators, squitter and ADS-B, Flight-ID and setup menus,
+operation without the cradle address, brightness, error codes and the `BAT` warning,
+test mode, the ground-switch state, the start screen and the remote head. The knob
+prints `CODE`, the trainer's word; the unit prints nothing there.
+
+#### 3.8.3 GPS: Garmin aera 500
+
+**Identification.** Confirmed: the bezel prints the model; a landscape touchscreen
+in a dark cradle frame that stands proud of the panel. The photos do not show whether
+the cradle is Garmin's own mount or an aftermarket dock, nor the software version.
+
+**Panel position.** Upper-centre field, middle, roughly centred: below the FLARM
+display and the checklist placard, above the COM and transponder row. A small paper
+label is stuck to the panel just below it.
+
+**Source.** Garmin, "aera 500 Series Pilot's Guide" (models 500, 510, 550, 560),
+document 190-01117-02, revision C (Aug 2012), system software 4.10 or later. Its
+copyright notice allows personal viewing and forbids reproduction: paraphrase only,
+no icon, figure or screen copied. Options of the 510 and 560 (weather, XM radio) and
+of the GDL 39 (traffic) do not apply to a plain aera 500.
+
+**Face and controls.** A 4.3 inch colour touchscreen in landscape. Exactly one
+physical control: the POWER button. The photos show the front face has no keys (corrected from the
+photos); the button's place is **assumed (unverified)**: a raised bump on the cradle frame's top edge at the right is consistent with it, and no legend is visible (see the face layout below). Its lettering is not visible. Everything else is a touch icon that appears with the page.
+POWER: a long hold switches the unit on or off; with external power connected, a long
+hold enters Charge Mode (screen off, battery charging) instead of switching off; a
+short press opens a quick overlay for backlight brightness and volume. In the
+aircraft the unit sits in a cradle that supplies power and audio.
+
+Touch icons by name: **Home** (back to the Home screen), **Back** (previous page;
+held, Home), **OK**, **Menu**, a combined **Menu / Direct-to** icon, **Up** and
+**Down** arrows, **Direct-to**, **Out** and **In** (map range), **Cancel**, and a
+keypad (OK, BKSP, Numeric, Alpha, Cancel) when a text field is touched. A touched
+icon briefly turns blue.
+
+**Face layout (photos).** Unit box: the outer cradle frame, true width to height
+about 1.67 to 1.70, origin at the top left. Screen content is also given in a nested
+frame (sx, sy), both from 0 to 1 across the screen. Source: the owner's photos
+(§3.7). The conventions are those of the §3.8 introduction.
+
+- **Cradle frame.** A near-black charcoal rounded rectangle (hint #252f37), outer
+  corner radius about 0.09 H. Band widths: left 0.055 W, right 0.05 W, top 0.07 H,
+  bottom 0.075 H. It stands proud of the panel and casts a slight shadow; a thin
+  darker seam (about 0.01) separates it from the unit's body.
+- **Top-edge features** (corrected from the photos: the front has no keys, §3.8.3
+  used to leave the POWER place open). A raised dark bar, the cradle's latch or top
+  rail, sits on the frame at x 0.33 to 0.61 and protrudes about 0.03 H above the top
+  edge. A shorter raised bump sits at the top right, x 0.81 to 0.92: it is
+  consistent with the aera's power key on its top edge, and no legend is visible.
+  The aera's physical POWER key is **not on the front face**.
+- **Body (the unit's bezel).** A dark neutral grey clearly lighter than the cradle
+  (hint #4a4b50), x 0.066 to 0.945 and y 0.075 to 0.925, corner radius about 0.05 H.
+  A slightly lighter lip runs along the bottom inner edge. The bottom band is taller
+  than the top band (0.125 H against 0.075 H).
+- **Light sensor.** A small dark dot on the right band at (0.92, 0.44), diameter about
+  0.012 W.
+- **Brand lettering.** Brand and model lettering in the body's lower left, x 0.11 to
+  0.31, y 0.89 to 0.93. **Not reproduced**: the area stays blank.
+- **Controls on the front.** None. No keys, knobs or joystick; the face is a
+  touchscreen only.
+
+_Screen_: x 0.151 to 0.838 and y 0.150 to 0.799 in unit coordinates. Landscape 16:9
+(a 480 by 272 pixel panel), square corners, a thin black inner frame about 0.008
+wide. The side bands are about 0.08 W (left) and 0.10 W (right).
+
+_Soft-key column_ (part of the display; the Map page): at sx 0.83 to 1.00, the right
+17 percent of the screen at full screen height. Four keys top to bottom: `Out`, `In`,
+`Menu`, `Home`. Each takes about a quarter of the height (sy 0 to 0.25, 0.26 to 0.49,
+0.51 to 0.73, 0.75 to 1.0) with thin gaps. Each is near-black or charcoal with a
+slightly lighter top gradient and a thin light separator. A white pictogram fills the
+upper 60 percent (a magnifier with a minus, a magnifier with a plus, a page or list,
+a house) and a bold white label stands centred in the lower 35 percent.
+
+_Map page_ (the only page the photos show), at sx 0 to 0.83: a VFR-chart look with
+light yellow-green land, thin grey-blue lines, a thick blue river, thick red lines,
+dotted light-blue airspace lines and small white labels with a dark outline. **Chart
+content is not reproduced**: no real names or geography; the trainer draws a generic
+chart. Overlays carry no boxes: small bold white field labels with a dark outline,
+each over a dashed value line.
+
+| Field       | Position (sx, sy)                        |
+| ----------- | ---------------------------------------- |
+| `GS`        | top left, 0.10 to 0.135, 0.04 to 0.07    |
+| `ETE NEXT`  | top right, 0.68 to 0.82, 0.02 to 0.07    |
+| `BRG`       | bottom left, 0.075 to 0.13, 0.83 to 0.87 |
+| `DIST NEXT` | bottom right, 0.63 to 0.79, 0.82 to 0.86 |
+
+A white double-line range arc, about a semicircle, runs from (0.055, 0.54) over an
+apex near (0.42, 0.14) to (0.79, 0.54). The white own-ship symbol stands near (0.40,
+0.87). A small "detail map" tag sits at sx 0.47 to 0.59 and sy 0.93 to 0.98.
+
+_Not visible_: the Home menu page, the start-up and database pages, any legend on the
+power key, the side-edge controls (the card slot), and the backlight-off look.
+
+**Power-on.** External power switches the unit on by itself. First use runs AutoLocate,
+which can take several minutes. A database initialisation page lists each database's
+dates and cycle; the pilot reviews it and touches **Press To Accept**. Then Home
+appears with GPS signal bars. The receiver's status text runs Autolocate, Searching
+the Sky, Acquiring Satellites, 2D GPS Location (three satellites), 3D GPS Location
+(four) or Lost Satellite Reception. The unit is a VFR aid only.
+
+**Pages.** Home is a grid of large icons: Map, Terrain, HSI/Panel, Nearest, Traffic,
+Active FPL, WPT Info, Direct To, Position, Weather and XM Radio (those two on
+options), Tools. Nearest lists airports, VORs and other items by distance; Tools holds
+Setup, user waypoints, logs, the flight-plan list, calculators, GPS Status and more.
+The **Map** shows the aircraft symbol, the active leg in magenta, airports, navaids,
+airspace and terrain shading, four data fields across the top (defaults GS, DIST NEXT,
+VSR, ETE NEXT; many others available, among them BRG and DTK), a compass arc, and
+the range at lower right in 23 steps from 200 ft to 800 nm. Orientation is North Up by
+default, Track Up or DTK Up from the map setup. On a loss of GPS a blinking red question
+mark sits over the aircraft symbol and the GPS-based fields go blank. The **GPS
+Status** page shows a sky view and a signal bar per satellite.
+
+**Direct-to and flight plan.** Direct To: choose the target by identifier, name or
+city (keypad, OK), or from the plan, nearest airports or recent waypoints; touch
+Activate. Stop Navigation ends it. A flight plan is built on Active FPL with "Touch to
+add Waypoint" and activated from the plan list. The unit has no radio tuning, no
+squawk entry and no swap.
+
+**Settings a trainer may touch.** Backlight level and time-out, day or night colours,
+sound volumes, alarms, power-loss warning, simulator mode.
+
+**Typical use.** Before engine start: external power switches it on; accept the
+databases; check GPS Status reaches a 3D fix; select the Map, or set a Direct-to.
+Before take-off: confirm the active route on the Map, range and orientation. En
+route: Map, HSI/Panel and Terrain pages; Nearest and Direct-to for a diversion. After
+landing: Stop Navigation. Shutdown: hold POWER (cradle power keeps it in Charge Mode;
+the guide advises disconnecting external power if the aircraft stands for days).
+The guide has no checklist; these steps are inferred from its functions.
+
+**Uncertain.**
+
+- What cradle power loss does: switch the unit off or keep it on battery (§9 question
+  38). The guide covers only power-on on external power and Charge Mode.
+- The exact Home grid order and size, the layout of the POWER overlay, and any lettering
+  on the POWER button (the trainer prints `POWER`, **assumed (unverified)**).
+- D-MPGO's map orientation, data fields and software version; whether it has a traffic or
+  weather source (§9 question 38).
+- The club's start-up step for it (§9 question 38).
+
+**Trainer (M18).** The `aera500` device models: cradle power switching it on at the
+database-acceptance page, accepting (Home opens), a Map page (schematic, Track Up, range
+steps, the fields GS, ETE NEXT, BRG, DIST NEXT with GS live and the rest dashed because
+there is no route), pages for Nearest, Active FPL, Direct To, Position, Tools and GPS
+Status with the receiver status text, the POWER overlay for backlight, and a simulated
+fix found after a short search (spec §4.9). It leaves out the navigation database (so
+Nearest, Direct To and Active FPL stay empty and identifiers are not entered), map data,
+terrain, weather and traffic, the map pointer and panning, page menus, flight plans and
+guidance, alarms, messages, sound, the battery and Charge Mode, database dates, automotive
+and simulator modes, calibration and dimming. Its touchscreen is one control with a position
+per icon, shown only on the page that has it. Every icon prints the guide's name for it.
+
+#### 3.8.4 FLARM display: classic external LED display
+
+**Identification.** A small rectangular dark face with rounded corners, about 1.8 times as wide
+as tall, LED-only, with a FLARM wordmark, four status LEDs, a square push button
+printed `Mode` on the face, two LEDs printed `above` and `below`, and an aircraft outline ringed by
+ten direction LEDs (pairs flank the nose and the tail, no LED at 12 or 6 o'clock). That is
+16 LEDs and one button: the classic external display of the FLARM system. **It is not
+round 57 mm.** The owner's expectation of a round display does not hold; the owner
+decided on 2026-10-10 to build the rectangular display (§2a item 5). Round displays with a
+screen (other makers) are rejected, as are the LXNAV LED displays with bicolour LEDs and a
+five-LED status column. Two things the photos cannot show: whether the face is a separate
+display or the front of a panel unit, and which FLARM unit drives it (§9 question 39).
+Which maker of the two similar classic displays this is rests on the labels `above`,
+`below`, `RX`, `TX`, `GPS`, `Power` and `Mode`, and on the EDIATec sheet's red-only ring LEDs (the photo identification
+does not give the ring colour).
+
+**Panel position.** Upper-centre field, top-left corner: above the GPS, left of the
+take-off checklist placard and just below the glareshield strip.
+
+**Sources.** EDIATec GmbH, "External display from FLARM", operating manual V 5.1e
+(18 Apr 2011), for display hardware 1.0 and 2.0; for everything it does not describe,
+FLARM Technology, "Operating Manual FLARM Collision Avoidance System", version 242
+(18 Dec 2016), for units F6 to F9, and the legacy manual for F4/F5, version 5.00E
+(1 Mar 2011). Third-party documents: paraphrase only (§2a item 7).
+
+**Face.** At the top left the FLARM wordmark. Under it a column of four green status
+LEDs printed, top to bottom, `RX`, `TX`, `GPS`, `Power`. Right of that the `Mode` key,
+the only control, a square key on the face itself. Right of the key a thin vertical bar
+with the `above` LED at its top and the `below` LED at its bottom, their labels on its
+left (hardware 2.0 only; corrected from the photos: they are not at the ring's edge).
+Right of the bar an aircraft symbol pointing up inside a ring of ten LEDs (red per
+the sheet; the photos show them unlit) at 36 degree steps, the first at 18 degrees
+and the last at 342 degrees clockwise from the nose, the ring centred about three
+quarters across the face. A sound emitter sits behind the symbol. No power switch:
+the display takes power from the FLARM unit, and FLARM is on whenever it has supply.
+
+**Face layout (photos).** Unit box: the rounded-rectangle face. x is a fraction of the
+face width W and y of its height H; W:H is about 1.8 (plausible range 1.65 to 1.9),
+origin at the top left. Source: the owner's photos (§3.7). The conventions are those
+of the §3.8 introduction.
+
+- **Outline.** A rounded rectangle, corner radius about 0.08 H. Colour: dark slate
+  navy (hint #323b4f), clearly bluer and lighter than the radio discs. A thin
+  darker edge or shadow runs round it.
+- **No screen.** Everything is an LED or printed line on the flat face, and the
+  Mode key sits **on** the face, with no separate housing (corrected from the
+  photos: it is a square outline and cap inside the face box). Screws are not visible.
+
+_Printed artwork_ (thin white or light grey lines and text):
+
+| Item               | Position and size                                                                                                                                                                                                                                              |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wordmark footprint | Top left, x 0.06 to 0.27, y 0.15 to 0.33. **Not reproduced**: the logo has its own lettering style and a red mark. A plain unit word in the panel's generic type (the trainer prints uppercase FLARM, plan addendum D20) may stand there, with no logo styling |
+| Status labels      | `RX`, `TX`, `GPS`, `Power` (only `Power` is in mixed case). White sans, cap height about 0.075 H, left-aligned at x 0.13, centred vertically on their LEDs                                                                                                     |
+| `above`            | Lowercase, about 0.06 H, right-aligned to end at x 0.47 (spanning about 0.34 to 0.47), centred at y 0.165                                                                                                                                                      |
+| `below`            | Lowercase, about 0.06 H, spanning about 0.355 to 0.47, centred at y 0.835                                                                                                                                                                                      |
+| Vertical bar       | A thin light line at x 0.497 joining the `above` LED to the `below` LED, y 0.20 to 0.80                                                                                                                                                                        |
+
+_Aircraft outline_ (top view, one thin light line): a straight-wing light aircraft or
+glider, **not** a swept-wing jet.
+
+- Fuselage along x about 0.735 with a rounded nose at y 0.23, tapering to the tail at
+  y 0.73; width about 0.04 to 0.06 W.
+- A long, thin, straight wing drawn as a pill shape, x 0.60 to 0.87 at y 0.45 to 0.53
+  (chord about 0.07 H).
+- A short straight tailplane, x 0.68 to 0.79 at y 0.70 to 0.75.
+- Ten thin straight light spokes run radially from the outline to each direction LED
+  and continue about 0.05 H past it as a short tail.
+
+_LEDs_: 16 in all. Each is a round dome of diameter about 0.055 H (about 0.03 W).
+Unlit it looks milky white or light grey. A lit status LED is a bright yellow-green
+with a glow (hint #9be04a).
+
+| Group                              | Positions (x, y)                                                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status column (below the wordmark) | x 0.10; `RX` y 0.47, `TX` 0.59, `GPS` 0.705, `Power` 0.82 (pitch about 0.117 H)                                                                |
+| `above` and `below`                | (0.50, 0.165) and (0.50, 0.83)                                                                                                                 |
+| Direction ring                     | Centre (0.734, 0.485), radius about 0.33 H in true units; ten LEDs at bearings of ±18, ±54, ±90, ±126 and ±162 degrees clockwise from the nose |
+
+The ring pairs flank the nose and the tail; no LED stands at 12 or 6 o'clock.
+Measured ring positions, for checking: nose pair (0.671, 0.150) and (0.786, 0.150);
+(0.586, 0.281) and (0.875, 0.268); 9 and 3 o'clock (0.557, 0.49) and (0.91, 0.477);
+(0.593, 0.693) and (0.879, 0.68); tail pair (0.686, 0.817) and (0.793, 0.817).
+
+_Mode key_ (the only control, on the face between the status column and the
+`above`/`below` bar):
+
+- Outer frame: a thin light-grey rounded-square outline, x 0.28 to 0.47 and y 0.38
+  to 0.75, near-square in true units.
+- Cap: inside the frame, x 0.31 to 0.44 and y 0.43 to 0.70, darker than the face
+  (near-black navy) with a faint light rim.
+- Lettering: `Mode` is printed **on the cap**, centred at (0.375, 0.57), white, title
+  case, cap height about 0.07 H.
+
+_Not visible_: the lit colour of the direction LEDs and of `above`/`below` (all unlit
+in every photo), blink timing (`RX` and `TX` are lit in one photo and off in two),
+screws, and the unit that drives the display.
+
+**Status LEDs.** `RX` is lit while another FLARM aircraft is within the set range (3 km
+by default) and 500 m vertically, and flashes while warnings are suppressed but traffic is
+received. `TX` is lit while the unit transmits, which needs GPS. `GPS` is lit with a brief
+blink each second; dark with a brief flash each second means no fix, which can last
+minutes after switch-on. `Power` is lit in normal operation and flashes below 8 V supply,
+when FLARM stops working.
+
+**Start-up.** Supply arrives, a short beep, the display shows its own two-digit software
+version on the ring (one LED per digit), a self-test lights the ring one LED after another
+clockwise, then `above`, `below` and the status LEDs, then the unit's three-digit software
+version the same way. The display then starts in Nearest mode at loud volume. FLARM waits
+for a GPS fix. Before departure `Power`, `GPS` and `TX` must be steady, and they must stay
+so for the flight.
+
+**The `Mode` key** (by how long it is held; most timings are the FLARM unit's, since the
+display sheet describes only the differences).
+
+| Push                                | Effect                                                                                                                                                             |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| brief (under 0.8 s)                 | volume loud, medium, quiet, silent, loud, with a tone at the new level                                                                                             |
+| about 2 s                           | swaps Nearest and Collision (called Warning in places); two ring LEDs run top to bottom into Nearest and bottom to top out of it; the mode is not shown afterwards |
+| 5 to 8 s, on the ground             | receiver self-test: the unit counts what it receives at half sensitivity and shows it (not modelled)                                                               |
+| double push                         | suppresses all traffic and obstacle signals for 5 minutes, another double push ends it (not modelled)                                                              |
+| over 8 s (F4/F5) or 11 s (F6 to F9) | reboot (not modelled)                                                                                                                                              |
+| over 20 s                           | factory reset (not modelled)                                                                                                                                       |
+| held while power arrives            | display setup for brightness, front or rear seat, the unit's own LEDs and sound, and the baud rate (not modelled)                                                  |
+
+**Traffic and warnings** (not modelled, spec §4.9). In Nearest mode one steady LED shows
+the bearing of the nearest received aircraft. A collision prediction flashes the LED
+towards the most threatening object relative to the own ground track, at 2, 4 or 6 Hz
+by urgency, with a rising beep; `above` or `below` lights for a target more than about 7
+degrees above or below; fixed obstacles flash the two topmost LED pairs in turn.
+Only the single most dangerous threat is shown. Faults flash all four status LEDs for
+30 s with a binary code on the red LEDs.
+
+**Typical use.** Before engine start: the FLARM supply is on (switch or breaker, §9
+question 33); the beep, version display and self-test follow; choose volume and mode.
+Before take-off: `Power`, `GPS` and `TX` steady (§9 question 34); an optional receive
+test on the ground. In flight: mode by a 2 s push, volume by brief pushes, double push to
+suppress. After landing: wait at least a minute before removing power or the end of the
+flight log is lost; power goes with the aircraft's FLARM supply, since the display has no
+switch. The system is for day VFR only and not for navigation. These steps are assembled
+from the manuals; there is no checklist.
+
+**Uncertain.**
+
+- Whether each timing above holds for this display; the sheet defers to the unit's manual
+  (§9 question 39).
+- Whether a brief push sets the display's own volume or the unit's; whether the status
+  LEDs repeat the unit's exactly, fault codes and the low-supply flash included.
+- The display hardware version (the 16-LED count implies 2.0), the FLARM unit it is
+  paired with, and so the reboot hold (§9 question 39).
+- The FLARM supply and its breaker (§9 question 33).
+- The default display setup values, read from bold marks in a figure, are a small risk
+  and unused.
+
+**Trainer (M18).** The `flarm` device models: power from the avionics bus with no breaker
+of its own (**assumed (unverified)**, §9 question 33), the start-up self-test, a GPS search
+that runs from the moment power arrives, the four status LEDs (`Power` lit or flashing below
+8 V; `GPS` dark-flashing then lit-blinking; `TX` lit once the fix is found and supply is
+good; `RX` dark, there is no traffic), the volume steps, and the Nearest and Collision
+swap with its confirmation run, all acting on release by hold time. It leaves out traffic
+and obstacle warnings, the Nearest bearing, `RX`, the receiver self-test, suppression,
+sound (the volume level is kept but never heard), the version display, reboot, factory
+reset, display setup, fault codes and flight recording. The trainer's timings for the
+self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
+the manuals give none.
+
 ## 4. Limits and values used by the trainer
 
 Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
@@ -717,7 +1492,7 @@ lands nose wheel first. Safety pin in on the ground, removed before take-off
 | `parking`         | yes       | 0   | 0              | cold, everything off, fuel valve closed, key out, pin in, parking brake set        |
 | `taxiOut`         | yes       | 0   | 0              | as `holding` but low power and parking brake released; oil temp a trainer estimate |
 | `holding`         | yes       | 0   | 0              | warm (oil ≥ 51 °C), idle, GEN on, avionics on, flaps 0°, parking brake set         |
-| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ALT |
+| `linedUp`         | yes       | 0   | 0              | as `holding` after N6: parking brake released, flaps 15°, pin out, transponder ACS |
 | `departure`       | no        | 57  | 200            | full throttle, flaps 0° (N7 retracts above 50 m), climbing                         |
 | `cruise`          | no        | 108 | 2500           | cruise power (about 4800 rpm), flaps −12°; speed is a trainer estimate             |
 | `approach`        | no        | 59  | 500            | low power, flaps 15°, landing light on, descending                                 |
@@ -734,16 +1509,22 @@ whenever the engine runs; the landing light is not needed in cruise.
 
 Assumed (unverified), from general-aviation practice, for the running phases: the
 intercom is on whenever the engine runs (N16 switches it off); the transponder is
-off while taxiing out and at the holding point until N6 sets it, at ALT from line-up through `taxiIn`, and
+off while taxiing out and at the holding point until N6 sets it, at ACS from line-up through `taxiIn`, and
 at standby in `parkingSecuring`; the landing light is on from the approach until N15
 switches it off; the vertical speed indicator shows about +3 m/s in `departure` and
-about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state as well as device
-controls (#476): the transponder squawks 7000 (German VFR, SERA) from `linedUp`
-through `parkingSecuring`, and the GPS is on at its map page from `linedUp` through
-`taxiIn`; both assumed (unverified). Before that the two stay at their power-on state.
-The GPS also starts with its position fix in those phases, so the map page shows ground
-speed and track (taken from the airspeed and heading) at once; switched on by hand it
-searches first. The fix and the ground speed and track it shows are assumed (unverified).
+about −2 m/s in `approach` (on the ft/min dial of §4.3, about +600 and −400 ft/min). The phase entry seeds device state
+(#476; since M18 the transponder's MODE is a key, so no phase presets a device control):
+the transponder is on and squawks 7000 (German VFR, SERA) from `linedUp` through
+`parkingSecuring`, at ACS until `taxiIn` and at STBY in `parkingSecuring`; the GPS is on
+at its map page and the FLARM display ready, each with its position fix, from `linedUp`
+through `parkingSecuring`, so neither restarts its start-up page or self-test when the
+parking-and-securing leg begins. All assumed (unverified). The COM radio has no seed: it
+switches on with avionics power (§9 question 35). Before `linedUp` every unit starts as
+power finds it: at the holding point the GPS is at its database page and the FLARM runs
+its self-test and searches. The map page shows ground speed and track (taken from the
+airspeed and heading) at once in the seeded phases; powered up at the holding point the
+units search first. The fix and the ground speed and track it shows are assumed
+(unverified).
 
 The `cruise` speed is not a handbook figure: it lies between max range cruise
 (180 km/h at 4300 rpm) and VH (240 km/h at 5500 rpm) of §4.1.
@@ -791,12 +1572,14 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-transponder on, standby _(action: set the GTX 327 mode to standby, then a check that it is
-powered and at standby)_; GPS on (trainer addition, assumed, §9 question 32); choke
+transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
+and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
+questions 32 and 38; a pilot who accepted earlier ticks the acceptance, #692); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
-neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; FLARM
+Power, GPS and TX lit _(check, assumed, §9 question 34)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
@@ -831,7 +1614,8 @@ positive climb. A go-around with full flaps is acceptable.
 
 **N15 After landing (HB 4-4, 4-15).** Throttle idle; brakes as needed; carb heat
 off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
-accidental ELT activation _(confirm)_.
+accidental ELT activation _(confirm)_. Transponder to STBY: `MODE` twice from ACS, then a
+check that it shows STBY (trainer addition, the derived step of §3.8.2, #692).
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
@@ -1015,7 +1799,10 @@ verifies it on D-MPGO.
     a Garmin GPS whose plate reads like aera 500, a funkwerk COM radio and a
     funkwerk transponder (printed "ATC"); model names and software versions not
     legible. **Contradicts current trainer** (SL40, GTX 327, GPSMAP 496; decision 1
-    of §2).
+    of §2). **Answered 2026-10-10 (M18, §2a item 5):** aera 500, funkwerk ATR833-OLED
+    (generation open, question 36), funkwerk TRT800H-OLED, and a rectangular classic
+    FLARM LED display (§3.8). Software versions and the guide revisions on board stay
+    unknown (questions 36 to 39).
 15. **Club checklist card**: if the club has its own card, it is authoritative for
     wording (spec §7) and replaces §6 and §7 wording.
 16. **Handbook copy**: is AE04300003 Rev 01 the book on board D-MPGO, with no later
@@ -1127,9 +1914,9 @@ verifies it on D-MPGO.
     open; the handbook marks no memory items.
 
 24. **Phase start states**: which switches does the club have on in each phase? Today
-    (§5): intercom on while the engine runs, transponder ALT from line-up to taxi-in
-    and standby once parked, squawk 7000 from line-up and the GPS on at its map page
-    from line-up to taxi-in (#476), landing light on from the approach until N15, vertical
+    (§5): intercom on while the engine runs, transponder ACS from line-up to taxi-in
+    and standby once parked, squawk 7000 from line-up, and the GPS on at its map page and
+    the FLARM ready from line-up to parking and securing (#476, M18), landing light on from the approach until N15, vertical
     speed climbing in `departure` and descending in `approach`. No procedure step
     switches the landing light on (N12 says "as needed"), so the approach, landing
     and `taxiIn` entries carry it. **Answered by assumption pending owner
@@ -1282,3 +2069,60 @@ verifies it on D-MPGO.
     a carried leg keeps what the pilot did and re-seeds no device state (#519).
     **Assumed (unverified)**, from general-aviation practice, until the club
     confirms when its pilots switch each on.
+    **Update (M18):** the GPS is the aera 500, which starts with cradle power, so the
+    GPS step becomes accepting its databases, then opening its map page (§3.8.3,
+    question 38). The step is still **assumed (unverified)**.
+    **Trainer (M18, #678):** N6 presses the aera's Press To Accept, then its Map icon, right after the
+    transponder; the fix check stays after "radio set". The map step keeps the line-up
+    seed's map page true for a whole flight.
+33. **FLARM power source**: which breaker or switch feeds the FLARM display and its
+    unit? The breaker rows show no FLARM legend; Com, Nav, Transponder, GPS and others
+    exist (§3.7.1). Trainer uses: powered from the avionics bus with no breaker of its
+    own, so the "avionics off before engine start or stop" placard covers it and no
+    legend is added. **Assumed (unverified)** (§3.6, §3.8.4).
+    **Trainer (M18, #678):** the `flarm` install is powered by the avionics bus alone and reads its
+    voltage; the Com, Transponder and GPS breaker legends stay as they are.
+34. **FLARM check before take-off**: does the club check that Power, GPS and TX are
+    steady before take-off, as the FLARM manual asks? Trainer uses: one check in N6.
+    **Assumed (unverified)**, from the manual (§3.8.4).
+    **Trainer (M18, #678):** the check "FLARM: Power, GPS and TX lit" follows the GPS fix check in N6
+    and rings the Mode key; it passes once the self-test is over and the fix found.
+35. **ATR833 AUTO ON**: is the installer setting on, so the radio starts when avionics
+    power arrives, or must the pilot press `I/O`? Trainer uses: on, so no COM switch-on
+    step exists, as before. **Assumed (unverified)** (§3.8.1).
+    **Trainer (M18, #678):** the `atr833` switches on when the avionics bus and the Com breaker give it
+    power; no phase seeds it.
+36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
+    ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
+    II features the original may lack are unconfirmed: the last-10 list (LST), named
+    memories, the REPLAY of a call, the split sidetone items. Is anything printed at the
+    lower-right knob? Trainer uses: the II manual's behaviour for every control on the
+    face, REPLAY and names not modelled, and the knob printed `FREQ`. **Assumed
+    (unverified)** (§3.8.1).
+    **Trainer (M18, #678):** the dock prints `FREQ −` and `FREQ +`; the slot mirror draws both knobs as
+    plain discs, with no lettering.
+37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
+    ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
+    is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
+    knob printed `CODE`. **Assumed (unverified)** (§3.8.2).
+    **Trainer (M18, #678):** `radioAndTransponder` presses I/O (on, STBY), VFR (7000) and MODE (ACS),
+    N6 presses I/O and N15 presses MODE twice (STBY, #692); the seeded phases start the unit
+    on at ACS or STBY.
+38. **aera 500 on D-MPGO**: what happens when cradle power drops (off, or on battery)?
+    Which map orientation and data fields does the club use, and what is the start-up
+    step? Which software version, and is there a traffic or weather source? Trainer uses:
+    the unit starts with cradle power, the step is accepting the databases and opening
+    the map, orientation track-up (the unit's own default is north up), the fields GS,
+    ETE NEXT, BRG and DIST NEXT, no traffic or weather, and power loss switching it off.
+    **Assumed (unverified)** (§3.8.3).
+    **Trainer (M18, #678):** the aera starts at its database page whenever the GPS breaker and the
+    avionics bus give the cradle power; the seeded phases start it on the map page with
+    its fix.
+39. **FLARM display hardware, pairing and traffic**: is the display hardware 1.0 or 2.0
+    (the 16 LEDs imply 2.0), which FLARM unit is it paired with (the reboot hold depends
+    on it), and does the club want simulated traffic on the display? Traffic would
+    change the spec's scope (§4.9): a decision for the owner, with no code in M18. Trainer
+    uses: a 2.0 face, no traffic, the manual's push timings. **Assumed (unverified)**
+    (§3.8.4).
+    **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
+    lights only in the self-test and the Nearest and Collision confirmation.

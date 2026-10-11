@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
-import { copy, openPicker } from './trainer';
+import { copy, dockedUnit, openPicker } from './trainer';
 
 const procedure = ctslAircraft.procedures.radioAndTransponder;
 if (!procedure) throw new Error('The CTSL has no radioAndTransponder');
@@ -20,21 +20,19 @@ async function openInDock(page: Page) {
   await openPicker(page);
   await page.getByRole('button', { name: ctslAircraft.name.en }).click();
   await page.getByRole('button', { name: procedureTitle }).click();
-  await page.getByRole('radio', { name: copy.shell.guided }).check();
+  await page.getByRole('radio', { name: copy.shell.practice }).check();
   await page.getByRole('button', { name: copy.shell.startProcedure, exact: true }).click();
-  await page.locator('[data-placement="xpdr"]').getByRole('button').click();
-  const dock = page.getByRole('region', { name: 'Device dock' });
-  return dock.getByRole('group', { name: 'gtx327', exact: true });
+  return dockedUnit(page, 'xpdr', 'trt800h');
 }
 
 for (const viewport of viewports) {
-  test(`every GTX 327 control is at least 44 px at ${viewport.width}x${viewport.height}`, async ({
+  test(`every TRT800H control is at least 44 px at ${viewport.width}x${viewport.height}`, async ({
     page,
   }) => {
     await page.setViewportSize(viewport);
     const unit = await openInDock(page);
     const buttons = unit.getByRole('button');
-    expect(await buttons.count()).toBe(20);
+    expect(await buttons.count()).toBe(8);
 
     const sizes = await buttons.evaluateAll((elements) =>
       elements.map((element) => {
@@ -42,11 +40,6 @@ for (const viewport of viewports) {
         return { name: element.textContent ?? '', width, height };
       }),
     );
-    const smallest = Math.min(...sizes.flatMap(({ width, height }) => [width, height]));
-    test.info().annotations.push({
-      type: 'smallest touch target',
-      description: `${smallest.toFixed(1)} px`,
-    });
     for (const size of sizes) {
       expect(size.width, `${size.name} width`).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
       expect(size.height, `${size.name} height`).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
@@ -54,18 +47,25 @@ for (const viewport of viewports) {
   });
 }
 
-test('the GTX 327 is operated from the device dock', async ({ page }) => {
+test('the TRT800H switches on in standby, squawks VFR and reports its level at ACS', async ({
+  page,
+}) => {
   const unit = await openInDock(page);
   const display = unit.locator('[data-display]');
+  const field = (name: string) => display.locator(`[data-field="${name}"]`);
+  await expect(field('code')).toHaveText('');
 
-  await unit.getByRole('button', { name: 'SBY', exact: true }).click();
-  await unit.getByRole('button', { name: '1', exact: true }).click();
-  await unit.getByRole('button', { name: '2', exact: true }).click();
-  await expect(display).toContainText('12__');
+  await unit.getByRole('button', { name: 'I/O', exact: true }).click();
+  await expect(field('status')).toHaveText('STBY');
+  await expect(field('code')).toHaveText('2000');
   await unit.getByRole('button', { name: 'VFR', exact: true }).click();
-  await expect(display).toContainText('7000');
-  await unit.getByRole('button', { name: 'ALT', exact: true }).click();
-  await expect(display).toContainText('ALT');
-  await unit.getByRole('button', { name: 'IDENT', exact: true }).click();
-  await expect(display).toContainText('IDENT');
+  await expect(field('code')).toHaveText('7000');
+  await expect(field('standby')).toHaveText('VFR');
+  await unit.getByRole('button', { name: 'MODE', exact: true }).click();
+  await expect(field('mode')).toHaveText('ACS');
+  await expect(field('status')).toHaveText('');
+  await expect(field('level')).toHaveText('FL 000');
+  const mirror = page.locator('[data-placement="xpdr"] [data-device-mirror]');
+  await expect(mirror.locator('[data-field="mode"]')).toHaveText('ACS');
+  await expect(mirror.locator('[data-field="code"]')).toHaveText('7000');
 });

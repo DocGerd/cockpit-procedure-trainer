@@ -8,9 +8,9 @@ complete examples. Spec: section 4.9 of the design spec.
 
 ## Content policy
 
-Read `docs/content-policy.md` first. A device is generic: no manufacturer or
-model name, no manufacturer layout or artwork, no handbook text. Write every
-text in your own words, in German and English.
+Read `docs/content-policy.md` first. A device models the specific unit an
+aircraft carries (spec section 4.9): no manufacturer artwork, logos or lettering,
+no handbook text. Write every text in your own words, in German and English.
 
 ## Package layout
 
@@ -39,7 +39,7 @@ relative path.
 Build the device with `defineDevice` from `@cpt/core`:
 
 - `id`: the id aircraft use to install it.
-- `manual`: a `Text` naming the revision the logic follows. A generic unit says so.
+- `manual`: a `Text` naming the revision the logic follows. A unit modelled from a general pattern says so.
 - `notModelled`: a list of `Text`, one per function left out. The README's
   `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
@@ -90,10 +90,11 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `send` takes the device's local control id (`coarse`, not `radio.coarse`); the
   panel routes it to the session as `<installId>.<controlId>`. Use `'set'` for a
   position, and `'press'` then `'release'` for a momentary or spring-back control.
-- The screen draws display contents only. The bezel, the glass, the keycaps and
+- A framed screen draws display contents only. The bezel, the glass, the keycaps and
   the dark powered-off screen come from the panel's device frame: it lays glass
   over the screen's first block, so put the display window first, and moulds every
-  `<button>` as a keycap. Blank the display when `on` is false.
+  `<button>` as a keycap. Blank the display when `on` is false. A device that draws
+  its own face gets none of this ("A device that draws its own face" below).
 - Every operable element is a native `<button>` or a native range input with an
   accessible name, so keyboard operation needs no device code. Screens have no
   language prop, so use unit-neutral aviation labels (`SWAP`, `STBY MHz +`).
@@ -110,10 +111,11 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 
 - `Display` is a `ComponentType<DeviceDisplayProps>`, `{ on: boolean; state: unknown }`:
   the same display contents as the screen, with no buttons and no `send`. Wrap it
-  in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (the 520 by 150
-  radio and transponder slot) or `GPS_MIRROR` (the 400 by 300 GPS slot); the frame
-  scales with the slot. Its printed label is the unit name (for example `COM`,
-  `XPDR`, `GPS`), never "open". Keep the display lettering readable at the panel
+  in `DeviceDisplayFrame` from `@cpt/panel-kit` with `RADIO_MIRROR` (a 520 by 150
+  radio or transponder) or `GPS_MIRROR` (a 400 by 300 GPS), or pass a
+  device-local `MirrorSize` for a unit of another shape, as the CTSL's units do; the
+  frame scales with the slot. Its printed label is the unit's face word or name (for
+  example `COM`, `ATC`, `GPS`), never "open". Keep the display lettering readable at the panel
   floor.
 - `readout(state, language, on)` returns a short text of what the display shows,
   in `'de'` or `'en'`, and a text for the powered-off unit when `on` is false. It
@@ -122,9 +124,50 @@ A screen is a `ComponentType<DeviceScreenProps>` from `@cpt/panel-kit`:
 - `floor` is `{ width, height }`, the smallest size at which the `Screen` keeps
   every button at least `--size-target`. The dock renders the screen at that
   size or larger, and a test checks the aircraft's dock cell against it.
+- `face` is `'framed'` (the default) or `'own'`; see the next section.
 - A slot mirrors the device: `IN_SLOT_OPERATION` is off, and `slotMode()` in the
   app is the pure rule that could let a large slot be operated in place. Only where the cockpit has no dock (an aircraft without
   `cockpit`) is the `Screen` itself drawn in the slot.
+
+### A device that draws its own face
+
+A unit whose real face has no square bezel (a round radio, a slate traffic display, a
+GPS in its cradle) sets `face: 'own'` in its entry. The dock and the in-slot frame
+then draw no bezel, screws, recess, glass, keycaps or off scrim: the `Screen` sits
+on a borderless brushed plate of panel metal (`--panel-metal-light`) and draws the
+whole face itself, darkening its own window while `on` is false. The frame keeps its
+`role="group"` named by the device id and its `data-on`.
+
+- The `Display` passes `face="own"` to `DeviceDisplayFrame` with a `labelAt` of
+  `{ left, top, vertical? }`: the label's centre in fractions of the mirror box,
+  stacked upright when `vertical`. The label stays one text node at its framed size,
+  in `--panel-legend`, and the mirror box keeps its `MirrorSize`, so the slot fit
+  measures it the same way. The face fills the whole box.
+- Put the `pk-glass` class on the display window to give it the framed units'
+  glass. The class positions the window; set `position: absolute` inline to place it.
+  An evenly lit screen sets its `.pk-glass::after` to `var(--pk-glass-sheen)`, the
+  glass without its depth shade at the bottom.
+- `FaceKey` is one key printed as a legend above a round cap: its hit box covers
+  both, from the top of the legend to the bottom of the cap, and is never smaller
+  than `--size-target`. Its `cap` centre is in fractions of the face width (x) and
+  height (y), `capSize` in fractions of the width, `legendGap` from the legend's
+  centre down to the cap's centre in fractions of the height, and `aspect` the
+  face's width over its height. It needs a positioned parent at the face's size.
+  The face's art draws the cap; the key shades it while pressed.
+- `KnobHelpers` stand in for a knob too small to turn by finger: `+` over `−`, each
+  a `--size-target` button named `<word> +` and `<word> −`, with the knob word
+  printed above them. They press the knob's `up` and `down` positions (or the ones
+  given) while held. Place them on the plate beside the knob, outside the face.
+- In the dock the plate keeps a `--space-2` margin around the `Screen`. The room
+  is tightest in the combined layout with the dock at its `minWidth` in German,
+  whose Close label is the wider; in the tabs layout the device is as tall as its
+  `floor` or `6 × --space-12`, whichever is more. Set the `floor` to at least the
+  natural size plus `2 × --space-2`; `apps/web/e2e/layout.spec.ts` checks both.
+- In a slot mirror, lettering the real unit prints small (face legends, LED
+  captions, on-screen captions, small readouts) carries `data-lettering="secondary"`
+  and is held to half the lettering minimum; main values and the slot label keep
+  the full minimum (`apps/web/src/devices/slot-fit.test.tsx`). The dock prints all
+  lettering at the full minimum.
 
 ## Installing in an aircraft
 
@@ -146,7 +189,14 @@ the install id, which prefixes the device's control ids:
   The device has no view of its own.
 - The aircraft's `cockpit` arrangement needs a `dock` cell, and the dock must be
   at least as wide and as tall as the `floor` of every installed device
-  (`docs/adding-an-aircraft.md`, Cockpit arrangement).
+  (`docs/adding-an-aircraft.md`, Cockpit arrangement). The dock's Close button
+  stands beside the device, so at the dock's `minWidth` (the narrowest it renders
+  before the cockpit falls back to tabs) it must hold the widest installed floor plus
+  that column, whose German label is the wider, and the dock's padding and border;
+  its height at that scale must hold the tallest floor and the padding. The validator
+  checks the bare floor only. `apps/web/e2e/layout.spec.ts` docks every device and
+  fails when the dock scrolls: at each priority viewport, and in both languages just
+  above the breakpoint of each aircraft in its `narrowDocks` table.
 - `powered` is the bus condition. The device is off when it is false.
 - `inputs` maps each input name the device reads to a function of the state. The
   transponder reads `pressureAltitude`; the COM radio takes none.
@@ -163,7 +213,8 @@ the install id, which prefixes the device's control ids:
 ## Procedure items on device controls
 
 An action item targets `<installId>.<controlId>`, for example `radio.swap` at
-`pressed` or `xpdr.mode` at `alt`, and may carry `holdUntil`. A check item can
+`pressed` or `xpdr.mode` at `alt`, and may carry `holdUntil`, or `doneWhen` for a
+press whose key goes away once pressed (a touch key on a page the press leaves). A check item can
 target a device control and read the device state with a condition:
 
     type TransponderReading = { readonly squawk: string };
@@ -188,9 +239,18 @@ the package as a dependency of `apps/web` and register both halves:
 Also add the unit's name in both languages to `unitNames` in
 `apps/web/src/devices/messages.ts`; the slot's accessible name uses it, and
 `unit-names.test.ts` fails without it. In `tools/device-entry.test.ts` add the
-device to `NATURAL_SCREEN` (the powered `Screen`'s measured natural size) and
-`SLOT_OF` (the CTSL slot its mirror is checked against). Nothing else in `apps/web`
-changes.
+device to `NATURAL_SCREEN` (the powered `Screen`'s measured natural size). The
+mirror's fit is checked per install, not per package: `apps/web/src/devices/slot-fit.test.tsx`
+renders each installed device's `Display` against the slot its aircraft gives it
+(same aspect, smallest lettering legible at the panel floor), and the package test
+checks that the bezel's size parses. Nothing else in `apps/web` changes.
+
+A package can stay in the repository without being registered, for example a unit
+an aircraft no longer installs. Remove it from `deviceRegistry`, `deviceEntries`,
+`unitNames` and the `apps/web` dependencies, and list its id in `UNREGISTERED` in
+`tools/device-entry.test.ts`, which checks that every listed id is a package the app
+does not register. Its own tests and the `tools/` per-package tests (including its
+`NATURAL_SCREEN` row) still run.
 
 ## Checks
 

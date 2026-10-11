@@ -52,6 +52,7 @@ architecture that lets aircraft be added.
 | Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
 | Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
 | Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design. |
+| Avionics (CTSL) | D-MPGO's installed units: funkwerk ATR833-OLED COM and TRT800H-OLED transponder (round 57 mm), Garmin aera 500 in its cradle, and the classic FLARM external LED display; they replace SL40, GTX 327 and GPSMAP 496 (owner decision 2026-10-10). ATR833 facts come from the ATR833-II manual, limited to D-MPGO's face. The old three device packages stay in the repository, unregistered. The FLARM has no traffic (§4.9 scope). |
 
 ## 3. Architecture
 
@@ -262,7 +263,11 @@ item as verified; a verify tick while the target is elsewhere completes the
 item and records it as a wrong position. An action on a spring-back position (a
 momentary button's pressed position, or a rotary detent with a rest position)
 takes no verify tick: it is satisfied only by a pilot press of its own, and
-each such action needs its own press. An action with `holdUntil` still waits
+each such action needs its own press. The exception is a press with `doneWhen`,
+a condition on the state that shows it already done, for a key that a press
+takes away (a touch key on a page the press leaves): it takes a verify tick,
+which completes it cleanly while the condition holds and records a wrong
+position otherwise (spec amended in #692). An action with `holdUntil` still waits
 for its condition.
 
 ### 4.8 Appearance
@@ -317,8 +322,8 @@ transponder, engine values for a monitor). Procedure items can target device
 controls and test device state ("Transponder: 7000, ALT").
 
 Where it sits in a view: the slot is a small panel region that shows a live
-read-only mirror of the device (its Display, labelled with the unit name and
-carrying its readout as accessible name). Activating the slot opens the
+read-only mirror of the device (its Display, labelled with the unit's face word
+or name and carrying its readout as accessible name). Activating the slot opens the
 operable Screen in the **device dock**, one non-modal region under the panel
 that holds one device at a time; activating another slot swaps it, and a close
 button empties it. The dock starts empty with a hint, which is chrome text and
@@ -329,10 +334,11 @@ viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
 works; nothing that needs the outside world does. No audio, no reception, no
-navigation database, no map data. The CTSL's GPS has a simulated position fix
-instead: seeded from line-up, or found after a short search when switched on by
-hand, with ground speed and track taken from the airspeed and heading and a
-schematic track-up map. Each device states the manual revision its
+navigation database, no map data. The CTSL's GPS (the aera 500) has a simulated
+position fix instead: seeded from line-up, or found after a short search once it is
+powered, with ground speed and track taken from the airspeed and heading and a
+schematic track-up map. The CTSL's FLARM display finds its own fix the same way;
+neither shows traffic, map data or a database. Each device states the manual revision its
 logic follows and lists the functions it does not model.
 
 ## 5. Runtime
@@ -649,7 +655,7 @@ parallel.
 40. Normal procedures
 41. Emergency procedures and failures
 42. Control and gauge artwork matching the real panel, replacing generic widgets
-47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake
+47. Avionics devices installed in the club's CTSL, one ticket per unit once identified at intake (done in M18, one issue per unit)
 
 Ticket numbers are spec ids, not GitHub issue numbers.
 

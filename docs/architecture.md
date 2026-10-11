@@ -24,6 +24,8 @@ proves the rules fire. `apps/web` imports aircraft only in
 `src/aircraft-registry.ts` and devices only in `src/device-registry.ts`; adding
 an aircraft or a device is a new package plus one registry entry
 ([adding an aircraft](adding-an-aircraft.md), [adding a device](adding-a-device.md)).
+A device package can stay in the repository unregistered; `tools/device-entry.test.ts`
+lists it in `UNREGISTERED`.
 Colours, type and spacing come only from `apps/web/src/styles/tokens.css`.
 Rationale: [ADR-0001](adr/0001-architecture-and-aircraft-contract.md).
 

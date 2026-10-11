@@ -296,7 +296,22 @@
 
   .shell[data-layout='tablet'] .shell-header .shell-choice:first-child:not(:last-child) {
     flex-shrink: 100;
+  }
+
+  .shell[data-layout='tablet'] .shell-header .shell-choice:first-child {
     min-width: calc(var(--space-12) * 2);
+  }
+
+  /* A name shorter than the floor keeps all of it; only a longer one gives way. */
+  @supports (min-width: calc-size(max-content, size)) {
+    .shell[data-layout='tablet'] .shell-header .shell-choice:first-child {
+      min-width: calc-size(max-content, min(size, var(--space-12) * 3));
+    }
+  }
+
+  /* The operate toggle wraps its label onto two lines to leave the name its room. */
+  .shell[data-layout='tablet'] .shell-header .modes-operate-text {
+    width: min-content;
   }
 
   .shell[data-layout='tablet'] .shell-header .shell-choice-value {

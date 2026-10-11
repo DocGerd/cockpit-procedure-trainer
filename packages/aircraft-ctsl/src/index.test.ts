@@ -147,12 +147,9 @@ describe('CTSL aircraft', () => {
     );
   });
 
-  it('calls the panel representative in both languages', () => {
+  it('names the aircraft by its type in both languages, drawn from D-MPGO', () => {
     expect(ctslAircraft.id).toBe('ctsl');
-    expect(ctslAircraft.name).toEqual({
-      de: 'CT Supralight (repräsentatives Panel)',
-      en: 'CT Supralight (representative panel)',
-    });
+    expect(ctslAircraft.name).toEqual({ de: 'CT Supralight', en: 'CT Supralight' });
     expect(ctslAircraft.handbookRevision).toEqual({
       de: 'Flight Design CT Supralight Flug- und Wartungshandbuch AE04300003, Revision 01 (14. Jan. 2010)',
       en: 'Flight Design CT Supralight flight and maintenance manual AE04300003, revision 01 (14 Jan 2010)',
@@ -246,7 +243,17 @@ describe('CTSL aircraft', () => {
 
   it('installs every device in the panel view', () => {
     const views = Object.values(ctslAircraft.devices ?? {}).map(({ view }) => view);
-    expect(views).toEqual(['panel', 'panel', 'panel']);
+    expect(views).toEqual(['panel', 'panel', 'panel', 'panel']);
+  });
+
+  it.each([
+    ['flarm', 320, 160],
+    ['gps', 440, 275],
+    ['com', 272, 272],
+    ['xpdr', 272, 272],
+  ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
+    expect(deviceSlots[id].rect).toMatchObject({ w, h });
+    expect(installs[id].placement).toBe(deviceSlots[id]);
   });
 
   it('arranges its views and a dock, with the panel floor at 1110', () => {
@@ -481,6 +488,29 @@ describe('CTSL aircraft', () => {
     expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
     expect(com.rect.y).toBe(xpdr.rect.y);
     expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+  });
+
+  it('puts the FLARM display left of the GPS, above the radio (intake §3.2a)', () => {
+    const { flarm, gps, com } = deviceSlots;
+    expect(flarm.rect.x + flarm.rect.w).toBeLessThanOrEqual(gps.rect.x);
+    expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(com.rect.y);
+  });
+
+  it('keeps every device slot inside the upper-centre field below its glareshield strip, clear of the others', () => {
+    const field = { x0: 471, y0: 122, x1: 1628, y1: 684 };
+    const rects = Object.values(deviceSlots).map(({ rect }) => rect);
+    for (const { x, y, w, h } of rects) {
+      expect(x).toBeGreaterThanOrEqual(field.x0);
+      expect(y).toBeGreaterThanOrEqual(field.y0);
+      expect(x + w).toBeLessThanOrEqual(field.x1);
+      expect(y + h).toBeLessThanOrEqual(field.y1);
+    }
+    rects.forEach((a, i) =>
+      rects.slice(i + 1).forEach((b) => {
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart).toBe(true);
+      }),
+    );
   });
 
   it('lists the phases of a whole flight in flight order', () => {
@@ -770,20 +800,24 @@ describe('CTSL aircraft', () => {
     },
   );
 
+  it.each(Object.keys(expectedPhases))('presets no device control on entering %s', (id) => {
+    expect(ctslAircraft.phases[id]?.entry.devices).toBeUndefined();
+  });
+
   it.each([
-    ['parking', 'off'],
-    ['taxiOut', 'off'],
-    ['holding', 'off'],
-    ['linedUp', 'alt'],
-    ['departure', 'alt'],
-    ['cruise', 'alt'],
-    ['approach', 'alt'],
-    ['landing', 'alt'],
-    ['taxiIn', 'alt'],
-    ['parkingSecuring', 'sby'],
-  ])('enters %s with the transponder at %s', (phase, mode) => {
+    ['parking', false, 'stby'],
+    ['taxiOut', false, 'stby'],
+    ['holding', false, 'stby'],
+    ['linedUp', true, 'acs'],
+    ['departure', true, 'acs'],
+    ['cruise', true, 'acs'],
+    ['approach', true, 'acs'],
+    ['landing', true, 'acs'],
+    ['taxiIn', true, 'acs'],
+    ['parkingSecuring', true, 'stby'],
+  ] as const)('enters %s with the transponder on: %s, in mode %s', (phase, on, mode) => {
     const session = createSession(ctslAircraft, { devices, phase });
-    expect(session.state().controls['xpdr.mode']).toBe(mode);
+    expect(session.state().devices.xpdr?.state).toMatchObject({ on, mode });
   });
 
   it.each([
@@ -803,6 +837,24 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
+    ['parking', undefined],
+    ['taxiOut', undefined],
+    ['holding', undefined],
+    ['linedUp', 'map'],
+    ['departure', 'map'],
+    ['cruise', 'map'],
+    ['approach', 'map'],
+    ['landing', 'map'],
+    ['taxiIn', 'map'],
+    ['parkingSecuring', 'map'],
+  ])('enters %s with the GPS seeded at page %s, already powered and fixed', (phase, page) => {
+    const seed = ctslAircraft.phases[phase]?.entry.deviceStates?.gps;
+    expect(seed).toEqual(
+      page === undefined ? undefined : { on: true, powered: true, page, fix: true },
+    );
+  });
+
+  it.each([
     ['parking', false],
     ['taxiOut', false],
     ['holding', false],
@@ -812,10 +864,36 @@ describe('CTSL aircraft', () => {
     ['approach', true],
     ['landing', true],
     ['taxiIn', true],
-    ['parkingSecuring', false],
-  ])('enters %s with the GPS on and its position fixed: %s', (phase, on) => {
-    const session = createSession(ctslAircraft, { devices, phase });
-    expect(session.state().devices.gps?.state).toMatchObject({ on, page: 'map', fix: on });
+    ['parkingSecuring', true],
+  ])('enters %s with the FLARM seeded past its self-test and search: %s', (phase, seeded) => {
+    const seed = ctslAircraft.phases[phase]?.entry.deviceStates?.flarm;
+    expect(seed).toEqual(seeded ? { powered: true, stage: 'ready', fix: true } : undefined);
+  });
+
+  it.each(['linedUp', 'cruise', 'parkingSecuring'])(
+    'enters %s with the GPS on its map page with a fix and the FLARM operational',
+    (phase) => {
+      const session = createSession(ctslAircraft, { devices, phase });
+      expect(session.state().devices.gps?.state).toMatchObject({
+        on: true,
+        page: 'map',
+        fix: true,
+      });
+      expect(session.state().devices.flarm?.state).toMatchObject({ operational: true });
+    },
+  );
+
+  it('enters the holding point with the GPS at its start-up page and parking with it dark', () => {
+    const at = (phase: string) =>
+      createSession(ctslAircraft, { devices, phase }).state().devices.gps?.state;
+    expect(at('parking')).toMatchObject({ on: false });
+    expect(at('holding')).toMatchObject({ on: true, page: 'startup' });
+  });
+
+  it('seeds no COM state: the radio switches on with the avionics bus', () => {
+    for (const phase of Object.keys(expectedPhases)) {
+      expect(ctslAircraft.phases[phase]?.entry.deviceStates?.com).toBeUndefined();
+    }
   });
 
   it.each([

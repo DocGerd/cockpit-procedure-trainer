@@ -21,7 +21,7 @@ export const avionicsProcedures = {
     items: [
       {
         type: 'action',
-        control: 'com.coarse',
+        control: 'com.freq',
         position: 'up',
         text: text(
           'Bereitschaftsfrequenz um 1 MHz erhöhen',
@@ -42,9 +42,9 @@ export const avionicsProcedures = {
       },
       {
         type: 'action',
-        control: 'xpdr.mode',
-        position: 'sby',
-        text: text('Transponder auf Bereitschaft', 'Transponder to standby'),
+        control: 'xpdr.power',
+        position: 'pressed',
+        text: text('Transponder ein (I/O), Standby', 'Transponder on (I/O), standby'),
       },
       {
         type: 'action',
@@ -56,20 +56,20 @@ export const avionicsProcedures = {
         type: 'check',
         target: { control: 'xpdr.vfr' },
         condition: (state) =>
-          field(state, 'xpdr', 'squawk') === VFR_CODE && field(state, 'xpdr', 'mode') === 'sby',
+          field(state, 'xpdr', 'squawk') === VFR_CODE && field(state, 'xpdr', 'mode') === 'stby',
         text: text('Code 7000, Bereitschaft', 'Code 7000, standby'),
       },
       {
         type: 'action',
         control: 'xpdr.mode',
-        position: 'alt',
-        text: text('Transponder auf Höhe', 'Transponder to altitude'),
+        position: 'pressed',
+        text: text('Transponder auf ACS (MODE)', 'Transponder to ACS (MODE)'),
       },
       {
         type: 'check',
         target: { control: 'xpdr.mode' },
         condition: (state) =>
-          field(state, 'xpdr', 'mode') === 'alt' && field(state, 'xpdr', 'reporting') === true,
+          field(state, 'xpdr', 'mode') === 'acs' && field(state, 'xpdr', 'reporting') === true,
         text: text('Transponder meldet Höhe', 'Transponder reports altitude'),
       },
     ],

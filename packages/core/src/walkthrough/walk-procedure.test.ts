@@ -234,6 +234,14 @@ describe('walkProcedure', () => {
     });
   });
 
+  it('ticks a spring-back press whose doneWhen already holds instead of pressing it', () => {
+    expect(walk([{ ...keyStart, doneWhen: () => true }])).toEqual({ ok: true });
+  });
+
+  it('presses a spring-back press whose doneWhen does not hold yet', () => {
+    expect(walk([keyBoth, { ...keyStart, doneWhen: keyMs(1) }])).toEqual({ ok: true });
+  });
+
   it('advances time for a hold condition on a control that is not momentary', () => {
     expect(walk([{ ...masterOn, holdUntil: ms(500) }])).toEqual({ ok: true });
   });

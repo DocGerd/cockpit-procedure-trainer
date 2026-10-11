@@ -1,10 +1,12 @@
 # @cpt/device-gtx327
 
-The Garmin GTX 327 Mode A/C transponder as fitted to the CT Supralight's analog panel: a
+The Garmin GTX 327 Mode A/C transponder, the unit of the CT Supralight's analog panel variant: a
 mode knob, a keypad for the four-digit squawk, the VFR key, IDENT, a function key with a
 count-up timer, the pressure altitude from the altitude encoder, and bus power. An aircraft
-installs it by id (`gtx327`). Its screen is made for the radio stack view, where the keys
-are large enough to operate by touch.
+installs it by id (`gtx327`). Its screen opens in the device dock, where the keys are large
+enough to operate by touch.
+It is kept in the repository but not registered in the app (`UNREGISTERED` in
+`tools/device-entry.test.ts`): the CT Supralight carries D-MPGO's own units instead.
 
 ## Source revision
 

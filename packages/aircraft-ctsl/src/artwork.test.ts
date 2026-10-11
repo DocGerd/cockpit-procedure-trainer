@@ -7,7 +7,7 @@ import { gaugeArtwork as gauges, images } from './artwork';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
-import { views } from './views';
+import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
 
@@ -592,6 +592,120 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers Push off');
   });
 
+  // Corrected from the photos (intake §3.2a): each unit draws its whole face, the cradle included.
+  it.each(Object.entries(deviceSlots))(
+    'draws no recess, frame, screw or shadow in or around the %s slot',
+    (_id, { rect }) => {
+      const margin = 16;
+      const svg = backdrop('panel');
+      const fullHeight = 0.95 * views.panel.size.height;
+      const point = ([, x, y]: string[]) => [Number(x), Number(y)];
+      const origins = [
+        ...[...svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)"[^>]*height="([\d.]+)"/g)]
+          .filter(([, , , h]) => Number(h) < fullHeight)
+          .map(point),
+        ...[...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)"/g)].map(point),
+        ...[...svg.matchAll(/<path d="M([\d.]+)[ ,]([\d.]+)/g)].map(point),
+      ];
+      const near = origins.filter(
+        ([x = 0, y = 0]) =>
+          x > rect.x - margin &&
+          x < rect.x + rect.w + margin &&
+          y > rect.y - margin &&
+          y < rect.y + rect.h + margin,
+      );
+      expect(near).toEqual([]);
+    },
+  );
+
+  it('leaves the GPS cradle and its rail to the device', () => {
+    const svg = backdrop('panel');
+    const { rect } = deviceSlots.gps;
+    const fullHeight = 0.95 * views.panel.size.height;
+    const boxes = [
+      ...[...svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)]
+        .map(([, x, y, w, h]) => ({ x: Number(x), y: Number(y), w: Number(w), h: Number(h) }))
+        .filter(({ h }) => h < fullHeight),
+      ...[...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/g)].map(
+        ([, cx, cy, r]) => ({
+          x: Number(cx) - Number(r),
+          y: Number(cy) - Number(r),
+          w: 2 * Number(r),
+          h: 2 * Number(r),
+        }),
+      ),
+    ];
+    const overlapping = boxes.filter(
+      (box) =>
+        box.x < rect.x + rect.w &&
+        box.x + box.w > rect.x &&
+        box.y < rect.y + rect.h &&
+        box.y + box.h > rect.y,
+    );
+    expect(overlapping).toEqual([]);
+  });
+
+  describe('the upper-centre field (intake §3.7.1)', () => {
+    const svg = backdrop('panel');
+    const fields = [
+      ...svg.matchAll(
+        /<rect x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"[^>]*fill="url\(#(\w+)\)"/g,
+      ),
+    ]
+      .filter(([, , h]) => Number(h) >= 0.95 * views.panel.size.height)
+      .map(([, x, , fill = '']) => ({ x: Number(x), fill }));
+    const fillsAt = (x: number) => fields.filter((field) => field.x === x).map(({ fill }) => fill);
+    const xs = [...new Set(fields.map(({ x }) => x))].sort((a, b) => a - b);
+    const [left = 0, centre = 0, right = 0] = xs;
+    const luminance = (hex: string) => {
+      const [r = 0, g = 0, b = 0] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const stops = (id: string) => {
+      const gradient = new RegExp(`<linearGradient id="${id}"[^>]*>(.*?)</linearGradient>`).exec(
+        svg,
+      )?.[1];
+      return [...(gradient ?? '').matchAll(/stop-color="(#[0-9A-Fa-f]{6})"/g)].map(([, hex = '']) =>
+        luminance(hex),
+      );
+    };
+    const base = (x: number) => fillsAt(x).find((fill) => stops(fill).length > 0) ?? '';
+
+    it('is the middle one of three upper fields', () => {
+      expect(xs).toHaveLength(3);
+    });
+
+    it('is painted light aluminium, lighter than every stop of the dark side fields', () => {
+      const aluminium = stops(base(centre));
+      const dark = [...stops(base(left)), ...stops(base(right))];
+      expect(aluminium.length).toBeGreaterThan(0);
+      expect(dark.length).toBeGreaterThan(0);
+      expect(Math.min(...aluminium)).toBeGreaterThan(Math.max(...dark));
+    });
+
+    it('is brushed: a pattern of horizontal hairlines lies over it', () => {
+      const brushed = fillsAt(centre).filter((fill) => {
+        const pattern = new RegExp(`<pattern id="${fill}"[^>]*>(.*?)</pattern>`).exec(svg)?.[1];
+        return pattern !== undefined && /<path d="M0 [\d.]+H\d+/.test(pattern);
+      });
+      expect(brushed).toHaveLength(1);
+    });
+  });
+
+  it('prints no caption under a device slot', () => {
+    const svg = backdrop('panel');
+    for (const { rect } of Object.values(deviceSlots)) {
+      const inside = [...svg.matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)].filter(
+        ([, tx, ty]) =>
+          Number(tx) >= rect.x &&
+          Number(tx) <= rect.x + rect.w &&
+          Number(ty) >= rect.y &&
+          Number(ty) <= rect.y + rect.h,
+      );
+      expect(inside.map(([, , , word]) => word)).toEqual([]);
+    }
+  });
+
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
@@ -601,9 +715,6 @@ describe('CTSL view backdrops', () => {
         'Cabin Heat@979.5,85/38',
         'TAKEOFF@1449,196/37',
         'CHECKLIST@1449,238/37',
-        'GPS@1049.5,306.5/40',
-        'COM RADIO@765.2,589.25/40',
-        'TRANSPONDER@1329.6,589.25/40',
         'Circuit Breakers@2080,608/40',
         'Push off@2080,650/40',
       ],
