@@ -17,12 +17,11 @@ describe('radioAndTransponder', () => {
     expect(findings.map(formatFinding)).toEqual([]);
   });
 
-  it('sets the radio first, then switches the transponder on in standby, the VFR code and ACS', () => {
+  it('sets the radio (already on since N3), then switches the transponder on in standby, the VFR code and ACS', () => {
     const controls = procedure.items.flatMap((item) =>
       item.type === 'action' ? [`${item.control}=${item.position}`] : [],
     );
     expect(controls).toEqual([
-      'com.power=pressed',
       'com.freq=up',
       'com.swap=pressed',
       'xpdr.power=pressed',
@@ -39,14 +38,13 @@ describe('radioAndTransponder', () => {
 
   it('names the keys the pilot presses', () => {
     const texts = procedure.items.map((item) => item.text.en);
-    expect(texts).toContain('COM radio on (I/O)');
+    expect(texts).not.toContain('COM radio on (I/O)');
     expect(texts).toContain('Transponder on (I/O), standby');
     expect(texts).toContain('Transponder to ACS (MODE)');
   });
 
   it('has a check on the device state after the radio, the code and the mode', () => {
     expect(procedure.items.map((item) => item.type)).toEqual([
-      'action',
       'action',
       'action',
       'check',

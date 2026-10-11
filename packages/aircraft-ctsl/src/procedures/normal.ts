@@ -370,6 +370,21 @@ export const normalProcedures = {
         position: 'on',
         text: text('Avionik ein', 'Avionics Master on'),
       },
+      // Intake §9 question 35: the radio has no AUTO ON, so the pilot switches it on here, as the
+      // taxi call needs it (decision in §6 N3).
+      {
+        type: 'action',
+        control: 'com.power',
+        position: 'pressed',
+        text: text('Funkgerät ein (I/O)', 'COM radio on (I/O)'),
+      },
+      {
+        type: 'check',
+        target: { control: 'com.power' },
+        condition: (state: State) => field(state, 'com', 'on') === true,
+        text: text('Funkgerät', 'COM radio'),
+        expected: text('ein', 'on'),
+      },
       // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
       {
         type: 'action',
@@ -426,20 +441,6 @@ export const normalProcedures = {
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
       confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
-      // Intake §9 question 35: the radio has no AUTO ON, so the pilot switches it on.
-      {
-        type: 'action',
-        control: 'com.power',
-        position: 'pressed',
-        text: text('Funkgerät ein (I/O)', 'COM radio on (I/O)'),
-      },
-      {
-        type: 'check',
-        target: { control: 'com.power' },
-        condition: (state: State) => field(state, 'com', 'on') === true,
-        text: text('Funkgerät', 'COM radio'),
-        expected: text('ein', 'on'),
-      },
       {
         type: 'action',
         control: 'xpdr.power',

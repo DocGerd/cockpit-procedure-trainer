@@ -619,12 +619,16 @@ describe('CTSL normal procedures', () => {
     });
 
     describe('COM radio: on (intake §9 question 35)', () => {
-      const aircraft = only('beforeTakeoff', ['COM radio: on']);
-      const tick = (prepare: (session: Session) => void) =>
-        tickedAt(aircraft, 'beforeTakeoff', prepare);
+      const aircraft = only('engineStart', ['COM radio: on']);
+      const tick = (phase: string) => {
+        const session = createSession(aircraft, { devices, phase });
+        session.startProcedure('engineStart');
+        session.checkOff();
+        return session.checklist()?.deviations ?? [];
+      };
 
-      it('is a check on the radio, after the I/O press that switches it on, before the transponder', () => {
-        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+      it('is a check on the radio, after the I/O press that switches it on, right after the Avionics Master', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
         const at = items.findIndex((item) => said(item) === 'COM radio: on');
         expect(items[at]).toMatchObject({ type: 'check', target: { control: 'com.power' } });
         expect(items[at - 1]).toMatchObject({
@@ -632,20 +636,29 @@ describe('CTSL normal procedures', () => {
           control: 'com.power',
           position: 'pressed',
         });
-        expect(items[at + 1]).toMatchObject({ control: 'xpdr.power' });
+        expect(items[at - 2]).toMatchObject({ control: 'avionicsMaster', position: 'on' });
+        expect(items[at + 1]).toMatchObject({ control: 'intercom', position: 'on' });
       });
 
-      it('records an unmet check when ticked with the radio dark, although the bus is on', () => {
-        expect(tick(() => {})).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      it('is not repeated in the run-up, which only confirms the radio set', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        expect(items.some((item) => 'control' in item && item.control === 'com.power')).toBe(false);
       });
 
-      it('records nothing when ticked after the I/O press', () => {
-        expect(
-          tick((session) => {
-            session.press('com.power');
-            session.release('com.power');
-          }),
-        ).toEqual([]);
+      it('records an unmet check when ticked with the radio dark, as at engine start', () => {
+        expect(tick('parking')).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      });
+
+      it('passes when the walk presses I/O after the Avionics Master', () => {
+        let on: unknown;
+        const result = walkProcedure(ctslAircraft, 'engineStart', {
+          devices,
+          afterChecklist: (session) => {
+            on = (session.state().devices.com?.state as { on?: boolean } | undefined)?.on;
+          },
+        });
+        expect(result).toEqual({ ok: true });
+        expect(on).toBe(true);
       });
     });
 

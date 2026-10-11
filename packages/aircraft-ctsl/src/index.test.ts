@@ -892,8 +892,8 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['parking', false],
-    ['taxiOut', false],
-    ['holding', false],
+    ['taxiOut', true],
+    ['holding', true],
     ['linedUp', true],
     ['departure', true],
     ['cruise', true],
@@ -901,13 +901,14 @@ describe('CTSL aircraft', () => {
     ['landing', true],
     ['taxiIn', true],
     ['parkingSecuring', true],
-  ])('enters %s with the COM radio switched on, as the pilot would have done: %s', (phase, on) => {
+  ])('enters %s with the COM radio switched on, as N3 leaves it: %s', (phase, on) => {
     const seed = ctslAircraft.phases[phase]?.entry.deviceStates?.com;
     expect(seed).toEqual(on ? { on: true, powered: true } : undefined);
   });
 
   it('switches the COM radio on only with an I/O press, not with the avionics bus', () => {
-    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    session.set('battery', 'in');
     session.set('avionicsMaster', 'on');
     session.advance(100);
     expect(session.state().devices.com?.state).toMatchObject({ powered: true, on: false });

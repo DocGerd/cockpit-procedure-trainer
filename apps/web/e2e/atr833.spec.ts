@@ -94,14 +94,12 @@ for (const viewport of viewports) {
   });
 }
 
-test('the ATR833 is switched on by I/O and swaps a raised standby frequency to active', async ({
+test('the ATR833 is on from the start and swaps a raised standby frequency to active', async ({
   page,
 }) => {
   const unit = await openInDock(page);
   const display = unit.locator('[data-display]');
   const mirror = page.locator('[data-placement="com"] [data-device-mirror]');
-  await expect(display.locator('[data-field="active"]')).toHaveText('');
-  await unit.getByRole('button', { name: 'I/O', exact: true }).click();
   await expect(display.locator('[data-field="active"]')).toHaveText('118.000');
   await expect(display.locator('[data-field="standby"]')).toHaveText('119.000');
 

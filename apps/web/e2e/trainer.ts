@@ -179,6 +179,11 @@ const expectDone = (page: Page, procedureId: string, row: Locator) =>
       .first(),
   ).toBeVisible();
 
+// Device keys a procedure item presses: the install, the unit and the key's name.
+const deviceKeys: Readonly<Record<string, readonly [string, string, string]>> = {
+  'com.power': ['com', 'atr833', 'I/O'],
+};
+
 async function perform(page: Page, procedureId: string, item: ProcedureItem<unknown>, at: number) {
   const row = itemRow(page, at);
   await expect(mark(row, 'Current')).toBeVisible();
@@ -188,6 +193,11 @@ async function perform(page: Page, procedureId: string, item: ProcedureItem<unkn
     await row.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
   } else if (item.type === 'check') {
     await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+  } else if (deviceKeys[item.control]) {
+    const [installId, deviceId, key] = deviceKeys[item.control] ?? [];
+    if (!installId || !deviceId || !key) throw new Error(`no key for ${item.control}`);
+    const unit = await dockedUnit(page, installId, deviceId);
+    await unit.getByRole('button', { name: key, exact: true }).click();
   } else if (springsBack(item.control, item.position)) {
     await selectView(page, item.control);
     const target = holdTarget(page, item.control, item.position);

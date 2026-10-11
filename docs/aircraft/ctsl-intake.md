@@ -1519,10 +1519,10 @@ the transponder is on and squawks 7000 (German VFR, SERA) from `linedUp` through
 at its map page and the FLARM display ready, each with its position fix, from `linedUp`
 through `parkingSecuring`, so neither restarts its start-up page or self-test when the
 parking-and-securing leg begins. All assumed (unverified). The COM radio is seeded switched on
-(and powered) from `linedUp` through `parkingSecuring`, as the pilot's `I/O` press in N6 leaves it
-(owner, §9 question 35); before `linedUp` it stays dark until that press. Before `linedUp` every unit starts as
-power finds it: at the holding point the GPS is at its database page and the FLARM runs
-its self-test and searches. The map page shows ground speed and track (taken from the
+(and powered) in every phase after engine start, from `taxiOut` through `parkingSecuring`, as the
+pilot's `I/O` press in N3 leaves it (owner, §9 question 35); in `parking` it is dark. Before
+`linedUp` the GPS and the FLARM start as power finds them: at the holding point the GPS is at its
+database page and the FLARM runs its self-test and searches. The map page shows ground speed and track (taken from the
 airspeed and heading) at once in the seeded phases; powered up at the holding point the
 units search first. The fix and the ground speed and track it shows are assumed
 (unverified).
@@ -1558,8 +1558,9 @@ extinguisher, ELT remote switch. Folded into N6.
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
-after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; intercom on
-(trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
+after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; COM radio on
+_(action: press the ATR833's I/O, then a check that it is on; AUTO ON is off, §9 question 35)_;
+intercom on (trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
 Before the first start of the day turn the prop by hand; if the aircraft rolls
 during start, ignition off.
 
@@ -1573,10 +1574,10 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
-COM radio on _(action: press the ATR833's I/O, then a check that it is on; AUTO ON is off, §9
-question 35)_; transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
-and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
-questions 32 and 38; a pilot who accepted earlier ticks the acceptance, #692); choke
+transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
+and at STBY)_; GPS: databases accepted, then its map page (the start-up step is owner-confirmed,
+§9 question 38; only its place in N6 is assumed, §9 question 32; a pilot who accepted earlier
+ticks the acceptance, #692); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
@@ -2098,6 +2099,11 @@ verifies it on D-MPGO.
     power; no phase seeds it.
     **Owner (2026-10-11, #717):** AUTO ON is off; the pilot presses `I/O` to switch the radio on.
     **Answered.**
+    **Trainer (#717):** the handbook checklists name no COM step (question 32). The Avionics Master
+    comes on in N3 after the engine runs and a pilot needs the radio for the taxi call, so N3 presses
+    `I/O` right after the Avionics Master, not at the holding point; N6 keeps its "radio set"
+    confirm and `radioAndTransponder` starts with the radio already on. Every phase after engine
+    start seeds the COM on.
     **Trainer (#717):** the `atr833` no longer switches on when power arrives; an `I/O` press does.
     `radioAndTransponder` and N6 gain a COM `I/O` press; the phases from `linedUp` seed the COM
     on and powered. Where the club presses `I/O` is not answered: the step's place in N6, at the
