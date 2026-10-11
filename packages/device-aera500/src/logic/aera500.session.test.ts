@@ -181,10 +181,13 @@ describe('aera500 in an aircraft', () => {
     const session = createSession(testAircraft, options);
     session.set('bus', 'on');
     session.advance(500);
+    expect(gps(session.state())).toMatchObject({ on: true, page: 'startup' });
     session.set('bus', 'off');
     session.advance(50);
+    expect(gps(session.state()).on).toBe(false);
     session.set('bus', 'on');
     session.advance(50);
+    expect(gps(session.state())).toMatchObject({ on: true, page: 'startup' });
     session.press('gps.touch', 'accept');
     session.advance(50);
     session.release('gps.touch');

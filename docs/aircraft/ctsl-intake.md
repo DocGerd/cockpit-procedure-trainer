@@ -3704,11 +3704,11 @@ verifies it on D-MPGO.
 68. **aera 500 power loss and return** (#727): when the GPS breaker is pulled or the
     Avionics Master goes off with the aera running, does the unit go dark, or does it
     keep running on its own battery and warn (the guide has a `Power Loss Warning`
-    item)? Is a battery fitted in D-MPGO's unit? When power returns, does the unit show
-    the database page and need `Press To Accept` again, which settings does it keep, and
-    how long is the repeat search? Trainer uses: dark at once, the database page at every
-    return, backlight and map range kept, the full search time again. The return on its own
-    is from the guide; the rest is **assumed (unverified)** (§3.8.3, question 38).
+    item)? Is a battery fitted in D-MPGO's unit? When power returns, which settings does
+    it keep, and how long is the repeat search? Trainer uses: dark at once, backlight and
+    map range kept, the full search time again. The return on its own and the database
+    page at every switch-on are from the guide; the rest is **assumed (unverified)**
+    (§3.8.3, question 38).
 69. **FLARM start-up and power loss** (#727): how long does the display's start-up take on
     D-MPGO, is the volume or mode the pilot chose kept across a power loss, and how long
     does the GPS fix take to return? Which switch or breaker, if any, cuts the FLARM in
