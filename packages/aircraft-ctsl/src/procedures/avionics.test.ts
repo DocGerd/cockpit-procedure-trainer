@@ -1,4 +1,4 @@
-import { formatFinding, validateAircraft } from '@cpt/core';
+import { formatFinding, validateAircraft, walkProcedure } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
@@ -17,17 +17,29 @@ describe('radioAndTransponder', () => {
     expect(findings.map(formatFinding)).toEqual([]);
   });
 
-  it('sets the radio first, then the transponder to standby, the VFR code and altitude', () => {
+  it('sets the radio first, then switches the transponder on in standby, the VFR code and ACS', () => {
     const controls = procedure.items.flatMap((item) =>
       item.type === 'action' ? [`${item.control}=${item.position}`] : [],
     );
     expect(controls).toEqual([
-      'com.coarse=up',
+      'com.freq=up',
       'com.swap=pressed',
-      'xpdr.mode=sby',
+      'xpdr.power=pressed',
       'xpdr.vfr=pressed',
-      'xpdr.mode=alt',
+      'xpdr.mode=pressed',
     ]);
+  });
+
+  it('walks to its end with the stand-in devices', () => {
+    expect(walkProcedure(ctslAircraft, 'radioAndTransponder', { devices: testDevices })).toEqual({
+      ok: true,
+    });
+  });
+
+  it('names the keys the pilot presses', () => {
+    const texts = procedure.items.map((item) => item.text.en);
+    expect(texts).toContain('Transponder on (I/O), standby');
+    expect(texts).toContain('Transponder to ACS (MODE)');
   });
 
   it('has a check on the device state after the radio, the code and the mode', () => {

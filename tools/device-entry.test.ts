@@ -169,14 +169,30 @@ describe('device screen entries', () => {
   });
 });
 
+// Packages kept in the repository with their tests, which the app does not register.
+const UNREGISTERED = ['gpsmap496', 'gtx327', 'sl40'];
+
 describe('the app registry', () => {
-  it('carries the entry of every device package under its device id', async () => {
-    const app: {
-      deviceEntries: Record<string, Entry>;
-      deviceRegistry: { id: string }[];
-      deviceScreens: Record<string, unknown>;
-    } = await import(resolve(import.meta.dirname, '../apps/web/src/device-registry.ts'));
-    const ids = deviceDirs.map((dir) => dir.replace(/^device-/, '')).sort();
+  const packageIds = deviceDirs.map((dir) => dir.replace(/^device-/, ''));
+  const loadApp = async (): Promise<{
+    deviceEntries: Record<string, Entry>;
+    deviceRegistry: { id: string }[];
+    deviceScreens: Record<string, unknown>;
+  }> => import(resolve(import.meta.dirname, '../apps/web/src/device-registry.ts'));
+
+  it('lists only device packages that exist and that the app does not register as unregistered', async () => {
+    const app = await loadApp();
+    const registered = app.deviceRegistry.map((device) => device.id);
+    for (const id of UNREGISTERED) {
+      expect(packageIds, id).toContain(id);
+      expect(registered, id).not.toContain(id);
+      expect(Object.keys(app.deviceEntries), id).not.toContain(id);
+    }
+  });
+
+  it('carries the entry of every registered device package under its device id', async () => {
+    const app = await loadApp();
+    const ids = packageIds.filter((id) => !UNREGISTERED.includes(id)).sort();
     expect(Object.keys(app.deviceEntries).sort()).toEqual(ids);
     expect(app.deviceRegistry.map((device) => device.id).sort()).toEqual(ids);
     for (const [id, entry] of Object.entries(app.deviceEntries)) {

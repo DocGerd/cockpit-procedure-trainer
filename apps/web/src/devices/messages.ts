@@ -22,23 +22,17 @@ export const unitNames = defineMessages({
   en: {
     flarm: 'FLARM',
     com: 'COM radio',
-    sl40: 'COM radio',
     atr833: 'COM radio',
     transponder: 'Transponder',
-    gtx327: 'Transponder',
     trt800h: 'Transponder',
-    gpsmap496: 'GPS',
     aera500: 'GPS',
   },
   de: {
     flarm: 'FLARM',
     com: 'COM-Funkgerät',
-    sl40: 'COM-Funkgerät',
     atr833: 'COM-Funkgerät',
     transponder: 'Transponder',
-    gtx327: 'Transponder',
     trt800h: 'Transponder',
-    gpsmap496: 'GPS',
     aera500: 'GPS',
   },
 });

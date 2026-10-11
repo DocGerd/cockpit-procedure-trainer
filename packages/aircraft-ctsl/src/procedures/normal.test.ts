@@ -43,6 +43,8 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Cylinder head temperature: in the green',
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
+    'GPS: position fix (3D GPS Location)',
+    'FLARM: Power, GPS and TX lit',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
@@ -70,8 +72,18 @@ const walkTo = (session: Session, items: readonly Item[], stop: number) => {
     if (at === undefined) throw new Error('the procedure is no longer running');
     if (at >= stop) return;
     const item = items[at] as Item;
-    if (item.type === 'action' && allControls[item.control]?.kind === 'momentary') {
+    const definition = item.type === 'action' ? allControls[item.control] : undefined;
+    if (item.type === 'action' && definition?.kind === 'momentary') {
       session.press(item.control);
+      session.release(item.control);
+    } else if (
+      item.type === 'action' &&
+      definition?.kind === 'rotary' &&
+      typeof item.position === 'string' &&
+      definition.springBack !== undefined &&
+      Object.hasOwn(definition.springBack, item.position)
+    ) {
+      session.press(item.control, item.position);
       session.release(item.control);
     } else if (item.type === 'action' && session.state().controls[item.control] !== item.position) {
       session.set(item.control, item.position);
@@ -563,76 +575,115 @@ describe('CTSL normal procedures', () => {
       const tick = (prepare: (session: Session) => void) =>
         tickedAt(aircraft, 'beforeTakeoff', prepare);
 
-      it('is a check on the transponder mode, after an action that sets it', () => {
+      const tap = (session: Session, control: string) => {
+        session.press(control);
+        session.release(control);
+      };
+
+      it('is a check on the transponder, after the I/O press that switches it on', () => {
         const items = normalProcedures.beforeTakeoff.items as readonly Item[];
         const at = items.findIndex((item) => said(item) === 'Transponder: on, standby');
-        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'xpdr.mode' } });
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'xpdr.power' } });
         expect(items[at - 1]).toMatchObject({
           type: 'action',
-          control: 'xpdr.mode',
-          position: 'sby',
+          control: 'xpdr.power',
+          position: 'pressed',
         });
       });
 
-      it('records an unmet check when ticked with the transponder off', () => {
+      it('records an unmet check when ticked with the transponder off, although it rests in STBY', () => {
         expect(tick(() => {})).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
       });
 
       it('records an unmet check when ticked at standby without avionics power', () => {
         expect(
           tick((session) => {
-            session.set('xpdr.mode', 'sby');
+            tap(session, 'xpdr.power');
             session.set('avionicsMaster', 'off');
             session.advance(100);
           }),
         ).toContainEqual(expect.objectContaining({ kind: 'unmet-check' }));
       });
 
-      it('records an unmet check when ticked at ALT', () => {
-        expect(tick((session) => void session.set('xpdr.mode', 'alt'))).toEqual([
-          expect.objectContaining({ kind: 'unmet-check' }),
-        ]);
+      it('records an unmet check when ticked at ACS', () => {
+        expect(
+          tick((session) => {
+            tap(session, 'xpdr.power');
+            tap(session, 'xpdr.mode');
+          }),
+        ).toContainEqual(expect.objectContaining({ kind: 'unmet-check' }));
       });
 
       it('records nothing when ticked at standby with power', () => {
-        expect(tick((session) => void session.set('xpdr.mode', 'sby'))).toEqual([]);
+        expect(tick((session) => tap(session, 'xpdr.power'))).toEqual([]);
       });
     });
 
-    describe('GPS has a position fix (assumed, intake §9 question 32)', () => {
-      const fix = 'GPS: position fix (3D FIX)';
+    describe('GPS has a position fix (assumed, intake §9 questions 32 and 38)', () => {
+      const fix = 'GPS: position fix (3D GPS Location)';
       const aircraft = only('beforeTakeoff', [fix]);
 
-      it('is a check on the GPS, after the power key that switches it on', () => {
+      it('is a check on the GPS, after accepting its databases and opening its map page', () => {
         const items = normalProcedures.beforeTakeoff.items as readonly Item[];
         const at = items.findIndex((item) => said(item) === fix);
-        const power = items.findIndex((item) => item.text.en === 'GPS on');
+        const accept = items.findIndex((item) => item.text.en === 'GPS: databases accepted');
         expect(items[at]).toMatchObject({ type: 'check', target: { control: 'gps.power' } });
-        expect(items[power]).toMatchObject({
+        expect(items[accept]).toMatchObject({
           type: 'action',
-          control: 'gps.power',
-          position: 'pressed',
+          control: 'gps.touch',
+          position: 'accept',
         });
-        expect(power).toBeLessThan(at);
+        expect(items[accept + 1]).toMatchObject({
+          type: 'action',
+          control: 'gps.touch',
+          position: 'map',
+          text: { en: 'GPS: map page', de: 'GPS: Kartenseite' },
+        });
+        expect(accept).toBeLessThan(at);
       });
 
-      it('records an unmet check when ticked with the GPS off', () => {
-        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([
-          expect.objectContaining({ kind: 'unmet-check' }),
-        ]);
-      });
-
-      it('records nothing when ticked with the GPS on and its fix found', () => {
-        const switchedOn = (session: Session) => {
-          session.press('gps.power');
-          session.release('gps.power');
+      it('records an unmet check when ticked with the GPS breaker pulled', () => {
+        const pulled = (session: Session) => {
+          session.set('gpsBreaker', 'pulled');
           session.advance(100);
         };
+        expect(tickedAt(aircraft, 'beforeTakeoff', pulled)).toContainEqual(
+          expect.objectContaining({ kind: 'unmet-check' }),
+        );
+      });
+
+      it('records nothing when ticked with the GPS on its cradle power and its fix found', () => {
         expect(
-          tickedAt(aircraft, 'beforeTakeoff', switchedOn).filter(
+          tickedAt(aircraft, 'beforeTakeoff', () => {}).filter(
             (deviation) => deviation.kind === 'unmet-check',
           ),
         ).toEqual([]);
+      });
+    });
+
+    describe('FLARM lit (assumed, intake §9 question 34)', () => {
+      const lit = 'FLARM: Power, GPS and TX lit';
+      const aircraft = only('beforeTakeoff', [lit]);
+
+      it('is a check on the FLARM right after the GPS fix check', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === lit);
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'flarm.mode' } });
+        expect(said(items[at - 1] as Item)).toBe('GPS: position fix (3D GPS Location)');
+      });
+
+      it('records an unmet check when ticked with the avionics master off', () => {
+        const dark = (session: Session) => {
+          session.set('avionicsMaster', 'off');
+          session.advance(100);
+        };
+        expect(tickedAt(aircraft, 'beforeTakeoff', dark)).toContainEqual(
+          expect.objectContaining({ kind: 'unmet-check' }),
+        );
+      });
+
+      it('records nothing when ticked with the FLARM operational', () => {
+        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([]);
       });
     });
 

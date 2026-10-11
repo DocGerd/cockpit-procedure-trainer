@@ -71,15 +71,6 @@ importers:
       '@cpt/device-flarm':
         specifier: workspace:*
         version: link:../../packages/device-flarm
-      '@cpt/device-gpsmap496':
-        specifier: workspace:*
-        version: link:../../packages/device-gpsmap496
-      '@cpt/device-gtx327':
-        specifier: workspace:*
-        version: link:../../packages/device-gtx327
-      '@cpt/device-sl40':
-        specifier: workspace:*
-        version: link:../../packages/device-sl40
       '@cpt/device-transponder':
         specifier: workspace:*
         version: link:../../packages/device-transponder
