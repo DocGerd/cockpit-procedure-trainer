@@ -1231,8 +1231,8 @@ of the §3.8 introduction.
   navy (hint #323b4f), clearly bluer and lighter than the radio discs. A thin
   darker edge or shadow runs round it.
 - **No screen.** Everything is an LED or printed line on the flat face, and the
-  Mode key sits **on** the face (corrected from the photos: §3.8.4 used to describe
-  a separate key beside the face). Screws are not visible.
+  Mode key sits **on** the face, with no separate housing (corrected from the
+  photos: it is a square outline and cap inside the face box). Screws are not visible.
 
 _Printed artwork_ (thin white or light grey lines and text):
 

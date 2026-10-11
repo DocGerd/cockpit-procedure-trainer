@@ -437,7 +437,7 @@ The M18 plan's 456 x 303 overlooked the dock's own padding and border and the cl
 | 1920x900, near the floor (measured)                                                  | 374 x 290 / 347 x 290                |
 | Dock at its 480 floor (derived: dock width minus 50 minus the close button)          | 367 x 286 / 340 x 286                |
 
-A device's natural Screen is therefore **at most 340 x 286**, and its `floor` (natural plus 24) at most 364 x 310. The e2e rows "dock near its floor" and "the ctsl dock holds every device without scrolling at 1920x900 in de" enforce this. At 1024x768 (tabs layout) the unit height is the larger of the floor and 288, so a floor keeps the Screen at scale 1. The earlier estimate of 367 wide holds for English only and would scroll in German; the natural sizes below use the German cap.
+A device's natural Screen is therefore **at most 340 x 286**, and its `floor` (natural plus 24) at most 364 x 310 (at the exact 480 floor the unit is about 310 tall; the 1920x900 row runs with the dock near 486 wide, where the unit is 314 tall, so a device at 286 natural height relies on that slack). The e2e rows "dock near its floor" and "the ctsl dock holds every device without scrolling at 1920x900 in de" enforce this. At 1024x768 (tabs layout) the unit height is the larger of the floor and 288, so a floor keeps the Screen at scale 1. The earlier estimate of 367 wide holds for English only and would scroll in German; the natural sizes below use the German cap.
 
 ### Natural sizes and floors (to be confirmed by measurement in each PR)
 
