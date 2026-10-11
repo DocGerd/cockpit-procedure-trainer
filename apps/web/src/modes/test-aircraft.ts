@@ -205,6 +205,20 @@ export const fixture: Aircraft = defineAircraft({
         { type: 'action', control: 'pump', position: 'on', text: text('Pump verified') },
       ],
     },
+    doneEarly: {
+      title: text('Done early'),
+      type: 'normal',
+      startPhase: 'parking',
+      items: [
+        {
+          type: 'action',
+          control: 'com.page',
+          position: 'b',
+          doneWhen: (state) => state.controls.master === 'on',
+          text: text('Radio page b, done by master on'),
+        },
+      ],
+    },
     keyless: {
       title: text('Keyless'),
       type: 'normal',

@@ -5,11 +5,13 @@ import { leadingCount } from './ItemGroup';
 
 export type CurrentTarget = { readonly control: string } | { readonly indicator: string };
 
+/** An action already done by its `doneWhen` waits only for its tick, so it targets nothing. */
 export function useCurrentTarget(): CurrentTarget | undefined {
   return useSessionState((snapshot): CurrentTarget | undefined => {
     const checklist = snapshot.checklist();
     if (!checklist || checklist.done) return undefined;
     const item = checklist.procedure.items[checklist.current];
+    if (item?.type === 'action' && item.doneWhen?.(snapshot.state())) return undefined;
     if (item?.type === 'action' || item?.type === 'guard') return { control: item.control };
     if (item?.type === 'check') return item.target;
     return undefined;

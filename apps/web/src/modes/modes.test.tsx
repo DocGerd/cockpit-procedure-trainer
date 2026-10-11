@@ -1196,6 +1196,15 @@ describe('the device dock in the modes', () => {
     expect(unit?.querySelector('[data-control][data-target]')).toBeNull();
   });
 
+  it('cues nothing once its doneWhen holds, since only the tick is left', () => {
+    renderTrainer('en', dockedLayout);
+    start('doneEarly', 'guided');
+    expect(docked()).toBe('com');
+    expect(dockRegion().querySelector('[data-control][data-target="true"]')).not.toBeNull();
+    act(() => trainer.session.set('master', 'on'));
+    expect(document.querySelector('[data-outline="target"], [data-target]')).toBeNull();
+  });
+
   it('keeps the shown tab for a device target', () => {
     renderTrainer('en');
     start('start', 'guided');

@@ -62,23 +62,32 @@ function litState(aircraft: Aircraft, installId: string, initial: unknown): unkn
   return { ...(initial as object), on: true, powered: true, ...seed };
 }
 
-/** The mirror's markup in each install of the aircraft, dark as the device starts and lit. */
-function mirrorMarkups(aircraft: Aircraft) {
+type Install = NonNullable<Aircraft['devices']>[string];
+type MirrorRenders = { readonly dark: string; readonly lit: string };
+
+/** The install's mirror rendered dark, as the device starts, and lit; undefined for an unregistered device. */
+function mirrorRenders(
+  aircraft: Aircraft,
+  installId: string,
+  install: Install,
+): MirrorRenders | undefined {
+  const device = deviceRegistry.find(({ id }) => id === install.device);
+  const entry = Object.hasOwn(deviceEntries, install.device)
+    ? deviceEntries[install.device]
+    : undefined;
+  if (!device || !entry) return undefined;
+  const render = (state: unknown) =>
+    renderToStaticMarkup(createElement(entry.Display, { on: true, state }));
+  return {
+    dark: render(device.initial),
+    lit: render(litState(aircraft, installId, device.initial)),
+  };
+}
+
+function mirrorMarkups(aircraft: Aircraft): (MirrorRenders & { readonly where: string })[] {
   return Object.entries(aircraft.devices ?? {}).flatMap(([installId, install]) => {
-    const device = deviceRegistry.find(({ id }) => id === install.device);
-    const entry = Object.hasOwn(deviceEntries, install.device)
-      ? deviceEntries[install.device]
-      : undefined;
-    if (!device || !entry) return [];
-    const render = (state: unknown) =>
-      renderToStaticMarkup(createElement(entry.Display, { on: true, state }));
-    return [
-      {
-        where: `${aircraft.id}/${installId}`,
-        dark: render(device.initial),
-        lit: render(litState(aircraft, installId, device.initial)),
-      },
-    ];
+    const renders = mirrorRenders(aircraft, installId, install);
+    return renders ? [{ where: `${aircraft.id}/${installId}`, ...renders }] : [];
   });
 }
 
@@ -88,29 +97,18 @@ function slotFitProblems(aircraft: Aircraft): string[] {
   if (!cockpit) return [];
   return Object.entries(aircraft.devices ?? {}).flatMap(([installId, install]) => {
     const where = `${aircraft.id}/${installId}`;
-    const device = deviceRegistry.find(({ id }) => id === install.device);
-    const entry = Object.hasOwn(deviceEntries, install.device)
-      ? deviceEntries[install.device]
-      : undefined;
+    const renders = mirrorRenders(aircraft, installId, install);
     const viewWidth = aircraft.views[install.view]?.size?.width;
     const minWidth = cockpit.views[install.view]?.minWidth;
-    if (!device || !entry || !viewWidth || !minWidth) return [`${where}: no device or view size`];
+    if (!renders || !viewWidth || !minWidth) return [`${where}: no device or view size`];
 
     const unit = minWidth / viewWidth;
     const slotW = install.placement.rect.w * unit;
     const slotH = install.placement.rect.h * unit;
-    const lit = litState(aircraft, installId, device.initial);
     return [
-      ['', device.initial],
-      [' (lit)', lit],
-    ].flatMap(([suffix, state]) =>
-      markupProblems(
-        `${where}${String(suffix)}`,
-        renderToStaticMarkup(createElement(entry.Display, { on: true, state })),
-        slotW,
-        slotH,
-      ),
-    );
+      ...markupProblems(where, renders.dark, slotW, slotH),
+      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH),
+    ];
   });
 }
 
