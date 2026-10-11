@@ -47,6 +47,19 @@ describe('Aera500Display', () => {
     },
   );
 
+  it('stacks the outlined map labels over the glass and its edge shade, the chart under it', () => {
+    const container = show();
+    const glass = container.querySelector('.pk-glass');
+    const map = glass?.querySelector<SVGElement>('[data-field="map"]');
+    expect(map?.style.zIndex).toBe('');
+    for (const field of [...Object.keys(MAP_FIELDS), 'range']) {
+      const label = glass?.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      expect(Number(label?.style.zIndex)).toBeGreaterThan(0);
+      expect(label?.style.textShadow).toContain('var(--panel-shadow)');
+      expect(label?.style.color).toBe('');
+    }
+  });
+
   it('draws the Map soft keys, Menu among them, as art', () => {
     const keys = [...show().querySelectorAll('[data-key]')].map((key) => key.textContent);
     expect(keys).toEqual(['Out', 'In', 'Menu', 'Home']);

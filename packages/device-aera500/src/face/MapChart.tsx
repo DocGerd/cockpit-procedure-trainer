@@ -44,7 +44,7 @@ const OWNSHIP_PATH =
   'M0 -8L1.5 -3L9 1L9 3L1.5 2L1 6L4 8L4 9L0 8L-4 9L-4 8L-1 6L-1.5 2L-9 3L-9 1L-1.5 -3Z';
 const NORTH = 'M-3 4L-3 -4L3 4L3 -4';
 
-/** The chart with the range arc around the own ship; north marked on the arc, track up. */
+/** The chart with the range arc, centred just below the own ship; north marked on the arc, track up. */
 export function MapChart({ trackDeg, style }: { trackDeg: number | null; style: CSSProperties }) {
   const north = trackDeg === null ? null : -(((trackDeg + 180) % 360) - 180) * (Math.PI / 180);
   const northShown = north !== null && Math.abs(north) <= ARC_HALF_SPAN;

@@ -68,7 +68,9 @@ function Text({ mode, tier, style, children, field }: TextProps) {
 }
 
 const fillStyle: CSSProperties = { position: 'absolute', inset: 0 };
+// The map's printed labels stack over the glass, whose edge shade would wash out their cores.
 const outlined: CSSProperties = {
+  zIndex: 1,
   textShadow:
     '0 0 calc(var(--space-1) / 2) var(--panel-shadow), 0 0 calc(var(--space-1) / 2) var(--panel-shadow)',
 };
@@ -164,6 +166,9 @@ const dashed = (value: number | null): string =>
 
 const fraction = (value: number) => `${Number((value * 100).toFixed(4))}%`;
 
+// The range prints at the map's lower right, right-aligned over DIST NEXT and clear of its label.
+const RANGE_GAP = 0.04;
+
 function MapPage({ mode, state }: { mode: FaceMode; state: Aera500State }) {
   return (
     <div data-page="map" style={fillStyle}>
@@ -176,7 +181,12 @@ function MapPage({ mode, state }: { mode: FaceMode; state: Aera500State }) {
         mode={mode}
         tier="body"
         field="range"
-        style={{ position: 'absolute', right: fraction(0.22), top: fraction(0.56), ...outlined }}
+        style={{
+          position: 'absolute',
+          right: fraction(1 - MAP_FIELDS.dist.edge),
+          bottom: fraction(1 - MAP_FIELDS.dist.row[0] + RANGE_GAP),
+          ...outlined,
+        }}
       >
         {`${RANGES_NM[state.rangeIndex]}NM`}
       </Text>

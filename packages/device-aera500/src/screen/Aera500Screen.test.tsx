@@ -87,6 +87,15 @@ describe('Aera500Screen glass', () => {
     expect(text('speed')).toBe('GS ---KT');
   });
 
+  it('prints the range at the lower right of the map, over DIST NEXT', () => {
+    const range = show(fixed).window()?.querySelector<HTMLElement>('[data-field="range"]');
+    const share = (value = '') => Number.parseFloat(value) / 100;
+    expect(range?.style.top).toBe('');
+    expect(share(range?.style.right)).toBeCloseTo(1 - MAP_FIELDS.dist.edge);
+    expect(share(range?.style.bottom)).toBeGreaterThan(1 - MAP_FIELDS.dist.row[0]);
+    expect(share(range?.style.bottom)).toBeLessThan(0.25);
+  });
+
   it('follows the range step', () => {
     expect(show({ ...fixed, rangeIndex: 6 }).text('range')).toBe('50NM');
   });
