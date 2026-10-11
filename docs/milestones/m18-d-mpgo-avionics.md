@@ -1,6 +1,6 @@
 # M18 D-MPGO avionics (v0.19.0)
 
-Milestone M18 is released as v0.(18+1).0, so this is v0.19.0; on GitHub it is milestone 19. The goal: replace the CT Supralight's avionics with the units installed in D-MPGO, as four new device packages, and install them in the panel's upper-centre field. The Demo aircraft and the app frame are unchanged.
+Milestone M18 is released as v0.(18+1).0, so this is v0.19.0; on GitHub it is milestone 19. The goal: replace the CT Supralight's avionics with the units installed in D-MPGO, as four new device packages, and install them in the panel's upper-centre field. The Demo aircraft's panel is unchanged; the shared panel-kit glare (PR #671) and the app frame's tablet header (PR #689) change for every aircraft, the Demo included.
 
 ## What shipped
 
@@ -48,7 +48,7 @@ Agent decisions (reasons in the PRs):
 20. **Header: a long procedure title truncates before the aircraft name** (PR #689): the name floors at its full width (capped 144 px). Sacrificed: full titles on a tablet for the longest names.
 21. **Tablet breaker and dial captions stay small, no art change** (PR #689): reaching the minimum needs about 1.8 times the font, which does not fit the breaker pitch and would redraw rubric-passed art. The guard `SECONDARY_MIN_PX` (half `MIN_TEXT_PX`) is on, the CTSL tablet rows are known `test.fail` gaps, and the fix wave stopped there under the two-fix-wave rule (open question 4).
 22. **Glare lowered, not removed** (PR #671): the depth shadow and the glass rim stay; a test ceiling keeps the shares at or below 18 percent (canopy band 6 percent).
-23. **Old-unit READMEs now say unregistered** (PR #696), and the mirror docs call `RADIO_MIRROR` and `GPS_MIRROR` mirror sizes.
+23. **Old-unit READMEs now say unregistered** (PR #696, which closes the follow-up #688), and the mirror docs call `RADIO_MIRROR` and `GPS_MIRROR` mirror sizes.
 
 ## Open questions for the owner
 
@@ -56,19 +56,20 @@ Agent decisions (reasons in the PRs):
 2. **Simulated FLARM traffic** would change the spec's scope (§4.9) and needs your decision. Not built: the display declares no traffic input, so RX stays dark.
 3. **COM generation:** the only source is the II manual; an ATR833A-OLED cannot be ruled out, and II-only features without a model are REPLAY, memory names and the split sidetone items (the LST list is modelled).
 4. **Tablet caption gaps (#661 follow-up):** breaker-row labels and dial captions are still about 5 to 6 px at 1024 px width; accepted under the two-fix-wave rule and tracked as #690. Decide whether the tablet needs an art pass.
-5. **Open follow-ups:** #685 (ATR833 power-loss tests assert a state that was never set), #690 (above), #687 (Demo dock scrolls in German at 1920x820), #688 (old-unit READMEs, partly done by PR #696), #693 (FLARM Mode key between the LED column and the ring), #694 (one funkwerk look for the two mirrors), #695 (CLAUDE.md device touch points, via `/revise-claude-md` in the main session only). #618 (flaky tablet-drawer e2e) still fails locally on develop and passes in CI.
+5. **Open follow-ups:** #685 (ATR833 power-loss tests assert a state that was never set), #690 (above), #687 (Demo dock scrolls in German at 1920x820), #693 (FLARM Mode key between the LED column and the ring), #694 (one funkwerk look for the two mirrors), #695 (CLAUDE.md device touch points, via `/revise-claude-md` in the main session only). #618 (flaky tablet-drawer e2e) still fails locally on develop and passes in CI.
+6. **Missing verifier passes and score:** no ui-verifier pass is recorded for #671, #686 and #696, and #686 has no blind rubric score, though the plan requires both before a render-changing PR leaves draft. Please review the panel and the TRT800H dock layout by eye in UAT, or ask for the passes before the release.
 
 ## How to verify
 
 - Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when the default port is busy). Known flake: #618.
-- Each task PR had a separate reviewer; ui-verifier passes on render-changing PRs: #689's returned a BLOCKER that the orchestrator accepted (decision 21, open question 4); the PR record shows no pass for #671 or #686.
+- Each task PR had a separate reviewer; ui-verifier passes on render-changing PRs: #689's returned a BLOCKER that the orchestrator accepted (decision 21, open question 4); the PR record shows no pass for #671, #686 or #696 (#696 was a draft awaiting one), and no blind rubric score for #686. Open question 6 asks you to treat these as unverified.
 - UAT (develop): https://docgerd.github.io/cockpit-procedure-trainer/uat/; prod after the release: https://docgerd.github.io/cockpit-procedure-trainer/.
 
 A short walk-through on UAT at 1920x1080:
 
 1. **Panel.** Pick the CT Supralight (named "CT Supralight") and Free explore: the FLARM display sits left of the aera 500, with the round COM and transponder units below; no bay captions.
-2. **Power the avionics.** Switch on the battery and the avionics master: the ATR833 and TRT800H mirrors show their displays, the aera shows its start-up page and the FLARM runs its self-test, then the GPS search.
+2. **Power the avionics.** Switch on the battery and the avionics master: the ATR833 mirror shows its display (it is AUTO ON); the TRT800H mirror stays dark until its I/O key is pressed in the dock, then rests in STBY; the aera shows its start-up page and the FLARM runs its self-test, then the GPS search.
 3. **Dock.** Open each device in the dock: ATR833 (FREQ, swap, I/O), TRT800H (I/O, VFR, MODE), aera 500 (accept, Map) and FLARM (Mode). No CTSL dock scrolls sideways; the Demo dock still does in German at 1920x820 (#687).
 4. **Guided before take-off.** Run N6 in Guided: it presses the transponder's I/O, accepts the aera's databases, opens its map page, then checks the FLARM shows Power, GPS and TX lit. Repeat after accepting the databases early: the step is ticked, not stuck.
-5. **After landing.** Run the shutdown checklist: two MODE presses leave the transponder at STBY.
+5. **After landing.** Run the After landing procedure (N15): two MODE presses leave the transponder at STBY.
 6. **Header.** At 1024 px width the aircraft name is whole beside a long procedure title.

@@ -13,7 +13,7 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 ### Changed
 
 - Soften the glare over the avionics device screens so the display reads through the glass.
-- The CT Supralight now carries D-MPGO's own avionics in place of the Garmin SL40, GTX 327 and GPSMAP 496: the funkwerk ATR833 COM radio and TRT800H transponder (round faces), the Garmin aera 500 in its cradle and the classic FLARM LED display, which runs on the avionics master. The before take-off checks press the transponder's I/O, accept the aera's databases and open its map page, and check that the FLARM shows Power, GPS and TX lit; the radio and transponder procedure uses FREQ, swap, I/O, VFR and MODE. The aircraft is now simply named "CT Supralight".
+- The CT Supralight now carries D-MPGO's own avionics in place of the Garmin SL40, GTX 327 and GPSMAP 496: the funkwerk ATR833 COM radio and TRT800H transponder (round faces), the Garmin aera 500 in its cradle and the classic FLARM LED display, which runs on the avionics master. The before take-off checks press the transponder's I/O, accept the aera's databases and open its map page, and check that the FLARM shows Power, GPS and TX lit; the radio and transponder procedure uses FREQ, swap, I/O, VFR and MODE. The aircraft is now named "CT Supralight", without "(representative panel)".
 
 ### Fixed
 
