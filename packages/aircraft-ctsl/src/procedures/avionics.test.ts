@@ -39,6 +39,8 @@ describe('radioAndTransponder', () => {
   it('names the keys the pilot presses', () => {
     const texts = procedure.items.map((item) => item.text.en);
     expect(texts).not.toContain('COM radio on (I/O)');
+    const pressed = procedure.items.flatMap((item) => ('control' in item ? [item.control] : []));
+    expect(pressed as string[]).not.toContain('com.power');
     expect(texts).toContain('Transponder on (I/O), standby');
     expect(texts).toContain('Transponder to ACS (MODE)');
   });

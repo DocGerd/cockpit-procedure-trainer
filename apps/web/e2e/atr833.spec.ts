@@ -94,7 +94,7 @@ for (const viewport of viewports) {
   });
 }
 
-test('the ATR833 is on from the start and swaps a raised standby frequency to active', async ({
+test('the ATR833 is on at the holding point, as N3 leaves it, and swaps a raised standby frequency to active', async ({
   page,
 }) => {
   const unit = await openInDock(page);

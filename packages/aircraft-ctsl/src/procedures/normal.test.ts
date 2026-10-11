@@ -640,6 +640,16 @@ describe('CTSL normal procedures', () => {
         expect(items[at + 1]).toMatchObject({ control: 'intercom', position: 'on' });
       });
 
+      it('is unmet with the Avionics Master on and no I/O press, and met once I/O is pressed', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
+        const press = items.findIndex(
+          (item) => item.type === 'action' && item.control === 'com.power',
+        );
+        expect(press).toBeGreaterThan(0);
+        expect(failsAt(without('engineStart', press), 'engineStart', press)).toBe(true);
+        expect(failsAt(ctslAircraft, 'engineStart', press + 1)).toBe(false);
+      });
+
       it('is not repeated in the run-up, which only confirms the radio set', () => {
         const items = normalProcedures.beforeTakeoff.items as readonly Item[];
         expect(items.some((item) => 'control' in item && item.control === 'com.power')).toBe(false);
@@ -664,12 +674,14 @@ describe('CTSL normal procedures', () => {
 
     it('has no FLARM check before take-off (intake §9 question 34)', () => {
       const items = normalProcedures.beforeTakeoff.items as readonly Item[];
-      const targets = items.flatMap((item) =>
-        item.type === 'check' && item.target && 'control' in item.target
+      const controls = items.flatMap((item) => [
+        ...('control' in item ? [item.control] : []),
+        ...(item.type === 'check' && item.target && 'control' in item.target
           ? [item.target.control]
-          : [],
-      );
-      expect(targets.filter((control) => control.startsWith('flarm.'))).toEqual([]);
+          : []),
+      ]);
+      expect(controls.length).toBeGreaterThan(0);
+      expect(controls.filter((control) => control.startsWith('flarm.'))).toEqual([]);
     });
 
     describe('Transponder: STBY after landing (intake §3.8.2)', () => {

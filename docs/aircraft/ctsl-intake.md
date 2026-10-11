@@ -3395,12 +3395,9 @@ verifies it on D-MPGO.
     comes on in N3 after the engine runs and a pilot needs the radio for the taxi call, so N3 presses
     `I/O` right after the Avionics Master, not at the holding point; N6 keeps its "radio set"
     confirm and `radioAndTransponder` starts with the radio already on. Every phase after engine
-    start seeds the COM on.
-    **Trainer (#717):** the `atr833` no longer switches on when power arrives; an `I/O` press does.
-    `radioAndTransponder` and N6 gain a COM `I/O` press; the phases from `linedUp` seed the COM
-    on and powered. Where the club presses `I/O` is not answered: the step's place in N6, at the
-    holding point, is the trainer's choice, **assumed (unverified)**; §3.8.1's typical use puts
-    the switch-on with avionics power, before engine start.
+    start seeds the COM on. The `atr833` no longer switches on when power arrives; an `I/O` press
+    does. Where the club presses `I/O` is not answered: the step's place in N3 is the trainer's
+    choice, **assumed (unverified)**.
 36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
     ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
     II features the original may lack are unconfirmed: the last-10 list (LST), named

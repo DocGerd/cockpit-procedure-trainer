@@ -371,7 +371,7 @@ export const normalProcedures = {
         text: text('Avionik ein', 'Avionics Master on'),
       },
       // Intake §9 question 35: the radio has no AUTO ON, so the pilot switches it on here, as the
-      // taxi call needs it (decision in §6 N3).
+      // taxi call needs it.
       {
         type: 'action',
         control: 'com.power',

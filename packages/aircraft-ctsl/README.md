@@ -67,7 +67,7 @@ Avionics: `radioAndTransponder` at the holding point (the COM radio is switched 
 ## Open questions
 
 - The phase start states the intake marks as assumed (intake §5): intercom, transponder mode, landing light and vertical speed per phase.
-- The avionics state is seeded per phase (`src/phases.ts`, intake §5): from lined up through taxi in the transponder is on at ACS squawking 7000, at standby once parked; from lined up through parking and securing the GPS is on its map page with a fix and the FLARM ready with its fix. Before that every unit starts as power finds it (#476, #501).
+- The avionics state is seeded per phase (`src/phases.ts`, intake §5): from lined up through taxi in the transponder is on at ACS squawking 7000, at standby once parked; from lined up through parking and securing the GPS is on its map page with a fix and the FLARM ready with its fix; from taxi out through parking and securing the COM radio is on (switched on in `engineStart`, intake §9 question 35). Before that the GPS and the FLARM start as power finds them (#476, #501).
 - The avionics assumptions of intake §9 questions 32 to 39: the GPS start-up step's place, the FLARM supply, the units' generation and set-up.
 
 ## Devices

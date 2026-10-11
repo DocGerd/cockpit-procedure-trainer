@@ -189,13 +189,13 @@ async function perform(page: Page, procedureId: string, item: ProcedureItem<unkn
   await expect(mark(row, 'Current')).toBeVisible();
   await expect(row).toContainText(item.text.en);
 
+  const deviceKey = item.type === 'action' ? deviceKeys[item.control] : undefined;
   if (item.type === 'confirm') {
     await row.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
   } else if (item.type === 'check') {
     await row.getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
-  } else if (deviceKeys[item.control]) {
-    const [installId, deviceId, key] = deviceKeys[item.control] ?? [];
-    if (!installId || !deviceId || !key) throw new Error(`no key for ${item.control}`);
+  } else if (deviceKey) {
+    const [installId, deviceId, key] = deviceKey;
     const unit = await dockedUnit(page, installId, deviceId);
     await unit.getByRole('button', { name: key, exact: true }).click();
   } else if (springsBack(item.control, item.position)) {
