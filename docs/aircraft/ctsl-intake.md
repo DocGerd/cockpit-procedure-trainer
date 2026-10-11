@@ -1353,6 +1353,835 @@ reset, display setup, fault codes and flight recording. The trainer's timings fo
 self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
 the manuals give none.
 
+### 3.10 Gauge faces (photos, M19)
+
+The round panel gauges and the hour meter, drawn from the owner's photos (§3.7) so
+that an implementer can draw each face without seeing them. Each block has a **Face
+layout (photos)** part in the manner of §3.8, paraphrased measurements only; no
+photo, crop or derived image is in the repository. §3.10.0 sets the convention,
+§3.10.11 the sizes and grouping shared by all of them. Values the photos do not
+settle are marked **assumed (unverified)** or **low confidence** and, where the club
+could settle them, point to a §9 question (46 to 63).
+
+#### 3.10.0 Gauge-face convention
+
+The **Face layout (photos)** blocks of the round panel gauges (§3.10.1 onwards) use
+this convention. They come from the owner's photos (§3.7). No photo, crop or derived
+image is in the repository.
+
+- **Angles.** 0° is 12 o'clock on the dial and angles grow clockwise, so 90° is 3
+  o'clock and 270° is 9 o'clock. Each dial's own reference sets 0°: the rest index
+  of the airspeed indicator and the 0 numeral of the altimeter.
+- **Radii** are fractions of the **case radius R**: the outer edge of the black bezel
+  ring, which is the visible edge of the instrument against the panel. Each gauge
+  uses its own R.
+- **Sizes** are fractions of **D, the airspeed indicator's case diameter** (2R of the
+  ASI). This D is not the §3.8 D, the 57 mm radio disc: in the photos the ASI's case
+  is about 1.7 to 1.9 times the radio disc's diameter (photo ratio, ±10 %, **low
+  confidence**, because the two sit in different fields at different camera
+  distances). Do not convert this to millimetres.
+- **Box coordinates**, where a block gives them, follow §3.8: origin at the top left
+  of the case's bounding square, x to the right and y down, as fractions of that
+  gauge's own case diameter. The centre is (0.5, 0.5). Polar and box positions
+  convert by x = 0.5 + 0.5·(r/R)·sin θ and y = 0.5 − 0.5·(r/R)·cos θ. Values
+  outside 0 to 1 lie beyond the case (screws, knobs, stickers).
+- **Method.** Three of the left-seat panel views were corrected to the panel plane,
+  using the four mounting screws around each instrument as a square. Angles were
+  then read against the dial's own reference. On the airspeed indicator, two photos
+  agree within ±2° on every tick.
+- **Parallax.** The dial sits recessed behind its bezel, so in the photos the dial
+  print appears shifted by about 0.05 R against the case outline. The real
+  instruments are concentric, and the blocks give the concentric geometry.
+- **Accuracy.** Angles are good to ±3°, radii to ±0.03 R, box positions to ±0.02 and
+  sizes to ±15 % unless marked **low confidence**.
+- **Colours** are given in words with an approximate hex hint after allowing for the
+  photos' cool cast; the hint only guides the choice of a panel colour. Under the
+  owner's principle (fidelity is recognition), colours, stickers, logos, fonts and
+  fine ticks are notes; positions, sizes, dial type, pointers, scale direction,
+  numerals, units, arc positions and controls are what the face must get right.
+- A maker's logo, name or country-of-manufacture line is **never reproduced**: its
+  footprint is listed so that the area stays blank or carries a generic mark.
+- **Mounting, both gauges.** A round case with a narrow matte-black bezel ring (no
+  chrome) sits directly on the light brushed-aluminium plate (§3.7.1), with no
+  square flange or frame. Four black cross-head screws sit at the corners of a
+  square centred on the gauge, their centres about 0.385 D from the gauge centre
+  in x and in y, their heads about 0.10 D across.
+- **Notation in the later blocks.** From §3.10.3 on, **A** is this D (the ASI's case
+  diameter), **E** is the case diameter of the CHT, oil temperature, voltmeter and oil
+  pressure gauges, and **T** is the tachometer's. §3.10.3 to §3.10.5 give positions as
+  (x, y) from the dial centre in units of R, x to the right and y down (box fraction =
+  0.5 + 0.5 × value). Where two blocks size the same gauge a little differently
+  (within tolerance), the table in §3.10.11 is the one to use.
+- **Perspective.** The panel photos lean each gauge by a keystone shear of about 6 to
+  8° (tops lean outward: left on the upper-left field, right on the upper-right field)
+  and shorten it vertically by 4 to 16 %. Both were removed before measuring: the
+  screw squares come out square and the tachometer's numerals 30 and 40 symmetric
+  about 12 o'clock, which confirms the correction.
+- **Absolute size of A: not settled by the photos (low confidence).** Scaled from the
+  aera 500 body (about 12 cm wide; the maker's figure is quoted from memory,
+  unverified), A is about 75 to 85 mm, the 3⅛-inch class. Scaled from the COM disc
+  taken as 57 mm (§3.8), A is about 98 mm. The two references disagree (the centre
+  field may sit at a different depth), so the trainer sizes gauges by the ratios to A,
+  not in mm.
+- **Screws, upper-right field.** The gauge screws on the upper-right field are the same
+  black dome-headed cross-head screw as on the upper-left field, head diameter about
+  0.085 A, the same on the VSI, slip indicator, tachometer and hour meter.
+
+#### 3.10.1 Airspeed indicator
+
+**Face layout (photos).** A single-pointer airspeed indicator in km/h, top left of
+the upper-left field's 2×2 (§3.7.1). Case diameter 1.00 D by definition (§3.10.0).
+The needle is at rest in every photo.
+
+- **Case and bezel.** Round. The black bezel ring runs from about 0.885 R to R
+  (about 0.06 D wide). Four screws as in §3.10.0, in box coordinates (0.115, 0.115),
+  (0.885, 0.115), (0.885, 0.885) and (0.115, 0.885). The case has no lug or knob.
+- **Dial.** Matte black. Every print is white. There is one scale, km/h, and no
+  second unit.
+- **Rest and stop.** The needle rests at 0° (12 o'clock) on a short white **rest
+  index**: a bar at r 0.80 to 0.87 R, about 0.02 D wide. No stop pin is visible.
+- **Sweep.** Clockwise, almost a full turn. 40 km/h sits at 10°, just right of the
+  rest index, and 340 km/h at 341°, just left of it. The scale spans about 331° for
+  300 km/h, about 1.10° per km/h. Nothing is marked between the rest index and 40,
+  so the first 40 km/h share only the first 10° of the dial. The linear rule
+  θ(v) = 10° + 1.10° × (v − 40) for 40 ≤ v ≤ 340 stays within 3° of every measured
+  tick (the measured ticks sit up to 3° below it between 120 and 280).
+- **Numerals.** Sixteen, every 20 km/h from 40 to 340. They stand upright (not
+  rotated with the scale), in a regular-weight sans. Their centres lie on a circle
+  of about 0.62 R (±0.04). Cap height is about 0.05 D; a three-digit numeral is
+  about 0.11 D wide.
+
+| km/h | Angle | km/h | Angle | km/h | Angle | km/h | Angle |
+| ---- | ----- | ---- | ----- | ---- | ----- | ---- | ----- |
+| 40   | 10°   | 120  | 95°   | 200  | 184°  | 280  | 271°  |
+| 60   | 31°   | 140  | 117°  | 220  | 207°  | 300  | 294°  |
+| 80   | 52°   | 160  | 140°  | 240  | 229°  | 320  | 319°  |
+| 100  | 74°   | 180  | 162°  | 260  | 249°  | 340  | 341°  |
+
+- **Ticks.** One every 10 km/h from 40 to 340 (31 ticks), all running out to the
+  dial edge at about 0.88 R. Numbered ticks span 0.72 to 0.88 R, unnumbered ticks
+  0.74 to 0.88 R; the difference is slight. Ticks are about 0.012 D wide. At 300 the
+  red line takes the tick's place.
+- **Printed words.**
+  - "AIRSPEED" centred straight above the hub at box (0.50, 0.335) (r 0.33 R), cap
+    height about 0.04 D, about 0.28 D wide.
+  - "KmH" under it at box (0.50, 0.405) (r 0.19 R), as printed: capital K, small m,
+    capital H. About 0.04 D tall and 0.09 D wide. It is the scale's unit legend.
+  - The maker's footprint below the hub: a small logo with two short lines under it
+    (maker name, country of manufacture), at box x 0.40 to 0.60, y 0.545 to 0.71.
+    **Not reproduced**: draw a generic mark there or leave it blank.
+  - Two small dark dial screws at box (0.40, 0.49) and (0.60, 0.49), about 0.02 D
+    across (optional detail).
+- **Needle.** One: a long, straight white lance with parallel sides, about 0.025 D
+  wide, ending in a pointed tip. It runs from about 0.08 R to its tip at about
+  0.78 R, into the tick band and short of the arcs. No tail is visible, and the hub
+  is black on black, with no visible cap.
+- **Arcs.** All coloured marks lie in a narrow band at the dial edge. The outer half
+  of the band (0.83 to 0.88 R) carries green and yellow; the inner half (0.79 to
+  0.82 R) stays dark except under the white arc.
+
+| Mark     | km/h                 | Angles                   | Radii                                                                                      |
+| -------- | -------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| White    | 72 to 115            | 45° to 90°               | full band 0.79 to 0.88 R from 72 to 94; from 94 to 115 only the inner half, 0.79 to 0.82 R |
+| Green    | 94 to 245            | 69° to 235°              | outer half, 0.83 to 0.88 R; from 94 to 115 it runs beside the white                        |
+| Yellow   | 245 to 300           | 235° to 294°             | outer half, 0.83 to 0.88 R                                                                 |
+| Red line | 300                  | 294° (±2°)               | a radial line from about 0.67 to 0.87 R, longer inward than the ticks, about 0.02 D wide   |
+| None     | 40 to 72, 300 to 340 | 10° to 45°, 294° to 341° | no arc                                                                                     |
+
+**Arc verdict.** The photos confirm the §4.3 markings and the handbook's airspeed
+markings: white 72–115, green 94–245, yellow 245–300 and the red line at 300. The
+audit reading "green about 115–240" (#720) is superseded. The green arc starts at
+about 94 km/h, but its first 20 km/h run in the outer half of the band beside the
+white arc's inner half, and glare washes that stretch out in two of the three
+photos. The clearest photo resolves both bands (white start 73, green start 95,
+white end 115, green end 245); a second photo agrees within 3 km/h. No mark lies
+at 276 (about 268°): the yellow runs on unbroken to the red line at 300.
+
+- **Handbook comparison** (HB 2-1 and the airspeed rows of HB 7-20, numbers only).
+  The handbook's speeds match §4.1: stall 85, 75 and 65 km/h (flaps −12°, 0°, 35°);
+  VA 194; flap limits 184 (0°), 148 (15°) and 115 (30° and 35°); VRA 245, with the
+  caution range from 245 to VNE. The handbook gives three VNEs by rescue system: 276
+  for BRS 1050, 260 for the Junkers High Speed, 300 for the Junkers Light Speed. Its
+  marking table gives white 72–115 and green 94–245 for all, and the yellow arc and
+  red line by the same split: 245–276 and 276, 245–260 and 260, or 245–300 and 300
+  (Junkers Light Speed or no rescue system). **D-MPGO's dial carries the last of
+  these.**
+- **Rescue-system note** (**low confidence**: small, oblique print on the console
+  photo). The data plate beside the rescue handle (§3.7.1) reads as a BRS of the
+  1050 type, and its limits line gives about 475 kg and 276 km/h. If that reading
+  is right, the dial's 300 marking belongs to the handbook's no-rescue variant while
+  the installed system is the 276 one. This bears on §2a decision 3 and the §8 VNE
+  row, and the owner decides (§9 question 50). The trainer draws the dial as
+  photographed.
+- **Windows and knobs.** None.
+- **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
+  #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
+  is at θ about 74° and r about 1.04 R (box (1.00, 0.35)); the base is upright at
+  box x about 1.13, from y 0.28 to 0.42. The triangle is about 0.13 D wide and 0.14 D
+  tall. It points at about 100 km/h on the scale. It carries no print, so its
+  meaning is not legible (§9 question 51).
+- **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
+  The centre sits at about (0.38, 0.36) of the bounding box of the upper-left field's
+  aluminium plate, which is about 3.4 D wide and 3.4 D tall. The altimeter's centre
+  is 1.29 D to the right, level within ±0.03 D.
+- **Not visible in the photos:** how the needle moves between 0 and 40 km/h and
+  whether a stop pin exists (§9 question 52); the needle's hub and any tail; any print on
+  the sticker; the exact arc colours under the glare.
+- **Colours (notes).** Face black (hint #121619); print and needle white (#ececec);
+  white arc #e8e8e8; green arc a medium green (dark teal in the photos; hint
+  #2f8a5a); yellow arc #d8c83c; red line #c8323c; bezel and screws black (#1a1a1a).
+
+#### 3.10.2 Altimeter and QNH setting
+
+**Face layout (photos).** A three-pointer sensitive altimeter in feet, top right of
+the upper-left field's 2×2, with a pressure-setting window at 3 o'clock and a
+setting knob at its lower left. The maker is not legible and the face shows no logo.
+
+- **Case and bezel.** Round, the same size as the airspeed indicator: case diameter
+  1.00 D (±0.04). The bezel ring is narrow and black like the ASI's; the face edge
+  inside it does not show (black on black). A black moulded **lug** grows out of the
+  case at the lower left, from θ about 205° to about 245°, reaching out to about
+  1.2 R, with an outline of two rounded lobes; it carries the knob. Of the four
+  screws of §3.10.0 three show, at box (0.115, 0.115), (0.885, 0.115) and (0.885,
+  0.885); the fourth, at (0.115, 0.885), is hidden under the lug and knob.
+- **Dial.** Matte black, every print off-white. **No coloured markings** and no arcs.
+- **Scale.** 0 at 12 o'clock. There is no stop: the pointers turn on round the dial,
+  a full 360° per turn, clockwise for rising altitude. The numerals 0 to 9 sit every
+  36° (100 ft on the long pointer; θ = 36° × n,
+  measured within ±3°). They stand upright, tall and condensed, cap height about
+  0.10 D (twice the ASI's), with centres on a circle of about 0.61 R (±0.04); the 0
+  and the 1 sit a little further out, about 0.65 R. The 1 is a plain bar. The 0 is
+  partly hidden by the ten-thousands pointer in the photos.
+- **Ticks.** 50, one every 7.2° (20 ft on the long pointer). Minor ticks span 0.76
+  to 0.82 R; each numeral has a longer tick, 0.73 to 0.82 R. Ticks are about
+  0.01 D wide and run on past the window.
+- **Printed words.**
+  - A small spaced-capital unit legend split either side of the 0: the figure 100 on
+    the left (box (0.41, 0.16)) and FEET on the right (box (0.60, 0.16)), cap height
+    about 0.02 D. It says each numeral is 100 ft on the long pointer.
+  - "ALT", bold, at box (0.41, 0.38), cap height about 0.06 D, about 0.15 D wide.
+  - Under it a tiny two-line note at box x 0.29 to 0.47, y 0.46 to 0.51, cap height
+    about 0.012 D: a word for range, then the figure 20,000 with the unit word for
+    feet.
+- **Pressure window.**
+
+| Item                  | Position and size                                                                                                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Window                | An opening in the dial at 3 o'clock, box x 0.75 to 0.88, y 0.42 to 0.56 (θ about 77° to 100°, r 0.50 to 0.76 R). It extends further above the index than below. Its outline does not show (black on black) |
+| Value                 | Four digits, the current setting (1025 in the photos), centred at θ 90°, r 0.60 R (box (0.80, 0.50)), reading horizontally. Cap height about 0.03 D, about 0.10 D wide: far smaller than the main numerals |
+| Pressure-scale ticks  | A column of short fine ticks just right of the value, at r about 0.70 R (box x about 0.85), from y about 0.42 to 0.56. The scale turns behind the dial                                                     |
+| Index                 | A short bold double bar at θ 90° on the tick ring (r 0.74 to 0.82 R, box x 0.87 to 0.91), level with the value                                                                                             |
+| Print at the top edge | A row of small print cut off by the window's upper edge, under the 2 (box x about 0.73 to 0.84, y about 0.43): not legible. It is either the next scale value or a unit word                               |
+| Units                 | **hPa**, inferred from the four-digit value; no unit word is legible. No inHg scale or second window                                                                                                       |
+
+- **Low-altitude sector.** A fan-shaped opening below the hub: an annular sector from
+  θ about 150° to about 206°, r 0.23 to 0.48 R (box x 0.40 to 0.62, y 0.60 to 0.74),
+  centred just left of the 5. It shows about five white stripes on black, slanting
+  down to the right at about 40°; stripes and gaps are each about 0.025 D wide. The
+  photos (at about 320 ft) show it fully striped.
+- **Pointers.** Three, all off-white; the hub is black on black, with no visible cap.
+
+| Pointer                  | Shape and size                                                                                                                                                     | Turns               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Hundreds (long)          | A slim bar about 0.022 D wide ending in a small arrowhead, from about 0.15 R to its tip at about 0.77 R, into the tick band. No tail is visible                    | once per 1,000 ft   |
+| Thousands (broad)        | A broad blade with parallel sides, about 0.05 D wide, ending in a pointed (chevron) tip, from about 0.10 R to its tip at about 0.38 R                              | once per 10,000 ft  |
+| Ten-thousands (hairline) | A hairline, about 0.006 D wide, from the hub to a small inverted white triangle on the tick ring: base outward at 0.86 R, about 0.05 D wide; apex inward at 0.75 R | once per 100,000 ft |
+
+The hundreds pointer is the longer of the two main pointers (this settles the
+question #719 raised). Stacking: the hairline appears to pass under the broad blade
+(**low confidence**); the long pointer on top is general knowledge, not visible
+(the two never overlap in the photos).
+
+- **Setting knob.** A plain black cylinder seen end-on at the lug's outer lower end:
+  centre at θ about 217° (about 7:15 o'clock) and r about 1.23 R (box (0.13, 0.99)),
+  diameter about 0.155 D, so its disc reaches out to about 1.39 R, beyond the case
+  and past the hidden lower-left screw. Its face is flat and plain with a thin
+  lighter edge; it carries **no print and no pointer line**. It stands out from the
+  lug by about 0.08 D (**low confidence**, one oblique photo). Knurling is not
+  resolved: the side looks plain at the photos' resolution.
+- **Stickers.** None on or beside the altimeter.
+- **Reading in the photos.** On the parked aircraft the altimeter reads about 320 ft
+  with 1025 in the window (the long pointer just past the 3, the broad pointer just
+  right of 0, the hairline at 0). The day's QNH is unknown (§9 question 46).
+- **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
+  The centre sits at about (0.78, 0.36) of the upper-left plate's bounding box,
+  1.29 D right of the ASI's centre and level with it.
+- **Not visible in the photos:** the drum's setting range and step; the knob's
+  turning sense, knurl and exact length; the printed pressure unit (the cut-off
+  print is not legible); the hub cap and any tail on the long pointer; the stacking
+  of the long pointer; how the striped sector closes above 10,000 ft (§9 question 49).
+- **Colours (notes).** Face black (hint #111418); print and pointers off-white
+  (#e6e6e0); bezel, lug, knob and screws black (#1a1a1a). The stripes are the same
+  off-white on black.
+
+#### 3.10.3 Vertical speed indicator
+
+**Face layout (photos).** Unit box, frame and angles as in the shared notes: (x, y)
+in units of R from the dial centre, x right, y down; 0° at 12 o'clock, clockwise
+positive. Measured in three frontal photos with perspective removed. Angles ±5°,
+positions ±0.03 R, sizes ±15 % unless marked **low confidence**.
+
+- **Size.** Case diameter **0.64 A** (0.63 to 0.64 in four photos).
+- **Case and mount.** A thin matte black bezel ring (about 0.07 R wide), barely
+  distinct from the black dial; no chrome. The case sits on the brushed-aluminium
+  field with three black dome-headed cross-head screws at (−0.84, −0.83),
+  (+0.84, −0.83) and (+0.84, +0.83), head diameter ≈ 0.26 R. At the lower-left
+  corner, in place of a fourth screw head, a short black cylindrical stub sticks out
+  diagonally at −135°, from about 1.05 R to 1.25 R from the centre and about 0.10 R
+  thick: probably the zero-set screw (**low confidence**).
+- **Dial type.** Black dial with white markings and one pointer. **0 at 9 o'clock
+  (−90°).** Climb reads clockwise over the top, descent counter-clockwise under the
+  bottom, and the two halves meet at **one shared 2 at 3 o'clock (+90°)**, so each
+  half spans 180°. No stop pin is visible.
+- **Units.** Thousands of feet per minute (the printed `1000 ft. per min.`). No
+  coloured arcs.
+
+_Scale._ Linear: 90° per 1,000 ft/min, 9° per 100 ft/min.
+
+| Value (×1000 ft/min) | Climb half (over the top) | Descent half (under the bottom) | Numeral printed |
+| -------------------- | ------------------------- | ------------------------------- | --------------- |
+| 0                    | −90° (shared)             | (shared)                        | `0`             |
+| 0.5                  | −45°                      | −135°                           | `.5`            |
+| 1                    | 0°                        | 180°                            | `1`             |
+| 1.5                  | +45°                      | +135°                           | `1.5`           |
+| 2                    | +90° (shared)             | (shared)                        | `2`             |
+
+Measured: the 0 bar at −91°, the 2 mark at +88°, the climb 1 at +2°, the descent 1
+at 179°, the 1.5 numerals at +44° and +137°. No non-linearity is visible.
+
+- **Ticks.** White, radial, every 0.1 (100 ft/min) on both halves. Minor ticks run
+  from 0.73 R to 0.86 R, about 0.015 R thick. Major ticks at 0.5, 1 and 1.5 on both
+  halves run from 0.70 R to 0.88 R, about twice as thick. The **0** is a thick bar
+  from 0.70 R to 0.88 R, about 0.05 R thick. At **2** an I-shaped mark replaces the
+  tick: a tangential bar at 0.81 R spanning ±8° about +90° (about 0.23 R long), with
+  short radial serifs at both ends from 0.74 R to 0.88 R.
+- **Ticks across the top.** Between about −45° and +45° the bezel lip hides the outer
+  part of each tick in every photo, so they show as dots there. They are the same
+  dashes as everywhere else (inference from the viewing angle, medium confidence).
+- **Numerals.** Upright white bold sans, cap height ≈ 0.14 R, centred on a ring of
+  ≈ 0.60 R on their value's radial (for `.5` the digit sits on the radial and the
+  point to its left). The `0` is half covered by the pointer at rest.
+
+_Printed lettering_ (white bold sans, as printed):
+
+| Item         | Position (x, y) in R and size                                                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VERTICAL`   | centre (+0.02, −0.29); width 0.62; cap height 0.09                                                                                                                                       |
+| `SPEED`      | centre (+0.02, −0.18); width 0.40; cap height 0.09                                                                                                                                       |
+| `1000 ft.`   | centre (+0.02, +0.18); width 0.29; cap height 0.05                                                                                                                                       |
+| `per min.`   | centre (+0.02, +0.26); width 0.29; cap height 0.05; lower case                                                                                                                           |
+| up arrow     | an L-shaped arrow just above the `0`: corner at (−0.66, −0.11), a vertical shaft up to an arrowhead at (−0.64, −0.25), a horizontal leg right to (−0.52, −0.11); stroke ≈ 0.02 R         |
+| `up`         | lower case, centre (−0.45, −0.11), cap height 0.05, at the end of the leg                                                                                                                |
+| down arrow   | the up arrow mirrored about the horizontal axis: corner (−0.66, +0.11), arrowhead pointing down at (−0.64, +0.25)                                                                        |
+| down legend  | at about (−0.45, +0.11), mostly hidden under the resting pointer in every photo: not legible. The trainer prints a short lower-case down legend mirroring `up`, **assumed (unverified)** |
+| maker's mark | none on this dial                                                                                                                                                                        |
+
+_Pointer._ One broad white paddle from 0.13 R to 0.87 R, ≈ 0.09 R wide over most
+of its length, its outer end tapering to a point over the last ≈ 0.12 R; the inner
+end is cut square. No hub cap is visible: the centre is black. In both frontal
+photos it rests about 7° below the 0 bar (about −0.08, a small zero offset of the
+real instrument); the trainer rests it on 0.
+
+- **Colours.** Dial and bezel matte black (hint #111418); markings and pointer white
+  (hint #eeeeea).
+- **Stickers.** None.
+- **Not visible.** A hub or stop pin, the legend under the resting pointer, and the
+  outer part of the scale across the top (hidden by the bezel lip).
+
+#### 3.10.4 Slip indicator (ball)
+
+**Face layout (photos).** Unit box, frame and conventions as for §3.10.3. Measured
+in four photos with perspective removed. Positions ±0.03 R, sizes ±15 % unless
+marked **low confidence**.
+
+- **Size.** Case diameter **0.67 A** (0.67 to 0.68 in three photos): slightly
+  larger than the VSI.
+- **Case and mount.** A plain round matte black face with a thin rim (about 0.05 R,
+  barely distinct). Four black dome-headed cross-head screws on a square at
+  (±0.83, ±0.84), head diameter ≈ 0.26 R.
+- **Dial type.** A ball inclinometer only: **no scale, no ticks, no numerals, no
+  pointer and no coloured marks.**
+- **Tube.** One horizontal glass tube, nearly straight: its middle sits about 0.03 R
+  lower than its ends, a very shallow upward curve (**low confidence**; it reads as
+  straight). It runs from x −0.72 to +0.72 (length ≈ 1.45 R), its centre line at
+  y +0.06, outer height ≈ 0.25 R, with flat square-cut ends and slightly rounded
+  corners. Colour cream / ivory (hint #e4dac2). A faint lengthwise highlight along
+  its lower part is glare (optional).
+- **Ball.** One black ball, diameter ≈ 0.26 R (it fills the tube's height), at the
+  tube's centre (x 0.00 ±0.04) in every photo.
+- **Reference lines.** Two thin dark lines across the tube (≈ 0.015 R wide, the
+  tube's full height), about one ball diameter apart at x ≈ ±0.14, framing the
+  centred ball. The left line is clear in every photo; the right one merges with the
+  ball's edge (**low confidence** on the right line). A small curved light highlight
+  on the glass sits just inside the left line (optional). The ball's travel is the
+  tube's length less one ball: centre within about ±0.58 R.
+- **Centring.** The tube, the maker's mark and the legend are centred on the
+  vertical axis (±0.05 R).
+
+_Printed lettering:_
+
+| Item             | Position (x, y) in R and size                                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| maker's mark     | above the tube: a symbol, footprint x −0.25 to +0.25, y −0.53 to −0.26, with a one-line wordmark under it, footprint x −0.29 to +0.29, y −0.23 to −0.15. **Not reproduced**: the area stays blank or carries a generic mark (#721) |
+| `SLIP INDICATOR` | one line under the tube, white bold uppercase sans, centre (0.00, +0.53), width ≈ 0.97, cap height ≈ 0.11                                                                                                                          |
+
+- **Colours.** Face matte black with a faint blue cast (hint #121820); tube cream;
+  ball black; reference lines dark grey to black; lettering white.
+- **Stickers.** None.
+- **Not visible.** Any marks on the tube other than the two lines, and the
+  ball's behaviour (the aircraft was parked level).
+
+#### 3.10.5 Tachometer
+
+**Face layout (photos).** Unit box, frame and conventions as for §3.10.3. Measured
+in three frontal photos, with the tick angles found by sampling the scale ring after
+removing perspective. Angles ±4°, positions ±0.03 R, sizes ±15 % unless marked
+**low confidence**.
+
+- **Size.** Case diameter **0.70 A** (0.68 to 0.70 in three photos; across fields,
+  ±5 %). The largest gauge on the upper-right field.
+- **Case and mount.** A thin matte black bezel ring from 0.92 R to 1.00 R around a
+  black dial (the dial edge at ≈ 0.91 R). Four black dome-headed cross-head screws on
+  a square at (±0.84, ±0.84), head diameter ≈ 0.24 R.
+- **Dial type.** Black dial, white markings, one pointer. **0 at −142° (about
+  7:15)**, sweep **clockwise** over the top to **70 at +145° (about 4:50)**: about
+  285°. The scale is symmetric about 12 o'clock, where **3,500 rpm** sits (±3°). The
+  gap at the bottom, from +145° through 180° to −142°, carries no scale.
+- **Units and multiplier.** `RPM` over `x100` (lower-case x); numerals in hundreds
+  of rpm.
+
+_Scale._ Close to linear: angle ≈ −142° + 4.06° × (rpm / 100), which stays within
+±4° of every measured mark (the 1,000 to 2,000 step measures a little short, ≈ 36°,
+and 2,000 to 3,000 a little long, ≈ 44°, in every photo; real or residual
+perspective, not settled).
+
+| Numeral printed | rpm   | Measured angle                    | Linear model |
+| --------------- | ----- | --------------------------------- | ------------ |
+| `0`             | 0     | −141° (under the resting pointer) | −142°        |
+| `10`            | 1,000 | −99°                              | −101°        |
+| `20`            | 2,000 | −63°                              | −61°         |
+| `30`            | 3,000 | −19°                              | −20°         |
+| `40`            | 4,000 | +19°                              | +20°         |
+| `50`            | 5,000 | +62°                              | +61°         |
+| `60`            | 6,000 | +105°                             | +102°        |
+| `70`            | 7,000 | +145°                             | +142°        |
+
+- **Ticks.** White, radial, **every 200 rpm** (≈ 8°; counted: four minor ticks
+  between each pair of numerals). Minor ticks from 0.76 R to 0.89 R, about 0.02 R
+  thick; major ticks at each numeral from 0.70 R to 0.89 R, about 0.035 R thick.
+  **From 6,000 to 7,000 every tick is long and thick** like a major tick.
+- **Numerals.** Upright white bold sans, cap height ≈ 0.12 R, centred on a ring of
+  ≈ 0.59 R, each within 5° of its major tick's radial. The `0` is half covered by the
+  pointer at rest.
+
+_Coloured arcs_ (a band from 0.76 R to 0.88 R, under the ticks; colours are muted by
+glare in every photo, positions are reliable):
+
+| Arc           | From → to (rpm)          | Measured angles                                   | Colour (hint)         |
+| ------------- | ------------------------ | ------------------------------------------------- | --------------------- |
+| red (low)     | 0 → ≈ 1,400 (±100)       | −141° → −84°                                      | brick red (#a8383c)   |
+| yellow (low)  | ≈ 1,400 → ≈ 1,800 (±100) | −84° → −70°                                       | pale yellow (#d8c46c) |
+| green         | ≈ 1,800 → ≈ 5,500        | −70° → +84°                                       | mid green (#3a8a5a)   |
+| yellow (high) | ≈ 5,500 → ≈ 5,800        | +84° → +95°                                       | pale yellow (#d8c46c) |
+| red line      | ≈ 5,800                  | +96°, radial from 0.68 R to 0.87 R, ≈ 0.03 R wide | dark red (#8c2a2e)    |
+
+Nothing coloured from 5,800 to 7,000. The low red arc starts right at 0, next to the
+resting pointer (#670). The green's hue shows clearly from about 4,000 rpm up; from
+1,800 to about 4,000 glare washes it in all three frontal photos, where the band
+still reads as a lighter, faintly greenish ring with no break. It is drawn
+continuous (medium confidence; §9 question 55).
+
+_Printed lettering:_
+
+| Item                   | Position (x, y) in R and size                                                                                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TACH`                 | centre (0.00, −0.28); width 0.39; cap height 0.10. Its last letter is partly worn in the photos (cosmetic, not reproduced)                                                                |
+| `RPM`                  | centre (+0.02, +0.30); cap height 0.09; just below and right of the hub; the resting pointer passes over the corner of its first letter                                                   |
+| `x100`                 | centre (0.00, +0.42); cap height 0.08                                                                                                                                                     |
+| country-of-origin line | a small line of text curving along the bottom gap, centred at 6 o'clock at ≈ 0.83 R, spanning x −0.32 to +0.32, cap height ≈ 0.06. A maker line: **not reproduced**, the area stays blank |
+| small dark dot         | ≈ 0.06 R across at about (−0.05, +0.62); perhaps a plugged hole (optional detail, **low confidence**)                                                                                     |
+
+_Pointer._ One white tapered wedge from 0.18 R to 0.88 R: ≈ 0.08 R wide at its inner
+end, narrowing to ≈ 0.02 R at a slightly rounded tip. The inner end is cut square; no
+hub cap is visible (the centre is black). At rest (engine off) it lies on the 0
+mark at ≈ −141°.
+
+- **Colours.** Dial and bezel black (glare makes the dial read dark grey in two
+  photos; hint #141414); markings and pointer white; arcs as in the table.
+- **Stickers.** None.
+- **Not visible.** A hub, a stop pin, and the arc colour between about 1,800 and
+  4,000 rpm (glare).
+
+#### 3.10.6 Cylinder head temperature
+
+**Face layout (photos).** Unit box: the bounding square of the round case (diameter
+E, §3.10.11). Source: the owner's photos (§3.7), measured in the two sharpest
+front views and checked in two more. The case spans only about 85 pixels in the
+best photo, hence the ±6° angle tolerance. In every photo the engine is stopped
+and the master is on (the avionics are lit), so the needle shows a live reading.
+
+- **Case and mounting.** Round. A thin black ring, about 0.05 to 0.07 E wide, merges
+  into the black face (the face's edge, a faint line, at about 0.87 R, low
+  confidence); no chrome, no glare to draw, no square flange. R is the case's outer
+  edge, where the aluminium starts: every tick and arc ends at about 0.84 R, well
+  inside it. Four black screws stand on the bare panel aluminium at the case's
+  diagonal corners (§3.10.11).
+- **Dial.** A single-pointer round dial: matte black face (navy in the photos from
+  their cool cast; hint #141a22) with off-white markings (hint #e6e6de). No subdial,
+  window or knob.
+- **Scale.** Clockwise from 40 at the lower left to 150 at the lower right, about
+  262° in all; the open gap (about 98°) is centred on 6 o'clock. Linear from 40 to
+  120 at about 2.7° per °C; the last step, 120 to 150, is compressed to about 1.65°
+  per °C, so 120 and 150 stand visibly closer than any other pair. No ticks below 40
+  or above 150.
+
+_Numerals_ (upright plain sans, cap height about 0.13 R, each inside its major
+tick; `120` and above all `150` sit deeper than the rest, and `150` stands a few
+degrees clockwise of its bar rather than inside it):
+
+| Numeral | Angle (model) | Measured | Radius |
+| ------- | ------------- | -------- | ------ |
+| `40`    | −130°         | −129°    | 0.49 R |
+| `60`    | −76°          | −77°     | 0.58 R |
+| `80`    | −22°          | −22°     | 0.65 R |
+| `100`   | +32°          | +30°     | 0.53 R |
+| `120`   | +86°          | +82°     | 0.45 R |
+| `150`   | +136°         | +139°    | 0.41 R |
+
+Model: angle = −130° + 2.7° × (T − 40) up to 120 °C; +86° + 1.65° × (T − 120) above
+(the 125 to 150 bars measure +94°, +103°, +111°, +119°, +127°, +135°).
+
+_Ticks_: one every 5 °C, outer ends on a circle at about 0.84 R. From 40 to 120 the
+majors (every 10 °C) are longest at the ends of that range and shortest in its
+middle: 40 about 0.19 R, 50 about 0.13 R, 60 about 0.09 R, 70 and 80 about 0.06 R
+(the 80 one reads almost as a dot), 90 about 0.12 R, 100 about 0.16 R. Minors are
+about 0.05 R where visible; those at 65, 75 and 85 are not resolved (low
+confidence). From 120 to 150 the six ticks (125 to 150) are **heavy bars**, about
+twice a minor's width and alternating long and short: 130, 140 and 150 about 0.25 R
+(0.58 R to 0.83 R), 125, 135 and 145 about 0.17 R (0.65 R to 0.82 R). Fine-tick
+detail is optional.
+
+_Arcs_ (inside the ring; ticks inside an arc take its tint):
+
+| Arc                                                  | From–to (°C) | From–to (angle) | Radial band                                |
+| ---------------------------------------------------- | ------------ | --------------- | ------------------------------------------ |
+| green: dark band, lighter green ticks (hint #2f6a4a) | 90 to 110    | +5° to +59°     | 0.73 R to 0.85 R                           |
+| yellow-amber block (hint #d8a830)                    | 110 to 119   | +59° to +83°    | 0.70 R to 0.85 R, visibly wider than green |
+| red radial line (dark red, hint #9a2a2a)             | 120          | +86°            | 0.65 R to 0.85 R, across the tick band     |
+
+Arc ends ±4 °C. No arc below 90, and none from 120 to 150 (the heavy bars are white).
+
+_Printed words_:
+
+| Item  | Position and size                                                                               |
+| ----- | ----------------------------------------------------------------------------------------------- |
+| `°C`  | Centred on the vertical axis at (0.50, 0.37), cap height about 0.13 R                           |
+| `CHT` | Centred at (0.50, 0.80), letters widely spaced, word about 0.50 R wide, cap height about 0.14 R |
+
+The words are drawn centred on the vertical axis; in both sharp photos their
+measured centres sit 0.03 to 0.04 left of the case centre (on every engine gauge),
+within tolerance and possibly residual perspective (low confidence).
+
+No maker's line, logo or sticker on this face.
+
+_Pointer_: a white blade (hint #f2f0e6). Its square-cut inner end, about 0.14 R
+wide, lies about 0.15 R from the pivot (±0.03; measured 0.12 to 0.19 R across the
+four gauges). Its sides run nearly parallel out to about 0.45 R, then close to a
+point at about 0.69 R (low confidence on where the taper starts: the pointer is
+only about 6 pixels wide in the photos). The tip reaches past the numerals but stops
+short of the minor ticks. No tail and no visible hub cap (the pivot is black on
+black).
+
+_Reading in the photos_: about 46 °C (needle at about −112°), engine stopped but
+still warm. Illustrative only.
+
+_Stop and rest position_: not visible in photos (the needle shows a live reading
+above 40); §9 question 57.
+
+**§4.3.** The CHT row now follows the dial: green 90–110, yellow-amber 110–120, the red line at 120, nothing below 90.
+
+#### 3.10.7 Oil temperature
+
+**Face layout (photos).** The same dial as the CHT (§3.10.6): same case and screws,
+same scale geometry and model, same numerals (`40` `60` `80` `100` `120` `150`,
+measured −124°, −74°, −21°, +27°, +76°, +137°, with `120` and `150` deeper, at
+about 0.44 R and 0.38 R), same ticks with the alternating heavy bars from 120 to
+150, and the same white pointer. Measured against the CHT's, its 40 tick sits about
+4° clockwise (−124°), its 120 tick about 6° anticlockwise (+80°, white inside the
+yellow) and its 150 bar 2° anticlockwise (+133°); these are at the edge of the ±6°,
+so draw both gauges from the one CHT model (low confidence whether the difference is
+real). Only the words and the arcs differ. Source and tolerances as for the CHT.
+
+_Printed words_:
+
+| Item   | Position and size                                                   |
+| ------ | ------------------------------------------------------------------- |
+| `°C`   | Centred at (0.50, 0.35), cap height about 0.13 R                    |
+| `OIL`  | Centred at (0.50, 0.75), about 0.29 R wide, cap height about 0.14 R |
+| `TEMP` | Centred at (0.50, 0.84), about 0.50 R wide, same cap height         |
+
+No maker's line, logo or sticker on this face. A faint small pale mark near
+(0.46, 0.60), below and left of the pivot, shows on this face only; it is not
+resolved (a glint or a tiny print) and stays blank (low confidence).
+
+_Arcs_ (inside the ring, as on the CHT):
+
+| Arc                                                  | From–to (°C) | From–to (angle) | Radial band                                    |
+| ---------------------------------------------------- | ------------ | --------------- | ---------------------------------------------- |
+| green: dark band, lighter green ticks (hint #2f6a4a) | 90 to 110    | +5° to +59°     | 0.72 R to 0.85 R                               |
+| yellow (olive-yellow in the photos, hint #c0b040)    | 110 to 127   | +59° to +97°    | 0.68 R to 0.85 R; runs on past the 120 tick    |
+| red (red-brown, hint #9a3a2a), a short segment       | 127 to 130   | +97° to +101°   | 0.68 R to 0.85 R; reads as the red mark at 130 |
+
+Arc ends ±4 °C. **No arc below 90** (no low-end yellow); the heavy bars beyond the
+red are white.
+
+_Reading in the photos_: about 47 °C (needle at about −110°). Illustrative only.
+
+_Stop and rest position_: not visible in photos; §9 question 57.
+
+**§4.3.** The oil temperature row drops the low yellow arc 50–90, which is not on the dial. Green 90–110, yellow 110–130 and the red line 130 match within the photo precision (the dial's yellow ends about 127 at a short red segment ending at 130).
+
+#### 3.10.8 Voltmeter
+
+**Face layout (photos).** The CHT's case, screws, face colours and white blade
+pointer (§3.10.6); its own scale and words. Source and tolerances as for the CHT,
+angles ±8° here.
+
+- **Scale.** 9 to 17 V clockwise, about 31° per volt, symmetric about 12 o'clock
+  with **13 at the top**; about 254° in all, the gap centred on 6 o'clock. No ticks
+  below 9 or above 17.
+
+_Numerals_ (upright plain sans, cap height about 0.14 R):
+
+| Numeral | Angle (model) | Measured | Radius |
+| ------- | ------------- | -------- | ------ |
+| `9`     | −124°         | −118°    | 0.53 R |
+| `10`    | −93°          | −88°     | 0.59 R |
+| `11`    | −62°          | −58°     | 0.65 R |
+| `12`    | −31°          | −30°     | 0.69 R |
+| `13`    | 0°            | −2°      | 0.70 R |
+| `14`    | +31°          | +26°     | 0.63 R |
+| `15`    | +62°          | +55°     | 0.55 R |
+| `16`    | +93°          | +92°     | 0.48 R |
+| `17`    | +124°         | +130°    | 0.43 R |
+
+Model: angle = 31° × (V − 13). It stays within ±7° of every measured major tick (9
+at −122°, 10 at −87°, 11 at −57°, 12 at −32°, 14 at +28°, 16 at +94°, 17 at
++131°); the numerals stray up to 7° from it (`15` sits anticlockwise of its tick).
+
+_Ticks_: outer ends at about 0.84 R. Majors at each volt, minors every 0.25 V
+(three between the majors at 9–10, 14–15 and 15–16; count elsewhere not resolved).
+Short dashes (about 0.06 R) from 11 to 15, longer (about 0.15 R) at 9 and 10, and
+from just past 15 to 17 **heavy bars** every 0.25 V, the 16 and 17 bars long
+(about 0.25 R, inner ends near 0.58 R) and the others about 0.15 R, as on the CHT's
+top end.
+
+_Arcs_: **none visible**. The sharpest zoom shows only short white ticks between 13
+and 15; whether a small coloured band sits near 13 to 14 is not resolvable
+(§9 question 58). No red or yellow at either end.
+
+_Printed words_:
+
+| Item        | Position and size                                                                                                                                                                                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VOLTS`     | Centred at about (0.48, 0.34), about 0.5 R wide, cap height about 0.12 R. "VO" is legible and a third letter shows faintly at the needle's edge, consistent with "VOL"; the rest is under the needle in every photo, so the word is **low confidence** (§9 question 58) |
+| `VOLTMETER` | One straight line along the bottom, centred at (0.50, 0.80), about 1.08 R wide (broad letters), cap height about 0.14 R                                                                                                                                                 |
+
+No maker's line, logo or sticker on this face.
+
+_Reading in the photos_: about 13.5 V (needle at about +17°), master on and engine
+stopped, so a battery voltage. Illustrative only.
+
+_Stop and rest position_: not visible in photos; §9 question 57.
+
+**§4.3.** The table has no voltmeter row. The dial runs 9–17 V with no markings.
+
+#### 3.10.9 Oil pressure
+
+**Face layout (photos).** The CHT's case, screws, face colours and white blade
+pointer (§3.10.6); its own scale, arcs and words. Source and tolerances as for the
+CHT, angles ±8° here.
+
+- **Scale.** 0 to 10 bar clockwise, about 258° in all, the gap centred on 6
+  o'clock, in **two segments**: about 24° per bar from 0 to 7 and about 30° per bar
+  from 7 to 10, so the heavy-bar section is visibly more spread out. **5 sits just
+  left of the top** (12 o'clock is about 5.2 bar). No ticks below 0 or above 10.
+
+_Numerals_ (upright plain sans, cap height about 0.13 R):
+
+| Numeral | Angle (model) | Measured                                 | Radius |
+| ------- | ------------- | ---------------------------------------- | ------ |
+| `0`     | −124°         | its tick −125°; numeral under the needle | 0.52 R |
+| `1`     | −100°         | −98°                                     | 0.61 R |
+| `2`     | −76°          | −74°                                     | 0.66 R |
+| `3`     | −52°          | −54°                                     | 0.70 R |
+| `4`     | −28°          | −32°                                     | 0.71 R |
+| `5`     | −4°           | −8°                                      | 0.70 R |
+| `6`     | +20°          | +16°                                     | 0.62 R |
+| `7`     | +44°          | +40°                                     | 0.59 R |
+| `8`     | +74°          | +70°                                     | 0.54 R |
+| `9`     | +104°         | +102°                                    | 0.53 R |
+| `10`    | +134°         | +134°                                    | 0.46 R |
+
+Model: angle = −124° + 24° × p up to 7 bar; +44° + 30° × (p − 7) above. The
+measured major ticks (−125°, −100°, −76°, −51°, −31°, −8°, +17°, +44°, +74°, +103°,
++134°) stay within ±4° of it, and the numerals within 4° of their ticks. (A single
+26° per bar rule misses 6 and 7 by 9°.)
+
+_Ticks_: a major at each bar, a minor at each half bar (low confidence below 7),
+outer ends at about 0.84 R. From 0 to 7 they are short dots and dashes (about 0.05
+to 0.10 R; 3 and 4 nearly dots). From 7 to 10 they are **heavy bars**: long ones at
+8, 9 and 10 (about 0.25 R, inner ends near 0.55 R) and shorter ones at 7.5, 8.5 and
+9.5 (about 0.15 R).
+
+_Arcs_ (positions reliable; colours washed out by glare, **low confidence**, §9 question 59):
+
+| Arc                                                | From–to (bar) | From–to (angle, model) | Shape                                                                                        |
+| -------------------------------------------------- | ------------- | ---------------------- | -------------------------------------------------------------------------------------------- |
+| thin pale arc, white to pale yellow (hint #d8d8c0) | 1.0 to 2.0    | −100° to −76°          | about 0.04 R wide at about 0.83 R, with a short inward end cap at each end (a bracket shape) |
+| thin pale arc, grey-green (hint #b8c0b0)           | 5.0 to 6.0    | −4° to +20°            | about 0.04 R wide at about 0.84 R, along the tick ends                                       |
+| tan-orange arc (hint #c89a6a)                      | 6.0 to 7.0    | +20° to +44°           | about 0.09 R wide (0.76 R to 0.85 R), visibly wider than the 5–6 part                        |
+| red radial line (pink-red, hint #b04848)           | 7             | +44°                   | the 7 major tick itself drawn red, from about 0.66 R to 0.84 R                               |
+
+Arc ends ±0.2 bar. **No arc between 2 and 5**: the face is plain black there, while
+the CHT's dark green arc shows in the same photos. **No red radial at 5**, and nothing
+below 1.
+
+_Printed words_:
+
+| Item         | Position and size                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| `BAR`        | Centred at (0.48, 0.36), about 0.34 R wide, cap height about 0.12 R                                     |
+| `OIL`        | Centred at (0.50, 0.75), cap height about 0.14 R                                                        |
+| `PRESS`      | Centred at (0.49, 0.84), about 0.63 R wide, same cap height                                             |
+| Maker's mark | A tiny mark under `PRESS`, footprint about (0.47–0.51, 0.89–0.93). **Not reproduced**: area stays blank |
+
+_Reading in the photos_: 0 bar. The needle lies on the 0 tick (about −125°) with the
+engine stopped and the master on, so at zero pressure the needle sits on the 0 mark,
+not below it.
+
+_Stop and rest position_: with power on, on the 0 mark (above). With the master off:
+not visible in photos (§9 question 57).
+
+**§4.3.** The oil pressure row now follows the dial: a pale arc 1–2, nothing from 2 to 5, a pale arc 5–6, a wider tan-orange arc 6–7 and the red radial at **7**, with no red mark at 5. The dial agrees with §4.2 (normal 2–5 bar, minimum 0.8, up to 7 bar briefly when cold); only the old red line at 5 conflicted with it.
+
+#### 3.10.10 Hour meter
+
+**Face layout (photos).** Unit box: the black rectangular face, width W and height
+H; origin at its top left, x right and y down, as fractions of W and H. Perspective
+removed. Positions ±0.03, sizes ±15 % unless marked **low confidence**. Inert art:
+any running value shown is illustrative, and D-MPGO's own reading is not recorded
+(§3.7).
+
+- **Size.** W ≈ **0.45 A**, H ≈ **0.27 A** (aspect W:H ≈ 1.65 ±0.15), from three
+  photos.
+- **Case and mount.** One black rounded rectangle, corner radius ≈ 0.04 W, face and
+  bezel reading as one piece. A black dome-headed screw on each side at mid-height,
+  centred at (−0.11, 0.50) and (1.11, 0.50), diameter ≈ 0.19 W (≈ 0.085 A, the same
+  screw as the gauges), overlapping the face's ends slightly. Mounted level with the
+  panel rows.
+- **Dial type.** A drum counter: no pointer, no scale, no arcs.
+
+_Layout:_
+
+| Item                                 | Position and size                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| maker lines                          | two lines of white text in the upper left: a wordmark, footprint x 0.20 to 0.62, y 0.13 to 0.27, and a shorter word under it, footprint x 0.20 to 0.60, y 0.30 to 0.40. **Not reproduced**: the area stays blank |
+| running indicator                    | a small white-outlined glyph like an hourglass, centre (0.77, 0.31), ≈ 0.08 W by 0.16 H (**low confidence** on its shape)                                                                                        |
+| whole-hour digits                    | four white digits on black in one row, centres x 0.11, 0.22, 0.33, 0.44 (pitch 0.11 W), y 0.53; digit height ≈ 0.15 H, width ≈ 0.05 W; no frame round each digit                                                 |
+| fifth window (read as tenths)        | centre (0.54, 0.53), ≈ 0.08 W by 0.19 H: a light (white) surround with a dark digit inside, so it stands out from the four white-on-black digits (**low confidence** that it is the tenths drum)                 |
+| small mark right of the fifth window | x 0.62 to 0.78, y 0.48 to 0.62: a few small strokes, not legible (it reads like a fraction label for the tenths, or a drum caught mid-turn)                                                                      |
+| `HOURS`                              | white bold uppercase sans, centre (0.46, 0.74), width 0.32 W, cap height 0.09 H                                                                                                                                  |
+
+The text block (maker lines, digits, `HOURS`) is centred a little left of the face's
+centre (x ≈ 0.43); the running indicator takes the upper right.
+
+- **Colours.** Face black (hint #10161c); digits and lettering white; the fifth
+  window's surround white.
+- **Stickers.** None.
+- **Not visible.** Whether the digits are separate drums with window frames (they
+  read as plain digits), what the small mark right of the fifth window says.
+- **Position on the panel.** §3.9.2 (to the right of the voltmeter / oil-pressure
+  column, at the height between the two rows of small gauges).
+
+#### 3.10.11 Panel-wide gauge look
+
+**Face layout (photos).** What all instruments share, their sizes and their grouping.
+Sizes are outer-ring diameters in units of A, the ASI's. Absolute panel positions
+belong to §3.9.2 (#716); this block gives only relative geometry. Source: the
+owner's photos (§3.7), four panel views.
+
+- **Bezels.** Every round instrument has a thin black ring, 0.03 to 0.07 of its own
+  diameter, around a matte black face of the same black, separated only by a faint
+  edge. There is no chrome, no thick bezel and no strong glass glare to draw.
+- **Mounts.** No square flange or plate anywhere. Each round case sits directly on
+  the field's brushed aluminium, and its screws stand on the bare aluminium at the
+  four corners of a square pattern. The hour meter is the only rectangular case.
+- **Screws.** Black pan heads. The cross-head (Phillips) recess is clear on the
+  upper-left field's instruments; on the upper-right field it is only faintly
+  visible (**low confidence**; drawing cross-heads there too matches the photos).
+  The heads are about the same physical size everywhere (slightly smaller on the
+  engine gauges), so they look much larger beside the small gauges. On every round
+  instrument each head just clears the ring.
+
+| Instrument                          | Screws                                                                                                                                                               | Screw centres (own box)                                | Head Ø (own diameter) |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------- |
+| ASI                                 | 4                                                                                                                                                                    | (0.10, 0.10), (0.90, 0.10), (0.10, 0.90), (0.90, 0.90) | 0.10                  |
+| Altimeter                           | 3: upper left, upper right, lower right; the knob boss takes the lower-left corner (§3.10.2)                                                                         | about 0.11 / 0.89                                      | 0.10                  |
+| VSI                                 | 3: upper left, upper right, lower right; at the lower left a small dark tab about 0.12 of its diameter long, pointing down-left, centre about (0.08, 0.93) (§3.10.3) | 0.10 / 0.90                                            | 0.14                  |
+| Slip indicator                      | 4                                                                                                                                                                    | 0.085 / 0.915                                          | 0.13                  |
+| Tachometer                          | 4                                                                                                                                                                    | 0.09 / 0.91                                            | 0.13                  |
+| CHT, voltmeter, oil temp, oil press | 4 each                                                                                                                                                               | 0.065 / 0.935                                          | 0.19                  |
+| Hour meter                          | 2, one beyond each short end at mid-height, centres about 0.06 of the body width outside it                                                                          | (−0.06, 0.50), (1.06, 0.50) of the body                | 0.19 of body width    |
+
+- **Relative sizes.**
+
+| Instrument                          | Size                                                                          | Basis                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------- |
+| ASI                                 | 1.00 A                                                                        | reference                                                 |
+| Altimeter                           | 0.96 A (±0.03), case only; the knob sticks out at the lower left              | same field, two photos                                    |
+| Slip indicator                      | 0.64 A (±0.03); looks slightly wider than tall (0.66 by 0.62, low confidence) | same field, two photos                                    |
+| VSI                                 | 0.64 A (±0.02)                                                                | same field, two photos                                    |
+| Tachometer (T)                      | 0.72 A (±0.04), **low confidence**                                            | across fields (see below)                                 |
+| CHT, voltmeter, oil temp, oil press | 0.38 A (±0.03), **low confidence**; 0.53 T (±0.02), all four equal (±5 %)     | across fields; the tach ratio is same-field, three photos |
+| Hour meter                          | body 0.49 A by 0.28 A, **low confidence** (0.68 T by 0.39 T)                  | same field as the tach                                    |
+| Generator lamp (not a gauge)        | lens 0.27 A, **low confidence** (0.38 T)                                      | same field as the tach                                    |
+
+Cross-field basis: the plain photo ratios, with no correction. They are the same in
+the views taken left of the panel centre and in the centred view from behind the
+seats (tach 0.70 A across, 0.75 A up and down; engine gauges 0.37 to 0.39 A), so the
+viewpoint does not shrink the upper-right field. The right field plate also measures
+about 0.95 of the left's height in every view, the centred one included: a real
+difference between the plates (for §3.9), not perspective (low confidence), so it
+gives no grounds to scale the right field up. A per-plate rectification of another
+view (§3.9, #716) gives tach 0.71 A. #721's audit figures (VSI and slip 0.67, tach 0.72, engine gauges
+0.48) are superseded where they differ, notably for the engine gauges (§9 question 60).
+A scale against the centre field's 57 mm discs (§3.8) is not reliable: the ASI
+measures 1.75 to 1.95 D between photos.
+
+Trainer today (`views.ts` panel indicators, as fractions of its airspeed size): altimeter
+0.89, VSI 0.89, tach 0.95, engine gauges 0.68. The photos give 0.96, 0.64, 0.72 and 0.38.
+
+- **Grouping.**
+  - Upper-left field, a 2×2: ASI top left, altimeter top right, slip indicator under
+    the ASI, VSI under the altimeter. Column pitch (ASI to altimeter) 1.26 A, row
+    pitch 1.06 A (both ±0.05 A; each measured against the ASI's diameter along the
+    same axis). The columns are straight: once the photos' shear is removed (their
+    screw squares lean, lower screws shifted right by about a quarter of the drop),
+    the slip indicator sits directly under the ASI and the VSI under the altimeter,
+    each within about 0.1 A (low confidence). The raw photos show the lower pair
+    0.15 to 0.2 A to the right; that is the shear.
+  - Upper-right field: the tachometer at the top left. Below it the 2×2 engine block,
+    CHT and voltmeter on top, oil temp and oil press below; its left column (CHT over
+    oil temp) is under the tach, the tach centre about 0.05 to 0.1 E right of that
+    column's axis once this field's shear (lower points shifted left by about 0.16 of
+    the drop) is removed. Block pitch 1.35 E both ways (±0.05 E), leaving about 0.35 E between neighbouring
+    cases. The top row's centres are about 0.96 T (about 1.8 E) below the tach centre.
+  - The hour meter stands right of the block: its centre about 1.45 E right of the
+    voltmeter column and at the block's mid-height (about 0.1 of a row pitch lower).
+    The Generator lamp is at the field's top right, above the hour meter (roughly on
+    its axis, low confidence).
+
 ## 4. Limits and values used by the trainer
 
 Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
@@ -1421,15 +2250,15 @@ propeller control in the cockpit (§9).
 
 ### 4.3 Gauge markings
 
-| Gauge              | Scale used           | Markings                                                     |
-| ------------------ | -------------------- | ------------------------------------------------------------ |
-| Airspeed (km/h)    | 40–340               | white 72–115, green 94–245, yellow 245–300, red line **300** |
-| Tachometer (rpm)   | 0–7000               | green 1400–5500, yellow 5500–5800, red line 5800             |
-| Oil pressure (bar) | 0–10                 | red below 0.8, yellow 0.8–2, green 2–5, red line 5           |
-| Oil temp (°C)      | 40–150               | yellow 50–90, green 90–110, yellow 110–130, red line **130** |
-| CHT (°C)           | 40–150               | green 50–120, red line **120**                               |
-| Vertical speed     | ±2000 ft/min         | none                                                         |
-| Altimeter (ft)     | implementer's choice | none                                                         |
+| Gauge              | Scale used                               | Markings                                                                                 |
+| ------------------ | ---------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300**                             |
+| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800 (§3.10.5) |
+| Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)       |
+| Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                 |
+| CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                 |
+| Vertical speed     | ±2000 ft/min                             | none                                                                                     |
+| Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none (§3.10.2)                                                                           |
 
 The handbook gives only the airspeed arcs and the red lines; the other arcs are
 derived from the limits table above, not copied markings.
@@ -2126,3 +2955,104 @@ verifies it on D-MPGO.
     (§3.8.4).
     **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
     lights only in the self-test and the Nearest and Collision confirmation.
+
+<!-- prettier-ignore-start -->
+
+46. **Home aerodrome elevation** (altimeter, #719): what is the field elevation of
+    D-MPGO's base, Herrenteich (EDEH, §1)? Trainer uses: **315 ft (96 m)**,
+    **assumed (unverified)**, from general aviation knowledge, to be checked against
+    the current AIP or VFR chart entry. Cross-check from the photos (§3.10.2): parked
+    at its base, the altimeter reads about 320 ft with 1025 hPa set. That fits an
+    elevation near 300 to 330 ft but proves nothing, since the day's QNH is unknown.
+    The trainer places every phase at this aerodrome for the altimeter only: phase
+    presets and systems keep heights above the field (§4), and the altimeter adds
+    the elevation (§9 question 48).
+47. **Scenario QNH and the knob's starting setting** (#719): which QNH does each
+    scenario use, and does the altimeter start at that value? Trainer uses: **QNH
+    1013 hPa** for every scenario unless a scenario sets its own, **assumed
+    (unverified)**, from general knowledge (ISA standard pressure; VFR pilots in
+    Germany set QNH before take-off). Whether the knob starts at another value, so
+    that setting it is a real task, is the #719 PR's decision, named there. The
+    photos show one real example of a setting left over from the last flight: 1025
+    hPa on the parked aircraft.
+48. **Indicated altitude** (#719): Trainer uses: indicated altitude (ft) = field
+    elevation (§9 question 46) + height above the field (`altitudeFt`) + (knob setting −
+    QNH) × 27 ft per hPa. A setting above QNH reads high, by about 27 ft per hPa.
+    The window shows the knob setting. All three pointers follow that one value: the
+    long pointer turns once per 1,000 ft (3.6° per 10 ft), the broad pointer once per
+    10,000 ft and the hairline once per 100,000 ft. **Assumed (unverified)**: the
+    27 ft per hPa factor is the general-knowledge value near sea level (about 27 to 30
+    ft per hPa). The transponder's altitude feed stays as it is, independent of the
+    knob (known simplification, #719).
+49. **Altimeter details the photos do not show** (#719): the drum's setting range and
+    step, the knob's turning sense, its knurl and length, and the printed pressure
+    unit (the small print at the window's top edge is not legible). Trainer uses: 950
+    to 1050 hPa in 1 hPa steps, turning clockwise raises the setting and the reading,
+    a plain knob, **assumed (unverified)**, from general knowledge of hPa altimeters
+    (typical range about 946 to 1050 hPa). Note for the printed-label rule: no
+    pressure-unit word is legible on the face.
+50. **ASI red line against the rescue system** (#720): D-MPGO's dial marks yellow
+    245–300 and the red line at 300 (§3.10.1), which the handbook gives for the
+    Junkers Light Speed or no rescue system (HB 7-20). The rescue-system data plate
+    reads as a BRS 1050 type with a 276 km/h limit (**low confidence**, small print),
+    and for BRS 1050 the handbook gives VNE 276, yellow 245–276 and the red line at
+    276 (HB 2-1, 7-20). Which applies to D-MPGO, and why is the dial marked to 300?
+    Trainer uses: the dial as photographed and VNE 300 (§2a decision 3); the photos
+    show no mark at 276. The question bears on §2a decision 3 and the §8 VNE row;
+    the owner decides.
+51. **Orange triangle beside the ASI** (#720): what does it mark? It points at about
+    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: an
+    unlabelled orange triangle with no function; its meaning as an approach-speed
+    reminder is **assumed (unverified)**.
+52. **ASI below 40 km/h** (#720): the needle rests at 12 o'clock on a white index
+    and the scale starts at 40, 10° clockwise of it; the photos do not show how the
+    needle travels between 0 and 40 km/h or whether a stop pin exists. Trainer uses:
+    0° at 0 km/h, linear to 10° at 40 km/h, then θ = 10° + 1.10° × (v − 40) up to
+    341° at 340 km/h, held there above 340. **Assumed (unverified)**.
+53. **VSI face**: no question needed; the photos settle the face (§3.10.3). The
+    legend beside the down arrow is hidden under the resting pointer in every photo;
+    the trainer prints a short down legend mirroring `up`. **Assumed (unverified)**.
+54. **Slip indicator face**: no question needed (§3.10.4).
+55. **Tachometer arcs**: the photos show red from 0 to about 1,400 rpm, yellow to
+    about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
+    5,800 (each boundary read to ±100 rpm). Are those the printed values, and is the
+    green arc continuous from 1,800 to 5,500? Glare washes its colour between about
+    1,800 and 4,000 rpm in every photo. Trainer uses: the values above, green
+    continuous. **Assumed (unverified)** for the continuous green (§3.10.5, §4.3).
+    The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
+56. **Hour meter**: no question needed; it is inert art with an illustrative value
+    (§3.10.10).
+57. **Engine gauges at rest**: with the master off, and with a
+    cold engine below 40 °C, where do the needles of the CHT, oil temperature,
+    voltmeter and oil pressure gauges rest: on the lowest mark (40, 40, 9, 0) or
+    pinned below it, and how far below? The photos show only live readings with the
+    master on (CHT and oil temperature about 46 °C, voltmeter about 13.5 V, oil
+    pressure on 0). Trainer uses: each needle on its lowest mark whenever the value is
+    below the scale or the gauge has no power. **Assumed (unverified)** (§3.10.6 to
+    §3.10.9).
+58. **Voltmeter band and centre word**: is there a small coloured band near
+    13 to 14 V (#721's audit thought so; the photos show none, but the needle covers
+    part of that sector), and is the word above the dial centre `VOLTS` (only "VO"
+    and a faint third letter show; the rest is under the needle in every photo)?
+    Trainer uses: no coloured band, and `VOLTS`. **Assumed (unverified)** (§3.10.8).
+59. **Oil-pressure arc colours**: which colours are the thin arc from 1 to 2
+    bar, the thin arc from 5 to 6 and the wider arc from 6 to 7 (glare washes them
+    out), and is there really no arc from 2 to 5? Trainer uses: the colours as
+    photographed, pale yellow from 1 to 2, pale grey-green from 5 to 6, tan-orange
+    from 6 to 7, the red line at 7, nothing from 2 to 5. **Assumed (unverified)**
+    (§3.10.9).
+60. **Gauge diameters**: what are the outer ring diameters of the ASI, the
+    tachometer and one small engine gauge (a ruler across each ring is enough)? Sizes
+    across the two upper fields come from photo ratios: the small gauges measure
+    about 0.38 of the ASI (#721's audit estimated 0.48) and the tachometer about
+    0.72, the same from left of the panel centre and from a centred view. Trainer
+    uses: the photo ratios of §3.10.11. **Assumed (unverified)** (§3.10.11).
+63. **Scale start positions (#670)**, for the gauges of §3.10.3 to §3.10.5 and
+    §3.10.10: no question needed. The photos settle them: the VSI's 0 sits at
+    9 o'clock (−90°) and both halves meet at a single 2 at 3 o'clock; the
+    tachometer's 0 sits at about −142° under the resting pointer, sweeping clockwise
+    to 70 at about +145°, with the low red and yellow arcs recorded in §3.10.5 (any
+    doubt on their values is §9 question 55); the slip indicator and the hour meter have no
+    scale start. The airspeed indicator and the other gauges are added by their own
+
+<!-- prettier-ignore-end -->
