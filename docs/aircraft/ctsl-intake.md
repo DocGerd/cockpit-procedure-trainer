@@ -1706,6 +1706,15 @@ text is never reproduced.
 Lower-column placards are in §3.9.6. Stickers (the "do not step" floor labels, the
 yellow T-shaped item over the rocker row) are notes only.
 
+- **Trainer deviation: "Push off" left out** (owner, #729, 2026-10-11). D-MPGO prints
+  "Push off" under the "Circuit Breakers" header; the trainer draws the header alone,
+  because the wording reads as if a pushed-in breaker were off. The label is on the
+  aircraft; leaving it out is the owner's decision, not a photo finding.
+- **Parachute placard (console).** §3.9 measures no position for it. §3.7.1 lists it
+  between the aileron- and rudder-trim wheels, just forward of the rescue handle, and
+  the handle is centred (§3.9.6), so the trainer centres the placard over the handle
+  (M19, #729).
+
 #### 3.9.6 Lower column and console
 
 **Lower column** (photo 10.14.30 (1), near frontal to the column face; its vertical
@@ -1853,6 +1862,33 @@ natural sizes, as under T.
 **Summary for the implementer of #716 and #712.** Whatever the owner chooses in §9
 41, the _positions_ (field and panel fractions) and the _relative sizes_ (in A)
 above are what makes the panel recognisable; the fractions do not change with the box.
+
+**Trainer (M19, #716).** What the layout PR drew, against assumption T:
+
+- **The floor cannot rise.** Below the 1200 px desktop breakpoint the panel renders at
+  most 1113 px wide, and the floor checks run there, so the floor stays 1110 px (0.468
+  px per view unit) and the view box stays 2372 × 700; `cockpit.ts` is unchanged.
+- **Gauges at T.** 1 A = 193 units, every gauge at its §3.9.2 size. At HD the scale
+  numerals fall under the 11 px lettering minimum and print as secondary lettering
+  (half the minimum); the engine gauges' and the VSI's smallest legends are decor.
+- **Plates wider than true, positions kept.** Left plate 740 units wide (true 652), the
+  gauge grid at its true distances from the inner edge, the extra width bare on the
+  outer side, so the left plate stays the widest. Right plate 718 wide (true 565):
+  the breaker grid keeps its 7 + 7 + 1 arrangement at 98 by 94 units, a 44 px target
+  at the floor each way, and the outlet breaker sits 62 units under column 2; the
+  tachometer and the engine block move 45 units up to make room, at their true
+  spacings. Centre plate 578 × 696 (true 434 × 668), as large as the mirrors need.
+- **Mirrors at their legible minimum** at the floor, D-MPGO's arrangement kept: FLARM
+  314 × 157, GPS cradle 392 × 245, COM and transponder 267 each (§9 questions 44, 45).
+  The radio pair sits right of the dock; the lower column hangs 0.37 A left of the
+  centre plate's middle, as on the aircraft.
+- **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
+  display, §9 question 42); the "Push off" label (owner, §3.9.5); the plates' corner
+  screws (the mirrors leave no room on the centre plate); gauge screws, which belong to
+  the gauge faces (#719 to #721).
+- **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
+  console's lever row; on the console only the parachute placard and, beside it, the
+  rudder-trim wheel and the parking-brake valve move.
 
 ### 3.10 Gauge faces (photos, M19)
 
@@ -3541,6 +3577,8 @@ verifies it on D-MPGO.
     trainer's dark panel colour? Trainer uses: the ruling as worded against today's
     trainer, so all fields, the lower column included, take the dark panel colour of
     today's outer fields. **Assumed (unverified)** (§3.9.1).
+    **Trainer (M19, #716):** every upper plate, the centre one included, takes the outer
+    plates' dark panel colour; the lower column keeps its dark plate.
 41. **Panel proportions against legibility** (#716): D-MPGO's upper panel is 2.64 times
     as wide as tall, with a narrow upright centre field between two wide outer fields;
     the trainer's is 3.51 with the centre field widest. At true proportions in today's
@@ -3553,6 +3591,12 @@ verifies it on D-MPGO.
     only the positions from the photos, accepting a panel wider than D-MPGO's? Trainer
     uses: (a), the coordinates marked T in §3.9.2 to §3.9.5. **Assumed (unverified)**
     (§3.9.7).
+    **Trainer (M19, #716):** neither (a) nor (b) as worded: the floor cannot rise (the
+    panel renders at most 1113 px wide below the 1200 px desktop breakpoint), so the box
+    stays 2372 × 700 at the 1110 px floor. The gauges take T's sizes (their numerals
+    print as secondary lettering at HD) and the plates are drawn wider than true where
+    the floor's touch targets and mirror lettering need room: left 740, centre 578 × 696,
+    right 718 units (§3.9.7).
 42. **Glareshield knob and red-cross disc** (#716): on D-MPGO both sit on the moulding
     above the centre plate's left half, about 0.23 A above its top edge (§3.9.1). Under
     either true-proportion layout they fall outside the view box. Should they be left
@@ -3562,6 +3606,8 @@ verifies it on D-MPGO.
     of the plate), shrunk to the margin's height (about 34 units under T).
     **Assumed (unverified)** (§3.9.1, §3.9.7). The red-cross disc is still
     unidentified (§3.7.1).
+    **Trainer (M19, #716):** both left out: at legible mirror sizes the FLARM display
+    and the checklist card fill the centre plate's top margin (§3.9.7).
 43. **Lower column proportions** (#716): the column is taller than wide (0.75), a T
     with the rocker row across its top and a lower part 0.59 as wide; the `centre` view
     is 1.33 and drawn as a full rectangle (§3.9.6). Its rockers are 0.21 A apart and the
@@ -3571,6 +3617,11 @@ verifies it on D-MPGO.
     uses: the column's fractions stretched across today's view (x = 16 + 1168·x,
     y = 16 + 876·y), controls at today's sizes, nudged apart where they would overlap.
     **Assumed (unverified)** (§3.9.6).
+    **Trainer (M19, #716):** the `centre` view is not changed yet. At its floor a 44 px
+    target is 121 units and the rockers' printed labels hold them at 150 units wide, so
+    the rocker row cannot close up to D-MPGO's pitch; moving the flap selector, the
+    ignition and the fuel valve changes the valve-over-key geometry, left to a
+    follow-up.
 44. **GPS size against the radios** (#712): the aera 500's cradle is 2.50 by 1.53 COM
     diameters on D-MPGO (1.80 × 1.10 A), and dominates the centre field; today's slot
     is 1.62 by 1.01 COM diameters. Should the GPS keep the photographed ratio to the
@@ -3578,6 +3629,9 @@ verifies it on D-MPGO.
     440 × 275 beside radios at 272? Trainer uses: the photographed ratio, at the scale
     of §9 question 41 (cradle 347 × 213 under T, 0.79 of natural). **Assumed
     (unverified)** (§3.9.3).
+    **Trainer (M19, #716):** neither: each mirror sits at the smallest size its lettering
+    allows at the panel floor, cradle 392 × 245 units (2.03 × 1.27 A) and radios 267
+    (1.38 A), so the cradle is 1.47 radio diameters wide, against 2.50 on D-MPGO.
 45. **FLARM display size** (#712): the classic FLARM display on D-MPGO is a small strip,
     0.87 by 0.44 COM diameters (0.63 × 0.32 A), at the centre field's top left beside
     the checklist summary; today's slot is 1.18 by 0.59 COM diameters (320 × 160 at
@@ -3585,6 +3639,9 @@ verifies it on D-MPGO.
     shrink to its photographed size, with its LED legends below the lettering floor, or
     keep a legible minimum? Trainer uses: the photographed size, at the scale of §9
     question 41 (121 × 61 under T). **Assumed (unverified)** (§3.9.3).
+    **Trainer (M19, #716):** the legible minimum, 314 × 157 units (1.63 × 0.81 A, 1.18 ×
+    0.59 COM diameters), at the top left beside the checklist card: its LED legends
+    stay at the lettering minimum at the floor.
 
 <!-- prettier-ignore-start -->
 

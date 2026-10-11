@@ -132,6 +132,24 @@ const viewOfIndicator = (id: string) =>
   Object.entries(ctslAircraft.views).find(([, view]) => view.indicators?.[id])?.[0];
 const entryState = (phase: string) => ctslAircraft.phases[phase]?.entry.state as CtslState;
 
+/** The three upper plates of the panel art, left to right, as the boxes their outlines span. */
+const upperPlates = [...viewPanel.matchAll(/<(rect|path) data-plate="(\w+)"([^>]*)>/g)]
+  .map(([, tag, , attributes = '']) => {
+    const number = (name: string) =>
+      Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(attributes)?.[1]);
+    if (tag === 'rect') {
+      return { x: number('x'), y: number('y'), w: number('width'), h: number('height') };
+    }
+    const values = [...(/\bd="([^"]+)"/.exec(attributes)?.[1] ?? '').matchAll(/-?[\d.]+/g)].map(
+      Number,
+    );
+    const xs = values.filter((_, index) => index % 2 === 0);
+    const ys = values.filter((_, index) => index % 2 === 1);
+    const [x, y] = [Math.min(...xs), Math.min(...ys)];
+    return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+  })
+  .sort((a, b) => a.x - b.x);
+
 describe('CTSL aircraft', () => {
   it('targets the current contract', () => {
     expect(ctslAircraft.contractVersion).toBe(CONTRACT_VERSION);
@@ -247,10 +265,10 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
-    ['flarm', 320, 160],
-    ['gps', 440, 275],
-    ['com', 272, 272],
-    ['xpdr', 272, 272],
+    ['flarm', 314, 157],
+    ['gps', 392, 245],
+    ['com', 267, 267],
+    ['xpdr', 267, 267],
   ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
     expect(deviceSlots[id].rect).toMatchObject({ w, h });
     expect(installs[id].placement).toBe(deviceSlots[id]);
@@ -274,17 +292,9 @@ describe('CTSL aircraft', () => {
     const bottom = ({ rect }: { rect: { y: number; h: number } }) => rect.y + rect.h;
     const middle = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
 
-    // The three upper fields are the full-height rects of the panel artwork.
-    const fields = [
-      ...viewPanel.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="([\d.]+)"/g),
-    ]
-      .map(([, x, w, h]) => ({ x: Number(x), w: Number(w), h: Number(h) }))
-      .filter(({ w, h }) => h >= 0.95 * panelSize.height && w < panelSize.width)
-      .filter((field, index, all) => all.findIndex(({ x }) => x === field.x) === index)
-      .sort((a, b) => a.x - b.x);
-    const [upperLeft, upperCentre, upperRight] = fields;
-    if (fields.length !== 3 || !upperLeft || !upperCentre || !upperRight) {
-      throw new Error(`expected three upper fields in the panel art, found ${fields.length}`);
+    const [upperLeft, upperCentre, upperRight] = upperPlates;
+    if (upperPlates.length !== 3 || !upperLeft || !upperCentre || !upperRight) {
+      throw new Error(`expected three upper plates in the panel art, found ${upperPlates.length}`);
     }
     const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
     const inCockpit = (artX: number) =>
@@ -292,12 +302,16 @@ describe('CTSL aircraft', () => {
     const fieldLeft = inCockpit(upperCentre.x);
     const fieldWidth = (upperCentre.w * panelFit) / panelSize.width;
 
-    it('hangs the centre field below the panel, under the middle of the upper-centre field', () => {
+    // On D-MPGO the lower column hangs about 0.37 A left of the centre plate's middle, toward the
+    // pilot (intake §3.9.6; 0.30 to 0.39 A across the photos).
+    it('hangs the centre field below the upper-centre plate, offset from its middle toward the pilot', () => {
+      const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
+      const unitA = (airspeed * panelFit) / panelSize.width;
+      const offset = fieldLeft + fieldWidth / 2 - middle(centre);
       expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
-      expect(middle(centre)).toBeGreaterThan(panel.rect.x + panel.rect.w / 3);
-      expect(middle(centre)).toBeLessThan(panel.rect.x + (2 * panel.rect.w) / 3);
-      expect(middle(centre)).toBeGreaterThan(fieldLeft + fieldWidth / 3);
-      expect(middle(centre)).toBeLessThan(fieldLeft + (2 * fieldWidth) / 3);
+      expect(middle(centre)).toBeGreaterThan(fieldLeft);
+      expect(offset / unitA).toBeGreaterThanOrEqual(0.25);
+      expect(offset / unitA).toBeLessThanOrEqual(0.5);
     });
 
     it('puts the console beside the centre field, toward the right seat', () => {
@@ -315,11 +329,13 @@ describe('CTSL aircraft', () => {
       expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
     });
 
-    it('reaches under the radio slot with the dock', () => {
-      const { com } = deviceSlots;
-      const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
-      const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
-      expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
+    // The radios sit where D-MPGO has them, at the bottom of the centre plate (intake §3.9.7), so
+    // they no longer reach over the dock.
+    it('sets the radios over the centre column, right of the dock', () => {
+      const { com, xpdr } = deviceSlots;
+      expect(inCockpit(com.rect.x)).toBeGreaterThanOrEqual(right(dock));
+      expect(inCockpit(com.rect.x)).toBeLessThan(middle(centre));
+      expect(inCockpit(xpdr.rect.x + xpdr.rect.w)).toBeGreaterThan(middle(centre));
     });
   });
 
@@ -425,6 +441,20 @@ describe('CTSL aircraft', () => {
       expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
+    // §3.9 gives no measured place for the parachute placard; §3.7.1 lists it just forward of the
+    // handle, between the trim wheels, and the handle is centred, so the placard is too (#729).
+    it('centres the parachute placard over the rescue handle', () => {
+      const card =
+        /<g transform="translate\(([\d.]+) 0\)">(?:(?!<\/g>)[\s\S])*?<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="[\d.]+" rx="6" fill="url\(#pc\)"\/>(?:(?!<\/g>)[\s\S])*?<\/g><text x="[\d.]+" y="[\d.]+"[^>]*>Ballistic</.exec(
+          viewConsole,
+        );
+      expect(card).not.toBeNull();
+      const [, shift = 0, x = 0, w = 0] = (card ?? []).map(Number);
+      const handle = rectOf('rescueHandle');
+      expect(Math.abs(shift + x + w / 2 - (handle.x + handle.w / 2))).toBeLessThan(2);
+      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(handle.x + handle.w);
+    });
+
     it('puts the rescue handle low at the aft end, centred between the seats (§9 q26)', () => {
       const rescue = rectOf('rescueHandle');
       expect(rescue.y, 'aft of the lever row').toBeGreaterThanOrEqual(
@@ -483,21 +513,44 @@ describe('CTSL aircraft', () => {
     });
   });
 
-  it('sets the radio and the transponder side by side below the GPS', () => {
-    const { com, xpdr, gps } = deviceSlots;
-    expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
-    expect(com.rect.y).toBe(xpdr.rect.y);
-    expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+  describe("the upper-centre plate as D-MPGO's (intake §3.9.3)", () => {
+    const plate = upperPlates[1];
+    if (!plate) throw new Error('the panel art draws no upper-centre plate');
+    const middleX = plate.x + plate.w / 2;
+    const centreX = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
+
+    it('sets the radio and the transponder side by side at the bottom, the pair centred', () => {
+      const { com, xpdr, gps } = deviceSlots;
+      expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
+      expect(com.rect.y).toBe(xpdr.rect.y);
+      expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+      expect(Math.abs((com.rect.x + xpdr.rect.x + xpdr.rect.w) / 2 - middleX)).toBeLessThan(
+        0.03 * plate.w,
+      );
+    });
+
+    it('puts the FLARM display at the top left, above the GPS', () => {
+      const { flarm, gps } = deviceSlots;
+      expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(gps.rect.y);
+      expect(centreX(flarm)).toBeLessThan(middleX);
+      expect(flarm.rect.x - plate.x).toBeLessThan(0.1 * plate.w);
+    });
+
+    it('centres the GPS under the FLARM display and the checklist card', () => {
+      expect(Math.abs(centreX(deviceSlots.gps) - middleX)).toBeLessThan(0.05 * plate.w);
+    });
+
+    it('draws the GPS cradle wider than the radio pair is tall, and the FLARM the smallest unit', () => {
+      const { flarm, gps, com } = deviceSlots;
+      expect(gps.rect.w).toBeGreaterThan(com.rect.w);
+      expect(flarm.rect.w * flarm.rect.h).toBeLessThan(com.rect.w * com.rect.h);
+    });
   });
 
-  it('puts the FLARM display left of the GPS, above the radio (intake §3.2a)', () => {
-    const { flarm, gps, com } = deviceSlots;
-    expect(flarm.rect.x + flarm.rect.w).toBeLessThanOrEqual(gps.rect.x);
-    expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(com.rect.y);
-  });
-
-  it('keeps every device slot inside the upper-centre field below its glareshield strip, clear of the others', () => {
-    const field = { x0: 471, y0: 122, x1: 1628, y1: 684 };
+  it('keeps every device slot inside the upper-centre plate, clear of the others', () => {
+    const plate = upperPlates[1];
+    if (!plate) throw new Error('the panel art draws no upper-centre plate');
+    const field = { x0: plate.x, y0: plate.y, x1: plate.x + plate.w, y1: plate.y + plate.h };
     const rects = Object.values(deviceSlots).map(({ rect }) => rect);
     for (const { x, y, w, h } of rects) {
       expect(x).toBeGreaterThanOrEqual(field.x0);

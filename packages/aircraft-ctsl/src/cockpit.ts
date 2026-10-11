@@ -6,13 +6,12 @@ const cell = (x: number, y: number, w: number, h: number, minWidth: number): Coc
   minWidth,
 });
 
-// Left seat: the panel ahead with its three upper fields, the centre column hanging below the
-// middle field as in the aircraft (intake §3). The panel sits left of the cockpit's middle so
-// that the radio slot at the left of the middle field reaches over the dock, which takes the
+// Left seat: the panel ahead with its three upper plates, the centre column hanging below the
+// middle plate as in the aircraft, offset toward the pilot (intake §3.9.6). The dock takes the
 // pilot's knee space left of the centre column. The console belongs below the centre field; at HD
 // height it only fits beside it, on the right toward the throttle hand, running aft down to the
 // rescue handle at the bulkhead. Cell sizes follow the HD cockpit region; each minWidth is the
-// cell's floor: legibility for a view, the installed device floors for the dock.
+// cell's floor: legibility and touch targets for a view, the installed device floors for the dock.
 export const cockpit = {
   size: { width: 1519, height: 758 },
   views: {

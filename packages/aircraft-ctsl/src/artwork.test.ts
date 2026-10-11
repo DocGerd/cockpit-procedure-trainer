@@ -202,13 +202,15 @@ describe('CTSL warning lamp', () => {
     expect(panel()).not.toContain('>CHARGE</text>');
   });
 
-  it('sits at the top right of the upper-right field, right of the engine gauges', () => {
+  // D-MPGO's lamp stands at the plate's middle, not its top right corner (intake §3.9.4).
+  it('sits right of the tachometer, level with its top half, above the engine gauges', () => {
     const { rect } = views.panel.indicators.chargeLamp;
-    for (const [id, { rect: gauge }] of Object.entries(views.panel.indicators)) {
-      if (id === 'chargeLamp' || gauge.x < 1640) continue;
-      expect(rect.x, id).toBeGreaterThanOrEqual(gauge.x + gauge.w);
-    }
-    expect(rect.y).toBeLessThan(views.panel.indicators.tachometer.rect.y + 20);
+    const { tachometer, voltmeter } = views.panel.indicators;
+    const lens = { x: rect.x + rect.w / 2, y: rect.y + (58 / 90) * rect.h };
+    expect(lens.x).toBeGreaterThan(tachometer.rect.x + tachometer.rect.w);
+    expect(lens.y).toBeGreaterThan(tachometer.rect.y);
+    expect(lens.y).toBeLessThan(tachometer.rect.y + tachometer.rect.h / 2);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(voltmeter.rect.y);
   });
 });
 
@@ -473,12 +475,18 @@ describe('CTSL view backdrops', () => {
     expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
   });
 
+  // D-MPGO prints "Push off" under the header too; the trainer leaves it out by owner decision,
+  // as it reads as if a pushed-in breaker were off (#729, intake §3.9.5).
   it("heads the breaker block in the panel's own wording, beside the outlet breaker", () => {
     const { x, y, w } = views.panel.controls.outletBreaker.rect;
-    const header = [...backdrop('panel').matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)]
+    const header = [
+      ...backdrop('panel').matchAll(
+        /<text x="([\d.]+)" y="([\d.]+)"(?![^>]*data-decor)[^>]*>([^<]*)</g,
+      ),
+    ]
       .filter(([, textX, textY]) => Number(textX) > x + w && Number(textY) >= y)
       .map(([, , , content]) => content);
-    expect(header.join(' ')).toBe('Circuit Breakers Push off');
+    expect(header.join(' ')).toBe('Circuit Breakers');
   });
 
   // Corrected from the photos (intake §3.2a): each unit draws its whole face, the cradle included.
@@ -534,50 +542,19 @@ describe('CTSL view backdrops', () => {
     expect(overlapping).toEqual([]);
   });
 
-  describe('the upper-centre field (intake §3.7.1)', () => {
+  describe('the three upper plates (intake §3.9.1)', () => {
     const svg = backdrop('panel');
-    const fields = [
-      ...svg.matchAll(
-        /<rect x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"[^>]*fill="url\(#(\w+)\)"/g,
-      ),
-    ]
-      .filter(([, , h]) => Number(h) >= 0.95 * views.panel.size.height)
-      .map(([, x, , fill = '']) => ({ x: Number(x), fill }));
-    const fillsAt = (x: number) => fields.filter((field) => field.x === x).map(({ fill }) => fill);
-    const xs = [...new Set(fields.map(({ x }) => x))].sort((a, b) => a - b);
-    const [left = 0, centre = 0, right = 0] = xs;
-    const luminance = (hex: string) => {
-      const [r = 0, g = 0, b = 0] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    };
-    const stops = (id: string) => {
-      const gradient = new RegExp(`<linearGradient id="${id}"[^>]*>(.*?)</linearGradient>`).exec(
-        svg,
-      )?.[1];
-      return [...(gradient ?? '').matchAll(/stop-color="(#[0-9A-Fa-f]{6})"/g)].map(([, hex = '']) =>
-        luminance(hex),
-      );
-    };
-    const base = (x: number) => fillsAt(x).find((fill) => stops(fill).length > 0) ?? '';
+    const plates = [
+      ...svg.matchAll(/<(?:rect|path) data-plate="(\w+)"[^>]*fill="url\(#(\w+)\)"/g),
+    ].map(([, plate, fill]) => ({ plate, fill }));
 
-    it('is the middle one of three upper fields', () => {
-      expect(xs).toHaveLength(3);
+    it('draws a left, a centre and a right plate', () => {
+      expect(plates.map(({ plate }) => plate).sort()).toEqual(['centre', 'left', 'right']);
     });
 
-    it('is painted light aluminium, lighter than every stop of the dark side fields', () => {
-      const aluminium = stops(base(centre));
-      const dark = [...stops(base(left)), ...stops(base(right))];
-      expect(aluminium.length).toBeGreaterThan(0);
-      expect(dark.length).toBeGreaterThan(0);
-      expect(Math.min(...aluminium)).toBeGreaterThan(Math.max(...dark));
-    });
-
-    it('is brushed: a pattern of horizontal hairlines lies over it', () => {
-      const brushed = fillsAt(centre).filter((fill) => {
-        const pattern = new RegExp(`<pattern id="${fill}"[^>]*>(.*?)</pattern>`).exec(svg)?.[1];
-        return pattern !== undefined && /<path d="M0 [\d.]+H\d+/.test(pattern);
-      });
-      expect(brushed).toHaveLength(1);
+    it("paints the centre plate in the outer plates' colour (#716)", () => {
+      expect(new Set(plates.map(({ fill }) => fill)).size).toBe(1);
+      expect(svg).toMatch(new RegExp(`<linearGradient id="${plates[0]?.fill}"`));
     });
   });
 
@@ -598,14 +575,20 @@ describe('CTSL view backdrops', () => {
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
-        'TAKEOFF CHECKLIST@238,80/37',
-        'KUNSTFLUG UND@238,626/37',
-        'TRUDELN VERBOTEN@238,662/37',
-        'Cabin Heat@979.5,85/38',
-        'TAKEOFF@1449,196/37',
-        'CHECKLIST@1449,238/37',
-        'Circuit Breakers@2080,608/40',
-        'Push off@2080,650/40',
+        'D-MPGO@476.49,165.06/54',
+        'TAKEOFF@711,142/37',
+        'CHECKLIST@711,178/37',
+        'KUNSTFLUG UND TRUDELN VERBOTEN@651,617/15',
+        'TAKEOFF@1366,56/37',
+        'CHECKLIST@1366,92/37',
+        'Nav@1688,507.99/13',
+        'Autopilot@1884,507.99/13',
+        'HS34@1982,507.99/13',
+        'EFIS@2080,507.99/13',
+        'EMS@2178,507.99/13',
+        'Instrument@1786,599.54/13',
+        'Light@1786,615.22/13',
+        'Circuit Breakers@1955,645/37',
       ],
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',
@@ -639,12 +622,12 @@ describe('CTSL view backdrops', () => {
         'Aileron Trim@166,430/28',
         'L@68,460/28',
         'R@264,460/28',
-        'Ballistic@452,368/28',
-        'rescue@452,400/28',
-        'parachute@452,432/28',
-        'Rudder Trim@770,422/28',
-        'L@676,462/28',
-        'R@864,462/28',
+        'Ballistic@574,368/28',
+        'rescue@574,400/28',
+        'parachute@574,432/28',
+        'Rudder Trim@886,422/28',
+        'L@792,462/28',
+        'R@980,462/28',
       ],
     }[id];
     expect(lettering(backdrop(id))).toEqual(expected);
