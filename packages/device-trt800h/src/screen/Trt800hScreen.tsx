@@ -7,21 +7,19 @@ import './Trt800hScreen.css';
 
 const KEY_WIDTH = 'calc(var(--size-target) * 2)';
 
+// Keys touch: the visible space between them is drawn inside each target, so a key's whole
+// cell stays operable and the grid needs no more room than the targets themselves.
 const screenStyle: CSSProperties = {
   display: 'grid',
+  gridTemplateColumns: `repeat(3, ${KEY_WIDTH})`,
+  gridTemplateRows: 'var(--size-target) auto var(--size-target) var(--size-target)',
+  gap: 0,
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
   fontFamily: 'var(--font-mono)',
 };
 
-// Keys touch: the visible space between them is drawn inside each target, so a key's whole
-// cell stays operable and the grid needs no more room than the targets themselves.
-const gridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: `repeat(3, ${KEY_WIDTH})`,
-  gridAutoRows: 'var(--size-target)',
-  gap: 0,
-};
+const faceStyle: CSSProperties = { gridColumn: '1 / 4', gridRow: 2 };
 
 const buttonStyle: CSSProperties = {
   minWidth: 'var(--size-target)',
@@ -45,10 +43,11 @@ type KeyProps = {
   send: Send;
   label?: string;
   position?: string;
-  column?: number;
+  column: number;
+  row: number;
 };
 
-function Key({ name, control, send, label, position, column }: KeyProps) {
+function Key({ name, control, send, label, position, column, row }: KeyProps) {
   const hold = useHold(() => send(control, 'release'));
   const press = () =>
     position === undefined ? send(control, 'press') : send(control, 'press', position);
@@ -56,7 +55,7 @@ function Key({ name, control, send, label, position, column }: KeyProps) {
     <button
       type="button"
       aria-label={label}
-      style={column === undefined ? buttonStyle : { ...buttonStyle, gridColumn: column }}
+      style={{ ...buttonStyle, gridColumn: column, gridRow: row }}
       data-control={control}
       data-position={position}
       {...hold.handlers(press)}
@@ -69,17 +68,15 @@ function Key({ name, control, send, label, position, column }: KeyProps) {
 export function Trt800hScreen({ on, state, send }: DeviceScreenProps) {
   return (
     <div className="cpt-device-trt800h" style={screenStyle}>
-      <AtcFace state={state as Trt800hState} on={on} size="screen" />
-      <div style={gridStyle}>
-        <Key name="I/O" control="power" send={send} />
-        <Key name="VFR" control="vfr" send={send} />
-        <Key name="ID" control="ident" send={send} />
-        <Key name="MODE" control="mode" send={send} />
-        <Key name="▲▼" control="swap" send={send} label="CHANGE" />
-        <Key name="►" control="cursor" send={send} label="CURSOR" />
-        <Key name="CODE −" control="knob" position="down" send={send} column={2} />
-        <Key name="CODE +" control="knob" position="up" send={send} column={3} />
-      </div>
+      <AtcFace state={state as Trt800hState} on={on} size="screen" style={faceStyle} />
+      <Key name="I/O" control="power" column={1} row={1} send={send} />
+      <Key name="VFR" control="vfr" column={2} row={1} send={send} />
+      <Key name="ID" control="ident" column={3} row={1} send={send} />
+      <Key name="MODE" control="mode" column={1} row={3} send={send} />
+      <Key name="▲▼" control="swap" column={2} row={3} send={send} label="CHANGE" />
+      <Key name="►" control="cursor" column={3} row={3} send={send} label="CURSOR" />
+      <Key name="CODE −" control="knob" position="down" column={2} row={4} send={send} />
+      <Key name="CODE +" control="knob" position="up" column={3} row={4} send={send} />
     </div>
   );
 }

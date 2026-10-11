@@ -3,6 +3,8 @@ import type { Text } from '@cpt/core';
 
 export const POWER_OFF_HOLD_MS = 3000;
 export const MEM_SAVE_HOLD_MS = 1500;
+/** SET held this long opens the setup menu, which is not modelled. */
+export const SETUP_MENU_HOLD_MS = 5000;
 export const MENU_TIMEOUT_MS = 10_000;
 export const MEMORY_SLOTS = 20;
 export const RECENT_LIMIT = 10;
@@ -404,7 +406,7 @@ export const atr833Device = defineDevice({
     if (crossed(state.heldMs.mem, heldMs.mem, MEM_SAVE_HOLD_MS) && next.list?.kind !== 'save') {
       next = { ...next, list: { kind: 'save', index: 0 } };
     }
-    if (released('set')) next = pressSet(next);
+    if (released('set') && state.heldMs.set < SETUP_MENU_HOLD_MS) next = pressSet(next);
     if (released('mem') && state.heldMs.mem < MEM_SAVE_HOLD_MS) next = releaseMem(next);
     if (engagedNow('dw')) next = pressDualWatch(next);
     if (engagedNow('swap')) next = pressSwap(next);

@@ -363,6 +363,10 @@ export type DeviceControlId = `${string}.${string}`;
 /**
  * An action with `flow` belongs to the flow a normal procedure may open with: its actions are done
  * from memory in any order, and the checklist items after the flow verify them.
+ *
+ * `doneWhen` is the state that shows the action already done, for a spring-back press whose key
+ * may be gone once pressed (a touch key on a page the press leaves): such a press then takes a
+ * verify tick, which completes cleanly while the condition holds.
  */
 export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase & {
   readonly flow?: true;
@@ -373,6 +377,7 @@ export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
           readonly control: K;
           readonly position: PositionOf<NoInfer<CT>[K]>;
           readonly holdUntil?: Condition<S>;
+          readonly doneWhen?: Condition<S>;
         };
       }[ControlId<CT>]
     | {
@@ -380,6 +385,7 @@ export type ActionItem<S, CT extends ControlRecord = ControlRecord> = ItemBase &
         readonly control: DeviceControlId;
         readonly position: ControlPosition;
         readonly holdUntil?: Condition<S>;
+        readonly doneWhen?: Condition<S>;
       }
   );
 

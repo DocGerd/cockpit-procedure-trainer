@@ -34,6 +34,8 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    this project from the descriptions below and labelled a representative CTSL
    panel. No photos, scans, handbook drawings or manufacturer artwork in the repo.
    Outside views are first-person from the left seat.
+   **Superseded in part (M18, §2a items 1 and 9):** the panel follows D-MPGO's photos
+   and the name no longer says "representative panel"; the rest stands.
 3. **Engine (912 UL or ULS) and rescue system are unknown.** The most conservative
    limits apply (§4) and each is an open question (§9).
 4. **Handbook contradictions:** the conservative value or step is used (§8) and
@@ -630,8 +632,8 @@ figure or icon is copied, and none of the manuals is in the repository.
 Implementers read this section and the M18 plan
 (`docs/superpowers/plans/2026-10-10-m18-d-mpgo-avionics.md`), never the manuals.
 Panel positions come from the photo identification of 2026-10-10 (§3.7) and
-describe the real panel; the trainer's slot layout stays the §3.2a compromise
-until the swap PR decides the slots. A value the manuals do not give is marked
+describe the real panel; the trainer's slots are the compromise §3.2a records
+(M18). A value the manuals do not give is marked
 **assumed (unverified)** and, where the club could settle it, points to a §9
 question. "Manual §n" is the manual's own section number.
 
@@ -1270,7 +1272,7 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
 transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
 and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
-questions 32 and 38); choke
+questions 32 and 38; a pilot who accepted earlier ticks the acceptance, #692); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
@@ -1310,7 +1312,8 @@ positive climb. A go-around with full flaps is acceptable.
 
 **N15 After landing (HB 4-4, 4-15).** Throttle idle; brakes as needed; carb heat
 off; landing light off; flaps retracted (0°). Listen on 121.5 MHz for an
-accidental ELT activation _(confirm)_.
+accidental ELT activation _(confirm)_. Transponder to STBY: `MODE` twice from ACS, then a
+check that it shows STBY (trainer addition, the derived step of §3.8.2, #692).
 
 **N16 Shutdown and securing (HB 4-4, 4-14).** Parking brake set; Avionics Master
 off; electrical consumers off; GEN out; ignition off; BAT out; fuel valve closed
@@ -1801,7 +1804,8 @@ verifies it on D-MPGO.
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
     knob printed `CODE`. **Assumed (unverified)** (§3.8.2).
     **Trainer (M18, #678):** `radioAndTransponder` presses I/O (on, STBY), VFR (7000) and MODE (ACS),
-    and N6 presses I/O; the seeded phases start the unit on at ACS or STBY.
+    N6 presses I/O and N15 presses MODE twice (STBY, #692); the seeded phases start the unit
+    on at ACS or STBY.
 38. **aera 500 on D-MPGO**: what happens when cradle power drops (off, or on battery)?
     Which map orientation and data fields does the club use, and what is the start-up
     step? Which software version, and is there a traffic or weather source? Trainer uses:

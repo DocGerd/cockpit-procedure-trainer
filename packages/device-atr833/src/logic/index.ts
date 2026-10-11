@@ -9,6 +9,7 @@ export {
   MENU_TIMEOUT_MS,
   POWER_OFF_HOLD_MS,
   RECENT_LIMIT,
+  SETUP_MENU_HOLD_MS,
   atr833Device,
   formatFrequency,
   frequencyParts,

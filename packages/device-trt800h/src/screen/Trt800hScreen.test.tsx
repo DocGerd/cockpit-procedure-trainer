@@ -138,6 +138,17 @@ describe('Trt800hScreen styling', () => {
     expect(show().view.container.querySelector('style')).toBeNull();
   });
 
+  it('keeps I/O, VFR and ID above the display and the other keys below, as on the unit', () => {
+    const { view } = show();
+    const rowOf = (name: string) => screen.getByRole('button', { name }).style.gridRow;
+    const display = view.container.querySelector<HTMLElement>('[data-display]');
+    expect(display?.style.gridRow).toBe('2');
+    for (const name of ['I/O', 'VFR', 'ID']) expect(rowOf(name), name).toBe('1');
+    for (const name of ['MODE', 'CHANGE', 'CURSOR', 'CODE −', 'CODE +']) {
+      expect(Number(rowOf(name)), name).toBeGreaterThan(2);
+    }
+  });
+
   it('gives every button the touch-target minimum', () => {
     const buttons = [...show().view.container.querySelectorAll<HTMLElement>('button')];
     expect(buttons).toHaveLength(8);

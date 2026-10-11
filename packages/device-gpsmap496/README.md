@@ -1,11 +1,13 @@
 # @cpt/device-gpsmap496
 
-The Garmin GPSMAP 496 as fitted to the CT Supralight's analog panel, reduced to what a
+The Garmin GPSMAP 496, the unit of the CT Supralight's analog panel variant, reduced to what a
 trainer without a world outside needs: power, the backlight, the main pages and a position
 fix. An aircraft installs it by id (`gpsmap496`). Its screen opens in the device dock, where
 the keys are large enough to operate by touch. Switched on, the receiver searches for
 satellites and then has a fix; with a fix the map page shows ground speed, track and a
 schematic track-up map without map data.
+It is kept in the repository but not registered in the app (`UNREGISTERED` in
+`tools/device-entry.test.ts`): the CT Supralight carries D-MPGO's own units instead.
 
 ## Source revision
 

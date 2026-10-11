@@ -55,30 +55,60 @@ function markupProblems(where: string, markup: string, slotW: number, slotH: num
   return problems;
 }
 
+/** The install's state switched on and laid over with the first phase seed that names it. */
+function litState(aircraft: Aircraft, installId: string, initial: unknown): unknown {
+  const seed = Object.values(aircraft.phases).find((phase) => phase.entry.deviceStates?.[installId])
+    ?.entry.deviceStates?.[installId];
+  return { ...(initial as object), on: true, powered: true, ...seed };
+}
+
+type Install = NonNullable<Aircraft['devices']>[string];
+type MirrorRenders = { readonly dark: string; readonly lit: string };
+
+/** The install's mirror rendered dark, as the device starts, and lit; undefined for an unregistered device. */
+function mirrorRenders(
+  aircraft: Aircraft,
+  installId: string,
+  install: Install,
+): MirrorRenders | undefined {
+  const device = deviceRegistry.find(({ id }) => id === install.device);
+  const entry = Object.hasOwn(deviceEntries, install.device)
+    ? deviceEntries[install.device]
+    : undefined;
+  if (!device || !entry) return undefined;
+  const render = (state: unknown) =>
+    renderToStaticMarkup(createElement(entry.Display, { on: true, state }));
+  return {
+    dark: render(device.initial),
+    lit: render(litState(aircraft, installId, device.initial)),
+  };
+}
+
+function mirrorMarkups(aircraft: Aircraft): (MirrorRenders & { readonly where: string })[] {
+  return Object.entries(aircraft.devices ?? {}).flatMap(([installId, install]) => {
+    const renders = mirrorRenders(aircraft, installId, install);
+    return renders ? [{ where: `${aircraft.id}/${installId}`, ...renders }] : [];
+  });
+}
+
 /** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 function slotFitProblems(aircraft: Aircraft): string[] {
   const cockpit = aircraft.cockpit;
   if (!cockpit) return [];
   return Object.entries(aircraft.devices ?? {}).flatMap(([installId, install]) => {
     const where = `${aircraft.id}/${installId}`;
-    const device = deviceRegistry.find(({ id }) => id === install.device);
-    const entry = Object.hasOwn(deviceEntries, install.device)
-      ? deviceEntries[install.device]
-      : undefined;
+    const renders = mirrorRenders(aircraft, installId, install);
     const viewWidth = aircraft.views[install.view]?.size?.width;
     const minWidth = cockpit.views[install.view]?.minWidth;
-    if (!device || !entry || !viewWidth || !minWidth) return [`${where}: no device or view size`];
+    if (!renders || !viewWidth || !minWidth) return [`${where}: no device or view size`];
 
-    const markup = renderToStaticMarkup(
-      createElement(entry.Display, { on: true, state: device.initial }),
-    );
     const unit = minWidth / viewWidth;
-    return markupProblems(
-      where,
-      markup,
-      install.placement.rect.w * unit,
-      install.placement.rect.h * unit,
-    );
+    const slotW = install.placement.rect.w * unit;
+    const slotH = install.placement.rect.h * unit;
+    return [
+      ...markupProblems(where, renders.dark, slotW, slotH),
+      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH),
+    ];
   });
 }
 
@@ -92,6 +122,16 @@ describe('the mirror in each installed slot', () => {
     const withDock = aircraftRegistry.filter((aircraft) => aircraft.cockpit);
     expect(withDock.length).toBeGreaterThan(0);
     expect(withDock.flatMap(slotFitProblems)).toEqual([]);
+  });
+
+  it('measures every CTSL mirror lit as well as dark', () => {
+    const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+    if (!ctsl) throw new Error('The registry has no CTSL');
+    const markups = mirrorMarkups(ctsl);
+    expect(markups.map(({ where }) => where).sort()).toEqual(
+      ['ctsl/com', 'ctsl/flarm', 'ctsl/gps', 'ctsl/xpdr'].sort(),
+    );
+    for (const { where, dark, lit } of markups) expect(lit, where).not.toBe(dark);
   });
 
   it('reports a mirror or slot it cannot measure instead of passing it', () => {

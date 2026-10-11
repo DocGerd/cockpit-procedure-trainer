@@ -263,7 +263,11 @@ item as verified; a verify tick while the target is elsewhere completes the
 item and records it as a wrong position. An action on a spring-back position (a
 momentary button's pressed position, or a rotary detent with a rest position)
 takes no verify tick: it is satisfied only by a pilot press of its own, and
-each such action needs its own press. An action with `holdUntil` still waits
+each such action needs its own press. The exception is a press with `doneWhen`,
+a condition on the state that shows it already done, for a key that a press
+takes away (a touch key on a page the press leaves): it takes a verify tick,
+which completes it cleanly while the condition holds and records a wrong
+position otherwise (spec amended in #692). An action with `holdUntil` still waits
 for its condition.
 
 ### 4.8 Appearance
@@ -318,8 +322,8 @@ transponder, engine values for a monitor). Procedure items can target device
 controls and test device state ("Transponder: 7000, ALT").
 
 Where it sits in a view: the slot is a small panel region that shows a live
-read-only mirror of the device (its Display, labelled with the unit name and
-carrying its readout as accessible name). Activating the slot opens the
+read-only mirror of the device (its Display, labelled with the unit's face word
+or name and carrying its readout as accessible name). Activating the slot opens the
 operable Screen in the **device dock**, one non-modal region under the panel
 that holds one device at a time; activating another slot swaps it, and a close
 button empties it. The dock starts empty with a hint, which is chrome text and

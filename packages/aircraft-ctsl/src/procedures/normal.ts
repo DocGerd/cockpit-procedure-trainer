@@ -443,10 +443,12 @@ export const normalProcedures = {
       },
       // Assumed (unverified), intake §9 questions 32 and 38: the GPS starts with cradle power, so
       // its step is the database acceptance, then its map page, which the line-up seed shows.
+      // Only the start-up page offers the accept key, so a pilot who accepted earlier ticks it.
       {
         type: 'action',
         control: 'gps.touch',
         position: 'accept',
+        doneWhen: (state: State) => field(state, 'gps', 'page') !== 'startup',
         text: text('GPS: Datenbanken bestätigt', 'GPS: databases accepted'),
       },
       {
@@ -885,6 +887,26 @@ export const normalProcedures = {
         'Auf 121,5 MHz hören, ob der Notsender versehentlich sendet',
         'Listen on 121.5 MHz for an accidental ELT activation',
       ),
+      // Trainer addition, intake §3.8.2: MODE cycles STBY, ACS, A-S, so ACS reaches STBY in two.
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'pressed',
+        text: text('Transponder auf A-S (MODE)', 'Transponder to A-S (MODE)'),
+      },
+      {
+        type: 'action',
+        control: 'xpdr.mode',
+        position: 'pressed',
+        text: text('Transponder auf STBY (MODE)', 'Transponder to STBY (MODE)'),
+      },
+      {
+        type: 'check',
+        target: { control: 'xpdr.mode' },
+        condition: (state: State) => field(state, 'xpdr', 'mode') === 'stby',
+        text: text('Transponder', 'Transponder'),
+        expected: text('STBY', 'STBY'),
+      },
     ],
   },
   shutdown: {
