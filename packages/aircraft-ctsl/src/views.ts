@@ -11,15 +11,15 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
   ...(printed.length > 0 ? { printed } : {}),
 });
 
-// Each slot keeps its mirror's aspect and is at least its natural size, so the mirror lettering
-// stays legible at the panel floor; the GPS takes the field's height between the glareshield strip
-// and the radio row, toward its photographed size. Positions follow D-MPGO's panel as far as the
-// sizes allow (intake §3.2a).
+// Each slot keeps its mirror's aspect. The slots follow D-MPGO's three tiers (intake §3.9.3): the
+// FLARM display top left, the GPS in its own row below, centred over the radio pair. The GPS keeps
+// its photographed width against the round units, so the slots draw below their natural size;
+// the dock holds the full-size unit (ADR-0002: recognition ranks above mirror lettering).
 export const deviceSlots = {
-  flarm: at(500, 150, 320, 160),
-  gps: at(850, 123, 440, 275),
-  com: at(540, 404, 272, 272),
-  xpdr: at(832, 404, 272, 272),
+  flarm: at(574, 128, 224, 112),
+  gps: at(619, 264, 378, 236),
+  com: at(634, 524, 156, 156),
+  xpdr: at(826, 524, 156, 156),
 } as const satisfies Record<string, Placement>;
 
 export const views = {

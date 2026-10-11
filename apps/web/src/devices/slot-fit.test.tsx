@@ -26,6 +26,11 @@ function mirrorSize(markup: string): { width: number; height: number } {
   return { width: w, height: (w * Number(ratio[2])) / Number(ratio[1]) };
 }
 
+// A slot mirror is read-only and the dock holds the full-size unit, so its lettering floor is
+// half the panel's: recognising the unit by its layout and proportions outranks reading its small
+// print (ADR-0002).
+const SLOT_FLOOR = 0.5;
+
 // Secondary lettering prints as small as the real unit prints it: half the lettering minimum, the
 // floor `SECONDARY_MIN_PX` sets for panel captions in the e2e legibility checks.
 const SECONDARY_MIN_PX = MIN_TEXT_PX / 2;
@@ -44,7 +49,13 @@ function smallestTextPx(markup: string): { primary: number; secondary: number } 
 }
 
 /** Why this markup does not fit, or is illegible, in a slot of the given size. */
-function markupProblems(where: string, markup: string, slotW: number, slotH: number): string[] {
+function markupProblems(
+  where: string,
+  markup: string,
+  slotW: number,
+  slotH: number,
+  floor = 1,
+): string[] {
   const natural = mirrorSize(markup);
   const smallestNatural = smallestTextPx(markup);
   const measures = [natural.width, natural.height, smallestNatural.primary, slotW, slotH];
@@ -59,13 +70,15 @@ function markupProblems(where: string, markup: string, slotW: number, slotH: num
   }
   const scale = Math.min(slotW / natural.width, slotH / natural.height);
   const smallest = smallestNatural.primary * scale;
-  if (smallest < MIN_TEXT_PX) {
-    problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${MIN_TEXT_PX} px`);
+  const minPx = MIN_TEXT_PX * floor;
+  if (smallest < minPx) {
+    problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${minPx} px`);
   }
   const secondary = smallestNatural.secondary * scale;
-  if (secondary < SECONDARY_MIN_PX) {
+  const secondaryMinPx = SECONDARY_MIN_PX * floor;
+  if (secondary < secondaryMinPx) {
     problems.push(
-      `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${SECONDARY_MIN_PX} px`,
+      `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${secondaryMinPx} px`,
     );
   }
   return problems;
@@ -122,8 +135,8 @@ function slotFitProblems(aircraft: Aircraft): string[] {
     const slotW = install.placement.rect.w * unit;
     const slotH = install.placement.rect.h * unit;
     return [
-      ...markupProblems(where, renders.dark, slotW, slotH),
-      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH),
+      ...markupProblems(where, renders.dark, slotW, slotH, SLOT_FLOOR),
+      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH, SLOT_FLOOR),
     ];
   });
 }
@@ -256,7 +269,7 @@ describe('the mirror in each installed slot', () => {
     });
 
     it('reports a slot too small for the lettering', () => {
-      expect(slotFitProblems(withSize(w / 2, h / 2)).join('\n')).toContain('smallest text');
+      expect(slotFitProblems(withSize(w / 4, h / 4)).join('\n')).toContain('smallest text');
     });
   });
 });

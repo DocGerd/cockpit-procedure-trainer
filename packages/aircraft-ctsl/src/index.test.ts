@@ -1,5 +1,5 @@
 import { CONTRACT_VERSION, createSession, phaseOrder, STEP_MS, validateAircraft } from '@cpt/core';
-import type { ControlDefinition } from '@cpt/core';
+import type { ControlDefinition, Placement } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
 import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
@@ -247,10 +247,10 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
-    ['flarm', 320, 160],
-    ['gps', 440, 275],
-    ['com', 272, 272],
-    ['xpdr', 272, 272],
+    ['flarm', 224, 112],
+    ['gps', 378, 236],
+    ['com', 156, 156],
+    ['xpdr', 156, 156],
   ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
     expect(deviceSlots[id].rect).toMatchObject({ w, h });
     expect(installs[id].placement).toBe(deviceSlots[id]);
@@ -490,10 +490,35 @@ describe('CTSL aircraft', () => {
     expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
   });
 
-  it('puts the FLARM display left of the GPS, above the radio (intake §3.2a)', () => {
-    const { flarm, gps, com } = deviceSlots;
-    expect(flarm.rect.x + flarm.rect.w).toBeLessThanOrEqual(gps.rect.x);
-    expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(com.rect.y);
+  describe('avionics arrangement (intake §3.9.3)', () => {
+    const { flarm, gps, com, xpdr } = deviceSlots;
+    const centreX = ({ rect }: Placement) => rect.x + rect.w / 2;
+
+    it('stacks three tiers: the FLARM display, the GPS, then the radio pair', () => {
+      expect(flarm.rect.y + flarm.rect.h).toBeLessThan(gps.rect.y);
+      expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+    });
+
+    it('sets the FLARM display at the top left, over the GPS', () => {
+      expect(flarm.rect.x).toBeLessThanOrEqual(gps.rect.x);
+      expect(flarm.rect.x + flarm.rect.w).toBeLessThan(centreX(gps));
+    });
+
+    it('centres the GPS over the radio pair', () => {
+      const pair = (centreX(com) + centreX(xpdr)) / 2;
+      expect(Math.abs(centreX(gps) - pair)).toBeLessThanOrEqual(0.03 * gps.rect.w);
+    });
+
+    it('draws the GPS 2.2 to 2.7 round units wide and 1.4 to 1.7 tall, as photographed', () => {
+      expect(gps.rect.w / com.rect.w).toBeGreaterThanOrEqual(2.2);
+      expect(gps.rect.w / com.rect.w).toBeLessThanOrEqual(2.7);
+      expect(gps.rect.h / com.rect.h).toBeGreaterThanOrEqual(1.4);
+      expect(gps.rect.h / com.rect.h).toBeLessThanOrEqual(1.7);
+    });
+
+    it('keeps the GPS at least as wide as the radio pair', () => {
+      expect(gps.rect.w).toBeGreaterThanOrEqual(xpdr.rect.x + xpdr.rect.w - com.rect.x);
+    });
   });
 
   it('keeps every device slot inside the upper-centre field below its glareshield strip, clear of the others', () => {
