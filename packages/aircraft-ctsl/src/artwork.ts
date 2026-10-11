@@ -1,16 +1,25 @@
-import type { ArtworkAppearance, JsonObject, Point } from '@cpt/core';
+import type { ArtworkAppearance, Point } from '@cpt/core';
+import { airspeed, airspeedFace } from './artwork/gauges/airspeed';
+import { altimeter, altimeterFace } from './artwork/gauges/altimeter';
+import { cht, chtFace } from './artwork/gauges/cht';
+import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
+import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
+import { glassImage, needleImage } from './artwork/gauges/shared';
+import { tachometer, tachometerFace } from './artwork/gauges/tachometer';
+import { verticalSpeed, verticalSpeedFace } from './artwork/gauges/vertical-speed';
+import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
 
 export const images = {
-  gaugeAirspeed: new URL('./assets/artwork/gauge-airspeed.svg', import.meta.url).href,
-  gaugeAltimeter: new URL('./assets/artwork/gauge-altimeter.svg', import.meta.url).href,
-  gaugeVsi: new URL('./assets/artwork/gauge-vsi.svg', import.meta.url).href,
-  gaugeTachometer: new URL('./assets/artwork/gauge-tachometer.svg', import.meta.url).href,
-  gaugeOilPressure: new URL('./assets/artwork/gauge-oil-pressure.svg', import.meta.url).href,
-  gaugeOilTemperature: new URL('./assets/artwork/gauge-oil-temperature.svg', import.meta.url).href,
-  gaugeCht: new URL('./assets/artwork/gauge-cht.svg', import.meta.url).href,
-  gaugeVoltmeter: new URL('./assets/artwork/gauge-voltmeter.svg', import.meta.url).href,
-  needle: new URL('./assets/artwork/needle.svg', import.meta.url).href,
-  glassGauge: new URL('./assets/artwork/glass-gauge.svg', import.meta.url).href,
+  gaugeAirspeed: airspeedFace,
+  gaugeAltimeter: altimeterFace,
+  gaugeVsi: verticalSpeedFace,
+  gaugeTachometer: tachometerFace,
+  gaugeOilPressure: oilPressureFace,
+  gaugeOilTemperature: oilTemperatureFace,
+  gaugeCht: chtFace,
+  gaugeVoltmeter: voltmeterFace,
+  needle: needleImage,
+  glassGauge: glassImage,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
@@ -80,26 +89,6 @@ export const images = {
   rescuePulled: new URL('./assets/artwork/rescue-pulled.svg', import.meta.url).href,
 } as const;
 
-const needle = (
-  face: string,
-  valueRange: { min: number; max: number },
-  options: JsonObject,
-  angleRange = { min: -135, max: 135 },
-): ArtworkAppearance => ({
-  options: { ...valueRange, needleShadow: true, ...options },
-  artwork: {
-    face,
-    moving: {
-      type: 'needle',
-      image: images.needle,
-      pivot: { x: 100, y: 100 },
-      angleRange,
-      valueRange,
-    },
-    glass: images.glassGauge,
-  },
-});
-
 const positions = (face: string, moving: Record<string, string>): ArtworkAppearance => ({
   artwork: { face, moving: { type: 'positions', images: moving } },
 });
@@ -123,109 +112,14 @@ export const lampArtwork = {
 } as const satisfies Record<string, ArtworkAppearance>;
 
 export const gaugeArtwork = {
-  airspeed: needle(
-    images.gaugeAirspeed,
-    { min: 40, max: 340 },
-    {
-      units: 'km/h',
-      decimals: 0,
-      ticks: [40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340],
-      arcs: [
-        { from: 72, to: 115, colour: 'white' },
-        { from: 94, to: 245, colour: 'green' },
-        { from: 245, to: 300, colour: 'yellow' },
-        { from: 299, to: 301, colour: 'red' },
-      ],
-    },
-  ),
-  altimeter: needle(
-    images.gaugeAltimeter,
-    { min: 0, max: 5000 },
-    { units: 'ft', decimals: 0, ticks: [0, 1000, 2000, 3000, 4000, 5000] },
-  ),
-  verticalSpeed: needle(
-    images.gaugeVsi,
-    { min: -2000, max: 2000 },
-    {
-      units: 'ft/min',
-      decimals: 0,
-      ticks: [-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000],
-    },
-    { min: -225, max: 45 },
-  ),
-  tachometer: needle(
-    images.gaugeTachometer,
-    { min: 0, max: 7000 },
-    {
-      units: 'rpm',
-      decimals: 0,
-      ticks: [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000],
-      arcs: [
-        { from: 1400, to: 5500, colour: 'green' },
-        { from: 5500, to: 5800, colour: 'yellow' },
-        { from: 5800, to: 7000, colour: 'red' },
-      ],
-    },
-  ),
-  oilPressure: needle(
-    images.gaugeOilPressure,
-    { min: 0, max: 10 },
-    {
-      units: 'bar',
-      decimals: 1,
-      ticks: [0, 2, 4, 6, 8, 10],
-      arcs: [
-        { from: 0, to: 0.8, colour: 'red' },
-        { from: 0.8, to: 2, colour: 'yellow' },
-        { from: 2, to: 5, colour: 'green' },
-        { from: 5, to: 10, colour: 'red' },
-      ],
-    },
-  ),
-  oilTemperature: needle(
-    images.gaugeOilTemperature,
-    { min: 40, max: 150 },
-    {
-      units: '°C',
-      decimals: 0,
-      ticks: [40, 50, 70, 90, 110, 130, 150],
-      arcs: [
-        { from: 50, to: 90, colour: 'yellow' },
-        { from: 90, to: 110, colour: 'green' },
-        { from: 110, to: 130, colour: 'yellow' },
-        { from: 130, to: 150, colour: 'red' },
-      ],
-    },
-  ),
-  cht: needle(
-    images.gaugeCht,
-    { min: 40, max: 150 },
-    {
-      units: '°C',
-      decimals: 0,
-      ticks: [40, 50, 70, 90, 110, 120, 150],
-      arcs: [
-        { from: 50, to: 120, colour: 'green' },
-        { from: 120, to: 150, colour: 'red' },
-      ],
-    },
-  ),
-  voltmeter: needle(
-    images.gaugeVoltmeter,
-    { min: 9, max: 17 },
-    {
-      units: 'V',
-      decimals: 1,
-      ticks: [9, 10, 11, 12, 13, 14, 15, 16, 17],
-      arcs: [
-        { from: 9, to: 10.5, colour: 'red' },
-        { from: 10.5, to: 11.5, colour: 'yellow' },
-        { from: 11.5, to: 15, colour: 'green' },
-        { from: 15, to: 16, colour: 'yellow' },
-        { from: 16, to: 17, colour: 'red' },
-      ],
-    },
-  ),
+  airspeed,
+  altimeter,
+  verticalSpeed,
+  tachometer,
+  oilPressure,
+  oilTemperature,
+  cht,
+  voltmeter,
 } as const;
 
 const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): ArtworkAppearance => ({
