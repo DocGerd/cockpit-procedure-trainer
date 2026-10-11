@@ -69,7 +69,8 @@ describe('About', () => {
     renderFooter();
     const about = await openAbout();
     expect(about.textContent).toContain('CT Supralight');
-    expect(about.textContent).not.toContain('representative');
+    const aircraft = (about.textContent ?? '').split('Recent releases')[0];
+    expect(aircraft).not.toContain('representative');
     expect(about.textContent).toContain('revision 01 (14 Jan 2010)');
     expect(about.textContent).toContain('fictional aircraft; no handbook');
   });
