@@ -592,16 +592,6 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers Push off');
   });
 
-  const rectsFilled = (svg: string, fill: string) =>
-    [
-      ...svg.matchAll(
-        new RegExp(
-          `<rect x="([\\d.]+)" y="([\\d.]+)" width="([\\d.]+)" height="([\\d.]+)"[^>]*fill="url\\(#${fill}\\)"`,
-          'g',
-        ),
-      ),
-    ].map(([, x, y, w, h]) => ({ x: Number(x), y: Number(y), w: Number(w), h: Number(h) }));
-
   // Corrected from the photos (intake §3.2a): each unit draws its whole face, the cradle included.
   it.each(Object.entries(deviceSlots))(
     'draws no recess, frame, screw or shadow in or around the %s slot',
@@ -629,7 +619,30 @@ describe('CTSL view backdrops', () => {
   );
 
   it('leaves the GPS cradle and its rail to the device', () => {
-    expect(rectsFilled(backdrop('panel'), 'ps')).toEqual([]);
+    const svg = backdrop('panel');
+    const { rect } = deviceSlots.gps;
+    const fullHeight = 0.95 * views.panel.size.height;
+    const boxes = [
+      ...[...svg.matchAll(/<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)]
+        .map(([, x, y, w, h]) => ({ x: Number(x), y: Number(y), w: Number(w), h: Number(h) }))
+        .filter(({ h }) => h < fullHeight),
+      ...[...svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"/g)].map(
+        ([, cx, cy, r]) => ({
+          x: Number(cx) - Number(r),
+          y: Number(cy) - Number(r),
+          w: 2 * Number(r),
+          h: 2 * Number(r),
+        }),
+      ),
+    ];
+    const overlapping = boxes.filter(
+      (box) =>
+        box.x < rect.x + rect.w &&
+        box.x + box.w > rect.x &&
+        box.y < rect.y + rect.h &&
+        box.y + box.h > rect.y,
+    );
+    expect(overlapping).toEqual([]);
   });
 
   describe('the upper-centre field (intake §3.7.1)', () => {

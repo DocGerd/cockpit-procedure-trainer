@@ -8,7 +8,6 @@
 <linearGradient id="al" gradientUnits="userSpaceOnUse" x1="471" y1="16" x2="1628" y2="684"><stop offset="0" stop-color="#80878F"/><stop offset=".5" stop-color="#6B717A"/><stop offset="1" stop-color="#5C626A"/></linearGradient>
 <pattern id="bf" width="420" height="9" patternUnits="userSpaceOnUse"><path d="M0 0.8H420M0 3.9H420M0 6.3H420" stroke="#FFFFFF" stroke-opacity=".16" stroke-width=".9"/><path d="M0 2.2H420M0 5.1H420M0 8.2H420" stroke="#000000" stroke-opacity=".11" stroke-width=".8"/></pattern>
 <linearGradient id="pl" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" stop-color="#DADDE1"/><stop offset=".45" stop-color="#C6CACF"/><stop offset="1" stop-color="#A9AEB4"/></linearGradient>
-<linearGradient id="ps" x1="0" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#5E646C"/><stop offset=".12" stop-color="#2E3136"/><stop offset=".7" stop-color="#202326"/><stop offset="1" stop-color="#08090A"/></linearGradient>
 <linearGradient id="an" x1="0" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#3A3E44"/><stop offset=".5" stop-color="#34383E"/><stop offset="1" stop-color="#1C1E22"/></linearGradient>
 <radialGradient id="sd" cx=".508" cy=".522" r=".5"><stop offset=".86" stop-color="#000000" stop-opacity=".75"/><stop offset=".91" stop-color="#000000" stop-opacity=".4"/><stop offset=".956" stop-color="#000000" stop-opacity="0"/></radialGradient>
 <linearGradient id="rf" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#08090A"/><stop offset=".5" stop-color="#191B1E"/><stop offset="1" stop-color="#2A2D31"/></linearGradient>
