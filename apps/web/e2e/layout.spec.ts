@@ -348,6 +348,7 @@ for (const { aircraft: id, height, folded } of strips) {
 }
 
 // Just above the breakpoint the dock is at its narrowest, and the close label is wider in German.
+// The demo joins this table once #687 is fixed.
 const narrowDocks = [{ aircraft: 'ctsl', height: 900 }];
 
 for (const { aircraft: id, height } of narrowDocks) {
