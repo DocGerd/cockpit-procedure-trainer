@@ -375,7 +375,7 @@ export async function secondaryCaptionProblems(
       const scale = rendered / viewBoxWidth(svg);
       problems.push(
         ...captions
-          .filter(({ size }) => size * scale < SECONDARY_MIN_PX - TOLERANCE_PX)
+          .filter(({ size }) => !(size * scale >= SECONDARY_MIN_PX - TOLERANCE_PX))
           .map(({ text, size }) => `${viewId}/${id}: ${text} ${(size * scale).toFixed(1)}px`),
       );
     }
