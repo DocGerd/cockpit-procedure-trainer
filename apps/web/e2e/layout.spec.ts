@@ -2,6 +2,7 @@ import { expect, test } from './fixtures';
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
+import { messages as dockMessages } from '../src/devices/messages';
 import { copy, openPicker } from './trainer';
 import {
   TOUCH_TARGET_PX,
@@ -9,9 +10,11 @@ import {
   indicatorLetteringProblems,
   letteringProblems,
   openAircraft,
+  selectLanguage,
   showView,
   viewRoot,
 } from './legibility';
+import type { Language } from './legibility';
 import {
   derivedState,
   expectedStates,
@@ -43,7 +46,8 @@ const shortDesktop = { width: 1920, height: 800 };
 
 const cockpitLayout = (page: Page) => page.locator('.shell');
 const outsideView = (page: Page) => page.locator('.shell-outside-view');
-const dockRegion = (page: Page) => page.getByRole('region', { name: 'Device dock' });
+const dockRegion = (page: Page, language: Language = 'en') =>
+  page.getByRole('region', { name: dockMessages[language].dock });
 
 const boxOf = async (locator: Locator) => {
   const box = await locator.boundingBox();
@@ -144,12 +148,13 @@ async function expectEveryDeviceDocks(
   page: Page,
   aircraft: Aircraft,
   combined: boolean,
+  language: Language = 'en',
 ): Promise<void> {
-  const empty = await boxOf(dockRegion(page));
+  const empty = await boxOf(dockRegion(page, language));
   for (const [installId, install] of Object.entries(aircraft.devices ?? {})) {
-    await showView(page, aircraft, install.view, 'en');
+    await showView(page, aircraft, install.view, language);
     await page.locator(`[data-placement="${installId}"]`).getByRole('button').click();
-    const dock = dockRegion(page);
+    const dock = dockRegion(page, language);
     await expect(dock).toHaveAttribute('data-dock', 'held');
     const unit = dock.getByRole('group', { name: install.device, exact: true });
     await expect(unit).toBeVisible();
@@ -175,8 +180,14 @@ async function expectEveryDeviceDocks(
       );
       await expectNoPageScroll(page);
     }
+    // A centred unit wider than the dock also spills past its left edge, where scrolling cannot reach.
+    const overflow = await dock.evaluate((element) => ({
+      x: element.scrollWidth - element.clientWidth,
+      y: element.scrollHeight - element.clientHeight,
+    }));
+    expect(overflow, `${installId} dock scroll`).toEqual({ x: 0, y: 0 });
 
-    const close = dock.getByRole('button', { name: 'Close device' });
+    const close = dock.getByRole('button', { name: dockMessages[language].dockClose });
     expectTarget(await boxOf(close), `${installId} close button`);
     await close.click();
     await expect(dock).toHaveAttribute('data-dock', 'empty');
@@ -334,6 +345,28 @@ for (const { aircraft: id, height, folded } of strips) {
     }
     await expectNoPageScroll(page);
   });
+}
+
+// Just above the breakpoint the dock is at its narrowest, and the close label is wider in German.
+const narrowDocks = [{ aircraft: 'ctsl', height: 900 }];
+
+for (const { aircraft: id, height } of narrowDocks) {
+  for (const language of ['en', 'de'] as const) {
+    test(`the ${id} dock holds every device without scrolling at 1920x${height} in ${language}`, async ({
+      page,
+    }) => {
+      const aircraft = aircraftRegistry.find((entry) => entry.id === id);
+      const dock = aircraft?.cockpit?.dock;
+      if (!aircraft || !dock) throw new Error(`The aircraft registry has no ${id} with a dock`);
+      await page.setViewportSize({ width: 1920, height });
+      await openAircraft(page, aircraft);
+      await selectLanguage(page, language);
+      await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', 'combined');
+      const { width } = await boxOf(dockRegion(page, language));
+      expect(width, 'dock near its floor').toBeLessThan(dock.minWidth * 1.02);
+      await expectEveryDeviceDocks(page, aircraft, true, language);
+    });
+  }
 }
 
 // #226: holding the key on START while watching the tachometer.

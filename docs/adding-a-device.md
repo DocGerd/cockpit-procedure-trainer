@@ -148,10 +148,13 @@ the install id, which prefixes the device's control ids:
 - The aircraft's `cockpit` arrangement needs a `dock` cell, and the dock must be
   at least as wide and as tall as the `floor` of every installed device
   (`docs/adding-an-aircraft.md`, Cockpit arrangement). The dock's Close button
-  stands beside the device, so the dock's width must also hold that column and the
-  dock's padding, as the demo's `cockpit.ts` allows for; the validator checks the
-  bare floor only, and `apps/web/e2e/layout.spec.ts` catches a device that overflows
-  the dock at 1920 px.
+  stands beside the device, so at the dock's `minWidth` (the narrowest it renders
+  before the cockpit falls back to tabs) it must hold the widest installed floor plus
+  that column, whose German label is the wider, and the dock's padding and border;
+  its height at that scale must hold the tallest floor and the padding. The validator
+  checks the bare floor only. `apps/web/e2e/layout.spec.ts` docks every device and
+  fails when the dock scrolls: at each priority viewport, and in both languages just
+  above the breakpoint of each aircraft in its `narrowDocks` table.
 - `powered` is the bus condition. The device is off when it is false.
 - `inputs` maps each input name the device reads to a function of the state. The
   transponder reads `pressureAltitude`; the COM radio takes none.

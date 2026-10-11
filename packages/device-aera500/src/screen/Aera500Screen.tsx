@@ -10,7 +10,7 @@ const screenStyle: CSSProperties = {
   boxSizing: 'border-box',
   display: 'grid',
   gap: 'var(--space-2)',
-  width: 'calc(var(--space-12) * 8 + var(--space-4))',
+  width: 'calc(var(--space-12) * 7)',
   padding: 'var(--space-2)',
   background: 'var(--panel-screen)',
   color: 'var(--panel-legend)',
@@ -20,7 +20,7 @@ const screenStyle: CSSProperties = {
 };
 
 const windowStyle: CSSProperties = {
-  height: 'calc(var(--space-12) * 3 + var(--space-3) * 3)',
+  height: 'calc(var(--space-12) * 3 + var(--space-4))',
   overflow: 'hidden',
 };
 

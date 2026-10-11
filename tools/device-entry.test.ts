@@ -23,15 +23,15 @@ const FRAME_CHROME_PX = 2 * (token('space-2') + token('space-1'));
 // The operable Screen's natural size with the unit powered, in its widest state, measured in
 // Chromium. Re-measure when a Screen's layout changes.
 const NATURAL_SCREEN: Readonly<Record<string, readonly [number, number]>> = {
-  flarm: [400, 260],
+  flarm: [336, 260],
   com: [456, 204],
   sl40: [352, 136],
-  atr833: [400, 194],
+  atr833: [320, 194],
   transponder: [584, 160],
   gtx327: [400, 132],
   trt800h: [264, 252],
   gpsmap496: [220, 160],
-  aera500: [400, 300],
+  aera500: [336, 280],
 };
 
 // The tools project resolves no React types; components are opaque here.

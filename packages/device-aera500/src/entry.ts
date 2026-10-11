@@ -7,5 +7,5 @@ export const aera500ScreenEntry: DeviceScreenEntry = {
   Screen: Aera500Screen,
   Display: Aera500Display,
   readout: aera500Readout,
-  floor: { width: 424, height: 324 },
+  floor: { width: 360, height: 304 },
 };

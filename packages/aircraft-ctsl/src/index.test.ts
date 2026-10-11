@@ -496,8 +496,8 @@ describe('CTSL aircraft', () => {
     expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(com.rect.y);
   });
 
-  it('keeps every device slot inside the upper-centre field, clear of the others', () => {
-    const field = { x0: 471, y0: 16, x1: 1628, y1: 684 };
+  it('keeps every device slot inside the upper-centre field below its glareshield strip, clear of the others', () => {
+    const field = { x0: 471, y0: 122, x1: 1628, y1: 684 };
     const rects = Object.values(deviceSlots).map(({ rect }) => rect);
     for (const { x, y, w, h } of rects) {
       expect(x).toBeGreaterThanOrEqual(field.x0);

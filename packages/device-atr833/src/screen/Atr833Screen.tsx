@@ -6,7 +6,7 @@ import type { Atr833State } from '../logic';
 import './Atr833Screen.css';
 
 const COLUMNS = 5;
-const KEY_WIDTH = 'calc(var(--space-12) + var(--space-8))';
+const KEY_WIDTH = 'calc(var(--space-12) + var(--space-4))';
 
 const screenStyle: CSSProperties = {
   display: 'grid',
