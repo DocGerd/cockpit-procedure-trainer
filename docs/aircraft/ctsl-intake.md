@@ -1883,9 +1883,10 @@ above are what makes the panel recognisable; the fractions do not change with th
   The radio pair sits right of the dock; the lower column hangs 0.37 A left of the
   centre plate's middle, as on the aircraft.
 - **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
-  display, §9 question 42); the "Push off" label (owner, §3.9.5); the plates' corner
-  screws (the mirrors leave no room on the centre plate); gauge screws, which belong to
-  the gauge faces (#719 to #721).
+  display, §9 question 42); the "Push off" label (owner, §3.9.5); the Cockpit Light
+  breaker legend (the 12V Outlet breaker sits right under that breaker, §3.9.4); the
+  plates' corner screws (the mirrors leave no room on the centre plate); gauge screws,
+  which belong to the gauge faces (#719 to #721).
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
   console's lever row; on the console only the parachute placard and, beside it, the
   rudder-trim wheel and the parking-brake valve move.

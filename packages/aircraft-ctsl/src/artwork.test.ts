@@ -588,7 +588,7 @@ describe('CTSL view backdrops', () => {
         'EMS@2178,507.99/13',
         'Instrument@1786,599.54/13',
         'Light@1786,615.22/13',
-        'Circuit Breakers@1955,645/37',
+        'Circuit Breakers@1925,660/37',
       ],
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',

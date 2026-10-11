@@ -302,8 +302,8 @@ describe('CTSL aircraft', () => {
     const fieldLeft = inCockpit(upperCentre.x);
     const fieldWidth = (upperCentre.w * panelFit) / panelSize.width;
 
-    // On D-MPGO the lower column hangs about 0.37 A left of the centre plate's middle, toward the
-    // pilot (intake §3.9.6; 0.30 to 0.39 A across the photos).
+    // On D-MPGO the lower column hangs left of the centre plate's middle, toward the pilot; intake
+    // §3.9.6 gives the measured offset.
     it('hangs the centre field below the upper-centre plate, offset from its middle toward the pilot', () => {
       const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
       const unitA = (airspeed * panelFit) / panelSize.width;

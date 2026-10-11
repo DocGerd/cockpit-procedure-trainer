@@ -87,5 +87,5 @@
 <g transform="translate(1737 528) scale(0.98)"><g transform="translate(16.4 -7.4) scale(0.8)"><use href="#bp"/></g></g>
 <text x="1786" y="599.54" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">Instrument</text>
 <text x="1786" y="615.22" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">Light</text>
-<text x="1955" y="645" font-family="Helvetica, Arial, sans-serif" font-size="37" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" textLength="300" lengthAdjust="spacingAndGlyphs">Circuit Breakers</text>
+<text x="1925" y="660" font-family="Helvetica, Arial, sans-serif" font-size="37" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" textLength="300" lengthAdjust="spacingAndGlyphs">Circuit Breakers</text>
 </svg>
