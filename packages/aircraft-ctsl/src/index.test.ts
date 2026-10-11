@@ -248,10 +248,10 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['flarm', 320, 160],
-    ['gps', 400, 250],
+    ['gps', 440, 275],
     ['com', 272, 272],
     ['xpdr', 272, 272],
-  ] as const)('sizes the %s slot as its mirror, %i by %i', (id, w, h) => {
+  ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
     expect(deviceSlots[id].rect).toMatchObject({ w, h });
     expect(installs[id].placement).toBe(deviceSlots[id]);
   });

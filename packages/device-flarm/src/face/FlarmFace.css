@@ -1,0 +1,17 @@
+.cpt-flarm-key {
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  background-color: transparent;
+}
+
+.cpt-flarm-key:active {
+  background-color: color-mix(in srgb, var(--panel-shadow) 35%, transparent);
+}
+
+.cpt-flarm-key:focus-visible {
+  outline: var(--space-1) solid var(--panel-focus);
+  outline-offset: calc(var(--space-1) * -1);
+}
