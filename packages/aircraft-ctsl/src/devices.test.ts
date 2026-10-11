@@ -11,18 +11,22 @@ const stateWith = (
   avionicsPowered: boolean,
   breakers: Record<string, string>,
   altitudeFt = 0,
+  volts = 12.5,
 ): CtslTrainerState => ({
   controls: breakers,
   guards: {},
-  systems: { ...initial, altitudeFt, bus: { ...initial.bus, avionicsPowered } },
+  systems: { ...initial, altitudeFt, bus: { ...initial.bus, avionicsPowered, volts } },
   devices: {},
 });
 
-describe('the SL40 install', () => {
+const standInControls = (id: string) =>
+  Object.keys(testDevices.find((device) => device.id === id)?.controls ?? {});
+
+describe('the ATR833 install', () => {
   const install = devices.com;
 
-  it('installs the sl40 device on the panel in its reserved slot', () => {
-    expect(install).toMatchObject({ device: 'sl40', view: 'panel', placement: deviceSlots.com });
+  it('installs the atr833 device on the panel in the COM slot', () => {
+    expect(install).toMatchObject({ device: 'atr833', view: 'panel', placement: deviceSlots.com });
     expect(install.inputs).toEqual({});
   });
 
@@ -36,22 +40,28 @@ describe('the SL40 install', () => {
   });
 
   it('has a stand-in with the control ids of the device', () => {
-    const standIn = testDevices.find((device) => device.id === 'sl40');
-    expect(Object.keys(standIn?.controls ?? {})).toEqual([
-      'volume',
-      'coarse',
-      'fine',
+    expect(standInControls('atr833')).toEqual([
+      'power',
+      'set',
+      'mem',
+      'dw',
       'swap',
-      'monitor',
+      'cursor',
+      'volSel',
+      'freq',
     ]);
   });
 });
 
-describe('the GTX 327 install', () => {
+describe('the TRT800H install', () => {
   const install = devices.xpdr;
 
-  it('installs the gtx327 device in the transponder slot of the panel', () => {
-    expect(install).toMatchObject({ device: 'gtx327', view: 'panel', placement: deviceSlots.xpdr });
+  it('installs the trt800h device in the transponder slot of the panel', () => {
+    expect(install).toMatchObject({
+      device: 'trt800h',
+      view: 'panel',
+      placement: deviceSlots.xpdr,
+    });
   });
 
   it.each([
@@ -74,47 +84,39 @@ describe('the GTX 327 install', () => {
   });
 
   it('has a stand-in with the control ids of the device', () => {
-    const standIn = testDevices.find((device) => device.id === 'gtx327');
-    expect(Object.keys(standIn?.controls ?? {})).toEqual([
-      'mode',
-      'key0',
-      'key1',
-      'key2',
-      'key3',
-      'key4',
-      'key5',
-      'key6',
-      'key7',
-      'clr',
-      'crsr',
+    expect(standInControls('trt800h')).toEqual([
+      'power',
       'vfr',
       'ident',
-      'func',
-      'startStop',
+      'mode',
+      'swap',
+      'cursor',
+      'knob',
     ]);
   });
 });
 
-describe('the GPSMAP 496 install', () => {
+describe('the aera 500 install', () => {
   const install = devices.gps;
 
-  it('installs the gpsmap496 device in the GPS slot of the panel', () => {
+  it('installs the aera500 device in the GPS slot of the panel', () => {
     expect(install).toMatchObject({
-      device: 'gpsmap496',
+      device: 'aera500',
       view: 'panel',
       placement: deviceSlots.gps,
     });
-    expect(Object.keys(install.inputs)).toEqual(['groundSpeedKt', 'trackDeg']);
+    expect(Object.keys(install.inputs)).toEqual(['groundSpeedKt', 'trackDeg', 'altitudeFt']);
   });
 
-  it('reads the airspeed as ground speed in knots and the heading as track', () => {
-    const state = stateWith(true, {});
+  it('reads the airspeed as ground speed in knots, the heading as track and the altitude', () => {
+    const state = stateWith(true, {}, 2500);
     const flying = {
       ...state,
       systems: { ...state.systems, airspeedKmh: 108 * KMH_PER_KT, headingDeg: 180 },
     };
     expect(install.inputs.groundSpeedKt(flying)).toBeCloseTo(108);
     expect(install.inputs.trackDeg(flying)).toBe(180);
+    expect(install.inputs.altitudeFt(flying)).toBe(2500);
   });
 
   it.each([
@@ -130,29 +132,65 @@ describe('the GPSMAP 496 install', () => {
     expect(install.powered(stateWith(true, { gpsBreaker: 'in', comBreaker: 'pulled' }))).toBe(true);
   });
 
+  it('has a stand-in with the control ids of the device and every touch icon', () => {
+    expect(standInControls('aera500')).toEqual(['power', 'touch']);
+    const touch = testDevices.find((device) => device.id === 'aera500')?.controls.touch;
+    expect(touch).toMatchObject({ kind: 'rotary', initial: 'rest' });
+    expect(touch?.positions).toEqual(
+      expect.arrayContaining(['rest', 'accept', 'home', 'map', 'zoomIn', 'zoomOut', 'gpsStatus']),
+    );
+  });
+});
+
+describe('the FLARM install', () => {
+  const install = devices.flarm;
+
+  it('installs the flarm device in the FLARM slot of the panel', () => {
+    expect(install).toMatchObject({
+      device: 'flarm',
+      view: 'panel',
+      placement: deviceSlots.flarm,
+    });
+    expect(Object.keys(install.inputs)).toEqual(['supplyVolts']);
+  });
+
+  it.each([
+    [true, true],
+    [false, false],
+  ])('runs on the avionics bus with no breaker of its own: bus %s, powered %s', (bus, expected) => {
+    for (const breaker of ['in', 'pulled']) {
+      const breakers = { comBreaker: breaker, xpdrBreaker: breaker, gpsBreaker: breaker };
+      expect(install.powered(stateWith(bus, breakers))).toBe(expected);
+    }
+  });
+
+  it('feeds the supply voltage from the bus', () => {
+    expect(install.inputs.supplyVolts(stateWith(true, {}, 0, 13.8))).toBe(13.8);
+  });
+
   it('has a stand-in with the control ids of the device', () => {
-    const standIn = testDevices.find((device) => device.id === 'gpsmap496');
-    expect(Object.keys(standIn?.controls ?? {})).toEqual(['power', 'backlight', 'page', 'quit']);
+    expect(standInControls('flarm')).toEqual(['mode']);
   });
 });
 
 describe('the avionics master', () => {
-  it('turns the radio, the transponder and the GPS off together, and on again', () => {
+  it('turns the radio, the transponder, the GPS and the FLARM off together, and on again', () => {
     const session = createSession(ctslAircraft, { devices: testDevices, phase: 'holding' });
     session.advance(100);
     const powered = () => [
       session.state().devices.com?.on,
       session.state().devices.xpdr?.on,
       session.state().devices.gps?.on,
+      session.state().devices.flarm?.on,
     ];
-    expect(powered()).toEqual([true, true, true]);
+    expect(powered()).toEqual([true, true, true, true]);
 
     session.set('avionicsMaster', 'off');
     session.advance(100);
-    expect(powered()).toEqual([false, false, false]);
+    expect(powered()).toEqual([false, false, false, false]);
 
     session.set('avionicsMaster', 'on');
     session.advance(100);
-    expect(powered()).toEqual([true, true, true]);
+    expect(powered()).toEqual([true, true, true, true]);
   });
 });

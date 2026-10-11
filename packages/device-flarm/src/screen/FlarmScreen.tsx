@@ -19,7 +19,7 @@ const screenStyle: CSSProperties = {
 
 const windowStyle: CSSProperties = {
   boxSizing: 'border-box',
-  width: 'calc(var(--space-12) * 8)',
+  width: 'calc(var(--space-12) * 6 + var(--space-8))',
   height: 'calc(var(--space-12) * 4)',
 };
 

@@ -7,5 +7,5 @@ export const atr833ScreenEntry: DeviceScreenEntry = {
   Screen: Atr833Screen,
   Display: Atr833Display,
   readout: atr833Readout,
-  floor: { width: 464, height: 218 },
+  floor: { width: 344, height: 218 },
 };

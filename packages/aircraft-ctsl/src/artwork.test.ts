@@ -7,7 +7,7 @@ import { gaugeArtwork as gauges, images } from './artwork';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
-import { views } from './views';
+import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
 
@@ -592,6 +592,61 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers Push off');
   });
 
+  const rectsFilled = (svg: string, fill: string) =>
+    [
+      ...svg.matchAll(
+        new RegExp(
+          `<rect x="([\\d.]+)" y="([\\d.]+)" width="([\\d.]+)" height="([\\d.]+)"[^>]*fill="url\\(#${fill}\\)"`,
+          'g',
+        ),
+      ),
+    ].map(([, x, y, w, h]) => ({ x: Number(x), y: Number(y), w: Number(w), h: Number(h) }));
+
+  it.each(Object.entries(deviceSlots))(
+    'seats the %s slot in a recess of the panel art, hugging the slot',
+    (_id, { rect }) => {
+      const hugging = rectsFilled(backdrop('panel'), 'rf').filter(
+        (recess) =>
+          recess.x <= rect.x &&
+          recess.y <= rect.y &&
+          recess.x + recess.w >= rect.x + rect.w &&
+          recess.y + recess.h >= rect.y + rect.h &&
+          rect.x - recess.x <= 6 &&
+          rect.y - recess.y <= 6 &&
+          recess.x + recess.w - (rect.x + rect.w) <= 6 &&
+          recess.y + recess.h - (rect.y + rect.h) <= 6,
+      );
+      expect(hugging).toHaveLength(1);
+    },
+  );
+
+  it('draws the GPS cradle as a frame with a rail along the foot of the unit', () => {
+    const { x, y, w, h } = deviceSlots.gps.rect;
+    const metal = rectsFilled(backdrop('panel'), 'ps');
+    const frame = metal.find(
+      (part) => part.x < x && part.y < y && part.x + part.w > x + w && part.y + part.h > y + h,
+    );
+    const rail = metal.find(
+      (part) => part !== frame && Math.abs(part.y - (y + h)) <= 2 && part.w > w && part.h < 20,
+    );
+    expect(frame).toBeDefined();
+    expect(rail).toBeDefined();
+  });
+
+  it('prints no caption under a device slot', () => {
+    const svg = backdrop('panel');
+    for (const { rect } of Object.values(deviceSlots)) {
+      const inside = [...svg.matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)].filter(
+        ([, tx, ty]) =>
+          Number(tx) >= rect.x &&
+          Number(tx) <= rect.x + rect.w &&
+          Number(ty) >= rect.y &&
+          Number(ty) <= rect.y + rect.h,
+      );
+      expect(inside.map(([, , , word]) => word)).toEqual([]);
+    }
+  });
+
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
@@ -601,9 +656,6 @@ describe('CTSL view backdrops', () => {
         'Cabin Heat@979.5,85/38',
         'TAKEOFF@1449,196/37',
         'CHECKLIST@1449,238/37',
-        'GPS@1049.5,306.5/40',
-        'COM RADIO@765.2,589.25/40',
-        'TRANSPONDER@1329.6,589.25/40',
         'Circuit Breakers@2080,608/40',
         'Push off@2080,650/40',
       ],

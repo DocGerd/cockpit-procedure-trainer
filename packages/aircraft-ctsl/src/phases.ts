@@ -72,13 +72,15 @@ const securing = { ...rolling } as const;
 // Intake §4.5: the pin is removed before take-off and back in at shutdown.
 const pinOut = { rescueHandle: 'open' } as const;
 
-// Assumed (unverified): ALT from line-up until after landing, standby once taxied in.
-const transponder = (mode: 'alt' | 'sby') => ({ xpdr: { mode } });
-
-// Assumed (unverified): the German VFR code squawked from line-up, the GPS on with its map page
-// and a position fix.
-const squawking = { xpdr: { squawk: '7000' } };
-const navigating = { ...squawking, gps: { on: true, page: 'map', fix: true } };
+// Assumed (unverified): the German VFR code squawked at ACS from line-up until after landing and
+// at standby once taxied in; the GPS on its map page and the FLARM ready, each with its fix and
+// marked powered, so neither restarts its start-up page or self-test on the first step.
+const runningUp = {
+  gps: { on: true, powered: true, page: 'map', fix: true },
+  flarm: { powered: true, stage: 'ready', fix: true },
+};
+const navigating = { ...runningUp, xpdr: { on: true, mode: 'acs', squawk: '7000' } };
+const securingAvionics = { ...runningUp, xpdr: { on: true, mode: 'stby', squawk: '7000' } };
 
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
 const CLIMB_MS = 600 / FT_PER_MIN_PER_MS;
@@ -122,7 +124,6 @@ export const phases = {
       controls: linedUpOnRunway,
       state: facing('linedUp', runningFrom(linedUpOnRunway)),
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -137,7 +138,6 @@ export const phases = {
         verticalSpeedMs: CLIMB_MS,
       },
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -149,7 +149,6 @@ export const phases = {
       controls: cruising,
       state: facing('cruise', runningFrom(cruising, cruiseEnvironment)),
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -164,7 +163,6 @@ export const phases = {
         verticalSpeedMs: APPROACH_DESCENT_MS,
       },
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -176,7 +174,6 @@ export const phases = {
       controls: flaring,
       state: facing('landing', runningFrom(flaring, landingEnvironment)),
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -188,7 +185,6 @@ export const phases = {
       controls: taxiingIn,
       state: facing('taxiIn', runningFrom(taxiingIn)),
       guards: pinOut,
-      devices: transponder('alt'),
       deviceStates: navigating,
     },
   },
@@ -200,8 +196,7 @@ export const phases = {
       controls: securing,
       state: facing('parkingSecuring', runningFrom(securing)),
       guards: pinOut,
-      devices: transponder('sby'),
-      deviceStates: squawking,
+      deviceStates: securingAvionics,
     },
   },
 } as const satisfies Record<PhaseId, PhaseDefinition<CtslState, Controls>>;

@@ -45,6 +45,14 @@ const fieldsStyle: CSSProperties = {
   gap: 'var(--space-2)',
 };
 
+// The Screen's four fields take two rows, so the dock's narrowest width still holds them.
+const fieldRowsStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, auto)',
+  justifyContent: 'space-between',
+  columnGap: 'var(--space-2)',
+};
+
 const mapStyle: CSSProperties = { position: 'relative', minHeight: 0 };
 
 const rangeStyle: CSSProperties = { position: 'absolute', right: 0, bottom: 0 };
@@ -139,7 +147,7 @@ export function AeraFace({ state, lit, compact }: Props) {
     case 'map':
       return (
         <div data-page="map" style={{ ...body, ...mapBodyStyle }}>
-          <div style={fieldsStyle}>
+          <div style={compact ? fieldsStyle : fieldRowsStyle}>
             <span data-field="speed">{formatSpeed(state.groundSpeedKt)}</span>
             <span data-field="bearing" style={mutedStyle}>{`BRG ${DASHES}`}</span>
             {!compact && (

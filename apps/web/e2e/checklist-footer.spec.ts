@@ -8,7 +8,7 @@ import { openAircraft, selectLanguage } from './legibility';
 import { checklistPane, copy, dockedUnit } from './trainer';
 
 const cases = [
-  { aircraft: ctslAircraft, install: 'gps', device: 'gpsmap496' },
+  { aircraft: ctslAircraft, install: 'gps', device: 'aera500' },
   { aircraft: demoAircraft, install: 'radio', device: 'com' },
 ];
 

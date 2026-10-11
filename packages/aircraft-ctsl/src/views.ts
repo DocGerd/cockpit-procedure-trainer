@@ -11,10 +11,13 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
   ...(printed.length > 0 ? { printed } : {}),
 });
 
+// Each slot is its mirror's natural size, so the mirror lettering stays legible at the panel
+// floor; the positions follow D-MPGO's panel as far as the sizes allow (intake §3.2a).
 export const deviceSlots = {
-  com: at(487, 495, 556.4, 160.5),
-  xpdr: at(1051.4, 495, 556.4, 160.5),
-  gps: at(835.5, 132, 428, 321),
+  flarm: at(500, 150, 320, 160),
+  gps: at(880, 132, 400, 250),
+  com: at(540, 404, 272, 272),
+  xpdr: at(832, 404, 272, 272),
 } as const satisfies Record<string, Placement>;
 
 export const views = {

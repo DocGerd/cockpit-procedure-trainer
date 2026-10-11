@@ -220,7 +220,7 @@ describe('device slot mirrors', () => {
           const printed = slot?.querySelector('[data-mirror-label]')?.textContent;
           const buttons = [...(slot?.querySelectorAll('button') ?? [])];
           const unit = unitNames[language][install.device as keyof (typeof unitNames)['en']];
-          if (!/^(COM|XPDR|GPS)$/.test(printed ?? ''))
+          if (!/^(COM|XPDR|ATC|GPS|FLARM)$/.test(printed ?? ''))
             wrong.push(`${installId}: printed ${String(printed)}`);
           if (buttons.length !== 1) wrong.push(`${installId}: ${buttons.length} buttons`);
           if (!buttons[0]?.getAttribute('aria-label')?.startsWith(`${unit}: `))
