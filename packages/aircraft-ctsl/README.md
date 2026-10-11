@@ -72,7 +72,7 @@ Avionics: `radioAndTransponder` at the holding point.
 
 ## Devices
 
-D-MPGO's own units (intake §3.8), all on the avionics bus and installed in the `panel` view, where each slot mirrors its unit; activating a slot opens the operable unit in the device dock. Each slot is the size of its mirror, larger than the real unit, so that the mirror lettering stays legible (intake §3.2a).
+D-MPGO's own units (intake §3.8), all on the avionics bus and installed in the `panel` view, where each slot mirrors its unit; activating a slot opens the operable unit in the device dock. Each slot keeps its mirror's aspect and is at least its natural size, larger than the real unit, so that the mirror lettering stays legible; the GPS slot is the largest the field allows (intake §3.2a). The units sit on the field's light brushed aluminium with no recess or frame of the panel art: each draws its own whole face.
 
 - `com`: funkwerk ATR833-OLED COM radio (`atr833`), behind the Com breaker; it switches on with avionics power
 - `xpdr`: funkwerk TRT800H-OLED transponder (`trt800h`), behind the Transponder breaker, fed by the altitude encoder
