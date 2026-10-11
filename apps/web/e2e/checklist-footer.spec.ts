@@ -140,6 +140,7 @@ test('the pane header and the whole current card stay in view at every item of t
   const title = pane.getByRole('heading', { level: 1 });
   const bar = pane.getByRole('progressbar', { name: copy.checklist.progress });
   const visited = new Set<number>();
+  await expect(card).toHaveCount(1);
 
   while ((await card.count()) > 0 && visited.size < longest.items.length) {
     const at = Number(await number.innerText());
