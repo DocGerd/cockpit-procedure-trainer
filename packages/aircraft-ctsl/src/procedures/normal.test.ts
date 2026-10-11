@@ -44,7 +44,6 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
     'GPS: position fix (3D GPS Location)',
-    'FLARM: Power, GPS and TX lit',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
@@ -619,6 +618,47 @@ describe('CTSL normal procedures', () => {
       });
     });
 
+    describe('COM radio: on (intake §9 question 35)', () => {
+      const aircraft = only('beforeTakeoff', ['COM radio: on']);
+      const tick = (prepare: (session: Session) => void) =>
+        tickedAt(aircraft, 'beforeTakeoff', prepare);
+
+      it('is a check on the radio, after the I/O press that switches it on, before the transponder', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === 'COM radio: on');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'com.power' } });
+        expect(items[at - 1]).toMatchObject({
+          type: 'action',
+          control: 'com.power',
+          position: 'pressed',
+        });
+        expect(items[at + 1]).toMatchObject({ control: 'xpdr.power' });
+      });
+
+      it('records an unmet check when ticked with the radio dark, although the bus is on', () => {
+        expect(tick(() => {})).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      });
+
+      it('records nothing when ticked after the I/O press', () => {
+        expect(
+          tick((session) => {
+            session.press('com.power');
+            session.release('com.power');
+          }),
+        ).toEqual([]);
+      });
+    });
+
+    it('has no FLARM check before take-off (intake §9 question 34)', () => {
+      const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+      const targets = items.flatMap((item) =>
+        item.type === 'check' && item.target && 'control' in item.target
+          ? [item.target.control]
+          : [],
+      );
+      expect(targets.filter((control) => control.startsWith('flarm.'))).toEqual([]);
+    });
+
     describe('Transponder: STBY after landing (intake §3.8.2)', () => {
       const stby = 'Transponder: STBY';
 
@@ -716,32 +756,6 @@ describe('CTSL normal procedures', () => {
             (deviation) => deviation.kind === 'unmet-check',
           ),
         ).toEqual([]);
-      });
-    });
-
-    describe('FLARM lit (assumed, intake §9 question 34)', () => {
-      const lit = 'FLARM: Power, GPS and TX lit';
-      const aircraft = only('beforeTakeoff', [lit]);
-
-      it('is a check on the FLARM right after the GPS fix check', () => {
-        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
-        const at = items.findIndex((item) => said(item) === lit);
-        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'flarm.mode' } });
-        expect(said(items[at - 1] as Item)).toBe('GPS: position fix (3D GPS Location)');
-      });
-
-      it('records an unmet check when ticked with the avionics master off', () => {
-        const dark = (session: Session) => {
-          session.set('avionicsMaster', 'off');
-          session.advance(100);
-        };
-        expect(tickedAt(aircraft, 'beforeTakeoff', dark)).toContainEqual(
-          expect.objectContaining({ kind: 'unmet-check' }),
-        );
-      });
-
-      it('records nothing when ticked with the FLARM operational', () => {
-        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([]);
       });
     });
 

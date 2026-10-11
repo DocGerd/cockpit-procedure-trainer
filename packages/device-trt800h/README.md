@@ -11,11 +11,12 @@ aircraft installs it by id (`trt800h`).
 funkwerk TRT800H Mode-S Transponder, OLED/LCD, Operation and Installation, document
 03.2126.010.71e, revision 3.00, as paraphrased in `docs/aircraft/ctsl-intake.md` section 3.8.2
 (face, controls, display, power, modes, typical use) and section 2a items 5 to 9. The plan is
-`docs/superpowers/plans/2026-10-10-m18-d-mpgo-avionics.md`, section W2.2. Assumptions
-(intake section 9 question 37 for the set-up):
+`docs/superpowers/plans/2026-10-10-m18-d-mpgo-avionics.md`, section W2.2. The owner
+confirmed the set-up (intake section 9 question 37): a Mode S cradle, no ground switch and the
+VFR code 7000. Assumptions:
 
-- A Mode S cradle with a 24-bit address is fitted and no ground switch, so the modes are STBY, ACS and A-S.
-- The initial codes 2000 and the factory VFR code 7000 are placeholders; the unit starts switched off, in standby.
+- A Mode S cradle with a 24-bit address is fitted and no ground switch, so the modes are STBY, ACS and A-S (owner-confirmed).
+- The VFR code is 7000 (owner-confirmed). The initial code 2000 is a placeholder; the unit starts switched off, in standby.
 - A second VFR press while VFR is shown shows the standby code again and VFR stays active (the intake's second reading).
 - `►` puts the cursor on the first digit of the standby code, moves it on, and removes it after the fourth digit. The swap key moves the cursor back one digit and removes it from the first.
 - A press of `►` while `VFR` shows shows the standby code again, and a VFR release clears the cursor.

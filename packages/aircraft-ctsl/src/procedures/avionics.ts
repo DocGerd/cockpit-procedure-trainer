@@ -21,6 +21,12 @@ export const avionicsProcedures = {
     items: [
       {
         type: 'action',
+        control: 'com.power',
+        position: 'pressed',
+        text: text('Funkgerät ein (I/O)', 'COM radio on (I/O)'),
+      },
+      {
+        type: 'action',
         control: 'com.freq',
         position: 'up',
         text: text(

@@ -58,22 +58,24 @@ async function press(page: Page, device: string, name: string, guided: boolean) 
 }
 
 async function radioSteps(page: Page, guided = false) {
-  await press(page, 'atr833', 'FREQ +', guided);
+  await press(page, 'atr833', 'I/O', guided);
   await expect(done(page, 0)).toBeVisible();
-  await press(page, 'atr833', 'SWAP', guided);
+  await press(page, 'atr833', 'FREQ +', guided);
   await expect(done(page, 1)).toBeVisible();
-  await row(page, 2).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+  await press(page, 'atr833', 'SWAP', guided);
+  await expect(done(page, 2)).toBeVisible();
+  await row(page, 3).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
 }
 
 async function transponderSteps(page: Page, guided = false) {
   await press(page, 'trt800h', 'I/O', guided);
-  await expect(done(page, 3)).toBeVisible();
-  await press(page, 'trt800h', 'VFR', guided);
   await expect(done(page, 4)).toBeVisible();
-  await row(page, 5).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+  await press(page, 'trt800h', 'VFR', guided);
+  await expect(done(page, 5)).toBeVisible();
+  await row(page, 6).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
   await press(page, 'trt800h', 'MODE', guided);
-  await expect(done(page, 6)).toBeVisible();
-  await row(page, 7).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
+  await expect(done(page, 7)).toBeVisible();
+  await row(page, 8).getByRole('button', { name: copy.checklist.checkOff, exact: true }).click();
   await expect(
     page.getByRole('heading', {
       level: 1,

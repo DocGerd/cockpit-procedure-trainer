@@ -10,7 +10,8 @@ touch. Facts come from `docs/aircraft/ctsl-intake.md` section 3.8.3, never from 
 
 Garmin, aera 500 Series Pilot's Guide (models 500, 510, 550, 560), document 190-01117-02,
 revision C, system software 4.10 or later, as paraphrased in intake section 3.8.3 and the
-M18 plan (W2.3). Assumptions, none of them settled by the guide:
+M18 plan (W2.3). The owner confirmed the map orientation and data fields (intake section 9
+question 38). Assumptions, none of them settled by the guide:
 
 - The POWER button prints `POWER` (the guide shows its place and lettering only in a figure).
 - Cradle power arriving switches the unit on at the start-up page; losing it switches the unit
@@ -22,9 +23,9 @@ M18 plan (W2.3). Assumptions, none of them settled by the guide:
   status text reads Searching the Sky for the first third of that time, then Acquiring
   Satellites, then 3D GPS Location (the split is assumed).
 - The map range steps are 0.5, 1, 2, 5, 10, 20 and 50 nm, a subset of the unit's 23 steps.
-- The map is track up (the unit's default is north up; D-MPGO's setting is intake section 9
-  question 38). Its data fields are GS, ETE NEXT, BRG and DIST NEXT; GS is live with a fix and
-  the others stay dashed, because there is no route.
+- The map is track up and its data fields are GS, ETE NEXT, BRG and DIST NEXT (owner-confirmed,
+  question 38; the unit's default is north up). GS is live with a fix and the others stay
+  dashed, because there is no route.
 - The Home grid holds the six icons Map, Nearest, Active FPL, Direct To, Position and Tools
   (the real grid order and size are unknown). Back leads from a page to its parent and Home to
   the Home page.

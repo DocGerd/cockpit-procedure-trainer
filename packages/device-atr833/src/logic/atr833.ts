@@ -306,8 +306,8 @@ export const atr833Device = defineDevice({
     ),
     text('Wiedergabe des letzten Anrufs (REPLAY)', 'REPLAY of the last call'),
     text(
-      'Das Einstellmenü (SET lang gedrückt): Kanalraster (fest 8,33 kHz), Display-Dimmung, Absenkung der Lautstärke bei Doppelhören, PTT-Wahl, Mikrofon-, Kopfhörer- und externe Audio-Einstellungen, AUTO ON (fest ein), Versionen',
-      'The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (fixed on), versions',
+      'Das Einstellmenü (SET lang gedrückt): Kanalraster (fest 8,33 kHz), Display-Dimmung, Absenkung der Lautstärke bei Doppelhören, PTT-Wahl, Mikrofon-, Kopfhörer- und externe Audio-Einstellungen, AUTO ON (aus: das Gerät wird mit I/O eingeschaltet), Versionen',
+      'The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (off: the unit is switched on with I/O), versions',
     ),
     text('Speichernamen und Löschen eines Speichers', 'Memory names and clearing a slot'),
     text('Die Unterspannungswarnung BAT', 'The low-voltage BAT warning'),
@@ -392,8 +392,7 @@ export const atr833Device = defineDevice({
     const engagedNow = (id: ControlId): boolean => engaged(held[id]) && held[id] !== state.held[id];
     const heldMs = heldTimes(state, held, state.on, dtMs);
     let next: Atr833State = { ...state, powered: true, held, heldMs };
-    if (!state.powered) next = { ...next, on: true, cursor: 'mhz' };
-    else if (!state.on && engagedNow('power')) next = { ...next, on: true, cursor: 'mhz' };
+    if (!state.on && engagedNow('power')) next = { ...next, on: true, cursor: 'mhz' };
     if (!next.on) return { ...next, ...transients };
 
     const released = (id: HoldKey): boolean =>

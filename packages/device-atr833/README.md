@@ -10,9 +10,8 @@ the CT Supralight does.
 The only source is the manufacturer's ATR833-II operation and installation manual, document
 01.143.010.71e, revision 1.06 (24 Jan 2024), paraphrased in `docs/aircraft/ctsl-intake.md` section
 3.8.1. A function of the II whose control D-MPGO's face lacks is out. The generation of D-MPGO's unit
-is open (intake section 9, question 36). Assumptions, none checked against a unit:
+is open (intake section 9, question 36). The owner confirmed AUTO ON is off (question 35): power arriving leaves the unit dark and an I/O press switches it on; power lost switches it off. Assumptions, none checked against a unit:
 
-- AUTO ON is set (question 35): power arriving switches the unit on, power lost switches it off.
 - Spacing is fixed at 8.33 kHz. The range is 118.000 to 136.990: the last name of the 136.975 block.
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
 - Dual watch needs a squelch of at least 1, and ends when either frequency changes, a swap included. Switching off also ends it.
@@ -60,7 +59,7 @@ keys; its legends and line labels print in the secondary lettering tier and the 
 
 - Reception, transmission and audio (RX, TX, Te and the stuck-microphone time-out; volumes are numbers only)
 - REPLAY of the last call
-- The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (fixed on), versions
+- The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (off: the unit is switched on with I/O), versions
 - Memory names and clearing a slot
 - The low-voltage BAT warning
 - The start screen

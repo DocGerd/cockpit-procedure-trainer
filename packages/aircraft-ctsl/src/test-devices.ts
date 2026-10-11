@@ -46,15 +46,17 @@ const atr833StandIn = defineDevice({
     freq: knob(text('Frequenz', 'Frequency')),
   },
   initial: { on: false, powered: false, active: 118_000, standby: 119_000, held: {} as Held },
-  // Switches on with the bus (AUTO ON) and steps the standby frequency in whole MHz.
+  // A tap switches it on (no AUTO ON) and the freq knob steps the standby frequency in whole MHz.
   step: (state, { controls, powered }) => {
     const held = heldOf(controls);
     if (!powered) return { ...state, on: false, powered: false, held };
+    const on = state.on || reached(held, state.held, 'power');
+    if (!on) return { ...state, powered: true, held };
     let { active, standby } = state;
     if (reached(held, state.held, 'freq', 'up')) standby += 1000;
     if (reached(held, state.held, 'freq', 'down')) standby -= 1000;
     if (reached(held, state.held, 'swap')) [active, standby] = [standby, active];
-    return { on: true, powered: true, active, standby, held };
+    return { on, powered: true, active, standby, held };
   },
 });
 

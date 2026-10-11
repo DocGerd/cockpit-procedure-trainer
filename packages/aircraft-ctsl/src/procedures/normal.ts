@@ -426,6 +426,20 @@ export const normalProcedures = {
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
       confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
+      // Intake §9 question 35: the radio has no AUTO ON, so the pilot switches it on.
+      {
+        type: 'action',
+        control: 'com.power',
+        position: 'pressed',
+        text: text('Funkgerät ein (I/O)', 'COM radio on (I/O)'),
+      },
+      {
+        type: 'check',
+        target: { control: 'com.power' },
+        condition: (state: State) => field(state, 'com', 'on') === true,
+        text: text('Funkgerät', 'COM radio'),
+        expected: text('ein', 'on'),
+      },
       {
         type: 'action',
         control: 'xpdr.power',
@@ -575,14 +589,6 @@ export const normalProcedures = {
         condition: (state: State) => field(state, 'gps', 'fix') === true,
         text: text('GPS', 'GPS'),
         expected: text('Position gefunden (3D GPS Location)', 'position fix (3D GPS Location)'),
-      },
-      // Assumed (unverified), intake §9 question 34: the FLARM manual's check before departure.
-      {
-        type: 'check',
-        target: { control: 'flarm.mode' },
-        condition: (state: State) => field(state, 'flarm', 'operational') === true,
-        text: text('FLARM', 'FLARM'),
-        expected: text('Power, GPS und TX leuchten', 'Power, GPS and TX lit'),
       },
       {
         type: 'guard',

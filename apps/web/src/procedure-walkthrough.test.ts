@@ -138,7 +138,7 @@ describe('the CTSL device seeds in a full flight', () => {
         );
       }
     });
-    expect([...seeded].sort()).toEqual(['flarm', 'gps', 'xpdr']);
+    expect([...seeded].sort()).toEqual(['com', 'flarm', 'gps', 'xpdr']);
   });
 });
 

@@ -74,8 +74,10 @@ const pinOut = { rescueHandle: 'open' } as const;
 
 // Assumed (unverified): the German VFR code squawked at ACS from line-up until after landing and
 // at standby once taxied in; the GPS on its map page and the FLARM ready, each with its fix and
-// marked powered, so neither restarts its start-up page or self-test on the first step.
+// marked powered, so neither restarts its start-up page or self-test on the first step. The COM
+// is switched on, as the pilot's I/O press would have left it (intake §9 question 35).
 const runningUp = {
+  com: { on: true, powered: true },
   gps: { on: true, powered: true, page: 'map', fix: true },
   flarm: { powered: true, stage: 'ready', fix: true },
 };
