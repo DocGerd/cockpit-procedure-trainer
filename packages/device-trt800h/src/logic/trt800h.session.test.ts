@@ -169,4 +169,50 @@ describe('trt800h in an aircraft', () => {
     session.advance(50);
     expect(xpdr(session.state())).toMatchObject({ on: false, squawk: '7000', standby: '2000' });
   });
+  it('pulls and pushes back the supply: dark, then off until I/O, with the codes kept', () => {
+    const session = createSession(testAircraft, options);
+    session.set('bus', 'on');
+    tap(session, 'xpdr.power');
+    tap(session, 'xpdr.vfr');
+    tap(session, 'xpdr.mode');
+    expect(xpdr(session.state())).toMatchObject({ on: true, mode: 'acs', squawk: '7000' });
+
+    session.set('bus', 'off');
+    session.advance(50);
+    tap(session, 'xpdr.mode');
+    expect(xpdr(session.state())).toMatchObject({ on: false, mode: 'stby', reporting: false });
+
+    session.set('bus', 'on');
+    session.advance(50);
+    expect(xpdr(session.state())).toMatchObject({ on: false, squawk: '7000', standby: '2000' });
+    tap(session, 'xpdr.mode');
+    expect(xpdr(session.state()).on).toBe(false);
+
+    tap(session, 'xpdr.power');
+    expect(xpdr(session.state())).toMatchObject({
+      on: true,
+      mode: 'stby',
+      squawk: '7000',
+      flightLevel: 34,
+    });
+    tap(session, 'xpdr.mode');
+    expect(xpdr(session.state())).toMatchObject({ mode: 'acs', reporting: true });
+  });
+
+  it('survives a pull while the switch-off hold is running', () => {
+    const session = createSession(testAircraft, options);
+    session.set('bus', 'on');
+    tap(session, 'xpdr.power');
+    session.press('xpdr.power');
+    session.advance(POWER_OFF_HOLD_MS - 500);
+    session.set('bus', 'off');
+    session.advance(100);
+    session.set('bus', 'on');
+    session.advance(POWER_OFF_HOLD_MS);
+    session.release('xpdr.power');
+    session.advance(50);
+    expect(xpdr(session.state()).on).toBe(false);
+    tap(session, 'xpdr.power');
+    expect(xpdr(session.state()).on).toBe(true);
+  });
 });

@@ -43,6 +43,15 @@ VFR code 7000. Assumptions:
 
 The unit is powered by the install's `powered` condition. It never switches itself on: power arriving leaves it off until I/O is pressed.
 
+## Power cycle
+
+Intake section 3.8.2, "Power loss and return" and "Power cycle (trainer, #727)"; assumptions in intake section 9 questions 66 and 67.
+
+- Modelled, from the manual: power loss switches the unit off and every start is in standby; the active, standby and VFR codes survive; ident, the cursor, the stored-code flash and a pending hold do not.
+- Assumed (question 66): the installation's Auto-On pin is left open, so power returning leaves the unit dark until I/O is pressed. A wired pin would start the unit by itself and leave I/O without function.
+- Assumed (question 67): the word `VFR` is not shown again after a return, the start screens (name and versions, the code screen) are not shown, and no key is blocked after the I/O press.
+- A key still held when power returns does not count as a press.
+
 ## Display
 
 `trt800hScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot, a
