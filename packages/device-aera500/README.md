@@ -34,13 +34,14 @@ M18 plan (W2.3). Assumptions, none of them settled by the guide:
 
 ## Controls
 
-- `power`: momentary button outside the screen. Dark and powered: any press switches the unit
+- `power`: momentary button on the cradle's top edge, above the screen. Dark and powered: any press switches the unit
   on. On: a short press opens or closes the backlight overlay; held for `POWER_OFF_HOLD_MS` it
   switches the unit off.
 - `touch`: the touchscreen, a rotary that springs back to `rest`; each position is one icon
   (`accept`, `home`, `back`, `map`, `nearest`, `activeFpl`, `directTo`, `position`, `tools`,
   `gpsStatus`, `zoomOut`, `zoomIn`, `dimmer`, `brighter`) and acts only on the page that shows
-  it. The dock renders the keys of the current page, inert while the unit is dark.
+  it. The dock renders the keys of the current page on the screen; while the unit is dark they
+  stay in place, unprinted and inert.
 
 ## Inputs
 
@@ -53,12 +54,17 @@ install's `powered` condition, which the state mirrors in `powered` so a seed ca
 
 ## Display
 
-`aera500ScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot
-(its bezel is lettered GPS, an 8:5 window), a `readout` of what the display shows in German and
-English, and the `floor`: the smallest frame size at which the operable screen keeps full touch
-targets (see `src/entry.ts`). The Display shows the current page without icons; to stay legible
-in the slot it keeps the map's GS and BRG fields and leaves ETE NEXT and DIST NEXT to the dock
-screen.
+`aera500ScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot,
+a `readout` of what the display shows in German and English, and the `floor`: the smallest
+frame size at which the operable screen keeps full touch targets (see `src/entry.ts`). The unit
+draws its own face (`face: 'own'`, intake section 3.8.3, "Face layout (photos)"): the dark
+cradle with its latch rail and the POWER bump on the top edge, the grey body and the 16:9
+touchscreen. `src/face/geometry.ts` holds the layout, and one face component draws both the dock
+and the slot mirror, so the mirror is the same face at panel scale (an 8:5 slot, lettered GPS in
+the body's bottom band). The dock's touch keys sit on the screen where the unit draws them; a
+key's touch target may reach into the bezel or over the drawn Menu key, which stays inert
+because page menus are not modelled. The map is a generic chart drawn for the trainer, with no real
+geography. In the mirror the on-screen lettering is secondary (half the slot minimum).
 
 ## Not modelled
 

@@ -1,3 +1,7 @@
 .cpt-device-aera500 button:focus-visible {
   outline: var(--space-1) solid var(--panel-focus);
 }
+
+.cpt-device-aera500 button:active {
+  background-color: color-mix(in srgb, var(--panel-shadow) 25%, transparent);
+}
