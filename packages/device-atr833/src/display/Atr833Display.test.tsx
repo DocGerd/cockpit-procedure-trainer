@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { atr833Device } from '../logic';
 import type { Atr833State } from '../logic';
+import { Atr833Screen } from '../screen/Atr833Screen';
 import { ATR833_MIRROR, Atr833Display } from './Atr833Display';
 
 afterEach(cleanup);
@@ -62,6 +63,23 @@ describe('Atr833Display', () => {
       '▲▼',
       '►',
     ]);
+  });
+
+  it('places each key legend where the dock prints it', () => {
+    const mirror = [...show().querySelectorAll<HTMLElement>('[data-key-legend]')];
+    const dock = [
+      ...render(
+        <Atr833Screen on state={base} send={vi.fn()} />,
+      ).container.querySelectorAll<HTMLElement>('.pk-face-key'),
+    ];
+    expect(dock.map((key) => key.textContent)).toEqual(mirror.map((legend) => legend.textContent));
+    for (const [index, legend] of mirror.entries()) {
+      const key = dock[index];
+      expect(legend.style.left, legend.textContent ?? '').toBe(key?.style.left);
+      expect(key?.style.top, legend.textContent ?? '').toMatch(
+        new RegExp(`^calc\\(${legend.style.top.replace('.', '\\.')} - `),
+      );
+    }
   });
 
   it('is a square mirror', () => {

@@ -34,6 +34,7 @@ const windowStyle = (diameter: string): CSSProperties => ({
   height: percent(WINDOW.bottom - WINDOW.top),
   borderRadius: `calc(${diameter} * ${WINDOW.radius})`,
   overflow: 'hidden',
+  color: 'var(--panel-oled)',
 });
 
 const printed = (x: number, y: number, turn = 0): CSSProperties => ({
@@ -99,7 +100,7 @@ export function Atr833Face({ diameter, on, state, mode, send }: FaceProps) {
             control={key.control}
             cap={key.cap}
             capSize={CAP_SIZE}
-            legendGap={key.cap.y - key.legendAt.y}
+            legendGap={key.cap.y - key.legendY}
             legendSize={LEGEND_SIZE}
             send={send}
           />
@@ -108,7 +109,7 @@ export function Atr833Face({ diameter, on, state, mode, send }: FaceProps) {
             key={key.control}
             data-key-legend
             data-lettering="secondary"
-            style={printed(key.legendAt.x, key.legendAt.y)}
+            style={printed(key.cap.x, key.legendY)}
           >
             {key.legend}
           </span>

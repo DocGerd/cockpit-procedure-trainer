@@ -19,32 +19,33 @@ export type FaceKeySpec = {
   /** The accessible name where the legend is a glyph. */
   readonly name?: string;
   readonly control: string;
-  readonly legendAt: Point;
+  /** The legend's centre height; both views centre it on the cap's x, as `FaceKey` does. */
+  readonly legendY: number;
   readonly cap: Point;
 };
 
 export const CAP_SIZE = 0.1;
 
 export const TOP_KEYS: readonly FaceKeySpec[] = [
-  { legend: 'I/O', control: 'power', legendAt: { x: 0.315, y: 0.09 }, cap: { x: 0.32, y: 0.165 } },
-  { legend: 'SET', control: 'set', legendAt: { x: 0.486, y: 0.09 }, cap: { x: 0.49, y: 0.16 } },
-  { legend: 'MEM', control: 'mem', legendAt: { x: 0.635, y: 0.085 }, cap: { x: 0.65, y: 0.155 } },
+  { legend: 'I/O', control: 'power', legendY: 0.09, cap: { x: 0.32, y: 0.165 } },
+  { legend: 'SET', control: 'set', legendY: 0.09, cap: { x: 0.49, y: 0.16 } },
+  { legend: 'MEM', control: 'mem', legendY: 0.085, cap: { x: 0.65, y: 0.155 } },
 ];
 
 export const BOTTOM_KEYS: readonly FaceKeySpec[] = [
-  { legend: 'DW', control: 'dw', legendAt: { x: 0.33, y: 0.765 }, cap: { x: 0.32, y: 0.85 } },
+  { legend: 'DW', control: 'dw', legendY: 0.765, cap: { x: 0.32, y: 0.85 } },
   {
     legend: '▲▼',
     name: 'SWAP',
     control: 'swap',
-    legendAt: { x: 0.5, y: 0.765 },
+    legendY: 0.765,
     cap: { x: 0.5, y: 0.85 },
   },
   {
     legend: '►',
     name: 'CURSOR',
     control: 'cursor',
-    legendAt: { x: 0.67, y: 0.76 },
+    legendY: 0.76,
     cap: { x: 0.67, y: 0.85 },
   },
 ];

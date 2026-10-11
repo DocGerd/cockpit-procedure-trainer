@@ -82,6 +82,7 @@ describe('Atr833Screen display', () => {
     const { view } = show({ cursor: 'channel' });
     const window = view.container.querySelector<HTMLElement>('[data-display]');
     expect(window?.classList.contains('pk-glass')).toBe(true);
+    expect(window?.style.color).toBe('var(--panel-oled)');
     const coloured = [...(window?.querySelectorAll<HTMLElement>('*') ?? [])]
       .map((element) => element.style.color)
       .filter((colour) => colour !== '');

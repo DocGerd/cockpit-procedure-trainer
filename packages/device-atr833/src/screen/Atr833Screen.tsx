@@ -36,7 +36,7 @@ const helperColumnStyle: CSSProperties = {
 export function Atr833Screen({ on, state, send }: DeviceScreenProps) {
   const unit = state as Atr833State;
   return (
-    <div className="cpt-device-atr833" style={screenStyle}>
+    <div style={screenStyle}>
       <div style={faceBoxStyle}>
         <Atr833Face mode="dock" diameter={DOCK_DIAMETER} on={on} state={unit} send={send} />
       </div>
