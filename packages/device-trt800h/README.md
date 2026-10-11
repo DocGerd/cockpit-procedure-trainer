@@ -44,12 +44,18 @@ The unit is powered by the install's `powered` condition. It never switches itse
 
 ## Display
 
-`trt800hScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot
-(a round face in a square 1:1 bezel, a plain disc for the knob, lettered ATC), a `readout`
-of what the display shows in German and English, and the `floor`: the smallest frame size at
-which the operable screen keeps full touch targets (see `src/entry.ts`). The display shows
-four lines: the mode and the active code; a spare line; `IDT` and the flight level; `STBY`
-in standby and the standby code, `VFR` or `S`, with the cursor digit underlined.
+`trt800hScreenEntry` pairs the operable screen with a read-only `Display` for a panel slot, a
+`readout` of what the display shows in German and English, and the `floor`: the smallest frame
+size at which the operable screen keeps full touch targets (see `src/entry.ts`). The device draws
+its own face (`face: 'own'`) from one geometry module, `src/face/geometry.ts`, which holds the
+face layout of intake section 3.8.2: the black disc on the panel metal, the six keys with their
+legends above the caps, three screws, the knurled knob at the lower right, `ATC` printed upright
+down the left, and the yellow OLED window. The dock shows that face with a touch target over each
+legend and cap, and `CODE +` and `CODE −` helpers on the panel metal right of the knob; the slot
+mirror shows the same face at panel scale, with the key legends and the flight level as secondary
+lettering. The display shows three lines: the mode and the active code; `IDT` and the flight
+level in small glyphs; `STBY` in standby and the standby code, `VFR` or `S`, with the cursor
+digit underlined.
 
 ## Not modelled
 
