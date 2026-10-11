@@ -1401,17 +1401,18 @@ image is in the repository.
   numerals, units, arc positions and controls are what the face must get right.
 - A maker's logo, name or country-of-manufacture line is **never reproduced**: its
   footprint is listed so that the area stays blank or carries a generic mark.
-- **Mounting, both gauges.** A round case with a narrow matte-black bezel ring (no
-  chrome) sits directly on the light brushed-aluminium plate (§3.7.1), with no
-  square flange or frame. Four black cross-head screws sit at the corners of a
-  square centred on the gauge, their centres about 0.385 D from the gauge centre
-  in x and in y, their heads about 0.10 D across.
+- **Mounting, airspeed indicator and altimeter.** A round case with a narrow
+  matte-black bezel ring (no chrome) sits directly on the light brushed-aluminium
+  plate (§3.7.1), with no square flange or frame. Four black cross-head screws sit
+  at the corners of a square centred on the gauge, their centres about 0.385 D from
+  the gauge centre in x and in y, their heads about 0.10 D across.
 - **Notation in the later blocks.** From §3.10.3 on, **A** is this D (the ASI's case
   diameter), **E** is the case diameter of the CHT, oil temperature, voltmeter and oil
   pressure gauges, and **T** is the tachometer's. §3.10.3 to §3.10.5 give positions as
   (x, y) from the dial centre in units of R, x to the right and y down (box fraction =
   0.5 + 0.5 × value). Where two blocks size the same gauge a little differently
-  (within tolerance), the table in §3.10.11 is the one to use.
+  (within tolerance), the table in §3.10.11 is the one to use; for screw and print
+  positions inside a gauge's own box, that gauge's block is.
 - **Perspective.** The panel photos lean each gauge by a keystone shear of about 6 to
   8° (tops lean outward: left on the upper-left field, right on the upper-right field)
   and shorten it vertically by 4 to 16 %. Both were removed before measuring: the
@@ -1576,9 +1577,9 @@ setting knob at its lower left. The maker is not legible and the face shows no l
 
 - **Low-altitude sector.** A fan-shaped opening below the hub: an annular sector from
   θ about 150° to about 206°, r 0.23 to 0.48 R (box x 0.40 to 0.62, y 0.60 to 0.74),
-  centred just left of the 5. It shows about five white stripes on black, slanting
-  down to the right at about 40°; stripes and gaps are each about 0.025 D wide. The
-  photos (at about 320 ft) show it fully striped.
+  on the 5's radial, between the hub and the numeral. It shows about five white
+  stripes on black, slanting down to the right at about 40°; stripes and gaps are
+  each about 0.025 D wide. The photos (at about 320 ft) show it fully striped.
 - **Pointers.** Three, all off-white; the hub is black on black, with no visible cap.
 
 | Pointer                  | Shape and size                                                                                                                                                     | Turns               |
@@ -1616,7 +1617,7 @@ question #719 raised). Stacking: the hairline appears to pass under the broad bl
 
 #### 3.10.3 Vertical speed indicator
 
-**Face layout (photos).** Unit box, frame and angles as in the shared notes: (x, y)
+**Face layout (photos).** Unit box, frame and angles as in §3.10.0 (notation): (x, y)
 in units of R from the dial centre, x right, y down; 0° at 12 o'clock, clockwise
 positive. Measured in three frontal photos with perspective removed. Angles ±5°,
 positions ±0.03 R, sizes ±15 % unless marked **low confidence**.
@@ -1694,8 +1695,8 @@ real instrument); the trainer rests it on 0.
 in four photos with perspective removed. Positions ±0.03 R, sizes ±15 % unless
 marked **low confidence**.
 
-- **Size.** Case diameter **0.67 A** (0.67 to 0.68 in three photos): slightly
-  larger than the VSI.
+- **Size.** Measured here at **0.67 A** (0.67 to 0.68 in three photos); §3.10.11
+  adjudicates 0.64 A, the VSI's size, and governs.
 - **Case and mount.** A plain round matte black face with a thin rim (about 0.05 R,
   barely distinct). Four black dome-headed cross-head screws on a square at
   (±0.83, ±0.84), head diameter ≈ 0.26 R.
@@ -1898,7 +1899,8 @@ still warm. Illustrative only.
 _Stop and rest position_: not visible in photos (the needle shows a live reading
 above 40); §9 question 57.
 
-**§4.3.** The CHT row now follows the dial: green 90–110, yellow-amber 110–120, the red line at 120, nothing below 90.
+**§4.3.** The CHT row now follows the dial: green 90–110, yellow-amber 110–120, the
+red line at 120, nothing below 90.
 
 #### 3.10.7 Oil temperature
 
@@ -1939,7 +1941,9 @@ _Reading in the photos_: about 47 °C (needle at about −110°). Illustrative o
 
 _Stop and rest position_: not visible in photos; §9 question 57.
 
-**§4.3.** The oil temperature row drops the low yellow arc 50–90, which is not on the dial. Green 90–110, yellow 110–130 and the red line 130 match within the photo precision (the dial's yellow ends about 127 at a short red segment ending at 130).
+**§4.3.** The oil temperature row drops the low yellow arc 50–90, which is not on the
+dial. Green 90–110, yellow 110–130 and the red line 130 match within the photo
+precision (the dial's yellow ends about 127 at a short red segment ending at 130).
 
 #### 3.10.8 Voltmeter
 
@@ -2063,7 +2067,10 @@ not below it.
 _Stop and rest position_: with power on, on the 0 mark (above). With the master off:
 not visible in photos (§9 question 57).
 
-**§4.3.** The oil pressure row now follows the dial: a pale arc 1–2, nothing from 2 to 5, a pale arc 5–6, a wider tan-orange arc 6–7 and the red radial at **7**, with no red mark at 5. The dial agrees with §4.2 (normal 2–5 bar, minimum 0.8, up to 7 bar briefly when cold); only the old red line at 5 conflicted with it.
+**§4.3.** The oil pressure row now follows the dial: a pale arc 1–2, nothing from 2
+to 5, a pale arc 5–6, a wider tan-orange arc 6–7 and the red radial at **7**, with
+no red mark at 5. The dial agrees with §4.2 (normal 2–5 bar, minimum 0.8, up to 7
+bar briefly when cold); only the old red line at 5 conflicted with it.
 
 #### 3.10.10 Hour meter
 
@@ -2124,15 +2131,18 @@ owner's photos (§3.7), four panel views.
   engine gauges), so they look much larger beside the small gauges. On every round
   instrument each head just clears the ring.
 
-| Instrument                          | Screws                                                                                                                                                               | Screw centres (own box)                                | Head Ø (own diameter) |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------- |
-| ASI                                 | 4                                                                                                                                                                    | (0.10, 0.10), (0.90, 0.10), (0.10, 0.90), (0.90, 0.90) | 0.10                  |
-| Altimeter                           | 3: upper left, upper right, lower right; the knob boss takes the lower-left corner (§3.10.2)                                                                         | about 0.11 / 0.89                                      | 0.10                  |
-| VSI                                 | 3: upper left, upper right, lower right; at the lower left a small dark tab about 0.12 of its diameter long, pointing down-left, centre about (0.08, 0.93) (§3.10.3) | 0.10 / 0.90                                            | 0.14                  |
-| Slip indicator                      | 4                                                                                                                                                                    | 0.085 / 0.915                                          | 0.13                  |
-| Tachometer                          | 4                                                                                                                                                                    | 0.09 / 0.91                                            | 0.13                  |
-| CHT, voltmeter, oil temp, oil press | 4 each                                                                                                                                                               | 0.065 / 0.935                                          | 0.19                  |
-| Hour meter                          | 2, one beyond each short end at mid-height, centres about 0.06 of the body width outside it                                                                          | (−0.06, 0.50), (1.06, 0.50) of the body                | 0.19 of body width    |
+| Instrument                          | Screws                                                                                                                                                               | Screw centres (own box)                 | Head Ø (own diameter) |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | --------------------- |
+| ASI                                 | 4                                                                                                                                                                    | 0.115 / 0.885 (§3.10.0)                 | 0.10                  |
+| Altimeter                           | 3: upper left, upper right, lower right; the knob boss takes the lower-left corner (§3.10.2)                                                                         | 0.115 / 0.885 (§3.10.0)                 | 0.10                  |
+| VSI                                 | 3: upper left, upper right, lower right; at the lower left a small dark tab about 0.12 of its diameter long, pointing down-left, centre about (0.08, 0.93) (§3.10.3) | 0.08 / 0.92                             | 0.13                  |
+| Slip indicator                      | 4                                                                                                                                                                    | 0.085 / 0.915                           | 0.13                  |
+| Tachometer                          | 4                                                                                                                                                                    | 0.08 / 0.92                             | 0.12                  |
+| CHT, voltmeter, oil temp, oil press | 4 each                                                                                                                                                               | 0.065 / 0.935                           | 0.19                  |
+| Hour meter                          | 2, one beyond each short end at mid-height, centres about 0.06 of the body width outside it                                                                          | (−0.06, 0.50), (1.06, 0.50) of the body | 0.19 of body width    |
+
+The hour meter's frame here is its body (0.49 A wide); §3.10.10 measures the black
+face (W ≈ 0.45 A) and so gives the same screws at −0.11 and 1.11 of W.
 
 - **Relative sizes.**
 
@@ -2154,13 +2164,17 @@ viewpoint does not shrink the upper-right field. The right field plate also meas
 about 0.95 of the left's height in every view, the centred one included: a real
 difference between the plates (for §3.9), not perspective (low confidence), so it
 gives no grounds to scale the right field up. A per-plate rectification of another
-view (§3.9, #716) gives tach 0.71 A. #721's audit figures (VSI and slip 0.67, tach 0.72, engine gauges
-0.48) are superseded where they differ, notably for the engine gauges (§9 question 60).
+view (§3.9, #716) gives tach 0.71 A; §3.9.2 gives its own ratios for the other gauges
+too. Where they differ, this table governs the face sizes and §3.9.2 the placement,
+until §9 question 60 settles the diameters. #721's audit figures (VSI and slip 0.67,
+tach 0.72, engine gauges 0.48) are superseded where they differ, notably for the
+engine gauges (§9 question 60).
 A scale against the centre field's 57 mm discs (§3.8) is not reliable: the ASI
 measures 1.75 to 1.95 D between photos.
 
-Trainer today (`views.ts` panel indicators, as fractions of its airspeed size): altimeter
-0.89, VSI 0.89, tach 0.95, engine gauges 0.68. The photos give 0.96, 0.64, 0.72 and 0.38.
+The trainer before M19 (`views.ts` panel indicators, as fractions of its airspeed
+size) drew the altimeter 0.89, the VSI 0.89, the tach 0.95 and the engine gauges
+0.68. The photos give 0.96, 0.64, 0.72 and 0.38.
 
 - **Grouping.**
   - Upper-left field, a 2×2: ASI top left, altimeter top right, slip indicator under
@@ -2260,15 +2274,16 @@ propeller control in the cockpit (§9).
 | Vertical speed     | ±2000 ft/min                             | none                                                                                     |
 | Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none (§3.10.2)                                                                           |
 
-The handbook gives only the airspeed arcs and the red lines; the other arcs are
-derived from the limits table above, not copied markings.
+The handbook gives only the airspeed arcs and the red lines. The tachometer, oil
+pressure, oil temperature and CHT rows follow the dials in the owner's photos
+(§3.10.5 to §3.10.9), not copied markings.
 
 **Trainer uses (2026-10-10, §2a decision 3):** the airspeed dial of the photos,
 40 to 340 km/h with numbers every 20; the yellow arc from 245 to the red line at
 300 km/h; VNE 300 km/h (162 kt). The green arc's upper end (245) matches the
-photo; the white arc and the green arc's lower end are not legible in the photos,
-so 72–115 and 94 stay. The vertical speed indicator reads thousands of feet per
-minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
+photo; the white arc 72–115 and the green arc's lower end at 94 are confirmed by
+the clearest photo (§3.10.1). The vertical speed indicator reads thousands of feet
+per minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
 ticks every 500. Systems may keep metres per second internally; the gauge shows
 ft/min (1 m/s ≈ 197 ft/min).
 
@@ -3052,7 +3067,9 @@ verifies it on D-MPGO.
     9 o'clock (−90°) and both halves meet at a single 2 at 3 o'clock; the
     tachometer's 0 sits at about −142° under the resting pointer, sweeping clockwise
     to 70 at about +145°, with the low red and yellow arcs recorded in §3.10.5 (any
-    doubt on their values is §9 question 55); the slip indicator and the hour meter have no
-    scale start. The airspeed indicator and the other gauges are added by their own
+    doubt on their values is §9 question 55); the slip indicator and the hour meter
+    have no scale start. The airspeed indicator, the altimeter and the four engine
+    gauges record theirs in their own blocks (§3.10.1, §3.10.2 and §3.10.6 to
+    §3.10.9). Numbers 61 and 62 are not used.
 
 <!-- prettier-ignore-end -->
