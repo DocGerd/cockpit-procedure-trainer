@@ -868,7 +868,8 @@ after 10 s without input.
 screen with the type and software version and returns to the frequencies and
 settings it had at switch-off. About 3 s switches it off. The installer setting
 AUTO ON makes the unit start as soon as supply arrives; with it off the pilot must
-press `I/O` (manual §3.9; D-MPGO's setting is §9 question 35).
+press `I/O` (manual §3.9). On D-MPGO AUTO ON is off, so the pilot presses `I/O` (owner, §9
+question 35).
 
 **Frequency entry and swap.** Tuning is two steps: set the standby frequency, then
 swap. With 8.33 kHz spacing the standby frequency has three fields: the MHz part,
@@ -901,10 +902,9 @@ these steps are assembled from its functions.
 
 **Uncertain.**
 
-- AUTO ON on D-MPGO: **assumed (unverified)** on (§9 question 35).
 - Whether the original ATR833-OLED has the II's REPLAY, last-10 list, named
-  memories, split sidetone items or other II features; whether anything is printed
-  at the lower-right knob (§9 question 36).
+  memories, split sidetone items or other II features (§9 question 36; the owner says
+  the unit is the original OLED, so trimming the II-only features is a separate issue).
 - The manual contradicts itself on several small points: the MEM hold time; whether
   a save stores the active or the standby frequency (the key table, §2.1, and the
   worked example say standby, the display table, §2.3, says active); whether REPLAY needs a hold or a press; the volume range
@@ -919,12 +919,13 @@ powered, a hold switches off), active and standby frequencies of 8.33 kHz names
 with the three-field cursor (fixed spacing; fields wrap without carry, **assumed
 (unverified)**), swap, dual watch, the MEM list (20 unnamed slots) and the LST list,
 saving the standby frequency to a slot, the SET items VOL to BRT as numbers, and
-the menu time-out. Power arriving switches the unit on (AUTO ON assumed, §9 question
-35); frequencies, settings and memories survive power loss. It leaves out reception,
+the menu time-out. AUTO ON is off (owner, §9 question 35): power arriving leaves the unit
+dark until an `I/O` press switches it on; frequencies, settings and memories survive
+power loss. It leaves out reception,
 transmission and audio (so no `RX`, `TX`, `Te`), REPLAY, the setup menu, memory names
 and clearing, the `BAT` warning, the start screen, factory reset and every external
-interface. The lower-right knob prints `FREQ`, which is the manual's name and not
-visible lettering (§9 question 36).
+interface. Nothing is printed at the lower-right knob (owner, §9 question 36); `FREQ` is
+the manual's name for it and appears only on the dock's touch helpers.
 
 #### 3.8.2 Transponder: funkwerk TRT800H-OLED
 
@@ -1070,9 +1071,6 @@ functions. The manual does not mention emergency squawks.
 
 **Uncertain.**
 
-- The set-up of D-MPGO's unit: whether a Mode S cradle with a 24-bit address is
-  fitted, whether a ground switch is, and the stored VFR code (§9 question 37). The
-  trainer's choice below is **assumed (unverified)**.
 - A second `VFR` press while VFR is active: one passage says activate or deactivate,
   another says it shows the standby code and VFR stays active. The trainer follows the
   second reading.
@@ -1083,9 +1081,9 @@ functions. The manual does not mention emergency squawks.
 a hold switches off), the mode cycle STBY, ACS and A-S, active and standby codes with
 the cursor and the knob (digits 0 to 7), swap and cursor-back, the VFR key with its
 store hold, ident for 18 s in an active mode, and the flight level taken from the
-pressure altitude (`FLerr` outside the valid range). A Mode S cradle is assumed
-fitted, with no ground switch (§9 question 37); initial codes 2000 and VFR 7000 are
-placeholders and the factory VFR value. It leaves out interrogations, replies and the
+pressure altitude (`FLerr` outside the valid range). A Mode S cradle is
+fitted, with no ground switch, and the stored VFR code is 7000 (owner, §9 question 37);
+the initial code 2000 is a placeholder. It leaves out interrogations, replies and the
 lock-out and reply indicators, squitter and ADS-B, Flight-ID and setup menus,
 operation without the cradle address, brightness, error codes and the `BAT` warning,
 test mode, the ground-switch state, the start screen and the remote head. The knob
@@ -1219,12 +1217,14 @@ The guide has no checklist; these steps are inferred from its functions.
 **Uncertain.**
 
 - What cradle power loss does: switch the unit off or keep it on battery (§9 question
-  38). The guide covers only power-on on external power and Charge Mode.
+  38, still unknown). The guide covers only power-on on external power and Charge Mode.
 - The exact Home grid order and size, the layout of the POWER overlay, and any lettering
   on the POWER button (the trainer prints `POWER`, **assumed (unverified)**).
-- D-MPGO's map orientation, data fields and software version; whether it has a traffic or
-  weather source (§9 question 38).
-- The club's start-up step for it (§9 question 38).
+- D-MPGO's software version (§9 question 38).
+
+Owner-confirmed (§9 question 38): the map is track up with the fields GS, ETE NEXT, BRG and
+DIST NEXT, there is no traffic or weather source, and the start-up step is accepting the
+databases and opening the map.
 
 **Trainer (M18).** The `aera500` device models: cradle power switching it on at the
 database-acceptance page, accepting (Home opens), a Map page (schematic, Track Up, range
@@ -1373,8 +1373,8 @@ Only the single most dangerous threat is shown. Faults flash all four status LED
 
 **Typical use.** Before engine start: the FLARM supply is on (switch or breaker, §9
 question 33); the beep, version display and self-test follow; choose volume and mode.
-Before take-off: `Power`, `GPS` and `TX` steady (§9 question 34); an optional receive
-test on the ground. In flight: mode by a 2 s push, volume by brief pushes, double push to
+Before take-off: `Power`, `GPS` and `TX` steady (the manual's check; the club does not do it,
+§9 question 34); an optional receive test on the ground. In flight: mode by a 2 s push, volume by brief pushes, double push to
 suppress. After landing: wait at least a minute before removing power or the end of the
 flight log is lost; power goes with the aircraft's FLARM supply, since the display has no
 switch. The system is for day VFR only and not for navigation. These steps are assembled
@@ -2810,10 +2810,11 @@ the transponder is on and squawks 7000 (German VFR, SERA) from `linedUp` through
 `parkingSecuring`, at ACS until `taxiIn` and at STBY in `parkingSecuring`; the GPS is on
 at its map page and the FLARM display ready, each with its position fix, from `linedUp`
 through `parkingSecuring`, so neither restarts its start-up page or self-test when the
-parking-and-securing leg begins. All assumed (unverified). The COM radio has no seed: it
-switches on with avionics power (§9 question 35). Before `linedUp` every unit starts as
-power finds it: at the holding point the GPS is at its database page and the FLARM runs
-its self-test and searches. The map page shows ground speed and track (taken from the
+parking-and-securing leg begins. All assumed (unverified). The COM radio is seeded switched on
+(and powered) in every phase after engine start, from `taxiOut` through `parkingSecuring`, as the
+pilot's `I/O` press in N3 leaves it (owner, §9 question 35); in `parking` it is dark. Before
+`linedUp` the GPS and the FLARM start as power finds them: at the holding point the GPS is at its
+database page and the FLARM runs its self-test and searches. The map page shows ground speed and track (taken from the
 airspeed and heading) at once in the seeded phases; powered up at the holding point the
 units search first. The fix and the ground speed and track it shows are assumed
 (unverified).
@@ -2849,8 +2850,9 @@ extinguisher, ELT remote switch. Folded into N6.
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
-after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; intercom on
-(trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
+after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; COM radio on
+_(action: press the ATR833's I/O, then a check that it is on; AUTO ON is off, §9 question 35)_;
+intercom on (trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
 Before the first start of the day turn the prop by hand; if the aircraft rolls
 during start, ignition off.
 
@@ -2865,13 +2867,13 @@ assumed: N3 leaves the brake set and `taxiOut` has it released).
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
 belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
 transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
-and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
-questions 32 and 38; a pilot who accepted earlier ticks the acceptance, #692); choke
+and at STBY)_; GPS: databases accepted, then its map page (the start-up step is owner-confirmed,
+§9 question 38; only its place in N6 is assumed, §9 question 32; a pilot who accepted earlier
+ticks the acceptance, #692); choke
 off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
-neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; FLARM
-Power, GPS and TX lit _(check, assumed, §9 question 34)_; rescue
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
@@ -3374,16 +3376,28 @@ verifies it on D-MPGO.
     legend is added. **Assumed (unverified)** (§3.6, §3.8.4).
     **Trainer (M18, #678):** the `flarm` install is powered by the avionics bus alone and reads its
     voltage; the Com, Transponder and GPS breaker legends stay as they are.
+    **Owner (2026-10-11, #717):** not answered; the supply stays **assumed (unverified)**.
 34. **FLARM check before take-off**: does the club check that Power, GPS and TX are
     steady before take-off, as the FLARM manual asks? Trainer uses: one check in N6.
     **Assumed (unverified)**, from the manual (§3.8.4).
     **Trainer (M18, #678):** the check "FLARM: Power, GPS and TX lit" follows the GPS fix check in N6
     and rings the Mode key; it passes once the self-test is over and the fix found.
+    **Owner (2026-10-11, #717):** the club does not check the FLARM before take-off. **Answered.**
+    **Trainer (#717):** the check is removed from N6; no procedure checks the FLARM.
 35. **ATR833 AUTO ON**: is the installer setting on, so the radio starts when avionics
     power arrives, or must the pilot press `I/O`? Trainer uses: on, so no COM switch-on
     step exists, as before. **Assumed (unverified)** (§3.8.1).
     **Trainer (M18, #678):** the `atr833` switches on when the avionics bus and the Com breaker give it
     power; no phase seeds it.
+    **Owner (2026-10-11, #717):** AUTO ON is off; the pilot presses `I/O` to switch the radio on.
+    **Answered.**
+    **Trainer (#717):** the handbook checklists name no COM step (question 32). The Avionics Master
+    comes on in N3 after the engine runs and a pilot needs the radio for the taxi call, so N3 presses
+    `I/O` right after the Avionics Master, not at the holding point; N6 keeps its "radio set"
+    confirm and `radioAndTransponder` starts with the radio already on. Every phase after engine
+    start seeds the COM on. The `atr833` no longer switches on when power arrives; an `I/O` press
+    does. Where the club presses `I/O` is not answered: the step's place in N3 is the trainer's
+    choice, **assumed (unverified)**.
 36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
     ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
     II features the original may lack are unconfirmed: the last-10 list (LST), named
@@ -3393,6 +3407,10 @@ verifies it on D-MPGO.
     (unverified)** (§3.8.1).
     **Trainer (M18, #678):** the dock prints `FREQ −` and `FREQ +`; the slot mirror draws both knobs as
     plain discs, with no lettering.
+    **Owner (2026-10-11, #717):** the unit is the original ATR833-OLED, not the II; nothing is
+    printed at the lower-right knob. **Answered.** The slot mirror stays plain; `FREQ −` and
+    `FREQ +` stay only as the dock touch helpers' wording. Trimming the II-only features is a
+    separate issue.
 37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
     ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
@@ -3400,6 +3418,8 @@ verifies it on D-MPGO.
     **Trainer (M18, #678):** `radioAndTransponder` presses I/O (on, STBY), VFR (7000) and MODE (ACS),
     N6 presses I/O and N15 presses MODE twice (STBY, #692); the seeded phases start the unit
     on at ACS or STBY.
+    **Owner (2026-10-11, #717):** Mode S cradle (STBY, ACS, A-S), no ground switch, VFR code 7000.
+    **Owner-confirmed**, no longer assumed. The trainer already does this.
 38. **aera 500 on D-MPGO**: what happens when cradle power drops (off, or on battery)?
     Which map orientation and data fields does the club use, and what is the start-up
     step? Which software version, and is there a traffic or weather source? Trainer uses:
@@ -3410,6 +3430,10 @@ verifies it on D-MPGO.
     **Trainer (M18, #678):** the aera starts at its database page whenever the GPS breaker and the
     avionics bus give the cradle power; the seeded phases start it on the map page with
     its fix.
+    **Owner (2026-10-11, #717):** the map is track up with the fields GS, ETE NEXT, BRG and
+    DIST NEXT, there is no traffic or weather source, and the start-up step is accepting the
+    databases and opening the map. **Owner-confirmed**, no longer assumed. Still unknown: the
+    behaviour on cradle power loss and the software version. The trainer already does this.
 39. **FLARM display hardware, pairing and traffic**: is the display hardware 1.0 or 2.0
     (the 16 LEDs imply 2.0), which FLARM unit is it paired with (the reboot hold depends
     on it), and does the club want simulated traffic on the display? Traffic would
@@ -3418,6 +3442,9 @@ verifies it on D-MPGO.
     (§3.8.4).
     **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
     lights only in the self-test and the Nearest and Collision confirmation.
+    **Owner (2026-10-11, #717):** no simulated FLARM traffic, ever; the owner declined it as a scope
+    change. **Answered.** Still unknown and **assumed (unverified)**: the display hardware version
+    and the FLARM unit it is paired with; also the colour of the lit status LEDs.
 
 40. **Panel colour** (#716): the photos show all three upper plates and the lower
     column in the same light brushed aluminium, with only the moulding around them

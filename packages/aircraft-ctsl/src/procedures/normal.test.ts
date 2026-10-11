@@ -44,7 +44,6 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
     'GPS: position fix (3D GPS Location)',
-    'FLARM: Power, GPS and TX lit',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
@@ -619,6 +618,72 @@ describe('CTSL normal procedures', () => {
       });
     });
 
+    describe('COM radio: on (intake §9 question 35)', () => {
+      const aircraft = only('engineStart', ['COM radio: on']);
+      const tick = (phase: string) => {
+        const session = createSession(aircraft, { devices, phase });
+        session.startProcedure('engineStart');
+        session.checkOff();
+        return session.checklist()?.deviations ?? [];
+      };
+
+      it('is a check on the radio, after the I/O press that switches it on, right after the Avionics Master', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === 'COM radio: on');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'com.power' } });
+        expect(items[at - 1]).toMatchObject({
+          type: 'action',
+          control: 'com.power',
+          position: 'pressed',
+        });
+        expect(items[at - 2]).toMatchObject({ control: 'avionicsMaster', position: 'on' });
+        expect(items[at + 1]).toMatchObject({ control: 'intercom', position: 'on' });
+      });
+
+      it('is unmet with the Avionics Master on and no I/O press, and met once I/O is pressed', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
+        const press = items.findIndex(
+          (item) => item.type === 'action' && item.control === 'com.power',
+        );
+        expect(press).toBeGreaterThan(0);
+        expect(failsAt(without('engineStart', press), 'engineStart', press)).toBe(true);
+        expect(failsAt(ctslAircraft, 'engineStart', press + 1)).toBe(false);
+      });
+
+      it('is not repeated in the run-up, which only confirms the radio set', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        expect(items.some((item) => 'control' in item && item.control === 'com.power')).toBe(false);
+      });
+
+      it('records an unmet check when ticked with the radio dark, as at engine start', () => {
+        expect(tick('parking')).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      });
+
+      it('passes when the walk presses I/O after the Avionics Master', () => {
+        let on: unknown;
+        const result = walkProcedure(ctslAircraft, 'engineStart', {
+          devices,
+          afterChecklist: (session) => {
+            on = (session.state().devices.com?.state as { on?: boolean } | undefined)?.on;
+          },
+        });
+        expect(result).toEqual({ ok: true });
+        expect(on).toBe(true);
+      });
+    });
+
+    it('has no FLARM check before take-off (intake §9 question 34)', () => {
+      const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+      const controls = items.flatMap((item) => [
+        ...('control' in item ? [item.control] : []),
+        ...(item.type === 'check' && item.target && 'control' in item.target
+          ? [item.target.control]
+          : []),
+      ]);
+      expect(controls.length).toBeGreaterThan(0);
+      expect(controls.filter((control) => control.startsWith('flarm.'))).toEqual([]);
+    });
+
     describe('Transponder: STBY after landing (intake §3.8.2)', () => {
       const stby = 'Transponder: STBY';
 
@@ -716,32 +781,6 @@ describe('CTSL normal procedures', () => {
             (deviation) => deviation.kind === 'unmet-check',
           ),
         ).toEqual([]);
-      });
-    });
-
-    describe('FLARM lit (assumed, intake §9 question 34)', () => {
-      const lit = 'FLARM: Power, GPS and TX lit';
-      const aircraft = only('beforeTakeoff', [lit]);
-
-      it('is a check on the FLARM right after the GPS fix check', () => {
-        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
-        const at = items.findIndex((item) => said(item) === lit);
-        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'flarm.mode' } });
-        expect(said(items[at - 1] as Item)).toBe('GPS: position fix (3D GPS Location)');
-      });
-
-      it('records an unmet check when ticked with the avionics master off', () => {
-        const dark = (session: Session) => {
-          session.set('avionicsMaster', 'off');
-          session.advance(100);
-        };
-        expect(tickedAt(aircraft, 'beforeTakeoff', dark)).toContainEqual(
-          expect.objectContaining({ kind: 'unmet-check' }),
-        );
-      });
-
-      it('records nothing when ticked with the FLARM operational', () => {
-        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([]);
       });
     });
 

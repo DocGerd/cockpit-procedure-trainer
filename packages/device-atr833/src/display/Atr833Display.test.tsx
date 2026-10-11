@@ -88,6 +88,10 @@ describe('Atr833Display', () => {
     expect(bezel?.style.aspectRatio).toBe('1 / 1');
   });
 
+  it('prints nothing at the lower-right frequency knob (intake section 9 question 36)', () => {
+    expect(show().textContent).not.toContain('FREQ');
+  });
+
   it('offers nothing to operate and renders no style or script element', () => {
     const container = show();
     expect(container.querySelectorAll('button, input, [tabindex]')).toHaveLength(0);

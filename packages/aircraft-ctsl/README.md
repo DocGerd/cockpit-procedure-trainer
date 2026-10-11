@@ -57,7 +57,7 @@ Emergency:
 
 `generatorFailure` is **club-authored**: the handbook has no such procedure. It awaits the instructor's confirmation.
 
-Avionics: `radioAndTransponder` at the holding point.
+Avionics: `radioAndTransponder` at the holding point (the COM radio is switched on in `engineStart`).
 
 ## Not trained
 
@@ -67,14 +67,14 @@ Avionics: `radioAndTransponder` at the holding point.
 ## Open questions
 
 - The phase start states the intake marks as assumed (intake §5): intercom, transponder mode, landing light and vertical speed per phase.
-- The avionics state is seeded per phase (`src/phases.ts`, intake §5): from lined up through taxi in the transponder is on at ACS squawking 7000, at standby once parked; from lined up through parking and securing the GPS is on its map page with a fix and the FLARM ready with its fix. Before that every unit starts as power finds it (#476, #501).
-- The avionics assumptions of intake §9 questions 32 to 39: the GPS start-up step, the FLARM supply and pre-departure check, the radio's AUTO ON, the units' generation and set-up.
+- The avionics state is seeded per phase (`src/phases.ts`, intake §5): from lined up through taxi in the transponder is on at ACS squawking 7000, at standby once parked; from lined up through parking and securing the GPS is on its map page with a fix and the FLARM ready with its fix; from taxi out through parking and securing the COM radio is on (switched on in `engineStart`, intake §9 question 35). Before that the GPS and the FLARM start as power finds them (#476, #501).
+- The avionics assumptions of intake §9 questions 32 to 39: the GPS start-up step's place, the FLARM supply, the units' generation and set-up.
 
 ## Devices
 
 D-MPGO's own units (intake §3.8), all on the avionics bus and installed in the `panel` view, where each slot mirrors its unit; activating a slot opens the operable unit in the device dock. Each slot keeps its mirror's aspect and is at least its natural size, larger than the real unit, so that the mirror lettering stays legible; the GPS slot is the largest the field allows (intake §3.2a). The units sit on the field's light brushed aluminium with no recess or frame of the panel art: each draws its own whole face.
 
-- `com`: funkwerk ATR833-OLED COM radio (`atr833`), behind the Com breaker; it switches on with avionics power
+- `com`: funkwerk ATR833-OLED COM radio (`atr833`), behind the Com breaker; the pilot switches it on with I/O (AUTO ON is off)
 - `xpdr`: funkwerk TRT800H-OLED transponder (`trt800h`), behind the Transponder breaker, fed by the altitude encoder
 - `gps`: Garmin aera 500 in its panel cradle (`aera500`), behind the GPS breaker; it starts with cradle power
 - `flarm`: the classic FLARM external LED display (`flarm`), with no breaker of its own (assumed, intake §9 question 33), fed with the bus voltage

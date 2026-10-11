@@ -79,8 +79,15 @@ const runningUp = {
   gps: { on: true, powered: true, page: 'map', fix: true },
   flarm: { powered: true, stage: 'ready', fix: true },
 };
-const navigating = { ...runningUp, xpdr: { on: true, mode: 'acs', squawk: '7000' } };
-const securingAvionics = { ...runningUp, xpdr: { on: true, mode: 'stby', squawk: '7000' } };
+// The COM is switched on in N3 with the Avionics Master, so every phase after engine start has it
+// on (intake §9 question 35).
+const comOn = { com: { on: true, powered: true } } as const;
+const navigating = { ...comOn, ...runningUp, xpdr: { on: true, mode: 'acs', squawk: '7000' } };
+const securingAvionics = {
+  ...comOn,
+  ...runningUp,
+  xpdr: { on: true, mode: 'stby', squawk: '7000' },
+};
 
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
 const CLIMB_MS = 600 / FT_PER_MIN_PER_MS;
@@ -108,13 +115,21 @@ export const phases = {
     image: images.taxiOut,
     imageRunning: images.taxiOutRunning,
     environment: ground(),
-    entry: { controls: taxiingOut, state: facing('taxiOut', runningFrom(taxiingOut)) },
+    entry: {
+      controls: taxiingOut,
+      state: facing('taxiOut', runningFrom(taxiingOut)),
+      deviceStates: comOn,
+    },
   },
   holding: {
     image: images.holding,
     imageRunning: images.holdingRunning,
     environment: ground(),
-    entry: { controls: holdingShort, state: facing('holding', runningFrom(holdingShort)) },
+    entry: {
+      controls: holdingShort,
+      state: facing('holding', runningFrom(holdingShort)),
+      deviceStates: comOn,
+    },
   },
   linedUp: {
     image: images.linedUp,

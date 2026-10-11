@@ -35,9 +35,8 @@ const step = (
   }) as Atr833State;
 
 const start = atr833Device.initial as Atr833State;
-const running = step(start);
-
 const tap = (state: Atr833State, key: string) => step(step(state, { [key]: 'pressed' }), {});
+const running = tap(step(start), 'power');
 const turn = (state: Atr833State, knob: 'volSel' | 'freq', direction: 'up' | 'down', times = 1) => {
   let next = state;
   for (let count = 0; count < times; count++) {
@@ -93,9 +92,15 @@ describe('atr833Device', () => {
 });
 
 describe('power', () => {
-  it('switches on when power arrives and keeps what was set', () => {
-    expect(step(start, {}, { powered: false }).on).toBe(false);
-    expect(running).toMatchObject({ on: true, powered: true, active: 118000, standby: 119000 });
+  it('stays off when power arrives, with no AUTO ON', () => {
+    const arrived = step(start, {});
+    expect(arrived).toMatchObject({ on: false, powered: true, active: 118000, standby: 119000 });
+    expect(step(arrived, {}, { dtMs: 5000 }).on).toBe(false);
+  });
+
+  it('is switched on by an I/O press once powered, on the MHz field', () => {
+    expect(running).toMatchObject({ on: true, powered: true, cursor: 'mhz' });
+    expect(running).toMatchObject({ active: 118000, standby: 119000 });
   });
 
   it('switches off and clears the transients when power is lost, keeping the settings', () => {
@@ -126,7 +131,12 @@ describe('power', () => {
   it('does not fire a button that is held while power arrives', () => {
     const held = step(start, { swap: 'pressed' }, { powered: false });
     const arrived = step(held, { swap: 'pressed' });
-    expect(arrived).toMatchObject({ on: true, active: 118000, standby: 119000 });
+    expect(arrived).toMatchObject({ on: false, active: 118000, standby: 119000 });
+  });
+
+  it('does not count an I/O key held while power arrives as a press', () => {
+    const held = step(start, { power: 'pressed' }, { powered: false });
+    expect(step(held, { power: 'pressed' }).on).toBe(false);
   });
 
   it('does not act on a set or mem release of a key pressed before the unit was on', () => {
@@ -160,6 +170,10 @@ describe('power', () => {
     expect(state.on).toBe(false);
   });
 
+  it('switches on for an I/O hold past the off time from a unit that has never been on', () => {
+    expect(hold(step(start), 'power', POWER_OFF_HOLD_MS + 1000).on).toBe(true);
+  });
+
   it('does not switch off again for the press that switched it on', () => {
     const off = release(hold(running, 'power', POWER_OFF_HOLD_MS));
     const state = hold(off, 'power', POWER_OFF_HOLD_MS + 1000);
@@ -182,7 +196,11 @@ describe('power', () => {
 
   it('keeps the frequencies through a power cycle', () => {
     const tuned = tap(turn(running, 'freq', 'up'), 'swap');
-    const cycled = step(step(tuned, {}, { powered: false }), {});
+    const pulled = step(tuned, {}, { powered: false });
+    expect(pulled.on).toBe(false);
+    const pushedBack = step(pulled, {});
+    expect(pushedBack).toMatchObject({ on: false, powered: true });
+    const cycled = tap(pushedBack, 'power');
     expect(cycled).toMatchObject({ on: true, active: 120000, standby: 118000 });
   });
 });
@@ -461,7 +479,7 @@ describe('memory and the last-active list', () => {
 
   it('keeps the memory and recent list through a power cycle', () => {
     const saved = tap(turn(hold(running, 'mem', MEM_SAVE_HOLD_MS), 'volSel', 'up'), 'mem');
-    const cycled = step(step(saved, {}, { powered: false }), {});
+    const cycled = tap(step(step(saved, {}, { powered: false }), {}), 'power');
     expect(cycled.memory).toEqual(saved.memory);
   });
 });

@@ -10,8 +10,10 @@ start-up self-test and the mode-swap confirmation.
 
 The display maker's external-display data sheet (version 5.1e, display hardware 1.0 and 2.0)
 and the FLARM operating manual (version 242), as paraphrased in `docs/aircraft/ctsl-intake.md`
-section 3.8.4. The sheet defers most timings to the unit's manual. Assumptions, none settled by
-a source (intake section 9, questions 33, 34 and 39):
+section 3.8.4. The sheet defers most timings to the unit's manual. The owner answered question 34
+(the club does not check the FLARM before take-off, so no procedure does) and declined simulated
+traffic (question 39). Assumptions, none settled by a source (intake section 9, questions 33 and
+39):
 
 - The unit is powered from the aircraft's avionics bus with no breaker of its own.
 - `SELF_TEST_STEP_MS` (one LED per step), `CONFIRM_STEP_MS`, `ACQUIRE_MS` (counted from power

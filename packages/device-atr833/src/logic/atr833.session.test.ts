@@ -69,6 +69,12 @@ const testAircraft = defineAircraft({
         { type: 'action', control: 'bus', position: 'on', text: text('Bus ein', 'Bus on') },
         {
           type: 'action',
+          control: 'radio.power',
+          position: 'pressed',
+          text: text('Funkgerät ein', 'Radio on'),
+        },
+        {
+          type: 'action',
           control: 'radio.freq',
           position: 'up',
           text: text('Frequenz rauf', 'Frequency up'),
@@ -92,6 +98,15 @@ const testAircraft = defineAircraft({
 
 const options = { devices: [atr833Device] };
 
+const busOnAndSwitchOn = (session: ReturnType<typeof createSession>) => {
+  session.set('bus', 'on');
+  session.advance(SLICE_MS);
+  session.press('radio.power');
+  session.advance(SLICE_MS);
+  session.release('radio.power');
+  session.advance(SLICE_MS);
+};
+
 const holdFor = (session: ReturnType<typeof createSession>, control: string, ms: number) => {
   session.press(control);
   for (let elapsed = 0; elapsed < ms; elapsed += SLICE_MS) session.advance(SLICE_MS);
@@ -106,11 +121,16 @@ describe('atr833 in an aircraft', () => {
     expect(walkProcedure(testAircraft, 'tune', options)).toEqual({ ok: true });
   });
 
-  it('starts with the bus and keeps its frequencies when the bus drops', () => {
+  it('is switched on by I/O after the bus arrives and keeps its frequencies when the bus drops', () => {
     const session = createSession(testAircraft, options);
     expect(radio(session.state()).on).toBe(false);
 
     session.set('bus', 'on');
+    session.advance(SLICE_MS);
+    expect(radio(session.state())).toMatchObject({ on: false, powered: true });
+    session.press('radio.power');
+    session.advance(SLICE_MS);
+    session.release('radio.power');
     session.advance(SLICE_MS);
     expect(radio(session.state()).on).toBe(true);
     session.press('radio.freq', 'up');
@@ -120,13 +140,12 @@ describe('atr833 in an aircraft', () => {
     expect(radio(session.state())).toMatchObject({ on: false, standby: 120000 });
     session.set('bus', 'on');
     session.advance(SLICE_MS);
-    expect(radio(session.state())).toMatchObject({ on: true, standby: 120000 });
+    expect(radio(session.state())).toMatchObject({ on: false, standby: 120000 });
   });
 
   it('counts one click per press and release', () => {
     const session = createSession(testAircraft, options);
-    session.set('bus', 'on');
-    session.advance(SLICE_MS);
+    busOnAndSwitchOn(session);
     for (let clicks = 0; clicks < 3; clicks++) {
       session.press('radio.freq', 'up');
       session.advance(SLICE_MS);
@@ -137,8 +156,7 @@ describe('atr833 in an aircraft', () => {
 
   it('switches off after the power key is held, on the session clock', () => {
     const session = createSession(testAircraft, options);
-    session.set('bus', 'on');
-    session.advance(SLICE_MS);
+    busOnAndSwitchOn(session);
     holdFor(session, 'radio.power', POWER_OFF_HOLD_MS - SLICE_MS * 2);
     expect(radio(session.state()).on).toBe(true);
     holdFor(session, 'radio.power', SLICE_MS * 3);
@@ -151,8 +169,7 @@ describe('atr833 in an aircraft', () => {
 
   it('saves the standby frequency after MEM is held', () => {
     const session = createSession(testAircraft, options);
-    session.set('bus', 'on');
-    session.advance(SLICE_MS);
+    busOnAndSwitchOn(session);
     holdFor(session, 'radio.mem', MEM_SAVE_HOLD_MS + SLICE_MS);
     session.release('radio.mem');
     expect(radio(session.state()).list).toEqual({ kind: 'save', index: 0 });
