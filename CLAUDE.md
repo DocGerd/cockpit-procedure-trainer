@@ -35,7 +35,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - One issue, one branch, one PR with `Closes #<n>`. Each PR is reviewed by a
   separate agent before merge.
 - A squash makes the PR body the commit message: close/fix/resolve before
-  `#N` closes that issue or PR, so prose writes `Refs #N`.
+  `#N` closes that issue or PR, so prose writes `Refs #N`. A milestone is
+  named by its title, never `#<n>` (that links issue n).
 - Every PR adds `changelog.d/<issue>.<category>.md`, or carries a body line
   `No changelog: <reason>` when it has no user-visible effect.
 - Agents merge reviewed PRs into `develop` only, never into `main`. An agent
@@ -100,9 +101,14 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Adding an avionics device: a new `packages/device-<id>`, its entries in
   `deviceRegistry` and `deviceEntries` in `apps/web/src/device-registry.ts`
   (`deviceScreens` is derived), its `unitNames` row in
-  `apps/web/src/devices/messages.ts`, its rows in `tools/device-entry.test.ts`,
-  and its workspace dependency in `apps/web/package.json`; see
+  `apps/web/src/devices/messages.ts`, its `NATURAL_SCREEN` row in
+  `tools/device-entry.test.ts` (an unregistered package goes in
+  `UNREGISTERED`), and its workspace dependency in `apps/web/package.json`; see
   `docs/adding-a-device.md`.
+- A device face copies the real unit's shape and control layout (the dock may
+  add touch helpers beside knobs): its intake unit section records a face
+  layout measured from photos before anyone implements it, and a blind
+  photo-fidelity check (`CPT_ALLOW_REFERENCE=1`) gates the face PR.
 - Outside-view images are first-person views out of the cockpit from the
   pilot's seat, never the aircraft seen from outside.
 - Colours, type and spacing come only from `apps/web/src/styles/tokens.css`.
@@ -131,7 +137,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", `--no-merges`, jq `mergeCommit`,
   `merged_at`), except one plain `gh pr merge` of a `develop` PR or a plain
-  `git merge`/`merge-base`; for `--no-merges` use
+  `git merge`/`merge-base` (`git -C <path> merge` is refused: use
+  `git -C <path> pull --no-rebase origin develop`); for `--no-merges` use
   `git log --max-parents=1 A..B`. It also refuses chained commands that
   contain it (a newline in a quoted body
   counts as chaining) and, in gh, curl and wget commands, any expansion in the
