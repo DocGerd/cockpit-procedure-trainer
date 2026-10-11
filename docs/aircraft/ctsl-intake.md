@@ -101,6 +101,28 @@ decisions of 2026-10-10:
 9. **The aircraft name drops "(representative panel)"** when the units land, resolving
    the open point of §1. The Com, Transponder and GPS breaker legends stay.
 
+Milestone M19 "D-MPGO panel layout" (issues #716 and #712) rests on this owner
+decision of 2026-10-11:
+
+10. **D-MPGO as a pilot recognises it.**
+    - **Fidelity is recognition.** A pilot who trained on the trainer must strongly
+      recognise D-MPGO's real panel: positions on the panel, relative sizes, dial type
+      and pointer arrangement, where zero or the stop sits and which way the scale
+      sweeps, numerals and units, the places of the coloured arcs, controls and
+      windows (such as the altimeter's knob and pressure window). Colours, stickers,
+      logos, fonts and fine ticks are optional. Positions and sizes: §3.9.
+    - **The centre field is the outer panel's colour** (#716); the bare aluminium
+      centre field of #707 is wrong. Label colour and contrast on it do not matter.
+      Which colour that is, given that the photos show aluminium on every plate, is
+      §9 question 40.
+    - **Slot aspects are no longer frozen** (decision D24 of M18 lifted). Slot aspect
+      ratios still stay unless the photos contradict them; they do not (§3.9.3).
+    - **The COM radio is the original ATR833-OLED.** This settles the generation part
+      of §9 question 36.
+    - **No simulated FLARM traffic.** The FLARM display's receive LED and traffic ring
+      stay dark outside the self-test; this settles the traffic part of §9 question 39.
+    - **No tablet art pass** in M19.
+
 ## 3. Panel inventory (analog variant; superseded in part 2026-10-10, §2a)
 
 The panel has three fields: upper left, upper right, and a narrow lower centre
@@ -140,6 +162,12 @@ German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
 The airspeed indicator stays 220 units wide because its numerals set the smallest
 size that reads at the lettering floor (§4.3).
 
+**Trainer, M19 (2026-10-11):** the positions, sizes and the plate's place in the panel
+described here and in the M17 note above are superseded by §3.9 (§3.9.2 for the
+gauges, §3.9.5 for the placards): the left plate is the widest, the instruments sit
+in its inner three-quarters, and the registration lettering stands over the airspeed
+indicator. Which instruments and legends are present stays as above.
+
 ### 3.2 Upper-right field (view `panel`)
 
 - GPS in its cradle in the centre (device slot).
@@ -178,6 +206,12 @@ pitch. The inert caps carry no legend for the same reason, since background lett
 has no such exemption; the slip indicator, FLARM display and hour meter carry no
 wording either. The type-name script lettering is not reproduced.
 
+**Trainer, M19 (2026-10-11):** the layout of the right plate described above is
+superseded by §3.9.2 and §3.9.4: the small engine gauges sit below the tachometer
+(not beside it), the Generator lamp stands at the plate's horizontal middle, and the
+breaker block spans seven columns with the 12V Outlet breaker under the second one
+(not under the first). The set of instruments, breakers and legends stays as above.
+
 ### 3.2a Upper-centre field (view `panel`), M17 T4
 
 - A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
@@ -205,6 +239,14 @@ wording either. The type-name script lettering is not reproduced.
   GPS (heading and rules only), an **assumed (unverified)** place. The blank version
   label under the FLARM display is not drawn: its wording is unknown, so it would be a
   plate with no function.
+
+**Trainer, M19 (2026-10-11):** the compromises above (slot sizes, the field's width,
+its 40 px offset to the left of the column and the FLARM display left of the GPS) are
+superseded by §3.9.3 and §3.9.7: the photos put the FLARM display top left, the GPS
+centred under it and the radios side by side below, in the narrowest plate, with the
+column hanging 0.54 D left of that plate's centre line (§3.9.6). The owner lifted the
+frozen slot aspects (§2a item 10); the photos confirm today's aspects (§3.9.3). Sizes
+and the remaining trade-offs are §9 questions 40 to 45.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
@@ -634,6 +676,15 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 **Trainer (M18, #678):** the rows "Avionics units" and the FLARM half of "FLARM, hour
 meter" are resolved: the CTSL installs D-MPGO's four units (§3.8), the FLARM display
 included, as device slots. The hour meter stays inert art.
+
+**Resolved in M19 (§3.9):** the position, size and arrangement columns of the rows
+"Panel fields", "Upper-left instruments", "Engine gauges", "Breaker block", "Charge
+lamp", "Cabin heat" and "FLARM, hour meter" are measured in §3.9 (field boundaries
+§3.9.1, gauges §3.9.2, avionics §3.9.3, breakers and lamp §3.9.4, placards §3.9.5,
+lower column §3.9.6). The 12V Outlet breaker stands under the second breaker column,
+not "below the left end" (§3.9.4), and the Generator lamp at the right plate's
+horizontal middle, not at its top right as §3.7.1 and the "Charge lamp" row say
+(§3.9.4). The trainer follows in #716 and #712.
 
 ### 3.8 Avionics units (M18)
 
@@ -1352,6 +1403,403 @@ sound (the volume level is kept but never heard), the version display, reboot, f
 reset, display setup, fault codes and flight recording. The trainer's timings for the
 self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
 the manuals give none.
+
+### 3.9 Panel layout (photos, M19)
+
+Where everything sits on D-MPGO's panel, measured from the owner's photos (§1, §3.7)
+for M19 (#716: the whole panel as D-MPGO's; #712: the centre-field avionics). §3.7
+says _what_ is on the panel; this section says _where_ and _how big_. Owner principle
+(§2a item 10): fidelity is recognition, so the numbers below cover position, relative
+size, dial layout, coloured-arc places and controls; colours, stickers, logos and fine
+ticks are notes only. Photos only, nothing from the handbook. No photo, crop or
+derived image is in the repo; maker logos and lettering are given as footprints only.
+
+#### 3.9.0 Coordinate convention
+
+- **Photos.** Upper panel: photo 10.14.30 (the most frontal view from the left seat),
+  cross-checked against 10.14.29 (4), 10.14.28 and 10.14.29 (3). Lower column and
+  lever row: photo 10.14.30 (1). Console aft and wing roots: 10.14.29, 10.14.29 (1)
+  and (2).
+- **Perspective removed per plate.** Each aluminium plate is flat, but the three upper
+  plates are **not in one plane**: the two outer plates are angled toward the seats
+  (their perspective differs from the centre plate's; a single correction leaves the
+  outer rows sloping). Each plate was corrected on its own, from its screw squares
+  (four-screw instrument mounts), straight screw rows and columns, and for the centre
+  plate the GPS screen's 480 by 272 pixel aspect. The outer plates were then unfolded
+  flat onto the centre plate's plane at their shared edge. Checks: every round face
+  comes out round within 3 percent; the breaker columns come out evenly pitched; the
+  right plate's two outer screws come out vertically aligned (not constrained).
+- **Unit D** = the COM disc's diameter (57 mm nominal), as in §3.8. Validation of the
+  scale chain: the airspeed indicator comes out at 1.45 D (about 82 mm, a standard
+  80 mm instrument with its bezel), the VSI at 1.00 D and the slip indicator at 1.05 D
+  (standard 57 mm instruments).
+- **Two boxes.** The _panel box_ is the bounding box of the three upper plates: x from
+  the left plate's outer edge to the right plate's outer edge, y from the centre plate's
+  top edge (the highest) to the centre plate's bottom edge (the lowest). It measures
+  **13.2 D by 5.0 D (width to height 2.64)**. A _field box_ is one plate's own bounding
+  box. All fractions: origin top left, x right, y down; positions are centres unless an
+  edge is named.
+- **Accuracy.** Positions ±0.02 of the box named; sizes ±5 percent; the outer plates'
+  outer extents ±0.03 (**low confidence**: the left plate's outer edge is at the
+  photo's border, and both depend on the unfolding). Items marked low confidence carry
+  ±0.04.
+- **"× ASI"** = size divided by the airspeed indicator's diameter (1.45 D).
+- **Trainer columns.** "Today" is the current `views.ts` rect or `view-panel.svg`
+  shape, in panel view units. "T" is the one mapping §3.9.7 defines (assumption T);
+  §9 question 41 asks the owner about it.
+
+#### 3.9.1 Field boundaries and panel colour
+
+| Field              | Panel box x   | Panel box y   | Size (w × h)  | Shape (field fractions)                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ------------- | ------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Upper left plate   | 0.000 – 0.370 | 0.057 – 0.988 | 4.90 × 4.67 D | Inner (right) edge straight and vertical; top edge level from the inner corner out to x 0.55, then a long convex curve through (0.50, 0.03), (0.36, 0.06), (0.22, 0.10), (0.13, 0.15), (0.08, 0.22), (0.04, 0.34), (0.01, 0.45) to the outermost point (0.00, 0.56); back in through (0.01, 0.68), (0.03, 0.78), (0.08, 0.85) to the level bottom edge, which starts near x 0.20 (bottom-outer curve **low confidence**). Small radius at the inner corners. |
+| Upper centre plate | 0.400 – 0.646 | 0.000 – 1.000 | 3.26 × 5.02 D | Upright rectangle (width to height 0.65), small rounded corners, four corner screws inset about 0.16 D from each edge. The tallest plate: its top stands 0.06 (left) and 0.08 (right) of the panel height above the outer plates' inner top corners.                                                                                                                                                                                                         |
+| Upper right plate  | 0.679 – 1.000 | 0.080 – 0.995 | 4.25 × 4.59 D | Inner (left) edge straight and vertical; top edge level from the inner corner out to x 0.61, then a convex curve through (0.68, 0.08), (0.80, 0.13), (0.89, 0.19), (0.94, 0.24), (0.97, 0.32), (0.99, 0.41) to the outermost point (1.00, 0.50); back in through (0.98, 0.68), (0.95, 0.76), (0.91, 0.83), (0.85, 0.93), (0.75, 0.97) to the level bottom edge, which starts near x 0.70.                                                                    |
+
+- **Gaps.** Dark moulding between the plates: left gap 0.030 of the panel width
+  (0.40 D), right gap 0.033 (0.43 D). The bottoms of the three plates are level within
+  0.012 of the panel height; only the tops differ (the centre plate rises above both).
+- **The trainer is much wider than the aircraft.** Real field widths, as fractions of
+  the panel box: left 0.370, centre 0.246, right 0.321. Trainer today (fractions of the
+  drawn span 12 – 2360): left 0.19, centre 0.49, right 0.31. On D-MPGO the centre field
+  is the **narrowest** plate, a tall upright panel between two wide wings, and the left
+  plate is the widest; the trainer has it the other way round. Real plate-span aspect
+  2.64, trainer 3.51.
+- **Above the centre plate**, on the dark moulding (**low confidence**, the moulding
+  curves toward the windscreen): the "Cabin Heat" knob in its square bezel at x 0.430,
+  y −0.064 of the panel box (0.37 D square), and the plain red-cross disc at x 0.490,
+  y −0.062 (0.39 D). In centre-plate fractions both sit 0.32 D above the plate's top
+  edge, at x 0.12 and 0.37: over the plate's **left half**, not centred.
+- **Lower column**: its top edge spans x 0.364 – 0.601 of the panel box (§3.9.6).
+- **Colour (photos).** All three upper plates **and the lower column plate are the same
+  light brushed aluminium**, brushed horizontally. In even light (photo 10.14.28) they
+  read mid grey: left #908F90, centre #7E8C8E, right #67767D (in shadow), column
+  #8A9492; in photo 10.14.30 the left plate reads lighter only because sunlight falls
+  on it. Neutral hint for the aluminium: about #8E9296. The dark surround is the
+  moulding (glareshield, the gaps between plates, the frame around the column): dark
+  charcoal with the photos' blue cast (#2B4051 raw), neutral hint about #2C2F33.
+- **Colour (trainer today).** The outer fields are drawn dark charcoal (`pp` gradient,
+  #303338 to #1D1F22), which is the _moulding's_ colour, not the plates'; the centre
+  field is aluminium (`al` gradient, #80878F to #5C626A); the centre view's plate is
+  dark (`gp`, #26282C).
+- **Owner decision (#716, 2026-10-11): the centre field is the outer panel's colour**;
+  label colour and contrast on it do not matter. Recorded as given. The photos show the
+  outer plates are aluminium like the centre one, so the ruling is met either by
+  drawing every field in the trainer's dark panel colour or by drawing every field
+  aluminium: §9 question 40.
+
+#### 3.9.2 Gauge placement
+
+Positions: field box fractions, then panel box fractions. Sizes are the outer diameter
+of the black bezel or housing (the face plus its rim).
+
+| Gauge                 | Field (x, y) | Panel (x, y) | Size            | × ASI | Today (view units, centre; size) | T (centre; size)   |
+| --------------------- | ------------ | ------------ | --------------- | ----- | -------------------------------- | ------------------ |
+| Airspeed (left plate) | 0.400, 0.384 | 0.148, 0.415 | 1.45 D          | 1.00  | 132, 232; 220                    | 566, 293; 193      |
+| Altimeter (left)      | 0.781, 0.386 | 0.289, 0.416 | 1.38 D          | 0.95  | 346, 232; 196                    | 815, 294; 184      |
+| Slip indicator (left) | 0.404, 0.740 | 0.149, 0.747 | 1.05 D          | 0.72  | 132, 456; about 213 (art)        | 569, 515; 139      |
+| VSI (left)            | 0.787, 0.728 | 0.291, 0.735 | 1.00 D          | 0.69  | 346, 456; 196                    | 818, 507; 133      |
+| Tachometer (right)    | 0.202, 0.205 | 0.744, 0.268 | 1.03 D          | 0.71  | 1759, 145; 210                   | 1615, 195; 137     |
+| CHT (right)           | 0.192, 0.427 | 0.741, 0.471 | 0.61 D          | 0.42  | 1953, 115; 150                   | 1610, 330; 81      |
+| Voltmeter (right)     | 0.371, 0.427 | 0.798, 0.471 | 0.58 D          | 0.40  | 2109, 115; 150                   | 1711, 330; 77      |
+| Oil temp (right)      | 0.192, 0.589 | 0.741, 0.619 | 0.61 D          | 0.42  | 1953, 271; 150                   | 1610, 429; 81      |
+| Oil pressure (right)  | 0.371, 0.591 | 0.798, 0.621 | 0.58 D          | 0.40  | 2109, 271; 150                   | 1711, 431; 78      |
+| Hour meter (right)    | 0.576, 0.507 | 0.864, 0.544 | 0.65 × 0.42 D   | 0.45  | 2271, 235; 150 × 70 (art)        | 1827, 380; 86 × 56 |
+| Fuel sight gauges     | wing roots   | outside      | strip 5 to 40 l | –     | not drawn                        | not drawn          |
+
+Arrangement, in words a pilot would use:
+
+- **Left plate**: a 2×2 grid. Top row: airspeed (left column) and altimeter (right
+  column), centres level at y 0.385. Bottom row: slip indicator under the airspeed,
+  VSI under the altimeter, centres level at y 0.73 – 0.74. The columns sit at x 0.40
+  and 0.78: the grid fills the plate's **inner three-quarters**; the outer quarter
+  (left of x 0.25) is bare aluminium, and the registration lettering sits above the
+  airspeed indicator. Centre to centre, the columns are 1.87 D apart and the rows
+  1.67 D (0.36 of the field height). Trainer today: the grid hugs the plate's left
+  edge (airspeed centre at x 0.27 of today's 447-unit field) and the field is half as
+  wide as on the aircraft.
+- **Right plate**: the tachometer at the top left; under it a 2×2 block of small
+  gauges (CHT, voltmeter / oil temp, oil pressure), its left column under the
+  tachometer's centre line (x 0.19 against the tach's 0.20) and its right column at
+  x 0.37; the hour meter right of the block, level between its two rows (y 0.507);
+  the Generator lamp at the top, at x 0.49 (§3.9.4). The **tachometer is only about
+  the VSI's size** (1.03 D, 0.71 × ASI), not near the airspeed indicator's size as the
+  trainer draws it (210 against 220), and the four small gauges are 0.40 – 0.42 × ASI
+  (trainer 0.68). Trainer today: the small gauges sit right of the tachometer at its
+  height (a 2×2 at x 0.33 – 0.76, y 0.04 – 0.49 of today's field); on the aircraft
+  they sit **below** it.
+- Real centre-to-centre spacings: small-gauge columns 0.76 D, rows 0.74 D; from the
+  tachometer's centre to the CHT's centre 1.02 D down.
+
+Dial layout (scale numerals and units are on the dials; the dials' legends are recorded
+in §3.7.1, the markings in §4.3):
+
+| Gauge          | Rest / zero stop                 | Sweep                                                                                                                                                                                | Pointers, knobs, windows                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| -------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Airspeed       | pointer at 12 o'clock            | clockwise, almost a full turn: 40 just right of 12 o'clock, 100 at about 2:30, 200 at 6, 300 at about 9:30, 340 just left of 12; numerals every 20                                   | one pointer; dial legend in the upper centre, maker's logo lower centre (footprint only). White arc on the inner half of the ring from about 1:30 to 3 o'clock (72 – 115, washed out by glare in most photos); green from about 2:20 (94, beside the white) round the bottom to about 7:30 (245); yellow from 7:30 to 9:30 (300); red mark at 9:30 (values as §4.3). An orange triangle outside the bezel at about 2:30 (field x 0.565, y 0.341; 0.18 D), pointing at the dial. |
+| Altimeter      | "0" at 12 o'clock                | clockwise, 0 to 9 (hundreds of feet) round the dial                                                                                                                                  | **three pointers**: a long slim hundreds pointer, a short broad thousands pointer and a thin ten-thousands pointer ending in a small triangle at the rim; **pressure window at 3 o'clock** inside the dial face; the **setting knob outside the dial at its lower left**, about 7:30 (field x 0.659, y 0.509; 0.22 D); a hatched low-altitude flag window at about 6 o'clock, between the hub and the 5.                                                                        |
+| VSI            | pointer at 9 o'clock = 0         | climb clockwise over the top: .5 at 10:30, 1 at 12, 1.5 at 1:30, 2 at 3 o'clock; descent counter-clockwise under the bottom: .5 at 7:30, 1 at 6, 1.5 at 4:30, meeting 2 at 3 o'clock | one pointer; a small "up" mark above the zero; units legend right of centre (thousands of ft/min).                                                                                                                                                                                                                                                                                                                                                                              |
+| Slip indicator | ball at the centre               | –                                                                                                                                                                                    | a near-straight tube across the middle with two centre lines; maker's logo above the tube (footprint only), legend below; round black housing, four screws.                                                                                                                                                                                                                                                                                                                     |
+| Tachometer     | pointer at about 7:30 (0)        | clockwise about 270°: 10 at 9, 20 at 10:30, 30 at 11:30, 40 at 12:30, 50 at 1:30, 60 at 3, 70 at 4:30                                                                                | one pointer; legends upper centre and right of the hub; at the low end a red band from 0 to about 9 o'clock and a short yellow block after it; green along the rim from about 9:30 to about 2:30; a short yellow block and the red line just before 60 (about 3 o'clock); nothing after it (colours **low confidence**).                                                                                                                                                        |
+| CHT, oil temp  | pointer at about 7:30 (40 °C)    | clockwise about 270° to 150 at 4:30: 60 at 9, 80 at 11, 100 at 12:30, 120 at 2:30                                                                                                    | one pointer; "°C" upper left of the hub; legend at the bottom; a green arc from about 90 to 110 (about 12:30 to 2 o'clock), then a yellow block from 110 at about 2 o'clock, to the red at 120 (CHT) or 130 (oil temp) at about 2:30 – 3 (colours **low confidence**).                                                                                                                                                                                                          |
+| Voltmeter      | pointer stop at about 7:30 (9 V) | clockwise to 17 at about 4:30: 10 at 9, 11 at 10:30, 12 at 11:30, 13 at 12:30, 15 at 2, 16 at 3                                                                                      | one pointer; unit legend in the upper centre, under 12 – 13; gauge legend at the bottom; no arcs.                                                                                                                                                                                                                                                                                                                                                                               |
+| Oil pressure   | pointer at about 7:30 (0 bar)    | clockwise to 10 at about 4:30, numerals every 1 bar                                                                                                                                  | one pointer; unit legend top centre, gauge legend at the bottom; a thin pale arc from 1 to 2 bar (about 8:30 to 9:30), nothing from 2 to 5, a thin pale arc 5 to 6 running into a wider tan-orange arc 6 to 7 (about 12 to 1:30), the 7 tick red (colours **low confidence**).                                                                                                                                                                                                  |
+| Hour meter     | –                                | –                                                                                                                                                                                    | black rectangle, digit window across its middle (running value, not recorded), legend under the window, maker name above (not reproduced), a screw left and right.                                                                                                                                                                                                                                                                                                              |
+
+Fuel sight gauges: one on each wing root overhead, a vertical scale strip 5 to 40
+"Liter" beside the tank's sight window (§3.7.1); outside all three views, not drawn.
+
+#### 3.9.3 Avionics arrangement (#712)
+
+| Unit                                 | Centre-plate box: x range, y range | Centre (field) | Panel (x, y) | Size (w × h, aspect)        | Today (slot)             | T (centre; w × h)    |
+| ------------------------------------ | ---------------------------------- | -------------- | ------------ | --------------------------- | ------------------------ | -------------------- |
+| FLARM display (classic LED)          | 0.104 – 0.371, 0.060 – 0.148       | 0.237, 0.104   | 0.458, 0.104 | 0.87 × 0.44 D, 1.96 (±0.15) | at(500, 150, 320, 160)   | 1112, 86; 116 × 59   |
+| Take-off checklist summary (copy)    | 0.457 – 0.922, 0.051 – 0.171       | 0.690, 0.111   | 0.570, 0.111 | 1.52 × 0.60 D               | art 1318, 140, 262 × 300 | 1309, 90; 202 × 80   |
+| aera 500 in its cradle (outer frame) | 0.143 – 0.910, 0.323 – 0.627       | 0.527, 0.475   | 0.530, 0.475 | 2.50 × 1.53 D, 1.64         | at(850, 123, 440, 275)   | 1238, 334; 333 × 203 |
+| … its screen (touch area)            | 0.256 – 0.793, 0.364 – 0.564       | 0.524, 0.464   | 0.529, 0.464 | 1.75 × 1.00 D               | –                        | 1237, 326; 233 × 133 |
+| ATR833 COM                           | 0.133 – 0.440, 0.725 – 0.924       | 0.286, 0.825   | 0.470, 0.825 | 1.00 D round                | at(540, 404, 272, 272)   | 1134, 567; 133       |
+| TRT800H transponder                  | 0.549 – 0.856, 0.727 – 0.926       | 0.702, 0.827   | 0.573, 0.827 | 1.00 D round                | at(832, 404, 272, 272)   | 1314, 568; 133       |
+
+- **Arrangement.** Top band: the FLARM display at the top left and the checklist summary
+  at the top right, their top edges level (y 0.05 – 0.06); the FLARM is the shorter of
+  the two. Middle: the aera 500 in its cradle, centred under them within 0.03 of the
+  field width (its centre sits that far right of the field's centre line, just beyond
+  the ±0.02 accuracy) with bare aluminium above it (0.78 D between the FLARM's bottom
+  and the cradle's top latch at y 0.303). Bottom: COM (left) and transponder (right)
+  side by side, the pair centred on the field (pair midpoint x 0.494), centres level,
+  1.36 D apart (a 0.36 D gap between the discs), their bottoms 0.38 D above the plate's
+  bottom edge. Between the cradle and the radios (y 0.63 – 0.69, right of centre) a
+  faded blank paper label (0.96 × 0.32 D), nothing legible: optional art. A small white
+  tab just under the FLARM's lower left corner, the version label (§3.9.5), is likewise
+  blank.
+- Each round unit's two screws and two knobs sit on the corners of a square about
+  0.82 D wide around its disc (COM: screws left, knobs right; transponder: screws top
+  left, top right and bottom left, knob bottom right), as §3.8 describes.
+- **Relative sizes** (the trainer's slots against the photos, COM = 1.00): GPS cradle
+  real 2.50 D wide, slot 1.62; FLARM real 0.87 × 0.44, slot 1.18 × 0.59. On the
+  aircraft the GPS dominates the field and the FLARM is a small strip; the trainer
+  shrinks the one and enlarges the other (§9 questions 44, 45).
+- **Correction to §3.8's scale line.** The conventions bullet of §3.8 (FLARM about
+  1.05 × 0.58 D, aera cradle about 2.8 × 1.67 D, body 2.45 × 1.42 D) was read without
+  removing perspective, which enlarges the upper units against the radios at the
+  bottom. Corrected here: FLARM 0.87 × 0.44 D, cradle 2.50 × 1.53 D, screen
+  1.75 × 1.00 D (screen aspect 1.75, the unit's 480 by 272 pixels give 1.76).
+- **Slot aspects.** The photos confirm today's slot aspects within their error: FLARM
+  1.96 against 2.00, GPS cradle 1.64 against 1.60, round units 1.00. Nothing in the
+  photos asks for an aspect change (#716: "slot aspect ratios stay unless the photos
+  contradict them").
+
+#### 3.9.4 Switch groups, breakers, keys and lamps (upper panel)
+
+The upper plates carry no switch, key or lever: only the breakers, the Generator lamp,
+the altimeter knob and the avionics units' own controls. The rockers, ignition key,
+BAT and GEN, flap selector and fuel valve are on the lower column (§3.9.6).
+
+**Breaker block** (right plate, lower part). Seven columns, two rows, and one breaker
+alone under the **second** column:
+
+| Breaker     | Field (x, y) | Panel (x, y) | T (centre) |     | Breaker          | Field (x, y) | Panel (x, y) | T (centre) |
+| ----------- | ------------ | ------------ | ---------- | --- | ---------------- | ------------ | ------------ | ---------- |
+| Com         | 0.101, 0.754 | 0.712, 0.770 | 1558, 531  |     | Landing Light    | 0.101, 0.822 | 0.712, 0.833 | 1558, 572  |
+| Nav         | 0.225, 0.754 | 0.751, 0.770 | 1628, 531  |     | Cockpit Light    | 0.225, 0.822 | 0.751, 0.833 | 1628, 572  |
+| Transponder | 0.344, 0.754 | 0.789, 0.770 | 1695, 531  |     | Instrument Light | 0.344, 0.822 | 0.789, 0.833 | 1695, 572  |
+| Autopilot   | 0.466, 0.754 | 0.829, 0.770 | 1765, 531  |     | Beacon Light     | 0.466, 0.822 | 0.829, 0.833 | 1765, 572  |
+| HS34        | 0.588, 0.754 | 0.868, 0.770 | 1833, 531  |     | Position Light   | 0.588, 0.822 | 0.868, 0.833 | 1833, 572  |
+| EFIS        | 0.708, 0.754 | 0.906, 0.770 | 1901, 531  |     | Intercom         | 0.708, 0.822 | 0.906, 0.833 | 1901, 572  |
+| EMS         | 0.831, 0.754 | 0.946, 0.770 | 1971, 531  |     | GPS              | 0.831, 0.822 | 0.946, 0.833 | 1971, 572  |
+| 12V Outlet  | 0.225, 0.923 | 0.751, 0.925 | 1628, 634  |     |                  |              |              |            |
+
+- Pitch: columns 0.51 D, rows 0.31 D; the 12V Outlet row 0.44 D below the bottom row.
+  Each breaker face (bezel or cap) about 0.26 D. The block spans x 0.07 – 0.86 and
+  y 0.73 – 0.95 of the field (3.36 × 1.03 D), starting just right of the plate's inner
+  edge.
+- Legends: above each top-row breaker; **under** each bottom-row breaker (the two-word
+  ones in two lines); under the 12V Outlet breaker. Header "Circuit Breakers" centred
+  at field x 0.522, y 0.919 (right of the 12V Outlet breaker, under columns 3 to 6),
+  "Push off" under it at y 0.946. Which positions are fitted is §3.7.1.
+- **Correction:** the 12V Outlet breaker is under column 2 (Nav / Cockpit Light), not
+  under column 1 as `views.ts` draws it (`outletBreaker` at x 1650, under Com) and as
+  §3.7.1 words it ("below the left end").
+- Trainer today: a 100 × 96 grid at x 1650 – 2350, y 372 – 660 (the full plate width,
+  rows 96 apart); real rows are 0.31 D apart, so under T the row pitch is 41 units and
+  the column pitch 69 (§3.9.7, touch targets).
+
+**Generator lamp** (right plate): field x 0.494, y 0.124, a red lens 0.38 D (0.26 ×
+ASI); legend "Generator" above it at y 0.08. It sits at the plate's horizontal middle,
+right of the tachometer and level with the tachometer's top half; not in the top
+right corner, where today's `chargeLamp` (at(2196, 36, 150, 90)) puts it. Panel
+0.838, 0.194; T 1780, 146; 51.
+
+**Altimeter knob**: outside the dial at its lower left (§3.9.2).
+
+**Glareshield**: the Cabin Heat knob and the red-cross disc, above the centre plate's
+left half (§3.9.1).
+
+#### 3.9.5 Placards
+
+Positions only; wording is in §3.1, §3.3 and §3.7.1 (paraphrased there), and maker
+text is never reproduced.
+
+| Placard                                  | Field and position (centre)                                                                                 | Panel (x, y) | Size          | Look                                                                                     | Today                                   | T (centre; w × h)   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---------------------------------------------------------------------------------------- | --------------------------------------- | ------------------- |
+| Registration lettering                   | left, 0.421, 0.148 (over the airspeed)                                                                      | 0.156, 0.195 | 1.48 × 0.30 D | the registration in large black capitals, no plate                                       | not drawn                               | 580, 147; 197 × 39  |
+| Take-off checklist summary               | left, 0.780, 0.142 (over the altimeter)                                                                     | 0.289, 0.189 | 1.51 × 0.70 D | white card, two-column table, yellow warning strip along its bottom                      | 238, 68; 416 × 92 (top left)            | 814, 143; 200 × 93  |
+| Aerobatics and spins prohibited (German) | left, 0.689, 0.895 (bottom; spans x 0.52 – 0.86, from the slip indicator's right edge to under the VSI)     | 0.255, 0.891 | 1.66 × 0.27 D | white strip, one line of black text                                                      | 238, 624; 416 × 100 (bottom left)       | 754, 611; 221 × 36  |
+| Take-off checklist summary (copy)        | centre, 0.690, 0.111 (top right)                                                                            | 0.570, 0.111 | 1.52 × 0.60 D | as the left one                                                                          | 1449, 290; 262 × 300 (right of the GPS) | 1309, 90; 202 × 80  |
+| Version label                            | centre, just under the FLARM display's lower left corner (the small white tab of §3.9.3; size not measured) | –            | small         | a white tab, nothing legible; its text would be a running value (§3.7 rule): not drawn   | not drawn                               | –                   |
+| Faded blank label                        | centre, 0.642, 0.662 (under the cradle)                                                                     | 0.558, 0.662 | 0.96 × 0.32 D | faded paper, nothing legible; optional                                                   | not drawn                               | 1288, 458; 128 × 42 |
+| Type name, script                        | right, 0.620, 0.297 (right of the tach, across the plate)                                                   | 0.878, 0.352 | 2.25 × 0.35 D | manufacturer lettering: footprint only, never reproduced; the area stays plain aluminium | not drawn                               | 1852, 251; 299 × 46 |
+| "Generator" legend                       | right, 0.494, 0.08                                                                                          | 0.838, 0.153 | –             | small black text over the lamp                                                           | on the lamp art                         | 1780, 118           |
+| "Circuit Breakers" / "Push off"          | right, 0.522, 0.919 / 0.946                                                                                 | 0.847, 0.921 | 1.16 × 0.24 D | black text, no plate                                                                     | 2080, 620; card 460 × 96                | 1796, 631; 154 × 32 |
+
+Lower-column placards are in §3.9.6. Stickers (the "do not step" floor labels, the
+yellow T-shaped item over the rocker row) are notes only.
+
+#### 3.9.6 Lower column and console
+
+**Lower column** (photo 10.14.30 (1), near frontal to the column face; its vertical
+positions are **low confidence**, ±0.04).
+
+- **Place.** The column's top edge spans x 0.364 – 0.601 of the panel box: 3.14 D wide,
+  0.96 of the centre plate's width, and **offset 0.54 D left of the centre plate's
+  centre line** (toward the pilot). Its top edge is 0.41 D (0.08 of the panel height)
+  below the centre plate's bottom. Trainer today (§3.2a): the field sits about 40 px
+  _left_ of the column, i.e. the column right of the field's centre; on the aircraft
+  it is the other way round. Under T (§3.9.7) the column's top maps to panel view
+  x 946 – 1364, cockpit x 654 – 890 px at HD, centre 772 px; the `centre` cell's centre
+  is 755 px, 17 px left of it.
+- **Shape.** A T: the top part takes the full width and holds the rocker row; below it
+  both sides curve in over the upper half to the lower part, 0.59 of the top width
+  (1.84 D), which runs straight down to a level bottom edge. Height about 4.2 D, so the
+  column box is **taller than wide (0.75)**; the `centre` view is 1200 × 900 (1.33).
+  Aluminium like the upper plates (§3.9.1); the trainer draws a dark rectangle.
+- **Contents**, as fractions of the column box (x across the top width from the top
+  left corner, y from the top edge to the bottom edge), against the `centre` view today
+  (fractions of its plate area 16 – 1184 × 16 – 892) and the target coordinates under
+  the fraction mapping x = 16 + 1168·x, y = 16 + 876·y (§9 question 43):
+
+| Item                                  | Column (x, y)                             | Size (fraction of the top width)           | Today (x, y)         | Target (view units) |
+| ------------------------------------- | ----------------------------------------- | ------------------------------------------ | -------------------- | ------------------- |
+| Rocker row (y)                        | –, 0.12                                   | rockers 0.07 × 0.14, the first 0.11 × 0.14 | –, 0.13 – 0.14       | y 121               |
+| Avionics Master (larger rocker)       | 0.267                                     |                                            | 0.106                | 328                 |
+| Beacon Light                          | 0.408                                     |                                            | 0.273                | 493                 |
+| Position Light                        | 0.501                                     |                                            | 0.410                | 601                 |
+| Intercom                              | 0.598                                     |                                            | 0.547                | 714                 |
+| Cockpit Light                         | 0.694                                     |                                            | 0.684                | 827                 |
+| Landing Light                         | 0.784                                     |                                            | 0.821                | 932                 |
+| Avionics placard (yellow strip)       | 0.617, 0.206                              | 0.43 × 0.03                                | art                  | 737, 196            |
+| 12 V socket                           | 0.318, 0.302                              | 0.18                                       | art                  | 387, 281            |
+| Fuel-capacity placard                 | 0.322, 0.413                              | 0.20 wide                                  | art                  | 392, 378            |
+| Limit-speed placard                   | 0.707, 0.343                              | 0.18 × 0.19                                | art                  | 842, 316            |
+| Flap readout ("Flaps" above)          | 0.516, 0.540                              | 0.21 × 0.07                                | 0.586, 0.501         | 619, 489            |
+| Flap Fuse                             | 0.718, 0.547                              | 0.07                                       | 0.767, 0.502         | 855, 495            |
+| Fuel valve legend strip               | 0.325, 0.604                              | 0.05 × 0.30 (vertical)                     | 0.177, 0.647         | 396, 545            |
+| Fuel valve slot (column's left edge)  | 0.21, 0.62 – 0.95                         | –                                          | –                    | 261, 559 – 848      |
+| Fuel valve grip (closed, at slot end) | 0.357, 0.945                              | 0.25 long, horizontal, pointing right      | –                    | 433, 844            |
+| Flap selector (ring)                  | 0.530, 0.715                              | 0.18 × 0.19                                | 0.586, 0.821         | 635, 642            |
+| Ignition key switch                   | 0.367, 0.852                              | 0.18                                       | 0.177, 0.826         | 445, 762            |
+| Master box (BAT left, GEN right)      | 0.711, 0.858                              | 0.19 × 0.11                                | 0.782 / 0.919, 0.838 | 846, 768            |
+| "Instrument Light" legend             | 0.548, 0.902                              | –                                          | art                  | 656, 806            |
+| ELT remote switch and lamp            | not visible in photos (stays, §2a item 1) | –                                          | 0.305, 0.514         | unchanged           |
+
+- **Deltas that a pilot would notice.** The rocker row is centred on the column's top
+  and closely spaced (pitch 0.095 of the top width, about 0.30 D), not spread over the
+  whole width from the far left. The flap selector sits **above** the ignition's level,
+  between the flap readout and the Master box, not level with the ignition. The
+  ignition is at the lower part's left, right of the fuel-valve slot, not at the far
+  left. The fuel valve's legend strip is right of its slot, and the closed grip lies
+  at the slot's lower end just under the ignition's face (§3.7.1).
+- **Overlaps under the fraction mapping at today's control sizes**: the rocker pitch
+  becomes 110 units (today's rockers are 150 wide), and the flap selector (290
+  round) overlaps the ignition (260) by about 50 units, the Master box (BAT and GEN,
+  300 × 220) by about 80 and the flap readout (240 × 110) by about 45; real geometry
+  and today's touch-target sizes conflict here (§9 question 43).
+
+**Console** (photos 10.14.30 (1) and 10.14.29 (3), **low confidence**, ±0.05 of the
+console's width at the lever row):
+
+- Lever row, left to right, as fractions of the console top's width: the green
+  stabilator-trim strip at the left edge (0.03), the trim wheel 0.15, the trim
+  indicator slot 0.27, choke 0.35, throttle 0.55, brake 0.80. The levers use the
+  console's **full width**, the brake near its right edge. Trainer today (fractions of
+  1200): trim 0.10, choke 0.28, throttle 0.45, brake 0.61, with the provisional
+  carb-heat knob at 0.84 (not on D-MPGO; stays, §2a item 1).
+- Parking-brake valve: on the right flank (x about 0.95), aft of the lever row by
+  about half the console's width; trainer 0.85, below the brake: same side, slightly
+  further in.
+- Rescue handle: centred on the upright aft face (trainer 0.50): no delta.
+- Aileron and rudder trim wheels between valve and handle: not drawn (§3.7.2), no
+  position needed for M19.
+
+#### 3.9.7 Trainer mapping
+
+**Today.** `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
+12 – 459, centre 471 – 1628, right 1640 – 2360, all y 16 – 684 (span aspect 3.51).
+`cockpit.ts`: panel cell 1339 × 395 at HD (x 120 – 1459), floor `minWidth` 1110
+(0.468 px per view unit), `centre` cell x 524 – 987, dock x 0 – 508. Device slots at
+natural size (§3.2a): round 272, GPS 440 × 275, FLARM 320 × 160. The airspeed
+indicator is 220 units because its numerals set the lettering minimum at the floor.
+
+**Do the real proportions need a new view box? Yes, if the panel is to keep its full
+width.** The plates' real span is 2.64 times as wide as tall; the view's is 3.51.
+Height binds, not width:
+
+- At **2372 wide** (1 D = 177 units): left plate 869 × 829, gap 69, centre 579 × 891,
+  gap 77, right 754 × 815. The box would have to be about 2372 × 923 (+32 percent
+  height). In the HD panel cell that is 1339 × 521 px, which leaves no room for the
+  `centre` and `console` row (347 px) inside the 758 px cockpit: the one-viewport rule
+  (#253) breaks. At this scale the natural device slots would just fit the centre
+  plate (radio pair 544 of 579 wide; FLARM, GPS and radios stacked 707 of 891 tall),
+  with the radio gap shrunk from 0.36 D to about 0.1 D.
+- At **700 tall** (1 D = 133 units): the plates span only 1761 of the 2372 units;
+  centre plate 434 × 668. The natural slots cannot fit: the radio pair alone (544) is
+  wider than the centre plate.
+
+**Assumption T (all "T" coordinates in §3.9.2 – §3.9.5 use it; the owner decides in
+§9 question 41).** The view box stays 2372 × 700, so `cockpit.ts`'s cell rects stay.
+The three plates are drawn at true proportions with one uniform scale fitted to the
+height: **1 D = 133.1 view units** (0.3913 per centre-plate unit of this survey),
+centred, with the dark moulding filling x 0 – 306 and 2066 – 2372 and the gaps:
+
+- panel box fraction to view: **x = 306 + 1761·px, y = 16 + 668·py**; a size in D
+  times 133.1;
+- left plate x 306 – 957, y 54 – 676; centre plate x 1009 – 1443, y 16 – 684; right
+  plate x 1501 – 2066, y 70 – 681.
+
+What T costs (each a training-UX trade-off of equal rank under ADR 0002, realism
+against lettering minimums and 44 px targets):
+
+- **Lettering floor.** The airspeed indicator comes out at 193 units, 0.88 of the 220
+  its numerals need. Keeping today's lettering minimum means the panel's `minWidth`
+  rises from 1110 to about 1267 px (still below the HD cell's 1339), or the dial
+  numerals are redrawn relatively larger. Every other gauge shrinks against today
+  too: tachometer 137 (today 210), small engine gauges 77 – 81 (today 150), slip 139,
+  VSI 133 (today 196).
+- **Device mirrors** fall below natural size: COM and transponder 133 (0.49 of 272),
+  GPS cradle 333 × 203 (0.76), FLARM 116 × 59 (0.36). Their slot lettering would be
+  below the floor; operation in the dock is unchanged.
+- **Breakers.** Real pitch gives 69 by 41 units per breaker (39 by 23 px at HD), far
+  below 44 px targets; today's grid is 100 × 96.
+- **Glareshield items** fall above the box (y about −26): the Cabin Heat knob and the
+  red-cross disc cannot be drawn above the centre plate (§9 question 42).
+- **Cockpit fit.** The lower column stays under the centre plate within 17 px at HD
+  (§3.9.6), so the `centre` cell need not move. The radios move right, to cockpit
+  x 760 and 862 px: they no longer reach over the dock (x 0 – 508), which §3.2a's
+  layout aimed for.
+
+**Alternative (not used for the coordinates): a box of about 2044 × 800 at today's
+scale (1 D = 153 units, airspeed 220).** True proportions with no shrink of the
+lettering; the panel cell becomes about 1009 × 395 px at HD with `minWidth` about 957
+(the same 0.468 px per unit), freeing about 330 px of cockpit width; the glareshield
+items still do not fit (including them needs a box about 880 tall, whose scale in the
+395 px cell falls below the floor). This
+cascades to `cockpit.ts` (panel cell rect and `minWidth`) and to every statement of
+the 1110 floor. The device mirrors and breakers are as small, relative to their
+natural sizes, as under T.
+
+**Summary for the implementer of #716 and #712.** Whatever the owner chooses in §9
+41, the _positions_ (field and panel fractions) and the _relative sizes_ (D and × ASI)
+above are what makes the panel recognisable; the fractions do not change with the box.
 
 ## 4. Limits and values used by the trainer
 
@@ -2126,3 +2574,52 @@ verifies it on D-MPGO.
     (§3.8.4).
     **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
     lights only in the self-test and the Nearest and Collision confirmation.
+40. **Panel colour** (#716): the photos show all three upper plates and the lower
+    column in the same light brushed aluminium, with only the moulding around them
+    dark (§3.9.1). The owner ruled that the centre field takes the outer panel's
+    colour. Should every field then be aluminium, as on D-MPGO, or every field the
+    trainer's dark panel colour? Trainer uses: the ruling as worded against today's
+    trainer, so all fields, the lower column included, take the dark panel colour of
+    today's outer fields. **Assumed (unverified)** (§3.9.1).
+41. **Panel proportions against legibility** (#716): D-MPGO's upper panel is 2.64 times
+    as wide as tall, with a narrow upright centre field between two wide outer fields;
+    the trainer's is 3.51 with the centre field widest. At true proportions in today's
+    2372 × 700 box everything is drawn smaller than today (airspeed 193 against 220,
+    tachometer 137, engine gauges about 80, radios 133, breakers 41 units apart), and
+    the panel floor would rise from 1110 to about 1267 px to keep today's lettering
+    minimum. Should the trainer (a) draw true proportions in today's box and raise the
+    floor, (b) change the box to about 2044 × 800 at today's scale and narrow the HD
+    panel cell to about 1009 px, or (c) keep today's gauge and slot sizes and take
+    only the positions from the photos, accepting a panel wider than D-MPGO's? Trainer
+    uses: (a), the coordinates marked T in §3.9.2 to §3.9.5. **Assumed (unverified)**
+    (§3.9.7).
+42. **Glareshield knob and red-cross disc** (#716): on D-MPGO both sit on the moulding
+    above the centre plate's left half, about 0.3 D above its top edge (§3.9.1). Under
+    either true-proportion layout they fall outside the view box. Should they be left
+    out, stay as today in a strip at the top of the centre field, or should the box
+    grow upward for them? Trainer uses: both kept inside the centre plate's top margin
+    above the FLARM display and the checklist, at their photographed x (0.12 and 0.37
+    of the plate), shrunk to the margin's height (about 34 units under T).
+    **Assumed (unverified)** (§3.9.1, §3.9.7). The red-cross disc is still
+    unidentified (§3.7.1).
+43. **Lower column proportions** (#716): the column is taller than wide (0.75), a T
+    with the rocker row across its top and a lower part 0.59 as wide; the `centre` view
+    is 1.33 and drawn as a full rectangle (§3.9.6). Its rockers are 0.30 D apart and the
+    flap selector and ignition nearly touch, which at today's control sizes overlap.
+    Should the view draw the T-shaped plate at its true aspect with dark moulding beside
+    it, or stretch the column across the view and keep today's control sizes? Trainer
+    uses: the column's fractions stretched across today's view (x = 16 + 1168·x,
+    y = 16 + 876·y), controls at today's sizes, nudged apart where they would overlap.
+    **Assumed (unverified)** (§3.9.6).
+44. **GPS size against the radios** (#712): the aera 500's cradle is 2.50 D wide and
+    1.53 D tall on D-MPGO (COM = 1 D), and dominates the centre field; today's slot is
+    1.62 D by 1.01 D. Should the GPS keep the photographed ratio to the radios even if
+    the radios then sit below their natural size, or keep its natural 440 × 275 beside
+    radios at 272? Trainer uses: the photographed ratio, at the scale of §9 question 41
+    (cradle 333 × 203 under T, 0.76 of natural). **Assumed (unverified)** (§3.9.3).
+45. **FLARM display size** (#712): the classic FLARM display on D-MPGO is a small strip,
+    0.87 D wide and 0.44 D tall, at the centre field's top left beside the checklist
+    summary; today's slot is 1.18 D by 0.59 D (320 × 160 at natural size). Should it
+    shrink to its photographed size, with its LED legends below the lettering floor, or
+    keep a legible minimum? Trainer uses: the photographed size, at the scale of §9
+    question 41 (116 × 59 under T). **Assumed (unverified)** (§3.9.3).
