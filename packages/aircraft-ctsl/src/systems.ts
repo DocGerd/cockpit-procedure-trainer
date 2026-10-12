@@ -118,11 +118,16 @@ const CHARGING_VOLTS = 14;
 export const FIELD_ELEVATION_FT = 315;
 export const QNH_HPA = 1013;
 export const FT_PER_HPA = 27;
+export const STANDARD_PRESSURE_HPA = 1013;
 export const ALTIMETER_SETTINGS_HPA = { min: 950, max: 1050 } as const;
 
 /** What the altimeter reads: the field elevation, the height above it, and the setting's error. */
 export const indicatedAltitudeFt = (altitudeFt: number, settingHpa: number, qnhHpa: number) =>
   FIELD_ELEVATION_FT + altitudeFt + (settingHpa - qnhHpa) * FT_PER_HPA;
+
+/** What a transponder reports: the altimeter's reading with the standard pressure set. */
+export const pressureAltitudeFt = (altitudeFt: number, qnhHpa: number) =>
+  indicatedAltitudeFt(altitudeFt, STANDARD_PRESSURE_HPA, qnhHpa);
 
 const bus = electricalBus({ batteryVolts: BATTERY_VOLTS, chargingVolts: CHARGING_VOLTS });
 const engineBlock = pistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });

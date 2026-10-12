@@ -1089,6 +1089,10 @@ outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code 
 right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
 switch if one is fitted. `TM` at the far right of the top line marks test mode.
 
+_Trainer note (#742)._ The level is the pressure altitude in whole hundreds of feet,
+rounded down: the altimeter's reading with 1013 hPa set (§3.10.2, §9 questions 46 to
+49), so on the apron at field elevation it reads `FL 003`, not `FL 000`.
+
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
 list by 24-bit address appears; the pilot picks one with the knob and confirms with
