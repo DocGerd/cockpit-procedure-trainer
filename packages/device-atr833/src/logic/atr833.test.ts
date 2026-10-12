@@ -460,8 +460,11 @@ describe('the user memory list', () => {
   });
 
   it('sets the last-from-memory frequency to the active one on a MEM hold', () => {
-    const flying = { ...withMemory({ 0: 122000 }), active: 120000 };
-    const held = hold(tap(flying, 'mem'), 'mem', LONG_PRESS_MS);
+    // Slot 0 stays empty, so reopening the memory list cannot set LST 00 itself.
+    const flying = { ...withMemory({ 1: 122000 }), active: 120000 };
+    const shown = turn(tap(flying, 'mem'), 'volSel', 'up');
+    expect(shown).toMatchObject({ list: { kind: 'mem', index: 1 }, lastFromMemory: 122000 });
+    const held = hold(shown, 'mem', LONG_PRESS_MS);
     expect(held.lastFromMemory).toBe(120000);
     const retuned = turn(release(held), 'freq', 'up');
     expect(retuned.list).toBeNull();
