@@ -1089,9 +1089,14 @@ outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code 
 right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
 switch if one is fitted. `TM` at the far right of the top line marks test mode.
 
-_Trainer note (#742)._ The level is the pressure altitude in whole hundreds of feet,
-rounded down: the altimeter's reading with 1013 hPa set (§3.10.2, §9 questions 46 to
-49), so on the apron at field elevation it reads `FL 003`, not `FL 000`.
+_Trainer note (#742)._ The level is the pressure altitude: the altimeter's reading
+with 1013 hPa set (§3.10.2, §9 questions 46 to 48), so it follows the day's QNH, not
+the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 000`
+of the parked-aircraft photos is illustrative only, as noted above. The level is
+shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
+issue #742 and not taken from the handbook (the text above says only "in 100 ft
+steps"); to be checked against the handbook. A level below zero is not covered by
+any source and is shown as the same rounding gives it.
 
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
@@ -3823,8 +3828,8 @@ verifies it on D-MPGO.
     long pointer turns once per 1,000 ft (3.6° per 10 ft), the broad pointer once per
     10,000 ft and the hairline once per 100,000 ft. **Assumed (unverified)**: the
     27 ft per hPa factor is the general-knowledge value near sea level (about 27 to 30
-    ft per hPa). The transponder's altitude feed stays as it is, independent of the
-    knob (known simplification, #719).
+    ft per hPa). The transponder's altitude feed (#742) is the same relation with the
+    standard 1013 hPa as the setting, so it follows QNH and not the knob.
 49. **Altimeter details the photos do not show** (#719): the drum's setting range and
     step, the knob's turning sense, its knurl and length, and the printed pressure
     unit (the small print at the window's top edge is not legible). Trainer uses: 950
