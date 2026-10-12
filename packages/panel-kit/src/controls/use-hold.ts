@@ -57,8 +57,10 @@ export function useHold(onRelease: () => void) {
     onPointerUp: onPointerEnd,
     onPointerCancel: abandon,
     onLostPointerCapture: onPointerEnd,
+    // A touch lift fires pointerleave after pointerup and before its click: once the hold has
+    // ended, the leave must not clear `clickPending`, or that click presses a second time.
     onPointerLeave: () => {
-      if (!captured.current) abandon();
+      if (held.current && !captured.current) abandon();
     },
     onBlur: abandon,
     onClick: () => {

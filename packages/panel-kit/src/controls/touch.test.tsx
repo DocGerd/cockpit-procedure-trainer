@@ -75,6 +75,19 @@ describe('press and hold', () => {
     expect(props.onRelease).toHaveBeenCalledTimes(1);
   });
 
+  it('does not press again on the click a touch lift sends after the pointer leaves', () => {
+    const props = widgetProps(momentary);
+    render(<PushButton {...props} />);
+    fireEvent.pointerDown(button(), { button: 0, pointerId: POINTER });
+    fireEvent.pointerUp(button(), { pointerId: POINTER });
+    fireEvent.lostPointerCapture(button(), { pointerId: POINTER });
+    fireEvent.pointerOut(button(), { pointerId: POINTER });
+    fireEvent.pointerLeave(button(), { pointerId: POINTER });
+    fireEvent.click(button());
+    expect(props.onPress).toHaveBeenCalledTimes(1);
+    expect(props.onRelease).toHaveBeenCalledTimes(1);
+  });
+
   it('holds a spring-back detent the same way', () => {
     const props = widgetProps(rotary);
     const Widget = defaultControlWidget('rotary');

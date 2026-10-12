@@ -6,6 +6,16 @@ import { FaceKey, KnobHelpers } from './index';
 
 afterEach(cleanup);
 
+// The order a touch lift reaches a captured button in a browser: the click comes last.
+function tap(target: HTMLElement) {
+  fireEvent.pointerDown(target, { button: 0, pointerType: 'touch' });
+  fireEvent.pointerUp(target, { pointerType: 'touch' });
+  fireEvent.lostPointerCapture(target, { pointerType: 'touch' });
+  fireEvent.pointerOut(target, { pointerType: 'touch' });
+  fireEvent.pointerLeave(target, { pointerType: 'touch' });
+  fireEvent.click(target);
+}
+
 const face = (children: ReactNode) =>
   render(<div style={{ position: 'relative', width: 280, height: 280 }}>{children}</div>);
 
@@ -83,6 +93,15 @@ describe('FaceKey', () => {
     expect(send).toHaveBeenLastCalledWith('set', 'release');
   });
 
+  it('presses once for a touch tap, whose click comes after the pointer leaves', () => {
+    const send = key();
+    tap(screen.getByRole('button', { name: 'SET' }));
+    expect(send.mock.calls).toEqual([
+      ['set', 'press'],
+      ['set', 'release'],
+    ]);
+  });
+
   it('presses without a position for a key that stands for its control', () => {
     const send = key();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'SET' }), { button: 0 });
@@ -141,6 +160,15 @@ describe('KnobHelpers', () => {
     const word = document.querySelector('[data-knob-word]');
     expect(word?.textContent).toBe('FREQ');
     expect(word?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('turns the knob one step for a touch tap', () => {
+    const send = helpers();
+    tap(screen.getByRole('button', { name: 'FREQ +' }));
+    expect(send.mock.calls).toEqual([
+      ['freq', 'press', 'up'],
+      ['freq', 'release'],
+    ]);
   });
 
   it('turns the knob while held and lets it spring back on release', () => {
