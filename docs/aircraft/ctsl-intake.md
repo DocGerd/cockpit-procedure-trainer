@@ -2039,8 +2039,8 @@ above are what makes the panel recognisable; the fractions do not change with th
   is height-bound as before (0.564 px per unit, so 1 A is still 109 px); the panel cell
   narrows to the panel's own width (`cockpit.ts`: x 194, 1191 wide), so each item keeps
   its HD place in the cockpit. The panel reaches its floor at about the same cockpit scale
-  as the lower row's cells, so the combined layout holds as before. The T columns above
-  map to this box by x = 175 + 1761·px.
+  as the lower row's cells, so the combined layout holds as before. Panel-box fractions
+  map to this box by x = 145 + 1761·px (a T column's x minus 161).
 - **Plates.** Left 640 wide (3.32 A; the airspeed indicator 0.79 A from the outer edge),
   centre 434 × 668 (2.25 × 3.46 A, height to width 1.54; the GPS cradle 0.80 of its
   width), right 610 wide (3.16 A, within the outer extents' ±0.27 A; the tachometer 0.23
@@ -2051,8 +2051,12 @@ above are what makes the panel recognisable; the fractions do not change with th
   0.74 of the right plate. Each operable breaker's touch box is 84 × 84 (the target at
   the floor) and sits off-centre round its knob where neighbours stand closer than that,
   so no two boxes overlap: top-row boxes reach up, bottom-row boxes down, and along the
-  run of four operable breakers (Beacon Light to GPS) each box shifts a step further left
-  of its knob. Legends sit above the top row and under the bottom row, as on the aircraft.
+  run of four operable breakers (Beacon Light to GPS) each box shifts a step further right
+  of its knob. Trade-off (ADR 0002): a tap just right of the Beacon Light knob or just
+  left of the GPS knob reaches the neighbour's box, and the Beacon Light box covers the
+  right edge of the inert Instrument Light face; four 84-unit boxes round knobs 69 apart
+  leave no room to avoid it. Legends sit above the top row and under the bottom row, as on
+  the aircraft.
 - **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
   meets the lettering minimum on a tablet in portrait.
 
