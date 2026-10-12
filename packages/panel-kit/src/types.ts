@@ -27,6 +27,8 @@ export type IndicatorWidgetProps = {
   label: string;
   options?: JsonObject;
   blink?: boolean;
+  /** Per window id, the value the indicator's artwork prints in that window. */
+  windows?: Readonly<Record<string, IndicatorValue>>;
 };
 
 export type ControlWidget = ComponentType<ControlWidgetProps>;

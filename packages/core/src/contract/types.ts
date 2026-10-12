@@ -37,9 +37,34 @@ export type MovingPart =
       readonly pivot: Point;
       readonly angleRange: { readonly min: number; readonly max: number };
       readonly valueRange: { readonly min: number; readonly max: number };
+      /** For a scale that turns at several rates: the angle at each value, in rising value order; replaces the linear mapping between the ranges. */
+      readonly stops?: readonly { readonly value: number; readonly angle: number }[];
     }
   | { readonly type: 'positions'; readonly images: { readonly [position: string]: string } }
-  | { readonly type: 'travel'; readonly image: string; readonly path: readonly Point[] };
+  | { readonly type: 'travel'; readonly image: string; readonly path: readonly Point[] }
+  | {
+      /** Hands that all follow one value, such as an altimeter's: drawn in order, the last on top. */
+      readonly type: 'needles';
+      readonly needles: readonly NeedleHand[];
+    };
+
+/**
+ * A hand drawn pointing up and turned clockwise about `pivot` by 360° for every `valuePerTurn` of
+ * the value, with no stop, so it goes round as often as the value asks.
+ */
+export type NeedleHand = {
+  readonly image: string;
+  readonly pivot: Point;
+  readonly valuePerTurn: number;
+};
+
+/** Where an artwork prints a value as text, in the face's coordinates, such as a pressure window. */
+export type ArtworkWindow = {
+  readonly at: Point;
+  readonly fontSize: number;
+  readonly anchor?: 'start' | 'middle' | 'end';
+  readonly decimals?: number;
+};
 
 export type ArtworkAppearance = {
   readonly artwork: {
@@ -51,6 +76,8 @@ export type ArtworkAppearance = {
     readonly guardOpen?: { readonly [position: string]: string };
     /** The text the face image prints, so a check can see that the control is labelled. */
     readonly lettering?: readonly string[];
+    /** Per window id, where an indicator's artwork prints the value its `windows` selector of that id gives. */
+    readonly windows?: { readonly [id: string]: ArtworkWindow };
   };
   readonly options?: JsonObject;
 };
@@ -168,6 +195,8 @@ export type IndicatorDefinition<S> = {
   readonly select: (state: TrainerState<S>) => IndicatorValue;
   /** While true, a widget that can blink (the digital readout) blinks its value. */
   readonly blink?: Condition<S>;
+  /** Further values the artwork prints in its windows of the same ids, such as a pressure setting. */
+  readonly windows?: { readonly [id: string]: (state: TrainerState<S>) => IndicatorValue };
   readonly appearance: Appearance;
 };
 

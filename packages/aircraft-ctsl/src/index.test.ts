@@ -97,6 +97,12 @@ const expectedControls: Record<string, Expected> = {
     initial: 'stowed',
     view: 'console',
   },
+  altimeterSetting: {
+    kind: 'rotary',
+    positions: Array.from({ length: 101 }, (_, step) => String(950 + step)),
+    initial: '1013',
+    view: 'panel',
+  },
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {

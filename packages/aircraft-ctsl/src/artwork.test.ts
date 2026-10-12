@@ -4,6 +4,7 @@ import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { gaugeArtwork as gauges, images } from './artwork';
+import { needle } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
@@ -46,7 +47,11 @@ const indicatorArtwork = Object.entries(
 
 const urlsOf = ({ face, moving, glass, guardOpen }: Artwork): string[] => [
   face,
-  ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
+  ...(moving.type === 'positions'
+    ? Object.values(moving.images)
+    : moving.type === 'needles'
+      ? moving.needles.map(({ image }) => image)
+      : [moving.image]),
   ...(glass === undefined ? [] : [glass]),
   ...Object.values(guardOpen ?? {}),
 ];
@@ -215,7 +220,9 @@ describe('CTSL warning lamp', () => {
 });
 
 describe('CTSL gauges', () => {
-  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) => artwork.moving.type === 'needle');
+  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) =>
+    ['needle', 'needles'].includes(artwork.moving.type),
+  );
   const fixedFaces = ['slipIndicator', 'hourMeter'];
 
   it('keeps every round gauge on drawn artwork and its full name', () => {
@@ -230,9 +237,19 @@ describe('CTSL gauges', () => {
     }
   });
 
+  it('gives a gauge the needle and glass it names and no glass when it names none', () => {
+    const parts = { image: 'needle.svg', glass: 'glass.svg' };
+    const { artwork } = needle('face.svg', { min: 0, max: 1 }, {}, undefined, parts);
+    expect(artwork.glass).toBe('glass.svg');
+    expect(artwork.moving.type === 'needle' && artwork.moving.image).toBe('needle.svg');
+    expect(
+      needle('face.svg', { min: 0, max: 1 }, {}, undefined, { image: 'needle.svg' }).artwork,
+    ).not.toHaveProperty('glass');
+  });
+
   it('gives every gauge its own module and test file', () => {
     const files: string[] = readdirSync(new URL('./artwork/gauges/', import.meta.url));
-    const helpers = ['shared.ts', 'test-support.ts'];
+    const helpers = ['shared.ts', 'test-support.ts', 'cht-test-support.ts', 'temperature-dial.ts'];
     const modules = files.filter((file) => !file.endsWith('.test.ts') && !helpers.includes(file));
     const tests = files.filter((file) => file.endsWith('.test.ts'));
     const kebab = Object.keys(gauges)

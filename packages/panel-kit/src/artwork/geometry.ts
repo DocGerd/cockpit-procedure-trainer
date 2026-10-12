@@ -25,8 +25,24 @@ export function layerFraction(value: LayerValue, notches?: readonly string[]): n
   return index / (notches.length - 1);
 }
 
+function angleAtStops(stops: NonNullable<Needle['stops']>, value: number): number {
+  const first = stops[0];
+  const last = stops[stops.length - 1];
+  if (!first || !last || Number.isNaN(value) || value <= first.value) return first?.angle ?? 0;
+  if (value >= last.value) return last.angle;
+  const index = stops.findIndex((stop) => stop.value >= value);
+  const upper = stops[index];
+  const lower = stops[index - 1];
+  if (!upper || !lower) return last.angle;
+  return (
+    lower.angle +
+    ((value - lower.value) / (upper.value - lower.value)) * (upper.angle - lower.angle)
+  );
+}
+
 export function needleAngle(part: Needle, value: number): number {
-  const { valueRange, angleRange } = part;
+  const { valueRange, angleRange, stops } = part;
+  if (stops && stops.length >= 2) return angleAtStops(stops, value);
   const span = valueRange.max - valueRange.min;
   const fraction = span === 0 ? 0 : clamp01((value - valueRange.min) / span);
   return angleRange.min + fraction * (angleRange.max - angleRange.min);

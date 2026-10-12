@@ -1,29 +1,40 @@
 import type { ArtworkAppearance, Point } from '@cpt/core';
 import { airspeed, airspeedFace } from './artwork/gauges/airspeed';
-import { altimeter, altimeterFace } from './artwork/gauges/altimeter';
+import {
+  altimeter,
+  altimeterFace,
+  altimeterGlass,
+  altimeterHands,
+  altimeterKnobFace,
+  altimeterKnobRim,
+} from './artwork/gauges/altimeter';
 import { cht, chtFace } from './artwork/gauges/cht';
 import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
 import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
 import { hourMeter, hourMeterFace } from './artwork/gauges/hour-meter';
-import { glassImage, needleImage } from './artwork/gauges/shared';
 import { slipIndicator, slipIndicatorFace } from './artwork/gauges/slip-indicator';
-import { tachometer, tachometerFace } from './artwork/gauges/tachometer';
+import { tachometer, tachometerFace, tachometerNeedle } from './artwork/gauges/tachometer';
 import { verticalSpeed, verticalSpeedFace } from './artwork/gauges/vertical-speed';
 import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
 
 export const images = {
   gaugeAirspeed: airspeedFace,
   gaugeAltimeter: altimeterFace,
+  gaugeAltimeterTenThousands: altimeterHands.tenThousands,
+  gaugeAltimeterThousands: altimeterHands.thousands,
+  gaugeAltimeterHundreds: altimeterHands.hundreds,
+  gaugeAltimeterGlass: altimeterGlass,
+  gaugeAltimeterKnob: altimeterKnobFace,
+  gaugeAltimeterKnobRim: altimeterKnobRim,
   gaugeVsi: verticalSpeedFace,
   gaugeTachometer: tachometerFace,
+  gaugeTachometerNeedle: tachometerNeedle,
   gaugeOilPressure: oilPressureFace,
   gaugeOilTemperature: oilTemperatureFace,
   gaugeCht: chtFace,
   gaugeVoltmeter: voltmeterFace,
   gaugeSlipIndicator: slipIndicatorFace,
   gaugeHourMeter: hourMeterFace,
-  needle: needleImage,
-  glassGauge: glassImage,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,

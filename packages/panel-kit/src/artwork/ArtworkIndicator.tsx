@@ -31,6 +31,7 @@ export function ArtworkIndicator({
   options,
   artwork,
   fallback,
+  windows,
 }: ArtworkIndicatorProps) {
   return (
     <ArtworkStage
@@ -39,6 +40,7 @@ export function ArtworkIndicator({
       fallback={fallback}
       options={options}
       imageLabel={nameOf(label, value, options)}
+      windows={windows}
     />
   );
 }
