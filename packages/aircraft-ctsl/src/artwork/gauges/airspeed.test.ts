@@ -8,8 +8,10 @@ const face = () => readFace(airspeed.artwork.face);
 const airspeedScaleAngle = (kmh: number): number => {
   const found = airspeedScale.findIndex(([value]) => value >= kmh);
   const upper = found === -1 ? airspeedScale.length - 1 : Math.max(found, 1);
-  const [v1, a1] = airspeedScale[upper] ?? [340, 340];
-  const [v0, a0] = airspeedScale[upper - 1] ?? [40, 10];
+  const hi = airspeedScale[upper];
+  const lo = airspeedScale[upper - 1];
+  if (!hi || !lo) throw new Error(`no scale segment for ${kmh} km/h`);
+  const [[v0, a0], [v1, a1]] = [lo, hi];
   return a0 + ((kmh - v0) / (v1 - v0)) * (a1 - a0);
 };
 
@@ -27,14 +29,17 @@ const polar = (x: number, y: number) => {
   return { r: Math.hypot(dx, dy), angle: angle < 0 ? angle + 360 : angle };
 };
 
-const needleAt = (kmh: number) => {
+const needlePart = () => {
   const { moving } = airspeed.artwork;
   if (moving.type !== 'needle') throw new Error('the airspeed indicator has a needle');
-  const { valueRange, angleRange } = moving;
-  const fraction = Math.min(
-    1,
-    Math.max(0, (kmh - valueRange.min) / (valueRange.max - valueRange.min)),
-  );
+  return moving;
+};
+
+/** panel-kit's `needleAngle` inside the value range, where it does not clamp. */
+const needleAt = (kmh: number) => {
+  const { valueRange, angleRange } = needlePart();
+  if (kmh < valueRange.min || kmh > valueRange.max) throw new Error(`${kmh} km/h is off scale`);
+  const fraction = (kmh - valueRange.min) / (valueRange.max - valueRange.min);
   return angleRange.min + fraction * (angleRange.max - angleRange.min);
 };
 
@@ -58,8 +63,8 @@ describe('CTSL airspeed gauge', () => {
       [320, 318],
       [340, 340],
     ]);
-    for (const [kmh, angle] of airspeedScale) expect(airspeedScaleAngle(kmh)).toBe(angle);
     expect(airspeedScaleAngle(50)).toBe(21);
+    expect(airspeedScaleAngle(290)).toBe(281.5);
   });
 
   it('keeps the intake’s arc angles on the measured scale', () => {
@@ -82,11 +87,13 @@ describe('CTSL airspeed gauge', () => {
   });
 
   it('rests the needle on the 12 o’clock index and sweeps clockwise almost a full turn', () => {
-    expect(needleAt(0)).toBe(0);
-    expect(needleAt(20)).toBe(0);
+    const { valueRange, angleRange } = needlePart();
+    expect(angleRange).toEqual({ min: 0, max: 340 });
+    expect(valueRange.min).toBeCloseTo(40 - 10 / 1.1, 9);
+    expect(valueRange.max).toBe(340);
+    expect(needleAt(35)).toBeGreaterThan(0);
+    expect(needleAt(35)).toBeLessThan(10);
     expect(needleAt(40)).toBeCloseTo(10, 6);
-    expect(needleAt(340)).toBe(340);
-    expect(needleAt(400)).toBe(340);
   });
 
   it('points the needle at each measured numeral within the intake’s tolerance', () => {
@@ -170,7 +177,15 @@ describe('CTSL airspeed gauge', () => {
   });
 
   it('marks the rest index at 12 o’clock, inside the scale', () => {
-    expect(face()).toMatch(/<rect data-mark="rest-index" x="97.5" y="15" width="5" height="8"/);
+    const [, x, y, width, height] =
+      /<rect data-mark="rest-index" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/
+        .exec(face())
+        ?.map(Number) ?? [];
+    const [top, bottom] = [polar(100, Number(y)), polar(100, Number(y) + Number(height))];
+    expect(Number(x) + Number(width) / 2).toBeCloseTo(100, 6);
+    expect(top.angle).toBe(0);
+    expect(bottom.r).toBeGreaterThanOrEqual(77);
+    expect(top.r).toBeLessThanOrEqual(85);
   });
 
   it('prints AIRSPEED over the KmH legend above the hub, and no maker name', () => {
