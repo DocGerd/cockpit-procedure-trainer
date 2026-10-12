@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { REPEAT_DELAY_MS, REPEAT_INTERVAL_MS } from './ArtworkControl';
 import { ArtworkControl, ArtworkIndicator } from './index';
 
 import type { Artwork } from './index';
@@ -301,6 +302,128 @@ describe('glass layer', () => {
     fireEvent.error(glass() as HTMLImageElement);
     expect(screen.getByText('generic widget')).toBeTruthy();
     expect(document.querySelector('img')).toBeNull();
+  });
+});
+
+describe('ArtworkIndicator needles', () => {
+  const hands: MovingPart = {
+    type: 'needles',
+    needles: [
+      { image: 'tenThousands.png', pivot: { x: 20, y: 10 }, valuePerTurn: 100_000 },
+      { image: 'thousands.png', pivot: { x: 20, y: 10 }, valuePerTurn: 10_000 },
+      { image: 'hundreds.png', pivot: { x: 20, y: 10 }, valuePerTurn: 1000 },
+    ],
+  };
+  const drawnHands = () => [...document.querySelectorAll('svg.cpt-artwork-moving > image')];
+
+  it('turns every hand from the one value, each at its own scale, in drawing order', () => {
+    renderIndicator(hands, 1250);
+    expect(drawnHands().map((hand) => hand.getAttribute('href'))).toEqual([
+      'tenThousands.png',
+      'thousands.png',
+      'hundreds.png',
+    ]);
+    expect(drawnHands().map((hand) => transformOf(hand))).toEqual([
+      'rotate(4.5 20 10)',
+      'rotate(45 20 10)',
+      'rotate(450 20 10)',
+    ]);
+    expect(document.querySelector('svg')?.getAttribute('data-moving')).toBe('needles');
+  });
+
+  it('turns the hands back past zero for a value below it', () => {
+    renderIndicator(hands, -500);
+    expect(transformOf(drawnHands()[2])).toBe('rotate(-180 20 10)');
+  });
+
+  it('casts a shadow of every hand when asked', () => {
+    renderIndicator(hands, 0, { needleShadow: true });
+    expect(document.querySelectorAll('mask image')).toHaveLength(3);
+  });
+
+  it('falls back to the generic widget when a hand image fails', () => {
+    renderIndicator(hands, 0);
+    fireEvent.error(drawnHands()[1] as Element);
+    expect(screen.getByText('generic widget')).toBeTruthy();
+  });
+
+  it('falls back to the generic widget for a value the hands cannot show', () => {
+    renderIndicator(hands, Number.NaN);
+    expect(screen.getByText('generic widget')).toBeTruthy();
+    expect(drawnHands()).toHaveLength(0);
+  });
+
+  it('keeps every hand its own image on a guarded control with the guard open', () => {
+    renderControl(guarded, hands, 'a', true, undefined, { a: 'a-open.png' });
+    expect(drawnHands().map((hand) => hand.getAttribute('href'))).toEqual([
+      'tenThousands.png',
+      'thousands.png',
+      'hundreds.png',
+    ]);
+  });
+});
+
+describe('ArtworkIndicator windows', () => {
+  const withWindow = (windows?: Record<string, number | string>, options?: JsonObject) => {
+    render(
+      <ArtworkIndicator
+        value={0}
+        label="Gauge"
+        {...(options ? { options } : {})}
+        artwork={{
+          ...artworkOf(needle),
+          windows: {
+            setting: { at: { x: 30, y: 10 }, fontSize: 4, anchor: 'end' },
+            temperature: { at: { x: 10, y: 10 }, fontSize: 3, decimals: 1 },
+          },
+        }}
+        {...(windows ? { windows } : {})}
+        fallback={fallback}
+      />,
+    );
+    loadFace();
+  };
+  const windowText = (id: string) => document.querySelector(`[data-window="${id}"]`);
+
+  it('prints each window value at its place on the face, under the needle', () => {
+    withWindow({ setting: 1013.4, temperature: 15.04 });
+    const setting = windowText('setting');
+    expect(setting?.textContent).toBe('1013');
+    expect(setting?.getAttribute('x')).toBe('30');
+    expect(setting?.getAttribute('font-size')).toBe('4');
+    expect(setting?.getAttribute('text-anchor')).toBe('end');
+    expect(windowText('temperature')?.textContent).toBe('15.0');
+    expect(windowText('temperature')?.getAttribute('text-anchor')).toBe('middle');
+    expect(
+      (setting as Node).compareDocumentPosition(layers().at(-1) as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('prints a text value as it is and dashes a window without a value', () => {
+    withWindow({ setting: 'STD' });
+    expect(windowText('setting')?.textContent).toBe('STD');
+    expect(windowText('temperature')?.textContent).toBe('---');
+  });
+
+  it('dashes a window whose value is no number', () => {
+    withWindow({ setting: Number.NaN, temperature: Number.POSITIVE_INFINITY });
+    expect(windowText('setting')?.textContent).toBe('---');
+    expect(windowText('temperature')?.textContent).toBe('---');
+  });
+
+  it('prints the window under the needle shadow, as part of the face', () => {
+    withWindow({ setting: 1013 }, { needleShadow: true });
+    const shadow = document.querySelector('[data-needle-shadow]');
+    expect(
+      (windowText('setting') as Node).compareDocumentPosition(shadow as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('keeps the window text out of the accessible name', () => {
+    withWindow({ setting: 1013 });
+    expect(screen.getByRole('img', { name: 'Gauge: 0' })).toBeTruthy();
   });
 });
 
@@ -1118,6 +1241,129 @@ describe('ArtworkControl stepping a notched control both ways', () => {
     key('ArrowUp');
     key('ArrowDown');
     expect(view.onSet.mock.calls).toEqual([['up'], ['land']]);
+  });
+});
+
+describe('ArtworkControl held on a many-detent rotary', () => {
+  const settings = Array.from({ length: 11 }, (_, index) => String(1010 + index));
+  const knob: ControlDefinition = { ...base, kind: 'rotary', positions: settings, initial: '1013' };
+  const knurl: MovingPart = {
+    type: 'needle',
+    image: 'knob.png',
+    pivot: { x: 20, y: 10 },
+    angleRange: { min: 0, max: 200 },
+    valueRange: { min: 0, max: 1 },
+  };
+  const slider = () => screen.getByRole('slider');
+  const repeating = { holdRepeat: true };
+  const renderKnob = (position: string, options: JsonObject = repeating) =>
+    renderControl(knob, knurl, position, false, options);
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 100,
+    } as DOMRect);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const press = (x: number) =>
+    fireEvent.pointerDown(slider(), { button: 0, clientX: x, clientY: 50 });
+  const lift = (x: number) => {
+    fireEvent.pointerUp(slider(), { clientX: x, clientY: 50 });
+    fireEvent.click(slider(), { detail: 1, clientX: x, clientY: 50 });
+  };
+
+  it('turns the knob a rotation per detent', () => {
+    renderKnob('1015');
+    expect(transformOf(layers()[0])).toBe('rotate(100 20 10)');
+  });
+
+  it('steps once for a short tap', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS - 1);
+    lift(90);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('steps on while held, from the detent it was pressed at, and not again on the click', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 2 * REPEAT_INTERVAL_MS);
+    lift(90);
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014'], ['1015'], ['1016']]);
+  });
+
+  it('steps down while the left half is held, and stops at the last detent', () => {
+    const view = renderKnob('1012');
+    press(10);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1011'], ['1010']]);
+  });
+
+  it('stops at the last detent upward with no further step', () => {
+    const view = renderKnob('1019');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 10 * REPEAT_INTERVAL_MS);
+    lift(90);
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1020']]);
+  });
+
+  it('stops when the knob is unmounted during a hold', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS);
+    view.unmount();
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('stops when the knob loses focus during a hold', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS);
+    fireEvent.blur(slider());
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('stops when the pointer leaves or is cancelled', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS);
+    fireEvent.pointerLeave(slider());
+    vi.advanceTimersByTime(5 * REPEAT_INTERVAL_MS);
+    press(90);
+    fireEvent.pointerCancel(slider());
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('steps once for a held press unless its artwork opts in', () => {
+    const view = renderKnob('1013', {});
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
+    lift(90);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('does not repeat a press in the dead zone or with another button', () => {
+    const view = renderKnob('1013');
+    press(50);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
+    fireEvent.pointerUp(slider());
+    fireEvent.pointerDown(slider(), { button: 2, clientX: 90, clientY: 50 });
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
+    expect(view.onSet).not.toHaveBeenCalled();
   });
 });
 

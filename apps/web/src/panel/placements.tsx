@@ -1,4 +1,4 @@
-import type { ControlDefinition, IndicatorDefinition, JsonObject } from '@cpt/core';
+import type { ControlDefinition, IndicatorDefinition, IndicatorValue, JsonObject } from '@cpt/core';
 import { resolveControl, resolveIndicator } from '@cpt/panel-kit';
 import { useMemo } from 'react';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
@@ -96,6 +96,15 @@ export function ControlPlacement({
   );
 }
 
+function windowValues(
+  indicator: IndicatorDefinition<unknown>,
+  state: Parameters<IndicatorDefinition<unknown>['select']>[0],
+): Readonly<Record<string, IndicatorValue>> | undefined {
+  const selectors = indicator.windows;
+  if (!selectors) return undefined;
+  return Object.fromEntries(Object.entries(selectors).map(([id, select]) => [id, select(state)]));
+}
+
 export function IndicatorPlacement({
   id,
   indicator,
@@ -109,6 +118,7 @@ export function IndicatorPlacement({
   const localize = useLocalize();
   const value = useSessionState((s) => indicator.select(s.state()));
   const blink = useSessionState((s) => indicator.blink?.(s.state()) ?? false);
+  const windows = useSessionState((s) => windowValues(indicator, s.state()));
   const { widget: Widget, options: declared } = resolveIndicator(indicator, value);
   const lamp = typeof value === 'boolean';
   const options = useMemo((): JsonObject | undefined => {
@@ -123,6 +133,7 @@ export function IndicatorPlacement({
         label={localize(indicator.name)}
         {...(options ? { options } : {})}
         {...(blink ? { blink } : {})}
+        {...(windows ? { windows } : {})}
       />
     </Placement>
   );

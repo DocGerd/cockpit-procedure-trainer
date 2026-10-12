@@ -37,6 +37,9 @@ export const views = {
       intercomBreaker: at(2031, 528, 98, 94),
       gpsBreaker: at(2129, 528, 98, 94),
       outletBreaker: at(1639, 590, 98, 94),
+      // The knob on its lug at the altimeter's lower left (intake §3.10.2), with its tap area
+      // grown around it to the touch target at the floor, clear of the airspeed indicator and VSI.
+      altimeterSetting: at(591, 340, 100, 100),
     },
     indicators: {
       airspeed: at(366, 196, 193, 193),
