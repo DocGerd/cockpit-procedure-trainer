@@ -2969,7 +2969,7 @@ propeller control in the cockpit (§9).
 | Gauge              | Scale used                               | Markings                                                                                                              |
 | ------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300**                                                          |
-| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800 (§3.10.5)                              |
+| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800; drawn in #721 (§3.10.5)               |
 | Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
 | Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
 | CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
@@ -3845,6 +3845,9 @@ verifies it on D-MPGO.
     1,800 and 4,000 rpm in every photo. Trainer uses: the values above, green
     continuous. **Assumed (unverified)** for the continuous green (§3.10.5, §4.3).
     The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
+    **Trainer (M19, #721):** drawn as assumed: green continuous, every boundary at its
+    printed rpm on the needle's own linear scale (−142° at 0 to +142° at 7,000 rpm, so
+    the red line sits at +93.5° where the photos read +96°, within the tolerance).
 56. **Hour meter** (#721): no question needed; it is inert art with an illustrative value
     (§3.10.10).
 57. **Engine gauges at rest** (#721): with the master off, and with a
@@ -3886,6 +3889,8 @@ verifies it on D-MPGO.
     have no scale start. The airspeed indicator, the altimeter and the four engine
     gauges record theirs in their own blocks (§3.10.1, §3.10.2 and §3.10.6 to
     §3.10.9).
+    **Trainer (M19, #721), tachometer:** as recorded here; the red low arc starts at 0,
+    next to the resting pointer.
 64. **ATR833A-OLED manual for D-MPGO's unit (#718)**: does the original ATR833-OLED
     on D-MPGO behave as the ATR833A-OLED manual (document 01.1411.010.71e, revision
     3.00) describes? The owner chose that manual because the maker no longer hosts one
