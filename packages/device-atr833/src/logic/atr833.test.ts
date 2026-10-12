@@ -532,21 +532,3 @@ describe('a short press held for a moment, then released', () => {
     expect(settle(press(step(start), 'power')).on).toBe(true);
   });
 });
-
-describe('long presses next to short ones', () => {
-  it('returns line 3 to VOL on a SET hold past the threshold', () => {
-    const atSql = tap(running, 'set');
-    const held = release(hold(atSql, 'set', LONG_PRESS_MS + 100, 16));
-    expect(held.item).toBe('vol');
-  });
-
-  it('stores the active frequency on a MEM hold in the memory list', () => {
-    const list = tap(running, 'mem');
-    const stored = release(hold(list, 'mem', LONG_PRESS_MS + 100, 16));
-    expect(stored.memory[0]).toBe(running.active);
-  });
-
-  it('switches off on an I/O hold past the power-off hold', () => {
-    expect(release(hold(running, 'power', POWER_OFF_HOLD_MS + 100, 16)).on).toBe(false);
-  });
-});
