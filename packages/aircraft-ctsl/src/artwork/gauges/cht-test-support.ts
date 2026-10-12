@@ -82,10 +82,14 @@ export function expectDialScale(id: DialSpec['id']) {
   for (const { value, angle } of heavyBars) {
     withinDegrees(dialAngle(value), angle, 1, `${value} °C bar`);
   }
+  expect(dialAngle(DIAL.rest), 'the needle rests at about 8:20, clear of the 40').toBeGreaterThan(
+    -115,
+  );
+  expect(dialAngle(DIAL.rest)).toBeLessThan(-105);
   const { stops, angleRange, valueRange } = needleOf(id);
   expect(valueRange, 'the needle reads plain degrees Celsius').toEqual({ min: 40, max: 150 });
-  expect(angleRange).toEqual({ min: dialAngle(40), max: dialAngle(150) });
-  expect(stops?.map(({ value }) => value)).toEqual([40, 120, 150]);
+  expect(angleRange).toEqual({ min: dialAngle(DIAL.rest), max: dialAngle(150) });
+  expect(stops?.map(({ value }) => value)).toEqual([DIAL.rest, 120, 150]);
   for (const { value, angle } of stops ?? []) expect(angle).toBeCloseTo(dialAngle(value), 9);
 }
 

@@ -13,6 +13,7 @@ export const DIAL = {
   startAngle: -130,
   lowDegPerC: 2.7,
   highDegPerC: 1.65,
+  rest: 47,
 } as const;
 
 export const dialAngle = (celsius: number): number =>
@@ -42,9 +43,12 @@ export const temperatureDial = (face: string, arcs: readonly Arc[]): ArtworkAppe
         type: 'needle',
         image: temperaturePointer,
         pivot: { x: 100, y: 100 },
-        angleRange: { min: dialAngle(DIAL.min), max: dialAngle(DIAL.max) },
+        angleRange: { min: dialAngle(DIAL.rest), max: dialAngle(DIAL.max) },
         valueRange,
-        stops: [DIAL.min, DIAL.knee, DIAL.max].map((value) => ({ value, angle: dialAngle(value) })),
+        stops: [DIAL.rest, DIAL.knee, DIAL.max].map((value) => ({
+          value,
+          angle: dialAngle(value),
+        })),
       },
     },
   };

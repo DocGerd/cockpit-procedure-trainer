@@ -3853,7 +3853,9 @@ verifies it on D-MPGO.
     pinned below it, and how far below? The photos show only live readings with the
     master on (CHT and oil temperature about 46 °C, voltmeter about 13.5 V, oil
     pressure on 0). Trainer uses: each needle on its lowest mark whenever the value is
-    below the scale or the gauge has no power. **Assumed (unverified)** (§3.10.6 to
+    below the scale or the gauge has no power, except the CHT and oil temperature
+    needles, which rest at about 8:20, just above the 40 and clear of its numeral (the
+    photo comparison of the rest position). **Assumed (unverified)** (§3.10.6 to
     §3.10.9).
 58. **Voltmeter band and centre word** (#721): is there a small coloured band near
     13 to 14 V (#721's audit thought so; the photos show none, but the needle covers
