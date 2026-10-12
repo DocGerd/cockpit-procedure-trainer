@@ -55,6 +55,32 @@ describe('CTSL drawn gauges', () => {
     },
   );
 
+  it.each([
+    ['voltmeter', 0, -124],
+    ['voltmeter', 9, -124],
+    ['voltmeter', 13, 0],
+    ['voltmeter', 20, 124],
+    ['oilPressure', 0, -124],
+    ['oilPressure', 7, 44],
+    ['oilPressure', 9, 44],
+  ] as const)(
+    '%s at %f turns its needle to %f degrees, held at the ends of its scale',
+    (id, value, angle) => {
+      const indicator = ctslAircraft.indicators[id];
+      if (!indicator) throw new Error(`no ${id} indicator`);
+      const { widget: Gauge, options } = resolveIndicator(indicator, value);
+      const { container } = render(
+        <Gauge value={value} label={indicator.name.en} {...(options ? { options } : {})} />,
+      );
+      const face = container.querySelector('img');
+      if (face) fireEvent.load(face);
+      const turns = [...container.innerHTML.matchAll(/rotate\((-?[\d.]+) 100 100\)/g)].map(
+        ([, deg]) => Number(deg),
+      );
+      expect(turns).toContain(angle);
+    },
+  );
+
   it('reads the airspeed with its unit', () => {
     const airspeed = ctslAircraft.indicators.airspeed;
     if (!airspeed) throw new Error('no airspeed indicator');

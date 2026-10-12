@@ -44,5 +44,5 @@ export const airspeed = needle(
     ],
   },
   { min: 0, max: 340 },
-  { image: lance, glass: null },
+  { image: lance },
 );

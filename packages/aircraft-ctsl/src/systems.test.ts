@@ -280,6 +280,18 @@ describe('engine start', () => {
     expect(seconds).toBeLessThanOrEqual(10);
   });
 
+  it('keeps oil pressure within the 7 bar the gauge needle can show, even cold at full power', () => {
+    const session = coldStart();
+    session.set('throttle', 'full');
+    let peak = 0;
+    for (let elapsed = 0; elapsed < 60_000; elapsed += STEP_MS) {
+      session.advance(STEP_MS);
+      peak = Math.max(peak, systems(session).oilPressureBar);
+    }
+    expect(peak).toBeGreaterThan(5);
+    expect(peak).toBeLessThanOrEqual(7);
+  });
+
   it('warms oil and CHT while running', () => {
     const session = coldStart();
     const cold = systems(session);

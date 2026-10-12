@@ -11,7 +11,6 @@ import {
 import { cht, chtFace } from './artwork/gauges/cht';
 import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
 import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
-import { glassImage, needleImage } from './artwork/gauges/shared';
 import { tachometer, tachometerFace, tachometerNeedle } from './artwork/gauges/tachometer';
 import { verticalSpeed, verticalSpeedFace } from './artwork/gauges/vertical-speed';
 import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
@@ -32,8 +31,6 @@ export const images = {
   gaugeOilTemperature: oilTemperatureFace,
   gaugeCht: chtFace,
   gaugeVoltmeter: voltmeterFace,
-  needle: needleImage,
-  glassGauge: glassImage,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
