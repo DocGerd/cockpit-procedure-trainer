@@ -46,7 +46,11 @@ const indicatorArtwork = Object.entries(
 
 const urlsOf = ({ face, moving, glass, guardOpen }: Artwork): string[] => [
   face,
-  ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
+  ...(moving.type === 'positions'
+    ? Object.values(moving.images)
+    : moving.type === 'needles'
+      ? moving.needles.map(({ image }) => image)
+      : [moving.image]),
   ...(glass === undefined ? [] : [glass]),
   ...Object.values(guardOpen ?? {}),
 ];
@@ -215,7 +219,9 @@ describe('CTSL warning lamp', () => {
 });
 
 describe('CTSL gauges', () => {
-  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) => artwork.moving.type === 'needle');
+  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) =>
+    ['needle', 'needles'].includes(artwork.moving.type),
+  );
 
   it('keeps every round gauge on drawn artwork and its full name', () => {
     expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(Object.keys(gauges).sort());

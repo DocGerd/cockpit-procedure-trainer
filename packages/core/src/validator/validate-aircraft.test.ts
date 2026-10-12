@@ -812,6 +812,122 @@ describe('validateAircraft', () => {
     });
   });
 
+  describe('needles and windows', () => {
+    const volts = fixtureAircraft.indicators.busVolts;
+    const withIndicator = (patch: Record<string, unknown>, artwork: Record<string, unknown> = {}) =>
+      broken({
+        indicators: {
+          ...fixtureAircraft.indicators,
+          busVolts: {
+            ...volts,
+            ...patch,
+            appearance: {
+              artwork: {
+                face: 'volts-face.png',
+                moving: {
+                  type: 'needles',
+                  needles: [
+                    { image: 'long.png', pivot: { x: 20, y: 20 }, valuePerTurn: 1000 },
+                    { image: 'short.png', pivot: { x: 20, y: 20 }, valuePerTurn: 10_000 },
+                  ],
+                },
+                ...artwork,
+              },
+            },
+          },
+        },
+      });
+    const window = { at: { x: 30, y: 20 }, fontSize: 6 };
+
+    it('accepts hands on one value and a window bound to a selector', () => {
+      const aircraft = withIndicator(
+        { windows: { setting: () => 1013 } },
+        { windows: { setting: window } },
+      );
+      expect(validateAircraft(aircraft)).toEqual([]);
+    });
+
+    it('reports artwork with no hands', () => {
+      only(
+        withIndicator({}, { moving: { type: 'needles', needles: [] } }),
+        'invalid-needles',
+        'busVolts',
+      );
+    });
+
+    it.each([0, Number.NaN, Number.POSITIVE_INFINITY])(
+      'reports a hand turning once per %s',
+      (valuePerTurn) => {
+        const finding = only(
+          withIndicator(
+            {},
+            {
+              moving: {
+                type: 'needles',
+                needles: [{ image: 'long.png', pivot: { x: 0, y: 0 }, valuePerTurn }],
+              },
+            },
+          ),
+          'invalid-needles',
+          'busVolts',
+        );
+        expect(finding.message).toContain('hand 0');
+      },
+    );
+
+    it('reports an artwork window no selector fills', () => {
+      const finding = only(
+        withIndicator({}, { windows: { setting: window } }),
+        'unknown-window',
+        'busVolts',
+      );
+      expect(finding.message).toContain('setting');
+    });
+
+    it('reports a selector no artwork window prints', () => {
+      const finding = only(
+        withIndicator({ windows: { setting: () => 1013 } }),
+        'unknown-window',
+        'busVolts',
+      );
+      expect(finding.message).toContain('setting');
+    });
+
+    it('reports a selector on an indicator drawn by a widget', () => {
+      const aircraft = broken({
+        indicators: {
+          ...fixtureAircraft.indicators,
+          rpm: { ...fixtureAircraft.indicators.rpm, windows: { hours: () => 1 } },
+        },
+      });
+      only(aircraft, 'unknown-window', 'rpm');
+    });
+
+    it('reports a window on a control artwork, which has no selectors', () => {
+      const aircraft = withControl('master', {
+        appearance: {
+          artwork: {
+            face: 'master-face.png',
+            moving: { type: 'positions', images: { off: 'a.png', on: 'b.png' } },
+            windows: { setting: window },
+          },
+        },
+      });
+      only(aircraft, 'unknown-window', 'master');
+    });
+
+    it('reports a window with no usable font size', () => {
+      only(
+        withIndicator(
+          { windows: { setting: () => 1013 } },
+          { windows: { setting: { ...window, fontSize: 0 } } },
+        ),
+        'unknown-window',
+        'busVolts',
+      );
+    });
+  });
+
   it('formats a finding with the aircraft, code and id', () => {
     const [finding] = validateAircraft(withPhase('parking', { image: '' }));
     const line = formatFinding(finding as Finding);

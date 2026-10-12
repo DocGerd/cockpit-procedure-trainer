@@ -105,6 +105,7 @@ const tapAt = ({ x, y }: Point) => fireEvent.click(slider(), { detail: 1, client
 describe('CTSL notched artwork controls', () => {
   it('covers every stepped slider the aircraft draws', () => {
     expect(sliders.map(({ id }) => id).sort()).toEqual([
+      'altimeterSetting',
       'flapSelector',
       'ignition',
       'throttle',
@@ -258,6 +259,9 @@ describe('CTSL notched artwork controls', () => {
       };
       expect(now(up ?? '')).toBeGreaterThan(now(here));
       expect(now(down ?? '')).toBeLessThan(now(here));
+
+      // The altimeter knob prints no detent: its window on the dial shows the setting.
+      if (id === 'altimeterSetting') return;
 
       // The nearest printed stops either side of here; a flap arc is only monotonic locally, and the
       // throttle's middle stops print nothing.

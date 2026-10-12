@@ -898,7 +898,8 @@ describe('indicators', () => {
     expect(read('flapReadout')).toBe(15);
     expect(read('eltLamp')).toBe(true);
     expect(read('airspeed')).toBe(0);
-    expect(read('altimeter')).toBe(0);
+    // Parked at the field with the last flight's 1025 hPa still set over a QNH of 1013.
+    expect(read('altimeter')).toBe(315 + 12 * 27);
     expect(read('verticalSpeed')).toBe(0);
     for (const id of Object.keys(indicators) as (keyof typeof indicators)[]) {
       const value = read(id);
