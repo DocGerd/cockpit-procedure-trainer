@@ -4,7 +4,7 @@ import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { gaugeArtwork as gauges, images } from './artwork';
-import { glassImage, needle, needleImage } from './artwork/gauges/shared';
+import { needle } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
@@ -232,10 +232,14 @@ describe('CTSL gauges', () => {
     }
   });
 
-  it('gives a gauge the shared needle and glass unless it brings its own', () => {
-    const { artwork } = needle('face.svg', { min: 0, max: 1 }, {});
-    expect(artwork.glass).toBe(glassImage);
-    expect(artwork.moving.type === 'needle' && artwork.moving.image).toBe(needleImage);
+  it('gives a gauge the needle and glass it names and no glass when it names none', () => {
+    const parts = { image: 'needle.svg', glass: 'glass.svg' };
+    const { artwork } = needle('face.svg', { min: 0, max: 1 }, {}, undefined, parts);
+    expect(artwork.glass).toBe('glass.svg');
+    expect(artwork.moving.type === 'needle' && artwork.moving.image).toBe('needle.svg');
+    expect(
+      needle('face.svg', { min: 0, max: 1 }, {}, undefined, { image: 'needle.svg' }).artwork,
+    ).not.toHaveProperty('glass');
   });
 
   it('gives every gauge its own module and test file', () => {
