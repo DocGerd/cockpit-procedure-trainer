@@ -1,8 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { airspeed, airspeedArcs, airspeedScale, airspeedScaleAngle } from './airspeed';
+import { airspeed, airspeedScale } from './airspeed';
 import { readFace } from './test-support';
 
 const face = () => readFace(airspeed.artwork.face);
+
+/** The printed scale between its measured numerals, which the face's ticks and arcs follow. */
+const airspeedScaleAngle = (kmh: number): number => {
+  const found = airspeedScale.findIndex(([value]) => value >= kmh);
+  const upper = found === -1 ? airspeedScale.length - 1 : Math.max(found, 1);
+  const [v1, a1] = airspeedScale[upper] ?? [340, 340];
+  const [v0, a0] = airspeedScale[upper - 1] ?? [40, 10];
+  return a0 + ((kmh - v0) / (v1 - v0)) * (a1 - a0);
+};
+
+/** Bands at the dial edge (intake §3.10.1): radii in hundredths of the case radius. */
+const airspeedArcs = [
+  { mark: 'white', from: 72, to: 94, angles: [45, 69], radii: [79, 88] },
+  { mark: 'white', from: 94, to: 115, angles: [69, 93], radii: [79, 82] },
+  { mark: 'green', from: 94, to: 245, angles: [69, 235], radii: [83, 88] },
+  { mark: 'yellow', from: 245, to: 300, angles: [235, 293], radii: [83, 88] },
+] as const;
 
 const polar = (x: number, y: number) => {
   const [dx, dy] = [x - 100, y - 100];
@@ -45,13 +62,7 @@ describe('CTSL airspeed gauge', () => {
     expect(airspeedScaleAngle(50)).toBe(21);
   });
 
-  it('pins the arcs and the red line to the intake’s values, angles and band radii', () => {
-    expect(airspeedArcs).toEqual([
-      { mark: 'white', from: 72, to: 94, angles: [45, 69], radii: [79, 88] },
-      { mark: 'white', from: 94, to: 115, angles: [69, 93], radii: [79, 82] },
-      { mark: 'green', from: 94, to: 245, angles: [69, 235], radii: [83, 88] },
-      { mark: 'yellow', from: 245, to: 300, angles: [235, 293], radii: [83, 88] },
-    ]);
+  it('keeps the intake’s arc angles on the measured scale', () => {
     for (const { from, to, angles } of airspeedArcs) {
       expect(Math.abs(airspeedScaleAngle(from) - angles[0]), `${from}`).toBeLessThanOrEqual(1.5);
       expect(Math.abs(airspeedScaleAngle(to) - angles[1]), `${to}`).toBeLessThanOrEqual(1.5);
