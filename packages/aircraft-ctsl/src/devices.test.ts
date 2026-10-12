@@ -2,6 +2,7 @@ import { createSession } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { ctslAircraft } from './index';
 import { devices } from './devices';
+import { indicators } from './indicators';
 import { KMH_PER_KT, initial } from './systems';
 import type { CtslTrainerState } from './systems';
 import { testDevices } from './test-devices';
@@ -79,8 +80,32 @@ describe('the TRT800H install', () => {
     );
   });
 
-  it('feeds the pressure altitude from the altitude of the aircraft', () => {
-    expect(install.inputs.pressureAltitude(stateWith(true, {}, 4200))).toBe(4200);
+  describe('the pressure altitude it reports', () => {
+    const flying = (altitudeFt: number, qnhHpa: number, setting: string): CtslTrainerState => {
+      const state = stateWith(true, { altimeterSetting: setting }, altitudeFt);
+      return { ...state, systems: { ...state.systems, qnhHpa } };
+    };
+
+    it.each([
+      { phase: 'on the apron', altitudeFt: 0, qnh: 1013, pressureFt: 315 },
+      { phase: 'in cruise', altitudeFt: 2500, qnh: 1013, pressureFt: 2815 },
+      { phase: 'in cruise, low QNH', altitudeFt: 2500, qnh: 1000, pressureFt: 3166 },
+      { phase: 'in cruise, high QNH', altitudeFt: 2500, qnh: 1025, pressureFt: 2491 },
+      { phase: 'on the apron, low QNH', altitudeFt: 0, qnh: 1000, pressureFt: 666 },
+    ])(
+      '$phase: $pressureFt ft, the altimeter at 1013 hPa reads the same',
+      ({ altitudeFt, qnh, pressureFt }) => {
+        const state = flying(altitudeFt, qnh, '1013');
+        expect(install.inputs.pressureAltitude(state)).toBe(pressureFt);
+        expect(indicators.altimeter.select(state)).toBe(pressureFt);
+      },
+    );
+
+    it('does not follow the setting on the altimeter knob', () => {
+      const state = flying(2500, 1013, '1000');
+      expect(install.inputs.pressureAltitude(state)).toBe(2815);
+      expect(indicators.altimeter.select(state)).toBe(2464);
+    });
   });
 
   it('has a stand-in with the control ids of the device', () => {

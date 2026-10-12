@@ -64,7 +64,7 @@ test('the TRT800H switches on in standby, squawks VFR and reports its level at A
   await unit.getByRole('button', { name: 'MODE', exact: true }).click();
   await expect(field('mode')).toHaveText('ACS');
   await expect(field('status')).toHaveText('');
-  await expect(field('level')).toHaveText('FL 000');
+  await expect(field('level')).toHaveText('FL 003');
   const mirror = page.locator('[data-placement="xpdr"] [data-device-mirror]');
   await expect(mirror.locator('[data-field="mode"]')).toHaveText('ACS');
   await expect(mirror.locator('[data-field="code"]')).toHaveText('7000');
