@@ -162,6 +162,7 @@ export function filterProblems(images: readonly ImageFilters[], domFilters: numb
     background: Infinity,
     static: 1,
     needle: 1,
+    needles: 1,
     positions: 0,
     travel: 0,
   };

@@ -64,8 +64,15 @@ async function operate(page: Page, controlId: string, position: string | number)
     await radio.click();
   } else if ((await slider.count()) > 0) {
     await slider.focus();
-    let key = 'ArrowRight';
-    for (let step = 0; step < 16; step++) {
+    const definition = ctslAircraft.controls[controlId];
+    const positions: readonly unknown[] = Array.isArray(definition?.positions)
+      ? definition.positions
+      : [];
+    // Toward the target when its detents are known, as on the altimeter knob's long run.
+    const target = positions.indexOf(String(position));
+    const now = Number(await slider.getAttribute('aria-valuenow'));
+    let key = target >= 0 && target < now ? 'ArrowLeft' : 'ArrowRight';
+    for (let step = 0; step < Math.max(16, positions.length); step++) {
       const shown = await slider.getAttribute('aria-valuetext');
       if (shown === String(position)) return;
       await slider.press(key);

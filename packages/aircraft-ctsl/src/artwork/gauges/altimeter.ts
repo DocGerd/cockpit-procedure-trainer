@@ -37,7 +37,7 @@ export const altimeter: ArtworkAppearance = {
       ],
     },
     glass: altimeterGlass,
-    windows: { setting: { at: { x: 156, y: 100 }, fontSize: 8 } },
+    windows: { setting: { at: { x: 156, y: 100 }, fontSize: 9 } },
   },
 };
 
