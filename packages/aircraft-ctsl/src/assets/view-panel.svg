@@ -9,7 +9,6 @@
 <linearGradient id="an" x1="0" y1="0" x2=".5" y2="1"><stop offset="0" stop-color="#3A3E44"/><stop offset=".5" stop-color="#34383E"/><stop offset="1" stop-color="#1C1E22"/></linearGradient>
 <radialGradient id="sd" cx=".508" cy=".522" r=".5"><stop offset=".86" stop-color="#000000" stop-opacity=".75"/><stop offset=".91" stop-color="#000000" stop-opacity=".4"/><stop offset=".956" stop-color="#000000" stop-opacity="0"/></radialGradient>
 <linearGradient id="rf" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#08090A"/><stop offset=".5" stop-color="#191B1E"/><stop offset="1" stop-color="#2A2D31"/></linearGradient>
-
 <radialGradient id="rv" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="#F2F4F6"/><stop offset=".5" stop-color="#A9AEB4"/><stop offset="1" stop-color="#5E646B"/></radialGradient>
 <radialGradient id="ch" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#E3E6EA"/><stop offset=".55" stop-color="#8E949B"/><stop offset=".85" stop-color="#4A4F56"/><stop offset="1" stop-color="#1A1C1F"/></radialGradient>
 <radialGradient id="hl" cx=".62" cy=".66" r=".62"><stop offset="0" stop-color="#000000"/><stop offset=".7" stop-color="#050506"/><stop offset="1" stop-color="#1A1C1F"/></radialGradient>
@@ -31,6 +30,7 @@
 <path d="M1472 3.2H922A12.8 12.8 0 0 0 909.2 16V684" fill="none" stroke="#4E535A" stroke-width="2.4"/><path d="M1484.8 16V684A12.8 12.8 0 0 1 1472 696.8H922" fill="none" stroke="#050506" stroke-width="2.4"/>
 <path d="M353.46 292.5a109.04 109.04 0 1 0 218.09 0a109.04 109.04 0 1 0 -218.09 0zM375.65 292.5a86.85 86.85 0 1 0 173.7 0a86.85 86.85 0 1 0 -173.7 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M602.46 294.5a109.04 109.04 0 1 0 218.09 0a109.04 109.04 0 1 0 -218.09 0zM624.65 294.5a86.85 86.85 0 1 0 173.7 0a86.85 86.85 0 1 0 -173.7 0z" fill="url(#sd)" fill-rule="evenodd"/>
+<path d="M388.1 510.5a77.4 77.4 0 1 0 154.81 0a77.4 77.4 0 1 0 -154.81 0zM403.85 510.5a61.65 61.65 0 1 0 123.3 0a61.65 61.65 0 1 0 -123.3 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M638.1 510.5a77.4 77.4 0 1 0 154.81 0a77.4 77.4 0 1 0 -154.81 0zM653.85 510.5a61.65 61.65 0 1 0 123.3 0a61.65 61.65 0 1 0 -123.3 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M1579.96 150.5a78.53 78.53 0 1 0 157.07 0a78.53 78.53 0 1 0 -157.07 0zM1595.95 150.5a62.55 62.55 0 1 0 125.1 0a62.55 62.55 0 1 0 -125.1 0z" fill="url(#sd)" fill-rule="evenodd"/>
 <path d="M1607.99 286.5a43.5 43.5 0 1 0 87.01 0a43.5 43.5 0 1 0 -87.01 0zM1616.85 286.5a34.65 34.65 0 1 0 69.3 0a34.65 34.65 0 1 0 -69.3 0z" fill="url(#sd)" fill-rule="evenodd"/>

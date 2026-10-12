@@ -287,6 +287,8 @@ describe('CTSL slip indicator and hour meter', () => {
     expect(h / rect('airspeed').w).toBeCloseTo(0.28, 2);
     const { oilPressure, voltmeter } = views.panel.indicators;
     expect(rect('hourMeter').x).toBeGreaterThan(oilPressure.rect.x + oilPressure.rect.w);
+    const voltmeterAxis = voltmeter.rect.x + voltmeter.rect.w / 2;
+    expect((centre('hourMeter').x - voltmeterAxis) / rect('airspeed').w).toBeCloseTo(0.6, 2);
     expect(centre('hourMeter').y).toBeGreaterThan(voltmeter.rect.y + voltmeter.rect.h / 2);
     expect(centre('hourMeter').y).toBeLessThan(oilPressure.rect.y + oilPressure.rect.h / 2);
   });
