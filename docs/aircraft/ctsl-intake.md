@@ -1928,7 +1928,8 @@ console's width at the lever row):
 
 #### 3.9.7 Trainer mapping
 
-**Today.** `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
+**Today** (before #741; superseded by **Trainer (M19, #741)** below, as is §3.9.4's
+"Trainer today" grid). `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
 12 – 459, centre 471 – 1628, right 1640 – 2360, all y 16 – 684 (span aspect 3.51).
 `cockpit.ts`: panel cell 1339 × 395 at HD (x 120 – 1459), floor `minWidth` 1110
 (0.468 px per view unit), `centre` cell x 524 – 987, dock x 0 – 508. Device slots at
@@ -2030,6 +2031,36 @@ above are what makes the panel recognisable; the fractions do not change with th
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
   console's lever row; on the console only the parachute placard and, beside it, the
   rudder-trim wheel and the parking-brake valve move.
+
+**Trainer (M19, #741): plates at true proportions.** The blind whole-panel check of the
+#716 layout failed the plates' relative sizes (too wide for what they hold). What changed:
+
+- **View box 2110 × 700, floor unchanged.** The panel floor stays 1110 px, so the floor
+  scale rises to 0.526 px per view unit and the touch target is 84 units. At HD the panel
+  is height-bound as before (0.564 px per unit, so 1 A is still 109 px); the panel cell
+  narrows to the panel's own width (`cockpit.ts`: x 194, 1191 wide), so each item keeps
+  its HD place in the cockpit. The panel reaches its floor at about the same cockpit scale
+  as the lower row's cells, so the combined layout holds as before. Panel-box fractions
+  map to this box by x = 145 + 1761·px (a T column's x minus 161).
+- **Plates.** Left 640 wide (3.32 A; the airspeed indicator 0.79 A from the outer edge),
+  centre 434 × 668 (2.25 × 3.46 A, height to width 1.54; the GPS cradle 0.80 of its
+  width), right 610 wide (3.16 A, within the outer extents' ±0.27 A; the tachometer 0.23
+  of it). The outer outlines are §3.9.1's point lists drawn as straight segments. The left
+  and right plates' contents keep their true distances from the inner edge.
+- **Breakers at D-MPGO's pitch.** Columns 69 units (0.36 A), rows 42 (0.22 A), the 12V
+  Outlet 61 under column 2, faces 36 across (0.26 of the tachometer); the block spans
+  0.74 of the right plate. Each operable breaker's touch box is 84 × 84 (the target at
+  the floor) and sits off-centre round its knob where neighbours stand closer than that,
+  so no two boxes overlap: top-row boxes reach up, bottom-row boxes down, and along the
+  run of four operable breakers (Beacon Light to GPS) each box shifts a step further right
+  of its knob. Trade-off (ADR 0002): a tap just right of the Beacon Light knob or just
+  left of the GPS knob reaches the neighbour's box, and the Beacon Light box covers the
+  right edge of the inert Instrument Light face; four 84-unit boxes round knobs 69 apart
+  leave no room to avoid it. Legends sit above the top row and under the bottom row, as on
+  the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
+  inside its box.
+- **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
+  meets the lettering minimum on a tablet in portrait.
 
 ### 3.10 Gauge faces (photos, M19)
 

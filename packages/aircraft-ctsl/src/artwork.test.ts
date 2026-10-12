@@ -8,6 +8,7 @@ import { needle } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
+import { upperPlates } from './test-plates';
 import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
@@ -177,6 +178,16 @@ describe('CTSL warning lamp', () => {
   };
   const bezelCentreY = (svg: string) =>
     Number(/<circle\b[^>]*data-bezel=""[^>]*\bcy="([\d.]+)"/.exec(svg)?.[1]);
+  // The bezel's centre in face units, through the translate of the group that holds it.
+  const lensCentre = (svg: string) => {
+    const match =
+      /<g transform="translate\((-?[\d.]+) (-?[\d.]+)\)">(?:(?!<\/g>)[\s\S])*?<circle\b[^>]*data-bezel=""[^>]*\bcx="(-?[\d.]+)" cy="(-?[\d.]+)"/.exec(
+        svg,
+      );
+    if (!match) throw new Error('the lamp face draws no bezel inside a translated group');
+    const [, shiftX = 0, shiftY = 0, cx = 0, cy = 0] = match.map(Number);
+    return { x: shiftX + cx, y: shiftY + cy };
+  };
   const panel = () =>
     readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
 
@@ -198,8 +209,7 @@ describe('CTSL warning lamp', () => {
     const legendY = Number(
       /<text\b[^>]* y="([\d.]+)"[^>]*>Generator<\/text>/.exec(read(face))?.[1],
     );
-    const shift = Number(/translate\([\d.]+ ([\d.]+)\)/.exec(read(face))?.[1]);
-    expect(legendY).toBeLessThan(bezelCentreY(read(face)) + shift);
+    expect(legendY).toBeLessThan(lensCentre(read(face)).y);
   });
 
   it('is the only warning lamp on the panel: no second lamp is drawn in the backdrop', () => {
@@ -211,11 +221,193 @@ describe('CTSL warning lamp', () => {
   it('sits right of the tachometer, level with its top half, above the engine gauges', () => {
     const { rect } = views.panel.indicators.chargeLamp;
     const { tachometer, voltmeter } = views.panel.indicators;
-    const lens = { x: rect.x + rect.w / 2, y: rect.y + (58 / 90) * rect.h };
+    const centre = lensCentre(read(generatorLamp().face));
+    const { width, height } = sizeOf(generatorLamp().face);
+    const lens = {
+      x: rect.x + (centre.x / Number(width)) * rect.w,
+      y: rect.y + (centre.y / Number(height)) * rect.h,
+    };
     expect(lens.x).toBeGreaterThan(tachometer.rect.x + tachometer.rect.w);
     expect(lens.y).toBeGreaterThan(tachometer.rect.y);
     expect(lens.y).toBeLessThan(tachometer.rect.y + tachometer.rect.h / 2);
     expect(rect.y + rect.h).toBeLessThanOrEqual(voltmeter.rect.y);
+  });
+});
+
+// D-MPGO's block: seven columns 0.36 A apart, two rows 0.22 A apart, the 12V Outlet alone under
+// the second column (intake §3.9.4). Each touch box keeps the touch target at the floor but sits
+// offset round its knob, so neighbouring knobs stand at the aircraft's pitch.
+describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
+  const TOUCH_TARGET_PX = 44;
+  const floor = ctslAircraft.cockpit?.views.panel?.minWidth;
+  if (!floor) throw new Error('the panel cell has no floor width');
+  const floorScale = floor / views.panel.size.width;
+  const unitA = views.panel.indicators.airspeed.rect.w;
+  const { tachometer } = views.panel.indicators;
+  const placed = views.panel.controls;
+  type BreakerId =
+    | 'comBreaker'
+    | 'xpdrBreaker'
+    | 'landingBreaker'
+    | 'strobeBreaker'
+    | 'positionBreaker'
+    | 'intercomBreaker'
+    | 'gpsBreaker'
+    | 'outletBreaker';
+  const breakers: readonly BreakerId[] = [
+    'comBreaker',
+    'xpdrBreaker',
+    'landingBreaker',
+    'strobeBreaker',
+    'positionBreaker',
+    'intercomBreaker',
+    'gpsBreaker',
+    'outletBreaker',
+  ];
+  const knobIn = (svg: string) => {
+    const match =
+      /<g data-knob="([\d.]+)" transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)">/.exec(
+        svg,
+      );
+    if (!match) throw new Error('the breaker art marks no knob');
+    const [, radius = 0, x = 0, y = 0, scale = 0] = match.map(Number);
+    return { x, y, r: radius * scale };
+  };
+  const knob = (id: BreakerId) => {
+    const { rect } = placed[id];
+    const artwork = artworkOf(controls[id].appearance);
+    if (!artwork) throw new Error(`${id} has no artwork`);
+    const { width } = sizeOf(artwork.face);
+    const scale = rect.w / Number(width);
+    const own = knobIn(read(artwork.face));
+    return { x: rect.x + own.x * scale, y: rect.y + own.y * scale, r: own.r * scale };
+  };
+  const rightPlate = upperPlates.right;
+
+  it.each(breakers)('keeps %s at least the touch target at the floor', (id) => {
+    const { w, h } = placed[id].rect;
+    expect(Math.min(w, h) * floorScale).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+  });
+
+  it('keeps every touch box clear of its neighbours', () => {
+    const boxes = [...breakers, 'altimeterSetting' as const].map((id) => ({
+      id,
+      ...placed[id].rect,
+    }));
+    boxes.forEach((a, index) =>
+      boxes.slice(index + 1).forEach((b) => {
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart, `${a.id} and ${b.id}`).toBe(true);
+      }),
+    );
+  });
+
+  // The block's unfitted positions are drawn in the backdrop; a touch box may reach over the near
+  // half of such a face but never cover its centre.
+  it('keeps every touch box off the centre of an unfitted breaker face', () => {
+    const svg = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const inert = [
+      ...svg.matchAll(
+        /<g transform="translate\(([\d.]+) ([\d.]+)\) scale\([\d.]+\)"><use href="#bp"/g,
+      ),
+    ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
+    expect(inert.length, 'unfitted breaker faces in the panel art').toBeGreaterThan(0);
+    for (const id of breakers) {
+      const { x, y, w, h } = placed[id].rect;
+      for (const face of inert) {
+        const covers = face.x > x && face.x < x + w && face.y > y && face.y < y + h;
+        expect(covers, `${id} over the face at ${face.x}`).toBe(false);
+      }
+    }
+  });
+
+  it.each(breakers)('draws the %s knob on the right plate, its touch box inside the view', (id) => {
+    const { x, y, r } = knob(id);
+    expect(x - r).toBeGreaterThanOrEqual(rightPlate.x);
+    expect(x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
+    expect(y - r).toBeGreaterThanOrEqual(rightPlate.y);
+    expect(y + r).toBeLessThanOrEqual(rightPlate.y + rightPlate.h);
+    const { rect } = placed[id];
+    expect(rect.x + rect.w).toBeLessThanOrEqual(views.panel.size.width);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(views.panel.size.height);
+  });
+
+  it.each(breakers)(
+    'draws the %s knob inside its touch box, its disc where its collar is',
+    (id) => {
+      const { x, y, w, h } = placed[id].rect;
+      const { x: kx, y: ky, r } = knob(id);
+      expect(kx - r).toBeGreaterThanOrEqual(x);
+      expect(kx + r).toBeLessThanOrEqual(x + w);
+      expect(ky - r).toBeGreaterThanOrEqual(y);
+      expect(ky + r).toBeLessThanOrEqual(y + h);
+      const artwork = artworkOf(controls[id].appearance);
+      if (artwork?.moving.type !== 'positions') throw new Error(`${id} has no positions`);
+      const face = knobIn(read(artwork.face));
+      for (const image of Object.values(artwork.moving.images)) {
+        const disc = knobIn(read(image));
+        expect({ x: disc.x, y: disc.y }, fileOf(image)).toEqual({ x: face.x, y: face.y });
+      }
+    },
+  );
+
+  it('sets the knobs in two straight rows 0.22 A apart and seven columns 0.36 A apart', () => {
+    const top = ['comBreaker', 'xpdrBreaker'] as const;
+    const bottom = [
+      'landingBreaker',
+      'strobeBreaker',
+      'positionBreaker',
+      'intercomBreaker',
+      'gpsBreaker',
+    ] as const;
+    const topY = knob('comBreaker').y;
+    const bottomY = knob('landingBreaker').y;
+    top.forEach((id) => expect(knob(id).y, id).toBeCloseTo(topY, 5));
+    bottom.forEach((id) => expect(knob(id).y, id).toBeCloseTo(bottomY, 5));
+    expect((bottomY - topY) / unitA).toBeGreaterThanOrEqual(0.19);
+    expect((bottomY - topY) / unitA).toBeLessThanOrEqual(0.25);
+
+    const column1 = knob('landingBreaker').x;
+    const pitch = (knob('gpsBreaker').x - column1) / 6;
+    expect(pitch / unitA).toBeGreaterThanOrEqual(0.33);
+    expect(pitch / unitA).toBeLessThanOrEqual(0.4);
+    const columns: Record<BreakerId, number> = {
+      comBreaker: 1,
+      xpdrBreaker: 3,
+      landingBreaker: 1,
+      strobeBreaker: 4,
+      positionBreaker: 5,
+      intercomBreaker: 6,
+      gpsBreaker: 7,
+      outletBreaker: 2,
+    };
+    breakers.forEach((id) =>
+      expect(Math.abs(knob(id).x - (column1 + (columns[id] - 1) * pitch)), id).toBeLessThan(1),
+    );
+    const outletDrop = (knob('outletBreaker').y - bottomY) / unitA;
+    expect(outletDrop).toBeGreaterThanOrEqual(0.25);
+    expect(outletDrop).toBeLessThanOrEqual(0.37);
+  });
+
+  it('draws each knob about a quarter of the tachometer across', () => {
+    breakers.forEach((id) => {
+      const ratio = (2 * knob(id).r) / tachometer.rect.w;
+      expect(ratio, id).toBeGreaterThanOrEqual(0.22);
+      expect(ratio, id).toBeLessThanOrEqual(0.3);
+    });
+  });
+
+  it('spans about three quarters of the right plate, starting just inside its inner edge', () => {
+    const { x: left, r } = knob('landingBreaker');
+    const span = knob('gpsBreaker').x + r - (left - r);
+    expect(span / rightPlate.w).toBeGreaterThanOrEqual(0.65);
+    expect(span / rightPlate.w).toBeLessThanOrEqual(0.8);
+    expect((left - r - rightPlate.x) / rightPlate.w).toBeGreaterThanOrEqual(0);
+    expect((left - r - rightPlate.x) / rightPlate.w).toBeLessThanOrEqual(0.1);
+    expect(knob('gpsBreaker').x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
   });
 });
 
@@ -683,20 +875,20 @@ describe('CTSL view backdrops', () => {
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
-        'D-MPGO@476.49,165.06/54',
-        'TAKEOFF@711,142/37',
-        'CHECKLIST@711,178/37',
-        'KUNSTFLUG UND TRUDELN VERBOTEN@651,617/15',
-        'TAKEOFF@1307,88/37',
-        'CHECKLIST@1307,124/37',
-        'Nav@1688,507.99/13',
-        'Autopilot@1884,507.99/13',
-        'HS34@1982,507.99/13',
-        'EFIS@2080,507.99/13',
-        'EMS@2178,507.99/13',
-        'Instrument@1786,599.54/13',
-        'Light@1786,615.22/13',
-        'Circuit Breakers@1925,660/37',
+        'D-MPGO@417.49,165.06/54',
+        'TAKEOFF@652,142/37',
+        'CHECKLIST@652,178/37',
+        'KUNSTFLUG UND TRUDELN VERBOTEN@592,617/15',
+        'TAKEOFF@1148,88/37',
+        'CHECKLIST@1148,124/37',
+        'Nav@1467,507/12',
+        'Autopilot@1605,507/12',
+        'HS34@1674,507/12',
+        'EFIS@1743,507/12',
+        'EMS@1812,507/12',
+        'Instrument@1536,603/12',
+        'Light@1536,615/12',
+        'Circuit Breakers@1640,652/35',
       ],
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',

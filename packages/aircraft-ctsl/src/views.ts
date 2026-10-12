@@ -15,44 +15,44 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
 // checklist card, the GPS dominating mid-field, centred over the COM and transponder pair. Each
 // slot keeps its mirror's aspect; the dock holds the full-size unit.
 export const deviceSlots = {
-  flarm: at(962, 45, 120, 60),
-  gps: at(1027, 225, 347, 217),
-  com: at(1033, 521, 139, 139),
-  xpdr: at(1222, 521, 139, 139),
+  flarm: at(890, 56, 120, 60),
+  gps: at(897, 225, 347, 217),
+  com: at(899, 500, 139, 139),
+  xpdr: at(1088, 500, 139, 139),
 } as const satisfies Record<string, Placement>;
 
 export const views = {
   panel: {
     name: text('Instrumententafel', 'Panel'),
     image: images.panel,
-    size: { width: 2372, height: 700 },
-    // D-MPGO's breaker grid at the touch-target pitch at the floor, wider and taller than on
-    // the aircraft (intake §3.9.4).
+    size: { width: 2110, height: 700 },
+    // D-MPGO's breaker block at its own pitch (intake §3.9.4). Each touch box is the touch target
+    // at the floor; where neighbours stand closer than that, the box sits off-centre round its knob.
     controls: {
-      comBreaker: at(1541, 434, 98, 94),
-      xpdrBreaker: at(1737, 434, 98, 94),
-      landingBreaker: at(1541, 528, 98, 94),
-      strobeBreaker: at(1835, 528, 98, 94),
-      positionBreaker: at(1933, 528, 98, 94),
-      intercomBreaker: at(2031, 528, 98, 94),
-      gpsBreaker: at(2129, 528, 98, 94),
-      outletBreaker: at(1639, 590, 98, 94),
+      comBreaker: at(1356, 469, 84, 84),
+      xpdrBreaker: at(1494, 469, 84, 84),
+      landingBreaker: at(1347, 555, 84, 84),
+      strobeBreaker: at(1539, 555, 84, 84),
+      positionBreaker: at(1623, 555, 84, 84),
+      intercomBreaker: at(1707, 555, 84, 84),
+      gpsBreaker: at(1791, 555, 84, 84),
+      outletBreaker: at(1446, 616, 84, 84),
       // The knob on its lug at the altimeter's lower left (intake §3.10.2), with its tap area
       // grown around it to the touch target at the floor, clear of the airspeed indicator and VSI.
-      altimeterSetting: at(591, 340, 100, 100),
+      altimeterSetting: at(532, 340, 100, 100),
     },
     indicators: {
-      airspeed: at(366, 196, 193, 193),
-      altimeter: at(615, 198, 193, 193),
-      slipIndicator: at(397, 442, 137, 137),
-      verticalSpeed: at(647, 442, 137, 137),
-      tachometer: at(1589, 81, 139, 139),
-      cht: at(1613, 248, 77, 77),
-      voltmeter: at(1715, 248, 77, 77),
-      oilTemperature: at(1613, 351, 77, 77),
-      oilPressure: at(1715, 351, 77, 77),
-      hourMeter: at(1808, 321, 123, 54),
-      chargeLamp: at(1749, 62, 150, 90),
+      airspeed: at(307, 196, 193, 193),
+      altimeter: at(556, 198, 193, 193),
+      slipIndicator: at(338, 442, 137, 137),
+      verticalSpeed: at(588, 442, 137, 137),
+      tachometer: at(1386, 126, 139, 139),
+      cht: at(1411, 292, 77, 77),
+      voltmeter: at(1512, 292, 77, 77),
+      oilTemperature: at(1411, 391, 77, 77),
+      oilPressure: at(1512, 391, 77, 77),
+      hourMeter: at(1605, 363, 123, 54),
+      chargeLamp: at(1545, 88, 150, 90),
     },
   },
   centre: {
