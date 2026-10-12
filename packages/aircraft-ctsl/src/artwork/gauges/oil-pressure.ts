@@ -1,5 +1,5 @@
 import type { ArtworkAppearance } from '@cpt/core';
-import { needleImage } from './shared';
+import { engineGaugePointer } from './voltmeter';
 
 export const oilPressureFace = new URL(
   '../../assets/artwork/gauge-oil-pressure.svg',
@@ -30,7 +30,7 @@ export const oilPressure: ArtworkAppearance = {
     face: oilPressureFace,
     moving: {
       type: 'needle',
-      image: needleImage,
+      image: engineGaugePointer,
       pivot: { x: 100, y: 100 },
       angleRange: { min: ZERO_MARK, max: ZERO_MARK + DEGREES_PER_BAR * SEGMENT_END_BAR },
       valueRange: { min: 0, max: SEGMENT_END_BAR },

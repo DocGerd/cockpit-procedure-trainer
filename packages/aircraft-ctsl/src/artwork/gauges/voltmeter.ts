@@ -1,8 +1,12 @@
 import type { ArtworkAppearance } from '@cpt/core';
-import { needleImage } from './shared';
 
 export const voltmeterFace = new URL('../../assets/artwork/gauge-voltmeter.svg', import.meta.url)
   .href;
+
+export const engineGaugePointer = new URL(
+  '../../assets/artwork/gauge-voltmeter-needle.svg',
+  import.meta.url,
+).href;
 
 const DEGREES_PER_VOLT = 31;
 
@@ -20,7 +24,7 @@ export const voltmeter: ArtworkAppearance = {
     face: voltmeterFace,
     moving: {
       type: 'needle',
-      image: needleImage,
+      image: engineGaugePointer,
       pivot: { x: 100, y: 100 },
       angleRange: { min: DEGREES_PER_VOLT * (9 - 13), max: DEGREES_PER_VOLT * (17 - 13) },
       valueRange: { min: 9, max: 17 },

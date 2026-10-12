@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { oilPressure } from './oil-pressure';
 import { voltmeter } from './voltmeter';
 import { readFace } from './test-support';
 
@@ -127,4 +128,24 @@ describe('CTSL voltmeter gauge', () => {
       expect(attributes, content).toContain('data-lettering="secondary"');
     }
   });
+});
+
+describe('CTSL voltmeter and oil pressure pointer (intake §3.10.6)', () => {
+  const gauges = { voltmeter, oilPressure };
+
+  it.each(Object.entries(gauges))(
+    '%s: a white blade from 0.15 R to 0.69 R with no tail, and no hub cap on the face',
+    (_, { artwork }) => {
+      const { moving } = artwork;
+      if (moving.type !== 'needle') throw new Error('no needle');
+      const pointer = readFace(moving.image);
+      expect(pointer).not.toContain('url(#');
+      const d = /<path\b[^>]*data-pointer=""[^>]*\bd="([^"]+)"/.exec(pointer)?.[1] ?? '';
+      const along = [...d.matchAll(/([\d.]+) ([\d.]+)/g)].map(([, , y]) => (100 - Number(y)) / 100);
+      expect(along.length).toBeGreaterThan(0);
+      expect(Math.min(...along)).toBeCloseTo(0.15, 2);
+      expect(Math.max(...along)).toBeCloseTo(0.69, 2);
+      expect(readFace(artwork.face)).not.toMatch(/<circle cx="100" cy="100" r="(?!100"|92")/);
+    },
+  );
 });
