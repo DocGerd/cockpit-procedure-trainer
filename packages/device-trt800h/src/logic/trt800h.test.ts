@@ -187,6 +187,7 @@ describe('trt800hDevice', () => {
       [3099, 30],
       [3100, 31],
       [0, 0],
+      [-50, -1],
       [-1000, -10],
       [35_000, 350],
     ])('takes FL from %i ft as %i', (altitude, level) => {
