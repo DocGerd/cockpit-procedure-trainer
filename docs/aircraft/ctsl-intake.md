@@ -164,6 +164,9 @@ German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
 The airspeed indicator stays 220 units wide because its numerals set the smallest
 size that reads at the lettering floor (§4.3).
 
+**Update (2026-10-12, #721):** the slip indicator is a drawn indicator, not background
+art: §3.10.4 supersedes "background art, not an indicator" above.
+
 **Trainer, M19 (2026-10-11):** the positions, sizes and the plate's place in the panel
 described here and in the M17 note above are superseded by §3.9 (§3.9.2 for the
 gauges, §3.9.5 for the placards): the left plate is the widest, the instruments sit
@@ -207,6 +210,10 @@ rank), because a legend like "Transponder" at the minimum does not fit the strip
 pitch. The inert caps carry no legend for the same reason, since background lettering
 has no such exemption; the slip indicator, FLARM display and hour meter carry no
 wording either. The type-name script lettering is not reproduced.
+
+**Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
+indicators whose faces carry the `SLIP INDICATOR` and `HOURS` legends as secondary
+captions (§3.10.4, §3.10.10), superseding "carry no wording" above for those two.
 
 **Trainer, M19 (2026-10-11):** the layout of the right plate described above is
 superseded by §3.9.2 and §3.9.4: the small engine gauges sit below the tachometer

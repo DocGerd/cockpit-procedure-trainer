@@ -1,10 +1,20 @@
 // @vitest-environment jsdom
 import { resolveIndicator } from '@cpt/panel-kit';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
+import { renderWithLanguage } from '../i18n/test-utils';
+import { TrainerProvider, useTrainer } from '../trainer';
+import type { Trainer } from '../trainer';
+import { PanelArea } from './PanelArea';
 
 afterEach(cleanup);
+
+let trainer: Trainer;
+function Probe() {
+  trainer = useTrainer();
+  return null;
+}
 
 const ctslAircraft = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
 if (!ctslAircraft) throw new Error('The CTSL is not registered');
@@ -55,25 +65,44 @@ describe('CTSL drawn gauges', () => {
   });
 
   it.each([
-    ['slipIndicator', 'centred', 'Slip indicator: centred', 'Schiebeanzeige: centred'],
-    ['hourMeter', true, 'Hour meter', 'Betriebsstundenzähler'],
-  ] as const)(
-    'names the fixed face %s by its full name and prints no caption',
-    (id, value, en, de) => {
-      const indicator = ctslAircraft.indicators[id];
-      if (!indicator) throw new Error(`no ${id} indicator`);
-      for (const [lang, name] of [
-        ['en', en],
-        ['de', de],
-      ] as const) {
-        const { widget: Gauge, options } = resolveIndicator(indicator, value);
-        const { container } = render(
-          <Gauge value={value} label={indicator.name[lang]} {...(options ? { options } : {})} />,
-        );
-        expect(screen.getByRole('img', { name })).toBeTruthy();
-        expect(container.textContent).toBe('');
-        cleanup();
-      }
-    },
-  );
+    ['slipIndicator', 'Slip indicator', 'Schiebeanzeige'],
+    ['hourMeter', 'Hour meter', 'Betriebsstundenzähler'],
+  ] as const)('names the fixed face %s by its label alone on the rendered panel', (id, en, de) => {
+    for (const [language, name] of [
+      ['en', en],
+      ['de', de],
+    ] as const) {
+      renderWithLanguage(
+        <TrainerProvider>
+          <Probe />
+          <PanelArea />
+        </TrainerProvider>,
+        { language },
+      );
+      act(() => trainer.selectAircraft('ctsl'));
+      const placed = document.querySelector(`[data-placement="${id}"]`);
+      expect(placed?.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe(name);
+      expect(placed?.textContent).toBe('');
+      cleanup();
+    }
+  });
+
+  it('keeps the hour meter name the same with the engine stopped and running', () => {
+    renderWithLanguage(
+      <TrainerProvider>
+        <Probe />
+        <PanelArea />
+      </TrainerProvider>,
+    );
+    act(() => trainer.selectAircraft('ctsl'));
+    const name = () =>
+      document
+        .querySelector('[data-placement="hourMeter"] [role="img"]')
+        ?.getAttribute('aria-label');
+    expect(name()).toBe('Hour meter');
+    act(() => {
+      trainer.jumpToPhase('holding');
+    });
+    expect(name()).toBe('Hour meter');
+  });
 });

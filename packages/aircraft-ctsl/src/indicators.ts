@@ -54,7 +54,7 @@ export const indicators = {
   slipIndicator: {
     name: text('Schiebeanzeige', 'Slip indicator'),
     // The trainer models no sideslip, so the ball always sits between the reference lines.
-    select: () => 'centred',
+    select: () => true,
     appearance: gaugeArtwork.slipIndicator,
   },
   hourMeter: {

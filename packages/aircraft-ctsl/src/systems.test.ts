@@ -216,6 +216,18 @@ describe('engine start', () => {
     expect(systems(session).engine.running).toBe(false);
   });
 
+  it('lights the hour meter glyph from engine start to stop', () => {
+    const session = sessionAt('parking');
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(false);
+    readyToStart(session);
+    session.set('choke', 'on');
+    crank(session, 3);
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(true);
+    session.set('ignition', 'off');
+    advanceSeconds(session, 5);
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(false);
+  });
+
   it('starts warm without the choke', () => {
     const session = sessionAt('holding');
     session.set('ignition', 'off');
