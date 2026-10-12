@@ -2971,8 +2971,8 @@ propeller control in the cockpit (§9).
 | Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300** (§3.10.1)                                                |
 | Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800; drawn in #721 (§3.10.5)               |
 | Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
-| Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
-| CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
+| Oil temp (°C)      | 40–150, bunched above 120                | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
+| CHT (°C)           | 40–150, bunched above 120                | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
 | Vertical speed     | ±2000 ft/min                             | none; 0 at 9 o'clock, climb clockwise and descent counter-clockwise, both ending at one 2 at 3 o'clock (§3.10.3)      |
 | Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none; reads field elevation + height above the field, corrected for the knob setting (§3.10.2, §9 questions 46 to 49) |
 | Voltmeter (V)      | 9–17                                     | none (§3.10.8)                                                                                                        |
@@ -3871,7 +3871,9 @@ verifies it on D-MPGO.
     pinned below it, and how far below? The photos show only live readings with the
     master on (CHT and oil temperature about 46 °C, voltmeter about 13.5 V, oil
     pressure on 0). Trainer uses: each needle on its lowest mark whenever the value is
-    below the scale or the gauge has no power. **Assumed (unverified)** (§3.10.6 to
+    below the scale or the gauge has no power, except the CHT and oil temperature
+    needles, which rest at about 8:20, just above the 40 and clear of its numeral (the
+    photo comparison of the rest position). **Assumed (unverified)** (§3.10.6 to
     §3.10.9).
 58. **Voltmeter band and centre word** (#721): is there a small coloured band near
     13 to 14 V (#721's audit thought so; the photos show none, but the needle covers

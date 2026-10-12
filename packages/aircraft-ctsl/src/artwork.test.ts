@@ -240,7 +240,7 @@ describe('CTSL gauges', () => {
 
   it('gives every gauge its own module and test file', () => {
     const files: string[] = readdirSync(new URL('./artwork/gauges/', import.meta.url));
-    const helpers = ['shared.ts', 'test-support.ts'];
+    const helpers = ['shared.ts', 'test-support.ts', 'cht-test-support.ts', 'temperature-dial.ts'];
     const modules = files.filter((file) => !file.endsWith('.test.ts') && !helpers.includes(file));
     const tests = files.filter((file) => file.endsWith('.test.ts'));
     const kebab = Object.keys(gauges)

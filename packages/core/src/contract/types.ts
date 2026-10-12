@@ -37,6 +37,8 @@ export type MovingPart =
       readonly pivot: Point;
       readonly angleRange: { readonly min: number; readonly max: number };
       readonly valueRange: { readonly min: number; readonly max: number };
+      /** For a scale that turns at several rates: the angle at each value, in rising value order; replaces the linear mapping between the ranges. */
+      readonly stops?: readonly { readonly value: number; readonly angle: number }[];
     }
   | { readonly type: 'positions'; readonly images: { readonly [position: string]: string } }
   | { readonly type: 'travel'; readonly image: string; readonly path: readonly Point[] }
