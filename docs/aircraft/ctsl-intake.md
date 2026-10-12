@@ -3837,7 +3837,11 @@ verifies it on D-MPGO.
 53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
     legend beside the down arrow is hidden under the resting pointer in every photo;
     the trainer prints a short down legend mirroring `up`, the word `down`. **Assumed
-    (unverified)**.
+    (unverified)**. Two drawing decisions: the `1000 ft.` and `per min.` lines are set
+    at the size of `VERTICAL` and `SPEED`, about twice the measured cap height, because
+    the measured size falls below the secondary-caption floor (legibility traded for
+    recognition, ADR 0002); and the I-mark's serifs stand at ±9° about the 2, in place
+    of the ±1,900 ticks, so they do not smear into them (the photos fix angles to ±5°).
 54. **Slip indicator face** (#721): no question needed (§3.10.4).
 55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
     about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about

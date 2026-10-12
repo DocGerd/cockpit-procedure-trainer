@@ -1,8 +1,12 @@
+import type { ArtworkAppearance } from '@cpt/core';
 import { needle } from './shared';
 
-const asset = (file: string) => new URL(`../../assets/artwork/${file}`, import.meta.url).href;
-
-export const verticalSpeedFace = asset('gauge-vsi.svg');
+export const verticalSpeedFace = new URL('../../assets/artwork/gauge-vsi.svg', import.meta.url)
+  .href;
+const verticalSpeedNeedle = new URL('../../assets/artwork/gauge-vsi-needle.svg', import.meta.url)
+  .href;
+const verticalSpeedGlass = new URL('../../assets/artwork/gauge-vsi-glass.svg', import.meta.url)
+  .href;
 
 const base = needle(
   verticalSpeedFace,
@@ -15,11 +19,14 @@ const base = needle(
   { min: -270, max: 90 },
 );
 
-export const verticalSpeed = {
+const { moving } = base.artwork;
+if (moving.type !== 'needle') throw new Error('the VSI draws a needle');
+
+export const verticalSpeed: ArtworkAppearance = {
   ...base,
   artwork: {
     ...base.artwork,
-    moving: { ...base.artwork.moving, image: asset('gauge-vsi-needle.svg') },
-    glass: asset('gauge-vsi-glass.svg'),
+    moving: { ...moving, image: verticalSpeedNeedle },
+    glass: verticalSpeedGlass,
   },
 };
