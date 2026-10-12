@@ -32,6 +32,8 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/artwork/glass-gauge.svg`            | Gauge glass and hub cap, shared                                       |
 | `src/assets/artwork/gauge-altimeter.svg`        | Gauge face, altimeter                                                 |
 | `src/assets/artwork/gauge-vsi.svg`              | Gauge face, vsi                                                       |
+| `src/assets/artwork/gauge-vsi-needle.svg`       | Gauge needle, vsi paddle                                              |
+| `src/assets/artwork/gauge-vsi-glass.svg`        | Gauge glass, vsi (no hub cap)                                         |
 | `src/assets/artwork/gauge-tachometer.svg`       | Gauge face, tachometer                                                |
 | `src/assets/artwork/gauge-oil-pressure.svg`     | Gauge face, oil pressure                                              |
 | `src/assets/artwork/gauge-oil-temperature.svg`  | Gauge face, oil temperature                                           |
