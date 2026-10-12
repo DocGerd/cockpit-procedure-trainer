@@ -445,14 +445,17 @@ describe('the user memory list', () => {
 
   it('keeps dual watch on when the shown entry equals the standby frequency', () => {
     const watching = tap(withMemory({ 0: 119000 }), 'dw');
-    expect(watching.dualWatch).toBe(true);
+    expect(watching).toMatchObject({ dualWatch: true, standby: 119000 });
     const open = tap(watching, 'mem');
     expect(open).toMatchObject({ list: { kind: 'mem', index: 0 }, standby: 119000 });
     expect(open.dualWatch).toBe(true);
   });
 
   it('closes the list on a SET hold, keeps standby and does not advance the item on release', () => {
-    const open = tap(withMemory({ 0: 122000 }), 'mem');
+    const moved = tap(withMemory({ 0: 122000 }), 'set');
+    expect(moved.item).not.toBe('vol');
+    const open = tap(moved, 'mem');
+    expect(open).toMatchObject({ list: { kind: 'mem', index: 0 }, item: moved.item });
     const held = hold(open, 'set', LONG_PRESS_MS);
     expect(held).toMatchObject({ list: null, standby: 122000, item: 'vol' });
     const released = release(held);
@@ -466,6 +469,7 @@ describe('the user memory list', () => {
     expect(shown).toMatchObject({ list: { kind: 'mem', index: 1 }, lastFromMemory: 122000 });
     const held = hold(shown, 'mem', LONG_PRESS_MS);
     expect(held.lastFromMemory).toBe(120000);
+    expect(held.memory[1]).toBe(120000);
     const retuned = turn(release(held), 'freq', 'up');
     expect(retuned.list).toBeNull();
     expect(retuned.standby).not.toBe(120000);
@@ -525,7 +529,8 @@ describe('the last-used list', () => {
     const browsed = turn(lst, 'volSel', 'up', 2);
     expect(lineThree(browsed)).toBe('LST 02');
     expect(browsed.lastFromMemory).toBe(123450);
-    const back = turn(browsed, 'volSel', 'up', 1);
+    expect(browsed.standby).toBe(120000);
+    const back = turn(browsed, 'volSel', 'down', 2);
     expect(lineThree(back)).toBe('LST 00');
     expect(back.standby).toBe(123450);
   });

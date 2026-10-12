@@ -112,6 +112,7 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
     const panel = await boxOf(page.locator('[data-view="panel"]'));
     expect(box.y, 'dock under the panel').toBeGreaterThanOrEqual(panel.y + panel.height);
     const slots = await page.locator('[data-view="panel"] [data-slot-mirror]').all();
+    expect(slots.length, 'device slot mirrors on the panel').toBeGreaterThan(0);
     const underSlot = await Promise.all(
       slots.map(async (slot) => {
         const { x, width } = await boxOf(slot);

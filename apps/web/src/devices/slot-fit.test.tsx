@@ -199,6 +199,9 @@ describe('the mirror in each installed slot', () => {
   });
 
   it('still reports a wrong aspect in a recognition slot', () => {
+    const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+    if (!ctsl) throw new Error('The registry has no CTSL');
+    expect(slotFloor(ctsl, 'flarm')).toBe(0);
     const wide = markupProblems(
       'x',
       '<div class="pk-mirror-bezel" style="width:calc(var(--space-12) * 5 + var(--space-8));aspect-ratio:2 / 1"><span style="font-size:var(--text-2xs)">x</span></div>',
@@ -206,7 +209,8 @@ describe('the mirror in each installed slot', () => {
       1,
       0,
     );
-    expect(wide.join('\n')).toContain('aspect');
+    expect(wide).toHaveLength(1);
+    expect(wide[0]).toMatch(/mirror aspect 2\.00 differs from slot 1\.00/);
   });
 
   it('measures every CTSL mirror lit as well as dark', () => {
