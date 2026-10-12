@@ -22,8 +22,12 @@ describe('handAngle', () => {
     expect(handAngle(hand(1000), -250)).toBe(-90);
   });
 
-  it('leaves a hand upright for a value it cannot read', () => {
-    expect(handAngle(hand(1000), Number.NaN)).toBe(0);
-    expect(handAngle(hand(0), 100)).toBe(0);
+  it('turns a hand with a negative valuePerTurn counter-clockwise', () => {
+    expect(handAngle(hand(-1000), 250)).toBe(-90);
+  });
+
+  it('gives no angle for a value it cannot read, rather than a believable upright hand', () => {
+    expect(handAngle(hand(1000), Number.NaN)).toBeNaN();
+    expect(handAngle(hand(0), 100)).toBeNaN();
   });
 });

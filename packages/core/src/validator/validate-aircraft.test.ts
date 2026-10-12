@@ -875,6 +875,26 @@ describe('validateAircraft', () => {
       },
     );
 
+    it.each([
+      { x: Number.NaN, y: 0 },
+      { x: 0, y: Number.POSITIVE_INFINITY },
+    ])('reports a hand turning about the pivot %o', (pivot) => {
+      const finding = only(
+        withIndicator(
+          {},
+          {
+            moving: {
+              type: 'needles',
+              needles: [{ image: 'long.png', pivot, valuePerTurn: 1000 }],
+            },
+          },
+        ),
+        'invalid-needles',
+        'busVolts',
+      );
+      expect(finding.message).toContain('pivot');
+    });
+
     it('reports an artwork window no selector fills', () => {
       const finding = only(
         withIndicator({}, { windows: { setting: window } }),
@@ -922,9 +942,24 @@ describe('validateAircraft', () => {
           { windows: { setting: () => 1013 } },
           { windows: { setting: { ...window, fontSize: 0 } } },
         ),
-        'unknown-window',
+        'invalid-window',
         'busVolts',
       );
+    });
+
+    it.each([
+      { x: Number.NaN, y: 20 },
+      { x: 30, y: Number.NEGATIVE_INFINITY },
+    ])('reports a window printed at %o', (at) => {
+      const finding = only(
+        withIndicator(
+          { windows: { setting: () => 1013 } },
+          { windows: { setting: { ...window, at } } },
+        ),
+        'invalid-window',
+        'busVolts',
+      );
+      expect(finding.message).toContain('position');
     });
   });
 

@@ -68,15 +68,20 @@ async function operate(page: Page, controlId: string, position: string | number)
     const positions: readonly unknown[] = Array.isArray(definition?.positions)
       ? definition.positions
       : [];
-    // Toward the target when its detents are known, as on the altimeter knob's long run.
+    // The value text names the detent, so a key that steps away from the target is turned round
+    // after one press, as on the altimeter knob's long run.
     const target = positions.indexOf(String(position));
-    const now = Number(await slider.getAttribute('aria-valuenow'));
-    let key = target >= 0 && target < now ? 'ArrowLeft' : 'ArrowRight';
-    for (let step = 0; step < Math.max(16, positions.length); step++) {
+    let key = 'ArrowRight';
+    for (let step = 0; step < Math.max(16, positions.length + 2); step++) {
       const shown = await slider.getAttribute('aria-valuetext');
       if (shown === String(position)) return;
       await slider.press(key);
-      if ((await slider.getAttribute('aria-valuetext')) === shown) key = 'ArrowLeft';
+      const now = await slider.getAttribute('aria-valuetext');
+      const from = positions.indexOf(shown);
+      const to = positions.indexOf(now);
+      const away =
+        target >= 0 && from >= 0 && to >= 0 && Math.abs(target - to) > Math.abs(target - from);
+      if (now === shown || away) key = key === 'ArrowRight' ? 'ArrowLeft' : 'ArrowRight';
     }
     await expect(slider).toHaveAttribute('aria-valuetext', String(position));
   } else {

@@ -70,11 +70,14 @@ function movingLayers(
           transform: `rotate(${needleAngle(moving, fraction)} ${moving.pivot.x} ${moving.pivot.y})`,
         },
       ];
-    case 'needles':
-      return moving.needles.map((hand) => ({
+    case 'needles': {
+      const angles = moving.needles.map((hand) => handAngle(hand, fraction));
+      if (!angles.every(Number.isFinite)) return [];
+      return moving.needles.map((hand, index) => ({
         source: hand.image,
-        transform: `rotate(${handAngle(hand, fraction)} ${hand.pivot.x} ${hand.pivot.y})`,
+        transform: `rotate(${angles[index]} ${hand.pivot.x} ${hand.pivot.y})`,
       }));
+    }
     case 'travel': {
       const first = moving.path[0];
       const at = pointAlong(moving.path, fraction);
@@ -88,11 +91,13 @@ function movingLayers(
   }
 }
 
+const UNREADABLE_WINDOW = '---';
+
 function windowText(value: IndicatorValue | undefined, window: ArtworkWindow): string {
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value.toFixed(window.decimals ?? 0) : '';
+    return Number.isFinite(value) ? value.toFixed(window.decimals ?? 0) : UNREADABLE_WINDOW;
   }
-  return value === undefined ? '' : String(value);
+  return value === undefined ? UNREADABLE_WINDOW : String(value);
 }
 
 function shadowOffset({ width, height }: Size): string {
@@ -116,7 +121,8 @@ export function ArtworkStage({
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
   const maskId = `pk-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const { face, moving, glass } = artwork;
-  const open = guardOpen ? artwork.guardOpen?.[String(value)] : undefined;
+  const open =
+    guardOpen && moving.type !== 'needles' ? artwork.guardOpen?.[String(value)] : undefined;
   const layers = movingLayers(moving, value, notches).map((layer) =>
     open ? { ...layer, source: open } : layer,
   );
@@ -163,6 +169,20 @@ export function ArtworkStage({
           data-moving={moving.type}
           style={overlayStyle}
         >
+          {printed.map(([id, window]) => (
+            <text
+              key={id}
+              className="cpt-artwork-window"
+              data-window={id}
+              x={window.at.x}
+              y={window.at.y}
+              fontSize={window.fontSize}
+              textAnchor={window.anchor ?? 'middle'}
+              dominantBaseline="central"
+            >
+              {windowText(windows?.[id], window)}
+            </text>
+          ))}
           {shadow && (
             <>
               <defs>
@@ -190,20 +210,6 @@ export function ArtworkStage({
               </g>
             </>
           )}
-          {printed.map(([id, window]) => (
-            <text
-              key={id}
-              className="cpt-artwork-window"
-              data-window={id}
-              x={window.at.x}
-              y={window.at.y}
-              fontSize={window.fontSize}
-              textAnchor={window.anchor ?? 'middle'}
-              dominantBaseline="central"
-            >
-              {windowText(windows?.[id], window)}
-            </text>
-          ))}
           {drawn.map(({ source, transform }, index) => (
             <image
               key={index}

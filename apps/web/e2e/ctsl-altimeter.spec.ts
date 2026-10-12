@@ -85,6 +85,11 @@ test('ctsl: Guided rings the knob at the descent altimeter step', async ({ page 
   await openAircraft(page, ctslAircraft, 'descent');
   const first = checklistPane(page).locator('li.checklist-item').nth(0);
   await first.getByRole('button', { name: copy.checklist.confirm, exact: true }).click();
+  const altimeterStep = checklistPane(page).locator('li.checklist-item').nth(1);
+  await expect(altimeterStep).toHaveAttribute('aria-current', 'step');
+  await expect(altimeterStep).toContainText(
+    ctslAircraft.procedures.descent?.items[1]?.text.en ?? 'no altimeter step',
+  );
   const ring = await page.locator('[data-outline="target"]').boundingBox();
   const placement = await page.locator('[data-placement="altimeterSetting"]').boundingBox();
   if (!ring || !placement) throw new Error('no ring or no knob');

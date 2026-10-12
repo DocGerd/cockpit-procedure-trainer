@@ -346,14 +346,30 @@ describe('ArtworkIndicator needles', () => {
     fireEvent.error(drawnHands()[1] as Element);
     expect(screen.getByText('generic widget')).toBeTruthy();
   });
+
+  it('falls back to the generic widget for a value the hands cannot show', () => {
+    renderIndicator(hands, Number.NaN);
+    expect(screen.getByText('generic widget')).toBeTruthy();
+    expect(drawnHands()).toHaveLength(0);
+  });
+
+  it('keeps every hand its own image on a guarded control with the guard open', () => {
+    renderControl(guarded, hands, 'a', true, undefined, { a: 'a-open.png' });
+    expect(drawnHands().map((hand) => hand.getAttribute('href'))).toEqual([
+      'tenThousands.png',
+      'thousands.png',
+      'hundreds.png',
+    ]);
+  });
 });
 
 describe('ArtworkIndicator windows', () => {
-  const withWindow = (windows?: Record<string, number | string>) => {
+  const withWindow = (windows?: Record<string, number | string>, options?: JsonObject) => {
     render(
       <ArtworkIndicator
         value={0}
         label="Gauge"
+        {...(options ? { options } : {})}
         artwork={{
           ...artworkOf(needle),
           windows: {
@@ -384,10 +400,25 @@ describe('ArtworkIndicator windows', () => {
     ).toBeTruthy();
   });
 
-  it('prints a text value as it is and leaves a window without a value empty', () => {
+  it('prints a text value as it is and dashes a window without a value', () => {
     withWindow({ setting: 'STD' });
     expect(windowText('setting')?.textContent).toBe('STD');
-    expect(windowText('temperature')?.textContent).toBe('');
+    expect(windowText('temperature')?.textContent).toBe('---');
+  });
+
+  it('dashes a window whose value is no number', () => {
+    withWindow({ setting: Number.NaN, temperature: Number.POSITIVE_INFINITY });
+    expect(windowText('setting')?.textContent).toBe('---');
+    expect(windowText('temperature')?.textContent).toBe('---');
+  });
+
+  it('prints the window under the needle shadow, as part of the face', () => {
+    withWindow({ setting: 1013 }, { needleShadow: true });
+    const shadow = document.querySelector('[data-needle-shadow]');
+    expect(
+      (windowText('setting') as Node).compareDocumentPosition(shadow as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it('keeps the window text out of the accessible name', () => {
@@ -1276,6 +1307,33 @@ describe('ArtworkControl held on a many-detent rotary', () => {
     press(10);
     vi.advanceTimersByTime(REPEAT_DELAY_MS + 10 * REPEAT_INTERVAL_MS);
     expect(view.onSet.mock.calls).toEqual([['1011'], ['1010']]);
+  });
+
+  it('stops at the last detent upward with no further step', () => {
+    const view = renderKnob('1019');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 10 * REPEAT_INTERVAL_MS);
+    lift(90);
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1020']]);
+  });
+
+  it('stops when the knob is unmounted during a hold', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS);
+    view.unmount();
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
+  it('stops when the knob loses focus during a hold', () => {
+    const view = renderKnob('1013');
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS);
+    fireEvent.blur(slider());
+    vi.advanceTimersByTime(10 * REPEAT_INTERVAL_MS);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
   });
 
   it('stops when the pointer leaves or is cancelled', () => {

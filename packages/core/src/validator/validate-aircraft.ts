@@ -45,6 +45,7 @@ export type FindingCode =
   | 'artwork-glass-size'
   | 'invalid-needles'
   | 'unknown-window'
+  | 'invalid-window'
   | 'invalid-check-response'
   | 'invalid-flow'
   | 'invalid-memory';
@@ -237,16 +238,19 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
 
   const isLength = (value: unknown) =>
     typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const isPoint = (point: { x: unknown; y: unknown }) =>
+    Number.isFinite(point.x) && Number.isFinite(point.y);
 
   const checkMoving = (id: string, appearance: Appearance | undefined) => {
     if (!appearance || !('artwork' in appearance)) return;
     const { moving } = appearance.artwork;
     if (moving.type !== 'needles') return;
     if (moving.needles.length === 0) add('invalid-needles', id, 'the artwork has no hands');
-    moving.needles.forEach(({ valuePerTurn }, index) => {
+    moving.needles.forEach(({ valuePerTurn, pivot }, index) => {
       if (!Number.isFinite(valuePerTurn) || valuePerTurn === 0) {
         add('invalid-needles', id, `hand ${index} needs a finite, non-zero valuePerTurn`);
       }
+      if (!isPoint(pivot)) add('invalid-needles', id, `hand ${index} needs a finite pivot`);
     });
   };
 
@@ -261,7 +265,10 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         add('unknown-window', id, `artwork window ${windowId} has no selector to print`);
       }
       if (!isLength(window.fontSize)) {
-        add('unknown-window', id, `artwork window ${windowId} needs a positive, finite fontSize`);
+        add('invalid-window', id, `artwork window ${windowId} needs a positive, finite fontSize`);
+      }
+      if (!isPoint(window.at)) {
+        add('invalid-window', id, `artwork window ${windowId} needs a finite position`);
       }
     }
     for (const windowId of Object.keys(selectors)) {
