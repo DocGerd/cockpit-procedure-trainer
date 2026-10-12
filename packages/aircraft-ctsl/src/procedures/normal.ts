@@ -1,6 +1,7 @@
 import type { PositionOf } from '@cpt/core';
 import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
+import { QNH_HPA } from '../systems';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
 import type { CtslProcedures } from '../types';
@@ -18,6 +19,9 @@ const OIL_TEMP_GREEN_C = [90, 110] as const;
 const OIL_TEMP_RED_LINE_C = 130;
 const MIN_TAKEOFF_OIL_TEMP_C = 51;
 const CHT_GREEN_C = [50, 120] as const;
+
+// Every scenario flies at the home aerodrome's QNH (intake §9 question 47).
+const QNH_SETTING = String(QNH_HPA);
 
 // The trainer's own: about what a pilot reads off each scale.
 const RPM_READING_TOLERANCE = 100;
@@ -440,7 +444,12 @@ export const normalProcedures = {
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
-      confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
+      {
+        type: 'action',
+        control: 'altimeterSetting',
+        position: QNH_SETTING,
+        text: text('Höhenmesser auf QNH', 'Altimeter set to QNH'),
+      },
       {
         type: 'action',
         control: 'xpdr.power',
@@ -762,7 +771,12 @@ export const normalProcedures = {
     endPhase: 'approach',
     items: [
       confirm('Vergaservorwärmung nach Bedarf', 'Carb heat as needed'),
-      confirm('Höhenmesser eingestellt', 'Altimeter set'),
+      {
+        type: 'action',
+        control: 'altimeterSetting',
+        position: QNH_SETTING,
+        text: text('Höhenmesser eingestellt', 'Altimeter set'),
+      },
     ],
   },
   beforeLanding: {

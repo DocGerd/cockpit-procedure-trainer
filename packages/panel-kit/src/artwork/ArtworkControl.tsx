@@ -13,6 +13,10 @@ export type ArtworkControlProps = ControlWidgetProps & {
 
 const LEVER_STEP = 0.1;
 const DEAD_ZONE = 0.2;
+// With `options.holdRepeat`, a held press steps on like a held arrow key: after a pause, then at a
+// steady rate. Opt-in, because elsewhere it would run past a stop such as the flap override.
+export const REPEAT_DELAY_MS = 400;
+export const REPEAT_INTERVAL_MS = 80;
 const inputClass = 'cpt-artwork-input';
 
 const noop = () => {};
@@ -199,6 +203,54 @@ function LeverInput({
   );
 }
 
+/** Steps on through `steps` while a press is held, starting from the step the press found. */
+function useStepRepeat(
+  index: number,
+  steps: readonly string[],
+  onSet: (position: ControlPosition) => void,
+) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const at = useRef(index);
+  const stepped = useRef(false);
+  const latest = useRef({ steps, onSet });
+  latest.current = { steps, onSet };
+
+  const stop = () => {
+    clearTimeout(timer.current);
+    timer.current = undefined;
+  };
+  useEffect(() => stop, []);
+
+  const start = (direction: number) => {
+    stop();
+    stepped.current = false;
+    if (direction === 0) return;
+    at.current = index;
+    const step = () => {
+      const next = at.current + direction;
+      const id = latest.current.steps[next];
+      if (id === undefined) {
+        timer.current = undefined;
+        return;
+      }
+      at.current = next;
+      stepped.current = true;
+      latest.current.onSet(id);
+      timer.current = setTimeout(step, REPEAT_INTERVAL_MS);
+    };
+    timer.current = setTimeout(step, REPEAT_DELAY_MS);
+  };
+
+  // The click that ends a press which already stepped on is not a further tap.
+  const consumeClick = () => {
+    const consumed = stepped.current;
+    stepped.current = false;
+    return consumed;
+  };
+
+  return { start, stop, consumeClick };
+}
+
 function NotchInput({
   steps,
   index,
@@ -210,6 +262,7 @@ function NotchInput({
   position,
   className,
   rotary,
+  holdRepeat,
   inputRef,
   onSet,
 }: Pick<ControlWidgetProps, 'onSet'> & {
@@ -223,6 +276,7 @@ function NotchInput({
   position: ControlPosition;
   className?: string;
   rotary: boolean;
+  holdRepeat: boolean;
   inputRef: RefObject<HTMLDivElement | null>;
 }) {
   const forward = forwardSign(path);
@@ -230,14 +284,12 @@ function NotchInput({
     const id = steps[Math.min(steps.length - 1, Math.max(0, target))];
     if (id !== undefined && id !== String(position)) onSet(id);
   };
-  const tap = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.detail === 0) return;
+  const directionAt = (event: MouseEvent<HTMLDivElement>): number => {
     const rect = event.currentTarget.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
+    if (rect.width === 0 || rect.height === 0) return 0;
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const current = layerFraction(position, notches);
-    let direction: number;
     if (path && size && !Number.isNaN(current)) {
       const near = fractionNear(path, {
         x: (x / rect.width) * size.width,
@@ -245,14 +297,20 @@ function NotchInput({
       });
       const delta = near - current;
       const zone = DEAD_ZONE / Math.max(1, notches ? notches.length - 1 : 1);
-      direction = Math.abs(delta) < zone ? 0 : Math.sign(delta);
-    } else if (rotary || rect.width >= rect.height * 0.8) {
-      const off = x - rect.width / 2;
-      direction = Math.abs(off) < rect.width * DEAD_ZONE ? 0 : Math.sign(off);
-    } else {
-      const off = rect.height / 2 - y;
-      direction = Math.abs(off) < rect.height * DEAD_ZONE ? 0 : Math.sign(off);
+      return Math.abs(delta) < zone ? 0 : Math.sign(delta);
     }
+    if (rotary || rect.width >= rect.height * 0.8) {
+      const off = x - rect.width / 2;
+      return Math.abs(off) < rect.width * DEAD_ZONE ? 0 : Math.sign(off);
+    }
+    const off = rect.height / 2 - y;
+    return Math.abs(off) < rect.height * DEAD_ZONE ? 0 : Math.sign(off);
+  };
+  const repeat = useStepRepeat(index, steps, onSet);
+  const tap = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.detail === 0) return;
+    if (repeat.consumeClick()) return;
+    const direction = directionAt(event);
     if (direction !== 0) goTo(index + direction);
   };
   return (
@@ -267,6 +325,14 @@ function NotchInput({
       aria-valuenow={forward === 1 ? index : steps.length - 1 - index}
       aria-valuetext={valueText}
       onClick={tap}
+      onPointerDown={(event) => {
+        if (!holdRepeat || event.button !== 0) return;
+        repeat.start(directionAt(event));
+      }}
+      onPointerUp={repeat.stop}
+      onPointerCancel={repeat.stop}
+      onPointerLeave={repeat.stop}
+      onBlur={repeat.stop}
       onKeyDown={(event) => {
         const keys: Record<string, () => void> = {
           ArrowUp: () => goTo(index + forward),
@@ -417,6 +483,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
           notches={notches}
           position={position}
           rotary={control.kind === 'rotary'}
+          holdRepeat={props.options?.['holdRepeat'] === true}
           inputRef={slider}
           {...(springClass === undefined ? {} : { className: springClass })}
           onSet={props.onSet}

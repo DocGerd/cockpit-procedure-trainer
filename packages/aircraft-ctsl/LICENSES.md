@@ -29,13 +29,24 @@ Every image below was drawn for this project and is released under the MIT licen
 | `src/assets/phase-parking-securing-running.svg` | Outside view, parking and securing, engine running (propeller disc)   |
 | `src/assets/cue-engine-smoke.svg`               | Outside view overlay, smoke from the engine bay during an engine fire |
 | `src/assets/artwork/gauge-airspeed.svg`         | Gauge face, airspeed                                                  |
+| `src/assets/artwork/gauge-airspeed-needle.svg`  | Gauge needle, airspeed (lance)                                        |
 | `src/assets/artwork/glass-gauge.svg`            | Gauge glass and hub cap, shared                                       |
 | `src/assets/artwork/gauge-altimeter.svg`        | Gauge face, altimeter                                                 |
+| `src/assets/artwork/gauge-altimeter-10000.svg`  | Altimeter hand, ten-thousands of feet                                 |
+| `src/assets/artwork/gauge-altimeter-1000.svg`   | Altimeter hand, thousands of feet                                     |
+| `src/assets/artwork/gauge-altimeter-100.svg`    | Altimeter hand, hundreds of feet, with the hub                        |
+| `src/assets/artwork/gauge-altimeter-glass.svg`  | Altimeter glass, without a hub cap                                    |
+| `src/assets/artwork/gauge-altimeter-knob.svg`   | Altimeter setting knob lug and hPa legend                             |
+| `src/assets/artwork/gauge-altimeter-rim.svg`    | Altimeter setting knob, turning                                       |
 | `src/assets/artwork/gauge-vsi.svg`              | Gauge face, vsi                                                       |
+| `src/assets/artwork/gauge-vsi-needle.svg`       | Gauge needle, vsi paddle                                              |
+| `src/assets/artwork/gauge-vsi-glass.svg`        | Gauge glass, vsi (no hub cap)                                         |
 | `src/assets/artwork/gauge-tachometer.svg`       | Gauge face, tachometer                                                |
+| `src/assets/artwork/gauge-tach-needle.svg`      | Gauge needle, tachometer                                              |
 | `src/assets/artwork/gauge-oil-pressure.svg`     | Gauge face, oil pressure                                              |
 | `src/assets/artwork/gauge-oil-temperature.svg`  | Gauge face, oil temperature                                           |
 | `src/assets/artwork/gauge-cht.svg`              | Gauge face, cht                                                       |
+| `src/assets/artwork/gauge-cht-needle.svg`       | Gauge pointer, cht and oil temperature                                |
 | `src/assets/artwork/gauge-voltmeter.svg`        | Gauge face, voltmeter                                                 |
 | `src/assets/artwork/gauge-engine-pointer.svg`   | Gauge pointer, voltmeter and oil pressure                             |
 | `src/assets/artwork/needle.svg`                 | Shared gauge needle                                                   |

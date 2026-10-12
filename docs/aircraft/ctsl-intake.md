@@ -2968,12 +2968,12 @@ propeller control in the cockpit (§9).
 
 | Gauge              | Scale used                               | Markings                                                                                                              |
 | ------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300**                                                          |
-| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800 (§3.10.5)                              |
+| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300** (§3.10.1)                                                |
+| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800; drawn in #721 (§3.10.5)               |
 | Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
-| Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
-| CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
-| Vertical speed     | ±2000 ft/min                             | none                                                                                                                  |
+| Oil temp (°C)      | 40–150, bunched above 120                | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
+| CHT (°C)           | 40–150, bunched above 120                | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
+| Vertical speed     | ±2000 ft/min                             | none; 0 at 9 o'clock, climb clockwise and descent counter-clockwise, both ending at one 2 at 3 o'clock (§3.10.3)      |
 | Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none; reads field elevation + height above the field, corrected for the knob setting (§3.10.2, §9 questions 46 to 49) |
 | Voltmeter (V)      | 9–17                                     | none (§3.10.8)                                                                                                        |
 
@@ -3123,7 +3123,8 @@ with the taxiway outside view; it opens with the parking brake released (trainer
 assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
-belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
+belts fastened; doors closed; controls free; altimeter to QNH _(action: the setting
+knob to the scenario's QNH, from the setting left at 1025 hPa, #719)_;
 transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
 and at STBY)_; GPS: databases accepted, then its map page (the start-up step is owner-confirmed,
 §9 question 38; only its place in N6 is assumed, §9 question 32; a pilot who accepted earlier
@@ -3151,7 +3152,9 @@ at most 5500.
 range, 5500 maximum continuous; engine gauges in the green; flaps −12°; carb heat
 only when icing is likely.
 
-**N11 Descent (HB 4-3).** Carb heat as needed; altimeter set.
+**N11 Descent (HB 4-3).** Carb heat as needed; altimeter set _(action: the setting knob to
+the scenario's QNH; the trainer enters the descent with QNH set since N6, so the pilot
+verifies it with a tick, #719)_.
 
 **N12 Before landing (HB 4-3).** Belts tight; 110 km/h; flaps 15–35°; landing light
 as needed.
@@ -3799,7 +3802,9 @@ verifies it on D-MPGO.
     Germany set QNH before take-off). Whether the knob starts at another value, so
     that setting it is a real task, is the #719 PR's decision, named there. The
     photos show one real example of a setting left over from the last flight: 1025
-    hPa on the parked aircraft.
+    hPa on the parked aircraft. **#719 decided:** parking, taxi out and the holding
+    point enter with that 1025 hPa, so N6 is a real turn of the knob; line-up and every
+    later phase enter with QNH set.
 48. **Indicated altitude** (#719): Trainer uses: indicated altitude (ft) = field
     elevation (§9 question 46) + height above the field (`altitudeFt`) + (knob setting −
     QNH) × 27 ft per hPa. A setting above QNH reads high, by about 27 ft per hPa.
@@ -3815,7 +3820,9 @@ verifies it on D-MPGO.
     to 1050 hPa in 1 hPa steps, turning clockwise raises the setting and the reading,
     a plain knob, **assumed (unverified)**, from general knowledge of hPa altimeters
     (typical range about 946 to 1050 hPa). Note for the printed-label rule: no
-    pressure-unit word is legible on the face.
+    pressure-unit word is legible on the face. **#719 decided:** the trainer prints a
+    small "hPa" beside the knob as its printed label, a trainer placard in the panel's
+    own wording.
 50. **ASI red line against the rescue system** (#720): D-MPGO's dial marks yellow
     245–300 and the red line at 300 (§3.10.1), which the handbook gives for the
     Junkers Light Speed or no rescue system (HB 7-20). The rescue-system data plate
@@ -3826,17 +3833,25 @@ verifies it on D-MPGO.
     show no mark at 276. The question bears on §2a decision 3 and the §8 VNE row;
     the owner decides.
 51. **Orange triangle beside the ASI** (#720): what does it mark? It points at about
-    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: an
-    unlabelled orange triangle with no function; its meaning as an approach-speed
-    reminder is **assumed (unverified)**.
+    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: none
+    yet; the triangle lies outside the gauge's case box, which the panel layout
+    sizes (#720). Its meaning as an approach-speed reminder is **assumed
+    (unverified)**.
 52. **ASI below 40 km/h** (#720): the needle rests at 12 o'clock on a white index
     and the scale starts at 40, 10° clockwise of it; the photos do not show how the
     needle travels between 0 and 40 km/h or whether a stop pin exists. Trainer uses:
-    0° at 0 km/h, linear to 10° at 40 km/h, then θ = 10° + 1.10° × (v − 40) up to
-    340° at 340 km/h, held there above 340. **Assumed (unverified)**.
+    θ = 10° + 1.10° × (v − 40) from 340° at 340 km/h (held there above) down to the
+    rest index, where the needle stays below about 31 km/h; the face prints every
+    numeral, tick and arc at its measured angle, so from 260 to 300 km/h the needle
+    reads up to 4° past the print (#720). **Assumed (unverified)**.
 53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
     legend beside the down arrow is hidden under the resting pointer in every photo;
-    the trainer prints a short down legend mirroring `up`. **Assumed (unverified)**.
+    the trainer prints a short down legend mirroring `up`, the word `down`. **Assumed
+    (unverified)**. Two drawing decisions: the `1000 ft.` and `per min.` lines are set
+    at the size of `VERTICAL` and `SPEED`, about twice the measured cap height, because
+    the measured size falls below the secondary-caption floor (legibility traded for
+    recognition, ADR 0002); and the I-mark's serifs stand at ±9° about the 2, in place
+    of the ±1,900 ticks, so they do not smear into them (the photos fix angles to ±5°).
 54. **Slip indicator face** (#721): no question needed (§3.10.4).
 55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
     about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
@@ -3845,6 +3860,9 @@ verifies it on D-MPGO.
     1,800 and 4,000 rpm in every photo. Trainer uses: the values above, green
     continuous. **Assumed (unverified)** for the continuous green (§3.10.5, §4.3).
     The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
+    **Trainer (M19, #721):** drawn as assumed: green continuous, every boundary at its
+    printed rpm on the needle's own linear scale (−142° at 0 to +142° at 7,000 rpm, so
+    the red line sits at +93.3° where the photos read +96°, within the tolerance).
 56. **Hour meter** (#721): no question needed; it is inert art with an illustrative value
     (§3.10.10).
 57. **Engine gauges at rest** (#721): with the master off, and with a
@@ -3853,7 +3871,9 @@ verifies it on D-MPGO.
     pinned below it, and how far below? The photos show only live readings with the
     master on (CHT and oil temperature about 46 °C, voltmeter about 13.5 V, oil
     pressure on 0). Trainer uses: each needle on its lowest mark whenever the value is
-    below the scale or the gauge has no power. **Assumed (unverified)** (§3.10.6 to
+    below the scale or the gauge has no power, except the CHT and oil temperature
+    needles, which rest at about 8:20, just above the 40 and clear of its numeral (the
+    photo comparison of the rest position). **Assumed (unverified)** (§3.10.6 to
     §3.10.9).
 58. **Voltmeter band and centre word** (#721): is there a small coloured band near
     13 to 14 V (#721's audit thought so; the photos show none, but the needle covers
@@ -3886,6 +3906,8 @@ verifies it on D-MPGO.
     have no scale start. The airspeed indicator, the altimeter and the four engine
     gauges record theirs in their own blocks (§3.10.1, §3.10.2 and §3.10.6 to
     §3.10.9).
+    **Trainer (M19, #721), tachometer:** as recorded here; the red low arc starts at 0,
+    next to the resting pointer.
 64. **ATR833A-OLED manual for D-MPGO's unit (#718)**: does the original ATR833-OLED
     on D-MPGO behave as the ATR833A-OLED manual (document 01.1411.010.71e, revision
     3.00) describes? The owner chose that manual because the maker no longer hosts one

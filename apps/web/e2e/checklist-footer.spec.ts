@@ -64,12 +64,24 @@ async function operate(page: Page, controlId: string, position: string | number)
     await radio.click();
   } else if ((await slider.count()) > 0) {
     await slider.focus();
+    const definition = ctslAircraft.controls[controlId];
+    const positions: readonly unknown[] = Array.isArray(definition?.positions)
+      ? definition.positions
+      : [];
+    // The value text names the detent, so a key that steps away from the target is turned round
+    // after one press, as on the altimeter knob's long run.
+    const target = positions.indexOf(String(position));
     let key = 'ArrowRight';
-    for (let step = 0; step < 16; step++) {
+    for (let step = 0; step < Math.max(16, positions.length + 2); step++) {
       const shown = await slider.getAttribute('aria-valuetext');
       if (shown === String(position)) return;
       await slider.press(key);
-      if ((await slider.getAttribute('aria-valuetext')) === shown) key = 'ArrowLeft';
+      const now = await slider.getAttribute('aria-valuetext');
+      const from = positions.indexOf(shown);
+      const to = positions.indexOf(now);
+      const away =
+        target >= 0 && from >= 0 && to >= 0 && Math.abs(target - to) > Math.abs(target - from);
+      if (now === shown || away) key = key === 'ArrowRight' ? 'ArrowLeft' : 'ArrowRight';
     }
     await expect(slider).toHaveAttribute('aria-valuetext', String(position));
   } else {

@@ -44,3 +44,12 @@
 .cpt-artwork-moving[data-moving='needle'] {
   will-change: transform;
 }
+
+.cpt-artwork-moving[data-moving='needles'] {
+  will-change: transform;
+}
+
+.cpt-artwork-window {
+  font-family: var(--font-sans);
+  fill: var(--panel-legend);
+}

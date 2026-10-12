@@ -784,13 +784,73 @@ describe('CTSL normal procedures', () => {
       });
     });
 
-    it('leaves the altimeter and radio items as confirms, which the trainer does not model', () => {
+    it('leaves the radio item a confirm, which the trainer does not model', () => {
       const confirms = Object.values(normalProcedures).flatMap((procedure) =>
         (procedure.items as readonly Item[]).filter((item) => item.type === 'confirm'),
       );
-      expect(confirms.map((item) => item.text.en)).toEqual(
-        expect.arrayContaining(['Altimeter set to QNH', 'Altimeter set', 'Radio set']),
-      );
+      expect(confirms.map((item) => item.text.en)).toEqual(expect.arrayContaining(['Radio set']));
     });
+
+    it.each([
+      ['beforeTakeoff', 'Altimeter set to QNH'],
+      ['descent', 'Altimeter set'],
+    ] as const)('sets the altimeter knob to QNH in %s (#719)', (id, wording) => {
+      const items = normalProcedures[id].items as readonly Item[];
+      expect(items.filter((item) => item.text.en === wording)).toEqual([
+        expect.objectContaining({ type: 'action', control: 'altimeterSetting', position: '1013' }),
+      ]);
+    });
+  });
+});
+
+describe('the altimeter knob in the normal procedures (#719)', () => {
+  const alone = (id: 'beforeTakeoff' | 'descent', wording: string): Aircraft => {
+    const procedure = ctslAircraft.procedures[id];
+    if (!procedure) throw new Error(`no procedure ${id}`);
+    return {
+      ...ctslAircraft,
+      procedures: {
+        ...ctslAircraft.procedures,
+        [id]: { ...procedure, items: procedure.items.filter((item) => item.text.en === wording) },
+      },
+    } as Aircraft;
+  };
+  const start = (id: 'beforeTakeoff' | 'descent', wording: string) => {
+    const session = createSession(alone(id, wording), {
+      devices,
+      phase: ctslAircraft.procedures[id]?.startPhase ?? '',
+    });
+    session.startProcedure(id);
+    session.advance(100);
+    return session;
+  };
+
+  it('enters the holding point with the last flight setting, so N6 is a real turn', () => {
+    const session = start('beforeTakeoff', 'Altimeter set to QNH');
+    expect(session.state().controls.altimeterSetting).toBe('1025');
+    for (let setting = 1024; setting >= 1013; setting -= 1) {
+      session.set('altimeterSetting', String(setting));
+      session.advance(50);
+    }
+    expect(session.checklist()?.done).toBe(true);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('records a wrong setting ticked as set', () => {
+    const session = start('beforeTakeoff', 'Altimeter set to QNH');
+    session.set('altimeterSetting', '1020');
+    session.advance(50);
+    session.checkOff();
+    expect(session.checklist()?.deviations).toContainEqual(
+      expect.objectContaining({ kind: 'wrong-position', controlId: 'altimeterSetting' }),
+    );
+  });
+
+  it('enters the descent with QNH set, so N11 is verified with a tick', () => {
+    const session = start('descent', 'Altimeter set');
+    expect(session.state().controls.altimeterSetting).toBe('1013');
+    session.checkOff();
+    expect(session.checklist()?.done).toBe(true);
+    expect(session.checklist()?.deviations).toEqual([]);
   });
 });
