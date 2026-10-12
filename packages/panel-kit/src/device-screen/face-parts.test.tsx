@@ -1,10 +1,23 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { releaseThenLeave } from '../controls/test-support';
 import { FaceKey, KnobHelpers } from './index';
 
-afterEach(cleanup);
+beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', {
+    configurable: true,
+    value: vi.fn(),
+  });
+});
+
+afterEach(() => {
+  cleanup();
+  delete (HTMLElement.prototype as { setPointerCapture?: unknown }).setPointerCapture;
+});
+
+const tap = (target: HTMLElement) => releaseThenLeave(target, 'touch');
 
 const face = (children: ReactNode) =>
   render(<div style={{ position: 'relative', width: 280, height: 280 }}>{children}</div>);
@@ -83,6 +96,15 @@ describe('FaceKey', () => {
     expect(send).toHaveBeenLastCalledWith('set', 'release');
   });
 
+  it('presses once for a touch tap, whose click comes after the pointer leaves', () => {
+    const send = key();
+    tap(screen.getByRole('button', { name: 'SET' }));
+    expect(send.mock.calls).toEqual([
+      ['set', 'press'],
+      ['set', 'release'],
+    ]);
+  });
+
   it('presses without a position for a key that stands for its control', () => {
     const send = key();
     fireEvent.pointerDown(screen.getByRole('button', { name: 'SET' }), { button: 0 });
@@ -141,6 +163,15 @@ describe('KnobHelpers', () => {
     const word = document.querySelector('[data-knob-word]');
     expect(word?.textContent).toBe('FREQ');
     expect(word?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('turns the knob one step for a touch tap', () => {
+    const send = helpers();
+    tap(screen.getByRole('button', { name: 'FREQ +' }));
+    expect(send.mock.calls).toEqual([
+      ['freq', 'press', 'up'],
+      ['freq', 'release'],
+    ]);
   });
 
   it('turns the knob while held and lets it spring back on release', () => {

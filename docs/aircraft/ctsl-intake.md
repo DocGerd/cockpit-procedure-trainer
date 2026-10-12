@@ -1089,6 +1089,16 @@ outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code 
 right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
 switch if one is fitted. `TM` at the far right of the top line marks test mode.
 
+_Trainer note (#742)._ The level is the pressure altitude: the altimeter's reading
+with 1013 hPa set (§3.10.2, §9 questions 46 to 48), so it follows the day's QNH, not
+the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 000`
+of the parked-aircraft photos is illustrative only, as noted above. The level is
+shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
+issue #742 and not taken from the handbook (the text above says only "in 100 ft
+steps"); to be checked against the handbook (§9 question 70). A level below zero is
+not covered by any source and is shown as the same rounding gives it (`FL -01` for
+−50 ft).
+
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
 list by 24-bit address appears; the pilot picks one with the knob and confirms with
@@ -1928,7 +1938,8 @@ console's width at the lever row):
 
 #### 3.9.7 Trainer mapping
 
-**Today.** `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
+**Today** (before #741; superseded by **Trainer (M19, #741)** below, as is §3.9.4's
+"Trainer today" grid). `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
 12 – 459, centre 471 – 1628, right 1640 – 2360, all y 16 – 684 (span aspect 3.51).
 `cockpit.ts`: panel cell 1339 × 395 at HD (x 120 – 1459), floor `minWidth` 1110
 (0.468 px per view unit), `centre` cell x 524 – 987, dock x 0 – 508. Device slots at
@@ -2030,6 +2041,36 @@ above are what makes the panel recognisable; the fractions do not change with th
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
   console's lever row; on the console only the parachute placard and, beside it, the
   rudder-trim wheel and the parking-brake valve move.
+
+**Trainer (M19, #741): plates at true proportions.** The blind whole-panel check of the
+#716 layout failed the plates' relative sizes (too wide for what they hold). What changed:
+
+- **View box 2110 × 700, floor unchanged.** The panel floor stays 1110 px, so the floor
+  scale rises to 0.526 px per view unit and the touch target is 84 units. At HD the panel
+  is height-bound as before (0.564 px per unit, so 1 A is still 109 px); the panel cell
+  narrows to the panel's own width (`cockpit.ts`: x 194, 1191 wide), so each item keeps
+  its HD place in the cockpit. The panel reaches its floor at about the same cockpit scale
+  as the lower row's cells, so the combined layout holds as before. Panel-box fractions
+  map to this box by x = 145 + 1761·px (a T column's x minus 161).
+- **Plates.** Left 640 wide (3.32 A; the airspeed indicator 0.79 A from the outer edge),
+  centre 434 × 668 (2.25 × 3.46 A, height to width 1.54; the GPS cradle 0.80 of its
+  width), right 610 wide (3.16 A, within the outer extents' ±0.27 A; the tachometer 0.23
+  of it). The outer outlines are §3.9.1's point lists drawn as straight segments. The left
+  and right plates' contents keep their true distances from the inner edge.
+- **Breakers at D-MPGO's pitch.** Columns 69 units (0.36 A), rows 42 (0.22 A), the 12V
+  Outlet 61 under column 2, faces 36 across (0.26 of the tachometer); the block spans
+  0.74 of the right plate. Each operable breaker's touch box is 84 × 84 (the target at
+  the floor) and sits off-centre round its knob where neighbours stand closer than that,
+  so no two boxes overlap: top-row boxes reach up, bottom-row boxes down, and along the
+  run of four operable breakers (Beacon Light to GPS) each box shifts a step further right
+  of its knob. Trade-off (ADR 0002): a tap just right of the Beacon Light knob or just
+  left of the GPS knob reaches the neighbour's box, and the Beacon Light box covers the
+  right edge of the inert Instrument Light face; four 84-unit boxes round knobs 69 apart
+  leave no room to avoid it. Legends sit above the top row and under the bottom row, as on
+  the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
+  inside its box.
+- **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
+  meets the lettering minimum on a tablet in portrait.
 
 ### 3.10 Gauge faces (photos, M19)
 
@@ -3819,8 +3860,8 @@ verifies it on D-MPGO.
     long pointer turns once per 1,000 ft (3.6° per 10 ft), the broad pointer once per
     10,000 ft and the hairline once per 100,000 ft. **Assumed (unverified)**: the
     27 ft per hPa factor is the general-knowledge value near sea level (about 27 to 30
-    ft per hPa). The transponder's altitude feed stays as it is, independent of the
-    knob (known simplification, #719).
+    ft per hPa). The transponder's altitude feed (#742) is the same relation with the
+    standard 1013 hPa as the setting, so it follows QNH and not the knob.
 49. **Altimeter details the photos do not show** (#719): the drum's setting range and
     step, the knob's turning sense, its knurl and length, and the printed pressure
     unit (the small print at the window's top edge is not legible). Trainer uses: 950
@@ -3971,5 +4012,8 @@ verifies it on D-MPGO.
     trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
     start in Nearest at loud volume is from the display sheet; the timings and the
     absence of a breaker are **assumed (unverified)** (§3.8.4).
+70. **TRT800H flight-level rounding** (#742): does the level shown truncate or round to
+    the nearest 100 ft, and how is a negative pressure altitude shown? Trainer uses:
+    rounded down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
 
 <!-- prettier-ignore-end -->

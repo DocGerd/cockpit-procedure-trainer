@@ -1,5 +1,5 @@
 import type { DeviceInstall } from '@cpt/core';
-import { KMH_PER_KT } from './systems';
+import { KMH_PER_KT, pressureAltitudeFt } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { deviceSlots } from './views';
 import type { ViewId } from './views';
@@ -22,7 +22,10 @@ export const devices = {
     view: 'panel',
     placement: deviceSlots.xpdr,
     powered: avionicsOn('xpdrBreaker'),
-    inputs: { pressureAltitude: (state) => state.systems.altitudeFt },
+    inputs: {
+      pressureAltitude: (state) =>
+        pressureAltitudeFt(state.systems.altitudeFt, state.systems.qnhHpa),
+    },
   },
   gps: {
     device: 'aera500',

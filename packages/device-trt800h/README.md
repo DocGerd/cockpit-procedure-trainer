@@ -39,7 +39,7 @@ VFR code 7000. Assumptions:
 
 ## Inputs
 
-- `pressureAltitude` (feet): the flight level is the altitude in hundreds of feet, rounded, in every state while the unit is on. Outside `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT`, or without a number, the display shows `FLerr` and the unit does not report (`reporting` is true only in ACS with a valid level).
+- `pressureAltitude` (feet): the flight level is the altitude in hundreds of feet, rounded down (an assumption, unverified: intake section 9 question 70), in every state while the unit is on. Outside `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT`, or without a number, the display shows `FLerr` and the unit does not report (`reporting` is true only in ACS with a valid level).
 
 The unit is powered by the install's `powered` condition. It never switches itself on: power arriving leaves it off until I/O is pressed.
 

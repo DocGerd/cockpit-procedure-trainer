@@ -184,13 +184,25 @@ describe('trt800hDevice', () => {
     it.each([
       [3000, 30],
       [3049, 30],
-      [3050, 31],
+      [3099, 30],
+      [3100, 31],
       [0, 0],
+      [3099.9, 30],
       [-1000, -10],
       [35_000, 350],
     ])('takes FL from %i ft as %i', (altitude, level) => {
       expect(step(switchedOn, {}, { altitude }).flightLevel).toBe(level);
     });
+
+    it.each([
+      [-0.5, -1],
+      [-50, -1],
+    ])(
+      'takes FL from %f ft as %i (below zero is unsourced, intake §9 question 70)',
+      (altitude, level) => {
+        expect(step(switchedOn, {}, { altitude }).flightLevel).toBe(level);
+      },
+    );
 
     it.each([-1001, 35_001, Number.NaN, Number.POSITIVE_INFINITY, 'high'])(
       'shows FLerr for %s',

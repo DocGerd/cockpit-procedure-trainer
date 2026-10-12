@@ -5,7 +5,7 @@ import type { CtslFailure } from './failures';
 import { ctslAircraft } from './index';
 import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import { indicatedAltitudeFt, initial, runningFrom, step } from './systems';
+import { indicatedAltitudeFt, initial, pressureAltitudeFt, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -968,4 +968,23 @@ describe('indicatedAltitudeFt', () => {
       expect(indicatedAltitudeFt(altitudeFt, setting, qnh)).toBe(reads);
     },
   );
+});
+
+describe('pressureAltitudeFt', () => {
+  it.each([
+    { altitudeFt: 0, qnh: 1013 },
+    { altitudeFt: 2500, qnh: 1013 },
+    { altitudeFt: 2500, qnh: 1000 },
+    { altitudeFt: 2500, qnh: 1030 },
+  ])('is the altimeter reading at 1013 hPa for $altitudeFt ft over QNH $qnh', (args) => {
+    expect(pressureAltitudeFt(args.altitudeFt, args.qnh)).toBe(
+      indicatedAltitudeFt(args.altitudeFt, 1013, args.qnh),
+    );
+  });
+
+  it('adds the field elevation and 27 ft for every hPa below 1013', () => {
+    expect(pressureAltitudeFt(2500, 1013)).toBe(2815);
+    expect(pressureAltitudeFt(2500, 1012)).toBe(2842);
+    expect(pressureAltitudeFt(2500, 1014)).toBe(2788);
+  });
 });

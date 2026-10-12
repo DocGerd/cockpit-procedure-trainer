@@ -1,4 +1,5 @@
 import type { ControlDefinition, ControlPosition } from '@cpt/core';
+import { fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import type { ControlWidgetProps } from '../types';
 
@@ -93,4 +94,23 @@ export function widgetProps(control: ControlDefinition, overrides: Overrides = {
     onCloseGuard: vi.fn<() => void>(),
     ...overrides,
   } satisfies ControlWidgetProps;
+}
+
+/**
+ * A captured press in the order a browser sends it when the release fires pointerleave before
+ * the click: every touch lift, and a Firefox mouse released off the target. A pointer gesture's
+ * click carries a click count in `detail`.
+ */
+export function releaseThenLeave(
+  target: Element,
+  pointerType: 'touch' | 'mouse',
+  { click = true } = {},
+) {
+  const pointer = { pointerId: 7, pointerType };
+  fireEvent.pointerDown(target, { ...pointer, button: 0 });
+  fireEvent.pointerUp(target, { ...pointer, button: 0 });
+  fireEvent.lostPointerCapture(target, pointer);
+  fireEvent.pointerOut(target, pointer);
+  fireEvent.pointerLeave(target, pointer);
+  if (click) fireEvent.click(target, { detail: 1 });
 }
