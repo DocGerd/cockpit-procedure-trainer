@@ -443,6 +443,35 @@ describe('the user memory list', () => {
     expect(release(held).list).toEqual({ kind: 'mem', index: 0 });
   });
 
+  it('keeps dual watch on when the shown entry equals the standby frequency', () => {
+    const watching = tap(withMemory({ 0: 119000 }), 'dw');
+    expect(watching.dualWatch).toBe(true);
+    const open = tap(watching, 'mem');
+    expect(open).toMatchObject({ list: { kind: 'mem', index: 0 }, standby: 119000 });
+    expect(open.dualWatch).toBe(true);
+  });
+
+  it('closes the list on a SET hold, keeps standby and does not advance the item on release', () => {
+    const open = tap(withMemory({ 0: 122000 }), 'mem');
+    const held = hold(open, 'set', LONG_PRESS_MS);
+    expect(held).toMatchObject({ list: null, standby: 122000, item: 'vol' });
+    const released = release(held);
+    expect(released).toMatchObject({ list: null, standby: 122000, item: 'vol' });
+  });
+
+  it('sets the last-from-memory frequency to the active one on a MEM hold', () => {
+    const flying = { ...withMemory({ 0: 122000 }), active: 120000 };
+    const held = hold(tap(flying, 'mem'), 'mem', LONG_PRESS_MS);
+    expect(held.lastFromMemory).toBe(120000);
+    const retuned = turn(release(held), 'freq', 'up');
+    expect(retuned.list).toBeNull();
+    expect(retuned.standby).not.toBe(120000);
+    const lst = tap(tap(retuned, 'mem'), 'mem');
+    expect(lineThree(lst)).toBe('LST 00');
+    expect(lst.standby).toBe(120000);
+    expect(listEntry(lst)).toBe(120000);
+  });
+
   it('closes after the time-out and keeps what it put in standby and memory', () => {
     const stored = release(hold(tap(running, 'mem'), 'mem', LONG_PRESS_MS));
     const closed = wait(stored, MENU_TIMEOUT_MS);
@@ -483,6 +512,19 @@ describe('the last-used list', () => {
     expect(lineThree(lst)).toBe('LST 00');
     expect(lst.standby).toBe(123450);
     expect(listEntry(lst)).toBe(123450);
+  });
+
+  it('leaves the LST 00 frequency alone while browsing the last-used list', () => {
+    const fromMemory = turn(tap(withMemory({ 1: 123450 }), 'mem'), 'volSel', 'up');
+    const lst = tap({ ...fromMemory, recent: [121000, 120000] }, 'mem');
+    expect(lineThree(lst)).toBe('LST 00');
+    expect(lst.lastFromMemory).toBe(123450);
+    const browsed = turn(lst, 'volSel', 'up', 2);
+    expect(lineThree(browsed)).toBe('LST 02');
+    expect(browsed.lastFromMemory).toBe(123450);
+    const back = turn(browsed, 'volSel', 'up', 1);
+    expect(lineThree(back)).toBe('LST 00');
+    expect(back.standby).toBe(123450);
   });
 
   it('stores nothing on a MEM hold in the last-used list, and its release closes the list', () => {

@@ -123,7 +123,6 @@ function mirrorMarkups(aircraft: Aircraft): (MirrorRenders & { readonly where: s
   });
 }
 
-/** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 // Slots drawn at the real unit's size against the panel's gauges, too small even for the slot
 // floor (ADR 0002: recognition over in-slot legibility). The dock is where they are read, so here
 // only their aspect is held.
@@ -134,6 +133,7 @@ const recognitionSlots: Readonly<Record<string, readonly string[]>> = {
 const slotFloor = (aircraft: Aircraft, installId: string) =>
   (recognitionSlots[aircraft.id]?.includes(installId) ?? false) ? 0 : SLOT_FLOOR;
 
+/** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 function slotFitProblems(aircraft: Aircraft): string[] {
   const cockpit = aircraft.cockpit;
   if (!cockpit) return [];
@@ -196,6 +196,17 @@ describe('the mirror in each installed slot', () => {
       0,
     );
     expect(tiny).toEqual([]);
+  });
+
+  it('still reports a wrong aspect in a recognition slot', () => {
+    const wide = markupProblems(
+      'x',
+      '<div class="pk-mirror-bezel" style="width:calc(var(--space-12) * 5 + var(--space-8));aspect-ratio:2 / 1"><span style="font-size:var(--text-2xs)">x</span></div>',
+      1,
+      1,
+      0,
+    );
+    expect(wide.join('\n')).toContain('aspect');
   });
 
   it('measures every CTSL mirror lit as well as dark', () => {
