@@ -1,6 +1,5 @@
 import type { IndicatorDefinition } from '@cpt/core';
 import { gaugeArtwork, lampArtwork } from './artwork';
-import { dialValue } from './artwork/gauges/cht';
 import { FT_PER_MIN_PER_MS } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
@@ -39,12 +38,12 @@ export const indicators = {
   },
   oilTemperature: {
     name: text('Öltemperatur', 'Oil temperature'),
-    select: (state: CtslTrainerState) => dialValue(state.systems.oilTempC),
+    select: (state: CtslTrainerState) => state.systems.oilTempC,
     appearance: gaugeArtwork.oilTemperature,
   },
   cht: {
     name: text('Zylinderkopftemperatur', 'Cylinder head temperature'),
-    select: (state: CtslTrainerState) => dialValue(state.systems.chtC),
+    select: (state: CtslTrainerState) => state.systems.chtC,
     appearance: gaugeArtwork.cht,
   },
   voltmeter: {

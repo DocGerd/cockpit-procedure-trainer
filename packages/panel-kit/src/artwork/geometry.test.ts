@@ -32,6 +32,29 @@ describe('needleAngle', () => {
   });
 });
 
+describe('needleAngle with stops', () => {
+  const stepped: Needle = {
+    ...needle,
+    stops: [
+      { value: 10, angle: -60 },
+      { value: 14, angle: 20 },
+      { value: 20, angle: 50 },
+    ],
+  };
+
+  it("turns at each stretch's own rate between the stops", () => {
+    expect(needleAngle(stepped, 12)).toBeCloseTo(-20);
+    expect(needleAngle(stepped, 14)).toBeCloseTo(20);
+    expect(needleAngle(stepped, 17)).toBeCloseTo(35);
+  });
+
+  it('clamps to the end stops and rests on the first for a value that is not a number', () => {
+    expect(needleAngle(stepped, 0)).toBe(-60);
+    expect(needleAngle(stepped, 99)).toBe(50);
+    expect(needleAngle(stepped, Number.NaN)).toBe(-60);
+  });
+});
+
 describe('layerFraction', () => {
   it('passes numbers, maps booleans, and places a named notch by its index', () => {
     expect(layerFraction(0.4)).toBe(0.4);

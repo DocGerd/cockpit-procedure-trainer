@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
 import { indicators } from '../../indicators';
 import type { CtslTrainerState } from '../../systems';
-import { DIAL, dialAngle, dialValue } from './cht';
+import { DIAL, dialAngle } from './temperature-dial';
 import { readFace } from './test-support';
 
 type Polar = { angle: number; radius: number };
@@ -24,15 +24,18 @@ const polar = (x: number, y: number): Polar => ({
 
 const num = (tag: Tag, key: string): number => Number(tag.attributes[key]);
 
-const lerpAngle = (id: 'cht' | 'oilTemperature', celsius: number): number => {
+const tagWhere = (tags: Tag[], what: string, match: (tag: Tag) => boolean): Tag => {
+  const found = tags.find(match);
+  if (!found) throw new Error(`no ${what}`);
+  return found;
+};
+
+const needleOf = (id: DialSpec['id']) => {
   const appearance = indicators[id].appearance;
   if (!('artwork' in appearance) || appearance.artwork.moving.type !== 'needle') {
     throw new Error(`${id} has no needle`);
   }
-  const { valueRange, angleRange } = appearance.artwork.moving;
-  const raw = (dialValue(celsius) - valueRange.min) / (valueRange.max - valueRange.min);
-  const fraction = Math.min(1, Math.max(0, raw));
-  return angleRange.min + fraction * (angleRange.max - angleRange.min);
+  return appearance.artwork.moving;
 };
 
 const numerals = [
@@ -69,31 +72,33 @@ const withinDegrees = (actual: number, expected: number, tolerance: number, what
   ).toBeLessThanOrEqual(tolerance);
 
 export function expectDialScale(id: DialSpec['id']) {
-  expect(dialValue(DIAL.min)).toBe(40);
-  expect(dialValue(120)).toBe(120);
-  expect(dialValue(150)).toBeCloseTo(138.333, 3);
-  expect(dialAngle(40)).toBe(-130);
+  expect(dialAngle(DIAL.min)).toBe(-130);
   expect(dialAngle(120)).toBeCloseTo(86, 9);
+  expect(dialAngle(121)).toBeCloseTo(87.65, 9);
   expect(dialAngle(150)).toBeCloseTo(135.5, 9);
-  for (const celsius of [40, 55, 60, 80, 100, 110, 120, 125, 130, 140, 150]) {
-    expect(lerpAngle(id, celsius), `${celsius} °C`).toBeCloseTo(dialAngle(celsius), 9);
-  }
   for (const { value, angle } of numerals.slice(0, 5)) {
-    withinDegrees(lerpAngle(id, value), angle, 0.5, `${value} °C`);
+    withinDegrees(dialAngle(value), angle, 0.5, `${value} °C`);
   }
   for (const { value, angle } of heavyBars) {
-    withinDegrees(lerpAngle(id, value), angle, 1, `${value} °C bar`);
+    withinDegrees(dialAngle(value), angle, 1, `${value} °C bar`);
   }
-  expect(lerpAngle(id, 20), 'below the scale the needle waits on 40').toBe(-130);
-  expect(lerpAngle(id, 200), 'above the scale the needle waits on 150').toBeCloseTo(135.5, 9);
+  const { stops, angleRange, valueRange } = needleOf(id);
+  expect(valueRange, 'the needle reads plain degrees Celsius').toEqual({ min: 40, max: 150 });
+  expect(angleRange).toEqual({ min: dialAngle(40), max: dialAngle(150) });
+  expect(stops?.map(({ value }) => value)).toEqual([40, 120, 150]);
+  for (const { value, angle } of stops ?? []) expect(angle).toBeCloseTo(dialAngle(value), 9);
 }
 
 export function expectNeedleReadsTemperature(id: DialSpec['id']) {
   const state = (celsius: number) =>
     ({ systems: { chtC: celsius, oilTempC: celsius } }) as unknown as CtslTrainerState;
-  for (const celsius of [46, 90, 120, 130]) {
-    expect(indicators[id].select(state(celsius))).toBe(dialValue(celsius));
+  for (const celsius of [46, 90, 120, 130, 150]) {
+    expect(indicators[id].select(state(celsius))).toBe(celsius);
   }
+  const options = indicators[id].appearance.options;
+  expect(options?.['min']).toBe(40);
+  expect(options?.['max']).toBe(150);
+  expect(options?.['ticks']).toEqual([40, 60, 80, 100, 120, 150]);
 }
 
 export function expectDialFace(spec: DialSpec) {
@@ -124,8 +129,8 @@ export function expectDialFace(spec: DialSpec) {
     if (!/^\d+$/.test(tag.text)) expect(num(tag, 'x'), `"${tag.text}" is centred`).toBe(100);
   }
   for (const { text, y } of spec.words) {
-    const tag = texts.find((candidate) => candidate.text === text);
-    expect(num(tag as Tag, 'y'), text).toBeCloseTo(y, 1);
+    const tag = tagWhere(texts, `word ${text}`, (candidate) => candidate.text === text);
+    expect(num(tag, 'y'), text).toBeCloseTo(y, 1);
   }
 
   const ticks = tagsOf(svg, 'line').filter((tag) => tag.attributes['data-tick'] !== undefined);
@@ -144,9 +149,16 @@ export function expectDialFace(spec: DialSpec) {
     ).toBe(!tinted);
   }
   const widthOf = (celsius: number) =>
-    num(ticks.find((tick) => num(tick, 'data-tick') === celsius) as Tag, 'stroke-width');
+    num(
+      tagWhere(ticks, `tick ${celsius}`, (tick) => num(tick, 'data-tick') === celsius),
+      'stroke-width',
+    );
   for (const { value, inner, outer } of heavyBars) {
-    const tick = ticks.find((candidate) => num(candidate, 'data-tick') === value) as Tag;
+    const tick = tagWhere(
+      ticks,
+      `tick ${value}`,
+      (candidate) => num(candidate, 'data-tick') === value,
+    );
     withinDegrees(polar(num(tick, 'x1'), num(tick, 'y1')).radius, inner, 1.5, `bar ${value} inner`);
     withinDegrees(polar(num(tick, 'x2'), num(tick, 'y2')).radius, outer, 1.5, `bar ${value} outer`);
     expect(widthOf(value), `bar ${value} is heavy`).toBeGreaterThanOrEqual(2 * widthOf(115));
@@ -162,10 +174,11 @@ export function expectDialFace(spec: DialSpec) {
     const [start, end] = [...(tag.attributes['d'] ?? '').matchAll(/[ML]\s*([\d.]+)[ ,]([\d.]+)/g)]
       .slice(0, 2)
       .map(([, x, y]) => polar(Number(x), Number(y)));
-    withinDegrees(start?.angle ?? NaN, dialAngle(arc.from), 0.6, `${arc.colour} start`);
-    withinDegrees(end?.angle ?? NaN, dialAngle(arc.to), 0.6, `${arc.colour} end`);
-    withinDegrees(start?.radius ?? NaN, 85, 1, `${arc.colour} outer radius`);
-    withinDegrees(end?.radius ?? NaN, arc.inner, 1, `${arc.colour} inner radius`);
+    if (!start || !end) throw new Error(`${arc.colour} arc path has no M/L points`);
+    withinDegrees(start.angle, dialAngle(arc.from), 0.6, `${arc.colour} start`);
+    withinDegrees(end.angle, dialAngle(arc.to), 0.6, `${arc.colour} end`);
+    withinDegrees(start.radius, 85, 1, `${arc.colour} outer radius`);
+    withinDegrees(end.radius, arc.inner, 1, `${arc.colour} inner radius`);
   });
 
   const screws = tagsOf(svg, 'circle').filter((tag) => tag.attributes['data-screw'] !== undefined);
@@ -184,14 +197,11 @@ export function expectDialFace(spec: DialSpec) {
 }
 
 export function expectPointerShape(id: DialSpec['id']) {
-  const appearance = indicators[id].appearance;
-  if (!('artwork' in appearance) || appearance.artwork.moving.type !== 'needle') {
-    throw new Error(`${id} has no needle`);
-  }
-  const svg = readFace(appearance.artwork.moving.image);
+  const svg = readFace(needleOf(id).image);
   expect(svg).toMatch(/viewBox="0 0 200 200" width="200" height="200"/);
   const blade = tagsOf(svg, 'path').find((tag) => tag.attributes['data-pointer'] !== undefined);
-  const points = [...(blade?.attributes['d'] ?? '').matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(
+  if (!blade) throw new Error('no pointer path with data-pointer');
+  const points = [...(blade.attributes['d'] ?? '').matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(
     ([, x, y]) => polar(Number(x), Number(y)),
   );
   expect(points.length, 'a blade with a square inner end and a point').toBe(5);

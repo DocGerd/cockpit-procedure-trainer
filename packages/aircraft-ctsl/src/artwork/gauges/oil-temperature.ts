@@ -1,4 +1,4 @@
-import { temperatureDial } from './cht';
+import { temperatureDial } from './temperature-dial';
 
 export const oilTemperatureFace = new URL(
   '../../assets/artwork/gauge-oil-temperature.svg',
