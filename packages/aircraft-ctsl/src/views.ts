@@ -12,13 +12,13 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
 });
 
 // D-MPGO's arrangement and relative sizes (intake §3.9.3): the FLARM display top left beside the
-// checklist card, the GPS dominating mid-field, the COM and transponder side by side low down.
-// Mirror lettering is read in the dock, not in these slots.
+// checklist card, the GPS dominating mid-field, centred over the COM and transponder pair. Each
+// slot keeps its mirror's aspect; the dock holds the full-size unit.
 export const deviceSlots = {
   flarm: at(962, 45, 120, 60),
-  gps: at(1018, 210, 392, 245),
-  com: at(1011, 521, 139, 139),
-  xpdr: at(1237, 521, 139, 139),
+  gps: at(1027, 225, 347, 217),
+  com: at(1033, 521, 139, 139),
+  xpdr: at(1222, 521, 139, 139),
 } as const satisfies Record<string, Placement>;
 
 export const views = {

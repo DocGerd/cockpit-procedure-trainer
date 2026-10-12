@@ -194,3 +194,59 @@ describe('the avionics master', () => {
     expect(powered()).toEqual([true, true, true, true]);
   });
 });
+
+describe('pulling and pushing back power on the CTSL', () => {
+  const holding = () => {
+    const session = createSession(ctslAircraft, { devices: testDevices, phase: 'holding' });
+    session.advance(100);
+    const powered = () =>
+      ['com', 'xpdr', 'gps', 'flarm'].map((id) => session.state().devices[id]?.on);
+    return { session, powered };
+  };
+  const cycle = (
+    { session, powered }: ReturnType<typeof holding>,
+    control: string,
+    out: string,
+    pulled: boolean[],
+  ) => {
+    session.set(control, out);
+    session.advance(100);
+    expect(powered()).toEqual(pulled);
+    session.set(control, control === 'avionicsMaster' ? 'on' : 'in');
+    session.advance(100);
+    expect(powered()).toEqual([true, true, true, true]);
+  };
+
+  it('each unit breaker takes only its own unit down and back', () => {
+    const world = holding();
+    expect(world.powered()).toEqual([true, true, true, true]);
+    cycle(world, 'comBreaker', 'pulled', [false, true, true, true]);
+    cycle(world, 'xpdrBreaker', 'pulled', [true, false, true, true]);
+    cycle(world, 'gpsBreaker', 'pulled', [true, true, false, true]);
+  });
+
+  it('the avionics master takes all four down, the FLARM included, and back', () => {
+    cycle(holding(), 'avionicsMaster', 'off', [false, false, false, false]);
+  });
+
+  it('the battery off and on again, with the generator off, takes all four down and back', () => {
+    const world = holding();
+    world.session.set('generator', 'pulled');
+    world.session.advance(100);
+    expect(world.powered()).toEqual([true, true, true, true]);
+    cycle(world, 'battery', 'pulled', [false, false, false, false]);
+  });
+
+  it('a breaker pulled while the master is off stays dark when the master comes on', () => {
+    const { session, powered } = holding();
+    session.set('xpdrBreaker', 'pulled');
+    session.set('avionicsMaster', 'off');
+    session.advance(100);
+    session.set('avionicsMaster', 'on');
+    session.advance(100);
+    expect(powered()).toEqual([true, false, true, true]);
+    session.set('xpdrBreaker', 'in');
+    session.advance(100);
+    expect(powered()).toEqual([true, true, true, true]);
+  });
+});

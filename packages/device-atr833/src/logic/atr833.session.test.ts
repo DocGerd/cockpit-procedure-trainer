@@ -8,7 +8,7 @@ import {
 } from '@cpt/core';
 import type { Text, TrainerState } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { MEM_SAVE_HOLD_MS, POWER_OFF_HOLD_MS, atr833Device } from './atr833';
+import { LONG_PRESS_MS, POWER_OFF_HOLD_MS, atr833Device } from './atr833';
 import type { Atr833State } from './atr833';
 
 type BusState = { readonly busOn: boolean };
@@ -167,14 +167,18 @@ describe('atr833 in an aircraft', () => {
     expect(radio(session.state()).on).toBe(true);
   });
 
-  it('saves the standby frequency after MEM is held', () => {
+  it('stores the active frequency into the memory entry after MEM is held in the memory list', () => {
     const session = createSession(testAircraft, options);
     busOnAndSwitchOn(session);
-    holdFor(session, 'radio.mem', MEM_SAVE_HOLD_MS + SLICE_MS);
-    session.release('radio.mem');
-    expect(radio(session.state()).list).toEqual({ kind: 'save', index: 0 });
     session.press('radio.mem');
     session.release('radio.mem');
-    expect(radio(session.state()).memory[0]).toBe(119000);
+    expect(radio(session.state()).list).toEqual({ kind: 'mem', index: 0 });
+    holdFor(session, 'radio.mem', LONG_PRESS_MS + SLICE_MS);
+    session.release('radio.mem');
+    expect(radio(session.state()).memory[0]).toBe(118000);
+    expect(radio(session.state())).toMatchObject({
+      standby: 118000,
+      list: { kind: 'mem', index: 0 },
+    });
   });
 });

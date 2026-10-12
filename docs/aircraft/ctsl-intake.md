@@ -88,9 +88,11 @@ decisions of 2026-10-10:
    **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
    expected, so the owner approved the rectangular display. The device ids are
    `atr833`, `trt800h`, `aera500` and `flarm`.
-6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
-   controls on D-MPGO's face. A function of the II whose control the face lacks (for
-   example the push-to-talk and external interfaces) is out.
+6. **COM facts come only from the ATR833A-OLED manual** (document 01.1411.010.71e,
+   revision 3.00, read on ManualsLib), and only for controls on D-MPGO's face. The
+   owner chose it on 2026-10-11 (#718) in place of the ATR833-II manual; that the A
+   variant behaves like the original unit is §9 question 64. A function whose control
+   the face lacks (for example the push-to-talk and external interfaces) is out.
 7. **Sources for the rest:** the TRT800H manual, revision 3.00; for the FLARM display
    the EDIATec display sheet V5.1e and the FLARM operating manual; for the GPS the
    aera 500 Series Pilot's Guide. All are paraphrased, never copied (§3.8,
@@ -738,19 +740,21 @@ variant letter of an ATR833A-OLED is not visible on the face and cannot be ruled
 out. The ATR833-II OLED is less likely: D-MPGO's face carries the funkwerk logo
 used before the maker was renamed f.u.n.k.e. AVIONICS and no "Mk II" lettering.
 Rejected: the older ATR 500 (its memory rotary switch and exchange key are not on
-this face) and every LCD type (this display is OLED). The family is certain, the
-generation is open (§9 question 36). §3.7.1's reading of the knob legend as
+this face) and every LCD type (this display is OLED). The family is certain; the
+owner confirmed the original ATR833-OLED (§9 question 36). §3.7.1's reading of the knob legend as
 "VOL/SQL" is corrected here: the legend reads VOL/SEL.
 
 **Panel position.** Upper-centre field, bottom row, left unit: directly below the
 GPS, left of the transponder. Its two knobs take the right-hand corners of its
 bounding square.
 
-**Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833-II VHF Communication Transceiver,
-OLED / LCD, Operation and Installation", document 01.143.010.71e, revision 1.06
-(24 Jan 2024), downloaded from the manufacturer's own site. It is the only source
-(§2a item 6): the manual of the II describes D-MPGO's unit, and a function of the
-II whose control D-MPGO's face lacks is out of scope.
+**Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833A-OLED Operation and Installation",
+document 01.1411.010.71e, revision 3.00, read on ManualsLib (manual 876459) because
+the manufacturer no longer hosts manuals for the original unit. The owner chose it
+on 2026-10-11 (#718); for the COM it replaces the ATR833-II manual that §2a item 6
+used to name. The A variant is taken to behave like D-MPGO's original ATR833-OLED (§9
+question 64). "Manual §n" is the A manual's own section number. A function whose
+control D-MPGO's face lacks is out of scope.
 
 **Face.** Top row, three push keys printed `I/O`, `SET`, `MEM`. A knob at the
 upper right with a curved legend `VOL/SEL`. The display in the middle, three text
@@ -837,100 +841,130 @@ in the photos are illustrative only.
 _Not visible_: the OLED pixel structure, the knobs' detents and any pointer, a
 legend for the lower knob, edge-lit key legends, and the display in other modes.
 
-**Controls** (the manual's names in parentheses).
+**Controls** (manual §2.1, summarised per control).
 
-| Control                                     | Press or turn                                            | Effect                                                                                                                       |
-| ------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `I/O` (on/off)                              | about 0.5 s                                              | switches on                                                                                                                  |
-| `I/O`                                       | about 3 s                                                | switches off                                                                                                                 |
-| `SET` (entry)                               | short                                                    | steps the third display line through VOL, SQL, VOX, INT, STL, STR, EXT, BRT, then VOL again                                  |
-| `SET`                                       | short, inside a MEM or LST list                          | loads the shown entry into the standby frequency                                                                             |
-| `SET`                                       | 5 s or more                                              | opens the setup menu: pilot items (spacing, display, dual watch, PTT select), then installer items (not modelled)            |
-| `MEM`                                       | short                                                    | opens the 20 user memories; a second short press opens the list of the last 10 active frequencies (LST)                      |
-| `MEM`                                       | hold (2 s in the key table, 1.5 s in the worked example) | opens save mode: pick a slot, then a short press writes the frequency                                                        |
-| `DW` (dual watch)                           | short                                                    | toggles dual watch, line 2 reads `DW` instead of `SBY`; in any menu or list it returns to the standard display               |
-| `▲▼` (swap)                                 | short                                                    | exchanges active and standby; in a MEM or LST list it loads the entry into the active frequency                              |
-| `►` (cursor)                                | short                                                    | moves the underline to the next editable field of the standby frequency                                                      |
-| `►`                                         | more than 2 s                                            | REPLAY of the last received call (not modelled)                                                                              |
-| `VOL/SEL` knob (volume/select)              | turn                                                     | receive volume by default; otherwise the value of the line-3 item chosen with `SET`, the list entry number, or the save slot |
-| lower-right knob (the manual calls it FREQ) | turn                                                     | changes the underlined field of the standby frequency                                                                        |
+- **`I/O`**: a press of about half a second switches the radio on; holding it about
+  2 s switches it off.
+- **`SET`**: each short press moves the third display line on to its next setting,
+  in the order VOL, SQL, DIM, VOX, DWM, INT, EXT and round to VOL again; a hold of
+  1.5 s or more goes straight back to VOL; a hold of 5 s or more opens the
+  configuration menu (not modelled).
+- **`MEM`**: a short press opens the user memory list, and a second one the list of
+  recently used frequencies (LST). Held 1.5 s or more while the memory list is open,
+  it stores the **active** frequency in the shown entry and clears the entry's name.
+- **`DW`**: dual watch on or off; line 2 then reads `DW` in place of `SBY`.
+- **`▲▼`**: swaps active and standby, and also closes an open list.
+- **`►`**: moves the underline to the next field of the standby frequency; held 1.5 s
+  or more in the memory list, it starts naming the entry (not modelled).
+- **`VOL/SEL` knob**: sets the value of the line-3 setting; in a list it picks the
+  entry, which becomes the standby frequency at once.
+- **Lower-right knob** (FREQ in the manual): changes the underlined field of the
+  standby frequency.
+
+The A manual has no REPLAY and no split sidetone items; those are ATR833-II features.
 
 Not on the face and out of scope: the push-to-talk button on the stick, an external
-swap button, an external intercom switch, the serial remote interface, the PC tool
-for the memory list, the external audio input, and the display contrast (LCD only).
+intercom switch, the serial remote interface, the PC tool for the memory list and the
+external audio input.
 
-**Display.** Three lines on a 128 by 64 dot display. Line 1: `ACT`, a status field
-(`RX` receiving, `TX` transmitting, `Te` transmit time-out) and the active
-frequency. Line 2: `SBY` or `DW`, a status field and the standby frequency with
-the edit cursor as an underline below one field. Line 3: the chosen item and its
-value (default `VOL nn`), or `MEM nn` / `LST nn` while browsing a list, with
-`BAT` for a very low supply. After a memory save a `>` stands before the standby
-frequency. The manual's own example and D-MPGO's display show the same layout, with
-the cursor on the MHz field. A menu or list falls back to the standard display
-after 10 s without input.
+**Line-3 settings** (manual §2.4). `SET` chooses the setting and `VOL/SEL` changes
+it; values always show two digits, and line 3 returns to VOL after 12 s untouched.
+Receive volume (`VOL`) runs 01 to 16. Squelch (`SQL`, higher needs a stronger
+signal, default 05 and the only default the manual gives), display brightness
+(`DIM`), the speech level that opens the intercom (`VOX`, 01 meaning always open)
+and intercom volume (`INT`, shown as `INT --` when the wiring disables the intercom)
+each run 01 to 10. The external audio volume (`EXT`) runs 00 to 10, 00 switching the
+input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
+runs from 00 (none) down to −8, the minus sign printed.
 
-**Power.** Holding `I/O` for about 0.5 s switches the unit on; it shows a start
-screen with the type and software version and returns to the frequencies and
-settings it had at switch-off. About 3 s switches it off. The installer setting
-AUTO ON makes the unit start as soon as supply arrives; with it off the pilot must
-press `I/O` (manual §3.9). On D-MPGO AUTO ON is off, so the pilot presses `I/O` (owner, §9
-question 35).
+**Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
+settings: channel spacing, automatic display darkening, push-to-talk assignment,
+external audio priority, microphone sensitivities and a maintenance test mode. A
+master reset (manual §3.7) restores the factory configuration. The manual has **no
+AUTO ON** setting and names no automatic switch-on.
 
-**Frequency entry and swap.** Tuning is two steps: set the standby frequency, then
-swap. With 8.33 kHz spacing the standby frequency has three fields: the MHz part,
-the first decimal digit, and the last two digits. `►` moves from field to field and
-the lower-right knob changes the field. The range is 118.000 to 136.975 MHz. The
-radio takes the channel width from the channel's name: 25 kHz channels are named in
-steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a carrier
-is named 5 kHz higher (.005, .030, .055, .080), with the two names between them for
-the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names. The
-setup item SPACING can restrict entry to 25 kHz names.
+**Display.** Three lines on the OLED. Line 1: `ACT`, a status field (`RX`
+receiving, `TX` transmitting, `Te` after two minutes of continuous transmission) and
+the active frequency. Line 2: `SBY` or `DW`, a status field (`RX` in dual watch) and
+the standby frequency, with the edit cursor as an underline below one field. Line 3:
+the chosen item and its value (default `VOL nn`), or `MEM nn` with the entry's name,
+or `LST nn`, while browsing a list; `BAT` for a low supply. While a list is open,
+line 2 keeps the `SBY` label and shows the entry, because the entry is the standby
+frequency. The manual's example and D-MPGO's display show the same layout, with the
+cursor on the MHz field.
 
-**Memories.** 20 user slots, optionally named (up to 8 characters), and a list of
-the last 10 active frequencies. Recall: `MEM`, turn the VOL/SEL knob, then `▲▼` for
-active or `SET` for standby. Save: set the frequency as standby, hold `MEM`, turn
-the knob to a slot, press `MEM` briefly; a `>` confirms.
+**Power** (manual §2.2). Holding `I/O` about 0.5 s switches the unit on: a start
+screen with the type and software version, then the frequencies and settings it had
+at switch-off. About 2 s switches it off. The manual names no switch-on when supply
+arrives, so power arriving leaves the unit dark until `I/O` is pressed; this matches
+the owner's answer for D-MPGO (§9 question 35). The manual does not say whether the
+memories and the last-used list survive switch-off.
 
-**Dual watch.** With one receiver, dual watch listens mainly to the standby
-frequency and samples the active one at intervals; a signal on the active one takes
-priority. Transmission is always on the active frequency. Changing either
-frequency ends dual watch. It needs squelch of at least 1. The pilot swaps before
+**Frequency entry and swap** (manual §2.5). Tuning is two steps: set the standby
+frequency, then swap. With 8.33 kHz spacing the standby frequency has three fields:
+the MHz part, the first decimal digit, and the last two digits. `►` moves from field
+to field and the lower-right knob changes the field. The range is 118.000 to 136.975
+MHz. The radio takes the channel width from the channel's name: 25 kHz channels are
+named in steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a
+carrier is named 5 kHz higher (.005, .030, .055, .080), with the two names between
+them for the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names.
+The channel-spacing setting in the configuration menu can restrict entry to 25 kHz
+names.
+
+**Memories** (manual §2.5.3 to §2.5.5). 100 user entries, numbered 00 to 99, each
+optionally named with up to 8 characters. Recall: `MEM` opens the list at entry 00;
+turning the `VOL/SEL` knob picks an entry, and the entry replaces the standby
+frequency at once; `▲▼` then makes it active and leaves the list. A second short
+`MEM` opens the last-used list: the last 10 active frequencies as `LST 01` to
+`LST 10`, plus `LST 00`, which holds the last standby frequency taken from the
+memory list; picking and swapping work as in the memory list. Save: make the
+frequency active, open the memory list, pick the entry, hold `MEM` 1.5 s or more;
+the active frequency is written into the entry (so line 2 now shows it too) and any
+name is cleared. There is no save mark. A list is left by a key press or after a
+time-out whose length the manual does not give.
+
+**Dual watch** (manual §2.6). With one receiver, dual watch listens mainly to the
+standby frequency and samples the active one at intervals; a signal on the active
+one takes priority. Transmission is always on the active frequency. Changing either
+frequency ends dual watch. It needs a squelch of at least 02. `DWM` makes standby
+reception quieter so the two can be told apart. The manual advises against dual
+watch where a continuous listening watch is required. The pilot swaps before
 answering a call heard on standby.
 
-**Typical use.** Before engine start: with avionics power on, switch on (unless
-AUTO ON), check that `BAT` is absent, set the volume, check that squelch is at
-least 1. Before take-off: the first frequency in standby, swap, then the next
-frequency in standby. In flight: swap at each hand-off; optional dual watch; the
-pilot saves frequencies to memory when it helps. After landing: hold `I/O` about 3 s
+**Typical use.** Before engine start: with avionics power on, switch on with `I/O`,
+check that `BAT` is absent, set the volume, check that squelch is at least 02 if dual
+watch will be used. Before take-off: the first frequency in standby, swap, then the
+next frequency in standby. In flight: swap at each hand-off; optional dual watch; the
+pilot saves frequencies to memory when it helps. After landing: hold `I/O` about 2 s
 to switch off before the avionics master goes off. The manual has no checklist;
 these steps are assembled from its functions.
 
 **Uncertain.**
 
-- Whether the original ATR833-OLED has the II's REPLAY, last-10 list, named
-  memories, split sidetone items or other II features (§9 question 36; the owner says
-  the unit is the original OLED, so trimming the II-only features is a separate issue).
-- The manual contradicts itself on several small points: the MEM hold time; whether
-  a save stores the active or the standby frequency (the key table, §2.1, and the
-  worked example say standby, the display table, §2.3, says active); whether REPLAY needs a hold or a press; the volume range
-  (1 to 20 or 0 to 20); how a list is left (`DW` or `SET`); and a memory-clear hold
-  of `►` that only a flow chart shows. The trainer's choice for each is in the
-  Trainer paragraph below or the M18 plan.
-- The cursor fields in 25 kHz spacing, and where the cursor starts after power-on
-  or a swap, are not stated.
+- Whether the ATR833A-OLED behaves like D-MPGO's original ATR833-OLED (§9 question
+  64).
+- The manual leaves open: which key leaves a list and whether that key also does its
+  own job; the list time-out; what an unused memory entry holds; what `LST 00` holds
+  exactly; whether the memories and the last-used list survive switch-off; what a
+  `MEM` hold does outside the memory list; how long the `I/O` press must be; whether
+  a cursor field carries into the next when it wraps; where the cursor starts after
+  power-on or a swap; and the cursor fields in 25 kHz spacing (§9 question 65).
 
-**Trainer (M18).** The `atr833` device models: power (any press switches on while
-powered, a hold switches off), active and standby frequencies of 8.33 kHz names
-with the three-field cursor (fixed spacing; fields wrap without carry, **assumed
-(unverified)**), swap, dual watch, the MEM list (20 unnamed slots) and the LST list,
-saving the standby frequency to a slot, the SET items VOL to BRT as numbers, and
-the menu time-out. AUTO ON is off (owner, §9 question 35): power arriving leaves the unit
-dark until an `I/O` press switches it on; frequencies, settings and memories survive
-power loss. It leaves out reception,
-transmission and audio (so no `RX`, `TX`, `Te`), REPLAY, the setup menu, memory names
-and clearing, the `BAT` warning, the start screen, factory reset and every external
-interface. Nothing is printed at the lower-right knob (owner, §9 question 36); `FREQ` is
-the manual's name for it and appears only on the dock's touch helpers.
+**Trainer (#718).** The `atr833` device models the A manual: power (any `I/O` press
+switches on while powered, a 2 s hold switches off; power arriving leaves it dark,
+power lost switches it off), active and standby frequencies of 8.33 kHz names with
+the three-field cursor (fixed spacing; fields wrap without carry, **assumed
+(unverified)**), swap, dual watch (squelch 02 or more), the line-3 items VOL, SQL,
+DIM, VOX, DWM, INT and EXT as numbers with the SET hold back to VOL and the 12 s
+time-out, the user memory list (100 unnamed entries) and the last-used list with
+`LST 00`, browsing that replaces the standby frequency, and storing the active
+frequency with a `MEM` hold. Frequencies, settings, memories and the last-used list
+survive power loss and switch-off; dual watch, the line-3 item and an open list do
+not. It leaves out reception, transmission and audio (so no `RX`, `TX`, `Te`, and
+`DIM`, `DWM` and the volumes are numbers only), the configuration menu, memory names,
+the `BAT` warning, the start screen, master reset and every external interface.
+Nothing is printed at the lower-right knob (owner, §9 question 36); `FREQ` is the
+manual's name for it and appears only on the dock's touch helpers.
 
 #### 3.8.2 Transponder: funkwerk TRT800H-OLED
 
@@ -1056,6 +1090,27 @@ Mode A/C transponder. It then starts in STBY, except that with a ground switch
 fitted and in-flight state selected it starts active. It keeps its codes, VFR code,
 brightness and altitude offset itself.
 
+**Power loss and return (#727).** The installation manual (§3.6.1.3 Auto-On, §3.10 Starting
+Up, §3.11) settles three things and leaves the rest open.
+
+- _Switch-on after power returns._ An installation pin, Auto-On, decides. Wired to the
+  supply behind an avionics master switch, the unit starts by itself whenever power is
+  supplied and its `I/O` key then has no function. Left unconnected, the unit stays dark
+  until `I/O` is held for about 0.5 s. The manual asks for the first wiring where an
+  avionics master switch feeds the unit, but D-MPGO's wiring is not known (§9 question 66).
+- _What survives._ The unit stores the active, standby and VFR codes, the display
+  contrast and the altitude offset internally, and the aircraft record (address, category,
+  Flight-ID, ground switch, speed category, data ports) in the cradle's memory. Power
+  loss therefore keeps the codes. It does not keep the operating mode: every start is in
+  STBY, except with a ground switch fitted and in-flight state selected. Ident, a
+  half-made entry and the word `VFR` on the bottom line are not mentioned as stored (§9
+  question 67).
+- _Start-up sequence._ After switch-on the unit shows its name and software and firmware
+  versions, then the record list (only with more than one record, picked with the knob
+  and `MODE`), or `Cradle OFF` without an address, and then the code, level and `STBY`
+  screen. The manual names no self-test and gives no duration for any of these screens;
+  whether a key is accepted while they show is not stated (§9 question 67).
+
 **Squawk entry and swap.** The active code is on the top line, the standby code on the
 bottom. Press `►` to put the cursor on a digit, turn the knob, press `►` for the next
 digit; `▲▼` makes the standby code active and the old active code standby.
@@ -1093,6 +1148,18 @@ lock-out and reply indicators, squitter and ADS-B, Flight-ID and setup menus,
 operation without the cradle address, brightness, error codes and the `BAT` warning,
 test mode, the ground-switch state, the start screen and the remote head. The knob
 prints `CODE`, the trainer's word; the unit prints nothing there.
+
+**Power cycle (trainer, #727).** The `trt800h` device follows the `powered` condition the
+aircraft gives it: with the Transponder breaker pulled, or the Avionics Master off, or the
+battery off with no generator running, it is dark and ignores every key. When power
+returns it stays dark until `I/O` is pressed, as for an Auto-On pin left unconnected
+(**assumed (unverified)**, §9 question 66; the trainer's `I/O` steps in N6 and in
+`radioAndTransponder` are the trainer's own, and a wired pin would leave the key without
+function). It returns in STBY with the
+active, standby and VFR codes of before; ident, the cursor, the stored-code flash and a
+pending key hold are gone, and the word `VFR` is not shown again. A key still held when
+power returns does not count as a press. The start screens are not shown and no key is
+blocked after the press (§9 question 67).
 
 #### 3.8.3 GPS: Garmin aera 500
 
@@ -1186,7 +1253,9 @@ power key, the side-edge controls (the card slot), and the backlight-off look.
 **Power-on.** External power switches the unit on by itself. First use runs AutoLocate,
 which can take several minutes. A database initialisation page lists each database's
 dates and cycle; the pilot reviews it and touches **Press To Accept**. Then Home
-appears with GPS signal bars. The receiver's status text runs Autolocate, Searching
+appears with GPS signal bars. The page comes at every switch-on, not only the first: the guide
+says that when the unit is turned on, the initialisation shows whether the databases are
+current, out of date or not available (#727). The receiver's status text runs Autolocate, Searching
 the Sky, Acquiring Satellites, 2D GPS Location (three satellites), 3D GPS Location
 (four) or Lost Satellite Reception. The unit is a VFR aid only.
 
@@ -1207,6 +1276,24 @@ city (keypad, OK), or from the plan, nearest airports or recent waypoints; touch
 Activate. Stop Navigation ends it. A flight plan is built on Active FPL with "Touch to
 add Waypoint" and activated from the plan list. The unit has no radio tuning, no
 squawk entry and no swap.
+
+**Power loss and return (#727).** The guide (Rev. C) settles the return and is nearly silent on
+the loss.
+
+- _Return._ Applying external power turns the unit on for full operation by itself; there
+  is nothing to press. The initialisation page follows (above). A unit that was held off
+  with external power connected sits in Charge Mode, and it too comes on when external
+  power is applied again.
+- _Loss._ The guide never says what the unit does when external power is removed while it
+  runs. It does say that the unit has a lithium-ion battery which must stay installed
+  whenever the unit is on, that the battery charges from external power, and that a Setup
+  item `Power Loss Warning` exists. Read together this suggests that a unit with a battery
+  keeps running and warns, but the guide does not say so, and whether D-MPGO's unit carries
+  a battery is unknown (§9 question 68).
+- _What survives._ After a start the receiver searches again from its last known position
+  and stored satellite data, so a repeat search is probably shorter than the first; the
+  guide gives no time. Settings such as the backlight level and the map range are the
+  unit's own; the guide does not list which survive a power loss (§9 question 68).
 
 **Settings a trainer may touch.** Backlight level and time-out, day or night colours,
 sound volumes, alarms, power-loss warning, simulator mode.
@@ -1242,6 +1329,15 @@ terrain, weather and traffic, the map pointer and panning, page menus, flight pl
 guidance, alarms, messages, sound, the battery and Charge Mode, database dates, automotive
 and simulator modes, calibration and dimming. Its touchscreen is one control with a position
 per icon, shown only on the page that has it. Every icon prints the guide's name for it.
+
+**Power cycle (trainer, #727).** The `aera500` device follows the `powered` condition: with the
+GPS breaker pulled, or the Avionics Master off, or the battery off with no generator running, it
+is dark, and the touchscreen and POWER are inert. When power returns it switches on by itself at
+the database page, whatever it showed before, even if it had been held off (Charge Mode). The
+fix, the readings, the page and the backlight overlay are gone and the search starts from
+nothing; the backlight level and the map range stay. A pull during the database page or during
+the search starts both over. A POWER key held while power returns is spent. The battery is not
+modelled, so a pull always goes dark (**assumed (unverified)**, §9 question 68).
 
 #### 3.8.4 FLARM display: classic external LED display
 
@@ -1376,6 +1472,28 @@ degrees above or below; fixed obstacles flash the two topmost LED pairs in turn.
 Only the single most dangerous threat is shown. Faults flash all four status LEDs for
 30 s with a binary code on the red LEDs.
 
+**Power loss and return (#727).** The unit manual (version 242, §7 Start-Up, §10 and §4)
+settles most of it; the display sheet (V 5.1e) was not fetched again for this item.
+
+- _Return._ The unit is always on whenever it is connected to an adequate supply, so power
+  returning switches it on by itself, and the display starts its sequence again (see Start-up
+  above). The unit manual puts its own self-test at about 8 seconds, depending on the size
+  of the obstacle data, and says that without the firmware version display and its beep the
+  unit is not ready. A GPS fix after switch-on can take several minutes.
+- _What survives._ Every start is in Nearest mode at loud volume (the manual's defaults;
+  that a pilot's volume or mode would persist across a power loss is not stated, and the
+  display sheet's "starts in Nearest mode at loud volume" is followed). Warning suppression
+  ends (it is not modelled). Flight recording ends with the supply: pulling power within
+  about a minute of landing, at the recommended 2 s interval, loses the last part of the
+  flight (not modelled).
+- _Switching it off in flight._ The manual requires the pilot to have direct sight of and
+  immediate access to a switch or circuit breaker that disconnects the FLARM from the
+  aircraft supply without affecting other essential systems. D-MPGO's panel shows no
+  FLARM breaker or switch (§3.6, §9 question 33).
+- _Low supply._ Below 8 V the `Power` LED flashes and the unit does not operate.
+
+The self-test duration and the search time of the trainer are its own (§9 question 69).
+
 **Typical use.** Before engine start: the FLARM supply is on (switch or breaker, §9
 question 33); the beep, version display and self-test follow; choose volume and mode.
 Before take-off: `Power`, `GPS` and `TX` steady (the manual's check; the club does not do it,
@@ -1408,6 +1526,14 @@ sound (the volume level is kept but never heard), the version display, reboot, f
 reset, display setup, fault codes and flight recording. The trainer's timings for the
 self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
 the manuals give none.
+
+**Power cycle (trainer, #727).** With the Avionics Master off, or the battery off with no
+generator running, the display is dark (the FLARM has no breaker of its own in the trainer,
+§9 question 33; the other breakers do not affect it). When power returns it starts over:
+the self-test from its first LED, Nearest mode, loud volume, and the GPS search from nothing,
+whatever it showed before, including a mode-swap run in progress; a Mode key held through
+the return counts from the end of the self-test. The trainer's self-test is shorter than the
+unit manual's figure and its search is a fixed time (**assumed (unverified)**, §9 question 69).
 
 ### 3.9 Panel layout (photos, M19)
 
@@ -1879,15 +2005,14 @@ above are what makes the panel recognisable; the fractions do not change with th
   tachometer and the engine block move 45 units up to make room, at their true
   spacings. Centre plate 578 × 696 (true 434 × 668).
 - **Units at D-MPGO's relative sizes** (photo-fidelity gate, round 1): FLARM 120 × 60
-  (0.62 A), COM and transponder 139 each (0.72 A), D-MPGO's arrangement kept, the radio
-  centres at 0.84 of the plate height with clear plate between and around them, and the
-  faded blank label drawn in the gap under the GPS. The GPS cradle stays 392 × 245
-  (2.03 A, 2.82 radio diameters; true 1.80 A, 2.50 D) so that its mirror stays legible.
-  The FLARM, COM and transponder mirrors fall below the lettering minimum at the floor
-  and are read in the dock (ADR 0002: recognition over in-slot legibility); the FLARM
-  slot's tap area grows to the touch target around it. The checklist card (212 × 96)
-  sits top right at its photographed centre, wider than the FLARM display as on D-MPGO
-  (§9 questions 44, 45).
+  (0.62 A), GPS cradle 347 × 217 (1.80 A, 2.50 radio diameters), COM and transponder
+  139 each (0.72 A), 0.26 A of clear plate between them, the pair centred under the
+  cradle, the radio centres at 0.84 of the plate height, and the faded blank label
+  drawn in the gap under the cradle. The checklist card (212 × 96) sits top right at
+  its photographed centre, wider than the FLARM display as on D-MPGO. The cradle and
+  radio mirrors meet the slot lettering floor; the FLARM mirror does not and is read in
+  the dock (ADR 0002: recognition over in-slot legibility), its tap area grown to the
+  touch target around the slot (§9 questions 44, 45).
   The radio pair sits right of the dock; the lower column hangs 0.37 A left of the
   centre plate's middle, as on the aircraft.
 - **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
@@ -3544,6 +3669,10 @@ verifies it on D-MPGO.
     printed at the lower-right knob. **Answered.** The slot mirror stays plain; `FREQ −` and
     `FREQ +` stay only as the dock touch helpers' wording. Trimming the II-only features is a
     separate issue.
+    **Trainer (#718):** the `atr833` follows the ATR833A-OLED manual in place of the II's for every
+    control on the face (question 64): the II-only STL, STR and BRT items, the save
+    mode and its mark are gone, REPLAY is absent, the A manual's last-used list (LST) stays and
+    memory names stay unmodelled. Points that manual leaves open are question 65 (§3.8.1).
 37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
     ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
@@ -3639,10 +3768,8 @@ verifies it on D-MPGO.
     440 × 275 beside radios at 272? Trainer uses: the photographed ratio, at the scale
     of §9 question 41 (cradle 347 × 213 under T, 0.79 of natural). **Assumed
     (unverified)** (§3.9.3).
-    **Trainer (M19, #716):** the radios at their photographed size, 139 units (0.72 A),
-    read in the dock; the cradle at the smallest size its mirror lettering allows at the
-    panel floor, 392 × 245 units (2.03 × 1.27 A), so it is 2.82 radio diameters wide,
-    against 2.50 on D-MPGO (§3.9.7).
+    **Trainer (M19, #716):** the photographed ratio at T's scale: cradle 347 × 217 units
+    (1.80 A), radios 139 (0.72 A), so the cradle is 2.50 radio diameters wide (§3.9.7).
 45. **FLARM display size** (#712): the classic FLARM display on D-MPGO is a small strip,
     0.87 by 0.44 COM diameters (0.63 × 0.32 A), at the centre field's top left beside
     the checklist summary; today's slot is 1.18 by 0.59 COM diameters (320 × 160 at
@@ -3759,5 +3886,57 @@ verifies it on D-MPGO.
     have no scale start. The airspeed indicator, the altimeter and the four engine
     gauges record theirs in their own blocks (§3.10.1, §3.10.2 and §3.10.6 to
     §3.10.9).
+64. **ATR833A-OLED manual for D-MPGO's unit (#718)**: does the original ATR833-OLED
+    on D-MPGO behave as the ATR833A-OLED manual (document 01.1411.010.71e, revision
+    3.00) describes? The owner chose that manual because the maker no longer hosts one
+    for the original unit; the variant letter is not visible on the face (§3.8.1).
+    Trainer uses: the A manual's behaviour for every control on the face. **Assumed
+    (unverified)** (§3.8.1).
+65. **ATR833 points the A manual leaves open (#718)**: which key leaves a MEM or LST
+    list, and does it also do its own job; how long the list time-out is; what an
+    unused memory entry holds; whether `LST 00` holds the standby frequency the
+    memory list last set; whether memories and the last-used list survive switch-off;
+    what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
+    whether a cursor field carries into the next when it wraps; where the cursor starts
+    after power-on or a swap; which fields the cursor has in 25 kHz spacing.
+    Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
+    the last-used list and closes it, any other key leaves the list without its own
+    effect, and the frequency knob leaves it and then steps the standby frequency;
+    the 12 s line-3 time-out; unused entries are empty and leave the standby
+    frequency as it is; `LST 00` holds the last standby frequency the memory list set;
+    memories and the last-used list survive; a `MEM` hold outside the memory list
+    acts as a short press; any `I/O` press switches on; the cursor fields wrap without
+    carry; the cursor starts on the MHz field at power-on and stays where it was on a
+    swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
+    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
+    **Assumed (unverified)** (§3.8.1).
+
+66. **TRT800H Auto-On wiring** (#727): is the transponder's Auto-On pin wired to the supply
+    behind the Avionics Master (the unit then starts by itself whenever power arrives and
+    its `I/O` key does nothing), or left open (the pilot presses `I/O` after every power
+    return)? The installation manual asks for the wiring where an avionics master feeds the
+    unit (§3.8.2). Trainer uses: left open, so power returning leaves the unit dark until
+    `I/O` is pressed, and the trainer's `I/O` steps stay. **Assumed (unverified)**; the
+    owner's answer for the COM radio's AUTO ON (question 35) is the nearest evidence.
+67. **TRT800H after a power loss** (#727): after the breaker is pulled and pushed back, does
+    the unit show the word `VFR` again when its active code equals the VFR code, does the
+    unit accept keys at once or only after its start screens (name and versions, then the
+    code screen), and how long do those screens last? Trainer uses: codes kept, STBY, no
+    `VFR` word, no start screens and no blocked keys. **Assumed (unverified)** (§3.8.2).
+68. **aera 500 power loss and return** (#727): when the GPS breaker is pulled or the
+    Avionics Master goes off with the aera running, does the unit go dark, or does it
+    keep running on its own battery and warn (the guide has a `Power Loss Warning`
+    item)? Is a battery fitted in D-MPGO's unit? When power returns, which settings does
+    it keep, and how long is the repeat search? Trainer uses: dark at once, backlight and
+    map range kept, the full search time again. The return on its own and the database
+    page at every switch-on are from the guide; the rest is **assumed (unverified)**
+    (§3.8.3, question 38).
+69. **FLARM start-up and power loss** (#727): how long does the display's start-up take on
+    D-MPGO, is the volume or mode the pilot chose kept across a power loss, and how long
+    does the GPS fix take to return? Which switch or breaker, if any, cuts the FLARM in
+    flight (question 33)? Trainer uses: the display sheet's start-up sequence at the
+    trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
+    start in Nearest at loud volume is from the display sheet; the timings and the
+    absence of a breaker are **assumed (unverified)** (§3.8.4).
 
 <!-- prettier-ignore-end -->

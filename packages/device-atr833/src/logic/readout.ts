@@ -5,12 +5,11 @@ import type { Atr833Item, Atr833State } from './atr833';
 const ITEM_NAMES: Readonly<Record<Atr833Item, Text>> = {
   vol: { de: 'Lautstärke', en: 'volume' },
   sql: { de: 'Squelch', en: 'squelch' },
+  dim: { de: 'Helligkeit', en: 'brightness' },
   vox: { de: 'VOX', en: 'VOX' },
+  dwm: { de: 'DWM', en: 'DWM' },
   int: { de: 'INT', en: 'INT' },
-  stl: { de: 'STL', en: 'STL' },
-  str: { de: 'STR', en: 'STR' },
   ext: { de: 'EXT', en: 'EXT' },
-  brt: { de: 'BRT', en: 'BRT' },
 };
 
 const LIST_NAMES = {
@@ -22,22 +21,13 @@ const mhz = (khz: number, language: keyof Text): string =>
   `${formatFrequency(khz).replace('.', language === 'de' ? ',' : '.')} MHz`;
 
 function lineThree(state: Atr833State, language: keyof Text): string {
-  const de = language === 'de';
   const { list } = state;
-  if (list?.kind === 'save') {
-    return de ? `Speichern auf Platz ${list.index + 1}` : `save to memory ${list.index + 1}`;
-  }
   if (list !== null) {
-    const entry = listEntry(state);
-    const name = `${LIST_NAMES[list.kind][language]} ${list.index + 1}`;
-    return entry === null
-      ? `${name}, ${de ? 'leer' : 'empty'}`
-      : `${name}, ${mhz(entry, language)}`;
+    const name = `${LIST_NAMES[list.kind][language]} ${list.index}`;
+    if (listEntry(state) !== null) return name;
+    return `${name}, ${language === 'de' ? 'leer' : 'empty'}`;
   }
-  const value = state.settings[state.item];
-  const off = de ? 'aus' : 'off';
-  const shown = state.item === 'ext' && value === 0 ? off : String(value);
-  return `${ITEM_NAMES[state.item][language]} ${shown}`;
+  return `${ITEM_NAMES[state.item][language]} ${state.settings[state.item]}`;
 }
 
 export function atr833Readout(state: unknown, language: keyof Text, on: boolean): string {
@@ -46,11 +36,9 @@ export function atr833Readout(state: unknown, language: keyof Text, on: boolean)
   if (!on || !unit.on) return de ? 'Aus' : 'Off';
   const watching = de ? 'Doppelhören' : 'dual watch';
   const standby = unit.dualWatch ? watching : de ? 'Standby' : 'standby';
-  const parts = [
+  return [
     `${de ? 'Aktiv' : 'Active'} ${mhz(unit.active, language)}`,
     `${standby} ${mhz(unit.standby, language)}`,
-  ];
-  if (unit.saved) parts.push(de ? 'gespeichert' : 'saved');
-  parts.push(lineThree(unit, language));
-  return parts.join(', ');
+    lineThree(unit, language),
+  ].join(', ');
 }

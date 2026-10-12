@@ -1,5 +1,5 @@
 import { CONTRACT_VERSION, createSession, phaseOrder, STEP_MS, validateAircraft } from '@cpt/core';
-import type { ControlDefinition } from '@cpt/core';
+import type { ControlDefinition, Placement } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
 import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
@@ -266,7 +266,7 @@ describe('CTSL aircraft', () => {
 
   it.each([
     ['flarm', 120, 60],
-    ['gps', 392, 245],
+    ['gps', 347, 217],
     ['com', 139, 139],
     ['xpdr', 139, 139],
   ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
@@ -540,8 +540,8 @@ describe('CTSL aircraft', () => {
       expect(Math.abs(centreX(deviceSlots.gps) - middleX)).toBeLessThan(0.05 * plate.w);
     });
 
-    it('sizes the units against the airspeed indicator as on D-MPGO, the GPS dominating', () => {
-      const { flarm, gps, com, xpdr } = deviceSlots;
+    it('sizes the radios and the FLARM display against the airspeed indicator as on D-MPGO', () => {
+      const { flarm, com, xpdr } = deviceSlots;
       const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
       for (const radio of [com, xpdr]) {
         expect(radio.rect.w / airspeed).toBeGreaterThanOrEqual(0.6);
@@ -549,7 +549,6 @@ describe('CTSL aircraft', () => {
       }
       expect(flarm.rect.w / airspeed).toBeGreaterThanOrEqual(0.55);
       expect(flarm.rect.w / airspeed).toBeLessThanOrEqual(0.7);
-      expect(gps.rect.w / com.rect.w).toBeGreaterThanOrEqual(2.5);
       expect(xpdr.rect.x - (com.rect.x + com.rect.w)).toBeGreaterThan(0.25 * airspeed);
     });
 
@@ -557,6 +556,37 @@ describe('CTSL aircraft', () => {
       const { flarm, gps, com } = deviceSlots;
       expect(gps.rect.w).toBeGreaterThan(com.rect.w);
       expect(flarm.rect.w * flarm.rect.h).toBeLessThan(com.rect.w * com.rect.h);
+    });
+  });
+
+  describe('avionics arrangement (intake §3.9.3)', () => {
+    const { flarm, gps, com, xpdr } = deviceSlots;
+    const centreX = ({ rect }: Placement) => rect.x + rect.w / 2;
+
+    it('stacks three tiers: the FLARM display, the GPS, then the radio pair', () => {
+      expect(flarm.rect.y + flarm.rect.h).toBeLessThan(gps.rect.y);
+      expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+    });
+
+    it('sets the FLARM display at the top left, over the GPS', () => {
+      expect(flarm.rect.x).toBeLessThanOrEqual(gps.rect.x);
+      expect(flarm.rect.x + flarm.rect.w).toBeLessThan(centreX(gps));
+    });
+
+    it('centres the GPS over the radio pair', () => {
+      const pair = (centreX(com) + centreX(xpdr)) / 2;
+      expect(Math.abs(centreX(gps) - pair)).toBeLessThanOrEqual(0.03 * gps.rect.w);
+    });
+
+    it('draws the GPS 2.2 to 2.7 round units wide and 1.4 to 1.7 tall, as photographed', () => {
+      expect(gps.rect.w / com.rect.w).toBeGreaterThanOrEqual(2.2);
+      expect(gps.rect.w / com.rect.w).toBeLessThanOrEqual(2.7);
+      expect(gps.rect.h / com.rect.h).toBeGreaterThanOrEqual(1.4);
+      expect(gps.rect.h / com.rect.h).toBeLessThanOrEqual(1.7);
+    });
+
+    it('keeps the GPS at least as wide as the radio pair', () => {
+      expect(gps.rect.w).toBeGreaterThanOrEqual(xpdr.rect.x + xpdr.rect.w - com.rect.x);
     });
   });
 
@@ -983,6 +1013,31 @@ describe('CTSL aircraft', () => {
     session.release('com.power');
     session.advance(100);
     expect(session.state().devices.com?.state).toMatchObject({ on: true });
+  });
+
+  it('keeps the COM radio dark after its breaker is pushed back in until I/O is pressed', () => {
+    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    const com = () => session.state().devices.com?.state as { active: number; standby: number };
+    session.advance(100);
+    session.press('com.freq', 'up');
+    session.release('com.freq');
+    session.advance(100);
+    const tuned = com();
+    expect(tuned).toMatchObject({ on: true, powered: true, standby: 120000 });
+
+    session.set('comBreaker', 'pulled');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: false, powered: false });
+
+    session.set('comBreaker', 'in');
+    session.advance(5000);
+    expect(com()).toMatchObject({ on: false, powered: true });
+
+    session.press('com.power');
+    session.advance(100);
+    session.release('com.power');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: true, active: tuned.active, standby: tuned.standby });
   });
 
   it.each([
