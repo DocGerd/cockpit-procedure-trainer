@@ -1928,7 +1928,8 @@ console's width at the lever row):
 
 #### 3.9.7 Trainer mapping
 
-**Today.** `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
+**Today** (before #741; superseded by **Trainer (M19, #741)** below, as is §3.9.4's
+"Trainer today" grid). `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
 12 – 459, centre 471 – 1628, right 1640 – 2360, all y 16 – 684 (span aspect 3.51).
 `cockpit.ts`: panel cell 1339 × 395 at HD (x 120 – 1459), floor `minWidth` 1110
 (0.468 px per view unit), `centre` cell x 524 – 987, dock x 0 – 508. Device slots at
@@ -2056,7 +2057,8 @@ above are what makes the panel recognisable; the fractions do not change with th
   left of the GPS knob reaches the neighbour's box, and the Beacon Light box covers the
   right edge of the inert Instrument Light face; four 84-unit boxes round knobs 69 apart
   leave no room to avoid it. Legends sit above the top row and under the bottom row, as on
-  the aircraft.
+  the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
+  inside its box.
 - **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
   meets the lettering minimum on a tablet in portrait.
 

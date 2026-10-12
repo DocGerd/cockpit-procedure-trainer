@@ -8,6 +8,7 @@ import { needle } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
+import { upperPlates } from './test-plates';
 import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
@@ -177,6 +178,16 @@ describe('CTSL warning lamp', () => {
   };
   const bezelCentreY = (svg: string) =>
     Number(/<circle\b[^>]*data-bezel=""[^>]*\bcy="([\d.]+)"/.exec(svg)?.[1]);
+  // The bezel's centre in face units, through the translate of the group that holds it.
+  const lensCentre = (svg: string) => {
+    const match =
+      /<g transform="translate\((-?[\d.]+) (-?[\d.]+)\)">(?:(?!<\/g>)[\s\S])*?<circle\b[^>]*data-bezel=""[^>]*\bcx="(-?[\d.]+)" cy="(-?[\d.]+)"/.exec(
+        svg,
+      );
+    if (!match) throw new Error('the lamp face draws no bezel inside a translated group');
+    const [, shiftX = 0, shiftY = 0, cx = 0, cy = 0] = match.map(Number);
+    return { x: shiftX + cx, y: shiftY + cy };
+  };
   const panel = () =>
     readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
 
@@ -198,8 +209,7 @@ describe('CTSL warning lamp', () => {
     const legendY = Number(
       /<text\b[^>]* y="([\d.]+)"[^>]*>Generator<\/text>/.exec(read(face))?.[1],
     );
-    const shift = Number(/translate\([\d.]+ ([\d.]+)\)/.exec(read(face))?.[1]);
-    expect(legendY).toBeLessThan(bezelCentreY(read(face)) + shift);
+    expect(legendY).toBeLessThan(lensCentre(read(face)).y);
   });
 
   it('is the only warning lamp on the panel: no second lamp is drawn in the backdrop', () => {
@@ -211,19 +221,12 @@ describe('CTSL warning lamp', () => {
   it('sits right of the tachometer, level with its top half, above the engine gauges', () => {
     const { rect } = views.panel.indicators.chargeLamp;
     const { tachometer, voltmeter } = views.panel.indicators;
-    const face = read(generatorLamp().face);
-    const [, shiftX = 0, shiftY = 0] = (
-      /<g transform="translate\(([\d.]+) ([\d.]+)\)"/.exec(face) ?? []
-    ).map(Number);
-    const [, cx = 0, cy = 0] = (
-      /<circle\b[^>]*data-bezel=""[^>]*\bcx="([\d.]+)" cy="([\d.]+)"/.exec(face) ?? []
-    ).map(Number);
+    const centre = lensCentre(read(generatorLamp().face));
     const { width, height } = sizeOf(generatorLamp().face);
     const lens = {
-      x: rect.x + ((shiftX + cx) / Number(width)) * rect.w,
-      y: rect.y + ((shiftY + cy) / Number(height)) * rect.h,
+      x: rect.x + (centre.x / Number(width)) * rect.w,
+      y: rect.y + (centre.y / Number(height)) * rect.h,
     };
-    expect(cx, 'the face draws its bezel').toBeGreaterThan(0);
     expect(lens.x).toBeGreaterThan(tachometer.rect.x + tachometer.rect.w);
     expect(lens.y).toBeGreaterThan(tachometer.rect.y);
     expect(lens.y).toBeLessThan(tachometer.rect.y + tachometer.rect.h / 2);
@@ -236,7 +239,8 @@ describe('CTSL warning lamp', () => {
 // offset round its knob, so neighbouring knobs stand at the aircraft's pitch.
 describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
   const TOUCH_TARGET_PX = 44;
-  const floor = ctslAircraft.cockpit?.views.panel?.minWidth ?? 0;
+  const floor = ctslAircraft.cockpit?.views.panel?.minWidth;
+  if (!floor) throw new Error('the panel cell has no floor width');
   const floorScale = floor / views.panel.size.width;
   const unitA = views.panel.indicators.airspeed.rect.w;
   const { tachometer } = views.panel.indicators;
@@ -278,12 +282,7 @@ describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
     const own = knobIn(read(artwork.face));
     return { x: rect.x + own.x * scale, y: rect.y + own.y * scale, r: own.r * scale };
   };
-  const rightPlate = (() => {
-    const svg = readFileSync(new URL('./assets/view-panel.svg', import.meta.url), 'utf8');
-    const d = /<path data-plate="right" d="([^"]+)"/.exec(svg)?.[1] ?? '';
-    const xs = [...d.matchAll(/[ML]([\d.]+)[ ,]/g)].map(([, x]) => Number(x));
-    return { x: Math.min(...xs), w: Math.max(...xs) - Math.min(...xs) };
-  })();
+  const rightPlate = upperPlates.right;
 
   it.each(breakers)('keeps %s at least the touch target at the floor', (id) => {
     const { w, h } = placed[id].rect;
@@ -291,13 +290,49 @@ describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
   });
 
   it('keeps every touch box clear of its neighbours', () => {
-    const boxes = breakers.map((id) => ({ id, ...placed[id].rect }));
+    const boxes = [...breakers, 'altimeterSetting' as const].map((id) => ({
+      id,
+      ...placed[id].rect,
+    }));
     boxes.forEach((a, index) =>
       boxes.slice(index + 1).forEach((b) => {
         const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
         expect(apart, `${a.id} and ${b.id}`).toBe(true);
       }),
     );
+  });
+
+  // The block's unfitted positions are drawn in the backdrop; a touch box may reach over the near
+  // half of such a face but never cover its centre.
+  it('keeps every touch box off the centre of an unfitted breaker face', () => {
+    const svg = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const inert = [
+      ...svg.matchAll(
+        /<g transform="translate\(([\d.]+) ([\d.]+)\) scale\([\d.]+\)"><use href="#bp"/g,
+      ),
+    ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
+    expect(inert.length, 'unfitted breaker faces in the panel art').toBeGreaterThan(0);
+    for (const id of breakers) {
+      const { x, y, w, h } = placed[id].rect;
+      for (const face of inert) {
+        const covers = face.x > x && face.x < x + w && face.y > y && face.y < y + h;
+        expect(covers, `${id} over the face at ${face.x}`).toBe(false);
+      }
+    }
+  });
+
+  it.each(breakers)('draws the %s knob on the right plate, its touch box inside the view', (id) => {
+    const { x, y, r } = knob(id);
+    expect(x - r).toBeGreaterThanOrEqual(rightPlate.x);
+    expect(x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
+    expect(y - r).toBeGreaterThanOrEqual(rightPlate.y);
+    expect(y + r).toBeLessThanOrEqual(rightPlate.y + rightPlate.h);
+    const { rect } = placed[id];
+    expect(rect.x + rect.w).toBeLessThanOrEqual(views.panel.size.width);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(views.panel.size.height);
   });
 
   it.each(breakers)(
@@ -370,7 +405,9 @@ describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
     const span = knob('gpsBreaker').x + r - (left - r);
     expect(span / rightPlate.w).toBeGreaterThanOrEqual(0.65);
     expect(span / rightPlate.w).toBeLessThanOrEqual(0.8);
+    expect((left - r - rightPlate.x) / rightPlate.w).toBeGreaterThanOrEqual(0);
     expect((left - r - rightPlate.x) / rightPlate.w).toBeLessThanOrEqual(0.1);
+    expect(knob('gpsBreaker').x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
   });
 });
 
