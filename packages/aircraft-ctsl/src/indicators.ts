@@ -1,11 +1,15 @@
 import type { IndicatorDefinition } from '@cpt/core';
 import { gaugeArtwork, lampArtwork } from './artwork';
-import { FT_PER_MIN_PER_MS } from './systems';
+import { FT_PER_MIN_PER_MS, indicatedAltitudeFt } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
 
 export const chargeLampLit = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && !state.systems.bus.charging;
+
+/** The pressure the altimeter knob sets, in hPa; NaN for a position that is no pressure. */
+export const altimeterSettingHpa = (state: CtslTrainerState) =>
+  Number(state.controls['altimeterSetting']);
 
 const flapCircuitPowered = (state: CtslTrainerState) =>
   state.systems.bus.mainPowered && state.controls['flapBreaker'] === 'in';
@@ -18,7 +22,13 @@ export const indicators = {
   },
   altimeter: {
     name: text('Höhenmesser', 'Altimeter'),
-    select: (state: CtslTrainerState) => state.systems.altitudeFt,
+    select: (state: CtslTrainerState) =>
+      indicatedAltitudeFt(
+        state.systems.altitudeFt,
+        altimeterSettingHpa(state),
+        state.systems.qnhHpa,
+      ),
+    windows: { setting: altimeterSettingHpa },
     appearance: gaugeArtwork.altimeter,
   },
   verticalSpeed: {

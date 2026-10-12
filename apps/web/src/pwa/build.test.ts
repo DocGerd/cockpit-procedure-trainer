@@ -182,14 +182,23 @@ describe.each(environments)('the $env build under $base', ({ env, base }) => {
         .map((entry) => readFile(join(output().dir, entry), 'utf8')),
     );
     const isInlined = inlinedSvgMatcher(scripts.join('\n'));
+    // Vite emits byte-identical images once, under the first file's name.
+    const emittedBytes = new Set(
+      await Promise.all(
+        output()
+          .precache.filter((entry) => entry.startsWith('assets/') && !/\.(js|css)$/.test(entry))
+          .map(async (entry) => (await readFile(join(output().dir, entry))).toString('base64')),
+      ),
+    );
 
     for (const url of urls) {
       const path = fileURLToPath(url);
       const extension = extname(path);
       const stem = basename(path, extension);
-      const emitted = output().precache.some(
-        (entry) => entry.startsWith(`assets/${stem}-`) && entry.endsWith(extension),
-      );
+      const emitted =
+        output().precache.some(
+          (entry) => entry.startsWith(`assets/${stem}-`) && entry.endsWith(extension),
+        ) || emittedBytes.has((await readFile(path)).toString('base64'));
       const inlined = extension === '.svg' && isInlined(await readFile(path, 'utf8'));
       expect(emitted || inlined, path).toBe(true);
     }

@@ -45,7 +45,7 @@ const nextPaint = (page: Page) =>
  * panel-kit gauge's needle and its shadow.
  */
 const NEEDLE_PARTS =
-  ':is([data-moving="needle"] image, [data-widget] :is([data-needle], [data-needle-shadow]))';
+  ':is(:is([data-moving="needle"], [data-moving="needles"]) image, [data-widget] :is([data-needle], [data-needle-shadow]))';
 
 /** Per-frame cost of turning every needle in the view, or undefined when it has none. */
 export async function needleFrame(browser: Browser, page: Page, viewId: string) {
@@ -110,7 +110,7 @@ export async function reraster(browser: Browser, page: Page, viewId: string) {
   return { resize: resize / 2, toggle: toggle / 2 };
 }
 
-export type ImageKind = 'background' | 'static' | 'needle' | 'positions' | 'travel';
+export type ImageKind = 'background' | 'static' | 'needle' | 'needles' | 'positions' | 'travel';
 export type ImageFilters = { url: string; kind: ImageKind; filters: number; turbulence: number };
 
 // The build inlines small images; the page's CSP forbids fetching a data URL.
@@ -162,6 +162,7 @@ export function filterProblems(images: readonly ImageFilters[], domFilters: numb
     background: Infinity,
     static: 1,
     needle: 1,
+    needles: 1,
     positions: 0,
     travel: 0,
   };

@@ -162,6 +162,11 @@
   pointer-events: auto;
 }
 
+/* An indicator takes no input, so a control reaching under its box, such as a knob on the case, stays operable. */
+.panel-placement[data-kind='indicator'] > * {
+  pointer-events: none;
+}
+
 .panel-surface .image-placeholder {
   background: var(--panel-face);
   border-color: var(--panel-bezel);
