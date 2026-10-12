@@ -11,6 +11,8 @@ import {
 import { cht, chtFace } from './artwork/gauges/cht';
 import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
 import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
+import { hourMeter, hourMeterFace } from './artwork/gauges/hour-meter';
+import { slipIndicator, slipIndicatorFace } from './artwork/gauges/slip-indicator';
 import { tachometer, tachometerFace, tachometerNeedle } from './artwork/gauges/tachometer';
 import { verticalSpeed, verticalSpeedFace } from './artwork/gauges/vertical-speed';
 import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
@@ -31,6 +33,8 @@ export const images = {
   gaugeOilTemperature: oilTemperatureFace,
   gaugeCht: chtFace,
   gaugeVoltmeter: voltmeterFace,
+  gaugeSlipIndicator: slipIndicatorFace,
+  gaugeHourMeter: hourMeterFace,
   lampChargeFace: new URL('./assets/artwork/lamp-charge-face.svg', import.meta.url).href,
   lampChargeOff: new URL('./assets/artwork/lamp-charge-off.svg', import.meta.url).href,
   lampChargeOn: new URL('./assets/artwork/lamp-charge-on.svg', import.meta.url).href,
@@ -131,6 +135,8 @@ export const gaugeArtwork = {
   oilTemperature,
   cht,
   voltmeter,
+  slipIndicator,
+  hourMeter,
 } as const;
 
 const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): ArtworkAppearance => ({

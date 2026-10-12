@@ -164,6 +164,9 @@ German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
 The airspeed indicator stays 220 units wide because its numerals set the smallest
 size that reads at the lettering floor (§4.3).
 
+**Update (2026-10-12, #721):** the slip indicator is a drawn indicator, not background
+art: §3.10.4 supersedes "background art, not an indicator" above.
+
 **Trainer, M19 (2026-10-11):** the positions, sizes and the plate's place in the panel
 described here and in the M17 note above are superseded by §3.9 (§3.9.2 for the
 gauges, §3.9.5 for the placards): the left plate is the widest, the instruments sit
@@ -207,6 +210,10 @@ rank), because a legend like "Transponder" at the minimum does not fit the strip
 pitch. The inert caps carry no legend for the same reason, since background lettering
 has no such exemption; the slip indicator, FLARM display and hour meter carry no
 wording either. The type-name script lettering is not reproduced.
+
+**Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
+indicators whose faces carry the `SLIP INDICATOR` and `HOURS` legends as secondary
+captions (§3.10.4, §3.10.10), superseding "carry no wording" above for those two.
 
 **Trainer, M19 (2026-10-11):** the layout of the right plate described above is
 superseded by §3.9.2 and §3.9.4: the small engine gauges sit below the tachometer
@@ -3852,7 +3859,9 @@ verifies it on D-MPGO.
     the measured size falls below the secondary-caption floor (legibility traded for
     recognition, ADR 0002); and the I-mark's serifs stand at ±9° about the 2, in place
     of the ±1,900 ticks, so they do not smear into them (the photos fix angles to ±5°).
-54. **Slip indicator face** (#721): no question needed (§3.10.4).
+54. **Slip indicator face** (#721): no question needed (§3.10.4). The photos show the
+    ball only at rest, level. Trainer uses: a ball drawn at the tube's centre in every
+    state, because the aircraft state has no sideslip. **Assumed (unverified)**.
 55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
     about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
     5,800 (each boundary read to ±100 rpm). Are those the printed values, and is the
@@ -3863,8 +3872,10 @@ verifies it on D-MPGO.
     **Trainer (M19, #721):** drawn as assumed: green continuous, every boundary at its
     printed rpm on the needle's own linear scale (−142° at 0 to +142° at 7,000 rpm, so
     the red line sits at +93.3° where the photos read +96°, within the tolerance).
-56. **Hour meter** (#721): no question needed; it is inert art with an illustrative value
-    (§3.10.10).
+56. **Hour meter** (#721): no question needed (§3.10.10). Trainer uses: an illustrative
+    fixed reading (D-MPGO's is not recorded) and the running glyph lit while the engine
+    runs; no engine-hours counter. **Assumed (unverified)** that the glyph marks a
+    running engine.
 57. **Engine gauges at rest** (#721): with the master off, and with a
     cold engine below 40 °C, where do the needles of the CHT, oil temperature,
     voltmeter and oil pressure gauges rest: on the lowest mark (40, 40, 9, 0) or

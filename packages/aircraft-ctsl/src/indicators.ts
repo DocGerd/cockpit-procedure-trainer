@@ -1,6 +1,6 @@
 import type { IndicatorDefinition } from '@cpt/core';
 import { gaugeArtwork, lampArtwork } from './artwork';
-import { FT_PER_MIN_PER_MS, indicatedAltitudeFt } from './systems';
+import { engineRunning, FT_PER_MIN_PER_MS, indicatedAltitudeFt } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { text } from './text';
 
@@ -60,6 +60,17 @@ export const indicators = {
     name: text('Voltmeter', 'Voltmeter'),
     select: (state: CtslTrainerState) => state.systems.bus.volts,
     appearance: gaugeArtwork.voltmeter,
+  },
+  slipIndicator: {
+    name: text('Schiebeanzeige', 'Slip indicator'),
+    // The trainer models no sideslip, so the ball always sits between the reference lines.
+    select: () => true,
+    appearance: gaugeArtwork.slipIndicator,
+  },
+  hourMeter: {
+    name: text('Betriebsstundenzähler', 'Hour meter'),
+    select: engineRunning,
+    appearance: gaugeArtwork.hourMeter,
   },
   chargeLamp: {
     name: text('Generatorlampe', 'Generator warning lamp'),

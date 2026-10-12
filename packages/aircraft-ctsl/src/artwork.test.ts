@@ -223,9 +223,14 @@ describe('CTSL gauges', () => {
   const gaugeArtwork = indicatorArtwork.filter(({ artwork }) =>
     ['needle', 'needles'].includes(artwork.moving.type),
   );
+  const fixedFaces = ['slipIndicator', 'hourMeter'];
 
   it('keeps every round gauge on drawn artwork and its full name', () => {
-    expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(Object.keys(gauges).sort());
+    expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(
+      Object.keys(gauges)
+        .filter((id) => !fixedFaces.includes(id))
+        .sort(),
+    );
     for (const { indicator } of gaugeArtwork) {
       expect(indicator.name.en.length).toBeGreaterThan(0);
       expect(indicator.name.de.length).toBeGreaterThan(0);
@@ -252,6 +257,92 @@ describe('CTSL gauges', () => {
       .sort();
     expect(modules.map((file) => file.replace(/\.ts$/, '')).sort()).toEqual(kebab);
     expect(tests.map((file) => file.replace(/\.test\.ts$/, '')).sort()).toEqual(kebab);
+  });
+});
+
+describe('CTSL slip indicator and hour meter', () => {
+  type Id = 'slipIndicator' | 'hourMeter' | 'airspeed' | 'verticalSpeed';
+  const rect = (id: Id) => views.panel.indicators[id].rect;
+  const centre = (id: Id) => ({ x: rect(id).x + rect(id).w / 2, y: rect(id).y + rect(id).h / 2 });
+  const artworkOfIndicator = (id: string) =>
+    indicatorArtwork.find((entry) => entry.id === id)?.artwork;
+  const panel = () =>
+    readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
+  const capture = (pattern: RegExp, text: string, what: string): number => {
+    const found = pattern.exec(text)?.[1];
+    if (found === undefined) throw new Error(`no ${what} in the artwork`);
+    return Number(found);
+  };
+
+  it('draws the two as indicators with their own face, not in the panel backdrop', () => {
+    expect(artworkOfIndicator('slipIndicator')?.moving.type).toBe('positions');
+    expect(artworkOfIndicator('hourMeter')?.moving.type).toBe('positions');
+    expect(panel()).not.toContain('#C04A3A');
+  });
+
+  // Intake §3.9.2: the slip indicator is the VSI's size, 0.71 of the airspeed indicator, in the
+  // left plate's lower row under the airspeed indicator.
+  it('sizes the slip indicator like the VSI, 0.71 of the airspeed indicator', () => {
+    expect(rect('slipIndicator').w).toBe(rect('verticalSpeed').w);
+    expect(rect('slipIndicator').h).toBe(rect('verticalSpeed').h);
+    expect(rect('slipIndicator').w / rect('airspeed').w).toBeCloseTo(0.71, 2);
+    expect(centre('slipIndicator').y).toBeCloseTo(centre('verticalSpeed').y, 0);
+    expect(centre('slipIndicator').y).toBeGreaterThan(rect('airspeed').y + rect('airspeed').h);
+    expect(Math.abs(centre('slipIndicator').x - centre('airspeed').x)).toBeLessThan(
+      0.02 * rect('airspeed').w,
+    );
+  });
+
+  // Intake §3.10.10: face 0.45 A by 0.28 A, a screw beyond each end; the box holds the screws.
+  it('gives the hour meter its 0.45 A by 0.28 A face right of the engine gauges', () => {
+    const { w, h } = rect('hourMeter');
+    const face = artworkOfIndicator('hourMeter')?.face ?? '';
+    const faceWidth = capture(
+      /<rect x="[\d.]+" y="0" width="([\d.]+)"[^>]*data-face/,
+      read(face),
+      'data-face rect',
+    );
+    const box = sizeOf(face);
+    const scale = w / Number(box.width);
+    expect((faceWidth * scale) / rect('airspeed').w).toBeCloseTo(0.45, 2);
+    expect(Number(box.height) * scale).toBeCloseTo(h, 0);
+    expect(h / rect('airspeed').w).toBeCloseTo(0.28, 2);
+    const { oilPressure, voltmeter } = views.panel.indicators;
+    expect(rect('hourMeter').x).toBeGreaterThan(oilPressure.rect.x + oilPressure.rect.w);
+    const voltmeterAxis = voltmeter.rect.x + voltmeter.rect.w / 2;
+    expect((centre('hourMeter').x - voltmeterAxis) / rect('airspeed').w).toBeCloseTo(0.6, 2);
+    const voltmeterY = voltmeter.rect.y + voltmeter.rect.h / 2;
+    const rowPitch = oilPressure.rect.y + oilPressure.rect.h / 2 - voltmeterY;
+    const expectedY = voltmeterY + rowPitch * 0.6;
+    expect(Math.abs(centre('hourMeter').y - expectedY)).toBeLessThan(0.05 * rowPitch);
+  });
+
+  it('draws the slip ball centred in the tube, on a face with one legend and two lines', () => {
+    const face = read(artworkOfIndicator('slipIndicator')?.face ?? '');
+    expect(face.match(/<text\b/g)).toHaveLength(1);
+    expect(face).toContain('>SLIP INDICATOR</text>');
+    expect(face.match(/<line\b[^>]*data-reference/g)).toHaveLength(2);
+    const artwork = artworkOfIndicator('slipIndicator');
+    if (artwork?.moving.type !== 'positions') throw new Error('the ball has positions');
+    const ball = read(artwork.moving.images.true ?? '');
+    const R = 98;
+    const within = (actual: number, expected: number) =>
+      expect(Math.abs(actual - expected)).toBeLessThanOrEqual(0.03 * R);
+    expect(capture(/<circle cx="([\d.]+)"[^>]*data-ball/, ball, 'ball cx')).toBe(100);
+    within(capture(/<circle[^>]*cy="([\d.]+)"[^>]*data-ball/, ball, 'ball cy'), 100 + 0.06 * R);
+    within(capture(/<circle[^>]*r="([\d.]+)"[^>]*data-ball/, ball, 'ball r'), 0.13 * R);
+    const lineXs = [...face.matchAll(/<line\b[^>]*x1="([\d.]+)"[^>]*data-reference/g)].map(
+      ([, x]) => Number(x),
+    );
+    expect(lineXs).toHaveLength(2);
+    within(lineXs[0] ?? Number.NaN, 100 - 0.14 * R);
+    within(lineXs[1] ?? Number.NaN, 100 + 0.14 * R);
+  });
+
+  it('has a stopped and a running image for the hour meter glyph', () => {
+    const artwork = artworkOfIndicator('hourMeter');
+    if (artwork?.moving.type !== 'positions') throw new Error('the hour meter has positions');
+    expect(Object.keys(artwork.moving.images).sort()).toEqual(['false', 'true']);
   });
 });
 
