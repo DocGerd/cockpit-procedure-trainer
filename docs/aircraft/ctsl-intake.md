@@ -1095,8 +1095,9 @@ the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 0
 of the parked-aircraft photos is illustrative only, as noted above. The level is
 shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
 issue #742 and not taken from the handbook (the text above says only "in 100 ft
-steps"); to be checked against the handbook. A level below zero is not covered by
-any source and is shown as the same rounding gives it.
+steps"); to be checked against the handbook (§9 question 70). A level below zero is
+not covered by any source and is shown as the same rounding gives it (`FL -01` for
+−50 ft).
 
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
@@ -3980,5 +3981,8 @@ verifies it on D-MPGO.
     trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
     start in Nearest at loud volume is from the display sheet; the timings and the
     absence of a breaker are **assumed (unverified)** (§3.8.4).
+70. **TRT800H flight-level rounding** (#742): does the level shown truncate or round to
+    the nearest 100 ft, and how is a negative pressure altitude shown? Trainer uses:
+    rounded down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
 
 <!-- prettier-ignore-end -->

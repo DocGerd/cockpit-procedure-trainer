@@ -985,5 +985,6 @@ describe('pressureAltitudeFt', () => {
   it('adds the field elevation and 27 ft for every hPa below 1013', () => {
     expect(pressureAltitudeFt(2500, 1013)).toBe(2815);
     expect(pressureAltitudeFt(2500, 1012)).toBe(2842);
+    expect(pressureAltitudeFt(2500, 1014)).toBe(2788);
   });
 });

@@ -85,29 +85,26 @@ describe('the TRT800H install', () => {
       const state = stateWith(true, { altimeterSetting: setting }, altitudeFt);
       return { ...state, systems: { ...state.systems, qnhHpa } };
     };
-    const levelOf = (state: CtslTrainerState) =>
-      Math.floor(install.inputs.pressureAltitude(state) / 100);
 
     it.each([
-      { phase: 'on the apron', altitudeFt: 0, qnh: 1013, pressureFt: 315, level: 3 },
-      { phase: 'in cruise', altitudeFt: 2500, qnh: 1013, pressureFt: 2815, level: 28 },
-      { phase: 'in cruise, low QNH', altitudeFt: 2500, qnh: 1000, pressureFt: 3166, level: 31 },
-      { phase: 'in cruise, high QNH', altitudeFt: 2500, qnh: 1025, pressureFt: 2491, level: 24 },
-      { phase: 'on the apron, low QNH', altitudeFt: 0, qnh: 1000, pressureFt: 666, level: 6 },
+      { phase: 'on the apron', altitudeFt: 0, qnh: 1013, pressureFt: 315 },
+      { phase: 'in cruise', altitudeFt: 2500, qnh: 1013, pressureFt: 2815 },
+      { phase: 'in cruise, low QNH', altitudeFt: 2500, qnh: 1000, pressureFt: 3166 },
+      { phase: 'in cruise, high QNH', altitudeFt: 2500, qnh: 1025, pressureFt: 2491 },
+      { phase: 'on the apron, low QNH', altitudeFt: 0, qnh: 1000, pressureFt: 666 },
     ])(
       '$phase: $pressureFt ft, the altimeter at 1013 hPa reads the same',
-      ({ altitudeFt, qnh, pressureFt, level }) => {
+      ({ altitudeFt, qnh, pressureFt }) => {
         const state = flying(altitudeFt, qnh, '1013');
         expect(install.inputs.pressureAltitude(state)).toBe(pressureFt);
         expect(indicators.altimeter.select(state)).toBe(pressureFt);
-        expect(levelOf(state)).toBe(level);
       },
     );
 
     it('does not follow the setting on the altimeter knob', () => {
       const state = flying(2500, 1013, '1000');
       expect(install.inputs.pressureAltitude(state)).toBe(2815);
-      expect(indicators.altimeter.select(state)).not.toBe(2815);
+      expect(indicators.altimeter.select(state)).toBe(2464);
     });
   });
 
