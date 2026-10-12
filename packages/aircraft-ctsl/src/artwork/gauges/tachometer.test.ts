@@ -4,7 +4,12 @@ import { tachometer } from './tachometer';
 
 const SWEEP = { min: -142, max: 142 };
 const MAX_RPM = 7000;
-const angleOf = (rpm: number) => SWEEP.min + ((SWEEP.max - SWEEP.min) * rpm) / MAX_RPM;
+const { moving } = tachometer.artwork;
+if (moving.type !== 'needle') throw new Error('the tachometer has a needle');
+const { angleRange, valueRange } = moving;
+const angleOf = (rpm: number) =>
+  angleRange.min +
+  ((angleRange.max - angleRange.min) * (rpm - valueRange.min)) / (valueRange.max - valueRange.min);
 const CENTRE = 100;
 const R = 100;
 
@@ -39,14 +44,22 @@ describe('CTSL tachometer gauge', () => {
     }
   });
 
-  it('marks the low red, yellow, green, yellow and the red line at the photographed rpm', () => {
-    expect(tachometer.options?.['arcs']).toEqual([
+  it('colours the photographed bands and puts a red line at 5800 rpm with nothing above it', () => {
+    const arcs = (tachometer.options?.['arcs'] ?? []) as ReadonlyArray<{
+      from: number;
+      to: number;
+      colour: string;
+    }>;
+    expect(arcs.filter(({ from, to }) => to <= 5800 && from < to)).toEqual([
       { from: 0, to: 1400, colour: 'red' },
       { from: 1400, to: 1800, colour: 'yellow' },
       { from: 1800, to: 5500, colour: 'green' },
       { from: 5500, to: 5800, colour: 'yellow' },
-      { from: 5780, to: 5820, colour: 'red' },
     ]);
+    expect(Math.max(...arcs.map(({ to }) => to))).toBeLessThanOrEqual(5820);
+    expect(
+      arcs.some(({ from, to, colour }) => colour === 'red' && from <= 5800 && to >= 5800),
+    ).toBe(true);
   });
 
   it('prints 0 to 70 in hundreds of rpm on the 1000 rpm ticks, 0.59 R from the hub', () => {
@@ -62,36 +75,61 @@ describe('CTSL tachometer gauge', () => {
     }
   });
 
-  it('letters TACH, RPM and x100, never ×1000', () => {
-    const words = tags(face(), /<text\b[^>]*>[^<\d][^<]*<\/text>/g).map(
-      (tag) => /<text\b[^>]*>([^<]*)</.exec(tag)?.[1],
-    );
-    expect(words).toEqual(['TACH', 'RPM', 'x100']);
+  it('letters TACH, RPM and x100 where the photos print them, never ×1000', () => {
+    const words = tags(face(), /<text\b[^>]*>[^<\d][^<]*<\/text>/g).map((tag) => ({
+      word: /<text\b[^>]*>([^<]*)</.exec(tag)?.[1],
+      x: (attribute(tag, 'x') - CENTRE) / R,
+      y: (attribute(tag, 'y') - CENTRE) / R,
+      size: attribute(tag, 'font-size'),
+    }));
+    expect(words.map(({ word }) => word)).toEqual(['TACH', 'RPM', 'x100']);
+    const expected = [
+      [0, -0.28],
+      [0.02, 0.3],
+      [0, 0.42],
+    ] as const;
+    words.forEach(({ word, x, y }, index) => {
+      expect(Math.abs(x - (expected[index]?.[0] ?? NaN)), `${word} x`).toBeLessThanOrEqual(0.03);
+      expect(Math.abs(y - (expected[index]?.[1] ?? NaN)), `${word} y`).toBeLessThanOrEqual(0.03);
+    });
+    for (const { word, x, y, size } of words.slice(1)) {
+      const halfWidth = ((word?.length ?? 0) * 0.72 * size) / 2 / R;
+      for (const dx of [x - halfWidth, x + halfWidth]) {
+        const swept = Math.abs(clockAngle(CENTRE + dx * R, CENTRE + y * R));
+        expect(swept, `${word} sits in the bottom gap`).toBeGreaterThan(SWEEP.max + 3);
+      }
+    }
   });
 
-  it('ticks every 200 rpm, long and thick from 6000 to 7000', () => {
+  it('ticks every 200 rpm but 5800, where the red line stands, thick from 6000 to 7000', () => {
     const ticks = tags(face(), /<line\b[^>]*data-tick="\d+"[^>]*\/>/g).map((tag) => ({
       rpm: attribute(tag, 'data-tick'),
       inner: Math.hypot(attribute(tag, 'x1') - CENTRE, attribute(tag, 'y1') - CENTRE),
+      outer: Math.hypot(attribute(tag, 'x2') - CENTRE, attribute(tag, 'y2') - CENTRE),
       angle: clockAngle(attribute(tag, 'x2'), attribute(tag, 'y2')),
       width: attribute(tag, 'stroke-width'),
     }));
-    expect(ticks.map(({ rpm }) => rpm)).toEqual(Array.from({ length: 36 }, (_, i) => i * 200));
-    for (const { rpm, angle, inner, width } of ticks) {
+    expect(ticks.map(({ rpm }) => rpm)).toEqual(
+      Array.from({ length: 36 }, (_, i) => i * 200).filter((rpm) => rpm !== 5800),
+    );
+    for (const { rpm, angle, inner, outer, width } of ticks) {
       expect(Math.abs(angle - angleOf(rpm)), `${rpm}`).toBeLessThan(0.5);
       const long = rpm % 1000 === 0 || rpm >= 6000;
       expect(inner, `${rpm}`).toBeCloseTo((long ? 0.7 : 0.76) * R, 0);
+      expect(outer, `${rpm}`).toBeCloseTo(0.89 * R, 0);
       expect(width, `${rpm}`).toBeCloseTo((long ? 0.035 : 0.02) * R, 1);
     }
   });
 
   it('draws each arc between the angles of its rpm limits', () => {
     const arcs = tags(face(), /<path\b[^>]*data-arc="[^"]+"[^>]*\/>/g).map((tag) => {
-      const [x1, y1, , , , , , x2, y2] = [
+      const [x1, y1, radius, , , , , x2, y2] = [
         ...(/ d="([^"]+)"/.exec(tag)?.[1] ?? '').matchAll(/-?[\d.]+/g),
       ].map(([n]) => Number(n));
       return {
         id: /data-arc="([^"]+)"/.exec(tag)?.[1],
+        radius: radius ?? NaN,
+        width: attribute(tag, 'stroke-width'),
         from: clockAngle(x1 ?? NaN, y1 ?? NaN),
         to: clockAngle(x2 ?? NaN, y2 ?? NaN),
       };
@@ -104,6 +142,9 @@ describe('CTSL tachometer gauge', () => {
     ] as const;
     expect(arcs.map(({ id }) => id)).toEqual(expected.map(([id]) => id));
     expected.forEach(([id, from, to], index) => {
+      const { radius = NaN, width = NaN } = arcs[index] ?? {};
+      expect(radius - width / 2, `${id} inner edge`).toBeCloseTo(0.76 * R, 0);
+      expect(radius + width / 2, `${id} outer edge`).toBeCloseTo(0.88 * R, 0);
       expect(Math.abs((arcs[index]?.from ?? NaN) - angleOf(from)), id).toBeLessThan(0.5);
       expect(Math.abs((arcs[index]?.to ?? NaN) - angleOf(to)), id).toBeLessThan(0.5);
     });
@@ -122,18 +163,42 @@ describe('CTSL tachometer gauge', () => {
     ).toBeLessThan(0.5);
   });
 
-  it('points a tapered wedge from 0.18 R to 0.88 R, broad at the hub', () => {
-    const { moving } = tachometer.artwork;
+  it("points a tapered wedge at 12 o'clock, 0.08 R broad at 0.18 R and 0.02 R at 0.88 R", () => {
     if (moving.type !== 'needle') throw new Error('the tachometer has a needle');
     expect(moving.image).toMatch(/gauge-tach-needle\.svg$/);
-    const wedge = readFace(moving.image);
-    const [, d = ''] = /<path d="([^"]+)"/.exec(wedge) ?? [];
-    const ys = [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(([, , y]) => CENTRE - Number(y));
-    expect(Math.min(...ys.filter((offset) => offset > 0))).toBeCloseTo(0.18 * R, 0);
-    expect(Math.max(...ys)).toBeCloseTo(0.88 * R, 0);
+    const [, d = ''] = /<path d="([^"]+)"/.exec(readFace(moving.image)) ?? [];
+    const points = [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(([, x, y]) => ({
+      x: Number(x) - CENTRE,
+      y: CENTRE - Number(y),
+    }));
+    const inner = points.filter(({ y }) => y === Math.min(...points.map((p) => p.y)));
+    const tip = points.filter(({ y }) => y === Math.max(...points.map((p) => p.y)));
+    const span = (row: typeof points) =>
+      Math.max(...row.map((p) => p.x)) - Math.min(...row.map((p) => p.x));
+    expect(inner[0]?.y).toBeCloseTo(0.18 * R, 0);
+    expect(tip[0]?.y).toBeCloseTo(0.88 * R, 0);
+    expect(span(inner)).toBeCloseTo(0.08 * R, 0);
+    expect(span(tip)).toBeCloseTo(0.02 * R, 0);
+    for (const row of [inner, tip]) {
+      expect(Math.max(...row.map((p) => p.x)) + Math.min(...row.map((p) => p.x))).toBeCloseTo(0, 1);
+    }
   });
 
-  it('draws no hub cap or glare over the dial', () => {
+  it('draws no hub cap or glare over the dial, and four screws at the corners', () => {
     expect(tachometer.artwork.glass).toBeUndefined();
+    const svg = face();
+    const discs = tags(svg, /<circle\b[^>]*\/>/g).filter(
+      (tag) => !/fill="none"/.test(tag) && !/\br="9\d|\br="100"/.test(tag),
+    );
+    for (const tag of discs) {
+      const offset = Math.hypot(attribute(tag, 'cx') - CENTRE, attribute(tag, 'cy') - CENTRE);
+      expect(offset, tag).toBeGreaterThan(0.15 * R);
+    }
+    const screws = [...svg.matchAll(/<g data-screw=""><circle cx="([\d.]+)" cy="([\d.]+)"/g)];
+    expect(screws).toHaveLength(4);
+    for (const [, cx, cy] of screws) {
+      expect(Math.abs(Number(cx) - CENTRE)).toBeCloseTo(84, -1);
+      expect(Math.abs(Number(cy) - CENTRE)).toBeCloseTo(84, -1);
+    }
   });
 });

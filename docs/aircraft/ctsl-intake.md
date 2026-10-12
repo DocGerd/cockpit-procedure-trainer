@@ -3847,7 +3847,7 @@ verifies it on D-MPGO.
     The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
     **Trainer (M19, #721):** drawn as assumed: green continuous, every boundary at its
     printed rpm on the needle's own linear scale (−142° at 0 to +142° at 7,000 rpm, so
-    the red line sits at +93.5° where the photos read +96°, within the tolerance).
+    the red line sits at +93.3° where the photos read +96°, within the tolerance).
 56. **Hour meter** (#721): no question needed; it is inert art with an illustrative value
     (§3.10.10).
 57. **Engine gauges at rest** (#721): with the master off, and with a
