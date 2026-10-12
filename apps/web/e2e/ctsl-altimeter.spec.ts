@@ -1,7 +1,7 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { TOUCH_TARGET_PX, openAircraft } from './legibility';
+import { SECONDARY_MIN_PX, TOLERANCE_PX, TOUCH_TARGET_PX, openAircraft } from './legibility';
 import { checklistPane, copy } from './trainer';
 
 const settingWindow = (page: Page) =>
@@ -65,6 +65,20 @@ test('ctsl: the knob is a full touch target beside the altimeter', async ({ page
   await openAircraft(page, ctslAircraft, 'beforeTakeoff');
   const box = await knob(page).boundingBox();
   expect(Math.min(box?.width ?? 0, box?.height ?? 0)).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+});
+
+// The window text is drawn into the page, so the face-file lettering checks never see it.
+test('ctsl: the pressure window prints at least at the secondary-caption floor', async ({
+  page,
+}) => {
+  await openAircraft(page, ctslAircraft, 'beforeTakeoff');
+  const px = await settingWindow(page).evaluate((text) => {
+    const svg = (text as SVGTextElement).ownerSVGElement;
+    if (!svg) return 0;
+    const scale = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+    return Number(text.getAttribute('font-size')) * scale;
+  });
+  expect(px).toBeGreaterThanOrEqual(SECONDARY_MIN_PX - TOLERANCE_PX);
 });
 
 test('ctsl: Guided rings the knob at the descent altimeter step', async ({ page }) => {

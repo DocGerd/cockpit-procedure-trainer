@@ -37,7 +37,7 @@ export const altimeter: ArtworkAppearance = {
       ],
     },
     glass: altimeterGlass,
-    windows: { setting: { at: { x: 156, y: 100 }, fontSize: 9 } },
+    windows: { setting: { at: { x: 156, y: 100 }, fontSize: 10 } },
   },
 };
 
@@ -46,6 +46,7 @@ export const ALTIMETER_KNOB_CENTRE = { x: 50, y: 47.5 } as const;
 const DEGREES_PER_HPA = 12;
 
 export const altimeterKnob = (detents: number): ArtworkAppearance => ({
+  options: { holdRepeat: true },
   artwork: {
     face: altimeterKnobFace,
     moving: {

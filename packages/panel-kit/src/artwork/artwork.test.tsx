@@ -1224,6 +1224,9 @@ describe('ArtworkControl held on a many-detent rotary', () => {
     valueRange: { min: 0, max: 1 },
   };
   const slider = () => screen.getByRole('slider');
+  const repeating = { holdRepeat: true };
+  const renderKnob = (position: string, options: JsonObject = repeating) =>
+    renderControl(knob, knurl, position, false, options);
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -1247,12 +1250,12 @@ describe('ArtworkControl held on a many-detent rotary', () => {
   };
 
   it('turns the knob a rotation per detent', () => {
-    renderControl(knob, knurl, '1015');
+    renderKnob('1015');
     expect(transformOf(layers()[0])).toBe('rotate(100 20 10)');
   });
 
   it('steps once for a short tap', () => {
-    const view = renderControl(knob, knurl, '1013');
+    const view = renderKnob('1013');
     press(90);
     vi.advanceTimersByTime(REPEAT_DELAY_MS - 1);
     lift(90);
@@ -1260,7 +1263,7 @@ describe('ArtworkControl held on a many-detent rotary', () => {
   });
 
   it('steps on while held, from the detent it was pressed at, and not again on the click', () => {
-    const view = renderControl(knob, knurl, '1013');
+    const view = renderKnob('1013');
     press(90);
     vi.advanceTimersByTime(REPEAT_DELAY_MS + 2 * REPEAT_INTERVAL_MS);
     lift(90);
@@ -1269,14 +1272,14 @@ describe('ArtworkControl held on a many-detent rotary', () => {
   });
 
   it('steps down while the left half is held, and stops at the last detent', () => {
-    const view = renderControl(knob, knurl, '1012');
+    const view = renderKnob('1012');
     press(10);
     vi.advanceTimersByTime(REPEAT_DELAY_MS + 10 * REPEAT_INTERVAL_MS);
     expect(view.onSet.mock.calls).toEqual([['1011'], ['1010']]);
   });
 
   it('stops when the pointer leaves or is cancelled', () => {
-    const view = renderControl(knob, knurl, '1013');
+    const view = renderKnob('1013');
     press(90);
     vi.advanceTimersByTime(REPEAT_DELAY_MS);
     fireEvent.pointerLeave(slider());
@@ -1287,8 +1290,16 @@ describe('ArtworkControl held on a many-detent rotary', () => {
     expect(view.onSet.mock.calls).toEqual([['1014']]);
   });
 
+  it('steps once for a held press unless its artwork opts in', () => {
+    const view = renderKnob('1013', {});
+    press(90);
+    vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
+    lift(90);
+    expect(view.onSet.mock.calls).toEqual([['1014']]);
+  });
+
   it('does not repeat a press in the dead zone or with another button', () => {
-    const view = renderControl(knob, knurl, '1013');
+    const view = renderKnob('1013');
     press(50);
     vi.advanceTimersByTime(REPEAT_DELAY_MS + 5 * REPEAT_INTERVAL_MS);
     fireEvent.pointerUp(slider());

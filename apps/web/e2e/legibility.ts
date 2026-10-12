@@ -16,7 +16,7 @@ if (!Number.isFinite(MIN_TEXT_PX) || !Number.isFinite(TOUCH_TARGET_PX)) {
 }
 
 // Sub-pixel rounding of rendered text and boxes.
-const TOLERANCE_PX = 0.5;
+export const TOLERANCE_PX = 0.5;
 
 /** Start a Guided procedure of the aircraft: the named one, else its first normal one. */
 export async function openAircraft(page: Page, aircraft: Aircraft, procedureId?: string) {

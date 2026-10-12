@@ -1,4 +1,5 @@
 import { handAngle } from '@cpt/core';
+import type { JsonObject } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { cockpit } from '../../cockpit';
 import { controls } from '../../controls';
@@ -156,6 +157,16 @@ describe('CTSL altimeter setting knob', () => {
     expect(controls.altimeterSetting.appearance.artwork.face).toBe(altimeterKnobFace);
     expect(controls.altimeterSetting.appearance.artwork.lettering).toEqual(['hPa']);
     expect(readFace(altimeterKnobFace)).toMatch(/>hPa<\/text>/);
+  });
+
+  it('is the one control that steps on while held', () => {
+    const repeating = Object.entries(controls)
+      .filter(([, { appearance }]) => {
+        const options: JsonObject | undefined = appearance.options;
+        return options?.['holdRepeat'] === true;
+      })
+      .map(([id]) => id);
+    expect(repeating).toEqual(['altimeterSetting']);
   });
 
   it('steps 1 hPa a detent over 950 to 1050 hPa, clockwise raising the setting', () => {

@@ -13,7 +13,8 @@ export type ArtworkControlProps = ControlWidgetProps & {
 
 const LEVER_STEP = 0.1;
 const DEAD_ZONE = 0.2;
-// A held press steps on like a held arrow key: after a pause, then at a steady rate.
+// With `options.holdRepeat`, a held press steps on like a held arrow key: after a pause, then at a
+// steady rate. Opt-in, because elsewhere it would run past a stop such as the flap override.
 export const REPEAT_DELAY_MS = 400;
 export const REPEAT_INTERVAL_MS = 80;
 const inputClass = 'cpt-artwork-input';
@@ -261,6 +262,7 @@ function NotchInput({
   position,
   className,
   rotary,
+  holdRepeat,
   inputRef,
   onSet,
 }: Pick<ControlWidgetProps, 'onSet'> & {
@@ -274,6 +276,7 @@ function NotchInput({
   position: ControlPosition;
   className?: string;
   rotary: boolean;
+  holdRepeat: boolean;
   inputRef: RefObject<HTMLDivElement | null>;
 }) {
   const forward = forwardSign(path);
@@ -323,7 +326,7 @@ function NotchInput({
       aria-valuetext={valueText}
       onClick={tap}
       onPointerDown={(event) => {
-        if (event.button !== 0) return;
+        if (!holdRepeat || event.button !== 0) return;
         repeat.start(directionAt(event));
       }}
       onPointerUp={repeat.stop}
@@ -480,6 +483,7 @@ export function ArtworkControl(props: ArtworkControlProps) {
           notches={notches}
           position={position}
           rotary={control.kind === 'rotary'}
+          holdRepeat={props.options?.['holdRepeat'] === true}
           inputRef={slider}
           {...(springClass === undefined ? {} : { className: springClass })}
           onSet={props.onSet}
