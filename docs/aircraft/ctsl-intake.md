@@ -3837,7 +3837,9 @@ verifies it on D-MPGO.
 53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
     legend beside the down arrow is hidden under the resting pointer in every photo;
     the trainer prints a short down legend mirroring `up`. **Assumed (unverified)**.
-54. **Slip indicator face** (#721): no question needed (§3.10.4).
+54. **Slip indicator face** (#721): no question needed (§3.10.4). The photos show the
+    ball only at rest, level. Trainer uses: a ball drawn at the tube's centre in every
+    state, because the aircraft state has no sideslip. **Assumed (unverified)**.
 55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
     about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
     5,800 (each boundary read to ±100 rpm). Are those the printed values, and is the
@@ -3845,8 +3847,10 @@ verifies it on D-MPGO.
     1,800 and 4,000 rpm in every photo. Trainer uses: the values above, green
     continuous. **Assumed (unverified)** for the continuous green (§3.10.5, §4.3).
     The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
-56. **Hour meter** (#721): no question needed; it is inert art with an illustrative value
-    (§3.10.10).
+56. **Hour meter** (#721): no question needed (§3.10.10). Trainer uses: an illustrative
+    fixed reading (D-MPGO's is not recorded) and the running glyph lit while the engine
+    runs; no engine-hours counter. **Assumed (unverified)** that the glyph marks a
+    running engine.
 57. **Engine gauges at rest** (#721): with the master off, and with a
     cold engine below 40 °C, where do the needles of the CHT, oil temperature,
     voltmeter and oil pressure gauges rest: on the lowest mark (40, 40, 9, 0) or

@@ -108,6 +108,8 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
   oilTemperature: { widget: 'artwork', view: 'panel' },
   cht: { widget: 'artwork', view: 'panel' },
   voltmeter: { widget: 'artwork', view: 'panel' },
+  slipIndicator: { widget: 'artwork', view: 'panel' },
+  hourMeter: { widget: 'artwork', view: 'panel' },
   chargeLamp: { widget: 'artwork', view: 'panel' },
   flapReadout: { widget: 'digital-readout', view: 'centre' },
   eltLamp: { widget: 'annunciator', view: 'centre' },

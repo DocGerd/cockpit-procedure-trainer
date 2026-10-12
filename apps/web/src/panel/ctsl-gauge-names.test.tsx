@@ -53,4 +53,27 @@ describe('CTSL drawn gauges', () => {
     render(<Gauge value={200.02} label={airspeed.name.en} {...(options ? { options } : {})} />);
     expect(screen.getByRole('img', { name: 'Airspeed indicator: 200 km/h' })).toBeTruthy();
   });
+
+  it.each([
+    ['slipIndicator', 'centred', 'Slip indicator: centred', 'Schiebeanzeige: centred'],
+    ['hourMeter', true, 'Hour meter', 'Betriebsstundenzähler'],
+  ] as const)(
+    'names the fixed face %s by its full name and prints no caption',
+    (id, value, en, de) => {
+      const indicator = ctslAircraft.indicators[id];
+      if (!indicator) throw new Error(`no ${id} indicator`);
+      for (const [lang, name] of [
+        ['en', en],
+        ['de', de],
+      ] as const) {
+        const { widget: Gauge, options } = resolveIndicator(indicator, value);
+        const { container } = render(
+          <Gauge value={value} label={indicator.name[lang]} {...(options ? { options } : {})} />,
+        );
+        expect(screen.getByRole('img', { name })).toBeTruthy();
+        expect(container.textContent).toBe('');
+        cleanup();
+      }
+    },
+  );
 });
