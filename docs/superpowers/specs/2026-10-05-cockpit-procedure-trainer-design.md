@@ -52,7 +52,7 @@ architecture that lets aircraft be added.
 | Repo | Public, `DocGerd/cockpit-procedure-trainer`, MIT, © 2026 Patrick Kuhn. |
 | Stack | TypeScript, React, SVG panel, Vite, pnpm workspace. |
 | Visual design | Product brand derived from the DocGerdSoft design system, screens designed in Claude Design. |
-| Avionics (CTSL) | D-MPGO's installed units: funkwerk ATR833-OLED COM and TRT800H-OLED transponder (round 57 mm), Garmin aera 500 in its cradle, and the classic FLARM external LED display; they replace SL40, GTX 327 and GPSMAP 496 (owner decision 2026-10-10). ATR833 facts come from the ATR833A-OLED manual (doc 01.1411.010.71e Rev 3.00; owner decision 2026-10-11, #718), limited to D-MPGO's face. The old three device packages stay in the repository, unregistered. The FLARM has no traffic (§4.9 scope). |
+| Avionics (CTSL) | D-MPGO's installed units: funkwerk ATR833-OLED COM and TRT800H-OLED transponder (round 57 mm), Garmin aera 500 in its cradle, and the classic FLARM external LED display; they replace SL40, GTX 327 and GPSMAP 496 (owner decision 2026-10-10). ATR833 facts come from the ATR833A-OLED manual (doc 01.1411.010.71e Rev 3.00; owner decision 2026-10-11, #718; that the A variant behaves like D-MPGO's original unit is intake §9 question 64), limited to D-MPGO's face. The old three device packages stay in the repository, unregistered. The FLARM has no traffic (§4.9 scope). |
 
 ## 3. Architecture
 
