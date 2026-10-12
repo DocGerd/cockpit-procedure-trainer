@@ -1,20 +1,23 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { releaseThenLeave } from '../controls/test-support';
 import { FaceKey, KnobHelpers } from './index';
 
-afterEach(cleanup);
+beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, 'setPointerCapture', {
+    configurable: true,
+    value: vi.fn(),
+  });
+});
 
-// The order a touch lift reaches a captured button in a browser: the click comes last.
-function tap(target: HTMLElement) {
-  fireEvent.pointerDown(target, { button: 0, pointerType: 'touch' });
-  fireEvent.pointerUp(target, { pointerType: 'touch' });
-  fireEvent.lostPointerCapture(target, { pointerType: 'touch' });
-  fireEvent.pointerOut(target, { pointerType: 'touch' });
-  fireEvent.pointerLeave(target, { pointerType: 'touch' });
-  fireEvent.click(target);
-}
+afterEach(() => {
+  cleanup();
+  delete (HTMLElement.prototype as { setPointerCapture?: unknown }).setPointerCapture;
+});
+
+const tap = (target: HTMLElement) => releaseThenLeave(target, 'touch');
 
 const face = (children: ReactNode) =>
   render(<div style={{ position: 'relative', width: 280, height: 280 }}>{children}</div>);

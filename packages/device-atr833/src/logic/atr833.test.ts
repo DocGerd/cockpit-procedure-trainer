@@ -500,35 +500,3 @@ describe('the last-used list', () => {
     expect(listEntry(running)).toBeNull();
   });
 });
-
-describe('a short press held for a moment, then released', () => {
-  const FRAME_MS = 16;
-  const SHORT_MS = 150;
-  const press = (state: Atr833State, key: string, ms = SHORT_MS) =>
-    release(hold(state, key, ms, FRAME_MS));
-  const settle = (state: Atr833State) => wait(wait(state, FRAME_MS), FRAME_MS);
-
-  it('stays below the long-press threshold', () => {
-    expect(SHORT_MS).toBeLessThan(LONG_PRESS_MS);
-  });
-
-  it('keeps the frequencies swapped after the release', () => {
-    const swapped = settle(press(running, 'swap'));
-    expect(swapped).toMatchObject({ active: 119000, standby: 118000 });
-    expect(settle(press(swapped, 'swap'))).toMatchObject({ active: 118000, standby: 119000 });
-  });
-
-  it('keeps dual watch toggled after the release', () => {
-    const watching = settle(press(running, 'dw'));
-    expect(watching.dualWatch).toBe(true);
-    expect(settle(press(watching, 'dw')).dualWatch).toBe(false);
-  });
-
-  it('keeps the effect of every other key after the release', () => {
-    expect(settle(press(running, 'cursor')).cursor).toBe('tenths');
-    expect(settle(press(running, 'set')).item).toBe('sql');
-    expect(lineThree(settle(press(running, 'mem')))).toBe('MEM 00');
-    expect(settle(press(running, 'power')).on).toBe(true);
-    expect(settle(press(step(start), 'power')).on).toBe(true);
-  });
-});

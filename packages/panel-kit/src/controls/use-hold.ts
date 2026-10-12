@@ -57,19 +57,20 @@ export function useHold(onRelease: () => void) {
     onPointerUp: onPointerEnd,
     onPointerCancel: abandon,
     onLostPointerCapture: onPointerEnd,
-    // A touch lift fires pointerleave after pointerup and before its click: once the hold has
-    // ended, the leave must not clear `clickPending`, or that click presses a second time.
+    // Releasing capture can fire pointerleave before the click (a touch lift, or a Firefox mouse
+    // released off the key): once the hold has ended, the leave must keep `clickPending`.
     onPointerLeave: () => {
       if (held.current && !captured.current) abandon();
     },
     onBlur: abandon,
-    onClick: () => {
+    onClick: (event: { detail: number }) => {
       // A click while held is a key repeat; the hold ends on key up, not here.
       if (held.current) return;
-      if (clickPending.current) {
-        clickPending.current = false;
-        return;
-      }
+      const pending = clickPending.current;
+      clickPending.current = false;
+      // A pointer gesture's own click has a click count; `element.click()` and assistive
+      // activations have none, so a press that never produced its click cannot swallow them.
+      if (pending && event.detail > 0) return;
       begin(press);
       end();
     },

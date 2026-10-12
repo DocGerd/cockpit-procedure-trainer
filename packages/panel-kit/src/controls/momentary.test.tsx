@@ -64,7 +64,7 @@ describe('push button', () => {
     render(<PushButton {...props} />);
     fireEvent.pointerDown(button(), { button: 0 });
     fireEvent.pointerUp(button());
-    fireEvent.click(button());
+    fireEvent.click(button(), { detail: 1 });
     expect(props.onPress).toHaveBeenCalledTimes(1);
     expect(props.onRelease).toHaveBeenCalledTimes(1);
   });
@@ -74,7 +74,7 @@ describe('push button', () => {
     render(<PushButton {...props} />);
     fireEvent.pointerDown(button(), { button: 0 });
     fireEvent.pointerLeave(button());
-    fireEvent.click(button());
+    fireEvent.click(button(), { detail: 1 });
     expect(props.onPress).toHaveBeenCalledTimes(2);
   });
 

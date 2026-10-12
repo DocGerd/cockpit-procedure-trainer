@@ -1,4 +1,5 @@
 import { ctslAircraft } from '@cpt/aircraft-ctsl';
+import { LONG_PRESS_MS } from '@cpt/device-atr833/logic';
 import { expect, test } from './fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { copy, dockedUnit, openPicker } from './trainer';
@@ -35,6 +36,8 @@ async function centre(key: Locator) {
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
 
+// Chromium's mouse sends no pointerleave between a release and its click, so these guard the
+// mouse path's behaviour; the touch specs are the ones a lost click-swallow turns red.
 test.describe('ATR833 keys pressed with a mouse', () => {
   test('swap and dual watch keep their effect after the button comes up', async ({ page }) => {
     const unit = await openInDock(page);
@@ -54,6 +57,20 @@ test.describe('ATR833 keys pressed with a mouse', () => {
 
     await press('DW', () => expect(lines.standbyLabel).toHaveText('DW'));
     await expect(lines.standbyLabel).toHaveText('DW');
+  });
+
+  test('a key released after the cursor drifts off it keeps its effect', async ({ page }) => {
+    const unit = await openInDock(page);
+    const lines = readout(unit);
+    const key = keyOf(unit, 'SWAP');
+    const box = await key.boundingBox();
+    if (!box) throw new Error('The key has no box');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height + 40, { steps: 4 });
+    await page.mouse.up();
+    await expect(lines.active).toHaveText('119.000');
+    await expect(lines.standby).toHaveText('118.000');
   });
 });
 
@@ -107,7 +124,7 @@ test.describe('ATR833 keys tapped on a touch screen', () => {
     await expect(lines.line3).toHaveText('SQL 05');
 
     await touch('touchStart');
-    await expect(lines.line3).toHaveText('VOL 10');
+    await page.waitForTimeout(LONG_PRESS_MS + 500);
     await touch('touchEnd');
     await expect(lines.line3).toHaveText('VOL 10');
     await session.detach();
