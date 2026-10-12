@@ -95,21 +95,48 @@ describe('CTSL vertical speed gauge', () => {
   });
 
   it('draws a tick every 100 ft/min on both halves, the 2 once as an I-mark', () => {
-    const ticks = [
+    const lines = [
       ...face().matchAll(
-        /<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="#ECEAE3" stroke-width="(1\.5|3|5)"/g,
+        /<line x1="([\d.]+)" y1="([\d.]+)" x2="([\d.]+)" y2="([\d.]+)" stroke="#ECEAE3" stroke-width="([\d.]+)"/g,
       ),
-    ];
-    const radials = ticks.map(([, x1, y1, , , width]) => ({
-      angle: angleOf(Number(x1), Number(y1)),
-      width: Number(width),
-    }));
-    const minors = radials.filter(({ width }) => width === 1.5);
-    const majors = radials.filter(({ width }) => width === 3);
-    const bars = radials.filter(({ width }) => width === 5);
-    expect(bars).toHaveLength(1);
-    expect(near(bars[0]?.angle ?? NaN, 270)).toBeLessThan(1);
-    expect(majors).toHaveLength(6);
-    expect(minors).toHaveLength(32);
+    ].map(([, x1, y1, x2, y2, width]) => {
+      const [ax, ay, bx, by] = [x1, y1, x2, y2].map(Number) as [number, number, number, number];
+      return {
+        from: { angle: angleOf(ax, ay), radius: Math.hypot(ax - 100, ay - 100) },
+        to: { angle: angleOf(bx, by), radius: Math.hypot(bx - 100, by - 100) },
+        width: Number(width),
+      };
+    });
+    const ofWidth = (width: number) => lines.filter((line) => line.width === width);
+    const expectAt = (found: typeof lines, values: number[]) => {
+      const want = values
+        .map((value) => ((angleFor(value) % 360) + 360) % 360)
+        .sort((a, b) => a - b);
+      const got = found.map(({ from }) => from.angle).sort((a, b) => a - b);
+      expect(got).toHaveLength(want.length);
+      got.forEach((angle, index) => expect(near(angle, want[index] ?? NaN)).toBeLessThan(0.5));
+      for (const { from, to } of found) expect(near(from.angle, to.angle)).toBeLessThan(0.5);
+    };
+    const hundreds = Array.from({ length: 19 }, (_, index) => (index + 1) * 100);
+    const majors = [500, 1000, 1500];
+    const minors = hundreds.filter((value) => !majors.includes(value));
+    expectAt(ofWidth(5), [0]);
+    expectAt(ofWidth(3), [...majors, ...majors.map((value) => -value)]);
+    expectAt(ofWidth(1.5), [...minors, ...minors.map((value) => -value)]);
+
+    const [bar, ...rest] = ofWidth(2.5);
+    expect(rest).toEqual([]);
+    expect(bar?.from.radius).toBeCloseTo(81, 0);
+    expect(bar?.to.radius).toBeCloseTo(81, 0);
+    expect([bar?.from.angle, bar?.to.angle].map((angle) => near(angle ?? NaN, 90))).toEqual([
+      expect.closeTo(8, 0),
+      expect.closeTo(8, 0),
+    ]);
+    const serifs = ofWidth(2);
+    expect(serifs).toHaveLength(2);
+    for (const { from, to } of serifs) {
+      expect(near(from.angle, to.angle)).toBeLessThan(0.5);
+      expect(near(from.angle, 90)).toBeCloseTo(8, 0);
+    }
   });
 });
