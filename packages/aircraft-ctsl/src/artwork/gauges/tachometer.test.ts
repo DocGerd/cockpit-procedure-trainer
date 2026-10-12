@@ -6,7 +6,7 @@ const SWEEP = { min: -142, max: 142 };
 const MAX_RPM = 7000;
 const angleOf = (rpm: number) => SWEEP.min + ((SWEEP.max - SWEEP.min) * rpm) / MAX_RPM;
 const CENTRE = 100;
-const R = 95;
+const R = 100;
 
 // Intake §3.10.5 measured angles (±4°) of the printed numerals.
 const MEASURED: ReadonlyArray<readonly [number, number]> = [
