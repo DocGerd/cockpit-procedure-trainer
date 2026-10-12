@@ -12,7 +12,7 @@ import { cht, chtFace } from './artwork/gauges/cht';
 import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
 import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
 import { glassImage, needleImage } from './artwork/gauges/shared';
-import { tachometer, tachometerFace } from './artwork/gauges/tachometer';
+import { tachometer, tachometerFace, tachometerNeedle } from './artwork/gauges/tachometer';
 import { verticalSpeed, verticalSpeedFace } from './artwork/gauges/vertical-speed';
 import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
 
@@ -27,6 +27,7 @@ export const images = {
   gaugeAltimeterKnobRim: altimeterKnobRim,
   gaugeVsi: verticalSpeedFace,
   gaugeTachometer: tachometerFace,
+  gaugeTachometerNeedle: tachometerNeedle,
   gaugeOilPressure: oilPressureFace,
   gaugeOilTemperature: oilTemperatureFace,
   gaugeCht: chtFace,
