@@ -43,6 +43,9 @@ export type FindingCode =
   | 'invalid-cockpit-min-width'
   | 'invalid-cockpit-dock'
   | 'artwork-glass-size'
+  | 'invalid-needles'
+  | 'unknown-window'
+  | 'invalid-window'
   | 'invalid-check-response'
   | 'invalid-flow'
   | 'invalid-memory';
@@ -233,6 +236,48 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
   };
 
+  const isLength = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0;
+  const isPoint = (point: { x: unknown; y: unknown }) =>
+    Number.isFinite(point.x) && Number.isFinite(point.y);
+
+  const checkMoving = (id: string, appearance: Appearance | undefined) => {
+    if (!appearance || !('artwork' in appearance)) return;
+    const { moving } = appearance.artwork;
+    if (moving.type !== 'needles') return;
+    if (moving.needles.length === 0) add('invalid-needles', id, 'the artwork has no hands');
+    moving.needles.forEach(({ valuePerTurn, pivot }, index) => {
+      if (!Number.isFinite(valuePerTurn) || valuePerTurn === 0) {
+        add('invalid-needles', id, `hand ${index} needs a finite, non-zero valuePerTurn`);
+      }
+      if (!isPoint(pivot)) add('invalid-needles', id, `hand ${index} needs a finite pivot`);
+    });
+  };
+
+  const checkWindows = (
+    id: string,
+    appearance: Appearance | undefined,
+    selectors: Readonly<Record<string, unknown>>,
+  ) => {
+    const drawn = appearance && 'artwork' in appearance ? (appearance.artwork.windows ?? {}) : {};
+    for (const [windowId, window] of Object.entries(drawn)) {
+      if (!Object.hasOwn(selectors, windowId)) {
+        add('unknown-window', id, `artwork window ${windowId} has no selector to print`);
+      }
+      if (!isLength(window.fontSize)) {
+        add('invalid-window', id, `artwork window ${windowId} needs a positive, finite fontSize`);
+      }
+      if (!isPoint(window.at)) {
+        add('invalid-window', id, `artwork window ${windowId} needs a finite position`);
+      }
+    }
+    for (const windowId of Object.keys(selectors)) {
+      if (!Object.hasOwn(drawn, windowId)) {
+        add('unknown-window', id, `selector ${windowId} has no artwork window to print in`);
+      }
+    }
+  };
+
   checkText(aircraft.id, 'name', aircraft.name);
   checkText(aircraft.id, 'handbookRevision', aircraft.handbookRevision);
 
@@ -285,6 +330,8 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
     }
 
     checkGlass(id, control.appearance);
+    checkMoving(id, control.appearance);
+    checkWindows(id, control.appearance, {});
 
     const placed = views.some(([, view]) => view.controls && Object.hasOwn(view.controls, id));
     if (!placed) add('unplaced-control', id, 'is not placed in any view');
@@ -297,12 +344,12 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
   for (const [id, indicator] of indicators) {
     checkText(id, 'name', indicator.name);
     checkGlass(id, indicator.appearance);
+    checkMoving(id, indicator.appearance);
+    checkWindows(id, indicator.appearance, indicator.windows ?? {});
     const placed = views.some(([, view]) => view.indicators && Object.hasOwn(view.indicators, id));
     if (!placed) add('unplaced-indicator', id, 'is not placed in any view');
   }
 
-  const isLength = (value: unknown) =>
-    typeof value === 'number' && Number.isFinite(value) && value > 0;
   const overlaps = (a: Rect, b: Rect) =>
     a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   const sizes = new Map<string, ViewSize | undefined>();

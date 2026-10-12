@@ -1,6 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./css.d.ts" />
-import type { ArtworkAppearance, JsonObject, MovingPart } from '@cpt/core';
+import { handAngle } from '@cpt/core';
+import type {
+  ArtworkAppearance,
+  ArtworkWindow,
+  IndicatorValue,
+  JsonObject,
+  MovingPart,
+} from '@cpt/core';
 import { useId, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import './artwork.css';
@@ -22,6 +29,8 @@ type StageProps = {
   renderInput?: ((size: Size | null) => ReactNode) | undefined;
   /** Where the input lies on the face; elsewhere a tap passes through to whatever is beneath. */
   inputBox?: FaceBox | undefined;
+  /** Per artwork window id, the value it prints. */
+  windows?: Readonly<Record<string, IndicatorValue>> | undefined;
 };
 
 const stageStyle: CSSProperties = { position: 'relative', width: '100%' };
@@ -42,26 +51,53 @@ const shadowStyle: CSSProperties = { fill: 'var(--panel-shadow)' };
 // The light falls from the upper left; as fractions of the face's shorter side.
 const NEEDLE_SHADOW = { x: 0.012, y: 0.022, opacity: 0.5 };
 
-function movingSource(moving: MovingPart, value: LayerValue): string | undefined {
-  return moving.type === 'positions' ? moving.images[String(value)] : moving.image;
-}
+type Layer = { source: string | undefined; transform: string | undefined };
 
-// The needle image is drawn at 0 degrees, as authored, and rotated clockwise by the absolute angle.
-function movingTransform(
+// A needle image is drawn at 0 degrees, as authored, and rotated clockwise by the absolute angle.
+function movingLayers(
   moving: MovingPart,
   value: LayerValue,
   notches: readonly string[] | undefined,
-): string | undefined {
+): Layer[] {
   const fraction = layerFraction(value, notches);
-  if (moving.type === 'needle') {
-    return `rotate(${needleAngle(moving, fraction)} ${moving.pivot.x} ${moving.pivot.y})`;
+  switch (moving.type) {
+    case 'positions':
+      return [{ source: moving.images[String(value)], transform: undefined }];
+    case 'needle':
+      return [
+        {
+          source: moving.image,
+          transform: `rotate(${needleAngle(moving, fraction)} ${moving.pivot.x} ${moving.pivot.y})`,
+        },
+      ];
+    case 'needles': {
+      const angles = moving.needles.map((hand) => handAngle(hand, fraction));
+      if (!angles.every(Number.isFinite)) return [];
+      return moving.needles.map((hand, index) => ({
+        source: hand.image,
+        transform: `rotate(${angles[index]} ${hand.pivot.x} ${hand.pivot.y})`,
+      }));
+    }
+    case 'travel': {
+      const first = moving.path[0];
+      const at = pointAlong(moving.path, fraction);
+      return [
+        {
+          source: moving.image,
+          transform: first ? `translate(${at.x - first.x} ${at.y - first.y})` : undefined,
+        },
+      ];
+    }
   }
-  if (moving.type === 'travel') {
-    const first = moving.path[0];
-    const at = pointAlong(moving.path, fraction);
-    return first ? `translate(${at.x - first.x} ${at.y - first.y})` : undefined;
+}
+
+const UNREADABLE_WINDOW = '---';
+
+function windowText(value: IndicatorValue | undefined, window: ArtworkWindow): string {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value.toFixed(window.decimals ?? 0) : UNREADABLE_WINDOW;
   }
-  return undefined;
+  return value === undefined ? UNREADABLE_WINDOW : String(value);
 }
 
 function shadowOffset({ width, height }: Size): string {
@@ -79,24 +115,32 @@ export function ArtworkStage({
   imageLabel,
   renderInput,
   inputBox,
+  windows,
 }: StageProps) {
   const [size, setSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
   const maskId = `pk-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const { face, moving, glass } = artwork;
-  const source = (guardOpen && artwork.guardOpen?.[String(value)]) || movingSource(moving, value);
+  const open =
+    guardOpen && moving.type !== 'needles' ? artwork.guardOpen?.[String(value)] : undefined;
+  const layers = movingLayers(moving, value, notches).map((layer) =>
+    open ? { ...layer, source: open } : layer,
+  );
+  const sources = layers.map((layer) => layer.source);
   if (
-    source === undefined ||
+    sources.length === 0 ||
+    sources.some((source) => source === undefined || failed.has(source)) ||
     failed.has(face) ||
-    failed.has(source) ||
     (glass !== undefined && failed.has(glass))
   ) {
     return <>{fallback}</>;
   }
+  const drawn = layers as { source: string; transform: string | undefined }[];
 
   const fail = (url: string) => setFailed((previous) => new Set(previous).add(url));
-  const transform = movingTransform(moving, value, notches);
-  const shadow = moving.type === 'needle' && options?.needleShadow === true;
+  const shadow =
+    (moving.type === 'needle' || moving.type === 'needles') && options?.needleShadow === true;
+  const printed = Object.entries(artwork.windows ?? {});
 
   return (
     <div
@@ -125,17 +169,34 @@ export function ArtworkStage({
           data-moving={moving.type}
           style={overlayStyle}
         >
+          {printed.map(([id, window]) => (
+            <text
+              key={id}
+              className="cpt-artwork-window"
+              data-window={id}
+              x={window.at.x}
+              y={window.at.y}
+              fontSize={window.fontSize}
+              textAnchor={window.anchor ?? 'middle'}
+              dominantBaseline="central"
+            >
+              {windowText(windows?.[id], window)}
+            </text>
+          ))}
           {shadow && (
             <>
               <defs>
                 <mask id={maskId} style={silhouetteStyle}>
-                  <image
-                    href={source}
-                    width={size.width}
-                    height={size.height}
-                    preserveAspectRatio="none"
-                    transform={transform}
-                  />
+                  {drawn.map(({ source, transform }, index) => (
+                    <image
+                      key={index}
+                      href={source}
+                      width={size.width}
+                      height={size.height}
+                      preserveAspectRatio="none"
+                      transform={transform}
+                    />
+                  ))}
                 </mask>
               </defs>
               <g data-needle-shadow="" transform={shadowOffset(size)}>
@@ -149,14 +210,17 @@ export function ArtworkStage({
               </g>
             </>
           )}
-          <image
-            href={source}
-            width={size.width}
-            height={size.height}
-            preserveAspectRatio="none"
-            transform={transform}
-            onError={() => fail(source)}
-          />
+          {drawn.map(({ source, transform }, index) => (
+            <image
+              key={index}
+              href={source}
+              width={size.width}
+              height={size.height}
+              preserveAspectRatio="none"
+              transform={transform}
+              onError={() => fail(source)}
+            />
+          ))}
         </svg>
       )}
       {size && glass !== undefined && (

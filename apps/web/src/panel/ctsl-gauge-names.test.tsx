@@ -10,7 +10,8 @@ const ctslAircraft = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl')
 if (!ctslAircraft) throw new Error('The CTSL is not registered');
 
 const drawn = Object.entries(ctslAircraft.indicators).filter(
-  ([, { appearance }]) => 'artwork' in appearance && appearance.artwork.moving.type === 'needle',
+  ([, { appearance }]) =>
+    'artwork' in appearance && ['needle', 'needles'].includes(appearance.artwork.moving.type),
 );
 
 describe('CTSL drawn gauges', () => {

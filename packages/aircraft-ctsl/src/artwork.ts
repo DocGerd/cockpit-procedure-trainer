@@ -1,6 +1,13 @@
 import type { ArtworkAppearance, Point } from '@cpt/core';
 import { airspeed, airspeedFace } from './artwork/gauges/airspeed';
-import { altimeter, altimeterFace } from './artwork/gauges/altimeter';
+import {
+  altimeter,
+  altimeterFace,
+  altimeterGlass,
+  altimeterHands,
+  altimeterKnobFace,
+  altimeterKnobRim,
+} from './artwork/gauges/altimeter';
 import { cht, chtFace } from './artwork/gauges/cht';
 import { oilPressure, oilPressureFace } from './artwork/gauges/oil-pressure';
 import { oilTemperature, oilTemperatureFace } from './artwork/gauges/oil-temperature';
@@ -12,6 +19,12 @@ import { voltmeter, voltmeterFace } from './artwork/gauges/voltmeter';
 export const images = {
   gaugeAirspeed: airspeedFace,
   gaugeAltimeter: altimeterFace,
+  gaugeAltimeterTenThousands: altimeterHands.tenThousands,
+  gaugeAltimeterThousands: altimeterHands.thousands,
+  gaugeAltimeterHundreds: altimeterHands.hundreds,
+  gaugeAltimeterGlass: altimeterGlass,
+  gaugeAltimeterKnob: altimeterKnobFace,
+  gaugeAltimeterKnobRim: altimeterKnobRim,
   gaugeVsi: verticalSpeedFace,
   gaugeTachometer: tachometerFace,
   gaugeTachometerNeedle: tachometerNeedle,
