@@ -4,6 +4,7 @@ import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { gaugeArtwork as gauges, images } from './artwork';
+import { glassImage, needle, needleImage } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
@@ -229,6 +230,12 @@ describe('CTSL gauges', () => {
       expect(indicator.name.en.length).toBeGreaterThan(0);
       expect(indicator.name.de.length).toBeGreaterThan(0);
     }
+  });
+
+  it('gives a gauge the shared needle and glass unless it brings its own', () => {
+    const { artwork } = needle('face.svg', { min: 0, max: 1 }, {});
+    expect(artwork.glass).toBe(glassImage);
+    expect(artwork.moving.type === 'needle' && artwork.moving.image).toBe(needleImage);
   });
 
   it('gives every gauge its own module and test file', () => {

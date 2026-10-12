@@ -2968,7 +2968,7 @@ propeller control in the cockpit (§9).
 
 | Gauge              | Scale used                               | Markings                                                                                                              |
 | ------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300**                                                          |
+| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300** (§3.10.1)                                                |
 | Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800 (§3.10.5)                              |
 | Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
 | Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
@@ -3833,14 +3833,17 @@ verifies it on D-MPGO.
     show no mark at 276. The question bears on §2a decision 3 and the §8 VNE row;
     the owner decides.
 51. **Orange triangle beside the ASI** (#720): what does it mark? It points at about
-    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: an
-    unlabelled orange triangle with no function; its meaning as an approach-speed
-    reminder is **assumed (unverified)**.
+    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: none
+    yet; the triangle lies outside the gauge's case box, which the panel layout
+    sizes (#720). Its meaning as an approach-speed reminder is **assumed
+    (unverified)**.
 52. **ASI below 40 km/h** (#720): the needle rests at 12 o'clock on a white index
     and the scale starts at 40, 10° clockwise of it; the photos do not show how the
     needle travels between 0 and 40 km/h or whether a stop pin exists. Trainer uses:
-    0° at 0 km/h, linear to 10° at 40 km/h, then θ = 10° + 1.10° × (v − 40) up to
-    340° at 340 km/h, held there above 340. **Assumed (unverified)**.
+    θ = 10° + 1.10° × (v − 40) from 340° at 340 km/h (held there above) down to the
+    rest index, where the needle stays below about 31 km/h; the face prints every
+    numeral, tick and arc at its measured angle, so from 260 to 300 km/h the needle
+    reads up to 4° past the print (#720). **Assumed (unverified)**.
 53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
     legend beside the down arrow is hidden under the resting pointer in every photo;
     the trainer prints a short down legend mirroring `up`. **Assumed (unverified)**.
