@@ -3,9 +3,9 @@ import type { ControlPosition, Environment, PhaseId, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import type { CtslFailure } from './failures';
 import { ctslAircraft } from './index';
-import { chargeLampLit, indicators } from './indicators';
+import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import { initial, runningFrom, step } from './systems';
+import { indicatedAltitudeFt, initial, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -898,11 +898,50 @@ describe('indicators', () => {
     expect(read('flapReadout')).toBe(15);
     expect(read('eltLamp')).toBe(true);
     expect(read('airspeed')).toBe(0);
-    expect(read('altimeter')).toBe(0);
+    // Parked at the field with the last flight's 1025 hPa still set over a QNH of 1013.
+    expect(read('altimeter')).toBe(315 + 12 * 27);
     expect(read('verticalSpeed')).toBe(0);
     for (const id of Object.keys(indicators) as (keyof typeof indicators)[]) {
       const value = read(id);
       expect(typeof value === 'number' ? Number.isFinite(value) : typeof value).toBeTruthy();
     }
   });
+
+  it.each(Object.keys(phases) as PhaseId[])(
+    'read the altimeter from the knob and the QNH on entering and flying %s',
+    (phase) => {
+      const session = sessionAt(phase);
+      advanceSeconds(session, 2);
+      const state = trainerState(session);
+      const reading = indicators.altimeter.select(state);
+      expect(Number.isFinite(reading)).toBe(true);
+      expect(reading).toBe(
+        315 +
+          state.systems.altitudeFt +
+          (Number(state.controls['altimeterSetting']) - state.systems.qnhHpa) * 27,
+      );
+    },
+  );
+
+  it('fail loudly on an altimeter setting the knob cannot show', () => {
+    const state = trainerState(coldStart());
+    const broken = { ...state, controls: { ...state.controls, altimeterSetting: 'bogus' } };
+    expect(altimeterSettingHpa(broken)).toBeNaN();
+    expect(indicators.altimeter.select(broken)).toBeNaN();
+  });
+});
+
+describe('indicatedAltitudeFt', () => {
+  it.each([
+    { altitudeFt: 0, setting: 1013, qnh: 1013, reads: 315 },
+    { altitudeFt: 1500, setting: 1013, qnh: 1013, reads: 1815 },
+    { altitudeFt: 1500, setting: 1000, qnh: 1013, reads: 1815 - 13 * 27 },
+    { altitudeFt: 0, setting: 950, qnh: 1013, reads: 315 - 63 * 27 },
+    { altitudeFt: 0, setting: 1050, qnh: 1013, reads: 315 + 37 * 27 },
+  ])(
+    'reads $reads ft at $altitudeFt ft above the field with $setting hPa set over $qnh',
+    ({ altitudeFt, setting, qnh, reads }) => {
+      expect(indicatedAltitudeFt(altitudeFt, setting, qnh)).toBe(reads);
+    },
+  );
 });

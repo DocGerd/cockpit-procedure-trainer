@@ -1,6 +1,14 @@
 import type { ArtworkAppearance, ControlRecord, Text } from '@cpt/core';
 import { controlArtwork } from './artwork';
+import { altimeterKnob } from './artwork/gauges/altimeter';
+import { ALTIMETER_SETTINGS_HPA, QNH_HPA } from './systems';
 import { text } from './text';
+
+/** The altimeter knob's detents, one per hPa, lowest first: clockwise raises the setting. */
+export const altimeterSettings = Array.from(
+  { length: ALTIMETER_SETTINGS_HPA.max - ALTIMETER_SETTINGS_HPA.min + 1 },
+  (_, step) => String(ALTIMETER_SETTINGS_HPA.min + step),
+);
 
 const breakerOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
@@ -312,6 +320,27 @@ export const controls = {
       'Parking brake, printed Off, Brake, On: set it to On, pull and release the brake lever. The pressure holds until the valve is back at Off.',
     ),
     appearance: controlArtwork.parkingBrakeValve,
+  },
+  altimeterSetting: {
+    kind: 'rotary',
+    positions: altimeterSettings,
+    initial: String(QNH_HPA),
+    // The knob prints no detent; the cues name the setting the altimeter window shows.
+    legends: Object.fromEntries(
+      altimeterSettings.map((setting) => [
+        setting,
+        {
+          state: text(`${setting} hPa`, `${setting} hPa`),
+          restore: text(`Wieder auf ${setting} hPa stellen`, `Set it to ${setting} hPa again`),
+        },
+      ]),
+    ),
+    name: text('Einstellknopf Höhenmesser', 'Altimeter setting knob'),
+    description: text(
+      'Stellt den Luftdruck im Fenster des Höhenmessers in hPa ein; nach rechts gedreht steigen Einstellung und Anzeige, etwa 27 ft je hPa.',
+      'Sets the pressure in the altimeter window in hPa; turned clockwise, the setting and the reading rise, about 27 ft per hPa.',
+    ),
+    appearance: altimeterKnob(altimeterSettings.length),
   },
   rescueHandle: {
     kind: 'guarded',
