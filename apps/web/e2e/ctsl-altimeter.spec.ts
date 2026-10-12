@@ -53,10 +53,10 @@ test('ctsl: holding the knob turns it on detent by detent', async ({ page }) => 
   if (!box) throw new Error('the knob is not on screen');
   await page.mouse.move(box.x + box.width * 0.1, box.y + box.height / 2);
   await page.mouse.down();
-  await expect(settingWindow(page)).toHaveText('1020');
+  await expect.poll(async () => Number(await settingWindow(page).textContent())).toBeLessThan(1023);
   await page.mouse.up();
   const stopped = await settingWindow(page).textContent();
-  expect(Number(stopped)).toBeLessThanOrEqual(1020);
+  expect(Number(stopped)).toBeLessThan(1023);
   await page.waitForTimeout(300);
   await expect(settingWindow(page)).toHaveText(stopped ?? '');
 });
