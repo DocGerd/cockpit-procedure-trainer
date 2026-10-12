@@ -6,7 +6,7 @@ export const temperaturePointer = new URL(
   import.meta.url,
 ).href;
 
-/** The temperature dials sweep 2.7 degrees per °C up to the knee and 1.65 above it (intake §3.10.6). */
+/** The temperature dials sweep at one rate up to the knee and a slower one above it (intake §3.10.6). */
 export const DIAL = {
   min: 40,
   knee: 120,

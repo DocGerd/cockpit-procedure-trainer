@@ -27,6 +27,7 @@ describe('CTSL CHT gauge', () => {
         { colour: 'yellow', from: 110, to: 119, inner: 70 },
         { colour: 'red', from: 119.5, to: 120.5, inner: 65 },
       ],
+      tintedTicks: [90, 95, 100, 105, 110, 115, 120],
     });
   });
 

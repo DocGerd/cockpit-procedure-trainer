@@ -57,7 +57,10 @@ export type DialSpec = {
   id: 'cht' | 'oilTemperature';
   words: { text: string; y: number }[];
   arcs: { colour: string; from: number; to: number; inner: number }[];
+  tintedTicks: number[];
 };
+
+const INK = '#e6e6de';
 
 const withinDegrees = (actual: number, expected: number, tolerance: number, what: string) =>
   expect(
@@ -134,6 +137,11 @@ export function expectDialFace(spec: DialSpec) {
     const outer = polar(num(tick, 'x2'), num(tick, 'y2'));
     withinDegrees(outer.angle, dialAngle(celsius), 0.5, `tick ${celsius}`);
     if (celsius <= 120) withinDegrees(outer.radius, 84, 1.5, `tick ${celsius} outer end`);
+    const tinted = spec.tintedTicks.includes(celsius);
+    expect(
+      tick.attributes['stroke'] === INK,
+      `tick ${celsius} ${tinted ? 'takes its arc tint' : 'is white'}`,
+    ).toBe(!tinted);
   }
   const widthOf = (celsius: number) =>
     num(ticks.find((tick) => num(tick, 'data-tick') === celsius) as Tag, 'stroke-width');

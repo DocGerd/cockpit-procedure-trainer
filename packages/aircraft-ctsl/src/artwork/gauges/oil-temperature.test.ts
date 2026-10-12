@@ -28,6 +28,7 @@ describe('CTSL oil temperature gauge', () => {
         { colour: 'yellow', from: 110, to: 127, inner: 68 },
         { colour: 'red', from: 127, to: 130, inner: 68 },
       ],
+      tintedTicks: [90, 95, 100, 105, 110, 115],
     });
   });
 
