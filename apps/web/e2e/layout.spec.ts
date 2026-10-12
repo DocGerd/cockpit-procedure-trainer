@@ -44,6 +44,9 @@ const secondaryCaptionGaps: typeof indicatorFaceGaps = {
   ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
+// Aircraft whose dock opens clear of the slots it mirrors.
+const dockBesideSlots: ReadonlySet<string> = new Set(['ctsl']);
+
 const desktops = [
   { width: 1920, height: 1080 },
   { width: 3840, height: 2160 },
@@ -108,6 +111,22 @@ async function expectCellsAtTheirFloors(page: Page, aircraft: Aircraft, viewport
     expect(box.width, 'dock width').toBeGreaterThanOrEqual(dock.minWidth);
     const panel = await boxOf(page.locator('[data-view="panel"]'));
     expect(box.y, 'dock under the panel').toBeGreaterThanOrEqual(panel.y + panel.height);
+    const slots = await page.locator('[data-view="panel"] [data-slot-mirror]').all();
+    expect(slots.length, 'device slot mirrors on the panel').toBeGreaterThan(0);
+    const underSlot = await Promise.all(
+      slots.map(async (slot) => {
+        const { x, width } = await boxOf(slot);
+        const overlap = Math.min(box.x + box.width, x + width) - Math.max(box.x, x);
+        return overlap >= width / 3;
+      }),
+    );
+    if (dockBesideSlots.has(aircraft.id)) {
+      expect(underSlot, 'dock beside the slots (else drop it from dockBesideSlots)').not.toContain(
+        true,
+      );
+    } else {
+      expect(underSlot, 'dock reaches under a device slot').toContain(true);
+    }
     if (aircraft.cockpit?.views.centre) {
       const centre = await boxOf(page.locator('[data-view="centre"]'));
       expect(centre.y, 'centre field under the panel').toBeGreaterThanOrEqual(
