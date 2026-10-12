@@ -2973,7 +2973,7 @@ propeller control in the cockpit (§9).
 | Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
 | Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
 | CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
-| Vertical speed     | ±2000 ft/min                             | none                                                                                                                  |
+| Vertical speed     | ±2000 ft/min                             | none; 0 at 9 o'clock, climb clockwise and descent counter-clockwise, both ending at one 2 at 3 o'clock (§3.10.3)      |
 | Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none; reads field elevation + height above the field, corrected for the knob setting (§3.10.2, §9 questions 46 to 49) |
 | Voltmeter (V)      | 9–17                                     | none (§3.10.8)                                                                                                        |
 
@@ -3846,7 +3846,12 @@ verifies it on D-MPGO.
     reads up to 4° past the print (#720). **Assumed (unverified)**.
 53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
     legend beside the down arrow is hidden under the resting pointer in every photo;
-    the trainer prints a short down legend mirroring `up`. **Assumed (unverified)**.
+    the trainer prints a short down legend mirroring `up`, the word `down`. **Assumed
+    (unverified)**. Two drawing decisions: the `1000 ft.` and `per min.` lines are set
+    at the size of `VERTICAL` and `SPEED`, about twice the measured cap height, because
+    the measured size falls below the secondary-caption floor (legibility traded for
+    recognition, ADR 0002); and the I-mark's serifs stand at ±9° about the 2, in place
+    of the ±1,900 ticks, so they do not smear into them (the photos fix angles to ±5°).
 54. **Slip indicator face** (#721): no question needed (§3.10.4).
 55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
     about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
