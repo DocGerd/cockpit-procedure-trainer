@@ -1,10 +1,18 @@
 // @vitest-environment jsdom
 import { resolveIndicator } from '@cpt/panel-kit';
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 
-afterEach(cleanup);
+beforeEach(() => {
+  vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLImageElement.prototype, 'naturalHeight', 'get').mockReturnValue(200);
+});
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 const ctslAircraft = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
 if (!ctslAircraft) throw new Error('The CTSL is not registered');
@@ -43,6 +51,32 @@ describe('CTSL drawn gauges', () => {
         screen.getByRole('img', { name: new RegExp(`^${name}: -?[\\d.]+ \\S+$`) }),
       ).toBeTruthy();
       expect(container.textContent).toBe('');
+    },
+  );
+
+  it.each([
+    ['voltmeter', 0, -124],
+    ['voltmeter', 9, -124],
+    ['voltmeter', 13, 0],
+    ['voltmeter', 20, 124],
+    ['oilPressure', 0, -124],
+    ['oilPressure', 7, 44],
+    ['oilPressure', 9, 44],
+  ] as const)(
+    '%s at %f turns its needle to %f degrees, held at the ends of its scale',
+    (id, value, angle) => {
+      const indicator = ctslAircraft.indicators[id];
+      if (!indicator) throw new Error(`no ${id} indicator`);
+      const { widget: Gauge, options } = resolveIndicator(indicator, value);
+      const { container } = render(
+        <Gauge value={value} label={indicator.name.en} {...(options ? { options } : {})} />,
+      );
+      const face = container.querySelector('img');
+      if (face) fireEvent.load(face);
+      const turns = [...container.innerHTML.matchAll(/rotate\((-?[\d.]+) 100 100\)/g)].map(
+        ([, deg]) => Number(deg),
+      );
+      expect(turns).toContain(angle);
     },
   );
 

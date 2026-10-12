@@ -108,8 +108,10 @@ describe('CTSL oil pressure gauge', () => {
         `${half / 2} bar`,
       ).toBe(true);
     }
-    expect(Math.abs(modelAngle(5.2))).toBeLessThan(2);
-    expect(modelAngle(5)).toBeLessThan(0);
+    const angleAt = (bar: number) =>
+      angles.find((angle) => Math.abs(angle - modelAngle(bar)) < 0.5) ?? NaN;
+    expect(angleAt(5)).toBeLessThan(0);
+    expect(angleAt(5.5)).toBeGreaterThan(0);
   });
 
   it('draws short ticks from 0 to 7 and heavy bars from 7 to 10, with the 7 tick red', () => {
@@ -137,10 +139,22 @@ describe('CTSL oil pressure gauge', () => {
     });
     expect(options?.['arcs']).toEqual([
       { from: 1, to: 2, colour: 'yellow' },
-      { from: 5, to: 6, colour: 'green' },
       { from: 6, to: 7, colour: 'yellow' },
       { from: 6.9, to: 7.1, colour: 'red' },
     ]);
+  });
+
+  it('keeps the readout arcs off the normal range, since the face has no arc from 2 to 5', () => {
+    const arcsOnOptions = options?.['arcs'] as { from: number; to: number; colour: string }[];
+    expect(arcsOnOptions.some(({ from, to }) => from < 5 && to > 2)).toBe(false);
+    expect(arcsOnOptions.some(({ colour }) => colour === 'green')).toBe(false);
+  });
+
+  it('prints BAR under the needle sweep, as the photographed dial does (intake §3.10.9)', () => {
+    const bar = texts(face).find(({ content }) => content === 'BAR');
+    const { radius } = polar(bar?.x ?? NaN, bar?.y ?? NaN);
+    expect(radius).toBeGreaterThan(0.15);
+    expect(radius).toBeLessThan(0.69);
   });
 
   it('prints BAR in the upper centre and OIL PRESS in the lower part', () => {

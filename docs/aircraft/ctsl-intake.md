@@ -2970,7 +2970,7 @@ propeller control in the cockpit (§9).
 | ------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300**                                                          |
 | Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800 (§3.10.5)                              |
-| Oil pressure (bar) | 0–10 (trainer needle stops at 7)         | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
+| Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
 | Oil temp (°C)      | 40–150                                   | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
 | CHT (°C)           | 40–150                                   | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
 | Vertical speed     | ±2000 ft/min                             | none                                                                                                                  |

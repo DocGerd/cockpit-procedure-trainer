@@ -1,6 +1,10 @@
 import type { ArtworkAppearance, JsonObject } from '@cpt/core';
 
 export const needleImage = new URL('../../assets/artwork/needle.svg', import.meta.url).href;
+export const engineGaugePointer = new URL(
+  '../../assets/artwork/gauge-engine-pointer.svg',
+  import.meta.url,
+).href;
 export const glassImage = new URL('../../assets/artwork/glass-gauge.svg', import.meta.url).href;
 
 export const needle = (

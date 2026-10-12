@@ -38,7 +38,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
   shortTakeoff: ['Flap readout: 15°'],
   beforeTakeoff: [
     'Parking brake: holds, brake lever released',
-    'Oil pressure: in the green',
+    'Oil pressure: 2 to 5 bar',
     'Oil temperature: below the red line',
     'Cylinder head temperature: in the green',
     'Oil temperature: at least 51 °C',
@@ -47,7 +47,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
-    'Oil pressure: in the green',
+    'Oil pressure: 2 to 5 bar',
     'Oil temperature: in the green',
     'Cylinder head temperature: in the green',
   ],

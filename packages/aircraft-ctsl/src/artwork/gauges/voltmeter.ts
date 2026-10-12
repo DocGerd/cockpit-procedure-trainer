@@ -1,12 +1,8 @@
 import type { ArtworkAppearance } from '@cpt/core';
+import { engineGaugePointer } from './shared';
 
 export const voltmeterFace = new URL('../../assets/artwork/gauge-voltmeter.svg', import.meta.url)
   .href;
-
-export const engineGaugePointer = new URL(
-  '../../assets/artwork/gauge-voltmeter-needle.svg',
-  import.meta.url,
-).href;
 
 const DEGREES_PER_VOLT = 31;
 

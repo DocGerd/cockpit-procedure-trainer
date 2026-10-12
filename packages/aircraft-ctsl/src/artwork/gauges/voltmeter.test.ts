@@ -112,6 +112,13 @@ describe('CTSL voltmeter gauge', () => {
     expect(face).not.toContain('data-arc');
   });
 
+  it('prints VOLTS under the needle sweep, as the photographed dial does (intake §3.10.8)', () => {
+    const volts = texts(face).find(({ content }) => content === 'VOLTS');
+    const { radius } = polar(volts?.x ?? NaN, volts?.y ?? NaN);
+    expect(radius).toBeGreaterThan(0.15);
+    expect(radius).toBeLessThan(0.69);
+  });
+
   it('prints VOLTS in the upper centre and VOLTMETER along the bottom', () => {
     const words = texts(face).filter(({ content }) => !/^\d+$/.test(content));
     expect(words.map(({ content }) => content)).toEqual(['VOLTS', 'VOLTMETER']);
@@ -141,8 +148,10 @@ describe('CTSL voltmeter and oil pressure pointer (intake §3.10.6)', () => {
       const pointer = readFace(moving.image);
       expect(pointer).not.toContain('url(#');
       const d = /<path\b[^>]*data-pointer=""[^>]*\bd="([^"]+)"/.exec(pointer)?.[1] ?? '';
-      const along = [...d.matchAll(/([\d.]+) ([\d.]+)/g)].map(([, , y]) => (100 - Number(y)) / 100);
+      const points = [...d.matchAll(/([\d.]+) ([\d.]+)/g)];
+      const along = points.map(([, , y]) => (100 - Number(y)) / 100);
       expect(along.length).toBeGreaterThan(0);
+      for (const [, x] of points) expect(Math.abs(Number(x) - 100)).toBeLessThan(10);
       expect(Math.min(...along)).toBeCloseTo(0.15, 2);
       expect(Math.max(...along)).toBeCloseTo(0.69, 2);
       expect(readFace(artwork.face)).not.toMatch(/<circle cx="100" cy="100" r="(?!100"|92")/);

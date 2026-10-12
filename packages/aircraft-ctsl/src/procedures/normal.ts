@@ -129,7 +129,7 @@ const oilPressureGreen = {
   condition: (state: State) => within(state.systems.oilPressureBar, OIL_PRESSURE_GREEN_BAR),
   response: oilPressureReading,
   text: text('Öldruck', 'Oil pressure'),
-  expected: text('im grünen Bereich', 'in the green'),
+  expected: text('2 bis 5 bar', '2 to 5 bar'),
 } as const;
 
 const chtGreen = {
