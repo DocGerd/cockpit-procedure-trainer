@@ -140,19 +140,34 @@ const viewOfIndicator = (id: string) =>
   Object.entries(ctslAircraft.views).find(([, view]) => view.indicators?.[id])?.[0];
 const entryState = (phase: string) => ctslAircraft.phases[phase]?.entry.state as CtslState;
 
+/**
+ * The corners of a plate outline. Only absolute M, L and Z are read: their points are the outline,
+ * so the box they span is exact; any other command throws rather than mis-measure the plate.
+ */
+const outlinePoints = (plate: string, d: string): [number, number][] =>
+  [...d.matchAll(/([A-Za-z])([^A-Za-z]*)/g)].flatMap(([, command = '', args = '']) => {
+    if (command === 'Z' && args.trim() === '') return [];
+    const values = args
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
+    if ((command !== 'M' && command !== 'L') || values.length !== 2 || values.some(Number.isNaN)) {
+      throw new Error(`the ${plate} plate outline has "${command}${args}": use absolute M, L, Z`);
+    }
+    return [[values[0] ?? 0, values[1] ?? 0]];
+  });
+
 /** The three upper plates of the panel art, left to right, as the boxes their outlines span. */
 const upperPlates = [...viewPanel.matchAll(/<(rect|path) data-plate="(\w+)"([^>]*)>/g)]
-  .map(([, tag, , attributes = '']) => {
+  .map(([, tag, plate = '', attributes = '']) => {
     const number = (name: string) =>
       Number(new RegExp(`\\b${name}="([\\d.]+)"`).exec(attributes)?.[1]);
     if (tag === 'rect') {
       return { x: number('x'), y: number('y'), w: number('width'), h: number('height') };
     }
-    const values = [...(/\bd="([^"]+)"/.exec(attributes)?.[1] ?? '').matchAll(/-?[\d.]+/g)].map(
-      Number,
-    );
-    const xs = values.filter((_, index) => index % 2 === 0);
-    const ys = values.filter((_, index) => index % 2 === 1);
+    const points = outlinePoints(plate, /\bd="([^"]+)"/.exec(attributes)?.[1] ?? '');
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
     const [x, y] = [Math.min(...xs), Math.min(...ys)];
     return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
   })
@@ -345,6 +360,53 @@ describe('CTSL aircraft', () => {
       expect(inCockpit(com.rect.x)).toBeLessThan(middle(centre));
       expect(inCockpit(xpdr.rect.x + xpdr.rect.w)).toBeGreaterThan(middle(centre));
     });
+
+    // A cell wider than the panel's own aspect would only frame empty space beside it.
+    it('shapes the panel cell to the panel view', () => {
+      expect(Math.abs(panelFit - panel.rect.w)).toBeLessThan(1);
+    });
+  });
+
+  it('reads only absolute M, L and Z plate outlines', () => {
+    expect(outlinePoints('test', 'M0 0L10 0L10 5Z')).toEqual([
+      [0, 0],
+      [10, 0],
+      [10, 5],
+    ]);
+    expect(() => outlinePoints('test', 'M0 0C1 1 2 2 3 3Z')).toThrow(/absolute M, L, Z/);
+    expect(() => outlinePoints('test', 'M0 0l10 0Z')).toThrow(/absolute M, L, Z/);
+  });
+
+  // The blind photo-fidelity check of #741 measured the plates too wide for what they hold.
+  describe("the upper plates' proportions as D-MPGO's (intake §3.9.1)", () => {
+    const [left, centre, right] = upperPlates;
+    const { airspeed, tachometer } = views.panel.indicators;
+    if (!left || !centre || !right) throw new Error('the panel art misses an upper plate');
+    const unitA = airspeed.rect.w;
+
+    it('draws the left plate about 3.3 airspeed indicators wide, bare only on its outer side', () => {
+      expect(left.w / unitA).toBeGreaterThanOrEqual(3.2);
+      expect(left.w / unitA).toBeLessThanOrEqual(3.5);
+      expect((airspeed.rect.x - left.x) / unitA).toBeLessThanOrEqual(0.9);
+    });
+
+    it('draws the centre plate an upright panel that the GPS nearly fills', () => {
+      expect(centre.w / unitA).toBeGreaterThanOrEqual(2.1);
+      expect(centre.w / unitA).toBeLessThanOrEqual(2.4);
+      expect(centre.h / centre.w).toBeGreaterThanOrEqual(1.45);
+      expect(deviceSlots.gps.rect.w / centre.w).toBeGreaterThanOrEqual(0.76);
+    });
+
+    it('draws the right plate about 4.4 tachometers wide', () => {
+      expect(tachometer.rect.w / right.w).toBeGreaterThanOrEqual(0.21);
+      expect(tachometer.rect.w / right.w).toBeLessThanOrEqual(0.235);
+    });
+
+    it('spans the three plates about 2.6 times as wide as the centre plate is tall', () => {
+      const span = right.x + right.w - left.x;
+      expect(span / centre.h).toBeGreaterThanOrEqual(2.55);
+      expect(span / centre.h).toBeLessThanOrEqual(2.8);
+    });
   });
 
   describe('centre field (intake §3.3)', () => {
@@ -452,12 +514,15 @@ describe('CTSL aircraft', () => {
     // §3.9 gives no measured place for the parachute placard; §3.7.1 lists it just forward of the
     // handle, between the trim wheels, and the handle is centred, so the placard is too (#729).
     it('centres the parachute placard over the rescue handle', () => {
-      const card =
-        /<g transform="translate\(([\d.]+) 0\)">(?:(?!<\/g>)[\s\S])*?<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="[\d.]+" rx="6" fill="url\(#pc\)"\/>(?:(?!<\/g>)[\s\S])*?<\/g><text x="[\d.]+" y="[\d.]+"[^>]*>Ballistic</.exec(
-          viewConsole,
-        );
-      expect(card).not.toBeNull();
-      const [, shift = 0, x = 0, w = 0] = (card ?? []).map(Number);
+      const group = /<g data-placard="parachute"([^>]*)>((?:(?!<\/g>)[\s\S])*)<\/g>/.exec(
+        viewConsole,
+      );
+      expect(group, 'the console art marks the parachute placard').not.toBeNull();
+      const [, attributes = '', body = ''] = group ?? [];
+      const shift = Number(/translate\(([-\d.]+)[ ,]/.exec(attributes)?.[1] ?? 0);
+      const card = /<rect\b[^>]*\bx="([\d.]+)"[^>]*\bwidth="([\d.]+)"/.exec(body);
+      expect(card, 'the placard group draws its card').not.toBeNull();
+      const [, x = 0, w = 0] = (card ?? []).map(Number);
       const handle = rectOf('rescueHandle');
       expect(Math.abs(shift + x + w / 2 - (handle.x + handle.w / 2))).toBeLessThan(2);
       expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(handle.x + handle.w);

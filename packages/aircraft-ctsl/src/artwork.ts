@@ -57,8 +57,23 @@ export const images = {
   breakerLanding: new URL('./assets/artwork/breaker-landing.svg', import.meta.url).href,
   breakerOutlet: new URL('./assets/artwork/breaker-outlet.svg', import.meta.url).href,
   breakerFlap: new URL('./assets/artwork/breaker-flap.svg', import.meta.url).href,
-  breakerIn: new URL('./assets/artwork/breaker-in.svg', import.meta.url).href,
-  breakerPulled: new URL('./assets/artwork/breaker-pulled.svg', import.meta.url).href,
+  breakerInTop: new URL('./assets/artwork/breaker-in-top.svg', import.meta.url).href,
+  breakerInRight: new URL('./assets/artwork/breaker-in-right.svg', import.meta.url).href,
+  breakerInCentreRight: new URL('./assets/artwork/breaker-in-centre-right.svg', import.meta.url)
+    .href,
+  breakerInCentreLeft: new URL('./assets/artwork/breaker-in-centre-left.svg', import.meta.url).href,
+  breakerInLeft: new URL('./assets/artwork/breaker-in-left.svg', import.meta.url).href,
+  breakerPulledTop: new URL('./assets/artwork/breaker-pulled-top.svg', import.meta.url).href,
+  breakerPulledRight: new URL('./assets/artwork/breaker-pulled-right.svg', import.meta.url).href,
+  breakerPulledCentreRight: new URL(
+    './assets/artwork/breaker-pulled-centre-right.svg',
+    import.meta.url,
+  ).href,
+  breakerPulledCentreLeft: new URL(
+    './assets/artwork/breaker-pulled-centre-left.svg',
+    import.meta.url,
+  ).href,
+  breakerPulledLeft: new URL('./assets/artwork/breaker-pulled-left.svg', import.meta.url).href,
   breakerFlapIn: new URL('./assets/artwork/breaker-flap-in.svg', import.meta.url).href,
   breakerFlapPulled: new URL('./assets/artwork/breaker-flap-pulled.svg', import.meta.url).href,
   pushpullFace: new URL('./assets/artwork/pushpull-face.svg', import.meta.url).href,
@@ -144,8 +159,16 @@ const lettered = (appearance: ArtworkAppearance, ...lettering: string[]): Artwor
   artwork: { ...appearance.artwork, lettering },
 });
 
-const breaker = (face: string, ...legend: string[]) =>
-  lettered(positions(face, { in: images.breakerIn, pulled: images.breakerPulled }), ...legend);
+// Each knob stands where its touch box puts it (views.ts), so its disc art is drawn there too.
+const breakerKnobs = {
+  top: { in: images.breakerInTop, pulled: images.breakerPulledTop },
+  right: { in: images.breakerInRight, pulled: images.breakerPulledRight },
+  centreRight: { in: images.breakerInCentreRight, pulled: images.breakerPulledCentreRight },
+  centreLeft: { in: images.breakerInCentreLeft, pulled: images.breakerPulledCentreLeft },
+  left: { in: images.breakerInLeft, pulled: images.breakerPulledLeft },
+} as const;
+const breaker = (face: string, knob: keyof typeof breakerKnobs, ...legend: string[]) =>
+  lettered(positions(face, breakerKnobs[knob]), ...legend);
 const rocker = (face: string, ...title: string[]) =>
   lettered(positions(face, { off: images.rockerOff, on: images.rockerOn }), ...title, 'I', 'O');
 const pushPull = positions(images.pushpullFace, {
@@ -159,14 +182,14 @@ const aftEnd = { x: 56, y: 260 } as const;
 const pullSlide = [forwardEnd, aftEnd] as const;
 
 export const controlArtwork = {
-  comBreaker: breaker(images.breakerCom, 'Com'),
-  xpdrBreaker: breaker(images.breakerXpdr, 'Transponder'),
-  gpsBreaker: breaker(images.breakerGps, 'GPS'),
-  positionBreaker: breaker(images.breakerPosition, 'Position', 'Light'),
-  strobeBreaker: breaker(images.breakerStrobe, 'Beacon', 'Light'),
-  landingBreaker: breaker(images.breakerLanding, 'Landing', 'Light'),
-  intercomBreaker: breaker(images.breakerIntercom, 'Intercom'),
-  outletBreaker: breaker(images.breakerOutlet, '12V', 'Outlet'),
+  comBreaker: breaker(images.breakerCom, 'top', 'Com'),
+  xpdrBreaker: breaker(images.breakerXpdr, 'top', 'Transponder'),
+  gpsBreaker: breaker(images.breakerGps, 'left', 'GPS'),
+  positionBreaker: breaker(images.breakerPosition, 'centreRight', 'Position', 'Light'),
+  strobeBreaker: breaker(images.breakerStrobe, 'right', 'Beacon', 'Light'),
+  landingBreaker: breaker(images.breakerLanding, 'centreRight', 'Landing', 'Light'),
+  intercomBreaker: breaker(images.breakerIntercom, 'centreLeft', 'Intercom'),
+  outletBreaker: breaker(images.breakerOutlet, 'left', '12V', 'Outlet'),
   flapBreaker: lettered(
     positions(images.breakerFlap, {
       in: images.breakerFlapIn,

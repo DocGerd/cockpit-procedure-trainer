@@ -15,7 +15,7 @@ const cell = (x: number, y: number, w: number, h: number, minWidth: number): Coc
 export const cockpit = {
   size: { width: 1519, height: 758 },
   views: {
-    panel: cell(120, 0, 1339, 395, 1110),
+    panel: cell(194, 0, 1191, 395, 1110),
     centre: cell(524, 411, 463, 347, 436),
     console: cell(1003, 411, 516, 347, 486),
   },
