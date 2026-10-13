@@ -6,9 +6,12 @@ description: Review a pull request - run a review, post one inline thread per fi
 # Review a PR
 
 Argument: the PR number `N`. Repo: `DocGerd/cockpit-procedure-trainer`. The
-reviewer must be an agent that can run `gh` and post comments; a read-only
-agent type cannot post threads. Called by the `release-cycle` skill, and
-followed by the `merge-train` skill.
+reviewer must be an agent that can run `gh` or the GitHub connector and post
+comments; a read-only agent type cannot post threads. Called by the
+`release-cycle` skill, and followed by the `merge-train` skill. Without a
+working `gh` (cloud sessions), make each call below through the connector as
+[../github-connector.md](../github-connector.md) maps it: the diff, the inline
+threads as one pending review, the enumerate, reply and resolve.
 
 1. **Review.** The base is `develop`. Get the diff with `gh pr diff N` and the
    head SHA with `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .head.sha`.

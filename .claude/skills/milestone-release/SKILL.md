@@ -30,8 +30,12 @@ lower-case kebab form, for example `m2-core-engine`.
      `pr-selfreview` skill, and merge it into `develop` with the `merge-train`
      skill once `check` is green and all review threads are resolved.
 4. Open the release PR: `gh pr create --base main --head develop --title "Release vX.Y.Z" --body-file docs/milestones/<slug>.md`.
+   Without a working `gh`: `mcp__github__create_pull_request` with the same
+   base, head and title and the file's text as `body`; every other `gh` call
+   here goes through the connector as
+   [../github-connector.md](../github-connector.md) maps it.
 5. Stop. NEVER merge the release PR: no `gh pr merge`, no auto-merge, no API
-   merge; the `block-main-merge.sh` tripwire denies the usual forms but is not a boundary. The owner merges it; the `Release` workflow then creates tag
+   merge, no `mcp__github__merge_pull_request` (no hook sees connector calls); the `block-main-merge.sh` tripwire denies the usual forms but is not a boundary. The owner merges it; the `Release` workflow then creates tag
    `vX.Y.Z` and the GitHub Release from the top section of `CHANGELOG.md`.
 6. Give the owner the release PR URL and the open questions.
 7. After the owner's merge, in this session or the next: confirm tag and

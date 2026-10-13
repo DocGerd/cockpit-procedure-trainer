@@ -168,6 +168,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   threads via GraphQL. `gh pr edit` fails on the Projects-classic error: PATCH
   `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead; clear a milestone by PATCHing
   `…/issues/<n>` with `--input` on a file holding `{"milestone": null}`.
+- Without a working `gh` (cloud sessions), GitHub calls go through the GitHub
+  connector (`mcp__github__*`) as `.claude/skills/github-connector.md` maps
+  them. No hook sees connector calls, so its merge rules are the only guard.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
   artifact access and gh write access; read-only agent types cannot.
