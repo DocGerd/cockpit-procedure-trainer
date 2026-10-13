@@ -35,7 +35,10 @@ Read [triage.md](triage.md) and follow it, then continue with Phase 0.
 ## Phase 0 - State
 
 `git fetch origin`. List the milestone's open issues through
-`gh api "repos/DocGerd/cockpit-procedure-trainer/issues?milestone=<n>&state=open"`. Skip issues
+`gh api "repos/DocGerd/cockpit-procedure-trainer/issues?milestone=<n>&state=open"`
+(without a working `gh`, every `gh` call in this skill and its phase files
+goes through the GitHub connector as
+[../github-connector.md](../github-connector.md) maps it). Skip issues
 labelled `blocked`. Confirm `develop` is green: the `check` run of its tip is
 `success`. If the list is empty, go to Phase 4.
 
@@ -67,7 +70,8 @@ workflow changes. Each implementer:
 ## Phase 3 - Review, fix, merge
 
 A reviewer agent that is not the implementer runs the `pr-selfreview` skill on
-each PR. Reviewers must be an agent type that can run `gh` and post comments;
+each PR. Reviewers must be an agent type that can run `gh` or the GitHub connector and
+post comments;
 a read-only agent type cannot post review threads. The implementer fixes the
 findings and the reviewer's threads are resolved. At most two fix waves per
 PR; leftovers become follow-up issues.

@@ -8,6 +8,11 @@ description: Merge reviewed pull requests into develop, one at a time, after ver
 Argument: one or more PR numbers, merged in the order given. Called by the
 `release-cycle` skill after `pr-selfreview` has resolved every thread.
 
+Without a working `gh` (cloud sessions), make each call below through the
+GitHub connector as [../github-connector.md](../github-connector.md) maps it;
+the hook in step 1 does not see connector calls, so keep that file's merge
+rules.
+
 For each PR `N`:
 
 1. **Base.** `gh api repos/DocGerd/cockpit-procedure-trainer/pulls/N --jq .base.ref` must print
