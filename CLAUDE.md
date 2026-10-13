@@ -173,6 +173,6 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   them. No hook sees connector calls, so its merge rules are the only guard.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
-  artifact access and gh write access; read-only agent types cannot.
+  artifact access and gh or GitHub connector write access; read-only agent types cannot.
 - `doc-writer` cannot run git or gh: pair it with an agent that commits and
   opens the PR.

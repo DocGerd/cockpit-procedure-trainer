@@ -38,7 +38,10 @@ if [ "$(node_major node)" -lt "$required" ]; then
     version=$(curl -fsSL "$dist/index.json" |
       node -e 'const r = JSON.parse(require("fs").readFileSync(0, "utf8")); process.stdout.write(r.find((v) => v.version.startsWith(process.argv[1])).version)' "v$required.")
     tarball="node-$version-linux-$arch.tar.xz"
-    tmp=$(mktemp -d)
+    # Stage next to the install dir: the final mv is then an atomic rename,
+    # so an interrupted run never leaves a partial Node tree behind.
+    mkdir -p "$(dirname "$node_dir")"
+    tmp=$(mktemp -d -p "$(dirname "$node_dir")")
     trap 'rm -rf "$tmp"' EXIT
     curl -fsSL -o "$tmp/$tarball" "$dist/$version/$tarball"
     curl -fsSL -o "$tmp/SHASUMS256.txt" "$dist/$version/SHASUMS256.txt"
@@ -46,7 +49,6 @@ if [ "$(node_major node)" -lt "$required" ]; then
     mkdir "$tmp/node"
     tar -xJf "$tmp/$tarball" -C "$tmp/node" --strip-components=1
     rm -rf "$node_dir"
-    mkdir -p "$(dirname "$node_dir")"
     mv "$tmp/node" "$node_dir"
     echo "session-start: installed Node $version in $node_dir" >&2
   fi
@@ -56,4 +58,5 @@ if [ "$(node_major node)" -lt "$required" ]; then
   fi
 fi
 
-pnpm install --frozen-lockfile
+# SessionStart stdout becomes session context: keep pnpm's output out of it.
+pnpm install --frozen-lockfile >&2
