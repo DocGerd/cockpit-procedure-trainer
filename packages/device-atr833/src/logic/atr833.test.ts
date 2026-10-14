@@ -117,12 +117,15 @@ describe('power', () => {
     tuned = turn(tap(tuned, 'set'), 'volSel', 'up', 2);
     tuned = tap(hold(tap(tuned, 'mem'), 'mem', LONG_PRESS_MS), 'dw');
     tuned = tap(tuned, 'dw');
-    expect(tuned).toMatchObject({ dualWatch: true, item: 'sql' });
+    expect(tuned).toMatchObject({ dualWatch: true, item: 'sql', list: null });
     expect(tuned.memory[0]).toBe(120000);
+    tuned = wait(tap(tuned, 'mem'), 5000);
+    expect(tuned).toMatchObject({ dualWatch: true, list: { kind: 'mem', index: 0 }, idleMs: 5000 });
 
     const pulled = pull(tuned);
     expect(pulled).toMatchObject({ on: false, powered: false, dualWatch: false, list: null });
     expect(pulled.item).toBe('vol');
+    expect(pulled.idleMs).toBe(0);
 
     const pushedBack = step(pulled, {});
     expect(pushedBack).toMatchObject({ on: false, powered: true });
@@ -177,8 +180,10 @@ describe('power', () => {
   });
 
   it('clears dual watch, line 3 and a list when held off', () => {
-    const state = hold(tap(tap(running, 'dw'), 'set'), 'power', POWER_OFF_HOLD_MS);
-    expect(state).toMatchObject({ dualWatch: false, item: 'vol', list: null });
+    const before = tap(tap(tap(running, 'dw'), 'set'), 'mem');
+    expect(before).toMatchObject({ dualWatch: true, item: 'sql', list: { kind: 'mem', index: 0 } });
+    const state = hold(before, 'power', POWER_OFF_HOLD_MS);
+    expect(state).toMatchObject({ on: false, dualWatch: false, item: 'vol', list: null });
   });
 
   it('ignores every other key while off', () => {
@@ -284,6 +289,26 @@ describe('swap and dual watch', () => {
     expect(tap(enough, 'dw').dualWatch).toBe(true);
   });
 
+  it('ends dual watch when VOL/SEL lowers the squelch below 02, and only then', () => {
+    const watching = tap(running, 'dw');
+    const sql = tap(watching, 'set');
+    const atTwo = turn(sql, 'volSel', 'down', 3);
+    expect(atTwo.settings.sql).toBe(DUAL_WATCH_MIN_SQL);
+    expect(atTwo.dualWatch).toBe(true);
+    const atOne = turn(atTwo, 'volSel', 'down');
+    expect(atOne.settings.sql).toBe(DUAL_WATCH_MIN_SQL - 1);
+    expect(atOne.dualWatch).toBe(false);
+    expect(turn(sql, 'volSel', 'up').dualWatch).toBe(true);
+    expect(turn(watching, 'volSel', 'down', 5).dualWatch).toBe(true);
+  });
+
+  it('keeps dual watch off while the squelch stays below 02 and allows it again at 02', () => {
+    const low = turn(tap(tap(running, 'dw'), 'set'), 'volSel', 'down', 4);
+    expect(low.dualWatch).toBe(false);
+    expect(tap(low, 'dw').dualWatch).toBe(false);
+    expect(tap(turn(low, 'volSel', 'up'), 'dw').dualWatch).toBe(true);
+  });
+
   it('toggles dual watch while line 3 shows another item, keeping that item', () => {
     expect(tap(tap(running, 'set'), 'dw')).toMatchObject({ item: 'sql', dualWatch: true });
   });
@@ -327,7 +352,8 @@ describe('line-3 items and the VOL/SEL knob', () => {
     expect(lineThree(tap(running, 'set'))).toBe('SQL 05');
     const dwm = { ...running, item: 'dwm' as const };
     expect(lineThree(dwm)).toBe('DWM 00');
-    expect(lineThree({ ...dwm, settings: { ...dwm.settings, dwm: -2 } })).toBe('DWM -2');
+    expect(lineThree({ ...dwm, settings: { ...dwm.settings, dwm: -2 } })).toBe('DWM -02');
+    expect(lineThree({ ...dwm, settings: { ...dwm.settings, dwm: -8 } })).toBe('DWM -08');
     expect(lineThree({ ...running, item: 'ext' })).toBe('EXT 00');
   });
 
@@ -361,12 +387,36 @@ describe('line-3 items and the VOL/SEL knob', () => {
 });
 
 describe('the user memory list', () => {
-  it('opens at MEM 00 on a short MEM release and puts the entry in standby at once', () => {
+  it('opens at MEM 00 on a short MEM release and leaves the standby frequency alone', () => {
     const state = tap(withMemory({ 0: 122000 }), 'mem');
     expect(state.list).toEqual({ kind: 'mem', index: 0 });
     expect(lineThree(state)).toBe('MEM 00');
-    expect(state).toMatchObject({ standby: 122000, active: 118000 });
+    expect(state).toMatchObject({ standby: 119000, active: 118000, lastFromMemory: null });
     expect(listEntry(state)).toBe(122000);
+  });
+
+  it('loads MEM 00 into standby only when the knob steps onto it', () => {
+    const open = tap(withMemory({ 0: 122000, 1: 123000 }), 'mem');
+    const around = turn(turn(open, 'volSel', 'up'), 'volSel', 'down');
+    expect(lineThree(around)).toBe('MEM 00');
+    expect(around).toMatchObject({ standby: 122000, lastFromMemory: 122000 });
+  });
+
+  it('leaves the standby frequency as it was when a list closes without a pick', () => {
+    const memory = withMemory({ 0: 122000 });
+    expect(tap(tap(tap(memory, 'mem'), 'mem'), 'mem')).toMatchObject({
+      list: null,
+      standby: 119000,
+    });
+    expect(tap(tap(memory, 'mem'), 'mem').standby).toBe(119000);
+    expect(wait(tap(memory, 'mem'), MENU_TIMEOUT_MS)).toMatchObject({
+      list: null,
+      standby: 119000,
+    });
+    expect(wait(tap(tap(memory, 'mem'), 'mem'), MENU_TIMEOUT_MS)).toMatchObject({
+      list: null,
+      standby: 119000,
+    });
   });
 
   it('acts on the release of MEM, not its press', () => {
@@ -393,19 +443,33 @@ describe('the user memory list', () => {
     expect(turn(open, 'volSel', 'up').standby).toBe(119000);
   });
 
-  it('ends dual watch when browsing changes the standby frequency', () => {
-    expect(tap(tap(withMemory({ 0: 122000 }), 'dw'), 'mem').dualWatch).toBe(false);
-    expect(tap(tap(running, 'dw'), 'mem').dualWatch).toBe(true);
+  it('keeps standby and LST 00 when the knob steps onto an empty entry after a pick', () => {
+    const picked = turn(tap(withMemory({ 1: 123450 }), 'mem'), 'volSel', 'up');
+    const empty = turn(picked, 'volSel', 'up');
+    expect(listEntry(empty)).toBeNull();
+    expect(empty).toMatchObject({ standby: 123450, lastFromMemory: 123450 });
   });
 
-  it('makes the entry active with the swap key and leaves the list', () => {
-    const state = tap(tap(withMemory({ 0: 122800 }), 'mem'), 'swap');
+  it('ends dual watch when a pick changes the standby frequency, not when the list opens', () => {
+    const open = tap(tap(withMemory({ 1: 122000 }), 'dw'), 'mem');
+    expect(open.dualWatch).toBe(true);
+    expect(turn(open, 'volSel', 'up').dualWatch).toBe(false);
+    expect(turn(tap(tap(running, 'dw'), 'mem'), 'volSel', 'up').dualWatch).toBe(true);
+  });
+
+  it('makes the picked entry active with the swap key and leaves the list', () => {
+    const state = tap(turn(tap(withMemory({ 1: 122800 }), 'mem'), 'volSel', 'up'), 'swap');
     expect(state).toMatchObject({ active: 122800, standby: 118000, list: null });
     expect(state.recent).toEqual([122800]);
   });
 
-  it('leaves the list with SET, DW or the cursor key, keeping the entry in standby', () => {
-    const open = tap(withMemory({ 0: 122000 }), 'mem');
+  it('swaps the untouched standby frequency when the list was only opened', () => {
+    const state = tap(tap(withMemory({ 0: 122800 }), 'mem'), 'swap');
+    expect(state).toMatchObject({ active: 119000, standby: 118000, list: null });
+  });
+
+  it('leaves the list with SET, DW or the cursor key, keeping the picked entry in standby', () => {
+    const open = turn(tap(withMemory({ 1: 122000 }), 'mem'), 'volSel', 'up');
     for (const key of ['set', 'dw', 'cursor']) {
       const left = tap(open, key);
       expect(left, key).toMatchObject({ list: null, standby: 122000, item: 'vol' });
@@ -415,7 +479,7 @@ describe('the user memory list', () => {
 
   it('leaves the list with the frequency knob, which then steps the standby frequency', () => {
     const left = turn(tap(withMemory({ 0: 122000 }), 'mem'), 'freq', 'up');
-    expect(left).toMatchObject({ list: null, standby: 123000 });
+    expect(left).toMatchObject({ list: null, standby: 120000 });
   });
 
   it('stores the active frequency into the shown entry on a MEM hold and stays in the list', () => {
@@ -443,12 +507,31 @@ describe('the user memory list', () => {
     expect(release(held).list).toEqual({ kind: 'mem', index: 0 });
   });
 
-  it('keeps dual watch on when the shown entry equals the standby frequency', () => {
-    const watching = tap(withMemory({ 0: 119000 }), 'dw');
+  it('keeps dual watch on when the picked entry equals the standby frequency', () => {
+    const watching = tap(withMemory({ 1: 119000 }), 'dw');
     expect(watching).toMatchObject({ dualWatch: true, standby: 119000 });
-    const open = tap(watching, 'mem');
-    expect(open).toMatchObject({ list: { kind: 'mem', index: 0 }, standby: 119000 });
-    expect(open.dualWatch).toBe(true);
+    const picked = turn(tap(watching, 'mem'), 'volSel', 'up');
+    expect(picked).toMatchObject({ list: { kind: 'mem', index: 1 }, standby: 119000 });
+    expect(picked.dualWatch).toBe(true);
+  });
+
+  it('ends dual watch on a store when the active frequency differs from standby', () => {
+    const watching = tap(withMemory({ 1: 122000 }), 'dw');
+    expect(watching).toMatchObject({ dualWatch: true, active: 118000, standby: 119000 });
+    const shown = turn(tap(watching, 'mem'), 'volSel', 'up');
+    expect(shown).toMatchObject({ standby: 122000, dualWatch: false });
+    const stored = hold({ ...shown, dualWatch: true }, 'mem', LONG_PRESS_MS);
+    expect(stored.memory[1]).toBe(118000);
+    expect(stored).toMatchObject({ standby: 118000, dualWatch: false });
+  });
+
+  it('keeps dual watch on a store when the active frequency equals standby', () => {
+    const equal = { ...running, standby: 118000 };
+    const open = tap(tap(equal, 'dw'), 'mem');
+    expect(open).toMatchObject({ dualWatch: true, active: 118000, standby: 118000 });
+    const stored = hold(open, 'mem', LONG_PRESS_MS);
+    expect(stored.memory[0]).toBe(118000);
+    expect(stored).toMatchObject({ standby: 118000, dualWatch: true });
   });
 
   it('closes the list on a SET hold, keeps standby and does not advance the item on release', () => {
@@ -457,13 +540,12 @@ describe('the user memory list', () => {
     const open = tap(moved, 'mem');
     expect(open).toMatchObject({ list: { kind: 'mem', index: 0 }, item: moved.item });
     const held = hold(open, 'set', LONG_PRESS_MS);
-    expect(held).toMatchObject({ list: null, standby: 122000, item: 'vol' });
+    expect(held).toMatchObject({ list: null, standby: 119000, item: 'vol' });
     const released = release(held);
-    expect(released).toMatchObject({ list: null, standby: 122000, item: 'vol' });
+    expect(released).toMatchObject({ list: null, standby: 119000, item: 'vol' });
   });
 
   it('sets the last-from-memory frequency to the active one on a MEM hold', () => {
-    // Slot 0 stays empty, so reopening the memory list cannot set LST 00 itself.
     const flying = { ...withMemory({ 1: 122000 }), active: 120000 };
     const shown = turn(tap(flying, 'mem'), 'volSel', 'up');
     expect(shown).toMatchObject({ list: { kind: 'mem', index: 1 }, lastFromMemory: 122000 });
@@ -475,8 +557,9 @@ describe('the user memory list', () => {
     expect(retuned.standby).not.toBe(120000);
     const lst = tap(tap(retuned, 'mem'), 'mem');
     expect(lineThree(lst)).toBe('LST 00');
-    expect(lst.standby).toBe(120000);
+    expect(lst.standby).toBe(retuned.standby);
     expect(listEntry(lst)).toBe(120000);
+    expect(turn(lst, 'volSel', 'up').standby).toBe(120000);
   });
 
   it('closes after the time-out and keeps what it put in standby and memory', () => {
@@ -517,8 +600,18 @@ describe('the last-used list', () => {
     expect(tuned.standby).toBe(124450);
     const lst = tap(tap(tuned, 'mem'), 'mem');
     expect(lineThree(lst)).toBe('LST 00');
-    expect(lst.standby).toBe(123450);
+    expect(lst.standby).toBe(124450);
     expect(listEntry(lst)).toBe(123450);
+    expect(turn(lst, 'volSel', 'up').standby).toBe(123450);
+  });
+
+  it('keeps the standby frequency when LST 00 opens and when it closes unpicked', () => {
+    const fromMemory = turn(tap(withMemory({ 1: 123450 }), 'mem'), 'volSel', 'up');
+    const tuned = turn(tap(fromMemory, 'set'), 'freq', 'up');
+    const lst = tap(tap(tuned, 'mem'), 'mem');
+    expect(lst.standby).toBe(tuned.standby);
+    expect(tap(lst, 'mem')).toMatchObject({ list: null, standby: tuned.standby });
+    expect(tap(lst, 'set')).toMatchObject({ list: null, standby: tuned.standby });
   });
 
   it('leaves the LST 00 frequency alone while browsing the last-used list', () => {
