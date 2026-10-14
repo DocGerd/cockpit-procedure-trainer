@@ -1,6 +1,11 @@
 import type { Aircraft } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
-import { chooseLayout, outsideViewFold } from './cockpit-layout';
+import {
+  SHORT_VIEWPORT_HEIGHT,
+  chooseLayout,
+  isShortViewport,
+  outsideViewFold,
+} from './cockpit-layout';
 
 const text = { de: 'x', en: 'x' };
 
@@ -125,6 +130,14 @@ describe('chooseLayout', () => {
       const layout = chooseLayout(aircraft, { width: 400, height: 100 });
       expect(layout.kind === 'combined' && 'dock' in layout).toBe(false);
     });
+  });
+});
+
+describe('isShortViewport', () => {
+  it('is true one CSS px below SHORT_VIEWPORT_HEIGHT and false from it up', () => {
+    expect(isShortViewport(SHORT_VIEWPORT_HEIGHT - 1)).toBe(true);
+    expect(isShortViewport(SHORT_VIEWPORT_HEIGHT)).toBe(false);
+    expect(isShortViewport(SHORT_VIEWPORT_HEIGHT + 1)).toBe(false);
   });
 });
 

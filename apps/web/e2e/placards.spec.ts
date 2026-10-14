@@ -22,7 +22,7 @@ for (const { aircraft, viewport, language } of runs) {
   }) => {
     test.fail(
       placardGaps.has(`${aircraft.id} ${viewport.width}x${viewport.height}`),
-      'The avionics placard does not fit in the tabs at this size',
+      'The avionics placard does not fit in the tabs at this size (#785)',
     );
     await page.setViewportSize(viewport);
     await openAircraft(page, aircraft);

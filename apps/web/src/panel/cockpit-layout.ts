@@ -121,13 +121,16 @@ export const SHORT_VIEWPORT_HEIGHT = 1000;
 /** The outside-view strip folded to `band` high, and the height the cockpit region gains. */
 export type OutsideFold = { readonly kind: 'folded'; readonly band: number; readonly gain: number };
 
+/** Whether a window this high, in CSS px, folds the strip to its minimum outright. */
+export const isShortViewport = (height: number) => height < SHORT_VIEWPORT_HEIGHT;
+
 /**
  * How the outside-view strip gives up room so the cockpit reaches combined: folded by just as much
- * as it needs, down to the strip's minimum, or to the minimum outright on a short window. It is
- * never hidden, so it is undefined when the cockpit is combined with the strip whole (on a window
- * that is not short), or when not even the minimum makes it so. `region` is the
- * cockpit region the whole strip leaves, so the answer never depends on the strip's own current
- * height. Found by asking `chooseLayout`, which keeps the two rules in step.
+ * as it needs, or to the minimum outright on a short window. Never hidden: undefined when the
+ * cockpit is combined with the strip whole (on a window that is not short), or when not even the
+ * minimum makes it so. `region` is the cockpit region the whole strip leaves, so the answer never
+ * depends on the strip's own current height. Found by asking `chooseLayout`, which keeps the two
+ * rules in step.
  */
 export function outsideViewFold(
   aircraft: Pick<Aircraft, 'cockpit' | 'views'>,

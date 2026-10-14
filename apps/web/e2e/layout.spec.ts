@@ -351,13 +351,16 @@ test('the status colour probe sees a status colour on a panel element', async ({
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
 if (!ctsl) throw new Error('The aircraft registry has no CTSL');
 
-// Where the outside-view strip gives up room, by aircraft, in a 1920 wide window. Below 1000 px
-// it is folded to its minimum outright; it is never hidden.
+// Where the outside-view strip gives up room, by aircraft, in a 1920 wide window. Below
+// SHORT_VIEWPORT_HEIGHT it is folded to its minimum outright; it is never hidden.
 const strips = [
   { aircraft: 'ctsl', height: 1080, folded: 'false' },
-  { aircraft: 'ctsl', height: 1000, folded: 'true' },
+  { aircraft: 'ctsl', height: SHORT_VIEWPORT_HEIGHT, folded: 'true' },
+  { aircraft: 'ctsl', height: SHORT_VIEWPORT_HEIGHT - 1, folded: 'true' },
   { aircraft: 'ctsl', height: 950, folded: 'true' },
   { aircraft: 'demo', height: 1080, folded: 'false' },
+  { aircraft: 'demo', height: SHORT_VIEWPORT_HEIGHT, folded: 'false' },
+  { aircraft: 'demo', height: SHORT_VIEWPORT_HEIGHT - 1, folded: 'true' },
   { aircraft: 'demo', height: 950, folded: 'true' },
   { aircraft: 'demo', height: 880, folded: 'true' },
 ];
@@ -386,6 +389,28 @@ for (const { aircraft: id, height, folded } of strips) {
     if (folded === 'true') expect(band).toBeGreaterThanOrEqual(minimum);
     if (height < SHORT_VIEWPORT_HEIGHT)
       expect(band, 'folded to the minimum').toBeCloseTo(minimum, 0);
+    else expect(band, 'not forced to the minimum').toBeGreaterThan(minimum + 1);
+    await expectNoPageScroll(page);
+  });
+}
+
+// #411: crossing the short-window height live flips the strip whole, minimum, whole.
+for (const aircraft of aircraftRegistry) {
+  test(`the ${aircraft.id} outside-view strip settles when the window crosses ${SHORT_VIEWPORT_HEIGHT} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openAircraft(page, aircraft);
+    const minimum = await bandMinimum(page);
+    const height = async () => (await boxOf(outsideView(page))).height;
+    await expect(outsideView(page)).toHaveAttribute('data-folded', 'false');
+    const whole = await height();
+    await page.setViewportSize({ width: 1920, height: SHORT_VIEWPORT_HEIGHT - 1 });
+    await expect(outsideView(page)).toHaveAttribute('data-folded', 'true');
+    await expect.poll(height).toBeCloseTo(minimum, 0);
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await expect(outsideView(page)).toHaveAttribute('data-folded', 'false');
+    await expect.poll(height).toBeCloseTo(whole, 0);
     await expectNoPageScroll(page);
   });
 }
@@ -411,7 +436,6 @@ for (const aircraft of aircraftRegistry) {
       await page.setViewportSize(window);
       const at = `${window.width}x${window.height}`;
       await expect(outsideView(page), at).toBeVisible();
-      await expect(outsideView(page), at).not.toHaveAttribute('data-folded', 'hidden');
       await expect
         .poll(async () => (await boxOf(outsideView(page))).height, { message: at })
         .toBeGreaterThanOrEqual(minimum);
@@ -419,6 +443,8 @@ for (const aircraft of aircraftRegistry) {
       const panel = await boxOf(page.locator('.shell-panel'));
       expect(strip.y + strip.height, `${at} strip above the panel`).toBeLessThanOrEqual(panel.y);
       expect(strip.y, `${at} strip in the window`).toBeGreaterThanOrEqual(0);
+      await expect(page.locator('.shell-panel'), at).toBeInViewport({ ratio: 1 });
+      expect(panel.height, `${at} panel height`).toBeGreaterThan(strip.height);
       await expectNoPageScroll(page);
     }
   });

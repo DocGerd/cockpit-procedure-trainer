@@ -1,7 +1,7 @@
 import type { Aircraft } from '@cpt/core';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
-import { SHORT_VIEWPORT_HEIGHT, chooseLayout, outsideViewFold } from './cockpit-layout';
+import { chooseLayout, isShortViewport, outsideViewFold } from './cockpit-layout';
 import { footerHeight } from './fit';
 import type {
   CockpitLayoutChoice,
@@ -58,7 +58,7 @@ export function useCockpitRegion(
           natural,
           min: pixels(style.getPropertyValue('--outside-view-band-min')),
           pull: pixels(style.getPropertyValue('--outside-view-pull')),
-          short: window.innerHeight < SHORT_VIEWPORT_HEIGHT,
+          short: isShortViewport(window.innerHeight),
         },
       };
       setRegion((previous) =>

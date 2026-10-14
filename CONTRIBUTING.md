@@ -87,12 +87,13 @@ UI changes also need a pass in a real browser at tablet and desktop width.
 `apps/web/e2e/layout.spec.ts` runs one test per registered aircraft and priority
 viewport (`priorityViewports` in `apps/web/e2e/layout-probe.ts`), on one page each:
 
-| Viewport           | What the row proves                                                                          |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| 1920x1080          | The design target: combined layout, outside-view strip whole.                                |
-| 1920x950           | A real 1080p browser window: the strip folds or hides before the cockpit falls back to tabs. |
-| 3840x2160          | The cockpit scales up and stays one viewport.                                                |
-| 1024x768, 768x1024 | Tablets: tabs.                                                                               |
+| Viewport           | What the row proves                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| 1920x1080          | The design target: combined layout, outside-view strip whole.                       |
+| 1920x950           | A real 1080p browser window: the strip folds before the cockpit falls back to tabs. |
+| 1536x760           | A scaled 4K laptop window: tabs, the strip whole and visible; it never hides.       |
+| 3840x2160          | The cockpit scales up and stays one viewport.                                       |
+| 1024x768, 768x1024 | Tablets: tabs.                                                                      |
 
 Indicator and control faces print numerals, units and function labels at the lettering minimum from 1920x1080 up; captions marked `data-lettering="secondary"` print as small as on the real instrument (ADR 0002, realism), and are held only to half the lettering minimum (`SECONDARY_MIN_PX`); at the tablet viewports the CTSL's breaker and dial captions fall below that, listed in `secondaryCaptionGaps` in `layout.spec.ts`, and pinch-zoom is the route to read them. In a slot mirror, face legends, LED captions, on-screen captions and the readouts the real unit prints at about half its main size are secondary in the same way (`slot-fit.test.tsx`), while main values and the slot label keep the full minimum, and the dock prints everything at the full minimum.
 
