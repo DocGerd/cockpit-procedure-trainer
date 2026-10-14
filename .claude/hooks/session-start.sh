@@ -7,10 +7,11 @@
 # (>=24), downloads the latest Node 24 from nodejs.org, checks it against the
 # release's SHASUMS256.txt, installs it under ~/.cache/cpt-node and puts it
 # first on the session's PATH through CLAUDE_ENV_FILE. Then installs the
-# workspace dependencies from the lockfile.
+# workspace dependencies from the lockfile, and the Chromium build that the
+# lockfile's Playwright needs.
 #
-# Idempotent: a present Node 24 and an up-to-date node_modules make a rerun a
-# quick no-op.
+# Idempotent: a present Node 24, an up-to-date node_modules and a present
+# Chromium build make a rerun a quick no-op.
 set -euo pipefail
 
 [ "${CLAUDE_CODE_REMOTE:-}" = true ] || exit 0
@@ -60,3 +61,10 @@ fi
 
 # SessionStart stdout becomes session context: keep pnpm's output out of it.
 pnpm install --frozen-lockfile >&2
+
+# The image's preinstalled Chromium can be older than the build the lockfile's
+# Playwright needs, and the image sets PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD.
+# A blocked download only warns: lint, typecheck and unit tests still run.
+if ! PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD= pnpm --filter @cpt/web exec playwright install chromium >&2; then
+  echo "session-start: Chromium download failed; e2e needs cdn.playwright.dev and playwright.download.prss.microsoft.com in the environment's allowed domains" >&2
+fi
