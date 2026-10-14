@@ -52,6 +52,10 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
   A failed pass blocks landing until a re-run on the final head passes.
+  A rendering fix that lands after the milestone's final gates gets a
+  ui-verifier pass on the release head before the release PR goes to the owner.
+- A PR that lands without its review-toolkit pass owes one before the release
+  PR; file its findings as issues.
 - App settings (language, Hide upcoming) persist in browser storage: browser
   checks set them explicitly. At tablet width the drawer covers the panel, so
   walk the panel at 1920 and then resize.
@@ -76,6 +80,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Agents wait on CI in the foreground (a bounded `gh pr checks` loop); a
   background monitor or an idle agent may never wake, so when a wait runs long
   the orchestrator reads `commits/<sha>/check-runs` itself.
+  A `skipping` CodeQL row is the neutral rollup of a failed Analyze, not a pass.
 - Rebase only before a branch's first push (force-push is blocked); after
   that the merge train updates the branch from `develop`.
 - A decision the spec does not settle: make it, state it and its reason in the
