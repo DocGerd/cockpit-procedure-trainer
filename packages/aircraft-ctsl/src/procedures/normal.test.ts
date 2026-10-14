@@ -40,7 +40,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Parking brake: holds, brake lever released',
     'Oil pressure: 2 to 5 bar',
     'Oil temperature: below the red line',
-    'Cylinder head temperature: in the green',
+    'Cylinder head temperature: below the red line',
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
     'GPS: position fix (3D GPS Location)',
@@ -520,6 +520,37 @@ describe('CTSL normal procedures', () => {
     it.each(cases)('%s item %i "%s" fails without it', (id, index) => {
       const establishing = actionsBefore(id, index).filter((k) => failsWithout(id, k, index));
       expect(establishing.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('CHT checks follow the dial (#776)', () => {
+    const verdict = (id: string, text: string, chtC: number) => {
+      const found = checksOf(id).find(({ item }) => said(item) === text);
+      expect(found, text).toBeDefined();
+      if (!found || found.item.type !== 'check') return undefined;
+      const state = createSession(ctslAircraft, { devices, phase: 'cruise' }).state();
+      return found.item.condition({ ...state, systems: { ...(state.systems as object), chtC } });
+    };
+    const green = 'Cylinder head temperature: in the green';
+    const belowRedLine = 'Cylinder head temperature: below the red line';
+
+    it.each([
+      [80, false],
+      [89, false],
+      [90, true],
+      [110, true],
+      [115, false],
+    ])('climbCruise: "in the green" at %i C is %s', (chtC, met) => {
+      expect(verdict('climbCruise', green, chtC)).toBe(met);
+    });
+
+    it.each([
+      [70, true],
+      [86, true],
+      [119, true],
+      [120, false],
+    ])('beforeTakeoff: "below the red line" at %i C is %s', (chtC, met) => {
+      expect(verdict('beforeTakeoff', belowRedLine, chtC)).toBe(met);
     });
   });
 

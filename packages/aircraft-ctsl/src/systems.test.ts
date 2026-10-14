@@ -819,15 +819,18 @@ describe('failures', () => {
 describe('entry snapshots', () => {
   const running = (Object.keys(phases) as PhaseId[]).filter((id) => id !== 'parking');
 
-  it.each(running)('enters %s warm, with oil pressure and CHT in the green', (id) => {
-    const state = phases[id].entry.state;
-    expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
-    expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
-    expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
-    expect(state.oilPressureBar).toBeLessThanOrEqual(5);
-    expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
-    expect(state.rpm).toBeGreaterThanOrEqual(1400);
-  });
+  it.each(running)(
+    'enters %s warm, with oil pressure in the green and CHT below the red line',
+    (id) => {
+      const state = phases[id].entry.state;
+      expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
+      expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
+      expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
+      expect(state.oilPressureBar).toBeLessThanOrEqual(5);
+      expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
+      expect(state.rpm).toBeGreaterThanOrEqual(1400);
+    },
+  );
 
   it.each(running)('enters %s settled: the gauges hold still', (id) => {
     const session = sessionAt(id);
