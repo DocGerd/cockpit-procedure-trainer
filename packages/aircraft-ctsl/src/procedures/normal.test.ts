@@ -1,6 +1,7 @@
 import { createSession, deviceControls, walkProcedure } from '@cpt/core';
 import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import { cht } from '../artwork/gauges/cht';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
@@ -534,22 +535,34 @@ describe('CTSL normal procedures', () => {
     const green = 'Cylinder head temperature: in the green';
     const belowRedLine = 'Cylinder head temperature: below the red line';
 
+    const arcs = (cht.options?.arcs ?? []) as readonly {
+      from: number;
+      to: number;
+      colour: string;
+    }[];
+    const arc = (colour: string) => {
+      const found = arcs.find((a) => a.colour === colour);
+      if (!found) throw new Error(`no ${colour} arc on the CHT dial`);
+      return found;
+    };
+    const greenArc = arc('green');
+    const redLine = (arc('red').from + arc('red').to) / 2;
+
     it.each([
-      [80, false],
-      [89, false],
-      [90, true],
-      [110, true],
-      [115, false],
-    ])('climbCruise: "in the green" at %i C is %s', (chtC, met) => {
+      [greenArc.from - 10, false],
+      [greenArc.from - 1, false],
+      [greenArc.from, true],
+      [greenArc.to, true],
+      [greenArc.to + 5, false],
+    ])('climbCruise: "in the green" at %f C is %s', (chtC, met) => {
       expect(verdict('climbCruise', green, chtC)).toBe(met);
     });
 
     it.each([
-      [70, true],
-      [86, true],
-      [119, true],
-      [120, false],
-    ])('beforeTakeoff: "below the red line" at %i C is %s', (chtC, met) => {
+      [greenArc.from - 20, true],
+      [redLine - 1, true],
+      [redLine, false],
+    ])('beforeTakeoff: "below the red line" at %f C is %s', (chtC, met) => {
       expect(verdict('beforeTakeoff', belowRedLine, chtC)).toBe(met);
     });
   });

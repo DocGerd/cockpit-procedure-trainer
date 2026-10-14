@@ -1,4 +1,5 @@
 import type { PositionOf } from '@cpt/core';
+import { CHT_GREEN_C, CHT_RED_LINE_C } from '../cht-limits';
 import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
 import { QNH_HPA } from '../systems';
@@ -18,8 +19,6 @@ const OIL_PRESSURE_GREEN_BAR = [2, 5] as const;
 const OIL_TEMP_GREEN_C = [90, 110] as const;
 const OIL_TEMP_RED_LINE_C = 130;
 const MIN_TAKEOFF_OIL_TEMP_C = 51;
-const CHT_GREEN_C = [90, 110] as const;
-const CHT_RED_LINE_C = 120;
 
 // Every scenario flies at the home aerodrome's QNH (intake §9 question 47).
 const QNH_SETTING = String(QNH_HPA);
