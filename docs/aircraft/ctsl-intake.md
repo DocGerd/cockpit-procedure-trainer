@@ -207,8 +207,7 @@ whether the cap is a blank, so the trainer keeps that breaker. The legends of th
 breakers print in full words on the control faces, small as on the aircraft: captions
 marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
 rank), because a legend like "Transponder" at the minimum does not fit the strip's
-pitch. The inert caps' legends are backdrop dressing, not control labels; the Cockpit Light
-one, in two lines, was added in M20 (#768, §3.9.7). The slip indicator, FLARM display
+pitch. The inert caps carry backdrop legends, not control labels (§3.9.4, §3.9.7). The slip indicator, FLARM display
 and hour meter carry no wording. The type-name script lettering is not reproduced.
 
 **Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
@@ -885,8 +884,8 @@ input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
 runs from 00 (none) down to −8, the minus sign printed. **Trainer rule (#766,
 decision):** every numeric value prints as two digits (`INT --` and `EXT 00` as
 above). Only `DWM` can be negative (−8 to 0); it prints its minus sign before the two
-digits, so `DWM -02` and `DWM 00`. The unit's own negative format is unverified
-(§9 question 65).
+digits, so `DWM -02` and `DWM 00` (a trainer decision). The unit's own negative
+format is unverified (§9 question 65).
 
 **Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
 settings: channel spacing, automatic display darkening, push-to-talk assignment,
@@ -2285,8 +2284,8 @@ unbroken to the red line at 300.
 - **Windows and knobs.** None.
 - **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
   #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
-  is at box (1.00, 0.36), at about 77° about the dial's pivot (§3.10.0), the 100 km/h
-  tick; the base is upright at box x about 1.13, from y 0.28 to
+  is at box (1.00, 0.36): θ about 75° to 76° and r about 1.04 R about the dial's
+  pivot (§3.10.0), on the 100 km/h tick (76°); the base is upright at box x about 1.13, from y 0.28 to
   0.42. The triangle is about 0.13 A wide and 0.14 A tall. It
   carries no print, so its meaning is not legible (§9 question 51).
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
@@ -2388,10 +2387,8 @@ question #719 raised). Stacking: the hairline appears to pass under the broad bl
   elevation + height above the field + (knob setting − QNH) × 27 ft per hPa, all
   three pointers following that one value; a setting range of 950 to 1050 hPa in 1
   hPa steps, turning the knob clockwise raising the setting and the reading. All of
-  these are **assumed (unverified)**, except the two #719 decisions: the knob starts
-  at 1025 hPa for parking, taxi out and the holding point, and at QNH from line-up
-  on (§9 question 47); and a small "hPa" placard beside the knob is its printed label
-  (§9 question 49).
+  these are **assumed (unverified)**. The knob's start is per §9 question 47 and the
+  "hPa" label per question 49.
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.78, 0.36) of the upper-left plate's bounding box
   (§3.9.2's field position (0.781, 0.386) governs), 1.30 A right of the ASI's centre
@@ -2791,7 +2788,7 @@ stopped, so a battery voltage. Illustrative only.
 
 _Stop and rest position_: not visible in photos; §9 question 57.
 
-**§4.3.** Its voltmeter row gives 9–17 V with no markings.
+**§4.3.** Its voltmeter row gives 9–17 V, integer ticks, no coloured arcs (§9 question 58).
 
 #### 3.10.9 Oil pressure
 
@@ -4017,7 +4014,8 @@ verifies it on D-MPGO.
     memory list last set; whether memories and the last-used list survive switch-off;
     what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
     whether a cursor field carries into the next when it wraps; where the cursor starts
-    after power-on or a swap; which fields the cursor has in 25 kHz spacing.
+    after power-on or a swap; which fields the cursor has in 25 kHz spacing; the
+    unit's own format for a negative DWM value.
     Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
     the last-used list and closes it, any other key leaves the list without its own
     effect, and the frequency knob leaves it and then steps the standby frequency;
@@ -4027,7 +4025,9 @@ verifies it on D-MPGO.
     acts as a short press; any `I/O` press switches on; the cursor fields wrap without
     carry; the cursor starts on the MHz field at power-on and stays where it was on a
     swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
-    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
+    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's); a
+    negative DWM value prints a minus sign plus two digits (`DWM -02`), a trainer
+    decision.
     **Assumed (unverified)** (§3.8.1).
     **Standby rule (#765, decision):** opening the memory list (`MEM 00`) or the
     last-used list (`LST 00`) does not touch the standby frequency; line 2 keeps
