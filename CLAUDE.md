@@ -62,8 +62,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   it; workflows and the merge train do not check scores. Brief scorers blind:
   no prior scores or "be strict" notes (they anchor).
 - A PR that lands without its `pr-review-toolkit:review-pr` pass owes one on
-  its diff before the release PR; file the findings as issues in that
-  milestone.
+  its diff before the release PR; file the findings as issues.
 - Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
   review-toolkit passes that a reviewer agent asks for.
 - The main checkout is pulled only at close-out, so it lags `develop`: give
