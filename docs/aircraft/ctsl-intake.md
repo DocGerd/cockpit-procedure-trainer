@@ -1826,6 +1826,19 @@ alone under the **second** column:
 - Trainer today: a 100 × 96 grid at x 1650 – 2350, y 372 – 660 (the full plate width,
   rows 96 apart); real rows are 0.22 A apart, so under T the row pitch is 42 units and
   the column pitch 69 (§3.9.7, touch targets).
+- **Final trade-off (#772, M20): the Beacon Light touch box stays over the right edge of
+  the inert Instrument Light cap.** The four operable bottom-row breakers (Beacon Light
+  to GPS) sit on one line, so their 84-unit boxes must all contain that line and cannot
+  overlap one another: the boxes tile along x, 252 units over the three steps, while the
+  knobs are 69 apart, 207 over the three steps. The run therefore leans right, and it can
+  move no further right than the GPS knob (radius 18) allows: it already sits 3 units
+  inside its box's left edge. The Beacon Light box would have to start at the cap's right
+  edge (17.5 units right of the cap's centre), 14.5 units further right than today; the
+  best layout is 3 units, which still leaves the box over about a third of the cap's
+  width, against 41 percent today. Staggering in y cannot help, as every box contains the
+  knob line. It would take a smaller target
+  (stop-and-ask, ADR 0002) or a larger knob pitch than D-MPGO's. Recorded as final; it
+  is revisited only if the touch-target rule or the panel floor changes.
 
 **Generator lamp** (right plate): field x 0.494, y 0.124, a red lens 0.27 A; legend
 "Generator" above it at y 0.08. It sits at the plate's horizontal middle, right of the
@@ -2046,7 +2059,7 @@ above are what makes the panel recognisable; the fractions do not change with th
   centre plate's middle, as on the aircraft.
 - **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
   display, §9 question 42); the "Push off" label (owner, §3.9.5); the Cockpit Light
-  breaker legend (the 12V Outlet breaker sits right under that breaker, §3.9.4); the
+  breaker legend (drawn in M20, #768, below); the
   plates' corner screws; gauge screws,
   which belong to the gauge faces (#719 to #721).
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
@@ -2082,6 +2095,24 @@ above are what makes the panel recognisable; the fractions do not change with th
   inside its box.
 - **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
   meets the lettering minimum on a tablet in portrait.
+
+**Trainer (M20, #768, #772, #773): breaker block follow-ups.** They supersede the
+Cockpit Light and header statements above and in the #716 block's "Left out" list:
+
+- **Cockpit Light legend (#768).** The inert cap under column 2 now carries its printed
+  legend in two lines ("Cockpit" over "Light") under it, in the style and at the
+  baselines of the Instrument Light legend. It is backdrop dressing, not a control label:
+  the cap is inert, and the trainer's cockpit light is the rocker (§3.9.6). The 12V
+  Outlet breaker's face sits under the legend with clear plate between them.
+- **Beacon Light box (#772).** Unchanged, recorded as final in §3.9.4: four 84-unit boxes
+  on knobs 69 apart cannot clear the inert Instrument Light cap.
+- **Header (#773).** "Circuit Breakers" now prints 156 units wide (0.81 A, D-MPGO's), on
+  one line at the size the tablet-portrait lettering minimum needs. The width is reached
+  by condensing the letters to about 0.58 of their natural width (they were about 0.85);
+  at an unsqueezed size the line would print about 7 px on a tablet in portrait, and two
+  lines do not fit between the bottom-row legends and the plate's lower edge. The
+  letters stay taller than D-MPGO's (§3.9.5 gives its whole header block, "Push off"
+  included, 0.17 A), so the header reads narrower and denser than on the aircraft.
 
 ### 3.10 Gauge faces (photos, M19)
 

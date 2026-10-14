@@ -789,6 +789,24 @@ describe('CTSL view backdrops', () => {
     expect(header.join(' ')).toBe('Circuit Breakers');
   });
 
+  it('prints the Cockpit Light legend under its inert cap in two lines (#768)', () => {
+    const legend = [
+      ...backdrop('panel').matchAll(/<text x="1467" y="(\d+)"[^>]*data-decor[^>]*>([^<]*)</g),
+    ]
+      .filter(([, textY]) => Number(textY) > 573)
+      .map(([, , word]) => word);
+    expect(legend).toEqual(['Cockpit', 'Light']);
+  });
+
+  it("sets the header at D-MPGO's width (#773)", () => {
+    const length = /<text\b[^>]*textLength="([\d.]+)"[^>]*>Circuit Breakers</.exec(
+      backdrop('panel'),
+    )?.[1];
+    const ratio = Number(length) / views.panel.indicators.airspeed.rect.w;
+    expect(ratio).toBeGreaterThanOrEqual(0.78);
+    expect(ratio).toBeLessThanOrEqual(0.84);
+  });
+
   // Corrected from the photos (intake §3.2a): each unit draws its whole face, the cradle included.
   it.each(Object.entries(deviceSlots))(
     'draws no recess, frame, screw or shadow in or around the %s slot',
@@ -886,6 +904,8 @@ describe('CTSL view backdrops', () => {
         'HS34@1674,507/12',
         'EFIS@1743,507/12',
         'EMS@1812,507/12',
+        'Cockpit@1467,603/12',
+        'Light@1467,615/12',
         'Instrument@1536,603/12',
         'Light@1536,615/12',
         'Circuit Breakers@1640,652/35',
