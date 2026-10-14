@@ -47,6 +47,7 @@ From the PR descriptions (reasons in the PRs):
 7. **Follow-up issues.** None blocks the release. The list is compiled from this milestone's issues and PRs, so an item you remember may be missing:
 
    - **Layouts:** #785 (demo avionics placard overflow at 1536x760), #789 (CT Supralight secondary captions below the floor at 1536x760 tabs).
+   - **Filed at the end of M20:** #794 (the e2e `view-checklist` tablet-drawer spec fails in local full runs), #795 (M20 review follow-ups: the scope of the placard `test.fail`, the `layout.spec` fallback chain, the folded strip touching the panel).
    - **Carried over from M19:** #774 (the artwork contract is undocumented, stops are not validated), #775 (stale CTSL README and one-viewport spec lines), #782 (brushed-aluminium plates and the T-shaped lower console).
 
 ## How to verify
