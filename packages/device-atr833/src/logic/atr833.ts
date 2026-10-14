@@ -254,7 +254,7 @@ function releaseMem(state: Atr833State): Atr833State {
 
 function storeActive(state: Atr833State, { index }: OpenList): Atr833State {
   const memory = state.memory.map((slot, slotIndex) => (slotIndex === index ? state.active : slot));
-  return { ...changeStandby({ ...state, memory }, state.active), lastFromMemory: state.active };
+  return { ...state, memory };
 }
 
 function pressDualWatch(state: Atr833State): Atr833State {
@@ -341,8 +341,8 @@ export const atr833Device = defineDevice({
     dw: key(
       text('Doppelhören', 'Dual watch'),
       text(
-        'Schaltet das Doppelhören um; in einer Liste: Liste verlassen.',
-        'Toggles dual watch; in a list, leaves the list.',
+        'Schaltet das Doppelhören um, wirkungslos bei Squelch unter 02 (fällt der Squelch darunter, endet es); in einer Liste: Liste verlassen.',
+        'Toggles dual watch, ignored while squelch is below 02 (it ends if squelch drops below 02); in a list, leaves the list.',
       ),
     ),
     swap: key(
@@ -362,8 +362,8 @@ export const atr833Device = defineDevice({
     volSel: knob(
       text('Lautstärke/Auswahl', 'Volume/select'),
       text(
-        'Ändert den Wert der dritten Zeile; in einer Liste: wählt den Eintrag, der sofort Bereitschaftsfrequenz wird.',
-        'Changes the value on line 3; in a list, picks the entry, which at once becomes the standby frequency.',
+        'Ändert den Wert der dritten Zeile; in einer Liste: wählt den Eintrag, der sofort Bereitschaftsfrequenz wird, wenn er nicht leer ist.',
+        'Changes the value on line 3; in a list, picks the entry, which at once becomes the standby frequency unless it is empty.',
       ),
     ),
     freq: knob(

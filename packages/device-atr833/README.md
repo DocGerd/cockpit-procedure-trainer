@@ -36,7 +36,7 @@ Assumptions, none checked against a unit (intake section 9, questions 64 and 65)
 
 - `power`: momentary `I/O`. Any press switches the unit on while it is off and powered. Held for `POWER_OFF_HOLD_MS` while on it switches off; the press that switched it on does not count.
 - `set`: momentary `SET`. On release steps line 3 through VOL, SQL, DIM, VOX, DWM, INT and EXT; in a list it leaves the list. Held for `LONG_PRESS_MS` it returns line 3 to VOL, and the release that ends the hold does nothing more.
-- `mem`: momentary `MEM`. On release opens the memory list (`MEM 00` to `MEM 99`), then the last-used list (`LST 00` to `LST 10`), then closes it. Held for `LONG_PRESS_MS` in the memory list it writes the active frequency into the shown entry, and the release that ends the hold does nothing more.
+- `mem`: momentary `MEM`. On release opens the memory list (`MEM 00` to `MEM 99`), then the last-used list (`LST 00` to `LST 10`), then closes it. Held for `LONG_PRESS_MS` in the memory list it writes the active frequency into the shown entry only, leaving the standby frequency and `LST 00` as they are, and the release that ends the hold does nothing more.
 - `dw`: momentary `DW`. Toggles dual watch, which needs a squelch of `DUAL_WATCH_MIN_SQL` or more and is ignored below it; in a list it leaves the list.
 - `swap`: momentary `▲▼` (accessible name SWAP). Exchanges active and standby; in a list it also leaves the list.
 - `cursor`: momentary `►` (accessible name CURSOR). Moves the underline to the next field of the standby frequency; in a list it leaves the list.

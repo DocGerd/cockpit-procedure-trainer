@@ -119,8 +119,9 @@ describe('power', () => {
     tuned = tap(tuned, 'dw');
     expect(tuned).toMatchObject({ dualWatch: true, item: 'sql', list: null });
     expect(tuned.memory[0]).toBe(120000);
-    tuned = wait(tap(tuned, 'mem'), 5000);
-    expect(tuned).toMatchObject({ dualWatch: true, list: { kind: 'mem', index: 0 }, idleMs: 5000 });
+    const idleMs = MENU_TIMEOUT_MS - 1000;
+    tuned = wait(tap(tuned, 'mem'), idleMs);
+    expect(tuned).toMatchObject({ dualWatch: true, list: { kind: 'mem', index: 0 }, idleMs });
 
     const pulled = pull(tuned);
     expect(pulled).toMatchObject({ on: false, powered: false, dualWatch: false, list: null });
@@ -487,7 +488,7 @@ describe('the user memory list', () => {
     expect(open.standby).toBe(121270);
     const held = hold(open, 'mem', LONG_PRESS_MS);
     expect(held.memory[17]).toBe(118000);
-    expect(held).toMatchObject({ standby: 118000, list: { kind: 'mem', index: 17 } });
+    expect(held).toMatchObject({ active: 118000, list: { kind: 'mem', index: 17 } });
     expect(release(held).list).toEqual({ kind: 'mem', index: 17 });
     expect(release(hold(open, 'mem', LONG_PRESS_MS + 2000)).list).toEqual({
       kind: 'mem',
@@ -515,23 +516,20 @@ describe('the user memory list', () => {
     expect(picked.dualWatch).toBe(true);
   });
 
-  it('ends dual watch on a store when the active frequency differs from standby', () => {
-    const watching = tap(withMemory({ 1: 122000 }), 'dw');
-    expect(watching).toMatchObject({ dualWatch: true, active: 118000, standby: 119000 });
-    const shown = turn(tap(watching, 'mem'), 'volSel', 'up');
+  it('leaves the standby frequency and dual watch alone on a store', () => {
+    const open = tap(tap(running, 'dw'), 'mem');
+    expect(open).toMatchObject({ dualWatch: true, active: 118000, standby: 119000 });
+    const stored = hold(open, 'mem', LONG_PRESS_MS);
+    expect(stored.memory[0]).toBe(118000);
+    expect(stored).toMatchObject({ standby: 119000, dualWatch: true });
+  });
+
+  it('leaves dual watch on a store of the shown entry onto a pick that changed standby', () => {
+    const shown = turn(tap(tap(withMemory({ 1: 122000 }), 'dw'), 'mem'), 'volSel', 'up');
     expect(shown).toMatchObject({ standby: 122000, dualWatch: false });
     const stored = hold({ ...shown, dualWatch: true }, 'mem', LONG_PRESS_MS);
     expect(stored.memory[1]).toBe(118000);
-    expect(stored).toMatchObject({ standby: 118000, dualWatch: false });
-  });
-
-  it('keeps dual watch on a store when the active frequency equals standby', () => {
-    const equal = { ...running, standby: 118000 };
-    const open = tap(tap(equal, 'dw'), 'mem');
-    expect(open).toMatchObject({ dualWatch: true, active: 118000, standby: 118000 });
-    const stored = hold(open, 'mem', LONG_PRESS_MS);
-    expect(stored.memory[0]).toBe(118000);
-    expect(stored).toMatchObject({ standby: 118000, dualWatch: true });
+    expect(stored).toMatchObject({ standby: 122000, dualWatch: true });
   });
 
   it('closes the list on a SET hold, keeps standby and does not advance the item on release', () => {
@@ -545,27 +543,22 @@ describe('the user memory list', () => {
     expect(released).toMatchObject({ list: null, standby: 119000, item: 'vol' });
   });
 
-  it('sets the last-from-memory frequency to the active one on a MEM hold', () => {
+  it('leaves LST 00 alone on a MEM hold: only a memory-list pick sets it', () => {
     const flying = { ...withMemory({ 1: 122000 }), active: 120000 };
     const shown = turn(tap(flying, 'mem'), 'volSel', 'up');
     expect(shown).toMatchObject({ list: { kind: 'mem', index: 1 }, lastFromMemory: 122000 });
     const held = hold(shown, 'mem', LONG_PRESS_MS);
-    expect(held.lastFromMemory).toBe(120000);
     expect(held.memory[1]).toBe(120000);
-    const retuned = turn(release(held), 'freq', 'up');
-    expect(retuned.list).toBeNull();
-    expect(retuned.standby).not.toBe(120000);
-    const lst = tap(tap(retuned, 'mem'), 'mem');
+    expect(held).toMatchObject({ lastFromMemory: 122000, standby: 122000 });
+    const lst = tap(release(held), 'mem');
     expect(lineThree(lst)).toBe('LST 00');
-    expect(lst.standby).toBe(retuned.standby);
-    expect(listEntry(lst)).toBe(120000);
-    expect(turn(lst, 'volSel', 'up').standby).toBe(120000);
+    expect(listEntry(lst)).toBe(122000);
   });
 
-  it('closes after the time-out and keeps what it put in standby and memory', () => {
+  it('closes after the time-out and keeps the stored entry, with standby as it was', () => {
     const stored = release(hold(tap(running, 'mem'), 'mem', LONG_PRESS_MS));
     const closed = wait(stored, MENU_TIMEOUT_MS);
-    expect(closed).toMatchObject({ list: null, standby: 118000 });
+    expect(closed).toMatchObject({ list: null, standby: 119000 });
     expect(closed.memory[0]).toBe(118000);
   });
 });
