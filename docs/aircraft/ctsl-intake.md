@@ -4038,6 +4038,13 @@ verifies it on D-MPGO.
     frequency unchanged. Reason: a pilot who only looks at a list must not lose a
     hand-tuned standby frequency. The intake's earlier reading of the manual
     (§2.5.3 to §2.5.5) places the replacement at the pick, not at the opening.
+    **Consequence (open owner question):** while a list is open, the entry's frequency is
+    not shown (line 3 prints only `MEM nn` or `LST nn`, entries are unnamed) until a
+    VOL/SEL pick loads it into standby. `MEM 00` and `LST 00` load only by stepping away
+    and back. Stepping onto an empty entry leaves line 2 showing the last loaded
+    frequency next to the new entry number, with no mark that the entry is empty.
+    Alternative: an opened list loads entry 00 when it is non-empty, which brings back
+    the overwritten-standby problem for `MEM 00`.
     The 2 s `I/O` hold, VOL 1 to 16, MEM 00 to 99, the list-leaving keys and time-out,
     memory retention and the power-on defaults above are likewise assumed, not
     verified. The line-3 digit rule and the dual-watch squelch rule are decisions

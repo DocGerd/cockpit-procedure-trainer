@@ -39,7 +39,7 @@ const indicatorFaceGaps: Readonly<
   ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
-// The same for secondary captions (#661), against the lower `SECONDARY_MIN_PX`: the breaker and
+// The same for secondary captions (#661; the 1536x760 gap is #789), against the lower `SECONDARY_MIN_PX`: the breaker and
 // dial captions fit no larger at tablet width, nor in the tabs at a scaled 4K laptop window, without
 // redrawing the faces.
 const secondaryCaptionGaps: typeof indicatorFaceGaps = {
@@ -300,7 +300,7 @@ for (const aircraft of aircraftRegistry) {
     }) => {
       test.fail(
         secondaryCaptionGaps[aircraft.id]?.includes(viewport.name) ?? false,
-        'Breaker and dial captions render below half the minimum in tabs at tablet and laptop sizes (#661)',
+        'Breaker and dial captions render below half the minimum in tabs: #661 at tablet width, #789 at the laptop window',
       );
       await page.setViewportSize(viewport);
       await openAircraft(page, aircraft);
@@ -384,6 +384,12 @@ for (const { aircraft: id, height, folded } of strips) {
       await renderedState(page),
     );
     await expect(outsideView(page)).toBeVisible();
+    // The folded band crops the picture where the horizon is; the whole strip stays centred.
+    const position = await outsideView(page)
+      .locator('.outside-view-image')
+      .evaluate((image) => getComputedStyle(image).objectPosition);
+    if (folded === 'true') expect(position, 'folded crop anchor').not.toBe('50% 50%');
+    else expect(position, 'whole strip crop').toBe('50% 50%');
     const band = (await boxOf(outsideView(page))).height;
     const minimum = await bandMinimum(page);
     if (folded === 'true') expect(band).toBeGreaterThanOrEqual(minimum);

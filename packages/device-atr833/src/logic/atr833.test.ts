@@ -586,7 +586,7 @@ describe('the last-used list', () => {
     expect(tap(second, 'swap')).toMatchObject({ active: 120000, standby: 121000, list: null });
   });
 
-  it('holds the last standby frequency the memory list set in LST 00', () => {
+  it('holds the frequency the last memory-list pick loaded in LST 00', () => {
     const fromMemory = turn(tap(withMemory({ 1: 123450 }), 'mem'), 'volSel', 'up');
     expect(fromMemory.lastFromMemory).toBe(123450);
     const tuned = turn(tap(fromMemory, 'set'), 'freq', 'up');
