@@ -2284,9 +2284,9 @@ unbroken to the red line at 300.
 - **Windows and knobs.** None.
 - **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
   #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
-  is at box (1.00, 0.36): θ about 75° to 76° and r about 1.04 R about the dial's
-  pivot (§3.10.0), on the 100 km/h tick (76°); the base is upright at box x about 1.13, from y 0.28 to
-  0.42. The triangle is about 0.13 A wide and 0.14 A tall. It
+  is at box (1.00, 0.36): θ about 74° to 76° and r about 1.04 R about the dial's
+  pivot (§3.10.0), on the 100 km/h tick (76°); the base is upright at box x about
+  1.13, from y 0.28 to 0.42. The triangle is about 0.13 A wide and 0.14 A tall. It
   carries no print, so its meaning is not legible (§9 question 51).
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.38, 0.36) of the bounding box of the upper-left field's
@@ -2381,7 +2381,7 @@ question #719 raised). Stacking: the hairline appears to pass under the broad bl
 - **Reading in the photos.** On the parked aircraft the altimeter reads about 330 ft
   with 1025 in the window (the long pointer just past the 3's tick, at about 120°;
   the broad pointer just right of 0, the hairline at 0). The day's QNH is unknown
-  (§9 question 46).
+  (§9 questions 46 and 47).
 - **Trainer uses** (§9 questions 46 to 49): a field elevation of 315 ft at the home
   aerodrome; QNH 1013 hPa unless a scenario sets its own; indicated altitude = field
   elevation + height above the field + (knob setting − QNH) × 27 ft per hPa, all
