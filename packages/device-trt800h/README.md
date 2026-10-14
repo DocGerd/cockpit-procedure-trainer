@@ -20,7 +20,7 @@ VFR code 7000. Assumptions:
 - A second VFR press while VFR is shown shows the standby code again and VFR stays active (the intake's second reading).
 - `►` puts the cursor on the first digit of the standby code, moves it on, and removes it after the fourth digit. The swap key moves the cursor back one digit and removes it from the first.
 - A press of `►` while `VFR` shows shows the standby code again, and a VFR release clears the cursor.
-- A level below zero prints as `FL -` and two digits (`FL -10`, `FL -05`); the intake gives the format only for levels from `FL 000`.
+- A level below zero prints as `FL -` and two digits (`FL -10`, `FL -05`); the handbook shows no negative level, so the format is an assumption (intake section 9 question 70). Beyond `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT` the display shows `FLerr`, as the handbook's display section says.
 - The knob wraps within the digits 0 to 7.
 - Pressing VFR when the active code already is the VFR code only shows `VFR`; the standby code is kept.
 - The `S` that confirms a store shows for `STORED_SHOW_MS`; the manual gives no duration.
@@ -39,7 +39,7 @@ VFR code 7000. Assumptions:
 
 ## Inputs
 
-- `pressureAltitude` (feet): the flight level is the altitude in hundreds of feet, rounded down (an assumption, unverified: intake section 9 question 70), in every state while the unit is on. Outside `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT`, or without a number, the display shows `FLerr` and the unit does not report (`reporting` is true only in ACS with a valid level).
+- `pressureAltitude` (feet): the flight level is the altitude in hundreds of feet, rounded down (an assumption: the handbook, checked for this, gives no rounding direction; intake section 9 question 70), in every state while the unit is on. Outside `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT`, or without a number, the display shows `FLerr` and the unit does not report (`reporting` is true only in ACS with a valid level).
 
 The unit is powered by the install's `powered` condition. It never switches itself on: power arriving leaves it off until I/O is pressed.
 
