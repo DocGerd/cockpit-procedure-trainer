@@ -3177,7 +3177,9 @@ transponder on, standby _(action: press the TRT800H's I/O, then a check that it 
 and at STBY)_; GPS: databases accepted, then its map page (the start-up step is owner-confirmed,
 §9 question 38; only its place in N6 is assumed, §9 question 32; a pilot who accepted earlier
 ticks the acceptance, #692); choke
-off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
+off; carb heat off; throttle to 4000 rpm; engine gauges in the green _(checks: oil pressure in the
+green, oil temperature and CHT below their red lines; the CHT needle is still warming toward
+its 90 to 110 green arc at the run-up, #776)_; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
 neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue

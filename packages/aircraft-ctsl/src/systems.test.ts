@@ -2,6 +2,7 @@ import { createSession, createSystemsRuntime, STEP_MS } from '@cpt/core';
 import type { ControlPosition, Environment, PhaseId, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import type { CtslFailure } from './failures';
+import { CHT_RED_LINE_C } from './cht-limits';
 import { ctslAircraft } from './index';
 import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
@@ -12,7 +13,6 @@ import { testDevices as devices } from './test-devices';
 const MAX_SINGLE_CIRCUIT_DROP_RPM = 300;
 const MAX_CIRCUIT_DROP_DIFFERENCE_RPM = 120;
 const MIN_TAKEOFF_OIL_C = 51;
-const CHT_RED_LINE_C = 120;
 const OIL_TEMP_RED_LINE_C = 130;
 const STARTER_LIMIT_S = 10;
 const STARTER_COOLING_S = 120;
@@ -819,15 +819,18 @@ describe('failures', () => {
 describe('entry snapshots', () => {
   const running = (Object.keys(phases) as PhaseId[]).filter((id) => id !== 'parking');
 
-  it.each(running)('enters %s warm, with oil pressure and CHT in the green', (id) => {
-    const state = phases[id].entry.state;
-    expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
-    expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
-    expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
-    expect(state.oilPressureBar).toBeLessThanOrEqual(5);
-    expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
-    expect(state.rpm).toBeGreaterThanOrEqual(1400);
-  });
+  it.each(running)(
+    'enters %s warm, with oil pressure in the green and CHT below the red line',
+    (id) => {
+      const state = phases[id].entry.state;
+      expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
+      expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
+      expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
+      expect(state.oilPressureBar).toBeLessThanOrEqual(5);
+      expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
+      expect(state.rpm).toBeGreaterThanOrEqual(1400);
+    },
+  );
 
   it.each(running)('enters %s settled: the gauges hold still', (id) => {
     const session = sessionAt(id);

@@ -1,6 +1,7 @@
 import { createSession, deviceControls, walkProcedure } from '@cpt/core';
 import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import { cht } from '../artwork/gauges/cht';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
@@ -40,7 +41,7 @@ const snapshotChecks: Record<string, readonly string[]> = {
     'Parking brake: holds, brake lever released',
     'Oil pressure: 2 to 5 bar',
     'Oil temperature: below the red line',
-    'Cylinder head temperature: in the green',
+    'Cylinder head temperature: below the red line',
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
     'GPS: position fix (3D GPS Location)',
@@ -520,6 +521,49 @@ describe('CTSL normal procedures', () => {
     it.each(cases)('%s item %i "%s" fails without it', (id, index) => {
       const establishing = actionsBefore(id, index).filter((k) => failsWithout(id, k, index));
       expect(establishing.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('CHT checks follow the dial (#776)', () => {
+    const verdict = (id: string, text: string, chtC: number) => {
+      const found = checksOf(id).find(({ item }) => said(item) === text);
+      expect(found, text).toBeDefined();
+      if (!found || found.item.type !== 'check') return undefined;
+      const state = createSession(ctslAircraft, { devices, phase: 'cruise' }).state();
+      return found.item.condition({ ...state, systems: { ...(state.systems as object), chtC } });
+    };
+    const green = 'Cylinder head temperature: in the green';
+    const belowRedLine = 'Cylinder head temperature: below the red line';
+
+    const arcs = (cht.options?.arcs ?? []) as readonly {
+      from: number;
+      to: number;
+      colour: string;
+    }[];
+    const arc = (colour: string) => {
+      const found = arcs.find((a) => a.colour === colour);
+      if (!found) throw new Error(`no ${colour} arc on the CHT dial`);
+      return found;
+    };
+    const greenArc = arc('green');
+    const redLine = (arc('red').from + arc('red').to) / 2;
+
+    it.each([
+      [greenArc.from - 10, false],
+      [greenArc.from - 1, false],
+      [greenArc.from, true],
+      [greenArc.to, true],
+      [greenArc.to + 5, false],
+    ])('climbCruise: "in the green" at %f C is %s', (chtC, met) => {
+      expect(verdict('climbCruise', green, chtC)).toBe(met);
+    });
+
+    it.each([
+      [greenArc.from - 20, true],
+      [redLine - 1, true],
+      [redLine, false],
+    ])('beforeTakeoff: "below the red line" at %f C is %s', (chtC, met) => {
+      expect(verdict('beforeTakeoff', belowRedLine, chtC)).toBe(met);
     });
   });
 
