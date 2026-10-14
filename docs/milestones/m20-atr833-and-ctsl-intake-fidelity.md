@@ -32,7 +32,7 @@ From the PR descriptions (reasons in the PRs):
 7. **Fold order is whole, folded, tabs; the hidden step is gone** (PR #784), because the pilot should always see the phase outside. The cost: the CT Supralight's combined layout no longer reaches below about 930 px window height, so it uses tabs at 1920x900 (it reached combined there only by hiding the strip).
 8. **A thinner minimum band and a stable fold** (PR #784). The minimum band token is `--space-8` and the folded strip is pulled by a full row gap (`--space-4`), so the CT Supralight still reaches the combined layout at the 1080p browser window without lowering any touch-target or lettering floor. Below `SHORT_VIEWPORT_HEIGHT` the strip folds to the minimum outright whenever that makes the cockpit combined (#411), so the state hangs on the window height, not on pixel slack.
 9. **The folded crop is anchored at 45 percent** (PR #791). A lower percentage shows the upper part of the picture, where the horizon sits (the brief suggested the opposite direction, which shows only tarmac and nose). One anchor does not serve every picture equally: the demo's parking crop shows trees, hangars and tarmac edge, its cruise crop shows sky and the canopy arc with the horizon at the bottom edge.
-10. **The Beacon Light touch box is unchanged** (PR #787 for #772, closed as not planned). The four operable bottom-row breakers share one knob line, so their boxes at the 44 px floor must tile along x, and no layout clears the inert Instrument Light cap. Recorded as a final trade-off in intake section 3.9.4 (ADR-0002: touch targets rank above fidelity).
+10. **The Beacon Light touch box is unchanged** (PR #787 for #772, closed as not planned). The four operable bottom-row breakers share one knob line, so their boxes at the 44 px floor must tile along x, and no layout clears the inert Instrument Light cap. Recorded as a final trade-off in intake section 3.9.4 (the 44 px floor is not traded (ADR-0002, Training UX)).
 11. **The Circuit Breakers header stays at the lettering minimum** (PR #787 for #773). It is condensed to one line at D-MPGO's width; an unsqueezed header would fall under the tablet lettering floor and two lines do not fit. Letters are denser and taller than D-MPGO's (intake section 3.9.7).
 12. **Two secondary findings are filed, not fixed here** (PR #784, PR #791): the demo's avionics placard overflows in the tabs at 1536x760 (#785), and the CT Supralight's secondary dial captions print below the floor in the same tabs layout (#789). Both are recorded as expected-failure tests that fail once the art is fixed.
 
@@ -41,7 +41,7 @@ From the PR descriptions (reasons in the PRs):
 1. **The ATR833A-OLED manual.** Do you have revision 3.00 to put in `reference/`? An intake job could then verify questions 64 and 65: the 2 s I/O hold, VOL 1 to 16, MEM 00 to 99, the keys that leave a list and the list time-out, memory retention, power-on defaults and the unit's own negative-DWM format.
 2. **Folded outside-view strip.** Is the folded band (anchored at 45 percent) readable enough, or do you want per-phase anchors or a taller minimum band? A taller band would push the CT Supralight to tabs at about 950 px window height.
 3. **ATR833 list display.** While a list is open the entry's frequency is not shown until a VOL/SEL pick loads it, and `MEM 00` / `LST 00` load only by stepping away and back. Accept, or load entry 00 on open (which brings back the overwriting of standby)?
-4. **Beacon Light touch box (#772).** Accept the box covering about a third of the inert Instrument Light cap?
+4. **Beacon Light touch box (#772).** Accept the box covering 41 percent of the inert Instrument Light cap (about a third at best)?
 5. **Circuit Breakers header (#773).** Accept the condensed header with letters taller than D-MPGO's?
 6. **Tabs at 1920x900.** Accept that the CT Supralight uses tabs there?
 7. **Follow-up issues.** None blocks the release. The list is compiled from this milestone's issues and PRs, so an item you remember may be missing:
@@ -52,7 +52,7 @@ From the PR descriptions (reasons in the PRs):
 
 ## How to verify
 
-- Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when the default port is busy). One e2e test, `view-checklist.spec.ts` "the summary comes forward with the tablet drawer closed", fails locally on develop with and without these changes.
+- Local gate: `pnpm install --frozen-lockfile && pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build`; browser tests `pnpm test:e2e` (`E2E_PORT=<port>` when the default port is busy). One e2e test, `view-checklist.spec.ts` "the summary comes forward with the tablet drawer closed", fails in full local runs (passes alone and in CI; Refs #794).
 - UAT (develop): https://docgerd.github.io/cockpit-procedure-trainer/uat/; prod after the release: https://docgerd.github.io/cockpit-procedure-trainer/.
 
 A short walk-through on UAT:
