@@ -103,45 +103,50 @@ export function chooseLayout(
 export type OutsideStrip = {
   /** The strip's full height, borders included. */
   readonly natural: number;
-  /** The least height the strip folds to before it hides. */
+  /** The least height the strip folds to. */
   readonly min: number;
   /** How far the folded strip is pulled toward the cockpit, closing part of the gap between them. */
   readonly pull: number;
-  /** The gap between the strip and the cockpit, which a hidden strip gives up as well. */
-  readonly gap: number;
+  /** The window is shorter than `SHORT_VIEWPORT_HEIGHT`. */
+  readonly short: boolean;
 };
 
-/** How the outside-view strip gives room to the cockpit, and the height the cockpit region gains. */
-export type OutsideFold =
-  | { readonly kind: 'folded'; readonly band: number; readonly gain: number }
-  | { readonly kind: 'hidden'; readonly gain: number };
+/**
+ * Below this window height, in CSS px, the strip is folded to its minimum whenever that makes the
+ * cockpit combined, instead of only as far as the cockpit needs, so the state at the heights a
+ * browser window leaves on a 1080p or scaled 4K screen does not hang on a few pixels of slack.
+ */
+export const SHORT_VIEWPORT_HEIGHT = 1000;
+
+/** The outside-view strip folded to `band` high, and the height the cockpit region gains. */
+export type OutsideFold = { readonly kind: 'folded'; readonly band: number; readonly gain: number };
 
 /**
  * How the outside-view strip gives up room so the cockpit reaches combined: folded by just as much
- * as it needs down to the strip's minimum, hidden when even that is not enough, and undefined when
- * the cockpit is combined with the strip whole or not even a hidden strip makes it so. `region` is
- * the cockpit region the whole strip leaves, so the answer never depends on the strip's own
- * current height. Found by asking `chooseLayout`, which keeps the two rules in step.
+ * as it needs, down to the strip's minimum, or to the minimum outright on a short window. It is
+ * never hidden, so it is undefined when the cockpit is combined with the strip whole (on a window
+ * that is not short), or when not even the minimum makes it so. `region` is the
+ * cockpit region the whole strip leaves, so the answer never depends on the strip's own current
+ * height. Found by asking `chooseLayout`, which keeps the two rules in step.
  */
 export function outsideViewFold(
   aircraft: Pick<Aircraft, 'cockpit' | 'views'>,
   region: CockpitRegion,
   strip: OutsideStrip,
 ): OutsideFold | undefined {
-  if (!(strip.natural > 0) || chooseLayout(aircraft, region).kind === 'combined') return undefined;
+  if (!(strip.natural > strip.min)) return undefined;
+  if (!strip.short && chooseLayout(aircraft, region).kind === 'combined') return undefined;
   const gives = (gain: number) =>
     chooseLayout(aircraft, { width: region.width, height: region.height + gain }).kind ===
     'combined';
   let low = strip.pull + 1;
   let high = strip.natural - strip.min + strip.pull;
-  if (strip.natural > strip.min && gives(high)) {
-    while (low < high) {
-      const middle = Math.floor((low + high) / 2);
-      if (gives(middle)) high = middle;
-      else low = middle + 1;
-    }
-    return { kind: 'folded', band: strip.natural - (low - strip.pull), gain: low };
+  if (!gives(high)) return undefined;
+  if (strip.short) return { kind: 'folded', band: strip.min, gain: high };
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (gives(middle)) high = middle;
+    else low = middle + 1;
   }
-  const hidden = strip.natural + strip.gap;
-  return gives(hidden) ? { kind: 'hidden', gain: hidden } : undefined;
+  return { kind: 'folded', band: strip.natural - (low - strip.pull), gain: low };
 }

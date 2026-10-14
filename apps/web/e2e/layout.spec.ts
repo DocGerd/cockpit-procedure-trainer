@@ -3,6 +3,7 @@ import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
 import { aircraftRegistry } from '../src/aircraft-registry';
 import { messages as dockMessages } from '../src/devices/messages';
+import { SHORT_VIEWPORT_HEIGHT } from '../src/panel/cockpit-layout';
 import { copy, openPicker } from './trainer';
 import {
   SECONDARY_MIN_PX,
@@ -39,9 +40,10 @@ const indicatorFaceGaps: Readonly<
 };
 
 // The same for secondary captions (#661), against the lower `SECONDARY_MIN_PX`: the breaker and
-// dial captions fit no larger at tablet width without redrawing the faces.
+// dial captions fit no larger at tablet width, nor in the tabs at a scaled 4K laptop window, without
+// redrawing the faces.
 const secondaryCaptionGaps: typeof indicatorFaceGaps = {
-  ctsl: ['tablet landscape', 'tablet portrait'],
+  ctsl: ['scaled 4K laptop window', 'tablet landscape', 'tablet portrait'],
 };
 
 // Aircraft whose dock opens clear of the slots it mirrors.
@@ -52,7 +54,7 @@ const desktops = [
   { width: 3840, height: 2160 },
 ];
 
-// Below every aircraft's breakpoint, even with the outside-view strip hidden: the tabs.
+// Below every aircraft's breakpoint, even with the outside-view strip folded: the tabs.
 const shortDesktop = { width: 1920, height: 800 };
 
 const cockpitLayout = (page: Page) => page.locator('.shell');
@@ -242,8 +244,8 @@ for (const aircraft of aircraftRegistry) {
       const state = await renderedState(page);
       const listed = expectedStates[aircraft.id]?.[viewport.name];
       if (listed) expect(state, 'against the spec table').toEqual(listed);
-      if (state.strip === 'hidden') await expect(outsideView(page)).toBeHidden();
-      else await expect(outsideView(page)).toBeVisible();
+      await expect(outsideView(page)).toBeVisible();
+      expect((await boxOf(outsideView(page))).height, 'outside view height').toBeGreaterThan(0);
       const combined = state.layout === 'combined';
 
       await expect(cockpitLayout(page)).toHaveAttribute('data-cockpit-layout', state.layout);
@@ -298,7 +300,7 @@ for (const aircraft of aircraftRegistry) {
     }) => {
       test.fail(
         secondaryCaptionGaps[aircraft.id]?.includes(viewport.name) ?? false,
-        'Breaker and dial captions render below half the minimum at tablet sizes (#661)',
+        'Breaker and dial captions render below half the minimum in tabs at tablet and laptop sizes (#661)',
       );
       await page.setViewportSize(viewport);
       await openAircraft(page, aircraft);
@@ -349,18 +351,24 @@ test('the status colour probe sees a status colour on a panel element', async ({
 const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
 if (!ctsl) throw new Error('The aircraft registry has no CTSL');
 
-// Where the outside-view strip gives up room, by aircraft, in a 1920 wide window.
+// Where the outside-view strip gives up room, by aircraft, in a 1920 wide window. Below 1000 px
+// it is folded to its minimum outright; it is never hidden.
 const strips = [
   { aircraft: 'ctsl', height: 1080, folded: 'false' },
   { aircraft: 'ctsl', height: 1000, folded: 'true' },
-  { aircraft: 'ctsl', height: 950, folded: 'hidden' },
+  { aircraft: 'ctsl', height: 950, folded: 'true' },
   { aircraft: 'demo', height: 1080, folded: 'false' },
-  { aircraft: 'demo', height: 920, folded: 'true' },
-  { aircraft: 'demo', height: 860, folded: 'hidden' },
+  { aircraft: 'demo', height: 950, folded: 'true' },
+  { aircraft: 'demo', height: 880, folded: 'true' },
 ];
 
+const bandMinimum = (page: Page) =>
+  outsideView(page).evaluate((strip) =>
+    Number.parseFloat(getComputedStyle(strip).getPropertyValue('--outside-view-band-min')),
+  );
+
 for (const { aircraft: id, height, folded } of strips) {
-  test(`the ${id} outside-view strip is ${folded === 'false' ? 'whole' : folded === 'true' ? 'folded' : 'hidden'} at 1920x${height}`, async ({
+  test(`the ${id} outside-view strip is ${folded === 'false' ? 'whole' : 'folded'} at 1920x${height}`, async ({
     page,
   }) => {
     const aircraft = aircraftRegistry.find((entry) => entry.id === id);
@@ -372,19 +380,53 @@ for (const { aircraft: id, height, folded } of strips) {
     expect(await derivedState(page, aircraft), 'the rule agrees').toEqual(
       await renderedState(page),
     );
-    const box = await outsideView(page).boundingBox();
-    if (folded === 'true') expect(box?.height).toBeGreaterThanOrEqual(72);
-    if (folded === 'hidden') {
-      await expect(outsideView(page)).toBeHidden();
-      await expect(page.locator('.shell-panel')).toBeInViewport();
-    }
+    await expect(outsideView(page)).toBeVisible();
+    const band = (await boxOf(outsideView(page))).height;
+    const minimum = await bandMinimum(page);
+    if (folded === 'true') expect(band).toBeGreaterThanOrEqual(minimum);
+    if (height < SHORT_VIEWPORT_HEIGHT)
+      expect(band, 'folded to the minimum').toBeCloseTo(minimum, 0);
     await expectNoPageScroll(page);
+  });
+}
+
+// #763: the outside view folds on a short window and never disappears, in a layout of either kind.
+const shortWindows = [
+  { width: 1536, height: 760 },
+  { width: 1536, height: 864 },
+  { width: 1920, height: 950 },
+  { width: 1920, height: 900 },
+  { width: 1920, height: 850 },
+  { width: 1920, height: 800 },
+];
+
+for (const aircraft of aircraftRegistry) {
+  test(`the ${aircraft.id} outside view stays visible above the panel on short windows`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(shortWindows[0] ?? desktops[0] ?? { width: 1920, height: 950 });
+    await openAircraft(page, aircraft);
+    const minimum = await bandMinimum(page);
+    for (const window of shortWindows) {
+      await page.setViewportSize(window);
+      const at = `${window.width}x${window.height}`;
+      await expect(outsideView(page), at).toBeVisible();
+      await expect(outsideView(page), at).not.toHaveAttribute('data-folded', 'hidden');
+      await expect
+        .poll(async () => (await boxOf(outsideView(page))).height, { message: at })
+        .toBeGreaterThanOrEqual(minimum);
+      const strip = await boxOf(outsideView(page));
+      const panel = await boxOf(page.locator('.shell-panel'));
+      expect(strip.y + strip.height, `${at} strip above the panel`).toBeLessThanOrEqual(panel.y);
+      expect(strip.y, `${at} strip in the window`).toBeGreaterThanOrEqual(0);
+      await expectNoPageScroll(page);
+    }
   });
 }
 
 // Just above the breakpoint the dock is at its narrowest, and the close label is wider in German.
 // The demo joins this table once #687 is fixed.
-const narrowDocks = [{ aircraft: 'ctsl', height: 900 }];
+const narrowDocks = [{ aircraft: 'ctsl', height: 935 }];
 
 for (const { aircraft: id, height } of narrowDocks) {
   for (const language of ['en', 'de'] as const) {

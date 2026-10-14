@@ -129,7 +129,7 @@ describe('chooseLayout', () => {
 });
 
 describe('outsideViewFold', () => {
-  const strip = { natural: 100, min: 40, pull: 10, gap: 16 };
+  const strip = { natural: 100, min: 40, pull: 10, short: false };
   const wide = 400;
   const room = (height: number, width = wide) => ({ width, height });
   const combinedWith = (height: number, gain: number) =>
@@ -154,18 +154,40 @@ describe('outsideViewFold', () => {
     });
   });
 
-  it('hides the strip, with its gap, when its minimum is not enough', () => {
-    expect(outsideViewFold(aircraft, room(29), strip)).toEqual({ kind: 'hidden', gain: 116 });
-    expect(outsideViewFold(aircraft, room(-16), strip)).toEqual({ kind: 'hidden', gain: 116 });
+  it('never hides the strip: where its minimum is not enough the cockpit is not combined', () => {
+    expect(outsideViewFold(aircraft, room(29), strip)).toBeUndefined();
+    expect(outsideViewFold(aircraft, room(-16), strip)).toBeUndefined();
+    expect(combinedWith(29, 70)).toBe(false);
   });
 
-  it('hides a strip that is no taller than its minimum when that makes the cockpit combined', () => {
-    const short = { natural: 40, min: 40, pull: 10, gap: 16 };
-    expect(outsideViewFold(aircraft, room(80), short)).toEqual({ kind: 'hidden', gain: 56 });
+  it('leaves a strip that is no taller than its minimum whole', () => {
+    const short = { natural: 40, min: 40, pull: 10, short: false };
+    expect(outsideViewFold(aircraft, room(80), short)).toBeUndefined();
   });
 
-  it('leaves the strip whole when not even hiding it makes the cockpit combined', () => {
-    expect(outsideViewFold(aircraft, room(-17), strip)).toBeUndefined();
+  describe('on a short window', () => {
+    const shortStrip = { ...strip, short: true };
+
+    it('folds to the minimum even where the cockpit is combined with the strip whole', () => {
+      expect(outsideViewFold(aircraft, room(100), shortStrip)).toEqual({
+        kind: 'folded',
+        band: 40,
+        gain: 70,
+      });
+    });
+
+    it('folds to the minimum where the cockpit needs less than that', () => {
+      expect(outsideViewFold(aircraft, room(80), shortStrip)).toEqual({
+        kind: 'folded',
+        band: 40,
+        gain: 70,
+      });
+    });
+
+    it('still leaves the strip whole where not even the minimum makes the cockpit combined', () => {
+      expect(outsideViewFold(aircraft, room(29), shortStrip)).toBeUndefined();
+      expect(outsideViewFold(aircraft, room(80, wide - 1), shortStrip)).toBeUndefined();
+    });
   });
 
   it('leaves the strip whole when the width is what falls short', () => {
@@ -173,7 +195,7 @@ describe('outsideViewFold', () => {
   });
 
   it('leaves the strip whole when none is measured', () => {
-    const none = { natural: 0, min: 40, pull: 10, gap: 16 };
+    const none = { natural: 0, min: 40, pull: 10, short: false };
     expect(outsideViewFold(aircraft, room(80), none)).toBeUndefined();
   });
 
