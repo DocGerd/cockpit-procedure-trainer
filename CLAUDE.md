@@ -22,8 +22,10 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - `pnpm test:perf` runs locally only (not in CI), for panel-art PRs; see
   `CONTRIBUTING.md` Checks
 - Cloud sessions: `.claude/hooks/session-start.sh` (SessionStart) installs
-  Node 24 under `~/.cache/cpt-node` when the container's Node is older, and
-  the workspace dependencies; worktrees still run their own `pnpm install`
+  Node 24 under `~/.cache/cpt-node` when the container's Node is older, the
+  workspace dependencies and Playwright's Chromium build (the environment
+  allows `cdn.playwright.dev` and `playwright.download.prss.microsoft.com`);
+  worktrees still run their own `pnpm install`
 
 ## How work is done
 
