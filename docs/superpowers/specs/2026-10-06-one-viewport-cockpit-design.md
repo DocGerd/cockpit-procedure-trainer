@@ -210,22 +210,26 @@ The floor test owns the numbers. Constraints this design sets:
 
 The HD layout test (§9) fails until it holds. The chrome stays as it is
 (Decision 3). Where the floors cannot be met at full strip height, the outside
-view folds, then hides (§6), before the layout falls back to tabs, so a browser window on a
+view folds (§6) before the layout falls back to tabs, so a browser window on a
 1080p screen, which is shorter than the screen, still shows the whole cockpit.
 
 ## 6. Outside view and checklist
 
 - **Outside view:** stays a strip above the cockpit, full width of the main
-  column, at its usual height. Where the cockpit would otherwise fall below a
-  floor, the strip gives room in two steps: it folds, shrinking by just as much
-  as the cockpit needs down to a minimum height at which the horizon and the
-  canopy pillars still read (caption hidden, pulled closer to the cockpit), and
-  where even that is not enough it hides, with its gap. The fold is part of the
-  switch rule: `outsideViewFold` asks `chooseLayout` how much height the cockpit
-  needs, from the region the whole strip leaves, so the strip's own height is
-  never an input and the choice cannot oscillate. The order is whole, folded,
-  hidden, tabs; the strip gives room only if that reaches combined. The phase
-  stays in the header while the strip is hidden.
+  column, at its usual height, and is never hidden: a pilot reads the flight
+  phase from it at a glance (#763). Where the cockpit would otherwise fall below a
+  floor, the strip folds, shrinking by just as much as the cockpit needs down to a
+  minimum height at which the horizon and the canopy pillars still read (caption
+  hidden, pulled against the cockpit). On a window shorter than
+  `SHORT_VIEWPORT_HEIGHT` the fold goes to that minimum outright whenever that
+  makes the cockpit combined, so the state at the heights a browser window leaves
+  on a 1080p or scaled 4K laptop screen hangs on a window height and not on a few
+  pixels of slack (#411). The fold is part of the switch rule: `outsideViewFold`
+  asks `chooseLayout` how much height the cockpit needs, from the region the whole
+  strip leaves, so the strip's own height is never an input and the choice cannot
+  oscillate. The order is whole, folded, tabs; the strip gives room only if that
+  reaches combined, and in tabs it stays whole. The phase also stays in the
+  header.
 - **Checklist:** stays the side column at desktop widths (≥ the existing
   `DESKTOP_MIN_WIDTH`), always visible, as today. Guided mode depends on the
   current item being in sight while the pilot looks for the control, and the
@@ -366,9 +370,9 @@ and dark, each mode; one tablet size to confirm tabs still work.
 ## 11. Open questions
 
 1. ~~Which chrome yields first when the floors cannot be met at HD?~~ Decided
-   (#388): the outside strip folds to a minimum band and then hides (§6) before
-   the layout falls back to tabs; the checklist column and the header and
-   footer stay. Decision 3 holds: the strip stays on top, only its height
+   (#388, revised in #763): the outside strip folds to a minimum band (§6), never
+   hides, before the layout falls back to tabs; the checklist column and the
+   header and footer stay. Decision 3 holds: the strip stays on top, only its height
    changes.
 2. ~~Target overlap (Decision 7): its own issue, and should the floor test
    gain a no-overlap check once the art allows it?~~ Superseded: the floor

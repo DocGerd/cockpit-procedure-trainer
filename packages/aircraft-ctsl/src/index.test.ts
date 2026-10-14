@@ -1078,7 +1078,7 @@ describe('CTSL aircraft', () => {
     expect(session.state().devices.com?.state).toMatchObject({ on: true });
   });
 
-  it('keeps the COM radio dark after its breaker is pushed back in until I/O is pressed', () => {
+  it('wires the COM breaker to the COM install: pulled it unpowers the unit, pushed back it is powered again', () => {
     const session = createSession(ctslAircraft, { devices, phase: 'holding' });
     const com = () => session.state().devices.com?.state as { active: number; standby: number };
     session.advance(100);

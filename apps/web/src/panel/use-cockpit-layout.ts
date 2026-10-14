@@ -1,7 +1,7 @@
 import type { Aircraft } from '@cpt/core';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
-import { chooseLayout, outsideViewFold } from './cockpit-layout';
+import { chooseLayout, isShortViewport, outsideViewFold } from './cockpit-layout';
 import { footerHeight } from './fit';
 import type {
   CockpitLayoutChoice,
@@ -45,7 +45,7 @@ export function useCockpitRegion(
           strip.offsetHeight -
           strip.clientHeight,
       );
-      // How much of the room above the cockpit section the strip has given up by folding or hiding.
+      // How much of the room above the cockpit section the strip has given up by folding.
       const folded = natural - strip.getBoundingClientRect().height - pixels(style.marginBottom);
       const top = element.getBoundingClientRect().top + window.scrollY + folded;
       const footer = footerHeight(root);
@@ -58,9 +58,7 @@ export function useCockpitRegion(
           natural,
           min: pixels(style.getPropertyValue('--outside-view-band-min')),
           pull: pixels(style.getPropertyValue('--outside-view-pull')),
-          gap: pixels(
-            strip.parentElement ? getComputedStyle(strip.parentElement).rowGap : undefined,
-          ),
+          short: isShortViewport(window.innerHeight),
         },
       };
       setRegion((previous) =>
@@ -69,7 +67,7 @@ export function useCockpitRegion(
         previous.strip?.natural === natural &&
         previous.strip.min === next.strip?.min &&
         previous.strip.pull === next.strip?.pull &&
-        previous.strip.gap === next.strip?.gap
+        previous.strip.short === next.strip?.short
           ? previous
           : next,
       );

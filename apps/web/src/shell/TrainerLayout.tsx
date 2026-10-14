@@ -188,8 +188,8 @@ export function TrainerLayout() {
             ref={outside}
             className="shell-outside-view"
             aria-label={text.outsideView}
-            data-folded={fold?.kind === 'hidden' ? 'hidden' : fold !== undefined}
-            style={fold?.kind === 'folded' ? { height: fold.band } : undefined}
+            data-folded={fold !== undefined}
+            style={fold ? { height: fold.band } : undefined}
           >
             <OutsideView />
           </section>
