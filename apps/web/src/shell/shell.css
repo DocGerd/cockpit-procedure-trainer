@@ -44,6 +44,7 @@
   --outside-view-band-min: var(--space-8);
   --outside-view-pull: var(--space-4);
   --outside-view-border: 1px;
+  --outside-view-folded-anchor: 45%;
   box-sizing: border-box;
   overflow: hidden;
   background: var(--color-surface);
@@ -59,6 +60,10 @@
 
 .shell-outside-view[data-folded='true'] .outside-view-caption {
   display: none;
+}
+
+.shell-outside-view[data-folded='true'] :is(.outside-view-image, .outside-view-cue) {
+  object-position: center var(--outside-view-folded-anchor);
 }
 
 .shell-panel {

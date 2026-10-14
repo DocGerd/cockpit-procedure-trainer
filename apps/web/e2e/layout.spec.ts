@@ -39,9 +39,9 @@ const indicatorFaceGaps: Readonly<
   ctsl: ['tablet landscape', 'tablet portrait'],
 };
 
-// The same for secondary captions (#661), against the lower `SECONDARY_MIN_PX`: the breaker and
-// dial captions fit no larger at tablet width, nor in the tabs at a scaled 4K laptop window, without
-// redrawing the faces.
+// The same for secondary captions (#661; the 1536x760 gap is #789), against the lower
+// `SECONDARY_MIN_PX`: the breaker and dial captions fit no larger at tablet width, nor in the tabs at
+// a scaled 4K laptop window, without redrawing the faces.
 const secondaryCaptionGaps: typeof indicatorFaceGaps = {
   ctsl: ['scaled 4K laptop window', 'tablet landscape', 'tablet portrait'],
 };
@@ -300,7 +300,7 @@ for (const aircraft of aircraftRegistry) {
     }) => {
       test.fail(
         secondaryCaptionGaps[aircraft.id]?.includes(viewport.name) ?? false,
-        'Breaker and dial captions render below half the minimum in tabs at tablet and laptop sizes (#661)',
+        'Breaker and dial captions render below half the minimum in tabs: #661 at tablet width, #789 at the laptop window',
       );
       await page.setViewportSize(viewport);
       await openAircraft(page, aircraft);
@@ -365,6 +365,11 @@ const strips = [
   { aircraft: 'demo', height: 880, folded: 'true' },
 ];
 
+const foldedAnchor = (page: Page) =>
+  outsideView(page).evaluate((strip) =>
+    getComputedStyle(strip).getPropertyValue('--outside-view-folded-anchor').trim(),
+  );
+
 const bandMinimum = (page: Page) =>
   outsideView(page).evaluate((strip) =>
     Number.parseFloat(getComputedStyle(strip).getPropertyValue('--outside-view-band-min')),
@@ -384,6 +389,14 @@ for (const { aircraft: id, height, folded } of strips) {
       await renderedState(page),
     );
     await expect(outsideView(page)).toBeVisible();
+    // The folded band crops the picture where the horizon is; the whole strip stays centred.
+    const expected = folded === 'true' ? `50% ${await foldedAnchor(page)}` : '50% 50%';
+    for (const picture of await outsideView(page)
+      .locator('.outside-view-image, .outside-view-cue')
+      .all()) {
+      const position = await picture.evaluate((image) => getComputedStyle(image).objectPosition);
+      expect(position, 'crop anchor').toBe(expected);
+    }
     const band = (await boxOf(outsideView(page))).height;
     const minimum = await bandMinimum(page);
     if (folded === 'true') expect(band).toBeGreaterThanOrEqual(minimum);
