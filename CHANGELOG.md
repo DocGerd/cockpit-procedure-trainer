@@ -8,6 +8,29 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.20.0] - 2026-10-14
+
+### Added
+
+- CT Supralight slip indicator and hour meter are now drawn instruments as on D-MPGO: a plain black face with a cream ball tube, a centred black ball and its legend, and a black drum-counter box with HOURS legend whose running glyph lights while the engine runs.
+
+### Changed
+
+- CT Supralight panel laid out as D-MPGO's: three plates in one dark panel colour at the aircraft's positions and relative gauge sizes, the FLARM display, GPS and radios arranged and sized as on the aircraft (the small units are read in the dock), the breaker block below the engine gauges, the misleading "Push off" label removed and the parachute placard centred over the rescue handle.
+- The CT Supralight's COM radio no longer switches on by itself: engine start presses its I/O key right after the Avionics Master and checks that it is on, the phases after engine start begin with it on, and the before take-off checks no longer ask for a FLARM check.
+- The CT Supralight's ATR833 COM radio now works as the original ATR833-OLED's manual describes: I/O held 2 s switches off, SET steps VOL, SQL, DIM, VOX, DWM, INT and EXT (a SET hold returns to VOL), dual watch needs squelch 02, the memory list has 100 entries that load straight into standby, a MEM hold stores the active frequency, and the last-used list starts at LST 00; the ATR833-II's STL, STR and BRT items and the save mark are gone.
+- The CT Supralight altimeter is now D-MPGO's three-pointer unit with an hPa pressure window and a setting knob you turn (tap, arrow keys or hold); its reading follows the knob, and the before-take-off and descent altimeter items are knob actions.
+- The CT Supralight airspeed indicator is drawn as D-MPGO's: the needle rests at 12 o'clock and sweeps clockwise almost a full turn over a 40 to 340 km/h scale numbered every 20, with the photographed arcs, a lance needle and the AIRSPEED and KmH legend above the hub.
+- CT Supralight vertical speed indicator drawn as D-MPGO's: 0 at 9 o'clock, climb over the top and descent under the bottom meeting at one 2 at 3 o'clock, ticks every 100 ft/min, broad white paddle pointer, units legend below the hub, thin black bezel with three cross-head screws and a short stub at the lower left. The CT Supralight tachometer is redrawn as D-MPGO's: dial printed 0 to 70 with RPM x100, a 284 degree linear scale with the low red band and yellow block, the green arc and the red line at 5,800 rpm, a thin black ring with cross-head screws and a broad tapered white pointer. CHT and oil temperature gauges of the CT Supralight drawn as D-MPGO's: a thin black ring with cross-head screws on the bare panel, the two-rate scale with 40 at the lower left, numerals 40 to 150, the bunched bars above 120, the short green and yellow arcs, the red line, a short white blade and no glass glare. The CT Supralight's voltmeter and oil pressure gauges now look like D-MPGO's: thin black rings with cross-head screws, the voltmeter's 9 to 17 V dial with 13 at the top and no coloured arcs, and the oil pressure dial's 0 to 10 bar numerals with its pale, green-grey and tan-orange arcs and the red mark at 7 bar.
+- The CT Supralight's avionics sit in three tiers as on D-MPGO's panel: the FLARM display at the top left, the GPS in its own row below it at its photographed size against the radios, and the radio and the transponder side by side under it.
+- The CT Supralight panel's three plates now have D-MPGO's proportions: a narrower left plate, an upright centre plate that the GPS nearly fills, and a right plate whose circuit breakers stand at the aircraft's own spacing and size, each still a full touch target.
+
+### Fixed
+
+- The CTSL transponder now reports pressure altitude, the altimeter's reading with 1013 hPa set, so its flight level agrees with the altimeter at 1013 and rounds down instead of to the nearest hundred feet.
+- A tap on a touch screen, or a Firefox mouse click released just off the key, presses a key or turns a knob helper once: the ATR833 swap and DW keys no longer switch straight back on release, and the same double press is gone from every other panel and device control.
+- The CTSL cylinder head temperature check "in the green" now accepts only the dial's green arc, 90 to 110 °C, in cruise, and the run-up asks for a reading below the red line instead of accepting a needle that is still below the arc.
+
 ## [0.19.0] - 2026-10-11
 
 ### Added
@@ -383,7 +406,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.16.0...v0.17.0
