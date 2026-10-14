@@ -2,13 +2,13 @@
 
 Milestone M19 is released as v0.(19+1).0, so this is v0.20.0; on GitHub it is milestone 20. The goal: make the CT Supralight panel look and behave like D-MPGO's: the layout of the whole panel, every gauge, the radio and the transponder. Only the CT Supralight changes for pilots. The Demo aircraft keeps its panel; the shared key-press fix (PR #751) changes the keys of every aircraft and device.
 
-The final gates ran on develop at 7767530: a ui-verifier pass at 1920 and at tablet width, and a blind whole-panel photo-fidelity check against D-MPGO. Both passed every recognition criterion. They closed the gauge issues #721 and #670 (comments: https://github.com/DocGerd/cockpit-procedure-trainer/issues/721#issuecomment-6172667010 and https://github.com/DocGerd/cockpit-procedure-trainer/issues/670#issuecomment-6172667711).
+The final gates ran on develop at 7767530: a ui-verifier pass at 1920 and at tablet width, and a blind whole-panel photo-fidelity check against D-MPGO. Both passed every recognition criterion. PR #777 (the CHT checks) landed on develop after these gates, so the released head is newer than the gated one; #777 changes checklist logic only, which neither pass covered. The passes closed the gauge issues #721 and #670 (comments: https://github.com/DocGerd/cockpit-procedure-trainer/issues/721#issuecomment-6172667010 and https://github.com/DocGerd/cockpit-procedure-trainer/issues/670#issuecomment-6172667711).
 
 ## What shipped
 
 For pilots:
 
-- **Panel laid out as D-MPGO's** (PR #733 for #716 and #712; PR #749 for #741): three plates in one dark panel colour at the aircraft's positions, with the gauges at their photographed relative sizes. The FLARM display sits at the top left of the centre plate, the GPS in its own row below it, and the radio and transponder side by side under it (PR #727's slot sizes). The plates have D-MPGO's proportions: a narrower left plate, an upright centre plate that the GPS nearly fills, and a right plate whose circuit breakers stand at the aircraft's own pitch, each still a full touch target. The "Push off" label is gone and the parachute placard is centred over the rescue handle (#729, see Decisions).
+- **Panel laid out as D-MPGO's** (PR #733 for #716 and #712; PR #749 for #741): three plates in one dark panel colour at the aircraft's positions, with the gauges at their photographed relative sizes. The FLARM display sits at the top left of the centre plate, the GPS in its own row below it, and the radio and transponder side by side under it (the slot sizes are laid out in PR #733). The plates have D-MPGO's proportions: a narrower left plate, an upright centre plate that the GPS nearly fills, and a right plate whose circuit breakers stand at the aircraft's own pitch, each still a full touch target. The "Push off" label is gone and the parachute placard is centred over the rescue handle (#729, see Decisions).
 - **Every gauge drawn as D-MPGO's** (one PR each, #720 and #721 and #670): the airspeed indicator (PR #736) with its photographed arcs and a lance needle that rests at 12 o'clock; the vertical speed indicator (PR #734); the tachometer (PR #737); the CHT and oil temperature gauges (PR #738); the voltmeter and oil pressure gauges (PR #739); the slip indicator and the hour meter (PR #735).
 - **A three-pointer altimeter with a setting knob you turn** (PR #740, #719): an hPa window, 101 settings from 950 to 1050 hPa, and a held press that repeats. Before take-off and descent, "altimeter set" is now a knob action, and Guided rings the knob.
 - **The radio behaves as the original ATR833-OLED** (PR #732, #718): I/O held switches it off, SET steps VOL, SQL, DIM, VOX, DWM, INT and EXT, dual watch needs squelch 02, and the memory list has 100 entries that load straight into standby.
@@ -55,18 +55,14 @@ Orchestration decisions:
 
 1. **"Push off" breaker label (#729).** The label is on D-MPGO and the trainer leaves it out by your 2026-10-11 decision, because it reads as if a pushed-in breaker were off. Do you want it omitted for good, or replaced with a wording that cannot be misread? #729 holds only your clarification; no question of yours is waiting there.
 2. **What comes next on the panel?** The blind check found two recognition gaps: the plate colour (charcoal, not brushed aluminium) and the shape of the lower switch console (boxes, not the T-shaped stack). Should either be the next milestone's work?
-3. **The follow-up list is a reconstruction.** The list from the previous handoff was not preserved. The list below comes from the issues and PRs of this milestone, so an item you remember may be missing.
+3. **Follow-up issues.** None blocks the release. The list is compiled from this milestone's issues and PRs, so an item you remember may be missing:
 
-## Follow-up issues
-
-None of these blocks the release.
-
-- **Outside view:** #763, planned for the next milestone.
-- **Intake:** #764 (stale statements after the ASI, altimeter and voltmeter changes).
-- **ATR833:** #765 (opening a MEM or LST list loads standby, and LST 00 is stated as manual fact), #766 (dual watch survives SQL below 02; negative values print one digit), #767 (store keeps or ends dual watch; the CTSL COM power test uses a stand-in), #771 (verify list keys, list time-out, memory persistence and power-on defaults).
-- **CTSL panel:** #768 (the bottom-row Nav-column breaker has no "Cockpit Light" label), #769 (green and white arc positions of the airspeed indicator), #772 (Beacon Light touch box over the inert Instrument Light face), #773 (Circuit Breakers header wider than D-MPGO's).
-- **TRT800H:** #770 (flight-level rounding direction and negative altitude).
-- **Filed by the release review:** #774 (the artwork contract from this milestone is undocumented, and stops are not validated), #775 (stale docs: CTSL README instruments and the one-viewport spec's slot-mirror floor).
+   - **Outside view:** #763, planned for the next milestone.
+   - **Intake:** #764 (stale statements after the ASI, altimeter and voltmeter changes).
+   - **ATR833:** #765 (opening a MEM or LST list loads standby, and LST 00 is stated as manual fact), #766 (dual watch survives SQL below 02; negative values print one digit), #767 (store keeps or ends dual watch; the CTSL COM power test uses a stand-in), #771 (verify list keys, list time-out, memory persistence and power-on defaults).
+   - **CTSL panel:** #768 (the bottom-row Nav-column breaker has no "Cockpit Light" label), #769 (green and white arc positions of the airspeed indicator), #772 (Beacon Light touch box over the inert Instrument Light face), #773 (Circuit Breakers header wider than D-MPGO's).
+   - **TRT800H:** #770 (flight-level rounding direction and negative altitude).
+   - **Filed by the release review:** #774 (the artwork contract from this milestone is undocumented, and stops are not validated), #775 (stale docs: CTSL README instruments and the one-viewport spec's slot-mirror floor).
 
 ## How to verify
 
