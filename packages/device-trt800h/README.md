@@ -20,7 +20,7 @@ VFR code 7000. Assumptions:
 - A second VFR press while VFR is shown shows the standby code again and VFR stays active (the intake's second reading).
 - `►` puts the cursor on the first digit of the standby code, moves it on, and removes it after the fourth digit. The swap key moves the cursor back one digit and removes it from the first.
 - A press of `►` while `VFR` shows shows the standby code again, and a VFR release clears the cursor.
-- A level below zero prints as `FL -` and two digits (`FL -10`, `FL -05`); the handbook shows no negative level, so the format is an assumption (intake section 9 question 70). Beyond `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT` the display shows `FLerr`, as the handbook's display section says.
+- A level below zero prints as `FL -` and two digits (`FL -10`, `FL -05`); the handbook shows no negative level, so the format is an assumption (intake section 9 question 70). Beyond `MIN_ALTITUDE_FT` to `MAX_ALTITUDE_FT` the display shows `FLerr`, as the handbook says (section 2.4).
 - The knob wraps within the digits 0 to 7.
 - Pressing VFR when the active code already is the VFR code only shows `VFR`; the standby code is kept.
 - The `S` that confirms a store shows for `STORED_SHOW_MS`; the manual gives no duration.

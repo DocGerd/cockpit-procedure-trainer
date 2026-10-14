@@ -14,15 +14,18 @@ longer hosts manuals for the original unit; the owner chose it on 2026-10-11. It
 section 9, question 36); the A variant is assumed to behave like it (question 64). A function whose
 control D-MPGO's face lacks is out. AUTO ON is off on D-MPGO (question 35) and the A manual has no
 such setting: power arriving leaves the unit dark and an I/O press switches it on; power lost
-switches it off. Assumptions, none checked against a unit (intake section 9, question 65). The M20 pass could not fetch the cited manual, so the A-versus-original differences, the list-leaving keys and time-out, retention across power loss and the power-on defaults all remain assumed:
+switches it off.
+
+Decided, not yet implemented: the standby rule for opening a list, the two-digit negative `DWM` and dual watch ending when SQL drops below 02 (intake section 9, question 65; Refs #765, #766).
+
+Assumptions, none checked against a unit (intake section 9, questions 64 and 65):
 
 - Spacing is fixed at 8.33 kHz. The range is 118.000 to 136.990: the last name of the 136.975 block.
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
 - Any I/O press switches the unit on; the manual's about 0.5 s is not enforced.
 - In a list, `▲▼` swaps and leaves it, `MEM` steps from the memory list to the last-used list and then closes it, and SET, DW, `►` and the frequency knob leave it without their own effect (the knob then steps the standby frequency). Lists close after `MENU_TIMEOUT_MS`, as line 3 does.
 - An unused memory entry is empty; browsing onto it leaves the standby frequency as it is.
-- Opening a list (`MEM 00`, `LST 00`) leaves the standby frequency alone and line 2 keeps showing it; only a `VOL/SEL` step in a list loads the entry shown (an empty one changes nothing). Closing a list without a pick keeps the standby frequency. This is a decision (intake section 9, question 65).
-- `LST 00` holds the last standby frequency a memory-list pick set; `LST 01` to `LST 10` hold the last active frequencies, newest first.
+- `LST 00` holds the last standby frequency the memory list set; `LST 01` to `LST 10` hold the last active frequencies, newest first.
 - A MEM hold outside the memory list acts as a short press on its release.
 - Memories and the last-used list survive power loss and switch-off, as the frequencies and settings do.
 - Defaults: SQL 05 is the manual's; VOL 10, DIM 10, VOX 05, DWM 00, INT 05 and EXT 00 are placeholders.
@@ -37,12 +40,12 @@ switches it off. Assumptions, none checked against a unit (intake section 9, que
 - `dw`: momentary `DW`. Toggles dual watch, which needs a squelch of `DUAL_WATCH_MIN_SQL` or more; in a list it leaves the list.
 - `swap`: momentary `▲▼` (accessible name SWAP). Exchanges active and standby; in a list it also leaves the list.
 - `cursor`: momentary `►` (accessible name CURSOR). Moves the underline to the next field of the standby frequency; in a list it leaves the list.
-- `volSel`: rotary `rest`, `down`, `up` with spring-back, `VOL/SEL −` and `VOL/SEL +`. Steps the line 3 value; in a list, steps the entry, which at once replaces the standby frequency (opening the list does not).
+- `volSel`: rotary `rest`, `down`, `up` with spring-back, `VOL/SEL −` and `VOL/SEL +`. Steps the line 3 value; in a list, steps the entry, which at once replaces the standby frequency.
 - `freq`: rotary `rest`, `down`, `up` with spring-back, `FREQ −` and `FREQ +`. Steps the underlined field of the standby frequency.
 
 Holds are measured from the time the session advances while the key is down; line 3 or a list falls back to the
 standard display after `MENU_TIMEOUT_MS` without input. Ranges: VOL 1 to 16, SQL, DIM, VOX and INT 1 to 10, DWM −8
-to 0, EXT 0 to 10; line 3 prints each value with two digits and a negative one with its minus sign before them (`DWM -02`, `DWM 00`). A squelch lowered below `DUAL_WATCH_MIN_SQL` switches dual watch off. Dual watch ends when either frequency
+to 0, EXT 0 to 10; line 3 prints non-negative values with two digits and `DWM` prints its minus sign with one digit (`DWM -2`, `DWM 00`). Dual watch ends when either frequency
 changes, a swap included. A frequency that becomes active joins the last-used list once, newest first, up to
 `RECENT_LIMIT`. The state keeps the frequencies, the settings, the `MEMORY_SLOTS` memory entries and the
 last-used list through power loss and clears the transients (dual watch, the line-3 item, an open list).
@@ -59,7 +62,7 @@ keeps full touch targets (see `src/entry.ts`). The unit draws its own face (`fac
 layout in `docs/aircraft/ctsl-intake.md` section 3.8.1, kept in `src/face/geometry.ts`: the black disc with its
 rim, six round key caps with the legends printed above them, the two knurled knobs in the right-hand corners,
 two screws at the left, `COM` down the left, the curved `VOL/SEL` and the yellow OLED window with `ACT`, `SBY`
-(or `DW`) and line 3. While a list is open line 2 keeps `SBY` and shows the standby
+(or `DW`) and line 3. While a list is open line 2 keeps `SBY` and shows the entry, which is the standby
 frequency. One face component draws both views. In the dock each key is one touch target over its legend and
 cap, and a column of plus and minus helpers on the panel metal right of the disc turns each knob (`VOL/SEL` and
 `FREQ`). The slot mirror is the same face at panel scale, square (`ATR833_MIRROR`), with no keys; its legends
