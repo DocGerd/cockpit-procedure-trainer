@@ -235,15 +235,16 @@ view folds (§6) before the layout falls back to tabs, so a browser window on a
   near 950 px window height, and the folded strip is pulled against the cockpit
   by `space-4`. A ui-verifier judged the band marginal with the picture centred
   (the parking horizon cropped away, the cruise horizon on the bottom edge), so
-  the picture's crop moves up the image when folded (`--outside-view-folded-anchor`,
-  a lower percentage shows the upper part) to bring the parking horizon into the
-  band; the whole strip stays centred. One anchor does not serve both demo
-  pictures: the parking horizon wants a higher crop, the cruise horizon a lower
-  one, so the chosen anchor is a compromise that leaves the cruise horizon near
-  the bottom edge. **Open owner question:** whether the horizon and the canopy
-  pillars read well enough at that minimum band (or whether the crop should
-  differ per phase, or the band be raised) is still undecided; the M11 reason
-  for the larger band was that narrower ones showed only the tree line.
+  the picture's crop anchors at `--outside-view-folded-anchor` when folded (a
+  lower percentage shows more of the upper picture); the whole strip stays
+  centred. A ui-verifier found the chosen anchor shows the horizon in both demo
+  phases (in cruise, sky and clouds above the canopy arc). The two want slightly
+  different anchors (parking a lower one, more of the upper picture; cruise a
+  higher one), so the chosen anchor is a compromise. **Open owner question:**
+  whether the horizon and the canopy pillars read well enough at that minimum
+  band (or whether the crop should differ per phase, or the band be raised) is
+  still undecided; the M11 reason for the larger band was that narrower ones
+  showed only the tree line.
 - **Checklist:** stays the side column at desktop widths (≥ the existing
   `DESKTOP_MIN_WIDTH`), always visible, as today. Guided mode depends on the
   current item being in sight while the pilot looks for the control, and the

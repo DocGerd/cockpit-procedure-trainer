@@ -4041,8 +4041,11 @@ verifies it on D-MPGO.
     **Consequence (open owner question):** while a list is open, the entry's frequency is
     not shown (line 3 prints only `MEM nn` or `LST nn`, entries are unnamed) until a
     VOL/SEL pick loads it into standby. `MEM 00` and `LST 00` load only by stepping away
-    and back. Stepping onto an empty entry leaves line 2 showing the last loaded
-    frequency next to the new entry number, with no mark that the entry is empty.
+    and back, when the list has more than one entry. Stepping onto an empty entry leaves
+    line 2 showing the standby frequency as it was (the last loaded entry, or the
+    hand-tuned frequency if nothing was loaded yet) next to the new entry number; the
+    printed line 3 has no mark that the entry is empty (the spoken readout says
+    "empty").
     Alternative: an opened list loads entry 00 when it is non-empty, which brings back
     the overwritten-standby problem for `MEM 00`.
     The 2 s `I/O` hold, VOL 1 to 16, MEM 00 to 99, the list-leaving keys and time-out,
