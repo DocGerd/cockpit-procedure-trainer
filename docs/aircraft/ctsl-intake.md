@@ -198,8 +198,8 @@ single "12V Outlet" breaker in the third row (the header's place is **assumed
 Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
 Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
 GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
-Cockpit Light and Instrument Light are inert caps drawn in the background, without
-legends (the trainer's cockpit light has no breaker). Two of these differ from the
+Cockpit Light and Instrument Light are inert caps drawn in the background (the
+trainer's cockpit light has no breaker). Two of these differ from the
 photos (§3.7.1), **assumed (unverified)**: the photos show EMS fitted, but the analog
 variant has no EMS (E10), so it is drawn as a cap; they show Intercom as a plain cap,
 but the handbook gives the intercom a 2 A breaker (§3.6) and the photo does not show
@@ -207,9 +207,9 @@ whether the cap is a blank, so the trainer keeps that breaker. The legends of th
 breakers print in full words on the control faces, small as on the aircraft: captions
 marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
 rank), because a legend like "Transponder" at the minimum does not fit the strip's
-pitch. The inert caps carry no legend for the same reason, since background lettering
-has no such exemption; the slip indicator, FLARM display and hour meter carry no
-wording either. The type-name script lettering is not reproduced.
+pitch. The inert caps' legends are backdrop dressing, not control labels; the Cockpit Light
+one, in two lines, was added in M20 (#768, §3.9.7). The slip indicator, FLARM display
+and hour meter carry no wording. The type-name script lettering is not reproduced.
 
 **Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
 indicators whose faces carry the `SLIP INDICATOR` and `HOURS` legends as secondary
@@ -886,7 +886,7 @@ runs from 00 (none) down to −8, the minus sign printed. **Trainer rule (#766,
 decision):** every numeric value prints as two digits (`INT --` and `EXT 00` as
 above). Only `DWM` can be negative (−8 to 0); it prints its minus sign before the two
 digits, so `DWM -02` and `DWM 00`. The unit's own negative format is unverified
-(§9 question 64).
+(§9 question 65).
 
 **Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
 settings: channel spacing, automatic display darkening, push-to-talk assignment,
@@ -2285,9 +2285,9 @@ unbroken to the red line at 300.
 - **Windows and knobs.** None.
 - **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
   #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
-  is at θ about 75° and r about 1.04 R (box (1.00, 0.36)); the base is upright at box
-  x about 1.13, from y 0.28 to 0.42. The triangle is about 0.13 A wide and 0.14 A
-  tall. About the dial's pivot the apex sits at about 77°, the 100 km/h tick. It
+  is at box (1.00, 0.36), at about 77° about the dial's pivot (§3.10.0), the 100 km/h
+  tick; the base is upright at box x about 1.13, from y 0.28 to
+  0.42. The triangle is about 0.13 A wide and 0.14 A tall. It
   carries no print, so its meaning is not legible (§9 question 51).
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.38, 0.36) of the bounding box of the upper-left field's
@@ -2382,14 +2382,16 @@ question #719 raised). Stacking: the hairline appears to pass under the broad bl
 - **Reading in the photos.** On the parked aircraft the altimeter reads about 330 ft
   with 1025 in the window (the long pointer just past the 3's tick, at about 120°;
   the broad pointer just right of 0, the hairline at 0). The day's QNH is unknown
-  (§9 question 47).
-- **Trainer uses** (§9 questions 46 to 49, all **assumed (unverified)**): a field
-  elevation of 315 ft at the home aerodrome; QNH 1013 hPa unless a scenario sets its
-  own; indicated altitude = field elevation + height above the field + (knob setting
-  − QNH) × 27 ft per hPa, all three pointers following that one value; a setting
-  range of 950 to 1050 hPa in 1 hPa steps, turning the knob clockwise raising the
-  setting and the reading. The knob's starting setting is the #719 PR's decision
-  (§9 question 47).
+  (§9 question 46).
+- **Trainer uses** (§9 questions 46 to 49): a field elevation of 315 ft at the home
+  aerodrome; QNH 1013 hPa unless a scenario sets its own; indicated altitude = field
+  elevation + height above the field + (knob setting − QNH) × 27 ft per hPa, all
+  three pointers following that one value; a setting range of 950 to 1050 hPa in 1
+  hPa steps, turning the knob clockwise raising the setting and the reading. All of
+  these are **assumed (unverified)**, except the two #719 decisions: the knob starts
+  at 1025 hPa for parking, taxi out and the holding point, and at QNH from line-up
+  on (§9 question 47); and a small "hPa" placard beside the knob is its printed label
+  (§9 question 49).
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.78, 0.36) of the upper-left plate's bounding box
   (§3.9.2's field position (0.781, 0.386) governs), 1.30 A right of the ASI's centre
@@ -2789,7 +2791,7 @@ stopped, so a battery voltage. Illustrative only.
 
 _Stop and rest position_: not visible in photos; §9 question 57.
 
-**§4.3.** The table has no voltmeter row. The dial runs 9–17 V with no markings.
+**§4.3.** Its voltmeter row gives 9–17 V with no markings.
 
 #### 3.10.9 Oil pressure
 
@@ -3080,13 +3082,8 @@ per minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min 
 ticks every 500. Systems may keep metres per second internally; the gauge shows
 ft/min (1 m/s ≈ 197 ft/min).
 
-Trainer deviation (agent decision, M17 T3, open for the owner): the drawn
-airspeed dial prints numbers every 40 (40 to 320) with ticks every 20, because
-fifteen three-digit numerals do not fit the ring at the lettering floor; numbers
-every 20 need a larger gauge (M17 T4's layout) or an owner exemption. Open for
-#720: §2a item 10 makes numerals a recognition fact, and the real dial numbers every
-20; under §9 question 41 (a) the airspeed indicator shrinks to 193 units, which makes
-numbers every 20 harder to fit.
+The drawn airspeed dial prints all sixteen numerals every 20, as the real dial does
+(§2a item 10); a scale numbered every 40 is not used.
 
 ### 4.4 Fuel, flaps, masses
 
@@ -3892,7 +3889,7 @@ verifies it on D-MPGO.
     1013 hPa** for every scenario unless a scenario sets its own, **assumed
     (unverified)**, from general knowledge (ISA standard pressure; VFR pilots in
     Germany set QNH before take-off). Whether the knob starts at another value, so
-    that setting it is a real task, is the #719 PR's decision, named there. The
+    that setting it is a real task, was decided in #719 (below). The
     photos show one real example of a setting left over from the last flight: 1025
     hPa on the parked aircraft. **#719 decided:** parking, taxi out and the holding
     point enter with that 1025 hPa, so N6 is a real turn of the knob; line-up and every
