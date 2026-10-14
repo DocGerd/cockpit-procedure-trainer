@@ -25,7 +25,7 @@ describe('atr833Readout', () => {
       settings: { ...start.settings, dwm: -2 },
     };
     expect(atr833Readout(state, 'en', true)).toBe(
-      'Active 118.000 MHz, dual watch 119.000 MHz, DWM -2',
+      'Active 118.000 MHz, dual watch 119.000 MHz, DWM -02',
     );
     expect(atr833Readout({ ...state, item: 'dim' }, 'de', true)).toBe(
       'Aktiv 118,000 MHz, Doppelhören 119,000 MHz, Helligkeit 10',
@@ -40,12 +40,12 @@ describe('atr833Readout', () => {
       list: { kind: 'mem', index: 2 },
     };
     expect(atr833Readout(entry, 'en', true)).toBe(
-      'Active 118.000 MHz, standby 123.450 MHz, memory 2',
+      'Active 118.000 MHz, standby 123.450 MHz, memory 02',
     );
-    expect(atr833Readout(entry, 'de', true)).toContain('Standby 123,450 MHz, Speicher 2');
+    expect(atr833Readout(entry, 'de', true)).toContain('Standby 123,450 MHz, Speicher 02');
     const empty: Atr833State = { ...start, list: { kind: 'lst', index: 0 } };
-    expect(atr833Readout(empty, 'en', true)).toContain('last frequencies 0, empty');
-    expect(atr833Readout(empty, 'de', true)).toContain('Letzte Frequenzen 0, leer');
+    expect(atr833Readout(empty, 'en', true)).toContain('last frequencies 00, empty');
+    expect(atr833Readout(empty, 'de', true)).toContain('Letzte Frequenzen 00, leer');
   });
 
   it('reads off when the install is dark or the unit is switched off', () => {

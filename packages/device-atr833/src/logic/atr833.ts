@@ -66,7 +66,7 @@ export type Atr833State = {
   readonly list: Atr833List;
   readonly memory: readonly (number | null)[];
   readonly recent: readonly number[];
-  /** `LST 00`: the last standby frequency the memory list set. */
+  /** `LST 00`: the frequency the last memory-list pick loaded into standby. */
   readonly lastFromMemory: number | null;
   readonly idleMs: number;
   readonly held: Readonly<Record<ControlId, string>>;
@@ -159,8 +159,8 @@ const entryOf = (state: Atr833State, { kind, index }: OpenList): number | null =
 export const listEntry = (state: Atr833State): number | null =>
   state.list === null ? null : entryOf(state, state.list);
 
-const pad = (value: number): string => String(value).padStart(2, '0');
-const formatValue = (value: number): string => (value < 0 ? `-${-value}` : pad(value));
+export const pad = (value: number): string => String(value).padStart(2, '0');
+export const formatValue = (value: number): string => (value < 0 ? `-${pad(-value)}` : pad(value));
 
 export function lineThree(state: Atr833State): string {
   const { list } = state;
@@ -228,7 +228,7 @@ const becomeActive = (state: Atr833State, active: number, standby: number): Atr8
 const changeStandby = (state: Atr833State, standby: number): Atr833State =>
   standby === state.standby ? state : { ...state, standby, dualWatch: false };
 
-/** Shows a list entry; the entry replaces the standby frequency at once. */
+/** Shows a list entry; an entry that is not empty replaces the standby frequency. */
 function select(state: Atr833State, list: OpenList): Atr833State {
   const entry = entryOf(state, list);
   const next = { ...state, list };
@@ -247,14 +247,14 @@ function pressSet(state: Atr833State): Atr833State {
 
 function releaseMem(state: Atr833State): Atr833State {
   const { list } = state;
-  if (list === null) return select(state, { kind: 'mem', index: 0 });
-  if (list.kind === 'mem') return select(state, { kind: 'lst', index: 0 });
+  if (list === null) return { ...state, list: { kind: 'mem', index: 0 } };
+  if (list.kind === 'mem') return { ...state, list: { kind: 'lst', index: 0 } };
   return closeList(state);
 }
 
 function storeActive(state: Atr833State, { index }: OpenList): Atr833State {
   const memory = state.memory.map((slot, slotIndex) => (slotIndex === index ? state.active : slot));
-  return { ...changeStandby({ ...state, memory }, state.active), lastFromMemory: state.active };
+  return { ...state, memory };
 }
 
 function pressDualWatch(state: Atr833State): Atr833State {
@@ -282,7 +282,7 @@ function turnVolSel(state: Atr833State, step: number): Atr833State {
     ...state.settings,
     [state.item]: clamp(state.settings[state.item] + step, min, max),
   };
-  return { ...state, settings };
+  return { ...state, settings, dualWatch: state.dualWatch && settings.sql >= DUAL_WATCH_MIN_SQL };
 }
 
 function switchedOff(state: Atr833State): Atr833State {
@@ -341,8 +341,8 @@ export const atr833Device = defineDevice({
     dw: key(
       text('Doppelhören', 'Dual watch'),
       text(
-        'Schaltet das Doppelhören um; in einer Liste: Liste verlassen.',
-        'Toggles dual watch; in a list, leaves the list.',
+        'Schaltet das Doppelhören um, wirkungslos bei Squelch unter 02 (fällt der Squelch darunter, endet es); in einer Liste: Liste verlassen.',
+        'Toggles dual watch, ignored while squelch is below 02 (it ends if squelch drops below 02); in a list, leaves the list.',
       ),
     ),
     swap: key(
@@ -362,8 +362,8 @@ export const atr833Device = defineDevice({
     volSel: knob(
       text('Lautstärke/Auswahl', 'Volume/select'),
       text(
-        'Ändert den Wert der dritten Zeile; in einer Liste: wählt den Eintrag, der sofort Bereitschaftsfrequenz wird.',
-        'Changes the value on line 3; in a list, picks the entry, which at once becomes the standby frequency.',
+        'Ändert den Wert der dritten Zeile; in einer Liste: wählt den Eintrag, der sofort Bereitschaftsfrequenz wird, wenn er nicht leer ist.',
+        'Changes the value on line 3; in a list, picks the entry, which at once becomes the standby frequency unless it is empty.',
       ),
     ),
     freq: knob(

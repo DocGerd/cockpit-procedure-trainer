@@ -1,5 +1,5 @@
 import type { Text } from '@cpt/core';
-import { formatFrequency, listEntry } from './atr833';
+import { formatFrequency, formatValue, listEntry, pad } from './atr833';
 import type { Atr833Item, Atr833State } from './atr833';
 
 const ITEM_NAMES: Readonly<Record<Atr833Item, Text>> = {
@@ -23,11 +23,11 @@ const mhz = (khz: number, language: keyof Text): string =>
 function lineThree(state: Atr833State, language: keyof Text): string {
   const { list } = state;
   if (list !== null) {
-    const name = `${LIST_NAMES[list.kind][language]} ${list.index}`;
+    const name = `${LIST_NAMES[list.kind][language]} ${pad(list.index)}`;
     if (listEntry(state) !== null) return name;
     return `${name}, ${language === 'de' ? 'leer' : 'empty'}`;
   }
-  return `${ITEM_NAMES[state.item][language]} ${state.settings[state.item]}`;
+  return `${ITEM_NAMES[state.item][language]} ${formatValue(state.settings[state.item])}`;
 }
 
 export function atr833Readout(state: unknown, language: keyof Text, on: boolean): string {
