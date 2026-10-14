@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ledsOf } from './leds';
 import {
   ACQUIRE_MS,
   BLINK_PERIOD_MS,
@@ -217,6 +218,88 @@ describe('flarmDevice', () => {
       let state = stepWith(stepWith(start, 'pressed', { powered: false }), 'pressed');
       state = stepWith(state, 'pressed', { dtMs: SELF_TEST_MS });
       expect(stepWith(state, 'released')).toMatchObject({ volume: 'loud', mode: 'nearest' });
+    });
+  });
+
+  describe('power cycle', () => {
+    const lost = (state: FlarmState, mode: 'released' | 'pressed' = 'released') =>
+      stepWith(state, mode, { powered: false });
+
+    it('pull and push back in flight: dark, then the whole start-up again with the defaults', () => {
+      let state = push({ ...ready(), fix: true }, 100);
+      state = push(state, 2000);
+      expect(state).toMatchObject({ volume: 'medium', mode: 'collision', operational: true });
+
+      const pulled = lost(state);
+      expect(ledsOf(pulled)).toEqual(ledsOf(start));
+      expect(ledsOf(pulled).power).toBe(false);
+
+      const back = stepWith(pulled);
+      expect(back).toMatchObject({
+        powered: true,
+        stage: 'selfTest',
+        stageMs: 0,
+        volume: 'loud',
+        mode: 'nearest',
+        fix: false,
+        operational: false,
+      });
+      expect(ledsOf(back).ring[0]).toBe(true);
+
+      const tested = stepWith(back, 'released', { dtMs: SELF_TEST_MS });
+      expect(tested).toMatchObject({ stage: 'ready', operational: false });
+      expect(ledsOf(tested).tx).toBe(false);
+      expect(stepWith(tested, 'released', { dtMs: ACQUIRE_MS })).toMatchObject({
+        fix: true,
+        operational: true,
+      });
+    });
+
+    it('pull mid self-test: the test begins again at its first LED and a key held through it is ignored', () => {
+      let state = stepWith(powerUp(), 'released', { dtMs: SELF_TEST_MS / 2 });
+      expect(state.stage).toBe('selfTest');
+      expect(state.stageMs).toBeGreaterThan(0);
+
+      state = stepWith(lost(state, 'pressed'), 'pressed');
+      expect(state).toMatchObject({ stage: 'selfTest', stageMs: 0 });
+      expect(ledsOf(state).ring[0]).toBe(true);
+
+      state = stepWith(state, 'pressed', { dtMs: SELF_TEST_MS });
+      expect(state.stage).toBe('ready');
+      expect(stepWith(state, 'released')).toMatchObject({ volume: 'loud', mode: 'nearest' });
+    });
+
+    it('pull during the mode-swap confirmation drops the run and the new mode', () => {
+      const swapping = push({ ...ready(), fix: true }, 2000);
+      expect(swapping.confirm).not.toBeNull();
+      const back = stepWith(lost(swapping));
+      expect(back).toMatchObject({ confirm: null, mode: 'nearest' });
+      expect(ledsOf(stepWith(back, 'released', { dtMs: SELF_TEST_MS })).ring).not.toContain(true);
+    });
+
+    it('pull during the GPS search: the search restarts from nothing', () => {
+      const searching = stepWith(ready(), 'released', { dtMs: ACQUIRE_MS - SELF_TEST_MS - 500 });
+      expect(searching.fix).toBe(false);
+      const back = stepWith(lost(searching));
+      expect(back.acquiringMs).toBe(0);
+      expect(stepWith(back, 'released', { dtMs: ACQUIRE_MS - 1 }).fix).toBe(false);
+      expect(stepWith(back, 'released', { dtMs: ACQUIRE_MS }).fix).toBe(true);
+    });
+
+    it('a pull that outlasts one step and one that does not both end in a fresh start', () => {
+      const running = { ...ready(), fix: true };
+      for (const steps of [1, 5]) {
+        let state = running;
+        for (let index = 0; index < steps; index++) state = lost(state);
+        expect(stepWith(state)).toMatchObject({ stage: 'selfTest', fix: false });
+      }
+    });
+
+    it('comes back with a low supply flagged and not operational until the supply recovers', () => {
+      const back = stepWith(lost(ready()), 'released', { volts: LOW_SUPPLY_V - 1 });
+      expect(back).toMatchObject({ lowSupply: true, operational: false });
+      const recovered = stepWith(back, 'released', { dtMs: SELF_TEST_MS + ACQUIRE_MS });
+      expect(recovered).toMatchObject({ lowSupply: false, operational: true });
     });
   });
 

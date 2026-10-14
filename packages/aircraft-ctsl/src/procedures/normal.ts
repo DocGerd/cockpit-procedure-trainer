@@ -1,6 +1,8 @@
 import type { PositionOf } from '@cpt/core';
+import { CHT_GREEN_C, CHT_RED_LINE_C } from '../cht-limits';
 import type { controls } from '../controls';
 import { chargeLampLit } from '../indicators';
+import { QNH_HPA } from '../systems';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
 import type { CtslProcedures } from '../types';
@@ -17,7 +19,9 @@ const OIL_PRESSURE_GREEN_BAR = [2, 5] as const;
 const OIL_TEMP_GREEN_C = [90, 110] as const;
 const OIL_TEMP_RED_LINE_C = 130;
 const MIN_TAKEOFF_OIL_TEMP_C = 51;
-const CHT_GREEN_C = [50, 120] as const;
+
+// Every scenario flies at the home aerodrome's QNH (intake §9 question 47).
+const QNH_SETTING = String(QNH_HPA);
 
 // The trainer's own: about what a pilot reads off each scale.
 const RPM_READING_TOLERANCE = 100;
@@ -56,6 +60,7 @@ const temperatureReading = (reading: (state: State) => number) =>
   ({ reading, tolerance: TEMPERATURE_READING_TOLERANCE_C, unit: text('°C', '°C') }) as const;
 
 const oilTempReading = temperatureReading((state) => state.systems.oilTempC);
+const chtReading = temperatureReading((state) => state.systems.chtC);
 
 const flapCheck = (angle: number) => {
   const shown = `${angle < 0 ? '−' : ''}${Math.abs(angle)}°`;
@@ -129,14 +134,23 @@ const oilPressureGreen = {
   condition: (state: State) => within(state.systems.oilPressureBar, OIL_PRESSURE_GREEN_BAR),
   response: oilPressureReading,
   text: text('Öldruck', 'Oil pressure'),
-  expected: text('im grünen Bereich', 'in the green'),
+  expected: text('2 bis 5 bar', '2 to 5 bar'),
+} as const;
+
+const chtBelowRedLine = {
+  type: 'check',
+  target: { indicator: 'cht' },
+  condition: (state: State) => state.systems.chtC < CHT_RED_LINE_C,
+  response: chtReading,
+  text: text('Zylinderkopftemperatur', 'Cylinder head temperature'),
+  expected: text('unter der roten Marke', 'below the red line'),
 } as const;
 
 const chtGreen = {
   type: 'check',
   target: { indicator: 'cht' },
   condition: (state: State) => within(state.systems.chtC, CHT_GREEN_C),
-  response: temperatureReading((state) => state.systems.chtC),
+  response: chtReading,
   text: text('Zylinderkopftemperatur', 'Cylinder head temperature'),
   expected: text('im grünen Bereich', 'in the green'),
 } as const;
@@ -370,6 +384,21 @@ export const normalProcedures = {
         position: 'on',
         text: text('Avionik ein', 'Avionics Master on'),
       },
+      // Intake §9 question 35: the radio has no AUTO ON, so the pilot switches it on here, as the
+      // taxi call needs it.
+      {
+        type: 'action',
+        control: 'com.power',
+        position: 'pressed',
+        text: text('Funkgerät ein (I/O)', 'COM radio on (I/O)'),
+      },
+      {
+        type: 'check',
+        target: { control: 'com.power' },
+        condition: (state: State) => field(state, 'com', 'on') === true,
+        text: text('Funkgerät', 'COM radio'),
+        expected: text('ein', 'on'),
+      },
       // Assumed (unverified), intake §9 question 32, GPS and intercom switch-on steps.
       {
         type: 'action',
@@ -425,7 +454,12 @@ export const normalProcedures = {
       confirm('Gurte angelegt', 'Belts fastened'),
       confirm('Türen geschlossen', 'Doors closed'),
       confirm('Steuerung frei', 'Controls free'),
-      confirm('Höhenmesser auf QNH', 'Altimeter set to QNH'),
+      {
+        type: 'action',
+        control: 'altimeterSetting',
+        position: QNH_SETTING,
+        text: text('Höhenmesser auf QNH', 'Altimeter set to QNH'),
+      },
       {
         type: 'action',
         control: 'xpdr.power',
@@ -441,8 +475,8 @@ export const normalProcedures = {
         text: text('Transponder', 'Transponder'),
         expected: text('ein, Standby', 'on, standby'),
       },
-      // Assumed (unverified), intake §9 questions 32 and 38: the GPS starts with cradle power, so
-      // its step is the database acceptance, then its map page, which the line-up seed shows.
+      // Intake §9 question 38 (owner): the start-up step is the database acceptance, then the map
+      // page, which the line-up seed shows; its place in N6 is assumed (unverified), question 32.
       // Only the start-up page offers the accept key, so a pilot who accepted earlier ticks it.
       {
         type: 'action',
@@ -492,7 +526,7 @@ export const normalProcedures = {
         text: text('Öltemperatur', 'Oil temperature'),
         expected: text('unter der roten Marke', 'below the red line'),
       },
-      chtGreen,
+      chtBelowRedLine,
       {
         type: 'action',
         control: 'ignition',
@@ -575,14 +609,6 @@ export const normalProcedures = {
         condition: (state: State) => field(state, 'gps', 'fix') === true,
         text: text('GPS', 'GPS'),
         expected: text('Position gefunden (3D GPS Location)', 'position fix (3D GPS Location)'),
-      },
-      // Assumed (unverified), intake §9 question 34: the FLARM manual's check before departure.
-      {
-        type: 'check',
-        target: { control: 'flarm.mode' },
-        condition: (state: State) => field(state, 'flarm', 'operational') === true,
-        text: text('FLARM', 'FLARM'),
-        expected: text('Power, GPS und TX leuchten', 'Power, GPS and TX lit'),
       },
       {
         type: 'guard',
@@ -755,7 +781,12 @@ export const normalProcedures = {
     endPhase: 'approach',
     items: [
       confirm('Vergaservorwärmung nach Bedarf', 'Carb heat as needed'),
-      confirm('Höhenmesser eingestellt', 'Altimeter set'),
+      {
+        type: 'action',
+        control: 'altimeterSetting',
+        position: QNH_SETTING,
+        text: text('Höhenmesser eingestellt', 'Altimeter set'),
+      },
     ],
   },
   beforeLanding: {

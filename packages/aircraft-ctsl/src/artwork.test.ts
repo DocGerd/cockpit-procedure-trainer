@@ -4,9 +4,11 @@ import { validateAircraft } from '@cpt/core';
 import type { Appearance, ControlDefinition, IndicatorDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { gaugeArtwork as gauges, images } from './artwork';
+import { needle } from './artwork/gauges/shared';
 import { ctslAircraft } from './index';
 import { controls } from './controls';
 import { indicators } from './indicators';
+import { upperPlates } from './test-plates';
 import { deviceSlots, views } from './views';
 
 type Artwork = Extract<Appearance, { artwork: unknown }>['artwork'];
@@ -46,7 +48,11 @@ const indicatorArtwork = Object.entries(
 
 const urlsOf = ({ face, moving, glass, guardOpen }: Artwork): string[] => [
   face,
-  ...(moving.type === 'positions' ? Object.values(moving.images) : [moving.image]),
+  ...(moving.type === 'positions'
+    ? Object.values(moving.images)
+    : moving.type === 'needles'
+      ? moving.needles.map(({ image }) => image)
+      : [moving.image]),
   ...(glass === undefined ? [] : [glass]),
   ...Object.values(guardOpen ?? {}),
 ];
@@ -172,6 +178,16 @@ describe('CTSL warning lamp', () => {
   };
   const bezelCentreY = (svg: string) =>
     Number(/<circle\b[^>]*data-bezel=""[^>]*\bcy="([\d.]+)"/.exec(svg)?.[1]);
+  // The bezel's centre in face units, through the translate of the group that holds it.
+  const lensCentre = (svg: string) => {
+    const match =
+      /<g transform="translate\((-?[\d.]+) (-?[\d.]+)\)">(?:(?!<\/g>)[\s\S])*?<circle\b[^>]*data-bezel=""[^>]*\bcx="(-?[\d.]+)" cy="(-?[\d.]+)"/.exec(
+        svg,
+      );
+    if (!match) throw new Error('the lamp face draws no bezel inside a translated group');
+    const [, shiftX = 0, shiftY = 0, cx = 0, cy = 0] = match.map(Number);
+    return { x: shiftX + cx, y: shiftY + cy };
+  };
   const panel = () =>
     readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
 
@@ -193,8 +209,7 @@ describe('CTSL warning lamp', () => {
     const legendY = Number(
       /<text\b[^>]* y="([\d.]+)"[^>]*>Generator<\/text>/.exec(read(face))?.[1],
     );
-    const shift = Number(/translate\([\d.]+ ([\d.]+)\)/.exec(read(face))?.[1]);
-    expect(legendY).toBeLessThan(bezelCentreY(read(face)) + shift);
+    expect(legendY).toBeLessThan(lensCentre(read(face)).y);
   });
 
   it('is the only warning lamp on the panel: no second lamp is drawn in the backdrop', () => {
@@ -202,148 +217,324 @@ describe('CTSL warning lamp', () => {
     expect(panel()).not.toContain('>CHARGE</text>');
   });
 
-  it('sits at the top right of the upper-right field, right of the engine gauges', () => {
+  // D-MPGO's lamp stands at the plate's middle, not its top right corner (intake §3.9.4).
+  it('sits right of the tachometer, level with its top half, above the engine gauges', () => {
     const { rect } = views.panel.indicators.chargeLamp;
-    for (const [id, { rect: gauge }] of Object.entries(views.panel.indicators)) {
-      if (id === 'chargeLamp' || gauge.x < 1640) continue;
-      expect(rect.x, id).toBeGreaterThanOrEqual(gauge.x + gauge.w);
+    const { tachometer, voltmeter } = views.panel.indicators;
+    const centre = lensCentre(read(generatorLamp().face));
+    const { width, height } = sizeOf(generatorLamp().face);
+    const lens = {
+      x: rect.x + (centre.x / Number(width)) * rect.w,
+      y: rect.y + (centre.y / Number(height)) * rect.h,
+    };
+    expect(lens.x).toBeGreaterThan(tachometer.rect.x + tachometer.rect.w);
+    expect(lens.y).toBeGreaterThan(tachometer.rect.y);
+    expect(lens.y).toBeLessThan(tachometer.rect.y + tachometer.rect.h / 2);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(voltmeter.rect.y);
+  });
+});
+
+// D-MPGO's block: seven columns 0.36 A apart, two rows 0.22 A apart, the 12V Outlet alone under
+// the second column (intake §3.9.4). Each touch box keeps the touch target at the floor but sits
+// offset round its knob, so neighbouring knobs stand at the aircraft's pitch.
+describe("CTSL breaker block as D-MPGO's (intake §3.9.4)", () => {
+  const TOUCH_TARGET_PX = 44;
+  const floor = ctslAircraft.cockpit?.views.panel?.minWidth;
+  if (!floor) throw new Error('the panel cell has no floor width');
+  const floorScale = floor / views.panel.size.width;
+  const unitA = views.panel.indicators.airspeed.rect.w;
+  const { tachometer } = views.panel.indicators;
+  const placed = views.panel.controls;
+  type BreakerId =
+    | 'comBreaker'
+    | 'xpdrBreaker'
+    | 'landingBreaker'
+    | 'strobeBreaker'
+    | 'positionBreaker'
+    | 'intercomBreaker'
+    | 'gpsBreaker'
+    | 'outletBreaker';
+  const breakers: readonly BreakerId[] = [
+    'comBreaker',
+    'xpdrBreaker',
+    'landingBreaker',
+    'strobeBreaker',
+    'positionBreaker',
+    'intercomBreaker',
+    'gpsBreaker',
+    'outletBreaker',
+  ];
+  const knobIn = (svg: string) => {
+    const match =
+      /<g data-knob="([\d.]+)" transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)">/.exec(
+        svg,
+      );
+    if (!match) throw new Error('the breaker art marks no knob');
+    const [, radius = 0, x = 0, y = 0, scale = 0] = match.map(Number);
+    return { x, y, r: radius * scale };
+  };
+  const knob = (id: BreakerId) => {
+    const { rect } = placed[id];
+    const artwork = artworkOf(controls[id].appearance);
+    if (!artwork) throw new Error(`${id} has no artwork`);
+    const { width } = sizeOf(artwork.face);
+    const scale = rect.w / Number(width);
+    const own = knobIn(read(artwork.face));
+    return { x: rect.x + own.x * scale, y: rect.y + own.y * scale, r: own.r * scale };
+  };
+  const rightPlate = upperPlates.right;
+
+  it.each(breakers)('keeps %s at least the touch target at the floor', (id) => {
+    const { w, h } = placed[id].rect;
+    expect(Math.min(w, h) * floorScale).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+  });
+
+  it('keeps every touch box clear of its neighbours', () => {
+    const boxes = [...breakers, 'altimeterSetting' as const].map((id) => ({
+      id,
+      ...placed[id].rect,
+    }));
+    boxes.forEach((a, index) =>
+      boxes.slice(index + 1).forEach((b) => {
+        const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+        expect(apart, `${a.id} and ${b.id}`).toBe(true);
+      }),
+    );
+  });
+
+  // The block's unfitted positions are drawn in the backdrop; a touch box may reach over the near
+  // half of such a face but never cover its centre.
+  it('keeps every touch box off the centre of an unfitted breaker face', () => {
+    const svg = readFileSync(
+      new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url),
+      'utf8',
+    );
+    const inert = [
+      ...svg.matchAll(
+        /<g transform="translate\(([\d.]+) ([\d.]+)\) scale\([\d.]+\)"><use href="#bp"/g,
+      ),
+    ].map(([, x, y]) => ({ x: Number(x), y: Number(y) }));
+    expect(inert.length, 'unfitted breaker faces in the panel art').toBeGreaterThan(0);
+    for (const id of breakers) {
+      const { x, y, w, h } = placed[id].rect;
+      for (const face of inert) {
+        const covers = face.x > x && face.x < x + w && face.y > y && face.y < y + h;
+        expect(covers, `${id} over the face at ${face.x}`).toBe(false);
+      }
     }
-    expect(rect.y).toBeLessThan(views.panel.indicators.tachometer.rect.y + 20);
+  });
+
+  it.each(breakers)('draws the %s knob on the right plate, its touch box inside the view', (id) => {
+    const { x, y, r } = knob(id);
+    expect(x - r).toBeGreaterThanOrEqual(rightPlate.x);
+    expect(x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
+    expect(y - r).toBeGreaterThanOrEqual(rightPlate.y);
+    expect(y + r).toBeLessThanOrEqual(rightPlate.y + rightPlate.h);
+    const { rect } = placed[id];
+    expect(rect.x + rect.w).toBeLessThanOrEqual(views.panel.size.width);
+    expect(rect.y + rect.h).toBeLessThanOrEqual(views.panel.size.height);
+  });
+
+  it.each(breakers)(
+    'draws the %s knob inside its touch box, its disc where its collar is',
+    (id) => {
+      const { x, y, w, h } = placed[id].rect;
+      const { x: kx, y: ky, r } = knob(id);
+      expect(kx - r).toBeGreaterThanOrEqual(x);
+      expect(kx + r).toBeLessThanOrEqual(x + w);
+      expect(ky - r).toBeGreaterThanOrEqual(y);
+      expect(ky + r).toBeLessThanOrEqual(y + h);
+      const artwork = artworkOf(controls[id].appearance);
+      if (artwork?.moving.type !== 'positions') throw new Error(`${id} has no positions`);
+      const face = knobIn(read(artwork.face));
+      for (const image of Object.values(artwork.moving.images)) {
+        const disc = knobIn(read(image));
+        expect({ x: disc.x, y: disc.y }, fileOf(image)).toEqual({ x: face.x, y: face.y });
+      }
+    },
+  );
+
+  it('sets the knobs in two straight rows 0.22 A apart and seven columns 0.36 A apart', () => {
+    const top = ['comBreaker', 'xpdrBreaker'] as const;
+    const bottom = [
+      'landingBreaker',
+      'strobeBreaker',
+      'positionBreaker',
+      'intercomBreaker',
+      'gpsBreaker',
+    ] as const;
+    const topY = knob('comBreaker').y;
+    const bottomY = knob('landingBreaker').y;
+    top.forEach((id) => expect(knob(id).y, id).toBeCloseTo(topY, 5));
+    bottom.forEach((id) => expect(knob(id).y, id).toBeCloseTo(bottomY, 5));
+    expect((bottomY - topY) / unitA).toBeGreaterThanOrEqual(0.19);
+    expect((bottomY - topY) / unitA).toBeLessThanOrEqual(0.25);
+
+    const column1 = knob('landingBreaker').x;
+    const pitch = (knob('gpsBreaker').x - column1) / 6;
+    expect(pitch / unitA).toBeGreaterThanOrEqual(0.33);
+    expect(pitch / unitA).toBeLessThanOrEqual(0.4);
+    const columns: Record<BreakerId, number> = {
+      comBreaker: 1,
+      xpdrBreaker: 3,
+      landingBreaker: 1,
+      strobeBreaker: 4,
+      positionBreaker: 5,
+      intercomBreaker: 6,
+      gpsBreaker: 7,
+      outletBreaker: 2,
+    };
+    breakers.forEach((id) =>
+      expect(Math.abs(knob(id).x - (column1 + (columns[id] - 1) * pitch)), id).toBeLessThan(1),
+    );
+    const outletDrop = (knob('outletBreaker').y - bottomY) / unitA;
+    expect(outletDrop).toBeGreaterThanOrEqual(0.25);
+    expect(outletDrop).toBeLessThanOrEqual(0.37);
+  });
+
+  it('draws each knob about a quarter of the tachometer across', () => {
+    breakers.forEach((id) => {
+      const ratio = (2 * knob(id).r) / tachometer.rect.w;
+      expect(ratio, id).toBeGreaterThanOrEqual(0.22);
+      expect(ratio, id).toBeLessThanOrEqual(0.3);
+    });
+  });
+
+  it('spans about three quarters of the right plate, starting just inside its inner edge', () => {
+    const { x: left, r } = knob('landingBreaker');
+    const span = knob('gpsBreaker').x + r - (left - r);
+    expect(span / rightPlate.w).toBeGreaterThanOrEqual(0.65);
+    expect(span / rightPlate.w).toBeLessThanOrEqual(0.8);
+    expect((left - r - rightPlate.x) / rightPlate.w).toBeGreaterThanOrEqual(0);
+    expect((left - r - rightPlate.x) / rightPlate.w).toBeLessThanOrEqual(0.1);
+    expect(knob('gpsBreaker').x + r).toBeLessThanOrEqual(rightPlate.x + rightPlate.w);
   });
 });
 
 describe('CTSL gauges', () => {
-  it('marks the airspeed dial with the photographed arcs and VNE 300 km/h', () => {
-    const { options, artwork } = gauges.airspeed;
-    expect(options).toMatchObject({ min: 40, max: 340, units: 'km/h' });
-    expect(options?.['arcs']).toEqual([
-      { from: 72, to: 115, colour: 'white' },
-      { from: 94, to: 245, colour: 'green' },
-      { from: 245, to: 300, colour: 'yellow' },
-      { from: 299, to: 301, colour: 'red' },
-    ]);
-    const face = read(artwork.face);
-    const labels = [...face.matchAll(/>(\d+)<\/text>/g)].map(([, value]) => Number(value));
-    expect(labels).toEqual([40, 80, 120, 160, 200, 240, 280, 320]);
-  });
-
-  it('reads the vertical speed in ft/min, ±2000, ticks every 500, printed as thousands', () => {
-    const { options, artwork } = gauges.verticalSpeed;
-    expect(options).toMatchObject({ min: -2000, max: 2000, units: 'ft/min' });
-    expect(options?.['ticks']).toEqual([-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000]);
-    const face = read(artwork.face);
-    const labels = [...face.matchAll(/<text\b[^>]*>([\d.]+)<\/text>/g)].map(([, value]) => value);
-    expect(labels.slice(0, 9)).toEqual(['2', '1.5', '1', '.5', '0', '.5', '1', '1.5', '2']);
-  });
-
-  it('reads the voltmeter 9 to 17 V, a bus voltage the trainer assumes (intake §3.5)', () => {
-    const { options, artwork } = gauges.voltmeter;
-    expect(options).toMatchObject({ min: 9, max: 17, units: 'V' });
-    const face = read(artwork.face);
-    const labels = [...face.matchAll(/>(\d+)<\/text>/g)].map(([, value]) => Number(value));
-    expect(labels).toEqual([10, 12, 14, 16]);
-  });
-
-  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) => artwork.moving.type === 'needle');
-
-  const scales: Record<string, { min: number; max: number }> = {
-    airspeed: { min: 40, max: 340 },
-    tachometer: { min: 0, max: 7000 },
-    oilPressure: { min: 0, max: 10 },
-    oilTemperature: { min: 40, max: 150 },
-    cht: { min: 40, max: 150 },
-    verticalSpeed: { min: -2000, max: 2000 },
-    altimeter: { min: 0, max: 5000 },
-    voltmeter: { min: 9, max: 17 },
-  };
-  const sweeps: Record<string, { min: number; max: number }> = {
-    verticalSpeed: { min: -225, max: 45 },
-  };
-  const standardSweep = { min: -135, max: 135 };
-
-  it.each(Object.entries(scales))('draws %s as a needle over its intake scale', (id, scale) => {
-    const entry = gaugeArtwork.find((gauge) => gauge.id === id);
-    expect(entry, id).toBeDefined();
-    const moving = entry?.artwork.moving;
-    expect(moving?.type).toBe('needle');
-    if (moving?.type !== 'needle') return;
-    expect(moving.valueRange).toEqual(scale);
-    expect(moving.angleRange).toEqual(sweeps[id] ?? standardSweep);
-    expect(moving.pivot).toEqual({ x: 100, y: 100 });
-  });
-
-  it('letters each face only where the needle never sweeps', () => {
-    const textTag =
-      /<text x="([\d.]+)" y="([\d.]+)" font-size="(\d+)"[^>]*text-anchor="(\w+)"[^>]*>([^<]*)<\/text>/g;
-    for (const { id, artwork } of gaugeArtwork) {
-      const { moving } = artwork;
-      if (moving.type !== 'needle') continue;
-      let lettering = 0;
-      for (const [, x, y, size, anchor, content] of read(artwork.face).matchAll(textTag)) {
-        const [cx, cy, fontSize] = [Number(x) - 100, Number(y) - 100, Number(size)];
-        if (/^\d*\.?\d+$/.test(content ?? '') && Math.abs(Math.hypot(cx, cy) - 46) < 3) continue;
-        lettering += 1;
-        const width = (content?.length ?? 0) * 0.72 * fontSize;
-        const left = anchor === 'start' ? cx : cx - width / 2;
-        for (const dx of [left, left + width]) {
-          for (const dy of [cy - fontSize / 2, cy + fontSize / 2]) {
-            const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
-            const swept = [-360, 0, 360].some(
-              (turn) =>
-                angle + turn >= moving.angleRange.min - 3 &&
-                angle + turn <= moving.angleRange.max + 3,
-            );
-            expect(swept, `${id}: "${content}" at ${dx.toFixed(0)},${dy.toFixed(0)}`).toBe(false);
-          }
-        }
-      }
-      expect(lettering, id).toBeGreaterThan(0);
-    }
-  });
-
-  // Scale values in the order each face prints its numerals.
-  const printedScales: Record<string, number[]> = {
-    airspeed: [40, 80, 120, 160, 200, 240, 280, 320],
-    verticalSpeed: [2000, 1500, 1000, 500, 0, -500, -1000, -1500, -2000],
-    altimeter: [0, 1000, 2000, 3000, 4000, 5000],
-    tachometer: [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000],
-    oilPressure: [0, 2, 4, 6, 8, 10],
-    oilTemperature: [50, 70, 90, 110, 130, 150],
-    cht: [50, 70, 90, 110, 130, 150],
-    voltmeter: [10, 12, 14, 16],
-  };
-
-  it.each(Object.entries(printedScales))('prints every %s numeral on its tick', (id, values) => {
-    const entry = gaugeArtwork.find((gauge) => gauge.id === id);
-    const moving = entry?.artwork.moving;
-    if (!entry || moving?.type !== 'needle') throw new Error(`${id} has no needle`);
-    const { angleRange, valueRange } = moving;
-    const numerals = [
-      ...read(entry.artwork.face).matchAll(
-        /<text x="([\d.]+)" y="([\d.]+)"[^>]*>(\d*\.?\d+)<\/text>/g,
-      ),
-    ]
-      .map(([, x, y, content]) => ({ dx: Number(x) - 100, dy: Number(y) - 100, content }))
-      .filter(({ dx, dy }) => Math.abs(Math.hypot(dx, dy) - 47) < 7);
-    expect(numerals).toHaveLength(values.length);
-    numerals.forEach(({ dx, dy, content }, index) => {
-      const value = values[index] ?? NaN;
-      const tick =
-        angleRange.min +
-        ((value - valueRange.min) / (valueRange.max - valueRange.min)) *
-          (angleRange.max - angleRange.min);
-      const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
-      const off = Math.min(...[-360, 0, 360].map((turn) => Math.abs(angle + turn - tick)));
-      expect(off, `${id}: "${content}" for ${value} at ${angle.toFixed(1)}°`).toBeLessThan(1);
-    });
-  });
+  const gaugeArtwork = indicatorArtwork.filter(({ artwork }) =>
+    ['needle', 'needles'].includes(artwork.moving.type),
+  );
+  const fixedFaces = ['slipIndicator', 'hourMeter'];
 
   it('keeps every round gauge on drawn artwork and its full name', () => {
-    expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(Object.keys(scales).sort());
+    expect(gaugeArtwork.map(({ id }) => id).sort()).toEqual(
+      Object.keys(gauges)
+        .filter((id) => !fixedFaces.includes(id))
+        .sort(),
+    );
     for (const { indicator } of gaugeArtwork) {
       expect(indicator.name.en.length).toBeGreaterThan(0);
       expect(indicator.name.de.length).toBeGreaterThan(0);
     }
+  });
+
+  it('gives a gauge the needle and glass it names and no glass when it names none', () => {
+    const parts = { image: 'needle.svg', glass: 'glass.svg' };
+    const { artwork } = needle('face.svg', { min: 0, max: 1 }, {}, undefined, parts);
+    expect(artwork.glass).toBe('glass.svg');
+    expect(artwork.moving.type === 'needle' && artwork.moving.image).toBe('needle.svg');
+    expect(
+      needle('face.svg', { min: 0, max: 1 }, {}, undefined, { image: 'needle.svg' }).artwork,
+    ).not.toHaveProperty('glass');
+  });
+
+  it('gives every gauge its own module and test file', () => {
+    const files: string[] = readdirSync(new URL('./artwork/gauges/', import.meta.url));
+    const helpers = ['shared.ts', 'test-support.ts', 'cht-test-support.ts', 'temperature-dial.ts'];
+    const modules = files.filter((file) => !file.endsWith('.test.ts') && !helpers.includes(file));
+    const tests = files.filter((file) => file.endsWith('.test.ts'));
+    const kebab = Object.keys(gauges)
+      .map((id) => id.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`))
+      .sort();
+    expect(modules.map((file) => file.replace(/\.ts$/, '')).sort()).toEqual(kebab);
+    expect(tests.map((file) => file.replace(/\.test\.ts$/, '')).sort()).toEqual(kebab);
+  });
+});
+
+describe('CTSL slip indicator and hour meter', () => {
+  type Id = 'slipIndicator' | 'hourMeter' | 'airspeed' | 'verticalSpeed';
+  const rect = (id: Id) => views.panel.indicators[id].rect;
+  const centre = (id: Id) => ({ x: rect(id).x + rect(id).w / 2, y: rect(id).y + rect(id).h / 2 });
+  const artworkOfIndicator = (id: string) =>
+    indicatorArtwork.find((entry) => entry.id === id)?.artwork;
+  const panel = () =>
+    readFileSync(new URL(`./assets/${fileOf(views.panel.image)}`, import.meta.url), 'utf8');
+  const capture = (pattern: RegExp, text: string, what: string): number => {
+    const found = pattern.exec(text)?.[1];
+    if (found === undefined) throw new Error(`no ${what} in the artwork`);
+    return Number(found);
+  };
+
+  it('draws the two as indicators with their own face, not in the panel backdrop', () => {
+    expect(artworkOfIndicator('slipIndicator')?.moving.type).toBe('positions');
+    expect(artworkOfIndicator('hourMeter')?.moving.type).toBe('positions');
+    expect(panel()).not.toContain('#C04A3A');
+  });
+
+  // Intake §3.9.2: the slip indicator is the VSI's size, 0.71 of the airspeed indicator, in the
+  // left plate's lower row under the airspeed indicator.
+  it('sizes the slip indicator like the VSI, 0.71 of the airspeed indicator', () => {
+    expect(rect('slipIndicator').w).toBe(rect('verticalSpeed').w);
+    expect(rect('slipIndicator').h).toBe(rect('verticalSpeed').h);
+    expect(rect('slipIndicator').w / rect('airspeed').w).toBeCloseTo(0.71, 2);
+    expect(centre('slipIndicator').y).toBeCloseTo(centre('verticalSpeed').y, 0);
+    expect(centre('slipIndicator').y).toBeGreaterThan(rect('airspeed').y + rect('airspeed').h);
+    expect(Math.abs(centre('slipIndicator').x - centre('airspeed').x)).toBeLessThan(
+      0.02 * rect('airspeed').w,
+    );
+  });
+
+  // Intake §3.10.10: face 0.45 A by 0.28 A, a screw beyond each end; the box holds the screws.
+  it('gives the hour meter its 0.45 A by 0.28 A face right of the engine gauges', () => {
+    const { w, h } = rect('hourMeter');
+    const face = artworkOfIndicator('hourMeter')?.face ?? '';
+    const faceWidth = capture(
+      /<rect x="[\d.]+" y="0" width="([\d.]+)"[^>]*data-face/,
+      read(face),
+      'data-face rect',
+    );
+    const box = sizeOf(face);
+    const scale = w / Number(box.width);
+    expect((faceWidth * scale) / rect('airspeed').w).toBeCloseTo(0.45, 2);
+    expect(Number(box.height) * scale).toBeCloseTo(h, 0);
+    expect(h / rect('airspeed').w).toBeCloseTo(0.28, 2);
+    const { oilPressure, voltmeter } = views.panel.indicators;
+    expect(rect('hourMeter').x).toBeGreaterThan(oilPressure.rect.x + oilPressure.rect.w);
+    const voltmeterAxis = voltmeter.rect.x + voltmeter.rect.w / 2;
+    expect((centre('hourMeter').x - voltmeterAxis) / rect('airspeed').w).toBeCloseTo(0.6, 2);
+    const voltmeterY = voltmeter.rect.y + voltmeter.rect.h / 2;
+    const rowPitch = oilPressure.rect.y + oilPressure.rect.h / 2 - voltmeterY;
+    const expectedY = voltmeterY + rowPitch * 0.6;
+    expect(Math.abs(centre('hourMeter').y - expectedY)).toBeLessThan(0.05 * rowPitch);
+  });
+
+  it('draws the slip ball centred in the tube, on a face with one legend and two lines', () => {
+    const face = read(artworkOfIndicator('slipIndicator')?.face ?? '');
+    expect(face.match(/<text\b/g)).toHaveLength(1);
+    expect(face).toContain('>SLIP INDICATOR</text>');
+    expect(face.match(/<line\b[^>]*data-reference/g)).toHaveLength(2);
+    const artwork = artworkOfIndicator('slipIndicator');
+    if (artwork?.moving.type !== 'positions') throw new Error('the ball has positions');
+    const ball = read(artwork.moving.images.true ?? '');
+    const R = 98;
+    const within = (actual: number, expected: number) =>
+      expect(Math.abs(actual - expected)).toBeLessThanOrEqual(0.03 * R);
+    expect(capture(/<circle cx="([\d.]+)"[^>]*data-ball/, ball, 'ball cx')).toBe(100);
+    within(capture(/<circle[^>]*cy="([\d.]+)"[^>]*data-ball/, ball, 'ball cy'), 100 + 0.06 * R);
+    within(capture(/<circle[^>]*r="([\d.]+)"[^>]*data-ball/, ball, 'ball r'), 0.13 * R);
+    const lineXs = [...face.matchAll(/<line\b[^>]*x1="([\d.]+)"[^>]*data-reference/g)].map(
+      ([, x]) => Number(x),
+    );
+    expect(lineXs).toHaveLength(2);
+    within(lineXs[0] ?? Number.NaN, 100 - 0.14 * R);
+    within(lineXs[1] ?? Number.NaN, 100 + 0.14 * R);
+  });
+
+  it('has a stopped and a running image for the hour meter glyph', () => {
+    const artwork = artworkOfIndicator('hourMeter');
+    if (artwork?.moving.type !== 'positions') throw new Error('the hour meter has positions');
+    expect(Object.keys(artwork.moving.images).sort()).toEqual(['false', 'true']);
   });
 });
 
@@ -584,12 +775,18 @@ describe('CTSL view backdrops', () => {
     expect(svg).toMatch(/<pattern\b[^>]*>(?:(?!<\/pattern>).)*filter="url\(/s);
   });
 
+  // D-MPGO prints "Push off" under the header too; the trainer leaves it out by owner decision,
+  // as it reads as if a pushed-in breaker were off (#729, intake §3.9.5).
   it("heads the breaker block in the panel's own wording, beside the outlet breaker", () => {
     const { x, y, w } = views.panel.controls.outletBreaker.rect;
-    const header = [...backdrop('panel').matchAll(/<text x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</g)]
+    const header = [
+      ...backdrop('panel').matchAll(
+        /<text x="([\d.]+)" y="([\d.]+)"(?![^>]*data-decor)[^>]*>([^<]*)</g,
+      ),
+    ]
       .filter(([, textX, textY]) => Number(textX) > x + w && Number(textY) >= y)
       .map(([, , , content]) => content);
-    expect(header.join(' ')).toBe('Circuit Breakers Push off');
+    expect(header.join(' ')).toBe('Circuit Breakers');
   });
 
   // Corrected from the photos (intake §3.2a): each unit draws its whole face, the cradle included.
@@ -645,50 +842,19 @@ describe('CTSL view backdrops', () => {
     expect(overlapping).toEqual([]);
   });
 
-  describe('the upper-centre field (intake §3.7.1)', () => {
+  describe('the three upper plates (intake §3.9.1)', () => {
     const svg = backdrop('panel');
-    const fields = [
-      ...svg.matchAll(
-        /<rect x="([\d.]+)" y="[\d.]+" width="[\d.]+" height="([\d.]+)"[^>]*fill="url\(#(\w+)\)"/g,
-      ),
-    ]
-      .filter(([, , h]) => Number(h) >= 0.95 * views.panel.size.height)
-      .map(([, x, , fill = '']) => ({ x: Number(x), fill }));
-    const fillsAt = (x: number) => fields.filter((field) => field.x === x).map(({ fill }) => fill);
-    const xs = [...new Set(fields.map(({ x }) => x))].sort((a, b) => a - b);
-    const [left = 0, centre = 0, right = 0] = xs;
-    const luminance = (hex: string) => {
-      const [r = 0, g = 0, b = 0] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    };
-    const stops = (id: string) => {
-      const gradient = new RegExp(`<linearGradient id="${id}"[^>]*>(.*?)</linearGradient>`).exec(
-        svg,
-      )?.[1];
-      return [...(gradient ?? '').matchAll(/stop-color="(#[0-9A-Fa-f]{6})"/g)].map(([, hex = '']) =>
-        luminance(hex),
-      );
-    };
-    const base = (x: number) => fillsAt(x).find((fill) => stops(fill).length > 0) ?? '';
+    const plates = [
+      ...svg.matchAll(/<(?:rect|path) data-plate="(\w+)"[^>]*fill="url\(#(\w+)\)"/g),
+    ].map(([, plate, fill]) => ({ plate, fill }));
 
-    it('is the middle one of three upper fields', () => {
-      expect(xs).toHaveLength(3);
+    it('draws a left, a centre and a right plate', () => {
+      expect(plates.map(({ plate }) => plate).sort()).toEqual(['centre', 'left', 'right']);
     });
 
-    it('is painted light aluminium, lighter than every stop of the dark side fields', () => {
-      const aluminium = stops(base(centre));
-      const dark = [...stops(base(left)), ...stops(base(right))];
-      expect(aluminium.length).toBeGreaterThan(0);
-      expect(dark.length).toBeGreaterThan(0);
-      expect(Math.min(...aluminium)).toBeGreaterThan(Math.max(...dark));
-    });
-
-    it('is brushed: a pattern of horizontal hairlines lies over it', () => {
-      const brushed = fillsAt(centre).filter((fill) => {
-        const pattern = new RegExp(`<pattern id="${fill}"[^>]*>(.*?)</pattern>`).exec(svg)?.[1];
-        return pattern !== undefined && /<path d="M0 [\d.]+H\d+/.test(pattern);
-      });
-      expect(brushed).toHaveLength(1);
+    it("paints the centre plate in the outer plates' colour (#716)", () => {
+      expect(new Set(plates.map(({ fill }) => fill)).size).toBe(1);
+      expect(svg).toMatch(new RegExp(`<linearGradient id="${plates[0]?.fill}"`));
     });
   });
 
@@ -709,14 +875,20 @@ describe('CTSL view backdrops', () => {
   it.each(['panel', 'centre', 'console'] as const)('keeps the %s lettering in place', (id) => {
     const expected = {
       panel: [
-        'TAKEOFF CHECKLIST@238,80/37',
-        'KUNSTFLUG UND@238,626/37',
-        'TRUDELN VERBOTEN@238,662/37',
-        'Cabin Heat@979.5,85/38',
-        'TAKEOFF@1449,196/37',
-        'CHECKLIST@1449,238/37',
-        'Circuit Breakers@2080,608/40',
-        'Push off@2080,650/40',
+        'D-MPGO@417.49,165.06/54',
+        'TAKEOFF@652,142/37',
+        'CHECKLIST@652,178/37',
+        'KUNSTFLUG UND TRUDELN VERBOTEN@592,617/15',
+        'TAKEOFF@1148,88/37',
+        'CHECKLIST@1148,124/37',
+        'Nav@1467,507/12',
+        'Autopilot@1605,507/12',
+        'HS34@1674,507/12',
+        'EFIS@1743,507/12',
+        'EMS@1812,507/12',
+        'Instrument@1536,603/12',
+        'Light@1536,615/12',
+        'Circuit Breakers@1640,652/35',
       ],
       centre: [
         'AVIONICS OFF TO START AND STOP@570,272/29',
@@ -750,12 +922,12 @@ describe('CTSL view backdrops', () => {
         'Aileron Trim@166,430/28',
         'L@68,460/28',
         'R@264,460/28',
-        'Ballistic@452,368/28',
-        'rescue@452,400/28',
-        'parachute@452,432/28',
-        'Rudder Trim@770,422/28',
-        'L@676,462/28',
-        'R@864,462/28',
+        'Ballistic@574,368/28',
+        'rescue@574,400/28',
+        'parachute@574,432/28',
+        'Rudder Trim@886,422/28',
+        'L@792,462/28',
+        'R@980,462/28',
       ],
     }[id];
     expect(lettering(backdrop(id))).toEqual(expected);

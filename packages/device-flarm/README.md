@@ -10,8 +10,10 @@ start-up self-test and the mode-swap confirmation.
 
 The display maker's external-display data sheet (version 5.1e, display hardware 1.0 and 2.0)
 and the FLARM operating manual (version 242), as paraphrased in `docs/aircraft/ctsl-intake.md`
-section 3.8.4. The sheet defers most timings to the unit's manual. Assumptions, none settled by
-a source (intake section 9, questions 33, 34 and 39):
+section 3.8.4. The sheet defers most timings to the unit's manual. The owner answered question 34
+(the club does not check the FLARM before take-off, so no procedure does) and declined simulated
+traffic (question 39). Assumptions, none settled by a source (intake section 9, questions 33 and
+39):
 
 - The unit is powered from the aircraft's avionics bus with no breaker of its own.
 - `SELF_TEST_STEP_MS` (one LED per step), `CONFIRM_STEP_MS`, `ACQUIRE_MS` (counted from power
@@ -41,6 +43,14 @@ a source (intake section 9, questions 33, 34 and 39):
 The unit has no switch: it is on whenever the install's `powered` condition holds. Power arriving
 runs the self-test (ring, above, below, then the status column), ends in Nearest mode at loud
 volume and starts the GPS search. Power lost drops the search and the confirmation.
+
+## Power cycle
+
+Intake section 3.8.4, "Power loss and return" and "Power cycle (trainer, #727)"; assumptions in intake section 9 questions 33 and 69.
+
+- Modelled, from the manuals: the unit switches on by itself with its supply and every start is in Nearest mode at loud volume; a low supply flashes `Power`.
+- Assumed (questions 33 and 69): the unit has no breaker of its own, so only the avionics bus takes it down; the chosen volume and mode do not survive a power loss; the self-test and the GPS search restart from nothing, with the trainer's own timings.
+- A pull during the self-test, the search or a mode-swap confirmation drops it; a Mode key held through the return counts from the end of the self-test.
 
 ## Display
 

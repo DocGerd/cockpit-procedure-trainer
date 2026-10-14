@@ -11,42 +11,48 @@ const at = (x: number, y: number, w: number, h: number, ...printed: string[]): P
   ...(printed.length > 0 ? { printed } : {}),
 });
 
-// Each slot keeps its mirror's aspect and is at least its natural size, so the mirror lettering
-// stays legible at the panel floor; the GPS takes the field's height between the glareshield strip
-// and the radio row, toward its photographed size. Positions follow D-MPGO's panel as far as the
-// sizes allow (intake §3.2a).
+// D-MPGO's arrangement and relative sizes (intake §3.9.3): the FLARM display top left beside the
+// checklist card, the GPS dominating mid-field, centred over the COM and transponder pair. Each
+// slot keeps its mirror's aspect; the dock holds the full-size unit.
 export const deviceSlots = {
-  flarm: at(500, 150, 320, 160),
-  gps: at(850, 123, 440, 275),
-  com: at(540, 404, 272, 272),
-  xpdr: at(832, 404, 272, 272),
+  flarm: at(890, 56, 120, 60),
+  gps: at(897, 225, 347, 217),
+  com: at(899, 500, 139, 139),
+  xpdr: at(1088, 500, 139, 139),
 } as const satisfies Record<string, Placement>;
 
 export const views = {
   panel: {
     name: text('Instrumententafel', 'Panel'),
     image: images.panel,
-    size: { width: 2372, height: 700 },
+    size: { width: 2110, height: 700 },
+    // D-MPGO's breaker block at its own pitch (intake §3.9.4). Each touch box is the touch target
+    // at the floor; where neighbours stand closer than that, the box sits off-centre round its knob.
     controls: {
-      comBreaker: at(1650, 372, 100, 96),
-      xpdrBreaker: at(1850, 372, 100, 96),
-      landingBreaker: at(1650, 468, 100, 96),
-      strobeBreaker: at(1950, 468, 100, 96),
-      positionBreaker: at(2050, 468, 100, 96),
-      intercomBreaker: at(2150, 468, 100, 96),
-      gpsBreaker: at(2250, 468, 100, 96),
-      outletBreaker: at(1650, 564, 100, 96),
+      comBreaker: at(1356, 469, 84, 84),
+      xpdrBreaker: at(1494, 469, 84, 84),
+      landingBreaker: at(1347, 555, 84, 84),
+      strobeBreaker: at(1539, 555, 84, 84),
+      positionBreaker: at(1623, 555, 84, 84),
+      intercomBreaker: at(1707, 555, 84, 84),
+      gpsBreaker: at(1791, 555, 84, 84),
+      outletBreaker: at(1446, 616, 84, 84),
+      // The knob on its lug at the altimeter's lower left (intake §3.10.2), with its tap area
+      // grown around it to the touch target at the floor, clear of the airspeed indicator and VSI.
+      altimeterSetting: at(532, 340, 100, 100),
     },
     indicators: {
-      airspeed: at(22, 122, 220, 220),
-      altimeter: at(248, 134, 196, 196),
-      verticalSpeed: at(248, 358, 196, 196),
-      tachometer: at(1654, 40, 210, 210),
-      cht: at(1878, 40, 150, 150),
-      voltmeter: at(2034, 40, 150, 150),
-      oilTemperature: at(1878, 196, 150, 150),
-      oilPressure: at(2034, 196, 150, 150),
-      chargeLamp: at(2196, 36, 150, 90),
+      airspeed: at(307, 196, 193, 193),
+      altimeter: at(556, 198, 193, 193),
+      slipIndicator: at(338, 442, 137, 137),
+      verticalSpeed: at(588, 442, 137, 137),
+      tachometer: at(1386, 126, 139, 139),
+      cht: at(1411, 292, 77, 77),
+      voltmeter: at(1512, 292, 77, 77),
+      oilTemperature: at(1411, 391, 77, 77),
+      oilPressure: at(1512, 391, 77, 77),
+      hourMeter: at(1605, 363, 123, 54),
+      chargeLamp: at(1545, 88, 150, 90),
     },
   },
   centre: {
@@ -83,7 +89,7 @@ export const views = {
       choke: at(242, 8, 180, 292),
       throttle: at(434, 8, 200, 292),
       brake: at(646, 8, 180, 292),
-      parkingBrakeValve: at(930, 332, 180, 180),
+      parkingBrakeValve: at(1016, 332, 180, 180),
       carbHeat: at(940, 16, 150, 300),
       rescueHandle: at(492, 494, 216, 290),
     },

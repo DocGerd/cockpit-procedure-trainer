@@ -1,13 +1,13 @@
 import { defineDevice } from '@cpt/core';
 import type { Text } from '@cpt/core';
 
-export const POWER_OFF_HOLD_MS = 3000;
-export const MEM_SAVE_HOLD_MS = 1500;
-/** SET held this long opens the setup menu, which is not modelled. */
-export const SETUP_MENU_HOLD_MS = 5000;
-export const MENU_TIMEOUT_MS = 10_000;
-export const MEMORY_SLOTS = 20;
+export const POWER_OFF_HOLD_MS = 2000;
+/** A SET hold this long returns line 3 to VOL; a MEM hold this long in the memory list stores. */
+export const LONG_PRESS_MS = 1500;
+export const MENU_TIMEOUT_MS = 12_000;
+export const MEMORY_SLOTS = 100;
 export const RECENT_LIMIT = 10;
+export const DUAL_WATCH_MIN_SQL = 2;
 
 /** The last two digits of the 16 channel names in a 100 kHz block at 8.33 kHz spacing. */
 export const CHANNEL_NAMES = [
@@ -22,7 +22,7 @@ const MAX_TENTHS = 9;
 const INITIAL_ACTIVE_KHZ = 118_000;
 const INITIAL_STANDBY_KHZ = 119_000;
 
-/** Marks a press that must not act: it began while the unit was off or switched it on. */
+/** Marks a press that must not act: it began while the unit was off, switched it on or already acted. */
 const IGNORED = -1;
 
 export const KEY_IDS = ['power', 'set', 'mem', 'dw', 'swap', 'cursor'] as const;
@@ -35,26 +35,24 @@ type HoldKey = (typeof HOLD_KEYS)[number];
 export const CURSORS = ['mhz', 'tenths', 'channel'] as const;
 export type Atr833Cursor = (typeof CURSORS)[number];
 
-export const ITEMS = ['vol', 'sql', 'vox', 'int', 'stl', 'str', 'ext', 'brt'] as const;
+export const ITEMS = ['vol', 'sql', 'dim', 'vox', 'dwm', 'int', 'ext'] as const;
 export type Atr833Item = (typeof ITEMS)[number];
 
 const RANGES: Readonly<Record<Atr833Item, readonly [min: number, max: number]>> = {
-  vol: [1, 20],
-  sql: [0, 9],
-  vox: [0, 9],
-  int: [1, 20],
-  stl: [1, 20],
-  str: [1, 20],
-  ext: [0, 20],
-  brt: [0, 9],
+  vol: [1, 16],
+  sql: [1, 10],
+  dim: [1, 10],
+  vox: [1, 10],
+  dwm: [-8, 0],
+  int: [1, 10],
+  ext: [0, 10],
 };
 
 export type Atr833Settings = Readonly<Record<Atr833Item, number>>;
 
-export type Atr833List = {
-  readonly kind: 'mem' | 'lst' | 'save';
-  readonly index: number;
-} | null;
+type ListKind = 'mem' | 'lst';
+type OpenList = { readonly kind: ListKind; readonly index: number };
+export type Atr833List = OpenList | null;
 
 export type Atr833State = {
   readonly on: boolean;
@@ -68,7 +66,8 @@ export type Atr833State = {
   readonly list: Atr833List;
   readonly memory: readonly (number | null)[];
   readonly recent: readonly number[];
-  readonly saved: boolean;
+  /** `LST 00`: the last standby frequency the memory list set. */
+  readonly lastFromMemory: number | null;
   readonly idleMs: number;
   readonly held: Readonly<Record<ControlId, string>>;
   readonly heldMs: Readonly<Record<HoldKey, number>>;
@@ -146,30 +145,27 @@ function stepFrequency(khz: number, cursor: Atr833Cursor, direction: number): nu
   return next.mhz * KHZ_PER_MHZ + next.tenths * KHZ_PER_BLOCK + (CHANNEL_NAMES[next.channel] ?? 0);
 }
 
-const listLength = (state: Atr833State, kind: 'mem' | 'lst' | 'save'): number =>
-  kind === 'lst' ? Math.max(1, state.recent.length) : MEMORY_SLOTS;
+// LST 00 comes before the last-used frequencies.
+const listLength = (state: Atr833State, kind: ListKind): number =>
+  kind === 'lst' ? 1 + state.recent.length : MEMORY_SLOTS;
 
-export function listEntry(state: Atr833State): number | null {
-  const list = state.list;
-  if (list === null || list.kind === 'save') return null;
-  return (list.kind === 'mem' ? state.memory[list.index] : state.recent[list.index]) ?? null;
-}
+const entryOf = (state: Atr833State, { kind, index }: OpenList): number | null =>
+  (kind === 'mem'
+    ? state.memory[index]
+    : index === 0
+      ? state.lastFromMemory
+      : state.recent[index - 1]) ?? null;
+
+export const listEntry = (state: Atr833State): number | null =>
+  state.list === null ? null : entryOf(state, state.list);
 
 const pad = (value: number): string => String(value).padStart(2, '0');
+const formatValue = (value: number): string => (value < 0 ? `-${-value}` : pad(value));
 
 export function lineThree(state: Atr833State): string {
   const { list } = state;
-  if (list?.kind === 'save') return `MEM SAVE ${pad(list.index + 1)}`;
-  if (list !== null) return `${list.kind.toUpperCase()} ${pad(list.index + 1)}`;
-  const value = state.settings[state.item];
-  const shown = state.item === 'ext' && value === 0 ? 'off' : String(value);
-  return `${state.item.toUpperCase()} ${shown}`;
-}
-
-export function listPreview(state: Atr833State): string | null {
-  if (state.list === null || state.list.kind === 'save') return null;
-  const entry = listEntry(state);
-  return entry === null ? '---' : formatFrequency(entry);
+  if (list !== null) return `${list.kind.toUpperCase()} ${pad(list.index)}`;
+  return `${state.item.toUpperCase()} ${formatValue(state.settings[state.item])}`;
 }
 
 export function frequencyParts(khz: number): Record<Atr833Cursor, string> {
@@ -185,11 +181,11 @@ const initial: Atr833State = {
   cursor: 'mhz',
   dualWatch: false,
   item: 'vol',
-  settings: { vol: 10, sql: 5, vox: 5, int: 10, stl: 10, str: 10, ext: 0, brt: 9 },
+  settings: { vol: 10, sql: 5, dim: 10, vox: 5, dwm: 0, int: 5, ext: 0 },
   list: null,
   memory: Array.from({ length: MEMORY_SLOTS }, () => null),
   recent: [],
-  saved: false,
+  lastFromMemory: null,
   idleMs: 0,
   held: Object.fromEntries(
     CONTROL_IDS.map((id) => [id, id === 'volSel' || id === 'freq' ? 'rest' : 'released']),
@@ -197,7 +193,7 @@ const initial: Atr833State = {
   heldMs: { power: 0, set: 0, mem: 0 },
 };
 
-const transients = { dualWatch: false, item: 'vol', list: null, saved: false, idleMs: 0 } as const;
+const transients = { dualWatch: false, item: 'vol', list: null, idleMs: 0 } as const;
 
 const engaged = (position: string): boolean => position !== 'released' && position !== 'rest';
 const direction = (position: string): number => (position === 'up' ? 1 : -1);
@@ -226,57 +222,60 @@ const becomeActive = (state: Atr833State, active: number, standby: number): Atr8
   active,
   standby,
   dualWatch: false,
-  saved: false,
   recent: [active, ...state.recent.filter((khz) => khz !== active)].slice(0, RECENT_LIMIT),
 });
 
-const changeStandby = (state: Atr833State, standby: number): Atr833State => ({
-  ...state,
-  standby,
-  dualWatch: false,
-  saved: false,
-});
+const changeStandby = (state: Atr833State, standby: number): Atr833State =>
+  standby === state.standby ? state : { ...state, standby, dualWatch: false };
+
+/** Shows a list entry; the entry replaces the standby frequency at once. */
+function select(state: Atr833State, list: OpenList): Atr833State {
+  const entry = entryOf(state, list);
+  const next = { ...state, list };
+  if (entry === null) return next;
+  const lastFromMemory = list.kind === 'mem' ? entry : state.lastFromMemory;
+  return { ...changeStandby(next, entry), lastFromMemory };
+}
+
+const closeList = (state: Atr833State): Atr833State => ({ ...state, list: null });
 
 function pressSet(state: Atr833State): Atr833State {
-  const { list } = state;
-  if (list?.kind === 'save') return state;
-  if (list !== null) {
-    const entry = listEntry(state);
-    return entry === null ? state : { ...changeStandby(state, entry), list: null };
-  }
+  if (state.list !== null) return closeList(state);
   const next = ITEMS[(ITEMS.indexOf(state.item) + 1) % ITEMS.length] ?? 'vol';
   return { ...state, item: next };
 }
 
 function releaseMem(state: Atr833State): Atr833State {
   const { list } = state;
-  if (list === null) return { ...state, list: { kind: 'mem', index: 0 } };
-  if (list.kind === 'mem') return { ...state, list: { kind: 'lst', index: 0 } };
-  if (list.kind === 'lst') return { ...state, list: null };
-  const memory = state.memory.map((slot, index) => (index === list.index ? state.standby : slot));
-  return { ...state, memory, list: null, saved: true };
+  if (list === null) return select(state, { kind: 'mem', index: 0 });
+  if (list.kind === 'mem') return select(state, { kind: 'lst', index: 0 });
+  return closeList(state);
+}
+
+function storeActive(state: Atr833State, { index }: OpenList): Atr833State {
+  const memory = state.memory.map((slot, slotIndex) => (slotIndex === index ? state.active : slot));
+  return { ...changeStandby({ ...state, memory }, state.active), lastFromMemory: state.active };
 }
 
 function pressDualWatch(state: Atr833State): Atr833State {
-  if (state.list !== null || state.item !== 'vol') return { ...state, list: null, item: 'vol' };
-  return { ...state, dualWatch: !state.dualWatch && state.settings.sql >= 1 };
+  if (state.list !== null) return closeList(state);
+  return { ...state, dualWatch: !state.dualWatch && state.settings.sql >= DUAL_WATCH_MIN_SQL };
 }
 
-function pressSwap(state: Atr833State): Atr833State {
-  const { list } = state;
-  if (list?.kind === 'save') return state;
-  if (list !== null) {
-    const entry = listEntry(state);
-    return entry === null ? state : { ...becomeActive(state, entry, state.standby), list: null };
-  }
-  return becomeActive(state, state.standby, state.active);
-}
+const pressSwap = (state: Atr833State): Atr833State =>
+  closeList(becomeActive(state, state.standby, state.active));
+
+const nextCursor = (cursor: Atr833Cursor): Atr833Cursor =>
+  CURSORS[(CURSORS.indexOf(cursor) + 1) % CURSORS.length] ?? 'mhz';
+
+const pressCursor = (state: Atr833State): Atr833State =>
+  state.list !== null ? closeList(state) : { ...state, cursor: nextCursor(state.cursor) };
 
 function turnVolSel(state: Atr833State, step: number): Atr833State {
   const { list } = state;
   if (list !== null) {
     const length = listLength(state, list.kind);
-    return { ...state, list: { ...list, index: (list.index + step + length) % length } };
+    return select(state, { ...list, index: (list.index + step + length) % length });
   }
   const [min, max] = RANGES[state.item];
   const settings = {
@@ -286,9 +285,6 @@ function turnVolSel(state: Atr833State, step: number): Atr833State {
   return { ...state, settings };
 }
 
-const nextCursor = (cursor: Atr833Cursor): Atr833Cursor =>
-  CURSORS[(CURSORS.indexOf(cursor) + 1) % CURSORS.length] ?? 'mhz';
-
 function switchedOff(state: Atr833State): Atr833State {
   return { ...state, on: false, ...transients };
 }
@@ -296,76 +292,78 @@ function switchedOff(state: Atr833State): Atr833State {
 export const atr833Device = defineDevice({
   id: 'atr833',
   manual: text(
-    'funkwerk ATR833-OLED, Bedienung nach dem Handbuch ATR833-II (Dokument 01.143.010.71e, Revision 1.06), nur Bedienelemente der Frontplatte von D-MPGO; Abschnitt 3.8.1 der Aufnahme',
-    'funkwerk ATR833-OLED, operation from the ATR833-II manual (document 01.143.010.71e, revision 1.06), limited to the controls on D-MPGO’s face; intake section 3.8.1',
+    'funkwerk ATR833-OLED, Bedienung nach dem Handbuch ATR833A-OLED (Dokument 01.1411.010.71e, Revision 3.00, bei ManualsLib), nur Bedienelemente der Frontplatte von D-MPGO; Abschnitt 3.8.1 der Aufnahme',
+    'funkwerk ATR833-OLED, operation from the ATR833A-OLED manual (document 01.1411.010.71e, revision 3.00, hosted by ManualsLib), limited to the controls on D-MPGO’s face; intake section 3.8.1',
   ),
   notModelled: [
     text(
-      'Empfang, Senden und Audio (RX, TX, Te und die Sendezeitbegrenzung; Lautstärken sind nur Zahlen)',
-      'Reception, transmission and audio (RX, TX, Te and the stuck-microphone time-out; volumes are numbers only)',
+      'Empfang, Senden und Audio (RX, TX, Te und die Sendeabschaltung nach zwei Minuten; Lautstärken, DIM und DWM sind nur Zahlen)',
+      'Reception, transmission and audio (RX, TX, Te and the two-minute transmit cut-off; volumes, DIM and DWM are numbers only)',
     ),
-    text('Wiedergabe des letzten Anrufs (REPLAY)', 'REPLAY of the last call'),
     text(
-      'Das Einstellmenü (SET lang gedrückt): Kanalraster (fest 8,33 kHz), Display-Dimmung, Absenkung der Lautstärke bei Doppelhören, PTT-Wahl, Mikrofon-, Kopfhörer- und externe Audio-Einstellungen, AUTO ON (fest ein), Versionen',
-      'The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (fixed on), versions',
+      'Das Konfigurationsmenü (SET 5 s gedrückt): Kanalraster (fest 8,33 kHz), automatische Display-Abdunklung, PTT-Wahl, Vorrang des externen Audioeingangs, Mikrofonempfindlichkeiten, Testmodus',
+      'The configuration menu (SET held 5 s): spacing (fixed 8.33 kHz), automatic display darkening, PTT selection, external-audio priority, microphone sensitivities, test mode',
     ),
-    text('Speichernamen und Löschen eines Speichers', 'Memory names and clearing a slot'),
+    text('Speichernamen', 'Memory names'),
     text('Die Unterspannungswarnung BAT', 'The low-voltage BAT warning'),
-    text('Der Startbildschirm', 'The start screen'),
-    text('Das Zurücksetzen auf Werkseinstellungen', 'Factory reset'),
     text(
-      'Externe Tauschtaste, Bordsprechanlagenschalter, Fernbedienung und PC-Frequenzprogramm',
-      'The external swap button, intercom switch, remote control and PC frequency tool',
+      'Der Startbildschirm mit Typ und Softwareversion',
+      'The start screen with type and software version',
+    ),
+    text('Das Zurücksetzen auf Werkseinstellungen', 'Master reset'),
+    text(
+      'Externer Bordsprechanlagenschalter, Fernbedienung und PC-Frequenzprogramm',
+      'The external intercom switch, remote control and PC frequency tool',
     ),
   ],
   controls: {
     power: key(
       text('Ein/Aus', 'On/off'),
       text(
-        'Ein: eine Berührung schaltet das Gerät ein. Aus: lange gedrückt halten.',
-        'On: any press switches the unit on. Off: hold it down.',
+        'Ein: eine Berührung schaltet das Gerät ein. Aus: etwa 2 s gedrückt halten.',
+        'On: any press switches the unit on. Off: hold it down for about 2 s.',
       ),
     ),
     set: key(
       text('Einstellung', 'Set'),
       text(
-        'Schaltet die dritte Zeile durch ihre Einträge; in einer Liste: Eintrag in die Bereitschaftsfrequenz.',
-        'Steps the third line through its items; in a list, loads the entry into the standby frequency.',
+        'Schaltet die dritte Zeile durch ihre Einträge; lange gedrückt: zurück zu VOL; in einer Liste: Liste verlassen.',
+        'Steps the third line through its items; held, back to VOL; in a list, leaves the list.',
       ),
     ),
     mem: key(
       text('Speicher', 'Memory'),
       text(
-        'Öffnet die Speicherliste, dann die Liste der zuletzt aktiven Frequenzen; lange gedrückt: Speichern.',
-        'Opens the memory list, then the list of the last active frequencies; held: save mode.',
+        'Öffnet die Speicherliste, dann die Liste der zuletzt aktiven Frequenzen; in der Speicherliste lange gedrückt: aktive Frequenz speichern.',
+        'Opens the memory list, then the list of the last active frequencies; held in the memory list, stores the active frequency.',
       ),
     ),
     dw: key(
       text('Doppelhören', 'Dual watch'),
       text(
-        'Schaltet das Doppelhören um; in einem Menü oder einer Liste: zurück zur Standardanzeige.',
-        'Toggles dual watch; in a menu or list, back to the standard display.',
+        'Schaltet das Doppelhören um; in einer Liste: Liste verlassen.',
+        'Toggles dual watch; in a list, leaves the list.',
       ),
     ),
     swap: key(
       text('Tausch', 'Swap'),
       text(
-        'Tauscht aktive und Bereitschaftsfrequenz; in einer Liste: Eintrag in die aktive Frequenz.',
-        'Exchanges the active and standby frequencies; in a list, loads the entry into the active frequency.',
+        'Tauscht aktive und Bereitschaftsfrequenz; in einer Liste verlässt es die Liste dabei.',
+        'Exchanges the active and standby frequencies; in a list, also leaves the list.',
       ),
     ),
     cursor: key(
       text('Cursor', 'Cursor'),
       text(
-        'Setzt den Unterstrich auf das nächste Feld der Bereitschaftsfrequenz.',
-        'Moves the underline to the next field of the standby frequency.',
+        'Setzt den Unterstrich auf das nächste Feld der Bereitschaftsfrequenz; in einer Liste: Liste verlassen.',
+        'Moves the underline to the next field of the standby frequency; in a list, leaves the list.',
       ),
     ),
     volSel: knob(
       text('Lautstärke/Auswahl', 'Volume/select'),
       text(
-        'Ändert den Wert der dritten Zeile, den Listeneintrag oder den Speicherplatz.',
-        'Changes the value on line 3, the list entry or the save slot.',
+        'Ändert den Wert der dritten Zeile; in einer Liste: wählt den Eintrag, der sofort Bereitschaftsfrequenz wird.',
+        'Changes the value on line 3; in a list, picks the entry, which at once becomes the standby frequency.',
       ),
     ),
     freq: knob(
@@ -392,34 +390,40 @@ export const atr833Device = defineDevice({
     const engagedNow = (id: ControlId): boolean => engaged(held[id]) && held[id] !== state.held[id];
     const heldMs = heldTimes(state, held, state.on, dtMs);
     let next: Atr833State = { ...state, powered: true, held, heldMs };
-    if (!state.powered) next = { ...next, on: true, cursor: 'mhz' };
-    else if (!state.on && engagedNow('power')) next = { ...next, on: true, cursor: 'mhz' };
+    if (!state.on && engagedNow('power')) next = { ...next, on: true, cursor: 'mhz' };
     if (!next.on) return { ...next, ...transients };
 
     const released = (id: HoldKey): boolean =>
       state.held[id] === 'pressed' && held[id] === 'released' && state.heldMs[id] >= 0;
+    const consume = (id: HoldKey): Atr833State['heldMs'] => ({ ...next.heldMs, [id]: IGNORED });
     const touched = CONTROL_IDS.some((id) => held[id] !== state.held[id]);
 
     if (crossed(state.heldMs.power, heldMs.power, POWER_OFF_HOLD_MS)) {
       return switchedOff(next);
     }
-    if (crossed(state.heldMs.mem, heldMs.mem, MEM_SAVE_HOLD_MS) && next.list?.kind !== 'save') {
-      next = { ...next, list: { kind: 'save', index: 0 } };
+    if (crossed(state.heldMs.set, heldMs.set, LONG_PRESS_MS)) {
+      next = { ...closeList(next), item: 'vol', heldMs: consume('set') };
     }
-    if (released('set') && state.heldMs.set < SETUP_MENU_HOLD_MS) next = pressSet(next);
-    if (released('mem') && state.heldMs.mem < MEM_SAVE_HOLD_MS) next = releaseMem(next);
+    const memoryList = next.list?.kind === 'mem' ? next.list : null;
+    if (memoryList !== null && crossed(state.heldMs.mem, heldMs.mem, LONG_PRESS_MS)) {
+      next = { ...storeActive(next, memoryList), heldMs: consume('mem') };
+    }
+    if (released('set')) next = pressSet(next);
+    if (released('mem')) next = releaseMem(next);
     if (engagedNow('dw')) next = pressDualWatch(next);
     if (engagedNow('swap')) next = pressSwap(next);
-    if (engagedNow('cursor')) next = { ...next, cursor: nextCursor(next.cursor) };
+    if (engagedNow('cursor')) next = pressCursor(next);
     if (engagedNow('volSel')) next = turnVolSel(next, direction(held.volSel));
     if (engagedNow('freq')) {
-      next = changeStandby(next, stepFrequency(next.standby, next.cursor, direction(held.freq)));
+      const tuned = stepFrequency(next.standby, next.cursor, direction(held.freq));
+      next = changeStandby(closeList(next), tuned);
     }
 
     const menuOpen = next.list !== null || next.item !== 'vol';
     const idleMs = touched || !menuOpen ? 0 : next.idleMs + dtMs;
-    if (menuOpen && idleMs >= MENU_TIMEOUT_MS)
-      return { ...next, list: null, item: 'vol', idleMs: 0 };
+    if (menuOpen && idleMs >= MENU_TIMEOUT_MS) {
+      return { ...closeList(next), item: 'vol', idleMs: 0 };
+    }
     return { ...next, idleMs };
   },
 });

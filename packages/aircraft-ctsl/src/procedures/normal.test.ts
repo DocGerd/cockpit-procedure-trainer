@@ -1,6 +1,7 @@
 import { createSession, deviceControls, walkProcedure } from '@cpt/core';
 import type { Aircraft, ProcedureItem, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
+import { cht } from '../artwork/gauges/cht';
 import { controls } from '../controls';
 import { ctslAircraft } from '../index';
 import { testDevices } from '../test-devices';
@@ -38,17 +39,16 @@ const snapshotChecks: Record<string, readonly string[]> = {
   shortTakeoff: ['Flap readout: 15°'],
   beforeTakeoff: [
     'Parking brake: holds, brake lever released',
-    'Oil pressure: in the green',
+    'Oil pressure: 2 to 5 bar',
     'Oil temperature: below the red line',
-    'Cylinder head temperature: in the green',
+    'Cylinder head temperature: below the red line',
     'Oil temperature: at least 51 °C',
     'Generator lamp: out',
     'GPS: position fix (3D GPS Location)',
-    'FLARM: Power, GPS and TX lit',
   ],
   climbCruise: [
     'Rpm: at most 5500 rpm',
-    'Oil pressure: in the green',
+    'Oil pressure: 2 to 5 bar',
     'Oil temperature: in the green',
     'Cylinder head temperature: in the green',
   ],
@@ -524,6 +524,49 @@ describe('CTSL normal procedures', () => {
     });
   });
 
+  describe('CHT checks follow the dial (#776)', () => {
+    const verdict = (id: string, text: string, chtC: number) => {
+      const found = checksOf(id).find(({ item }) => said(item) === text);
+      expect(found, text).toBeDefined();
+      if (!found || found.item.type !== 'check') return undefined;
+      const state = createSession(ctslAircraft, { devices, phase: 'cruise' }).state();
+      return found.item.condition({ ...state, systems: { ...(state.systems as object), chtC } });
+    };
+    const green = 'Cylinder head temperature: in the green';
+    const belowRedLine = 'Cylinder head temperature: below the red line';
+
+    const arcs = (cht.options?.arcs ?? []) as readonly {
+      from: number;
+      to: number;
+      colour: string;
+    }[];
+    const arc = (colour: string) => {
+      const found = arcs.find((a) => a.colour === colour);
+      if (!found) throw new Error(`no ${colour} arc on the CHT dial`);
+      return found;
+    };
+    const greenArc = arc('green');
+    const redLine = (arc('red').from + arc('red').to) / 2;
+
+    it.each([
+      [greenArc.from - 10, false],
+      [greenArc.from - 1, false],
+      [greenArc.from, true],
+      [greenArc.to, true],
+      [greenArc.to + 5, false],
+    ])('climbCruise: "in the green" at %f C is %s', (chtC, met) => {
+      expect(verdict('climbCruise', green, chtC)).toBe(met);
+    });
+
+    it.each([
+      [greenArc.from - 20, true],
+      [redLine - 1, true],
+      [redLine, false],
+    ])('beforeTakeoff: "below the red line" at %f C is %s', (chtC, met) => {
+      expect(verdict('beforeTakeoff', belowRedLine, chtC)).toBe(met);
+    });
+  });
+
   describe('snapshot checks', () => {
     const cases = Object.entries(snapshotChecks).flatMap(([id, texts]) =>
       texts.map((text) => [id, text] as const),
@@ -617,6 +660,72 @@ describe('CTSL normal procedures', () => {
       it('records nothing when ticked at standby with power', () => {
         expect(tick((session) => tap(session, 'xpdr.power'))).toEqual([]);
       });
+    });
+
+    describe('COM radio: on (intake §9 question 35)', () => {
+      const aircraft = only('engineStart', ['COM radio: on']);
+      const tick = (phase: string) => {
+        const session = createSession(aircraft, { devices, phase });
+        session.startProcedure('engineStart');
+        session.checkOff();
+        return session.checklist()?.deviations ?? [];
+      };
+
+      it('is a check on the radio, after the I/O press that switches it on, right after the Avionics Master', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
+        const at = items.findIndex((item) => said(item) === 'COM radio: on');
+        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'com.power' } });
+        expect(items[at - 1]).toMatchObject({
+          type: 'action',
+          control: 'com.power',
+          position: 'pressed',
+        });
+        expect(items[at - 2]).toMatchObject({ control: 'avionicsMaster', position: 'on' });
+        expect(items[at + 1]).toMatchObject({ control: 'intercom', position: 'on' });
+      });
+
+      it('is unmet with the Avionics Master on and no I/O press, and met once I/O is pressed', () => {
+        const items = normalProcedures.engineStart.items as readonly Item[];
+        const press = items.findIndex(
+          (item) => item.type === 'action' && item.control === 'com.power',
+        );
+        expect(press).toBeGreaterThan(0);
+        expect(failsAt(without('engineStart', press), 'engineStart', press)).toBe(true);
+        expect(failsAt(ctslAircraft, 'engineStart', press + 1)).toBe(false);
+      });
+
+      it('is not repeated in the run-up, which only confirms the radio set', () => {
+        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+        expect(items.some((item) => 'control' in item && item.control === 'com.power')).toBe(false);
+      });
+
+      it('records an unmet check when ticked with the radio dark, as at engine start', () => {
+        expect(tick('parking')).toEqual([expect.objectContaining({ kind: 'unmet-check' })]);
+      });
+
+      it('passes when the walk presses I/O after the Avionics Master', () => {
+        let on: unknown;
+        const result = walkProcedure(ctslAircraft, 'engineStart', {
+          devices,
+          afterChecklist: (session) => {
+            on = (session.state().devices.com?.state as { on?: boolean } | undefined)?.on;
+          },
+        });
+        expect(result).toEqual({ ok: true });
+        expect(on).toBe(true);
+      });
+    });
+
+    it('has no FLARM check before take-off (intake §9 question 34)', () => {
+      const items = normalProcedures.beforeTakeoff.items as readonly Item[];
+      const controls = items.flatMap((item) => [
+        ...('control' in item ? [item.control] : []),
+        ...(item.type === 'check' && item.target && 'control' in item.target
+          ? [item.target.control]
+          : []),
+      ]);
+      expect(controls.length).toBeGreaterThan(0);
+      expect(controls.filter((control) => control.startsWith('flarm.'))).toEqual([]);
     });
 
     describe('Transponder: STBY after landing (intake §3.8.2)', () => {
@@ -719,39 +828,73 @@ describe('CTSL normal procedures', () => {
       });
     });
 
-    describe('FLARM lit (assumed, intake §9 question 34)', () => {
-      const lit = 'FLARM: Power, GPS and TX lit';
-      const aircraft = only('beforeTakeoff', [lit]);
-
-      it('is a check on the FLARM right after the GPS fix check', () => {
-        const items = normalProcedures.beforeTakeoff.items as readonly Item[];
-        const at = items.findIndex((item) => said(item) === lit);
-        expect(items[at]).toMatchObject({ type: 'check', target: { control: 'flarm.mode' } });
-        expect(said(items[at - 1] as Item)).toBe('GPS: position fix (3D GPS Location)');
-      });
-
-      it('records an unmet check when ticked with the avionics master off', () => {
-        const dark = (session: Session) => {
-          session.set('avionicsMaster', 'off');
-          session.advance(100);
-        };
-        expect(tickedAt(aircraft, 'beforeTakeoff', dark)).toContainEqual(
-          expect.objectContaining({ kind: 'unmet-check' }),
-        );
-      });
-
-      it('records nothing when ticked with the FLARM operational', () => {
-        expect(tickedAt(aircraft, 'beforeTakeoff', () => {})).toEqual([]);
-      });
-    });
-
-    it('leaves the altimeter and radio items as confirms, which the trainer does not model', () => {
+    it('leaves the radio item a confirm, which the trainer does not model', () => {
       const confirms = Object.values(normalProcedures).flatMap((procedure) =>
         (procedure.items as readonly Item[]).filter((item) => item.type === 'confirm'),
       );
-      expect(confirms.map((item) => item.text.en)).toEqual(
-        expect.arrayContaining(['Altimeter set to QNH', 'Altimeter set', 'Radio set']),
-      );
+      expect(confirms.map((item) => item.text.en)).toEqual(expect.arrayContaining(['Radio set']));
     });
+
+    it.each([
+      ['beforeTakeoff', 'Altimeter set to QNH'],
+      ['descent', 'Altimeter set'],
+    ] as const)('sets the altimeter knob to QNH in %s (#719)', (id, wording) => {
+      const items = normalProcedures[id].items as readonly Item[];
+      expect(items.filter((item) => item.text.en === wording)).toEqual([
+        expect.objectContaining({ type: 'action', control: 'altimeterSetting', position: '1013' }),
+      ]);
+    });
+  });
+});
+
+describe('the altimeter knob in the normal procedures (#719)', () => {
+  const alone = (id: 'beforeTakeoff' | 'descent', wording: string): Aircraft => {
+    const procedure = ctslAircraft.procedures[id];
+    if (!procedure) throw new Error(`no procedure ${id}`);
+    return {
+      ...ctslAircraft,
+      procedures: {
+        ...ctslAircraft.procedures,
+        [id]: { ...procedure, items: procedure.items.filter((item) => item.text.en === wording) },
+      },
+    } as Aircraft;
+  };
+  const start = (id: 'beforeTakeoff' | 'descent', wording: string) => {
+    const session = createSession(alone(id, wording), {
+      devices,
+      phase: ctslAircraft.procedures[id]?.startPhase ?? '',
+    });
+    session.startProcedure(id);
+    session.advance(100);
+    return session;
+  };
+
+  it('enters the holding point with the last flight setting, so N6 is a real turn', () => {
+    const session = start('beforeTakeoff', 'Altimeter set to QNH');
+    expect(session.state().controls.altimeterSetting).toBe('1025');
+    for (let setting = 1024; setting >= 1013; setting -= 1) {
+      session.set('altimeterSetting', String(setting));
+      session.advance(50);
+    }
+    expect(session.checklist()?.done).toBe(true);
+    expect(session.checklist()?.deviations).toEqual([]);
+  });
+
+  it('records a wrong setting ticked as set', () => {
+    const session = start('beforeTakeoff', 'Altimeter set to QNH');
+    session.set('altimeterSetting', '1020');
+    session.advance(50);
+    session.checkOff();
+    expect(session.checklist()?.deviations).toContainEqual(
+      expect.objectContaining({ kind: 'wrong-position', controlId: 'altimeterSetting' }),
+    );
+  });
+
+  it('enters the descent with QNH set, so N11 is verified with a tick', () => {
+    const session = start('descent', 'Altimeter set');
+    expect(session.state().controls.altimeterSetting).toBe('1013');
+    session.checkOff();
+    expect(session.checklist()?.done).toBe(true);
+    expect(session.checklist()?.deviations).toEqual([]);
   });
 });

@@ -21,6 +21,11 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm build`
 - `pnpm test:perf` runs locally only (not in CI), for panel-art PRs; see
   `CONTRIBUTING.md` Checks
+- Cloud sessions: `.claude/hooks/session-start.sh` (SessionStart) installs
+  Node 24 under `~/.cache/cpt-node` when the container's Node is older, the
+  workspace dependencies and Playwright's Chromium build (the environment
+  allows `cdn.playwright.dev` and `playwright.download.prss.microsoft.com`);
+  worktrees still run their own `pnpm install`
 
 ## How work is done
 
@@ -165,8 +170,11 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   threads via GraphQL. `gh pr edit` fails on the Projects-classic error: PATCH
   `repos/<owner>/<repo>/pulls/<n>` with `--field body=@file` instead; clear a milestone by PATCHing
   `…/issues/<n>` with `--input` on a file holding `{"milestone": null}`.
+- Without a working `gh` (cloud sessions), GitHub calls go through the GitHub
+  connector (`mcp__github__*`) as `.claude/skills/github-connector.md` maps
+  them. No hook sees connector calls, so its merge rules are the only guard.
 - Agents share the session scratchpad: prefix temp files with the issue number.
 - Agents that read the design canvas or post review threads need claude.ai
-  artifact access and gh write access; read-only agent types cannot.
+  artifact access and gh or GitHub connector write access; read-only agent types cannot.
 - `doc-writer` cannot run git or gh: pair it with an agent that commits and
   opens the PR.

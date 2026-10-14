@@ -23,11 +23,11 @@ describe('Atr833Display', () => {
     expect(text(container, 'line3')).toBe('VOL 10');
   });
 
-  it('shows dual watch, the saved mark and the chosen item', () => {
-    const container = show(true, { dualWatch: true, saved: true, item: 'sql' });
+  it('shows dual watch and the chosen item with a two-digit value', () => {
+    const container = show(true, { dualWatch: true, item: 'sql' });
     expect(container.textContent).toContain('DW');
-    expect(text(container, 'standby')).toBe('>119.000');
-    expect(text(container, 'line3')).toBe('SQL 5');
+    expect(text(container, 'standby')).toBe('119.000');
+    expect(text(container, 'line3')).toBe('SQL 05');
   });
 
   it('blanks the window while the install is dark or the unit is switched off, and keeps the face', () => {
@@ -86,6 +86,10 @@ describe('Atr833Display', () => {
     expect(ATR833_MIRROR.aspectRatio).toBe('1 / 1');
     const bezel = show().querySelector<HTMLElement>('.pk-mirror-bezel');
     expect(bezel?.style.aspectRatio).toBe('1 / 1');
+  });
+
+  it('prints nothing at the lower-right frequency knob (intake section 9 question 36)', () => {
+    expect(show().textContent).not.toContain('FREQ');
   });
 
   it('offers nothing to operate and renders no style or script element', () => {

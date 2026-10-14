@@ -25,6 +25,7 @@ describe('display texts', () => {
     expect(levelText({ ...state, flightLevel: 0 })).toBe('FL 000');
     expect(levelText({ ...state, flightLevel: -10 })).toBe('FL -10');
     expect(levelText({ ...state, flightLevel: -5 })).toBe('FL -05');
+    expect(levelText({ ...state, flightLevel: -1 })).toBe('FL -01');
     expect(levelText({ ...state, flightLevel: null })).toBe('FLerr');
   });
 

@@ -141,8 +141,11 @@ centre field hangs below the junction of the panel's two upper fields. The
 console belongs below the centre field, but the stack does not fit the HD
 cockpit region at the view floors, so it sits beside the centre field on the
 right, toward the throttle hand. The dock sits left of the centre column, in
-the pilot's knee space, reaching under the left part of the radio and
-transponder slots; at its device floor it cannot move further right.
+the pilot's knee space and ends left of the centre column at every view
+floor. The radio and transponder slots sit where D-MPGO has them (intake
+§3.9; #716, #712), right of the dock, which does not reach under them. M18's
+D24 (slot aspects frozen) is lifted; slot aspect ratios still stay unless the
+photos contradict them (owner decision 2026-10-11, intake §2a item 10).
 
 ```
      +-----------------------------+

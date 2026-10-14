@@ -36,6 +36,8 @@ export type CtslState = {
   brakeApplied: boolean;
   /** Set by the phase entry; nothing turns the aircraft within a phase. */
   headingDeg: number;
+  /** The actual QNH the phase entry sets, which the pilot sets on the altimeter. */
+  qnhHpa: number;
   consumers: {
     beacon: boolean;
     positionLights: boolean;
@@ -112,6 +114,21 @@ const FLAP_DEG_PER_MS = 5 / 1000;
 const BATTERY_VOLTS = 12;
 const CHARGING_VOLTS = 14;
 
+// Intake §3.10.2 and §9 questions 46 to 49, all assumed (unverified).
+export const FIELD_ELEVATION_FT = 315;
+export const QNH_HPA = 1013;
+export const FT_PER_HPA = 27;
+export const STANDARD_PRESSURE_HPA = 1013;
+export const ALTIMETER_SETTINGS_HPA = { min: 950, max: 1050 } as const;
+
+/** What the altimeter reads: the field elevation, the height above it, and the setting's error. */
+export const indicatedAltitudeFt = (altitudeFt: number, settingHpa: number, qnhHpa: number) =>
+  FIELD_ELEVATION_FT + altitudeFt + (settingHpa - qnhHpa) * FT_PER_HPA;
+
+/** What a transponder reports: the altimeter's reading with the standard pressure set. */
+export const pressureAltitudeFt = (altitudeFt: number, qnhHpa: number) =>
+  indicatedAltitudeFt(altitudeFt, STANDARD_PRESSURE_HPA, qnhHpa);
+
 const bus = electricalBus({ batteryVolts: BATTERY_VOLTS, chargingVolts: CHARGING_VOLTS });
 const engineBlock = pistonEngineStart({ crankMsToStart: CRANK_MS_TO_START });
 
@@ -136,6 +153,7 @@ export const initial: CtslState = {
   oilStarvedMs: 0,
   brakeApplied: false,
   headingDeg: phaseHeadings.parking,
+  qnhHpa: QNH_HPA,
   consumers: {
     beacon: false,
     positionLights: false,
@@ -384,6 +402,7 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
     oilStarvedMs,
     brakeApplied,
     headingDeg: state.headingDeg,
+    qnhHpa: state.qnhHpa,
     consumers: {
       beacon: consumer('beacon', 'strobeBreaker'),
       positionLights: consumer('positionLights', 'positionBreaker'),
@@ -398,7 +417,12 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
 export const carry: NonNullable<SystemsDefinition<CtslState, CtslFailure>['carry']> = (
   carried,
   entry,
-) => ({ ...carried, headingDeg: entry.headingDeg, verticalSpeedMs: entry.verticalSpeedMs });
+) => ({
+  ...carried,
+  headingDeg: entry.headingDeg,
+  verticalSpeedMs: entry.verticalSpeedMs,
+  qnhHpa: entry.qnhHpa,
+});
 
 const GROUND: Environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
 

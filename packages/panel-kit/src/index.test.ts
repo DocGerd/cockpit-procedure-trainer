@@ -27,12 +27,13 @@ describe('widget props', () => {
     }>();
   });
 
-  it('gives an indicator widget its value, resolved label and blink', () => {
+  it('gives an indicator widget its value, resolved label, blink and window values', () => {
     expectTypeOf<IndicatorWidgetProps>().toEqualTypeOf<{
       value: IndicatorValue;
       label: string;
       options?: JsonObject;
       blink?: boolean;
+      windows?: Readonly<Record<string, IndicatorValue>>;
     }>();
   });
 

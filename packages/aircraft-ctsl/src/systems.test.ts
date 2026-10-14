@@ -2,17 +2,17 @@ import { createSession, createSystemsRuntime, STEP_MS } from '@cpt/core';
 import type { ControlPosition, Environment, PhaseId, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import type { CtslFailure } from './failures';
+import { CHT_RED_LINE_C } from './cht-limits';
 import { ctslAircraft } from './index';
-import { chargeLampLit, indicators } from './indicators';
+import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import { initial, runningFrom, step } from './systems';
+import { indicatedAltitudeFt, initial, pressureAltitudeFt, runningFrom, step } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
 const MAX_SINGLE_CIRCUIT_DROP_RPM = 300;
 const MAX_CIRCUIT_DROP_DIFFERENCE_RPM = 120;
 const MIN_TAKEOFF_OIL_C = 51;
-const CHT_RED_LINE_C = 120;
 const OIL_TEMP_RED_LINE_C = 130;
 const STARTER_LIMIT_S = 10;
 const STARTER_COOLING_S = 120;
@@ -216,6 +216,18 @@ describe('engine start', () => {
     expect(systems(session).engine.running).toBe(false);
   });
 
+  it('lights the hour meter glyph from engine start to stop', () => {
+    const session = sessionAt('parking');
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(false);
+    readyToStart(session);
+    session.set('choke', 'on');
+    crank(session, 3);
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(true);
+    session.set('ignition', 'off');
+    advanceSeconds(session, 5);
+    expect(indicators.hourMeter.select(session.state() as CtslTrainerState)).toBe(false);
+  });
+
   it('starts warm without the choke', () => {
     const session = sessionAt('holding');
     session.set('ignition', 'off');
@@ -278,6 +290,18 @@ describe('engine start', () => {
       10,
     );
     expect(seconds).toBeLessThanOrEqual(10);
+  });
+
+  it('keeps oil pressure within the 7 bar the gauge needle can show, even cold at full power', () => {
+    const session = coldStart();
+    session.set('throttle', 'full');
+    let peak = 0;
+    for (let elapsed = 0; elapsed < 60_000; elapsed += STEP_MS) {
+      session.advance(STEP_MS);
+      peak = Math.max(peak, systems(session).oilPressureBar);
+    }
+    expect(peak).toBeGreaterThan(5);
+    expect(peak).toBeLessThanOrEqual(7);
   });
 
   it('warms oil and CHT while running', () => {
@@ -795,15 +819,18 @@ describe('failures', () => {
 describe('entry snapshots', () => {
   const running = (Object.keys(phases) as PhaseId[]).filter((id) => id !== 'parking');
 
-  it.each(running)('enters %s warm, with oil pressure and CHT in the green', (id) => {
-    const state = phases[id].entry.state;
-    expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
-    expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
-    expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
-    expect(state.oilPressureBar).toBeLessThanOrEqual(5);
-    expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
-    expect(state.rpm).toBeGreaterThanOrEqual(1400);
-  });
+  it.each(running)(
+    'enters %s warm, with oil pressure in the green and CHT below the red line',
+    (id) => {
+      const state = phases[id].entry.state;
+      expect(state.oilTempC).toBeGreaterThanOrEqual(MIN_TAKEOFF_OIL_C);
+      expect(state.oilTempC).toBeLessThan(OIL_TEMP_RED_LINE_C);
+      expect(state.oilPressureBar).toBeGreaterThanOrEqual(2);
+      expect(state.oilPressureBar).toBeLessThanOrEqual(5);
+      expect(state.chtC).toBeLessThan(CHT_RED_LINE_C);
+      expect(state.rpm).toBeGreaterThanOrEqual(1400);
+    },
+  );
 
   it.each(running)('enters %s settled: the gauges hold still', (id) => {
     const session = sessionAt(id);
@@ -898,11 +925,69 @@ describe('indicators', () => {
     expect(read('flapReadout')).toBe(15);
     expect(read('eltLamp')).toBe(true);
     expect(read('airspeed')).toBe(0);
-    expect(read('altimeter')).toBe(0);
+    // Parked at the field with the last flight's 1025 hPa still set over a QNH of 1013.
+    expect(read('altimeter')).toBe(315 + 12 * 27);
     expect(read('verticalSpeed')).toBe(0);
     for (const id of Object.keys(indicators) as (keyof typeof indicators)[]) {
       const value = read(id);
       expect(typeof value === 'number' ? Number.isFinite(value) : typeof value).toBeTruthy();
     }
+  });
+
+  it.each(Object.keys(phases) as PhaseId[])(
+    'read the altimeter from the knob and the QNH on entering and flying %s',
+    (phase) => {
+      const session = sessionAt(phase);
+      advanceSeconds(session, 2);
+      const state = trainerState(session);
+      const reading = indicators.altimeter.select(state);
+      expect(Number.isFinite(reading)).toBe(true);
+      expect(reading).toBe(
+        315 +
+          state.systems.altitudeFt +
+          (Number(state.controls['altimeterSetting']) - state.systems.qnhHpa) * 27,
+      );
+    },
+  );
+
+  it('fail loudly on an altimeter setting the knob cannot show', () => {
+    const state = trainerState(coldStart());
+    const broken = { ...state, controls: { ...state.controls, altimeterSetting: 'bogus' } };
+    expect(altimeterSettingHpa(broken)).toBeNaN();
+    expect(indicators.altimeter.select(broken)).toBeNaN();
+  });
+});
+
+describe('indicatedAltitudeFt', () => {
+  it.each([
+    { altitudeFt: 0, setting: 1013, qnh: 1013, reads: 315 },
+    { altitudeFt: 1500, setting: 1013, qnh: 1013, reads: 1815 },
+    { altitudeFt: 1500, setting: 1000, qnh: 1013, reads: 1815 - 13 * 27 },
+    { altitudeFt: 0, setting: 950, qnh: 1013, reads: 315 - 63 * 27 },
+    { altitudeFt: 0, setting: 1050, qnh: 1013, reads: 315 + 37 * 27 },
+  ])(
+    'reads $reads ft at $altitudeFt ft above the field with $setting hPa set over $qnh',
+    ({ altitudeFt, setting, qnh, reads }) => {
+      expect(indicatedAltitudeFt(altitudeFt, setting, qnh)).toBe(reads);
+    },
+  );
+});
+
+describe('pressureAltitudeFt', () => {
+  it.each([
+    { altitudeFt: 0, qnh: 1013 },
+    { altitudeFt: 2500, qnh: 1013 },
+    { altitudeFt: 2500, qnh: 1000 },
+    { altitudeFt: 2500, qnh: 1030 },
+  ])('is the altimeter reading at 1013 hPa for $altitudeFt ft over QNH $qnh', (args) => {
+    expect(pressureAltitudeFt(args.altitudeFt, args.qnh)).toBe(
+      indicatedAltitudeFt(args.altitudeFt, 1013, args.qnh),
+    );
+  });
+
+  it('adds the field elevation and 27 ft for every hPa below 1013', () => {
+    expect(pressureAltitudeFt(2500, 1013)).toBe(2815);
+    expect(pressureAltitudeFt(2500, 1012)).toBe(2842);
+    expect(pressureAltitudeFt(2500, 1014)).toBe(2788);
   });
 });

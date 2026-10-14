@@ -2,10 +2,15 @@ import type { ControlId, Environment, PhaseDefinition, PhaseId, PositionOf } fro
 import { phaseHeadings } from './airfield';
 import { images } from './assets';
 import type { controls } from './controls';
-import { FT_PER_MIN_PER_MS, initial, runningFrom } from './systems';
+import { FT_PER_MIN_PER_MS, QNH_HPA, initial, runningFrom } from './systems';
 import type { CtslState } from './systems';
 
 type Controls = typeof controls;
+
+// The setting left from the last flight, as photographed (intake §3.10.2), until the pilot sets
+// QNH before take-off (§6 N6); every later phase enters with QNH set.
+const PARKED_SETTING = '1025';
+const QNH_SET = String(QNH_HPA);
 type EntryControls = { readonly [K in ControlId<Controls>]: PositionOf<Controls[K]> };
 
 const parked = {
@@ -37,6 +42,7 @@ const parked = {
   trim: 'neutral',
   parkingBrakeValve: 'closed',
   rescueHandle: 'stowed',
+  altimeterSetting: PARKED_SETTING,
 } as const satisfies EntryControls;
 
 const holdingShort = {
@@ -55,19 +61,21 @@ const rolling = { ...holdingShort, parkingBrakeValve: 'open' } as const;
 // Trainer estimate: taxiing on low power, warm as at the holding point (intake §5).
 const taxiingOut = { ...rolling, throttle: 'low' } as const;
 
+const qnhSet = { ...rolling, altimeterSetting: QNH_SET } as const;
+
 // Intake §6 N6 ends at the holding point with flaps 15° and the brake released.
-const linedUpOnRunway = { ...rolling, flapSelector: '15' } as const;
-const departing = { ...rolling, throttle: 'full', flapSelector: '0' } as const;
-const cruising = { ...rolling, throttle: 'cruise', flapSelector: '-12' } as const;
+const linedUpOnRunway = { ...qnhSet, flapSelector: '15' } as const;
+const departing = { ...qnhSet, throttle: 'full', flapSelector: '0' } as const;
+const cruising = { ...qnhSet, throttle: 'cruise', flapSelector: '-12' } as const;
 const approaching = {
-  ...rolling,
+  ...qnhSet,
   throttle: 'low',
   flapSelector: '15',
   landingLight: 'on',
 } as const;
-const flaring = { ...rolling, flapSelector: '30', landingLight: 'on' } as const;
-const taxiingIn = { ...rolling, throttle: 'low', flapSelector: '30', landingLight: 'on' } as const;
-const securing = { ...rolling } as const;
+const flaring = { ...qnhSet, flapSelector: '30', landingLight: 'on' } as const;
+const taxiingIn = { ...qnhSet, throttle: 'low', flapSelector: '30', landingLight: 'on' } as const;
+const securing = { ...qnhSet } as const;
 
 // Intake §4.5: the pin is removed before take-off and back in at shutdown.
 const pinOut = { rescueHandle: 'open' } as const;
@@ -79,8 +87,15 @@ const runningUp = {
   gps: { on: true, powered: true, page: 'map', fix: true },
   flarm: { powered: true, stage: 'ready', fix: true },
 };
-const navigating = { ...runningUp, xpdr: { on: true, mode: 'acs', squawk: '7000' } };
-const securingAvionics = { ...runningUp, xpdr: { on: true, mode: 'stby', squawk: '7000' } };
+// The COM is switched on in N3 with the Avionics Master, so every phase after engine start has it
+// on (intake §9 question 35).
+const comOn = { com: { on: true, powered: true } } as const;
+const navigating = { ...comOn, ...runningUp, xpdr: { on: true, mode: 'acs', squawk: '7000' } };
+const securingAvionics = {
+  ...comOn,
+  ...runningUp,
+  xpdr: { on: true, mode: 'stby', squawk: '7000' },
+};
 
 // Assumed (unverified): a typical climb and approach descent of a light aircraft.
 const CLIMB_MS = 600 / FT_PER_MIN_PER_MS;
@@ -108,13 +123,21 @@ export const phases = {
     image: images.taxiOut,
     imageRunning: images.taxiOutRunning,
     environment: ground(),
-    entry: { controls: taxiingOut, state: facing('taxiOut', runningFrom(taxiingOut)) },
+    entry: {
+      controls: taxiingOut,
+      state: facing('taxiOut', runningFrom(taxiingOut)),
+      deviceStates: comOn,
+    },
   },
   holding: {
     image: images.holding,
     imageRunning: images.holdingRunning,
     environment: ground(),
-    entry: { controls: holdingShort, state: facing('holding', runningFrom(holdingShort)) },
+    entry: {
+      controls: holdingShort,
+      state: facing('holding', runningFrom(holdingShort)),
+      deviceStates: comOn,
+    },
   },
   linedUp: {
     image: images.linedUp,

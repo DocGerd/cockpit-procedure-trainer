@@ -19,8 +19,8 @@ next. Delegate each step; the main session keeps only verdicts.
    `git worktree prune`. Delete only branches whose PR landed: locally with
    `git branch -D` (squash-landed branches are not seen as integrated),
    remotely with
-   `gh api --method DELETE repos/<owner>/<repo>/git/refs/heads/<branch>` if it
-   still exists. Keep the branches of PRs closed without landing and say so.
+   `gh api --method DELETE repos/<owner>/<repo>/git/refs/heads/<branch>` (or
+   `git push origin --delete <branch>`) if it still exists. Keep the branches of PRs closed without landing and say so.
    Stop every background task, monitor and dev server this session started, by
    ID or PID. Leave other sessions' worktrees and branches alone.
 4. Report to the owner in one block: released version and prod state, what

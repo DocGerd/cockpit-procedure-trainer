@@ -1,3 +1,4 @@
+import { CHT_RED_LINE_C } from '../cht-limits';
 import { chargeLampLit } from '../indicators';
 import type { CtslTrainerState } from '../systems';
 import { text } from '../text';
@@ -7,7 +8,6 @@ type Item = CtslProcedures[string]['items'][number];
 
 // Values from docs/aircraft/ctsl-intake.md §4.2, §4.3 and §8.
 const IDLE_RPM = 1400;
-const CHT_RED_LINE_C = 120;
 const OIL_PRESSURE_MIN_BAR = 0.8;
 const LAST_UP_DETENT_DEG = -12;
 

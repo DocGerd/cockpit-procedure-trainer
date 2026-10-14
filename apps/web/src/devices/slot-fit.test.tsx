@@ -26,6 +26,13 @@ function mirrorSize(markup: string): { width: number; height: number } {
   return { width: w, height: (w * Number(ratio[2])) / Number(ratio[1]) };
 }
 
+// A slot mirror is read-only and the dock holds the full-size unit, so its lettering floor is
+// half the panel's. Only slot mirrors take it: `markupProblems` defaults to the full floor.
+const SLOT_FLOOR = 0.5;
+
+// The smallest secondary lettering a slot may show, however far the slot floor is relaxed.
+const SLOT_SECONDARY_MIN_PX = 3;
+
 // Secondary lettering prints as small as the real unit prints it: half the lettering minimum, the
 // floor `SECONDARY_MIN_PX` sets for panel captions in the e2e legibility checks.
 const SECONDARY_MIN_PX = MIN_TEXT_PX / 2;
@@ -43,8 +50,14 @@ function smallestTextPx(markup: string): { primary: number; secondary: number } 
   return { primary: Math.min(...primary), secondary: Math.min(...secondary) };
 }
 
-/** Why this markup does not fit, or is illegible, in a slot of the given size. */
-function markupProblems(where: string, markup: string, slotW: number, slotH: number): string[] {
+/** Why this markup does not fit, or (at a non-zero floor) is illegible, in a slot of the given size. */
+function markupProblems(
+  where: string,
+  markup: string,
+  slotW: number,
+  slotH: number,
+  floor = 1,
+): string[] {
   const natural = mirrorSize(markup);
   const smallestNatural = smallestTextPx(markup);
   const measures = [natural.width, natural.height, smallestNatural.primary, slotW, slotH];
@@ -57,15 +70,18 @@ function markupProblems(where: string, markup: string, slotW: number, slotH: num
       `${where}: mirror aspect ${(natural.width / natural.height).toFixed(2)} differs from slot ${(slotW / slotH).toFixed(2)}`,
     );
   }
+  if (floor === 0) return problems;
   const scale = Math.min(slotW / natural.width, slotH / natural.height);
   const smallest = smallestNatural.primary * scale;
-  if (smallest < MIN_TEXT_PX) {
-    problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${MIN_TEXT_PX} px`);
+  const minPx = MIN_TEXT_PX * floor;
+  if (smallest < minPx) {
+    problems.push(`${where}: smallest text ${smallest.toFixed(2)} px < ${minPx} px`);
   }
   const secondary = smallestNatural.secondary * scale;
-  if (secondary < SECONDARY_MIN_PX) {
+  const secondaryMinPx = Math.max(SECONDARY_MIN_PX * floor, SLOT_SECONDARY_MIN_PX);
+  if (secondary < secondaryMinPx) {
     problems.push(
-      `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${SECONDARY_MIN_PX} px`,
+      `${where}: smallest secondary text ${secondary.toFixed(2)} px < ${secondaryMinPx} px`,
     );
   }
   return problems;
@@ -107,6 +123,16 @@ function mirrorMarkups(aircraft: Aircraft): (MirrorRenders & { readonly where: s
   });
 }
 
+// Slots drawn at the real unit's size against the panel's gauges, too small even for the slot
+// floor (ADR 0002: recognition over in-slot legibility). The dock is where they are read, so here
+// only their aspect is held.
+const recognitionSlots: Readonly<Record<string, readonly string[]>> = {
+  ctsl: ['flarm'],
+};
+
+const slotFloor = (aircraft: Aircraft, installId: string) =>
+  (recognitionSlots[aircraft.id]?.includes(installId) ?? false) ? 0 : SLOT_FLOOR;
+
 /** Why a device's mirror does not fit, or is illegible, in the slot of each install of the aircraft. */
 function slotFitProblems(aircraft: Aircraft): string[] {
   const cockpit = aircraft.cockpit;
@@ -122,8 +148,14 @@ function slotFitProblems(aircraft: Aircraft): string[] {
     const slotW = install.placement.rect.w * unit;
     const slotH = install.placement.rect.h * unit;
     return [
-      ...markupProblems(where, renders.dark, slotW, slotH),
-      ...markupProblems(`${where} (lit)`, renders.lit, slotW, slotH),
+      ...markupProblems(where, renders.dark, slotW, slotH, slotFloor(aircraft, installId)),
+      ...markupProblems(
+        `${where} (lit)`,
+        renders.lit,
+        slotW,
+        slotH,
+        slotFloor(aircraft, installId),
+      ),
     ];
   });
 }
@@ -138,6 +170,47 @@ describe('the mirror in each installed slot', () => {
     const withDock = aircraftRegistry.filter((aircraft) => aircraft.cockpit);
     expect(withDock.length).toBeGreaterThan(0);
     expect(withDock.flatMap(slotFitProblems)).toEqual([]);
+  });
+
+  it('lists as recognition slots only installs whose lettering falls below the slot floor', () => {
+    for (const [aircraftId, installIds] of Object.entries(recognitionSlots)) {
+      const aircraft = aircraftRegistry.find(({ id }) => id === aircraftId);
+      if (!aircraft) throw new Error(`The registry has no ${aircraftId}`);
+      for (const installId of installIds) {
+        const install = aircraft.devices?.[installId];
+        if (!install) throw new Error(`${aircraftId} installs no ${installId}`);
+        const alone: Aircraft = { ...aircraft, id: 'alone', devices: { [installId]: install } };
+        expect(slotFitProblems(alone).join('\n'), `${aircraftId}/${installId}`).toContain(
+          'smallest text',
+        );
+      }
+    }
+  });
+
+  it('holds a recognition slot to its aspect only', () => {
+    const tiny = markupProblems(
+      'x',
+      '<div class="pk-mirror-bezel" style="width:calc(var(--space-12) * 5 + var(--space-8));aspect-ratio:1 / 1"><span style="font-size:var(--text-2xs)">x</span></div>',
+      1,
+      1,
+      0,
+    );
+    expect(tiny).toEqual([]);
+  });
+
+  it('still reports a wrong aspect in a recognition slot', () => {
+    const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+    if (!ctsl) throw new Error('The registry has no CTSL');
+    expect(slotFloor(ctsl, 'flarm')).toBe(0);
+    const wide = markupProblems(
+      'x',
+      '<div class="pk-mirror-bezel" style="width:calc(var(--space-12) * 5 + var(--space-8));aspect-ratio:2 / 1"><span style="font-size:var(--text-2xs)">x</span></div>',
+      1,
+      1,
+      0,
+    );
+    expect(wide).toHaveLength(1);
+    expect(wide[0]).toMatch(/mirror aspect 2\.00 differs from slot 1\.00/);
   });
 
   it('measures every CTSL mirror lit as well as dark', () => {
@@ -220,6 +293,35 @@ describe('the mirror in each installed slot', () => {
       ]);
     });
 
+    it('holds a slot to half the primary minimum, no lower', () => {
+      const primary = markup(span('2xs', false));
+      const above = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 1.05, token('text-2xs'));
+      const below = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 0.95, token('text-2xs'));
+      expect(markupProblems('x', primary, above, above, SLOT_FLOOR)).toEqual([]);
+      expect(markupProblems('x', primary, below, below, SLOT_FLOOR).join('\n')).toContain(
+        'smallest text',
+      );
+    });
+
+    it('keeps the full minimum for a mirror not in a slot', () => {
+      const side = slotFor(MIN_TEXT_PX * SLOT_FLOOR * 1.05, token('text-2xs'));
+      expect(markupProblems('x', markup(span('2xs', false)), side, side).join('\n')).toContain(
+        'smallest text',
+      );
+    });
+
+    it('holds a slot secondary caption to an absolute minimum', () => {
+      const caption = markup(span('2xs', true));
+      const above = slotFor(SLOT_SECONDARY_MIN_PX * 1.05, token('text-2xs'));
+      const below = slotFor(SLOT_SECONDARY_MIN_PX * 0.95, token('text-2xs'));
+      expect(markupProblems('x', caption, above, above, SLOT_FLOOR).join('\n')).not.toContain(
+        'secondary',
+      );
+      expect(markupProblems('x', caption, below, below, SLOT_FLOOR).join('\n')).toContain(
+        'smallest secondary text',
+      );
+    });
+
     it('reads the tier from the tag that carries it, in either attribute order', () => {
       const side = between;
       const reordered =
@@ -256,7 +358,7 @@ describe('the mirror in each installed slot', () => {
     });
 
     it('reports a slot too small for the lettering', () => {
-      expect(slotFitProblems(withSize(w / 2, h / 2)).join('\n')).toContain('smallest text');
+      expect(slotFitProblems(withSize(w / 4, h / 4)).join('\n')).toContain('smallest text');
     });
   });
 });

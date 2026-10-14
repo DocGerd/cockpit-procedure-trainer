@@ -88,9 +88,11 @@ decisions of 2026-10-10:
    **rectangular**, about 1.8 times as wide as tall, not the round 57 mm unit the owner
    expected, so the owner approved the rectangular display. The device ids are
    `atr833`, `trt800h`, `aera500` and `flarm`.
-6. **COM facts come only from the manufacturer-hosted ATR833-II manual**, and only for
-   controls on D-MPGO's face. A function of the II whose control the face lacks (for
-   example the push-to-talk and external interfaces) is out.
+6. **COM facts come only from the ATR833A-OLED manual** (document 01.1411.010.71e,
+   revision 3.00, read on ManualsLib), and only for controls on D-MPGO's face. The
+   owner chose it on 2026-10-11 (#718) in place of the ATR833-II manual; that the A
+   variant behaves like the original unit is §9 question 64. A function whose control
+   the face lacks (for example the push-to-talk and external interfaces) is out.
 7. **Sources for the rest:** the TRT800H manual, revision 3.00; for the FLARM display
    the EDIATec display sheet V5.1e and the FLARM operating manual; for the GPS the
    aera 500 Series Pilot's Guide. All are paraphrased, never copied (§3.8,
@@ -100,6 +102,28 @@ decisions of 2026-10-10:
    `device-com` and `device-transponder` stay as they are (demo aircraft).
 9. **The aircraft name drops "(representative panel)"** when the units land, resolving
    the open point of §1. The Com, Transponder and GPS breaker legends stay.
+
+Milestone M19 "D-MPGO panel layout" (issues #716 and #712) rests on this owner
+decision of 2026-10-11:
+
+10. **D-MPGO as a pilot recognises it.**
+    - **Fidelity is recognition.** A pilot who trained on the trainer must strongly
+      recognise D-MPGO's real panel: positions on the panel, relative sizes, dial type
+      and pointer arrangement, where zero or the stop sits and which way the scale
+      sweeps, numerals and units, the places of the coloured arcs, controls and
+      windows (such as the altimeter's knob and pressure window). Colours, stickers,
+      logos, fonts and fine ticks are optional. Positions and sizes: §3.9.
+    - **The centre field is the outer panel's colour** (#716); the bare aluminium
+      centre field of #707 is wrong. Label colour and contrast on it do not matter.
+      Which colour that is, given that the photos show aluminium on every plate, is
+      §9 question 40.
+    - **Slot aspects are no longer frozen** (decision D24 of M18 lifted). Slot aspect
+      ratios still stay unless the photos contradict them; they do not (§3.9.3).
+    - **The COM radio is the original ATR833-OLED.** This settles the generation part
+      of §9 question 36.
+    - **No simulated FLARM traffic.** The FLARM display's receive LED and traffic ring
+      stay dark outside the self-test; this settles the traffic part of §9 question 39.
+    - **No tablet art pass** in M19.
 
 ## 3. Panel inventory (analog variant; superseded in part 2026-10-10, §2a)
 
@@ -140,6 +164,15 @@ German as on the aircraft, "Kunstflug und Trudeln verboten" at the bottom.
 The airspeed indicator stays 220 units wide because its numerals set the smallest
 size that reads at the lettering floor (§4.3).
 
+**Update (2026-10-12, #721):** the slip indicator is a drawn indicator, not background
+art: §3.10.4 supersedes "background art, not an indicator" above.
+
+**Trainer, M19 (2026-10-11):** the positions, sizes and the plate's place in the panel
+described here and in the M17 note above are superseded by §3.9 (§3.9.2 for the
+gauges, §3.9.5 for the placards): the left plate is the widest, the instruments sit
+in its inner three-quarters, and the registration lettering stands over the airspeed
+indicator. Which instruments and legends are present stays as above.
+
 ### 3.2 Upper-right field (view `panel`)
 
 - GPS in its cradle in the centre (device slot).
@@ -178,6 +211,16 @@ pitch. The inert caps carry no legend for the same reason, since background lett
 has no such exemption; the slip indicator, FLARM display and hour meter carry no
 wording either. The type-name script lettering is not reproduced.
 
+**Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
+indicators whose faces carry the `SLIP INDICATOR` and `HOURS` legends as secondary
+captions (§3.10.4, §3.10.10), superseding "carry no wording" above for those two.
+
+**Trainer, M19 (2026-10-11):** the layout of the right plate described above is
+superseded by §3.9.2 and §3.9.4: the small engine gauges sit below the tachometer
+(not beside it), the Generator lamp stands at the plate's horizontal middle, and the
+breaker block spans seven columns with the 12V Outlet breaker under the second one
+(not under the first). The set of instruments, breakers and legends stays as above.
+
 ### 3.2a Upper-centre field (view `panel`), M17 T4
 
 - A glareshield strip across the top: the "Cabin Heat" knob and, beside it, a plain
@@ -205,6 +248,17 @@ wording either. The type-name script lettering is not reproduced.
   GPS (heading and rules only), an **assumed (unverified)** place. The blank version
   label under the FLARM display is not drawn: its wording is unknown, so it would be a
   plate with no function.
+
+**Trainer, M19 (2026-10-11):** the compromises above (slot sizes, the field's width,
+its 40 px offset to the left of the column and the FLARM display left of the GPS) are
+superseded by §3.9.3 and §3.9.7: the photos put the FLARM display top left, the GPS
+centred under it and the radios side by side below, in the narrowest plate, with the
+column hanging 0.37 A left of that plate's centre line (§3.9.6). The owner lifted the
+frozen slot aspects (§2a item 10); the photos confirm today's aspects (§3.9.3). Sizes
+and the remaining trade-offs are §9 questions 40 to 45. Two facts above are corrected:
+the photographed GPS cradle is 2.50 D wide (1.80 A), not 2.8 D (§3.9.3), and the
+version label is the yellow strip above the checklist copy at the plate's top right,
+not a tab under the FLARM display (§3.9.5); it stays undrawn.
 
 ### 3.3 Lower centre field (view `centre`), top to bottom
 
@@ -635,6 +689,17 @@ control), which stays as the trainer draws it; the avionics rows go to M18.
 meter" are resolved: the CTSL installs D-MPGO's four units (§3.8), the FLARM display
 included, as device slots. The hour meter stays inert art.
 
+**Resolved in M19 (§3.9):** the position, size and arrangement columns of the rows
+"Panel fields", "Upper-left instruments", "Engine gauges", "Breaker block", "Charge
+lamp", "Cabin heat" and "FLARM, hour meter" are measured in §3.9 (field boundaries
+§3.9.1, gauges §3.9.2, avionics §3.9.3, breakers and lamp §3.9.4, placards §3.9.5,
+lower column §3.9.6). The 12V Outlet breaker stands under the second breaker column,
+not "below the left end" (§3.9.4), and the Generator lamp at the right plate's
+horizontal middle, not at its top right as §3.7.1 and the "Charge lamp" row say
+(§3.9.4). The airspeed indicator's white arc, "not legible" in §3.7.1, is resolved
+in §3.10.1: white 72–115 on the inner half of the band. The trainer follows in #716
+and #712.
+
 ### 3.8 Avionics units (M18)
 
 The four units below replace SL40, GTX 327 and GPSMAP 496 in the CTSL (§2a item
@@ -682,19 +747,21 @@ variant letter of an ATR833A-OLED is not visible on the face and cannot be ruled
 out. The ATR833-II OLED is less likely: D-MPGO's face carries the funkwerk logo
 used before the maker was renamed f.u.n.k.e. AVIONICS and no "Mk II" lettering.
 Rejected: the older ATR 500 (its memory rotary switch and exchange key are not on
-this face) and every LCD type (this display is OLED). The family is certain, the
-generation is open (§9 question 36). §3.7.1's reading of the knob legend as
+this face) and every LCD type (this display is OLED). The family is certain; the
+owner confirmed the original ATR833-OLED (§9 question 36). §3.7.1's reading of the knob legend as
 "VOL/SQL" is corrected here: the legend reads VOL/SEL.
 
 **Panel position.** Upper-centre field, bottom row, left unit: directly below the
 GPS, left of the transponder. Its two knobs take the right-hand corners of its
 bounding square.
 
-**Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833-II VHF Communication Transceiver,
-OLED / LCD, Operation and Installation", document 01.143.010.71e, revision 1.06
-(24 Jan 2024), downloaded from the manufacturer's own site. It is the only source
-(§2a item 6): the manual of the II describes D-MPGO's unit, and a function of the
-II whose control D-MPGO's face lacks is out of scope.
+**Source.** f.u.n.k.e. AVIONICS GmbH, "ATR833A-OLED Operation and Installation",
+document 01.1411.010.71e, revision 3.00, read on ManualsLib (manual 876459) because
+the manufacturer no longer hosts manuals for the original unit. The owner chose it
+on 2026-10-11 (#718); for the COM it replaces the ATR833-II manual that §2a item 6
+used to name. The A variant is taken to behave like D-MPGO's original ATR833-OLED (§9
+question 64). "Manual §n" is the A manual's own section number. A function whose
+control D-MPGO's face lacks is out of scope.
 
 **Face.** Top row, three push keys printed `I/O`, `SET`, `MEM`. A knob at the
 upper right with a curved legend `VOL/SEL`. The display in the middle, three text
@@ -781,99 +848,130 @@ in the photos are illustrative only.
 _Not visible_: the OLED pixel structure, the knobs' detents and any pointer, a
 legend for the lower knob, edge-lit key legends, and the display in other modes.
 
-**Controls** (the manual's names in parentheses).
+**Controls** (manual §2.1, summarised per control).
 
-| Control                                     | Press or turn                                            | Effect                                                                                                                       |
-| ------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `I/O` (on/off)                              | about 0.5 s                                              | switches on                                                                                                                  |
-| `I/O`                                       | about 3 s                                                | switches off                                                                                                                 |
-| `SET` (entry)                               | short                                                    | steps the third display line through VOL, SQL, VOX, INT, STL, STR, EXT, BRT, then VOL again                                  |
-| `SET`                                       | short, inside a MEM or LST list                          | loads the shown entry into the standby frequency                                                                             |
-| `SET`                                       | 5 s or more                                              | opens the setup menu: pilot items (spacing, display, dual watch, PTT select), then installer items (not modelled)            |
-| `MEM`                                       | short                                                    | opens the 20 user memories; a second short press opens the list of the last 10 active frequencies (LST)                      |
-| `MEM`                                       | hold (2 s in the key table, 1.5 s in the worked example) | opens save mode: pick a slot, then a short press writes the frequency                                                        |
-| `DW` (dual watch)                           | short                                                    | toggles dual watch, line 2 reads `DW` instead of `SBY`; in any menu or list it returns to the standard display               |
-| `▲▼` (swap)                                 | short                                                    | exchanges active and standby; in a MEM or LST list it loads the entry into the active frequency                              |
-| `►` (cursor)                                | short                                                    | moves the underline to the next editable field of the standby frequency                                                      |
-| `►`                                         | more than 2 s                                            | REPLAY of the last received call (not modelled)                                                                              |
-| `VOL/SEL` knob (volume/select)              | turn                                                     | receive volume by default; otherwise the value of the line-3 item chosen with `SET`, the list entry number, or the save slot |
-| lower-right knob (the manual calls it FREQ) | turn                                                     | changes the underlined field of the standby frequency                                                                        |
+- **`I/O`**: a press of about half a second switches the radio on; holding it about
+  2 s switches it off.
+- **`SET`**: each short press moves the third display line on to its next setting,
+  in the order VOL, SQL, DIM, VOX, DWM, INT, EXT and round to VOL again; a hold of
+  1.5 s or more goes straight back to VOL; a hold of 5 s or more opens the
+  configuration menu (not modelled).
+- **`MEM`**: a short press opens the user memory list, and a second one the list of
+  recently used frequencies (LST). Held 1.5 s or more while the memory list is open,
+  it stores the **active** frequency in the shown entry and clears the entry's name.
+- **`DW`**: dual watch on or off; line 2 then reads `DW` in place of `SBY`.
+- **`▲▼`**: swaps active and standby, and also closes an open list.
+- **`►`**: moves the underline to the next field of the standby frequency; held 1.5 s
+  or more in the memory list, it starts naming the entry (not modelled).
+- **`VOL/SEL` knob**: sets the value of the line-3 setting; in a list it picks the
+  entry, which becomes the standby frequency at once.
+- **Lower-right knob** (FREQ in the manual): changes the underlined field of the
+  standby frequency.
+
+The A manual has no REPLAY and no split sidetone items; those are ATR833-II features.
 
 Not on the face and out of scope: the push-to-talk button on the stick, an external
-swap button, an external intercom switch, the serial remote interface, the PC tool
-for the memory list, the external audio input, and the display contrast (LCD only).
+intercom switch, the serial remote interface, the PC tool for the memory list and the
+external audio input.
 
-**Display.** Three lines on a 128 by 64 dot display. Line 1: `ACT`, a status field
-(`RX` receiving, `TX` transmitting, `Te` transmit time-out) and the active
-frequency. Line 2: `SBY` or `DW`, a status field and the standby frequency with
-the edit cursor as an underline below one field. Line 3: the chosen item and its
-value (default `VOL nn`), or `MEM nn` / `LST nn` while browsing a list, with
-`BAT` for a very low supply. After a memory save a `>` stands before the standby
-frequency. The manual's own example and D-MPGO's display show the same layout, with
-the cursor on the MHz field. A menu or list falls back to the standard display
-after 10 s without input.
+**Line-3 settings** (manual §2.4). `SET` chooses the setting and `VOL/SEL` changes
+it; values always show two digits, and line 3 returns to VOL after 12 s untouched.
+Receive volume (`VOL`) runs 01 to 16. Squelch (`SQL`, higher needs a stronger
+signal, default 05 and the only default the manual gives), display brightness
+(`DIM`), the speech level that opens the intercom (`VOX`, 01 meaning always open)
+and intercom volume (`INT`, shown as `INT --` when the wiring disables the intercom)
+each run 01 to 10. The external audio volume (`EXT`) runs 00 to 10, 00 switching the
+input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
+runs from 00 (none) down to −8, the minus sign printed.
 
-**Power.** Holding `I/O` for about 0.5 s switches the unit on; it shows a start
-screen with the type and software version and returns to the frequencies and
-settings it had at switch-off. About 3 s switches it off. The installer setting
-AUTO ON makes the unit start as soon as supply arrives; with it off the pilot must
-press `I/O` (manual §3.9; D-MPGO's setting is §9 question 35).
+**Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
+settings: channel spacing, automatic display darkening, push-to-talk assignment,
+external audio priority, microphone sensitivities and a maintenance test mode. A
+master reset (manual §3.7) restores the factory configuration. The manual has **no
+AUTO ON** setting and names no automatic switch-on.
 
-**Frequency entry and swap.** Tuning is two steps: set the standby frequency, then
-swap. With 8.33 kHz spacing the standby frequency has three fields: the MHz part,
-the first decimal digit, and the last two digits. `►` moves from field to field and
-the lower-right knob changes the field. The range is 118.000 to 136.975 MHz. The
-radio takes the channel width from the channel's name: 25 kHz channels are named in
-steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a carrier
-is named 5 kHz higher (.005, .030, .055, .080), with the two names between them for
-the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names. The
-setup item SPACING can restrict entry to 25 kHz names.
+**Display.** Three lines on the OLED. Line 1: `ACT`, a status field (`RX`
+receiving, `TX` transmitting, `Te` after two minutes of continuous transmission) and
+the active frequency. Line 2: `SBY` or `DW`, a status field (`RX` in dual watch) and
+the standby frequency, with the edit cursor as an underline below one field. Line 3:
+the chosen item and its value (default `VOL nn`), or `MEM nn` with the entry's name,
+or `LST nn`, while browsing a list; `BAT` for a low supply. While a list is open,
+line 2 keeps the `SBY` label and shows the entry, because the entry is the standby
+frequency. The manual's example and D-MPGO's display show the same layout, with the
+cursor on the MHz field.
 
-**Memories.** 20 user slots, optionally named (up to 8 characters), and a list of
-the last 10 active frequencies. Recall: `MEM`, turn the VOL/SEL knob, then `▲▼` for
-active or `SET` for standby. Save: set the frequency as standby, hold `MEM`, turn
-the knob to a slot, press `MEM` briefly; a `>` confirms.
+**Power** (manual §2.2). Holding `I/O` about 0.5 s switches the unit on: a start
+screen with the type and software version, then the frequencies and settings it had
+at switch-off. About 2 s switches it off. The manual names no switch-on when supply
+arrives, so power arriving leaves the unit dark until `I/O` is pressed; this matches
+the owner's answer for D-MPGO (§9 question 35). The manual does not say whether the
+memories and the last-used list survive switch-off.
 
-**Dual watch.** With one receiver, dual watch listens mainly to the standby
-frequency and samples the active one at intervals; a signal on the active one takes
-priority. Transmission is always on the active frequency. Changing either
-frequency ends dual watch. It needs squelch of at least 1. The pilot swaps before
+**Frequency entry and swap** (manual §2.5). Tuning is two steps: set the standby
+frequency, then swap. With 8.33 kHz spacing the standby frequency has three fields:
+the MHz part, the first decimal digit, and the last two digits. `►` moves from field
+to field and the lower-right knob changes the field. The range is 118.000 to 136.975
+MHz. The radio takes the channel width from the channel's name: 25 kHz channels are
+named in steps of 25 kHz (.000, .025, .050, .075), and the 8.33 kHz channel sharing a
+carrier is named 5 kHz higher (.005, .030, .055, .080), with the two names between
+them for the other 8.33 kHz slots. The values on D-MPGO's display are 8.33 kHz names.
+The channel-spacing setting in the configuration menu can restrict entry to 25 kHz
+names.
+
+**Memories** (manual §2.5.3 to §2.5.5). 100 user entries, numbered 00 to 99, each
+optionally named with up to 8 characters. Recall: `MEM` opens the list at entry 00;
+turning the `VOL/SEL` knob picks an entry, and the entry replaces the standby
+frequency at once; `▲▼` then makes it active and leaves the list. A second short
+`MEM` opens the last-used list: the last 10 active frequencies as `LST 01` to
+`LST 10`, plus `LST 00`, which holds the last standby frequency taken from the
+memory list; picking and swapping work as in the memory list. Save: make the
+frequency active, open the memory list, pick the entry, hold `MEM` 1.5 s or more;
+the active frequency is written into the entry (so line 2 now shows it too) and any
+name is cleared. There is no save mark. A list is left by a key press or after a
+time-out whose length the manual does not give.
+
+**Dual watch** (manual §2.6). With one receiver, dual watch listens mainly to the
+standby frequency and samples the active one at intervals; a signal on the active
+one takes priority. Transmission is always on the active frequency. Changing either
+frequency ends dual watch. It needs a squelch of at least 02. `DWM` makes standby
+reception quieter so the two can be told apart. The manual advises against dual
+watch where a continuous listening watch is required. The pilot swaps before
 answering a call heard on standby.
 
-**Typical use.** Before engine start: with avionics power on, switch on (unless
-AUTO ON), check that `BAT` is absent, set the volume, check that squelch is at
-least 1. Before take-off: the first frequency in standby, swap, then the next
-frequency in standby. In flight: swap at each hand-off; optional dual watch; the
-pilot saves frequencies to memory when it helps. After landing: hold `I/O` about 3 s
+**Typical use.** Before engine start: with avionics power on, switch on with `I/O`,
+check that `BAT` is absent, set the volume, check that squelch is at least 02 if dual
+watch will be used. Before take-off: the first frequency in standby, swap, then the
+next frequency in standby. In flight: swap at each hand-off; optional dual watch; the
+pilot saves frequencies to memory when it helps. After landing: hold `I/O` about 2 s
 to switch off before the avionics master goes off. The manual has no checklist;
 these steps are assembled from its functions.
 
 **Uncertain.**
 
-- AUTO ON on D-MPGO: **assumed (unverified)** on (§9 question 35).
-- Whether the original ATR833-OLED has the II's REPLAY, last-10 list, named
-  memories, split sidetone items or other II features; whether anything is printed
-  at the lower-right knob (§9 question 36).
-- The manual contradicts itself on several small points: the MEM hold time; whether
-  a save stores the active or the standby frequency (the key table, §2.1, and the
-  worked example say standby, the display table, §2.3, says active); whether REPLAY needs a hold or a press; the volume range
-  (1 to 20 or 0 to 20); how a list is left (`DW` or `SET`); and a memory-clear hold
-  of `►` that only a flow chart shows. The trainer's choice for each is in the
-  Trainer paragraph below or the M18 plan.
-- The cursor fields in 25 kHz spacing, and where the cursor starts after power-on
-  or a swap, are not stated.
+- Whether the ATR833A-OLED behaves like D-MPGO's original ATR833-OLED (§9 question
+  64).
+- The manual leaves open: which key leaves a list and whether that key also does its
+  own job; the list time-out; what an unused memory entry holds; what `LST 00` holds
+  exactly; whether the memories and the last-used list survive switch-off; what a
+  `MEM` hold does outside the memory list; how long the `I/O` press must be; whether
+  a cursor field carries into the next when it wraps; where the cursor starts after
+  power-on or a swap; and the cursor fields in 25 kHz spacing (§9 question 65).
 
-**Trainer (M18).** The `atr833` device models: power (any press switches on while
-powered, a hold switches off), active and standby frequencies of 8.33 kHz names
-with the three-field cursor (fixed spacing; fields wrap without carry, **assumed
-(unverified)**), swap, dual watch, the MEM list (20 unnamed slots) and the LST list,
-saving the standby frequency to a slot, the SET items VOL to BRT as numbers, and
-the menu time-out. Power arriving switches the unit on (AUTO ON assumed, §9 question
-35); frequencies, settings and memories survive power loss. It leaves out reception,
-transmission and audio (so no `RX`, `TX`, `Te`), REPLAY, the setup menu, memory names
-and clearing, the `BAT` warning, the start screen, factory reset and every external
-interface. The lower-right knob prints `FREQ`, which is the manual's name and not
-visible lettering (§9 question 36).
+**Trainer (#718).** The `atr833` device models the A manual: power (any `I/O` press
+switches on while powered, a 2 s hold switches off; power arriving leaves it dark,
+power lost switches it off), active and standby frequencies of 8.33 kHz names with
+the three-field cursor (fixed spacing; fields wrap without carry, **assumed
+(unverified)**), swap, dual watch (squelch 02 or more), the line-3 items VOL, SQL,
+DIM, VOX, DWM, INT and EXT as numbers with the SET hold back to VOL and the 12 s
+time-out, the user memory list (100 unnamed entries) and the last-used list with
+`LST 00`, browsing that replaces the standby frequency, and storing the active
+frequency with a `MEM` hold. Frequencies, settings, memories and the last-used list
+survive power loss and switch-off; dual watch, the line-3 item and an open list do
+not. It leaves out reception, transmission and audio (so no `RX`, `TX`, `Te`, and
+`DIM`, `DWM` and the volumes are numbers only), the configuration menu, memory names,
+the `BAT` warning, the start screen, master reset and every external interface.
+Nothing is printed at the lower-right knob (owner, §9 question 36); `FREQ` is the
+manual's name for it and appears only on the dock's touch helpers.
 
 #### 3.8.2 Transponder: funkwerk TRT800H-OLED
 
@@ -991,6 +1089,16 @@ outside −1000 to 35 000 ft, which stops Mode C. Bottom line: the standby code 
 right, or the word `VFR` while the VFR code is active; a `G` or `F` for the ground
 switch if one is fitted. `TM` at the far right of the top line marks test mode.
 
+_Trainer note (#742)._ The level is the pressure altitude: the altimeter's reading
+with 1013 hPa set (§3.10.2, §9 questions 46 to 48), so it follows the day's QNH, not
+the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 000`
+of the parked-aircraft photos is illustrative only, as noted above. The level is
+shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
+issue #742 and not taken from the handbook (the text above says only "in 100 ft
+steps"); to be checked against the handbook (§9 question 70). A level below zero is
+not covered by any source and is shown as the same rounding gives it (`FL -01` for
+−50 ft).
+
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
 list by 24-bit address appears; the pilot picks one with the knob and confirms with
@@ -998,6 +1106,27 @@ list by 24-bit address appears; the pilot picks one with the knob and confirms w
 Mode A/C transponder. It then starts in STBY, except that with a ground switch
 fitted and in-flight state selected it starts active. It keeps its codes, VFR code,
 brightness and altitude offset itself.
+
+**Power loss and return (#727).** The installation manual (§3.6.1.3 Auto-On, §3.10 Starting
+Up, §3.11) settles three things and leaves the rest open.
+
+- _Switch-on after power returns._ An installation pin, Auto-On, decides. Wired to the
+  supply behind an avionics master switch, the unit starts by itself whenever power is
+  supplied and its `I/O` key then has no function. Left unconnected, the unit stays dark
+  until `I/O` is held for about 0.5 s. The manual asks for the first wiring where an
+  avionics master switch feeds the unit, but D-MPGO's wiring is not known (§9 question 66).
+- _What survives._ The unit stores the active, standby and VFR codes, the display
+  contrast and the altitude offset internally, and the aircraft record (address, category,
+  Flight-ID, ground switch, speed category, data ports) in the cradle's memory. Power
+  loss therefore keeps the codes. It does not keep the operating mode: every start is in
+  STBY, except with a ground switch fitted and in-flight state selected. Ident, a
+  half-made entry and the word `VFR` on the bottom line are not mentioned as stored (§9
+  question 67).
+- _Start-up sequence._ After switch-on the unit shows its name and software and firmware
+  versions, then the record list (only with more than one record, picked with the knob
+  and `MODE`), or `Cradle OFF` without an address, and then the code, level and `STBY`
+  screen. The manual names no self-test and gives no duration for any of these screens;
+  whether a key is accepted while they show is not stated (§9 question 67).
 
 **Squawk entry and swap.** The active code is on the top line, the standby code on the
 bottom. Press `►` to put the cursor on a digit, turn the knob, press `►` for the next
@@ -1019,9 +1148,6 @@ functions. The manual does not mention emergency squawks.
 
 **Uncertain.**
 
-- The set-up of D-MPGO's unit: whether a Mode S cradle with a 24-bit address is
-  fitted, whether a ground switch is, and the stored VFR code (§9 question 37). The
-  trainer's choice below is **assumed (unverified)**.
 - A second `VFR` press while VFR is active: one passage says activate or deactivate,
   another says it shows the standby code and VFR stays active. The trainer follows the
   second reading.
@@ -1032,13 +1158,25 @@ functions. The manual does not mention emergency squawks.
 a hold switches off), the mode cycle STBY, ACS and A-S, active and standby codes with
 the cursor and the knob (digits 0 to 7), swap and cursor-back, the VFR key with its
 store hold, ident for 18 s in an active mode, and the flight level taken from the
-pressure altitude (`FLerr` outside the valid range). A Mode S cradle is assumed
-fitted, with no ground switch (§9 question 37); initial codes 2000 and VFR 7000 are
-placeholders and the factory VFR value. It leaves out interrogations, replies and the
+pressure altitude (`FLerr` outside the valid range). A Mode S cradle is
+fitted, with no ground switch, and the stored VFR code is 7000 (owner, §9 question 37);
+the initial code 2000 is a placeholder. It leaves out interrogations, replies and the
 lock-out and reply indicators, squitter and ADS-B, Flight-ID and setup menus,
 operation without the cradle address, brightness, error codes and the `BAT` warning,
 test mode, the ground-switch state, the start screen and the remote head. The knob
 prints `CODE`, the trainer's word; the unit prints nothing there.
+
+**Power cycle (trainer, #727).** The `trt800h` device follows the `powered` condition the
+aircraft gives it: with the Transponder breaker pulled, or the Avionics Master off, or the
+battery off with no generator running, it is dark and ignores every key. When power
+returns it stays dark until `I/O` is pressed, as for an Auto-On pin left unconnected
+(**assumed (unverified)**, §9 question 66; the trainer's `I/O` steps in N6 and in
+`radioAndTransponder` are the trainer's own, and a wired pin would leave the key without
+function). It returns in STBY with the
+active, standby and VFR codes of before; ident, the cursor, the stored-code flash and a
+pending key hold are gone, and the word `VFR` is not shown again. A key still held when
+power returns does not count as a press. The start screens are not shown and no key is
+blocked after the press (§9 question 67).
 
 #### 3.8.3 GPS: Garmin aera 500
 
@@ -1132,7 +1270,9 @@ power key, the side-edge controls (the card slot), and the backlight-off look.
 **Power-on.** External power switches the unit on by itself. First use runs AutoLocate,
 which can take several minutes. A database initialisation page lists each database's
 dates and cycle; the pilot reviews it and touches **Press To Accept**. Then Home
-appears with GPS signal bars. The receiver's status text runs Autolocate, Searching
+appears with GPS signal bars. The page comes at every switch-on, not only the first: the guide
+says that when the unit is turned on, the initialisation shows whether the databases are
+current, out of date or not available (#727). The receiver's status text runs Autolocate, Searching
 the Sky, Acquiring Satellites, 2D GPS Location (three satellites), 3D GPS Location
 (four) or Lost Satellite Reception. The unit is a VFR aid only.
 
@@ -1154,6 +1294,24 @@ Activate. Stop Navigation ends it. A flight plan is built on Active FPL with "To
 add Waypoint" and activated from the plan list. The unit has no radio tuning, no
 squawk entry and no swap.
 
+**Power loss and return (#727).** The guide (Rev. C) settles the return and is nearly silent on
+the loss.
+
+- _Return._ Applying external power turns the unit on for full operation by itself; there
+  is nothing to press. The initialisation page follows (above). A unit that was held off
+  with external power connected sits in Charge Mode, and it too comes on when external
+  power is applied again.
+- _Loss._ The guide never says what the unit does when external power is removed while it
+  runs. It does say that the unit has a lithium-ion battery which must stay installed
+  whenever the unit is on, that the battery charges from external power, and that a Setup
+  item `Power Loss Warning` exists. Read together this suggests that a unit with a battery
+  keeps running and warns, but the guide does not say so, and whether D-MPGO's unit carries
+  a battery is unknown (§9 question 68).
+- _What survives._ After a start the receiver searches again from its last known position
+  and stored satellite data, so a repeat search is probably shorter than the first; the
+  guide gives no time. Settings such as the backlight level and the map range are the
+  unit's own; the guide does not list which survive a power loss (§9 question 68).
+
 **Settings a trainer may touch.** Backlight level and time-out, day or night colours,
 sound volumes, alarms, power-loss warning, simulator mode.
 
@@ -1168,12 +1326,14 @@ The guide has no checklist; these steps are inferred from its functions.
 **Uncertain.**
 
 - What cradle power loss does: switch the unit off or keep it on battery (§9 question
-  38). The guide covers only power-on on external power and Charge Mode.
+  38, still unknown). The guide covers only power-on on external power and Charge Mode.
 - The exact Home grid order and size, the layout of the POWER overlay, and any lettering
   on the POWER button (the trainer prints `POWER`, **assumed (unverified)**).
-- D-MPGO's map orientation, data fields and software version; whether it has a traffic or
-  weather source (§9 question 38).
-- The club's start-up step for it (§9 question 38).
+- D-MPGO's software version (§9 question 38).
+
+Owner-confirmed (§9 question 38): the map is track up with the fields GS, ETE NEXT, BRG and
+DIST NEXT, there is no traffic or weather source, and the start-up step is accepting the
+databases and opening the map.
 
 **Trainer (M18).** The `aera500` device models: cradle power switching it on at the
 database-acceptance page, accepting (Home opens), a Map page (schematic, Track Up, range
@@ -1186,6 +1346,15 @@ terrain, weather and traffic, the map pointer and panning, page menus, flight pl
 guidance, alarms, messages, sound, the battery and Charge Mode, database dates, automotive
 and simulator modes, calibration and dimming. Its touchscreen is one control with a position
 per icon, shown only on the page that has it. Every icon prints the guide's name for it.
+
+**Power cycle (trainer, #727).** The `aera500` device follows the `powered` condition: with the
+GPS breaker pulled, or the Avionics Master off, or the battery off with no generator running, it
+is dark, and the touchscreen and POWER are inert. When power returns it switches on by itself at
+the database page, whatever it showed before, even if it had been held off (Charge Mode). The
+fix, the readings, the page and the backlight overlay are gone and the search starts from
+nothing; the backlight level and the map range stay. A pull during the database page or during
+the search starts both over. A POWER key held while power returns is spent. The battery is not
+modelled, so a pull always goes dark (**assumed (unverified)**, §9 question 68).
 
 #### 3.8.4 FLARM display: classic external LED display
 
@@ -1320,10 +1489,32 @@ degrees above or below; fixed obstacles flash the two topmost LED pairs in turn.
 Only the single most dangerous threat is shown. Faults flash all four status LEDs for
 30 s with a binary code on the red LEDs.
 
+**Power loss and return (#727).** The unit manual (version 242, §7 Start-Up, §10 and §4)
+settles most of it; the display sheet (V 5.1e) was not fetched again for this item.
+
+- _Return._ The unit is always on whenever it is connected to an adequate supply, so power
+  returning switches it on by itself, and the display starts its sequence again (see Start-up
+  above). The unit manual puts its own self-test at about 8 seconds, depending on the size
+  of the obstacle data, and says that without the firmware version display and its beep the
+  unit is not ready. A GPS fix after switch-on can take several minutes.
+- _What survives._ Every start is in Nearest mode at loud volume (the manual's defaults;
+  that a pilot's volume or mode would persist across a power loss is not stated, and the
+  display sheet's "starts in Nearest mode at loud volume" is followed). Warning suppression
+  ends (it is not modelled). Flight recording ends with the supply: pulling power within
+  about a minute of landing, at the recommended 2 s interval, loses the last part of the
+  flight (not modelled).
+- _Switching it off in flight._ The manual requires the pilot to have direct sight of and
+  immediate access to a switch or circuit breaker that disconnects the FLARM from the
+  aircraft supply without affecting other essential systems. D-MPGO's panel shows no
+  FLARM breaker or switch (§3.6, §9 question 33).
+- _Low supply._ Below 8 V the `Power` LED flashes and the unit does not operate.
+
+The self-test duration and the search time of the trainer are its own (§9 question 69).
+
 **Typical use.** Before engine start: the FLARM supply is on (switch or breaker, §9
 question 33); the beep, version display and self-test follow; choose volume and mode.
-Before take-off: `Power`, `GPS` and `TX` steady (§9 question 34); an optional receive
-test on the ground. In flight: mode by a 2 s push, volume by brief pushes, double push to
+Before take-off: `Power`, `GPS` and `TX` steady (the manual's check; the club does not do it,
+§9 question 34); an optional receive test on the ground. In flight: mode by a 2 s push, volume by brief pushes, double push to
 suppress. After landing: wait at least a minute before removing power or the end of the
 flight log is lost; power goes with the aircraft's FLARM supply, since the display has no
 switch. The system is for day VFR only and not for navigation. These steps are assembled
@@ -1353,12 +1544,1414 @@ reset, display setup, fault codes and flight recording. The trainer's timings fo
 self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
 the manuals give none.
 
+**Power cycle (trainer, #727).** With the Avionics Master off, or the battery off with no
+generator running, the display is dark (the FLARM has no breaker of its own in the trainer,
+§9 question 33; the other breakers do not affect it). When power returns it starts over:
+the self-test from its first LED, Nearest mode, loud volume, and the GPS search from nothing,
+whatever it showed before, including a mode-swap run in progress; a Mode key held through
+the return counts from the end of the self-test. The trainer's self-test is shorter than the
+unit manual's figure and its search is a fixed time (**assumed (unverified)**, §9 question 69).
+
+### 3.9 Panel layout (photos, M19)
+
+Where everything sits on D-MPGO's panel, measured from the owner's photos (§1, §3.7)
+for M19 (#716: the whole panel as D-MPGO's; #712: the centre-field avionics). §3.7
+says _what_ is on the panel; this section says _where_ and _how big_. Owner principle
+(§2a item 10): fidelity is recognition, so the numbers below cover position, relative
+size, dial layout, coloured-arc places and controls; colours, stickers, logos and fine
+ticks are notes only. Photos only, nothing from the handbook. No photo, crop or
+derived image is in the repo; maker logos and lettering are given as footprints only.
+
+#### 3.9.0 Coordinate convention
+
+- **Photos.** Upper panel: photo 10.14.30 (the most frontal view from the left seat),
+  cross-checked against 10.14.29 (4), 10.14.28 and 10.14.29 (3). Lower column and
+  lever row: photo 10.14.30 (1). Console aft and wing roots: 10.14.29, 10.14.29 (1)
+  and (2).
+- **Perspective removed per plate.** Each aluminium plate is flat, but the three upper
+  plates are **not in one plane**: the two outer plates are angled toward the seats
+  (their perspective differs from the centre plate's; a single correction leaves the
+  outer rows sloping). Each plate was corrected on its own, from its screw squares
+  (four-screw instrument mounts), straight screw rows and columns, and for the centre
+  plate the GPS screen's 480 by 272 pixel aspect. The outer plates were then unfolded
+  flat onto the centre plate's plane at their shared edge. Checks: every round face
+  comes out round within 3 percent; the breaker columns come out evenly pitched; the
+  right plate's two outer screws come out vertically aligned (not constrained).
+- **Unit A** = the airspeed indicator's case diameter (the outer edge of its black
+  bezel). It is the one size unit of §3.9 and §3.10 (§3.10.0): every size below is in
+  A, and §3.9.2's size column is the one size table for the gauges (§2a item 10).
+  **D** is the COM disc's diameter (57 mm nominal, §3.8) and appears only where a size
+  is compared with the radios. **D = 0.72 A** (ASI = 1.38 D, range 1.31 to 1.45 D,
+  medium confidence), from the two copies of the take-off checklist summary, one on
+  the left plate and one on the centre plate: the same printed card, each measured in
+  its own plate's corrected frame (widths give 1.36 to 1.39 D in three photos, heights
+  1.31 to 1.32). With D = 57 mm, A is about 79 to 83 mm, a 3⅛-inch instrument. A raw
+  photo ratio of about 1.8 is perspective: the radios sit low on the centre plate,
+  farther from the lens.
+- **Conversion from the first survey's D values** (already applied below). The survey
+  linked the plates by unfolding the outer plates onto the centre plate at their
+  shared edges, which gave the ASI 1.45 D and the tachometer 1.03 D. Its outer-plate
+  sizes are therefore same-plate ratios: left-plate sizes are divided by 1.45 and
+  right-plate sizes are scaled through the tachometer (T = 0.72 A, so × 0.70). The
+  plate outlines, the gaps and the panel box keep the unfolding (÷ 1.45), so that
+  §3.9.1's relations hold. Centre-plate units and the glareshield items use D = 0.72 A.
+  The two links differ by about 5 percent, so a centre-plate unit drawn at its §3.9.3
+  size comes out up to about 4 percent larger than its field fractions give: a known
+  mismatch, within the size tolerance.
+- **Perspective and size checks.** Every photo is a close, high, wide-angle view, so
+  the lower part of each plate is farther from the lens and images up to about 20
+  percent smaller (in 10.14.30 the centre plate's bottom screw pair spans about 0.79
+  of its top pair). Raw photo ratios, and corrections without a perspective term,
+  therefore shrink everything low on a plate. The sizes below come from a per-plate
+  correction with a perspective term, fitted so that all of a plate's round cases come
+  out round at once (residual under 0.5 percent of the radius, against 1.5 to 2
+  percent without the perspective term). Checks: the left plate's column pitch comes
+  out equal in both rows, the altimeter equals the airspeed indicator, the four engine
+  gauges come out equal, and the centre plate's corner screws come out at 2.04 by
+  3.23 A (2.96 by 4.68 D, through the outline chain ÷ 1.45; §3.9.1).
+- **Two boxes.** The _panel box_ is the bounding box of the three upper plates: x from
+  the left plate's outer edge to the right plate's outer edge, y from the centre plate's
+  top edge (the highest) to the centre plate's bottom edge (the lowest). It measures
+  **9.10 A by 3.45 A (width to height 2.64)**. A _field box_ is one plate's own bounding
+  box. All fractions: origin top left, x right, y down; positions are centres unless an
+  edge is named.
+- **Accuracy.** Positions ±0.02 of the box named; sizes ±5 percent; the outer plates'
+  outer extents ±0.03 (**low confidence**: the left plate's outer edge is at the
+  photo's border, and both depend on the unfolding). Items marked low confidence carry
+  ±0.04.
+- **Trainer columns.** "Today" is the current `views.ts` rect or `view-panel.svg`
+  shape, in panel view units. "T" is the one mapping §3.9.7 defines (assumption T);
+  §9 question 41 asks the owner about it.
+
+#### 3.9.1 Field boundaries and panel colour
+
+| Field              | Panel box x   | Panel box y   | Size (w × h)  | Shape (field fractions)                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ------------- | ------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Upper left plate   | 0.000 – 0.370 | 0.057 – 0.988 | 3.38 × 3.22 A | Inner (right) edge straight and vertical; top edge level from the inner corner out to x 0.55, then a long convex curve through (0.50, 0.03), (0.36, 0.06), (0.22, 0.10), (0.13, 0.15), (0.08, 0.22), (0.04, 0.34), (0.01, 0.45) to the outermost point (0.00, 0.56); back in through (0.01, 0.68), (0.03, 0.78), (0.08, 0.85) to the level bottom edge, which starts near x 0.20 (bottom-outer curve **low confidence**). Small radius at the inner corners. |
+| Upper centre plate | 0.400 – 0.646 | 0.000 – 1.000 | 2.25 × 3.46 A | Upright rectangle (width to height 0.65), small rounded corners, four corner screws inset about 0.11 A from each edge. The tallest plate: its top stands 0.06 (left) and 0.08 (right) of the panel height above the outer plates' inner top corners.                                                                                                                                                                                                         |
+| Upper right plate  | 0.679 – 1.000 | 0.080 – 0.995 | 2.93 × 3.17 A | Inner (left) edge straight and vertical; top edge level from the inner corner out to x 0.61, then a convex curve through (0.68, 0.08), (0.80, 0.13), (0.89, 0.19), (0.94, 0.24), (0.97, 0.32), (0.99, 0.41) to the outermost point (1.00, 0.50); back in through (0.98, 0.68), (0.95, 0.76), (0.91, 0.83), (0.85, 0.93), (0.75, 0.97) to the level bottom edge, which starts near x 0.70.                                                                    |
+
+- **Gaps.** Dark moulding between the plates: left gap 0.030 of the panel width
+  (0.28 A), right gap 0.033 (0.30 A). The bottoms of the three plates are level within
+  0.012 of the panel height; only the tops differ (the centre plate rises above both).
+- **The trainer is much wider than the aircraft.** Real field widths, as fractions of
+  the panel box: left 0.370, centre 0.246, right 0.321. Trainer today (fractions of the
+  drawn span 12 – 2360): left 0.19, centre 0.49, right 0.31. On D-MPGO the centre field
+  is the **narrowest** plate, a tall upright panel between two wide wings, and the left
+  plate is the widest; the trainer has it the other way round. Real plate-span aspect
+  2.64, trainer 3.51.
+- **Above the centre plate**, on the dark moulding (**low confidence**, the moulding
+  curves toward the windscreen): the "Cabin Heat" knob in its square bezel at x 0.430,
+  y −0.064 of the panel box (0.27 A square), and the plain red-cross disc at x 0.490,
+  y −0.062 (0.28 A). In centre-plate fractions both sit 0.23 A above the plate's top
+  edge, at x 0.12 and 0.37: over the plate's **left half**, not centred.
+- **Lower column**: its top edge spans x 0.364 – 0.601 of the panel box (§3.9.6).
+- **Colour (photos).** All three upper plates **and the lower column plate are the same
+  light brushed aluminium**, brushed horizontally. In even light (photo 10.14.28) they
+  read mid grey: left #908F90, centre #7E8C8E, right #67767D (in shadow), column
+  #8A9492; in photo 10.14.30 the left plate reads lighter only because sunlight falls
+  on it. Neutral hint for the aluminium: about #8E9296. The dark surround is the
+  moulding (glareshield, the gaps between plates, the frame around the column): dark
+  charcoal with the photos' blue cast (#2B4051 raw), neutral hint about #2C2F33.
+- **Colour (trainer today).** The outer fields are drawn dark charcoal (`pp` gradient,
+  #303338 to #1D1F22), which is the _moulding's_ colour, not the plates'; the centre
+  field is aluminium (`al` gradient, #80878F to #5C626A); the centre view's plate is
+  dark (`gp`, #26282C).
+- **Owner decision (#716, 2026-10-11): the centre field is the outer panel's colour**;
+  label colour and contrast on it do not matter. Recorded as given. The photos show the
+  outer plates are aluminium like the centre one, so the ruling is met either by
+  drawing every field in the trainer's dark panel colour or by drawing every field
+  aluminium: §9 question 40.
+
+#### 3.9.2 Gauge placement
+
+Positions: field box fractions, then panel box fractions. Sizes are the outer diameter
+of the black bezel or housing (the face plus its rim), in A (§3.9.0). This size column
+is the one size table for the gauges; §3.10.11 repeats it.
+
+| Gauge                 | Field (x, y) | Panel (x, y) | Size (A)                                           | Today (view units, centre; size) | T (centre; size)   |
+| --------------------- | ------------ | ------------ | -------------------------------------------------- | -------------------------------- | ------------------ |
+| Airspeed (left plate) | 0.400, 0.384 | 0.148, 0.415 | 1.00 (reference)                                   | 132, 232; 220                    | 566, 293; 193      |
+| Altimeter (left)      | 0.781, 0.386 | 0.289, 0.416 | 1.00 (case; the lug and knob stand out beyond it)  | 346, 232; 196                    | 815, 294; 193      |
+| Slip indicator (left) | 0.404, 0.734 | 0.149, 0.740 | 0.71 (measured 0.69 to 0.71)                       | 132, 456; about 213 (art)        | 569, 510; 137      |
+| VSI (left)            | 0.787, 0.734 | 0.291, 0.740 | 0.71 (measured 0.70 to 0.73)                       | 346, 456; 196                    | 818, 510; 137      |
+| Tachometer (right)    | 0.202, 0.205 | 0.744, 0.268 | 0.72 (T; across plates, **low confidence**, ±0.04) | 1759, 145; 210                   | 1615, 195; 139     |
+| CHT (right)           | 0.192, 0.427 | 0.741, 0.471 | 0.40 (E = 0.55 T)                                  | 1953, 115; 150                   | 1610, 330; 77      |
+| Voltmeter (right)     | 0.371, 0.427 | 0.798, 0.471 | 0.40                                               | 2109, 115; 150                   | 1711, 330; 77      |
+| Oil temp (right)      | 0.192, 0.589 | 0.741, 0.619 | 0.40                                               | 1953, 271; 150                   | 1610, 429; 77      |
+| Oil pressure (right)  | 0.371, 0.591 | 0.798, 0.621 | 0.40                                               | 2109, 271; 150                   | 1711, 431; 77      |
+| Hour meter (right)    | 0.576, 0.524 | 0.864, 0.559 | 0.45 × 0.28 (aspect about 1.6)                     | 2271, 235; 150 × 70 (art)        | 1827, 389; 87 × 54 |
+| Fuel sight gauges     | wing roots   | outside      | strip 5 to 40 l                                    | not drawn                        | not drawn          |
+
+Arrangement, in words a pilot would use:
+
+- **Left plate**: a 2×2 grid. Top row: airspeed (left column) and altimeter (right
+  column), centres level at y 0.385. Bottom row: slip indicator under the airspeed,
+  VSI under the altimeter, centres level at y 0.734. The columns sit at x 0.40
+  and 0.78: the grid fills the plate's **inner three-quarters**; the outer quarter
+  (left of x 0.25) is bare aluminium, and the registration lettering sits above the
+  airspeed indicator. Centre to centre, the columns are 1.30 A apart (the same in both
+  rows) and the rows 1.12 A (0.35 of the field height). The columns are straight: the
+  slip indicator sits about 0.01 A right of the airspeed's axis and the VSI about
+  0.02 A right of the altimeter's. The slip indicator and the VSI are the same size,
+  about 0.7 of the airspeed indicator; the photos show the slip indicator 1 to 2
+  percent the smaller, under the tolerance, so draw them equal. Trainer today: the
+  grid hugs the plate's left edge (airspeed centre at x 0.27 of today's 447-unit
+  field) and the field is half as wide as on the aircraft.
+- **Right plate**: the tachometer at the top left; under it a 2×2 block of small
+  gauges (CHT, voltmeter / oil temp, oil pressure), its left column under the
+  tachometer (the tach centre about 0.05 T right of that column's axis) and its right
+  column at x 0.37; the hour meter right of the block, level between its two rows
+  (y 0.524, about 0.1 of a row pitch below the block's mid-height); the Generator lamp
+  at the top, at x 0.49 (§3.9.4). The **tachometer is only about the VSI's size**
+  (0.72 A), not near the airspeed indicator's size as the trainer draws it (210
+  against 220), and the four small gauges are 0.40 A, all four equal (trainer 0.68).
+  Trainer today: the small gauges sit right of the tachometer at its height (a 2×2 at
+  x 0.33 – 0.76, y 0.04 – 0.49 of today's field); on the aircraft they sit **below**
+  it.
+- Real centre-to-centre spacings: small-gauge columns and rows both 0.53 A (0.74 T,
+  1.35 E), leaving about 0.35 E between neighbouring cases; from the tachometer's
+  centre to the CHT's centre 0.71 A (0.99 T) down; from the voltmeter column to the
+  hour meter's centre 0.60 A (1.5 E) across.
+
+Dial layout, as clock positions (scale numerals and units are on the dials; the dials'
+legends are recorded in §3.7.1, the markings in §4.3). **§3.10 governs the dial
+geometry**: its angle tables are the measurement, and this table only summarises them.
+
+| Gauge          | Rest / zero stop                                                   | Sweep                                                                                                                                                                                                                            | Pointers, knobs, windows                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Airspeed       | pointer at 12 o'clock on a white rest index                        | clockwise, almost a full turn: 40 just right of 12 o'clock, 100 at about 2:30, 200 at 6, 300 at about 9:45, 340 just left of 12; numerals every 20                                                                               | one pointer; dial legend in the upper centre, maker's logo lower centre (footprint only). White arc on the inner half of the ring from about 1:30 to 3 o'clock (72 – 115); green from about 2:20 (94, beside the white) round the bottom to about 7:50 (245); yellow from 7:50 to about 9:45 (300); red mark at 9:45 (values as §4.3). An orange triangle outside the bezel at about 2:30 (field x 0.565, y 0.341; about 0.13 A), pointing at the dial at about 100 km/h. |
+| Altimeter      | "0" at 12 o'clock                                                  | clockwise, 0 to 9 (hundreds of feet) round the dial, every 36°, except that the **2 and the 3 stand pushed apart around the pressure window** (the 2 at about 2:10, the 3 at about 3:50; their long ticks stay at 2:24 and 3:36) | **three pointers**: a long slim hundreds pointer, a short broad thousands pointer and a thin ten-thousands pointer ending in a small triangle at the rim; **pressure window at 3 o'clock** inside the dial face; the **setting knob outside the dial at its lower left**, about 7:15 (field x 0.668, y 0.543; about 0.15 A; §3.10.2); a hatched low-altitude flag window at about 6 o'clock, between the hub and the 5.                                                   |
+| VSI            | pointer at 9 o'clock = 0                                           | climb clockwise over the top: .5 at 10:30, 1 at 12, 1.5 at 1:30, 2 at 3 o'clock; descent counter-clockwise under the bottom: .5 at 7:30, 1 at 6, 1.5 at 4:30, meeting 2 at 3 o'clock                                             | one pointer; a small "up" mark above the zero; the units legend (thousands of ft/min) below the hub on the vertical axis, the dial legend above it.                                                                                                                                                                                                                                                                                                                       |
+| Slip indicator | ball at the centre                                                 | –                                                                                                                                                                                                                                | a near-straight tube across the middle with two centre lines; maker's logo above the tube (footprint only), legend below; round black housing, four screws.                                                                                                                                                                                                                                                                                                               |
+| Tachometer     | pointer at about 7:15 (0)                                          | clockwise about 285°, symmetric about 12 o'clock (3,500 rpm at the top): 10 at about 8:40, 20 at 10, 30 at about 11:20, 40 at about 12:40, 50 at 2, 60 at 3:30, 70 at about 4:50; the gap at the bottom carries no scale         | one pointer; legends upper centre and below the hub; at the low end a red band from 0 to about 9:10 and a short yellow block to about 9:40; green along the rim from there to about 2:50; a short yellow block and the red line at about 3:10 (5,800 rpm), before the 60; nothing after it (colours **low confidence**).                                                                                                                                                  |
+| CHT, oil temp  | lowest mark 40 °C at about 7:40; rest not visible (§9 question 57) | clockwise about 262° to 150 at about 4:30: 60 at about 9:30, 80 at about 11:15, 100 at about 1:00, 120 at about 2:50; the last step, 120 to 150, is visibly shorter than the others                                              | one pointer; "°C" above the hub; legend at the bottom; a green arc from 90 to 110 (about 12:10 to 2 o'clock), then a yellow block from 110, to the red line at 120 (CHT, about 2:50) or a short red segment ending at 130 (oil temp, about 3:20) (colours **low confidence**).                                                                                                                                                                                            |
+| Voltmeter      | lowest mark 9 V at about 7:50; rest not visible (§9 question 57)   | clockwise to 17 at about 4:10, symmetric about 12 o'clock with **13 at the top**: 10 at 9, 11 at 10, 12 at 11, 14 at 1, 15 at 2, 16 at 3                                                                                         | one pointer; unit legend in the upper centre, under 12 – 13; gauge legend at the bottom; no arcs.                                                                                                                                                                                                                                                                                                                                                                         |
+| Oil pressure   | pointer at about 7:50 (0 bar)                                      | clockwise to 10 at about 4:30, numerals every 1 bar; 5 just left of 12 o'clock; the steps from 7 to 10 are wider than those below 7                                                                                              | one pointer; unit legend top centre, gauge legend at the bottom; a thin pale arc from 1 to 2 bar (about 8:40 to 9:30), nothing from 2 to 5, a thin pale arc 5 to 6 running into a wider tan-orange arc 6 to 7 (about 12 to 1:30), the 7 tick red (colours **low confidence**).                                                                                                                                                                                            |
+| Hour meter     | –                                                                  | –                                                                                                                                                                                                                                | black rectangle, digit window across its middle (running value, not recorded), legend under the window, maker name above (not reproduced), a screw left and right.                                                                                                                                                                                                                                                                                                        |
+
+Fuel sight gauges: one on each wing root overhead, a vertical scale strip 5 to 40
+"Liter" beside the tank's sight window (§3.7.1); outside all three views, not drawn.
+
+#### 3.9.3 Avionics arrangement (#712)
+
+| Unit                                 | Centre-plate box: x range, y range | Centre (field) | Panel (x, y) | Size in A (w × h, aspect; in D)          | Today (slot)             | T (centre; w × h)    |
+| ------------------------------------ | ---------------------------------- | -------------- | ------------ | ---------------------------------------- | ------------------------ | -------------------- |
+| FLARM display (classic LED)          | 0.104 – 0.371, 0.060 – 0.148       | 0.237, 0.104   | 0.458, 0.104 | 0.63 × 0.32, 1.96 (±0.15); 0.87 × 0.44 D | at(500, 150, 320, 160)   | 1112, 86; 121 × 61   |
+| Take-off checklist summary (copy)    | 0.457 – 0.922, 0.051 – 0.171       | 0.690, 0.111   | 0.570, 0.111 | 1.09 × 0.43; 1.52 × 0.60 D               | art 1318, 140, 262 × 300 | 1309, 90; 211 × 84   |
+| aera 500 in its cradle (outer frame) | 0.143 – 0.910, 0.323 – 0.627       | 0.527, 0.475   | 0.530, 0.475 | 1.80 × 1.10, 1.64; 2.50 × 1.53 D         | at(850, 123, 440, 275)   | 1238, 334; 347 × 213 |
+| … its screen (touch area)            | 0.256 – 0.793, 0.364 – 0.564       | 0.524, 0.464   | 0.529, 0.464 | 1.26 × 0.72; 1.75 × 1.00 D               | –                        | 1237, 326; 243 × 139 |
+| ATR833 COM                           | 0.133 – 0.440, 0.725 – 0.924       | 0.286, 0.825   | 0.470, 0.825 | 0.72 round; 1.00 D                       | at(540, 404, 272, 272)   | 1134, 567; 139       |
+| TRT800H transponder                  | 0.549 – 0.856, 0.727 – 0.926       | 0.702, 0.827   | 0.573, 0.827 | 0.72 round; 1.00 D                       | at(832, 404, 272, 272)   | 1314, 568; 139       |
+
+- **Arrangement.** Top band: the FLARM display at the top left and the checklist
+  summary at the top right, their top edges level (y 0.05 – 0.06); the FLARM is the
+  shorter of the two. Above the checklist, between it and the plate's top edge, the
+  yellow version label strip (§3.9.5). Middle: the aera 500 in its cradle, centred
+  under them within 0.03 of the field width (its centre sits that far right of the
+  field's centre line, just beyond the ±0.02 accuracy) with bare aluminium above it
+  (0.56 A between the FLARM's bottom and the cradle's top latch at y 0.303). Bottom:
+  COM (left) and transponder (right) side by side, the pair centred on the field (pair
+  midpoint x 0.494), centres level, 0.98 A apart (1.36 D; a 0.26 A gap between the
+  discs), their bottoms 0.27 A above the plate's bottom edge. Between the cradle and
+  the radios (y 0.63 – 0.69, right of centre) a faded blank paper label (0.69 ×
+  0.23 A), nothing legible: optional art. A tiny pale mark just under the FLARM's lower
+  left corner (a scrap of tape or residue, nothing legible) is not identified and not
+  drawn; it is not the version label.
+- Each round unit's two screws and two knobs sit on the corners of a square about
+  0.59 A (0.82 D) wide around its disc (COM: screws left, knobs right; transponder: screws
+  top left, top right and bottom left, knob bottom right), as §3.8 describes.
+- **Relative sizes** (the trainer's slots against the photos, in COM diameters D): GPS
+  cradle real 2.50 D wide, slot 1.62; FLARM real 0.87 × 0.44, slot 1.18 × 0.59. On the
+  aircraft the GPS dominates the field and the FLARM is a small strip; the trainer
+  shrinks the one and enlarges the other (§9 questions 44, 45).
+- **Correction to §3.8's scale line.** The conventions bullet of §3.8 (FLARM about
+  1.05 × 0.58 D, aera cradle about 2.8 × 1.67 D, body 2.45 × 1.42 D) was read without
+  removing perspective, which enlarges the upper units against the radios at the
+  bottom. Corrected here: FLARM 0.87 × 0.44 D, cradle 2.50 × 1.53 D, screen
+  1.75 × 1.00 D (screen aspect 1.75, the unit's 480 by 272 pixels give 1.76); in A,
+  the table's values.
+- **Slot aspects.** The photos confirm today's slot aspects within their error: FLARM
+  1.96 against 2.00, GPS cradle 1.64 against 1.60, round units 1.00. Nothing in the
+  photos asks for an aspect change (#716: "slot aspect ratios stay unless the photos
+  contradict them").
+
+#### 3.9.4 Switch groups, breakers, keys and lamps (upper panel)
+
+The upper plates carry no switch, key or lever: only the breakers, the Generator lamp,
+the altimeter knob and the avionics units' own controls. The rockers, ignition key,
+BAT and GEN, flap selector and fuel valve are on the lower column (§3.9.6).
+
+**Breaker block** (right plate, lower part). Seven columns, two rows, and one breaker
+alone under the **second** column:
+
+| Breaker     | Field (x, y) | Panel (x, y) | T (centre) |     | Breaker          | Field (x, y) | Panel (x, y) | T (centre) |
+| ----------- | ------------ | ------------ | ---------- | --- | ---------------- | ------------ | ------------ | ---------- |
+| Com         | 0.101, 0.754 | 0.712, 0.770 | 1558, 531  |     | Landing Light    | 0.101, 0.822 | 0.712, 0.833 | 1558, 572  |
+| Nav         | 0.225, 0.754 | 0.751, 0.770 | 1628, 531  |     | Cockpit Light    | 0.225, 0.822 | 0.751, 0.833 | 1628, 572  |
+| Transponder | 0.344, 0.754 | 0.789, 0.770 | 1695, 531  |     | Instrument Light | 0.344, 0.822 | 0.789, 0.833 | 1695, 572  |
+| Autopilot   | 0.466, 0.754 | 0.829, 0.770 | 1765, 531  |     | Beacon Light     | 0.466, 0.822 | 0.829, 0.833 | 1765, 572  |
+| HS34        | 0.588, 0.754 | 0.868, 0.770 | 1833, 531  |     | Position Light   | 0.588, 0.822 | 0.868, 0.833 | 1833, 572  |
+| EFIS        | 0.708, 0.754 | 0.906, 0.770 | 1901, 531  |     | Intercom         | 0.708, 0.822 | 0.906, 0.833 | 1901, 572  |
+| EMS         | 0.831, 0.754 | 0.946, 0.770 | 1971, 531  |     | GPS              | 0.831, 0.822 | 0.946, 0.833 | 1971, 572  |
+| 12V Outlet  | 0.225, 0.923 | 0.751, 0.925 | 1628, 634  |     |                  |              |              |            |
+
+- Pitch: columns 0.36 A, rows 0.22 A; the 12V Outlet row 0.31 A below the bottom row
+  (about 1.4 row pitches). Each breaker face (bezel or cap) about 0.18 A. The block
+  spans x 0.07 – 0.86 and y 0.73 – 0.95 of the field (2.35 × 0.72 A), starting just
+  right of the plate's inner edge. Row against column pitch reads 0.61 to 0.68 across
+  the photos (**low confidence** on the row pitch).
+- Faces: two styles that read apart at a glance. The fitted breakers of §3.7.1 (Com,
+  Transponder, EMS, Landing Light, Beacon Light, Position Light, GPS, 12V Outlet) show
+  a button standing in a lighter collar; the others show a flat black cap.
+- Legends: above each top-row breaker; **under** each bottom-row breaker (the two-word
+  ones in two lines); under the 12V Outlet breaker. Header "Circuit Breakers" centred
+  at field x 0.522, y 0.919 (right of the 12V Outlet breaker, from just right of
+  column 3 to just past column 5, centred between columns 4 and 5),
+  "Push off" under it at y 0.946. Which positions are fitted is §3.7.1.
+- **Correction:** the 12V Outlet breaker is under column 2 (Nav / Cockpit Light), not
+  under column 1 as `views.ts` draws it (`outletBreaker` at x 1650, under Com) and as
+  §3.7.1 words it ("below the left end").
+- Trainer today: a 100 × 96 grid at x 1650 – 2350, y 372 – 660 (the full plate width,
+  rows 96 apart); real rows are 0.22 A apart, so under T the row pitch is 42 units and
+  the column pitch 69 (§3.9.7, touch targets).
+
+**Generator lamp** (right plate): field x 0.494, y 0.124, a red lens 0.27 A; legend
+"Generator" above it at y 0.08. It sits at the plate's horizontal middle, right of the
+tachometer (about 0.86 A right of its centre and 0.25 A above it) and level with the
+tachometer's top half, about 0.24 A left of the hour meter's vertical axis; not in the
+top right corner, where today's `chargeLamp` (at(2196, 36, 150, 90)) puts it. Panel
+0.838, 0.194; T 1780, 146; 52.
+
+**Altimeter knob**: outside the dial at its lower left (§3.9.2).
+
+**Glareshield**: the Cabin Heat knob and the red-cross disc, above the centre plate's
+left half (§3.9.1).
+
+#### 3.9.5 Placards
+
+Positions only; wording is in §3.1, §3.3 and §3.7.1 (paraphrased there), and maker
+text is never reproduced.
+
+| Placard                                  | Field and position (centre)                                                                                                               | Panel (x, y) | Size (A)                                                   | Look                                                                                                          | Today                                   | T (centre; w × h)              |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------- | ------------------------------ |
+| Registration lettering                   | left, 0.421, 0.148 (over the airspeed)                                                                                                    | 0.156, 0.195 | 1.02 × 0.21                                                | the registration in large black capitals, no plate                                                            | not drawn                               | 580, 147; 197 × 39             |
+| Take-off checklist summary               | left, 0.780, 0.142 (over the altimeter)                                                                                                   | 0.289, 0.189 | 1.10 × 0.45 (printed frame)                                | white card, two-column table, yellow warning strip along its bottom                                           | 238, 68; 416 × 92 (top left)            | 814, 143; 212 × 87             |
+| Aerobatics and spins prohibited (German) | left, 0.689, 0.895 (bottom; spans x 0.52 – 0.86, from the slip indicator's right edge to under the VSI)                                   | 0.255, 0.891 | 1.14 × 0.19                                                | white strip, one line of black text                                                                           | 238, 624; 416 × 100 (bottom left)       | 754, 611; 221 × 36             |
+| Take-off checklist summary (copy)        | centre, 0.690, 0.111 (top right)                                                                                                          | 0.570, 0.111 | 1.09 × 0.43 (printed frame; the same card as the left one) | as the left one                                                                                               | 1449, 290; 262 × 300 (right of the GPS) | 1309, 90; 211 × 84             |
+| Version label                            | centre, 0.62, 0.03 (top right: a strip between the plate's top edge and the checklist copy, its bottom about 0.014 A above the checklist) | 0.553, 0.030 | 0.70 × 0.12 (about 1.0 × 0.17 D)                           | yellow strip with one line of small black print, a version and a date: a running value (§3.7 rule), not drawn | not drawn                               | 1280, 36; 135 × 23 (not drawn) |
+| Small pale mark                          | centre, just under the FLARM display's lower left corner                                                                                  | –            | tiny                                                       | a scrap of tape or residue, nothing legible, not identified                                                   | not drawn                               | –                              |
+| Faded blank label                        | centre, 0.642, 0.662 (under the cradle)                                                                                                   | 0.558, 0.662 | 0.69 × 0.23                                                | faded paper, nothing legible; optional                                                                        | not drawn                               | 1288, 458; 133 × 44            |
+| Type name, script                        | right, 0.620, 0.297 (right of the tach, across the plate)                                                                                 | 0.878, 0.352 | 1.58 × 0.25                                                | manufacturer lettering: footprint only, never reproduced; the area stays plain aluminium                      | not drawn                               | 1852, 251; 305 × 48            |
+| "Generator" legend                       | right, 0.494, 0.08                                                                                                                        | 0.838, 0.153 | –                                                          | small black text over the lamp                                                                                | on the lamp art                         | 1780, 118                      |
+| "Circuit Breakers" / "Push off"          | right, 0.522, 0.919 / 0.946                                                                                                               | 0.847, 0.921 | 0.81 × 0.17                                                | black text, no plate                                                                                          | 2080, 620; card 460 × 96                | 1796, 631; 156 × 33            |
+
+Lower-column placards are in §3.9.6. Stickers (the "do not step" floor labels, the
+yellow T-shaped item over the rocker row) are notes only.
+
+- **Trainer deviation: "Push off" left out** (owner, #729, 2026-10-11). D-MPGO prints
+  "Push off" under the "Circuit Breakers" header; the trainer draws the header alone,
+  because the wording reads as if a pushed-in breaker were off. The label is on the
+  aircraft; leaving it out is the owner's decision, not a photo finding.
+- **Parachute placard (console).** §3.9 measures no position for it. §3.7.1 lists it
+  between the aileron- and rudder-trim wheels, just forward of the rescue handle, and
+  the handle is centred (§3.9.6), so the trainer centres the placard over the handle
+  (M19, #729).
+
+#### 3.9.6 Lower column and console
+
+**Lower column** (photo 10.14.30 (1), near frontal to the column face; its vertical
+positions are **low confidence**, ±0.04).
+
+- **Place.** The column's top edge spans x 0.364 – 0.601 of the panel box: 2.17 A wide,
+  0.96 of the centre plate's width, and **offset 0.37 A left of the centre plate's
+  centre line** (toward the pilot; 0.30 to 0.39 A across the photos). Its top edge is
+  0.28 A (0.08 of the panel height) below the centre plate's bottom (**low
+  confidence**: the column face is in another plane, and raw photo readings give 0.14
+  to 0.21 A). Trainer today (§3.2a): the field sits about 40 px
+  _left_ of the column, i.e. the column right of the field's centre; on the aircraft
+  it is the other way round. Under T (§3.9.7) the column's top maps to panel view
+  x 946 – 1364, cockpit x 654 – 890 px at HD, centre 772 px; the `centre` cell's centre
+  is 755 px, 17 px left of it.
+- **Shape.** A T: the top part takes the full width and holds the rocker row; below it
+  both sides curve in over the upper half to the lower part, 0.59 of the top width
+  (1.27 A), which runs straight down to a level bottom edge. Height about 2.9 A, so the
+  column box is **taller than wide (0.75)**; the `centre` view is 1200 × 900 (1.33).
+  Aluminium like the upper plates (§3.9.1); the trainer draws a dark rectangle.
+- **Contents**, as fractions of the column box (x across the top width from the top
+  left corner, y from the top edge to the bottom edge), against the `centre` view today
+  (fractions of its plate area 16 – 1184 × 16 – 892) and the target coordinates under
+  the fraction mapping x = 16 + 1168·x, y = 16 + 876·y (§9 question 43):
+
+| Item                                  | Column (x, y)                             | Size (fraction of the top width)           | Today (x, y)         | Target (view units) |
+| ------------------------------------- | ----------------------------------------- | ------------------------------------------ | -------------------- | ------------------- |
+| Rocker row (y)                        | –, 0.12                                   | rockers 0.07 × 0.14, the first 0.11 × 0.14 | –, 0.13 – 0.14       | y 121               |
+| Avionics Master (larger rocker)       | 0.267                                     |                                            | 0.106                | 328                 |
+| Beacon Light                          | 0.408                                     |                                            | 0.273                | 493                 |
+| Position Light                        | 0.501                                     |                                            | 0.410                | 601                 |
+| Intercom                              | 0.598                                     |                                            | 0.547                | 714                 |
+| Cockpit Light                         | 0.694                                     |                                            | 0.684                | 827                 |
+| Landing Light                         | 0.784                                     |                                            | 0.821                | 932                 |
+| Avionics placard (yellow strip)       | 0.617, 0.206                              | 0.43 × 0.03                                | art                  | 737, 196            |
+| 12 V socket                           | 0.318, 0.302                              | 0.18                                       | art                  | 387, 281            |
+| Fuel-capacity placard                 | 0.322, 0.413                              | 0.20 wide                                  | art                  | 392, 378            |
+| Limit-speed placard                   | 0.707, 0.343                              | 0.18 × 0.19                                | art                  | 842, 316            |
+| Flap readout ("Flaps" above)          | 0.516, 0.540                              | 0.21 × 0.07                                | 0.586, 0.501         | 619, 489            |
+| Flap Fuse                             | 0.718, 0.547                              | 0.07                                       | 0.767, 0.502         | 855, 495            |
+| Fuel valve legend strip               | 0.325, 0.604                              | 0.05 × 0.30 (vertical)                     | 0.177, 0.647         | 396, 545            |
+| Fuel valve slot (column's left edge)  | 0.21, 0.62 – 0.95                         | –                                          | –                    | 261, 559 – 848      |
+| Fuel valve grip (closed, at slot end) | 0.357, 0.945                              | 0.25 long, horizontal, pointing right      | –                    | 433, 844            |
+| Flap selector (ring)                  | 0.530, 0.715                              | 0.18 × 0.19                                | 0.586, 0.821         | 635, 642            |
+| Ignition key switch                   | 0.367, 0.852                              | 0.18                                       | 0.177, 0.826         | 445, 762            |
+| Master box (BAT left, GEN right)      | 0.711, 0.858                              | 0.19 × 0.11                                | 0.782 / 0.919, 0.838 | 846, 768            |
+| "Instrument Light" legend             | 0.548, 0.902                              | –                                          | art                  | 656, 806            |
+| ELT remote switch and lamp            | not visible in photos (stays, §2a item 1) | –                                          | 0.305, 0.514         | unchanged           |
+
+- **Deltas that a pilot would notice.** The rocker row is centred on the column's top
+  and closely spaced (pitch 0.095 of the top width, about 0.21 A), not spread over the
+  whole width from the far left. The flap selector sits **above** the ignition's level,
+  between the flap readout and the Master box, not level with the ignition. The
+  ignition is at the lower part's left, right of the fuel-valve slot, not at the far
+  left. The fuel valve's legend strip is right of its slot, and the closed grip lies
+  at the slot's lower end just under the ignition's face (§3.7.1).
+- **Overlaps under the fraction mapping at today's control sizes**: the rocker pitch
+  becomes 110 units (today's rockers are 150 wide), and the flap selector (290
+  round) overlaps the ignition (260) by about 50 units, the Master box (BAT and GEN,
+  300 × 220) by about 80 and the flap readout (240 × 110) by about 45; real geometry
+  and today's touch-target sizes conflict here (§9 question 43).
+
+**Console** (photos 10.14.30 (1) and 10.14.29 (3), **low confidence**, ±0.05 of the
+console's width at the lever row):
+
+- Lever row, left to right, as fractions of the console top's width: the green
+  stabilator-trim strip at the left edge (0.03), the trim wheel 0.15, the trim
+  indicator slot 0.27, choke 0.35, throttle 0.55, brake 0.80. The levers use the
+  console's **full width**, the brake near its right edge. Trainer today (fractions of
+  1200): trim 0.10, choke 0.28, throttle 0.45, brake 0.61, with the provisional
+  carb-heat knob at 0.84 (not on D-MPGO; stays, §2a item 1).
+- Parking-brake valve: on the right flank (x about 0.95), aft of the lever row by
+  about half the console's width; trainer 0.85, below the brake: same side, slightly
+  further in.
+- Rescue handle: centred on the upright aft face (trainer 0.50): no delta.
+- Aileron and rudder trim wheels between valve and handle: not drawn (§3.7.2), no
+  position needed for M19.
+
+#### 3.9.7 Trainer mapping
+
+**Today** (before #741; superseded by **Trainer (M19, #741)** below, as is §3.9.4's
+"Trainer today" grid). `views.ts` and `view-panel.svg`: panel view box 2372 × 700, plates left
+12 – 459, centre 471 – 1628, right 1640 – 2360, all y 16 – 684 (span aspect 3.51).
+`cockpit.ts`: panel cell 1339 × 395 at HD (x 120 – 1459), floor `minWidth` 1110
+(0.468 px per view unit), `centre` cell x 524 – 987, dock x 0 – 508. Device slots at
+natural size (§3.2a): round 272, GPS 440 × 275, FLARM 320 × 160. The airspeed
+indicator is 220 units because its numerals set the lettering minimum at the floor.
+
+**Do the real proportions need a new view box? Yes, if the panel is to keep its full
+width.** The plates' real span is 2.64 times as wide as tall; the view's is 3.51.
+Height binds, not width:
+
+- At **2372 wide** (1 A = 257 units): left plate 869 × 829, gap 69, centre 579 × 891,
+  gap 77, right 754 × 815. The box would have to be about 2372 × 923 (+32 percent
+  height). In the HD panel cell that is 1339 × 521 px, which leaves no room for the
+  `centre` and `console` row (347 px) inside the 758 px cockpit: the one-viewport rule
+  (#253) breaks. At this scale the natural device slots would just fit the centre
+  plate (radio pair 544 of 579 wide; FLARM, GPS and radios stacked 707 of 891 tall),
+  with the radio gap shrunk from 0.26 A to about 0.07 A.
+- At **700 tall** (1 A = 193 units): the plates span only 1761 of the 2372 units;
+  centre plate 434 × 668. The natural slots cannot fit: the radio pair alone (544) is
+  wider than the centre plate.
+
+**Assumption T (all "T" coordinates in §3.9.2 – §3.9.5 use it; the owner decides in
+§9 question 41).** The view box stays 2372 × 700, so `cockpit.ts`'s cell rects stay.
+The three plates are drawn at true proportions with one uniform scale fitted to the
+height: **1 A = 193 view units** (the panel box's 3.45 A fitted to 668 units),
+centred, with the dark moulding filling x 0 – 306 and 2066 – 2372 and the gaps:
+
+- panel box fraction to view: **x = 306 + 1761·px, y = 16 + 668·py**; a size in A
+  times 193;
+- left plate x 306 – 957, y 54 – 676; centre plate x 1009 – 1443, y 16 – 684; right
+  plate x 1501 – 2066, y 70 – 681.
+
+What T costs (each a training-UX trade-off of equal rank under ADR 0002, realism
+against lettering minimums and 44 px targets):
+
+- **Lettering floor.** The airspeed indicator comes out at 193 units, 0.88 of the 220
+  its numerals need. Keeping today's lettering minimum means the panel's `minWidth`
+  rises from 1110 to about 1267 px (still below the HD cell's 1339), or the dial
+  numerals are redrawn relatively larger. Every other gauge shrinks against today
+  too: tachometer 139 (today 210), small engine gauges 77 (today 150), slip indicator
+  and VSI 137 (today about 213 and 196).
+- **Device mirrors** fall below natural size: COM and transponder 139 (0.51 of 272),
+  GPS cradle 347 × 213 (0.79), FLARM 121 × 61 (0.38). Their slot lettering would be
+  below the floor; operation in the dock is unchanged.
+- **Breakers.** Real pitch gives 69 by 42 units per breaker (39 by 24 px at HD), far
+  below 44 px targets; today's grid is 100 × 96.
+- **Glareshield items** fall above the box (y about −26): the Cabin Heat knob and the
+  red-cross disc cannot be drawn above the centre plate (§9 question 42).
+- **Cockpit fit.** The lower column stays under the centre plate within 17 px at HD
+  (§3.9.6), so the `centre` cell need not move. The radios move right, to cockpit
+  x 760 and 862 px: they no longer reach over the dock (x 0 – 508), which §3.2a's
+  layout aimed for.
+
+**Alternative (not used for the coordinates): a box of about 2044 × 800 at today's
+scale (1 A = 220 units, airspeed 220).** True proportions with no shrink of the
+lettering; the panel cell becomes about 1009 × 395 px at HD with `minWidth` about 957
+(the same 0.468 px per unit), freeing about 330 px of cockpit width; the glareshield
+items still do not fit (including them needs a box about 880 tall, whose scale in the
+395 px cell falls below the floor). This
+cascades to `cockpit.ts` (panel cell rect and `minWidth`) and to every statement of
+the 1110 floor. The device mirrors and breakers are as small, relative to their
+natural sizes, as under T.
+
+**Summary for the implementer of #716 and #712.** Whatever the owner chooses in §9
+41, the _positions_ (field and panel fractions) and the _relative sizes_ (in A)
+above are what makes the panel recognisable; the fractions do not change with the box.
+
+**Trainer (M19, #716).** What the layout PR drew, against assumption T:
+
+- **The floor cannot rise.** Below the 1200 px desktop breakpoint the panel renders at
+  most 1113 px wide, and the floor checks run there, so the floor stays 1110 px (0.468
+  px per view unit) and the view box stays 2372 × 700; `cockpit.ts` is unchanged.
+- **Gauges at T.** 1 A = 193 units, every gauge at its §3.9.2 size. At HD the scale
+  numerals fall under the 11 px lettering minimum and print as secondary lettering
+  (half the minimum); the engine gauges' and the VSI's smallest legends are decor.
+- **Plates wider than true, positions kept.** Left plate 740 units wide (true 652), the
+  gauge grid at its true distances from the inner edge, the extra width bare on the
+  outer side, so the left plate stays the widest. Right plate 718 wide (true 565):
+  the breaker grid keeps its 7 + 7 + 1 arrangement at 98 by 94 units, a 44 px target
+  at the floor each way, and the outlet breaker sits 62 units under column 2; the
+  tachometer and the engine block move 45 units up to make room, at their true
+  spacings. Centre plate 578 × 696 (true 434 × 668).
+- **Units at D-MPGO's relative sizes** (photo-fidelity gate, round 1): FLARM 120 × 60
+  (0.62 A), GPS cradle 347 × 217 (1.80 A, 2.50 radio diameters), COM and transponder
+  139 each (0.72 A), 0.26 A of clear plate between them, the pair centred under the
+  cradle, the radio centres at 0.84 of the plate height, and the faded blank label
+  drawn in the gap under the cradle. The checklist card (212 × 96) sits top right at
+  its photographed centre, wider than the FLARM display as on D-MPGO. The cradle and
+  radio mirrors meet the slot lettering floor; the FLARM mirror does not and is read in
+  the dock (ADR 0002: recognition over in-slot legibility), its tap area grown to the
+  touch target around the slot (§9 questions 44, 45).
+  The radio pair sits right of the dock; the lower column hangs 0.37 A left of the
+  centre plate's middle, as on the aircraft.
+- **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
+  display, §9 question 42); the "Push off" label (owner, §3.9.5); the Cockpit Light
+  breaker legend (the 12V Outlet breaker sits right under that breaker, §3.9.4); the
+  plates' corner screws; gauge screws,
+  which belong to the gauge faces (#719 to #721).
+- **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
+  console's lever row; on the console only the parachute placard and, beside it, the
+  rudder-trim wheel and the parking-brake valve move.
+
+**Trainer (M19, #741): plates at true proportions.** The blind whole-panel check of the
+#716 layout failed the plates' relative sizes (too wide for what they hold). What changed:
+
+- **View box 2110 × 700, floor unchanged.** The panel floor stays 1110 px, so the floor
+  scale rises to 0.526 px per view unit and the touch target is 84 units. At HD the panel
+  is height-bound as before (0.564 px per unit, so 1 A is still 109 px); the panel cell
+  narrows to the panel's own width (`cockpit.ts`: x 194, 1191 wide), so each item keeps
+  its HD place in the cockpit. The panel reaches its floor at about the same cockpit scale
+  as the lower row's cells, so the combined layout holds as before. Panel-box fractions
+  map to this box by x = 145 + 1761·px (a T column's x minus 161).
+- **Plates.** Left 640 wide (3.32 A; the airspeed indicator 0.79 A from the outer edge),
+  centre 434 × 668 (2.25 × 3.46 A, height to width 1.54; the GPS cradle 0.80 of its
+  width), right 610 wide (3.16 A, within the outer extents' ±0.27 A; the tachometer 0.23
+  of it). The outer outlines are §3.9.1's point lists drawn as straight segments. The left
+  and right plates' contents keep their true distances from the inner edge.
+- **Breakers at D-MPGO's pitch.** Columns 69 units (0.36 A), rows 42 (0.22 A), the 12V
+  Outlet 61 under column 2, faces 36 across (0.26 of the tachometer); the block spans
+  0.74 of the right plate. Each operable breaker's touch box is 84 × 84 (the target at
+  the floor) and sits off-centre round its knob where neighbours stand closer than that,
+  so no two boxes overlap: top-row boxes reach up, bottom-row boxes down, and along the
+  run of four operable breakers (Beacon Light to GPS) each box shifts a step further right
+  of its knob. Trade-off (ADR 0002): a tap just right of the Beacon Light knob or just
+  left of the GPS knob reaches the neighbour's box, and the Beacon Light box covers the
+  right edge of the inert Instrument Light face; four 84-unit boxes round knobs 69 apart
+  leave no room to avoid it. Legends sit above the top row and under the bottom row, as on
+  the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
+  inside its box.
+- **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
+  meets the lettering minimum on a tablet in portrait.
+
+### 3.10 Gauge faces (photos, M19)
+
+The round panel gauges and the hour meter, drawn from the owner's photos (§3.7) so
+that an implementer can draw each face without seeing them. Each block has a **Face
+layout (photos)** part in the manner of §3.8, paraphrased measurements only; no
+photo, crop or derived image is in the repository. §3.10.0 sets the convention,
+§3.10.11 the look and grouping shared by all of them; the case sizes are §3.9.2's.
+Values the photos do not settle are marked **assumed (unverified)** or **low
+confidence** and, where the club could settle them, point to a §9 question (46 to 63).
+
+#### 3.10.0 Gauge-face convention
+
+The **Face layout (photos)** blocks of the round panel gauges (§3.10.1 onwards) use
+this convention. They come from the owner's photos (§3.7). No photo, crop or derived
+image is in the repository.
+
+- **Angles.** 0° is 12 o'clock on the dial and angles grow clockwise, so 90° is 3
+  o'clock and 270° is 9 o'clock. Each dial's own reference sets 0°: the rest index
+  of the airspeed indicator and the 0 numeral of the altimeter. Angles are measured
+  about the dial's pivot (where the tick radials meet), not the case centre.
+- **Radii** are fractions of the **case radius R**: the outer edge of the black bezel
+  ring, which is the visible edge of the instrument against the panel. Each gauge
+  uses its own R.
+- **Sizes** are fractions of **A, the airspeed indicator's case diameter** (2R of the
+  ASI), the one size unit of §3.9 and §3.10 (§3.9.0). The radio disc of §3.8 (D,
+  57 mm nominal) is 0.72 A. Case sizes come from §3.9.2's size column, the one size
+  table (§2a item 10); for screw and print positions inside a gauge's own box, that
+  gauge's block governs.
+- **Box coordinates**, where a block gives them, follow §3.8: origin at the top left
+  of the case's bounding square, x to the right and y down, as fractions of that
+  gauge's own case diameter. The centre is (0.5, 0.5). Polar and box positions
+  convert by x = 0.5 + 0.5·(r/R)·sin θ and y = 0.5 − 0.5·(r/R)·cos θ. Values
+  outside 0 to 1 lie beyond the case (screws, knobs, stickers).
+- **Method.** Three of the left-seat panel views were corrected to the panel plane,
+  using the four mounting screws around each instrument as a square. Angles were
+  then read against the dial's own reference. On the airspeed indicator, three
+  photos agree within about 1° on every tick.
+- **Parallax.** The dial sits recessed behind its bezel, so in the photos the dial
+  print appears shifted by about 0.05 to 0.10 R against the case outline, depending on
+  the view. The real instruments are concentric, and the blocks give the concentric
+  geometry. The same recess lets the bezel lip hide the outer part of the dial at the
+  top in the two closer views: there the outer band of an arc and the outer end of a
+  tick can be hidden (occlusion, not a gap in the print).
+- **Accuracy.** Angles are good to ±3°, radii to ±0.03 R, box positions to ±0.02 and
+  sizes inside a face (pointers, print, footprints) to ±15 % unless marked **low
+  confidence**. Case sizes carry §3.9.0's ±5 %.
+- **Colours** are given in words with an approximate hex hint after allowing for the
+  photos' cool cast; the hint only guides the choice of a panel colour. Under the
+  owner's principle (fidelity is recognition), colours, stickers, logos, fonts and
+  fine ticks are notes; positions, sizes, dial type, pointers, scale direction,
+  numerals, units, arc positions and controls are what the face must get right.
+- A maker's logo, name or country-of-manufacture line is **never reproduced**: its
+  footprint is listed so that the area stays blank or carries a generic mark.
+- **Mounting, airspeed indicator and altimeter.** A round case with a narrow
+  matte-black bezel ring (no chrome) sits directly on the light brushed-aluminium
+  plate (§3.7.1), with no square flange or frame. Four black cross-head screws sit
+  at the corners of a square centred on the gauge, their centres about 0.39 A from
+  the gauge centre in x and in y, their heads about 0.10 A across.
+- **Notation in the later blocks.** **E** is the case diameter of the CHT, oil
+  temperature, voltmeter and oil pressure gauges (0.40 A = 0.55 T), and **T** is the
+  tachometer's (0.72 A). §3.10.3 to §3.10.5 give positions as (x, y) from the dial
+  centre in units of R, x to the right and y down (box fraction = 0.5 + 0.5 × value).
+- **Perspective.** The panel photos lean each gauge by a keystone shear that depends
+  on the view (about 3 to 5° in the wide left-seat view, 13 to 17° in the two closer
+  frontal views; tops lean outward: left on the upper-left field, right on the
+  upper-right field), shorten it vertically by 4 to 16 %, and image the lower part
+  of each plate smaller, because it is farther from the lens (§3.9.0). All three were
+  removed before measuring: the screw squares come out square, the round cases round,
+  and the tachometer's numerals 30 and 40 symmetric about 12 o'clock.
+- **Absolute size of A** (**low confidence**). Scaled from the aera 500 body (about 12
+  cm wide; the maker's figure is quoted from memory, unverified), A is about 75 to 85
+  mm; scaled from the COM disc taken as 57 mm (§3.9.0), about 79 to 83 mm. Both give
+  the 3⅛-inch class. The trainer sizes gauges by the ratios to A, not in mm.
+- **Screws, both outer fields.** Every gauge screw is the same black dome-headed
+  cross-head screw. Head diameters in A (§3.10.11's table gives them in each
+  instrument's own diameter): ASI and altimeter about 0.10, VSI and slip indicator
+  about 0.09, tachometer and hour meter about 0.085, engine gauges about 0.08.
+
+#### 3.10.1 Airspeed indicator
+
+**Face layout (photos).** A single-pointer airspeed indicator in km/h, top left of
+the upper-left field's 2×2 (§3.7.1). Case diameter 1.00 A by definition (§3.10.0).
+The needle is at rest in every photo.
+
+- **Case and bezel.** Round. The black bezel ring runs from about 0.885 R to R
+  (about 0.06 A wide). Four screws as in §3.10.0, in box coordinates (0.115, 0.115),
+  (0.885, 0.115), (0.885, 0.885) and (0.115, 0.885). The case has no lug or knob.
+- **Dial.** Matte black. Every print is white. There is one scale, km/h, and no
+  second unit.
+- **Rest and stop.** The needle rests at 0° (12 o'clock) on a short white **rest
+  index**: a bar centred on 0°, about 0.025 A wide, visible from r 0.77 to about
+  0.85 R (its outer end hides under the bezel lip in the closer views). No stop pin is
+  visible.
+- **Sweep.** Clockwise, almost a full turn. 40 km/h sits at 10°, just right of the
+  rest index, and 340 km/h at 340°, just left of it. The scale spans about 330° for
+  300 km/h, about 1.10° per km/h. Nothing is marked between the rest index and 40,
+  so the first 40 km/h share only the first 10° of the dial. The linear rule
+  θ(v) = 10° + 1.10° × (v − 40) for 40 ≤ v ≤ 340 holds within 1° from 40 to 250
+  km/h; from 260 to 300 the ticks sit 3 to 4° below it, and 320 and 340 are back on
+  it. Three photos agree within about 1° on every tick.
+- **Numerals.** Sixteen, every 20 km/h from 40 to 340. They stand upright (not
+  rotated with the scale), in a regular-weight sans. Their centres lie on a circle
+  of about 0.62 R (±0.04). Cap height is about 0.05 A; a three-digit numeral is
+  about 0.11 A wide.
+
+| km/h | Angle | km/h | Angle | km/h | Angle | km/h | Angle |
+| ---- | ----- | ---- | ----- | ---- | ----- | ---- | ----- |
+| 40   | 10°   | 120  | 98°   | 200  | 185°  | 280  | 270°  |
+| 60   | 32°   | 140  | 119°  | 220  | 207°  | 300  | 293°  |
+| 80   | 54°   | 160  | 141°  | 240  | 229°  | 320  | 318°  |
+| 100  | 76°   | 180  | 163°  | 260  | 249°  | 340  | 340°  |
+
+- **Ticks.** One every 10 km/h from 40 to 340 (31 ticks), all running out to the
+  dial edge at about 0.88 R. Numbered ticks span 0.72 to 0.88 R, unnumbered ticks
+  0.74 to 0.88 R; the difference is slight. Ticks are about 0.012 A wide. At 300 the
+  red line takes the tick's place.
+- **Printed words.**
+  - "AIRSPEED" centred straight above the hub at box (0.50, 0.335) (r 0.33 R), cap
+    height about 0.04 A, about 0.28 A wide.
+  - "KmH" under it at box (0.50, 0.405) (r 0.19 R), as printed: capital K, small m,
+    capital H. About 0.04 A tall and 0.12 A wide. It is the scale's unit legend.
+  - The maker's footprint below the hub: a small logo with two short lines under it
+    (maker name, country of manufacture), at box x 0.40 to 0.60, y 0.545 to 0.71.
+    **Not reproduced**: draw a generic mark there or leave it blank.
+  - Two small dark dial screws at box (0.40, 0.49) and (0.60, 0.49), about 0.02 A
+    across (optional detail).
+- **Needle.** One: a long, straight white lance with parallel sides, about 0.022 to
+  0.025 A wide, ending in a pointed tip. It runs from about 0.08 R to its tip at about
+  0.75 R, into the tick band and short of the arcs and of the rest index. No tail is
+  visible, and the hub is black on black, with no visible cap.
+- **Arcs.** All coloured marks lie in a narrow band at the dial edge. The outer half
+  of the band (0.83 to 0.88 R) carries green and yellow; the inner half (0.79 to
+  0.82 R) stays dark except under the white arc.
+
+| Mark     | km/h                 | Angles                   | Radii                                                                                      |
+| -------- | -------------------- | ------------------------ | ------------------------------------------------------------------------------------------ |
+| White    | 72 to 115            | 45° to 93°               | full band 0.79 to 0.88 R from 72 to 94; from 94 to 115 only the inner half, 0.79 to 0.82 R |
+| Green    | 94 to 245            | 69° to 235°              | outer half, 0.83 to 0.88 R; from 94 to 115 it runs beside the white                        |
+| Yellow   | 245 to 300           | 235° to 293°             | outer half, 0.83 to 0.88 R                                                                 |
+| Red line | 300                  | 293° (±2°)               | a radial line from about 0.67 to 0.87 R, longer inward than the ticks, about 0.02 A wide   |
+| None     | 40 to 72, 300 to 340 | 10° to 45°, 293° to 340° | no arc                                                                                     |
+
+**Arc verdict.** The photos confirm the §4.3 markings and the handbook's airspeed
+markings: white 72–115, green 94–245, yellow 245–300 and the red line at 300. The
+audit reading "green about 115–240" (#720) is superseded. The green arc starts at
+about 94 km/h, but its first 20 km/h run in the outer half of the band beside the
+white arc's inner half, and in the two closer photos the bezel lip hides the outer
+band there (§3.10.0), so that stretch reads as missing. The clearest photo resolves
+both bands (white start 73, green start 95, white end 115, green end 245); a second
+photo agrees within 3 km/h. No mark lies at 276 (about 268°): the yellow runs on
+unbroken to the red line at 300.
+
+- **Handbook comparison** (HB 2-1 and the airspeed rows of HB 7-20, numbers only).
+  The handbook's speeds match §4.1: stall 85, 75 and 65 km/h (flaps −12°, 0°, 35°);
+  VA 194; flap limits 184 (0°), 148 (15°) and 115 (30° and 35°); VRA 245, with the
+  caution range from 245 to VNE. The handbook gives three VNEs by rescue system: 276
+  for BRS 1050, 260 for the Junkers High Speed, 300 for the Junkers Light Speed. Its
+  marking table gives white 72–115 and green 94–245 for all, and the yellow arc and
+  red line by the same split: 245–276 and 276, 245–260 and 260, or 245–300 and 300
+  (Junkers Light Speed or no rescue system). **D-MPGO's dial carries the last of
+  these.**
+- **Rescue-system note** (**low confidence**: small, oblique print on the console
+  photo). The data plate beside the rescue handle (§3.7.1) reads as a BRS of the
+  1050 type, and its limits line gives about 475 kg and 276 km/h. If that reading
+  is right, the dial's 300 marking belongs to the handbook's no-rescue variant while
+  the installed system is the 276 one. This bears on §2a decision 3 and the §8 VNE
+  row, and the owner decides (§9 question 50). The trainer draws the dial as
+  photographed.
+- **Windows and knobs.** None.
+- **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
+  #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
+  is at θ about 75° and r about 1.04 R (box (1.00, 0.36)); the base is upright at box
+  x about 1.13, from y 0.28 to 0.42. The triangle is about 0.13 A wide and 0.14 A
+  tall. About the dial's pivot the apex sits at about 77°, the 100 km/h tick. It
+  carries no print, so its meaning is not legible (§9 question 51).
+- **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
+  The centre sits at about (0.38, 0.36) of the bounding box of the upper-left field's
+  aluminium plate, which is about 3.38 A wide and 3.22 A tall (§3.9.1; §3.9.2's field
+  position (0.40, 0.38) governs). The altimeter's centre is 1.30 A to the right, level
+  within ±0.03 A.
+- **Not visible in the photos:** how the needle moves between 0 and 40 km/h and
+  whether a stop pin exists (§9 question 52); the needle's hub and any tail; any print on
+  the sticker; the exact arc colours under the glare.
+- **Colours (notes).** Face black (hint #121619); print and needle white (#ececec);
+  white arc #e8e8e8; green arc a medium green (dark teal in the photos; hint
+  #2f8a5a); yellow arc #d8c83c; red line #c8323c; bezel and screws black (#1a1a1a).
+
+#### 3.10.2 Altimeter and QNH setting
+
+**Face layout (photos).** A three-pointer sensitive altimeter in feet, top right of
+the upper-left field's 2×2, with a pressure-setting window at 3 o'clock and a
+setting knob at its lower left. The maker is not legible and the face shows no logo.
+
+- **Case and bezel.** Round, the same size as the airspeed indicator: case diameter
+  1.00 A (±0.04; the two screw squares also match within 3 %). The bezel ring is
+  narrow and black like the ASI's; the face edge inside it does not show (black on
+  black). A black moulded **lug** grows out of the case at the lower left, from θ
+  about 205° to about 245°, reaching out to about 1.2 R, with an outline of two
+  rounded lobes; it carries the knob. Of the four screws of §3.10.0 three show, at box
+  (0.115, 0.115), (0.885, 0.115) and (0.885, 0.885); the fourth, at (0.115, 0.885), is
+  hidden under the lug and knob.
+- **Dial.** Matte black, every print off-white. **No coloured markings** and no arcs.
+- **Scale.** 0 at 12 o'clock. There is no stop: the pointers turn on round the dial,
+  a full 360° per turn, clockwise for rising altitude. The numerals 0 to 9 count
+  100 ft each on the long pointer and sit every 36° (θ = 36° × n, within ±2.5°),
+  **except the 2 and the 3, which stand pushed apart around the pressure window: the
+  2 at about 65° and the 3 at about 115°** (about 7° each away from the window),
+  while their long ticks stay at 72° and 108°. Draw every tick at 36° × n and move
+  only those two numerals: the wide gap around the window is part of the face's
+  look. The numerals stand upright, tall and condensed, cap height about 0.09 A
+  (about twice the ASI's), with centres on a circle of about 0.61 R (±0.04); the 0
+  and the 5 sit a little further out (0.65 to 0.67 R) and the 1 a little further in
+  (about 0.60 R). The 1 is a plain bar. The 0 is partly hidden by the ten-thousands
+  pointer in the photos, and the 3 partly by the long pointer.
+- **Ticks.** 50, one every 7.2° (20 ft on the long pointer). Minor ticks span 0.77
+  to 0.85 R; each numeral has a longer tick, 0.73 to 0.85 R. Ticks are about
+  0.01 A wide and run on past the window.
+- **Printed words.**
+  - A small spaced-capital unit legend split either side of the 0: the figure 100 on
+    the left (box (0.41, 0.16)) and FEET on the right (box (0.60, 0.16)), cap height
+    about 0.02 A. It says each numeral is 100 ft on the long pointer.
+  - "ALT", bold, at box (0.41, 0.38), cap height about 0.06 A, about 0.15 A wide.
+  - Under it a tiny two-line note at box x 0.29 to 0.47, y 0.46 to 0.51, cap height
+    about 0.012 A: a word for range, then a figure with a unit word. The figure is
+    **not legible** at the photos' resolution (it may be 20,000 feet, but its leading
+    digits and the unit word are not resolved; **low confidence**). Optional detail.
+- **Pressure window.**
+
+| Item                  | Position and size                                                                                                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Window                | An opening in the dial at 3 o'clock, box x 0.75 to 0.88, y 0.42 to 0.56 (θ about 77° to 102°, r 0.50 to 0.76 R), about symmetric about the index. Its outline does not show (black on black)               |
+| Value                 | Four digits, the current setting (1025 in the photos), centred at θ 90°, r 0.60 R (box (0.80, 0.50)), reading horizontally. Cap height about 0.03 A, about 0.10 A wide: far smaller than the main numerals |
+| Pressure-scale ticks  | A column of short fine ticks just right of the value, at r about 0.70 R (box x about 0.85), from y about 0.42 to 0.56. The scale turns behind the dial                                                     |
+| Index                 | A short bold double bar at θ 90° on the tick ring (r 0.74 to 0.82 R, box x 0.87 to 0.91), level with the value                                                                                             |
+| Print at the top edge | A row of small print cut off by the window's upper edge, under the 2 (box x about 0.73 to 0.84, y about 0.43): not legible. It is either the next scale value or a unit word                               |
+| Units                 | **hPa**, inferred from the four-digit value; no unit word is legible. No inHg scale or second window                                                                                                       |
+
+- **Low-altitude sector.** A fan-shaped opening below the hub: an annular sector from
+  θ about 150° to about 206°, r 0.23 to 0.48 R (box x 0.40 to 0.62, y 0.60 to 0.74),
+  on the 5's radial, between the hub and the numeral. It shows about five white
+  stripes on black, slanting down to the right at about 40 to 45°; stripes and gaps
+  are each about 0.025 A wide. The photos (at about 330 ft) show it fully striped.
+- **Pointers.** Three, all off-white; the hub is black on black, with no visible cap.
+
+| Pointer                  | Shape and size                                                                                                                                                     | Turns               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Hundreds (long)          | A slim bar about 0.022 A wide ending in a small arrowhead, from about 0.15 R to its tip at about 0.75 to 0.77 R, into the tick band. No tail is visible            | once per 1,000 ft   |
+| Thousands (broad)        | A broad blade with parallel sides, about 0.05 A wide, ending in a pointed (chevron) tip, from about 0.10 R to its tip at about 0.38 R                              | once per 10,000 ft  |
+| Ten-thousands (hairline) | A hairline, about 0.006 A wide, from the hub to a small inverted white triangle on the tick ring: base outward at 0.86 R, about 0.05 A wide; apex inward at 0.75 R | once per 100,000 ft |
+
+The hundreds pointer is the longer of the two main pointers (this settles the
+question #719 raised). Stacking: the hairline appears to pass under the broad blade
+(**low confidence**); the long pointer on top is general knowledge, not visible
+(the two never overlap in the photos).
+
+- **Setting knob.** A plain black cylinder seen end-on at the lug's outer lower end:
+  centre at θ about 217° (about 7:15 o'clock) and r about 1.25 to 1.3 R (box about
+  (0.12, 1.01); its end face stands proud of the panel, so its place in a photo moves
+  with the view, 1.27 R in the wide view and 1.33 R in a closer one), diameter about
+  0.155 A, so its disc reaches out to about 1.4 R, beyond the case and past the
+  hidden lower-left screw. Its face is flat and plain with a thin
+  lighter edge; it carries **no print and no pointer line**. It stands out from the
+  lug by about 0.08 A (**low confidence**, one oblique photo). Knurling is not
+  resolved: the side looks plain at the photos' resolution.
+- **Stickers.** None on or beside the altimeter.
+- **Reading in the photos.** On the parked aircraft the altimeter reads about 330 ft
+  with 1025 in the window (the long pointer just past the 3's tick, at about 120°;
+  the broad pointer just right of 0, the hairline at 0). The day's QNH is unknown
+  (§9 question 47).
+- **Trainer uses** (§9 questions 46 to 49, all **assumed (unverified)**): a field
+  elevation of 315 ft at the home aerodrome; QNH 1013 hPa unless a scenario sets its
+  own; indicated altitude = field elevation + height above the field + (knob setting
+  − QNH) × 27 ft per hPa, all three pointers following that one value; a setting
+  range of 950 to 1050 hPa in 1 hPa steps, turning the knob clockwise raising the
+  setting and the reading. The knob's starting setting is the #719 PR's decision
+  (§9 question 47).
+- **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
+  The centre sits at about (0.78, 0.36) of the upper-left plate's bounding box
+  (§3.9.2's field position (0.781, 0.386) governs), 1.30 A right of the ASI's centre
+  and level with it.
+- **Not visible in the photos:** the drum's setting range and step; the knob's
+  turning sense, knurl and exact length; the printed pressure unit (the cut-off
+  print is not legible); the hub cap and any tail on the long pointer; the stacking
+  of the long pointer; how the striped sector closes above 10,000 ft (§9 question 49).
+- **Colours (notes).** Face black (hint #111418); print and pointers off-white
+  (#e6e6e0); bezel, lug, knob and screws black (#1a1a1a). The stripes are the same
+  off-white on black.
+
+#### 3.10.3 Vertical speed indicator
+
+**Face layout (photos).** Unit box, frame and angles as in §3.10.0 (notation): (x, y)
+in units of R from the dial centre, x right, y down; 0° at 12 o'clock, clockwise
+positive. Measured in three frontal photos with perspective removed. Angles ±5°,
+positions ±0.03 R, sizes ±15 % unless marked **low confidence**.
+
+- **Size.** Case diameter **0.71 A** (§3.9.2: 0.70 to 0.73 in four photos once the
+  perspective term is removed; corrections without it read 0.63 to 0.64, §3.9.0).
+- **Case and mount.** A thin matte black bezel ring (about 0.07 R wide), barely
+  distinct from the black dial; no chrome. The case sits on the brushed-aluminium
+  field with three black dome-headed cross-head screws at (−0.84, −0.83),
+  (+0.84, −0.83) and (+0.84, +0.83), head diameter ≈ 0.26 R. At the lower-left
+  corner, in place of a fourth screw head, a short black cylindrical stub sticks out
+  diagonally at −135°, from about 1.05 R to 1.25 R from the centre and about 0.10 R
+  thick: probably the zero-set screw (**low confidence**).
+- **Dial type.** Black dial with white markings and one pointer. **0 at 9 o'clock
+  (−90°).** Climb reads clockwise over the top, descent counter-clockwise under the
+  bottom, and the two halves meet at **one shared 2 at 3 o'clock (+90°)**, so each
+  half spans 180°. No stop pin is visible.
+- **Units.** Thousands of feet per minute (the printed `1000 ft. per min.`). No
+  coloured arcs.
+
+_Scale._ Linear: 90° per 1,000 ft/min, 9° per 100 ft/min.
+
+| Value (×1000 ft/min) | Climb half (over the top) | Descent half (under the bottom) | Numeral printed |
+| -------------------- | ------------------------- | ------------------------------- | --------------- |
+| 0                    | −90° (shared)             | (shared)                        | `0`             |
+| 0.5                  | −45°                      | −135°                           | `.5`            |
+| 1                    | 0°                        | 180°                            | `1`             |
+| 1.5                  | +45°                      | +135°                           | `1.5`           |
+| 2                    | +90° (shared)             | (shared)                        | `2`             |
+
+Measured: the 0 bar at −91°, the 2 mark at +88°, the climb 1 at +2°, the descent 1
+at 179°, the 1.5 numerals at +44° and +137°. No non-linearity is visible.
+
+- **Ticks.** White, radial, every 0.1 (100 ft/min) on both halves. Minor ticks run
+  from 0.73 R to 0.86 R, about 0.015 R thick. Major ticks at 0.5, 1 and 1.5 on both
+  halves run from 0.70 R to 0.88 R, about twice as thick. The **0** is a thick bar
+  from 0.70 R to 0.88 R, about 0.05 R thick. At **2** an I-shaped mark replaces the
+  tick: a tangential bar at 0.81 R spanning ±8° about +90° (about 0.23 R long), with
+  short radial serifs at both ends from 0.74 R to 0.88 R.
+- **Ticks across the top.** Between about −45° and +45° the bezel lip hides the outer
+  part of each tick in every photo, so they show as dots there. They are the same
+  dashes as everywhere else (inference from the viewing angle, medium confidence).
+- **Numerals.** Upright white bold sans, cap height ≈ 0.14 R, centred on a ring of
+  ≈ 0.60 R on their value's radial (for `.5` the digit sits on the radial and the
+  point to its left). The `0` is half covered by the pointer at rest.
+
+_Printed lettering_ (white bold sans, as printed):
+
+| Item         | Position (x, y) in R and size                                                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VERTICAL`   | centre (+0.02, −0.29); width 0.62; cap height 0.09                                                                                                                                       |
+| `SPEED`      | centre (+0.02, −0.18); width 0.40; cap height 0.09                                                                                                                                       |
+| `1000 ft.`   | centre (+0.02, +0.18); width 0.29; cap height 0.05                                                                                                                                       |
+| `per min.`   | centre (+0.02, +0.26); width 0.29; cap height 0.05; lower case                                                                                                                           |
+| up arrow     | an L-shaped arrow just above the `0`: corner at (−0.66, −0.11), a vertical shaft up to an arrowhead at (−0.64, −0.25), a horizontal leg right to (−0.52, −0.11); stroke ≈ 0.02 R         |
+| `up`         | lower case, centre (−0.45, −0.11), cap height 0.05, at the end of the leg                                                                                                                |
+| down arrow   | the up arrow mirrored about the horizontal axis: corner (−0.66, +0.11), arrowhead pointing down at (−0.64, +0.25)                                                                        |
+| down legend  | at about (−0.45, +0.11), mostly hidden under the resting pointer in every photo: not legible. The trainer prints a short lower-case down legend mirroring `up`, **assumed (unverified)** |
+| maker's mark | none on this dial                                                                                                                                                                        |
+
+_Pointer._ One broad white paddle from about 0.11 R to its tip at about 0.85 R,
+≈ 0.09 R wide out to about 0.64 R, then tapering to a point over the last ≈ 0.2 R;
+the inner end is cut square. No hub cap is visible: the centre is black. In the
+frontal photos it rests about 8 to 10° below the 0 bar (a small zero offset of the
+real instrument); the trainer rests it on 0.
+
+- **Colours.** Dial and bezel matte black (hint #111418); markings and pointer white
+  (hint #eeeeea).
+- **Stickers.** None.
+- **Not visible.** A hub or stop pin, the legend under the resting pointer, and the
+  outer part of the scale across the top (hidden by the bezel lip).
+
+#### 3.10.4 Slip indicator (ball)
+
+**Face layout (photos).** Unit box, frame and conventions as for §3.10.3. Measured
+in four photos with perspective removed. Positions ±0.03 R, sizes ±15 % unless
+marked **low confidence**.
+
+- **Size.** Case diameter **0.71 A**, the VSI's size (§3.9.2: 0.69 to 0.71 in four
+  photos once the perspective term is removed, 1 to 2 percent below the VSI). The
+  case is round; an earlier reading of it as slightly wider than tall came from a
+  correction without the perspective term.
+- **Case and mount.** A plain round matte black face with a thin rim (about 0.05 R,
+  barely distinct). Four black dome-headed cross-head screws on a square at
+  (±0.83, ±0.84), head diameter ≈ 0.26 R.
+- **Dial type.** A ball inclinometer only: **no scale, no ticks, no numerals, no
+  pointer and no coloured marks.**
+- **Tube.** One horizontal glass tube, nearly straight: its middle sits about 0.03 R
+  lower than its ends, a very shallow upward curve (**low confidence**; it reads as
+  straight). It runs from x −0.72 to +0.72 (length ≈ 1.45 R), its centre line at
+  y +0.06, outer height ≈ 0.25 R, with flat square-cut ends and slightly rounded
+  corners. Colour cream / ivory (hint #e4dac2). A faint lengthwise highlight along
+  its lower part is glare (optional).
+- **Ball.** One black ball, diameter ≈ 0.26 R (it fills the tube's height), at the
+  tube's centre (x 0.00 ±0.04) in every photo.
+- **Reference lines.** Two thin dark lines across the tube (≈ 0.015 R wide, the
+  tube's full height), about one ball diameter apart at x ≈ ±0.14, framing the
+  centred ball. The left line is clear in every photo; the right one merges with the
+  ball's edge (**low confidence** on the right line). A small curved light highlight
+  on the glass sits just inside the left line (optional). The ball's travel is the
+  tube's length less one ball: centre within about ±0.58 R.
+- **Centring.** The tube, the maker's mark and the legend are centred on the
+  vertical axis (±0.05 R).
+
+_Printed lettering:_
+
+| Item             | Position (x, y) in R and size                                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| maker's mark     | above the tube: a symbol, footprint x −0.25 to +0.25, y −0.53 to −0.26, with a one-line wordmark under it, footprint x −0.29 to +0.29, y −0.23 to −0.15. **Not reproduced**: the area stays blank or carries a generic mark (#721) |
+| `SLIP INDICATOR` | one line under the tube, white bold uppercase sans, centre (0.00, +0.53), width ≈ 0.97, cap height ≈ 0.11                                                                                                                          |
+
+- **Colours.** Face matte black with a faint blue cast (hint #121820); tube cream;
+  ball black; reference lines dark grey to black; lettering white.
+- **Stickers.** None.
+- **Not visible.** Any marks on the tube other than the two lines, and the
+  ball's behaviour (the aircraft was parked level).
+
+#### 3.10.5 Tachometer
+
+**Face layout (photos).** Unit box, frame and conventions as for §3.10.3. Measured
+in three frontal photos, with the tick angles found by sampling the scale ring after
+removing perspective. Angles ±4°, positions ±0.03 R, sizes ±15 % unless marked
+**low confidence**.
+
+- **Size.** Case diameter **0.72 A** (§3.9.2; across plates, **low confidence**,
+  ±0.04; raw photo ratios read 0.68 to 0.70). The largest gauge on the upper-right
+  field.
+- **Case and mount.** A thin matte black bezel ring from 0.92 R to 1.00 R around a
+  black dial (the dial edge at ≈ 0.91 R). Four black dome-headed cross-head screws on
+  a square at (±0.84, ±0.84), head diameter ≈ 0.24 R.
+- **Dial type.** Black dial, white markings, one pointer. **0 at −142° (about
+  7:15)**, sweep **clockwise** over the top to **70 at +145° (about 4:50)**: about
+  285°. The scale is symmetric about 12 o'clock, where **3,500 rpm** sits (±3°). The
+  gap at the bottom, from +145° through 180° to −142°, carries no scale.
+- **Units and multiplier.** `RPM` over `x100` (lower-case x); numerals in hundreds
+  of rpm.
+
+_Scale._ Close to linear: angle ≈ −142° + 4.06° × (rpm / 100), which stays within
+±4° of every measured mark (the 1,000 to 2,000 step measures a little short, ≈ 36°,
+and 2,000 to 3,000 a little long, ≈ 44°, in every photo; real or residual
+perspective, not settled).
+
+| Numeral printed | rpm   | Measured angle                    | Linear model |
+| --------------- | ----- | --------------------------------- | ------------ |
+| `0`             | 0     | −141° (under the resting pointer) | −142°        |
+| `10`            | 1,000 | −99°                              | −101°        |
+| `20`            | 2,000 | −63°                              | −61°         |
+| `30`            | 3,000 | −19°                              | −20°         |
+| `40`            | 4,000 | +19°                              | +20°         |
+| `50`            | 5,000 | +62°                              | +61°         |
+| `60`            | 6,000 | +105°                             | +102°        |
+| `70`            | 7,000 | +145°                             | +142°        |
+
+- **Ticks.** White, radial, **every 200 rpm** (≈ 8°; counted: four minor ticks
+  between each pair of numerals). Minor ticks from 0.76 R to 0.89 R, about 0.02 R
+  thick; major ticks at each numeral from 0.70 R to 0.89 R, about 0.035 R thick.
+  **From 6,000 to 7,000 every tick is long and thick** like a major tick.
+- **Numerals.** Upright white bold sans, cap height ≈ 0.12 R, centred on a ring of
+  ≈ 0.59 R, each within 5° of its major tick's radial. The `0` is half covered by the
+  pointer at rest.
+
+_Coloured arcs_ (a band from 0.76 R to 0.88 R, under the ticks; colours are muted by
+glare in every photo, positions are reliable):
+
+| Arc           | From → to (rpm)          | Measured angles                                   | Colour (hint)         |
+| ------------- | ------------------------ | ------------------------------------------------- | --------------------- |
+| red (low)     | 0 → ≈ 1,400 (±100)       | −141° → −84°                                      | brick red (#a8383c)   |
+| yellow (low)  | ≈ 1,400 → ≈ 1,800 (±100) | −84° → −70°                                       | pale yellow (#d8c46c) |
+| green         | ≈ 1,800 → ≈ 5,500        | −70° → +84°                                       | mid green (#3a8a5a)   |
+| yellow (high) | ≈ 5,500 → ≈ 5,800        | +84° → +95°                                       | pale yellow (#d8c46c) |
+| red line      | ≈ 5,800                  | +96°, radial from 0.68 R to 0.87 R, ≈ 0.03 R wide | dark red (#8c2a2e)    |
+
+Nothing coloured from 5,800 to 7,000. The low red arc starts right at 0, next to the
+resting pointer (#670). The green's hue shows clearly from about 4,000 rpm up; from
+1,800 to about 4,000 glare washes it in all three frontal photos, where the band
+still reads as a lighter, faintly greenish ring with no break. It is drawn
+continuous (medium confidence; §9 question 55).
+
+_Printed lettering:_
+
+| Item                   | Position (x, y) in R and size                                                                                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TACH`                 | centre (0.00, −0.28); width 0.39; cap height 0.10. Its last letter is partly worn in the photos (cosmetic, not reproduced)                                                                |
+| `RPM`                  | centre (+0.02, +0.30); cap height 0.09; just below and right of the hub; the resting pointer passes over the corner of its first letter                                                   |
+| `x100`                 | centre (0.00, +0.42); cap height 0.08                                                                                                                                                     |
+| country-of-origin line | a small line of text curving along the bottom gap, centred at 6 o'clock at ≈ 0.83 R, spanning x −0.32 to +0.32, cap height ≈ 0.06. A maker line: **not reproduced**, the area stays blank |
+| small dark dot         | ≈ 0.06 R across at about (−0.14, +0.60) in the two frontal photos; perhaps a plugged hole (optional detail, **low confidence**)                                                           |
+
+_Pointer._ One white tapered wedge from 0.18 R to 0.88 R: ≈ 0.08 R wide at its inner
+end, narrowing to ≈ 0.02 R at a slightly rounded tip. The inner end is cut square; no
+hub cap is visible (the centre is black). At rest (engine off) it lies on the 0
+mark at ≈ −141°.
+
+- **Colours.** Dial and bezel black (glare makes the dial read dark grey in two
+  photos; hint #141414); markings and pointer white; arcs as in the table.
+- **Stickers.** None.
+- **Not visible.** A hub, a stop pin, and the arc colour between about 1,800 and
+  4,000 rpm (glare).
+
+#### 3.10.6 Cylinder head temperature
+
+**Face layout (photos).** Unit box: the bounding square of the round case (diameter
+E, §3.10.11). Source: the owner's photos (§3.7), measured in the two sharpest
+front views and checked in two more. The case spans only about 85 pixels in the
+best photo, hence the ±6° angle tolerance. In every photo the engine is stopped
+and the master is on (the avionics are lit), so the needle shows a live reading.
+
+- **Case and mounting.** Round. A thin black ring, about 0.05 to 0.07 E wide, merges
+  into the black face (the face's edge, a faint line, at about 0.87 R, low
+  confidence); no chrome, no glare to draw, no square flange. R is the case's outer
+  edge, where the aluminium starts: every tick and arc ends at about 0.84 R, well
+  inside it. Four black screws stand on the bare panel aluminium at the case's
+  diagonal corners (§3.10.11).
+- **Dial.** A single-pointer round dial: matte black face (navy in the photos from
+  their cool cast; hint #141a22) with off-white markings (hint #e6e6de). No subdial,
+  window or knob.
+- **Scale.** Clockwise from 40 at the lower left to 150 at the lower right, about
+  262° in all; the open gap (about 98°) is centred on 6 o'clock. Linear from 40 to
+  120 at about 2.7° per °C; the last step, 120 to 150, is compressed to about 1.65°
+  per °C, so 120 and 150 stand visibly closer than any other pair. No ticks below 40
+  or above 150.
+
+_Numerals_ (upright plain sans, cap height about 0.13 R, each inside its major
+tick; `120` and above all `150` sit deeper than the rest, and `150` stands a few
+degrees clockwise of its bar rather than inside it):
+
+| Numeral | Angle (model) | Measured | Radius |
+| ------- | ------------- | -------- | ------ |
+| `40`    | −130°         | −129°    | 0.49 R |
+| `60`    | −76°          | −77°     | 0.58 R |
+| `80`    | −22°          | −22°     | 0.65 R |
+| `100`   | +32°          | +30°     | 0.53 R |
+| `120`   | +86°          | +82°     | 0.45 R |
+| `150`   | +136°         | +139°    | 0.41 R |
+
+Model: angle = −130° + 2.7° × (T − 40) up to 120 °C; +86° + 1.65° × (T − 120) above
+(the 125 to 150 bars measure +94°, +103°, +111°, +119°, +127°, +135°).
+
+_Ticks_: one every 5 °C, outer ends on a circle at about 0.84 R. From 40 to 120 the
+majors (every 10 °C) are longest at the ends of that range and shortest in its
+middle: 40 about 0.19 R, 50 about 0.13 R, 60 about 0.09 R, 70 and 80 about 0.06 R
+(the 80 one reads almost as a dot), 90 about 0.12 R, 100 about 0.16 R. Minors are
+about 0.05 R where visible; those at 65, 75 and 85 are not resolved (low
+confidence). From 120 to 150 the six ticks (125 to 150) are **heavy bars**, about
+twice a minor's width and alternating long and short: 130, 140 and 150 about 0.25 R
+(0.58 R to 0.83 R), 125, 135 and 145 about 0.17 R (0.65 R to 0.82 R). Fine-tick
+detail is optional.
+
+_Arcs_ (inside the ring; ticks inside an arc take its tint):
+
+| Arc                                                  | From–to (°C) | From–to (angle) | Radial band                                |
+| ---------------------------------------------------- | ------------ | --------------- | ------------------------------------------ |
+| green: dark band, lighter green ticks (hint #2f6a4a) | 90 to 110    | +5° to +59°     | 0.73 R to 0.85 R                           |
+| yellow-amber block (hint #d8a830)                    | 110 to 119   | +59° to +83°    | 0.70 R to 0.85 R, visibly wider than green |
+| red radial line (dark red, hint #9a2a2a)             | 120          | +86°            | 0.65 R to 0.85 R, across the tick band     |
+
+Arc ends ±4 °C. No arc below 90, and none from 120 to 150 (the heavy bars are white).
+
+_Printed words_:
+
+| Item  | Position and size                                                                               |
+| ----- | ----------------------------------------------------------------------------------------------- |
+| `°C`  | Centred on the vertical axis at (0.50, 0.37), cap height about 0.13 R                           |
+| `CHT` | Centred at (0.50, 0.80), letters widely spaced, word about 0.50 R wide, cap height about 0.14 R |
+
+The words are drawn centred on the vertical axis; in both sharp photos their
+measured centres sit 0.03 to 0.04 left of the case centre (on every engine gauge),
+within tolerance and possibly residual perspective (low confidence).
+
+No maker's line, logo or sticker on this face.
+
+_Pointer_: a white blade (hint #f2f0e6). Its square-cut inner end, about 0.14 R
+wide, lies about 0.15 R from the pivot (±0.03; measured 0.12 to 0.19 R across the
+four gauges). Its sides run nearly parallel out to about 0.45 R, then close to a
+point at about 0.69 R (low confidence on where the taper starts: the pointer is
+only about 6 pixels wide in the photos). The tip reaches past the numerals but stops
+short of the minor ticks. No tail and no visible hub cap (the pivot is black on
+black).
+
+_Reading in the photos_: about 46 °C (needle at about −112°), engine stopped but
+still warm. Illustrative only.
+
+_Stop and rest position_: not visible in photos (the needle shows a live reading
+above 40); §9 question 57.
+
+**§4.3.** The CHT row now follows the dial: green 90–110, yellow-amber 110–120, the
+red line at 120, nothing below 90.
+
+#### 3.10.7 Oil temperature
+
+**Face layout (photos).** The same dial as the CHT (§3.10.6): same case and screws,
+same scale geometry and model, same numerals (`40` `60` `80` `100` `120` `150`,
+measured −124°, −74°, −21°, +27°, +76°, +137°, with `120` and `150` deeper, at
+about 0.44 R and 0.38 R), same ticks with the alternating heavy bars from 120 to
+150, and the same white pointer. Measured against the CHT's, its 40 tick sits about
+4° clockwise (−124°), its 120 tick about 6° anticlockwise (+80°, white inside the
+yellow) and its 150 bar 2° anticlockwise (+133°); these are at the edge of the ±6°,
+so draw both gauges from the one CHT model (low confidence whether the difference is
+real). Only the words and the arcs differ. Source and tolerances as for the CHT.
+
+_Printed words_:
+
+| Item   | Position and size                                                   |
+| ------ | ------------------------------------------------------------------- |
+| `°C`   | Centred at (0.50, 0.35), cap height about 0.13 R                    |
+| `OIL`  | Centred at (0.50, 0.75), about 0.29 R wide, cap height about 0.14 R |
+| `TEMP` | Centred at (0.50, 0.84), about 0.50 R wide, same cap height         |
+
+No maker's line, logo or sticker on this face. A faint small pale mark near
+(0.46, 0.60), below and left of the pivot, shows on this face only; it is not
+resolved (a glint or a tiny print) and stays blank (low confidence).
+
+_Arcs_ (inside the ring, as on the CHT):
+
+| Arc                                                  | From–to (°C) | From–to (angle) | Radial band                                    |
+| ---------------------------------------------------- | ------------ | --------------- | ---------------------------------------------- |
+| green: dark band, lighter green ticks (hint #2f6a4a) | 90 to 110    | +5° to +59°     | 0.72 R to 0.85 R                               |
+| yellow (olive-yellow in the photos, hint #c0b040)    | 110 to 127   | +59° to +97°    | 0.68 R to 0.85 R; runs on past the 120 tick    |
+| red (red-brown, hint #9a3a2a), a short segment       | 127 to 130   | +97° to +101°   | 0.68 R to 0.85 R; reads as the red mark at 130 |
+
+Arc ends ±4 °C. **No arc below 90** (no low-end yellow); the heavy bars beyond the
+red are white.
+
+_Reading in the photos_: about 47 °C (needle at about −110°). Illustrative only.
+
+_Stop and rest position_: not visible in photos; §9 question 57.
+
+**§4.3.** The oil temperature row drops the low yellow arc 50–90, which is not on the
+dial. Green 90–110, yellow 110–130 and the red line 130 match within the photo
+precision (the dial's yellow ends about 127 at a short red segment ending at 130).
+
+#### 3.10.8 Voltmeter
+
+**Face layout (photos).** The CHT's case, screws, face colours and white blade
+pointer (§3.10.6); its own scale and words. Source and tolerances as for the CHT,
+angles ±8° here.
+
+- **Scale.** 9 to 17 V clockwise, about 31° per volt, symmetric about 12 o'clock
+  with **13 at the top**; about 254° in all, the gap centred on 6 o'clock. No ticks
+  below 9 or above 17.
+
+_Numerals_ (upright plain sans, cap height about 0.14 R):
+
+| Numeral | Angle (model) | Measured | Radius |
+| ------- | ------------- | -------- | ------ |
+| `9`     | −124°         | −118°    | 0.53 R |
+| `10`    | −93°          | −88°     | 0.59 R |
+| `11`    | −62°          | −58°     | 0.65 R |
+| `12`    | −31°          | −30°     | 0.69 R |
+| `13`    | 0°            | −2°      | 0.70 R |
+| `14`    | +31°          | +26°     | 0.63 R |
+| `15`    | +62°          | +55°     | 0.55 R |
+| `16`    | +93°          | +92°     | 0.48 R |
+| `17`    | +124°         | +130°    | 0.43 R |
+
+Model: angle = 31° × (V − 13). It stays within ±7° of every measured major tick (9
+at −122°, 10 at −87°, 11 at −57°, 12 at −32°, 14 at +28°, 16 at +94°, 17 at
++131°); the numerals stray up to 7° from it (`15` sits anticlockwise of its tick).
+
+_Ticks_: outer ends at about 0.84 R. Majors at each volt, minors every 0.25 V
+(three between the majors at 9–10, 14–15 and 15–16; count elsewhere not resolved).
+Short dashes (about 0.06 R) from 11 to 15, longer (about 0.15 R) at 9 and 10, and
+from just past 15 to 17 **heavy bars** every 0.25 V, the 16 and 17 bars long
+(about 0.25 R, inner ends near 0.58 R) and the others about 0.15 R, as on the CHT's
+top end.
+
+_Arcs_: **none visible**. The sharpest zoom shows only short white ticks between 13
+and 15; whether a small coloured band sits near 13 to 14 is not resolvable
+(§9 question 58). No red or yellow at either end.
+
+_Printed words_:
+
+| Item        | Position and size                                                                                                                                                                                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VOLTS`     | Centred at about (0.48, 0.34), about 0.5 R wide, cap height about 0.12 R. "VO" is legible and a third letter shows faintly at the needle's edge, consistent with "VOL"; the rest is under the needle in every photo, so the word is **low confidence** (§9 question 58) |
+| `VOLTMETER` | One straight line along the bottom, centred at (0.50, 0.80), about 1.08 R wide (broad letters), cap height about 0.14 R                                                                                                                                                 |
+
+No maker's line, logo or sticker on this face.
+
+_Reading in the photos_: about 13.5 V (needle at about +17°), master on and engine
+stopped, so a battery voltage. Illustrative only.
+
+_Stop and rest position_: not visible in photos; §9 question 57.
+
+**§4.3.** The table has no voltmeter row. The dial runs 9–17 V with no markings.
+
+#### 3.10.9 Oil pressure
+
+**Face layout (photos).** The CHT's case, screws, face colours and white blade
+pointer (§3.10.6); its own scale, arcs and words. Source and tolerances as for the
+CHT, angles ±8° here.
+
+- **Scale.** 0 to 10 bar clockwise, about 258° in all, the gap centred on 6
+  o'clock, in **two segments**: about 24° per bar from 0 to 7 and about 30° per bar
+  from 7 to 10, so the heavy-bar section is visibly more spread out. **5 sits just
+  left of the top** (12 o'clock is about 5.2 bar). No ticks below 0 or above 10.
+
+_Numerals_ (upright plain sans, cap height about 0.13 R):
+
+| Numeral | Angle (model) | Measured                                 | Radius |
+| ------- | ------------- | ---------------------------------------- | ------ |
+| `0`     | −124°         | its tick −125°; numeral under the needle | 0.52 R |
+| `1`     | −100°         | −98°                                     | 0.61 R |
+| `2`     | −76°          | −74°                                     | 0.66 R |
+| `3`     | −52°          | −54°                                     | 0.70 R |
+| `4`     | −28°          | −32°                                     | 0.71 R |
+| `5`     | −4°           | −8°                                      | 0.70 R |
+| `6`     | +20°          | +16°                                     | 0.62 R |
+| `7`     | +44°          | +40°                                     | 0.59 R |
+| `8`     | +74°          | +70°                                     | 0.54 R |
+| `9`     | +104°         | +102°                                    | 0.53 R |
+| `10`    | +134°         | +134°                                    | 0.46 R |
+
+Model: angle = −124° + 24° × p up to 7 bar; +44° + 30° × (p − 7) above. The
+measured major ticks (−125°, −100°, −76°, −51°, −31°, −8°, +17°, +44°, +74°, +103°,
++134°) stay within ±4° of it, and the numerals within 4° of their ticks. (A single
+26° per bar rule misses 6 and 7 by 9°.)
+
+_Ticks_: a major at each bar, a minor at each half bar (low confidence below 7),
+outer ends at about 0.84 R. From 0 to 7 they are short dots and dashes (about 0.05
+to 0.10 R; 3 and 4 nearly dots). From 7 to 10 they are **heavy bars**: long ones at
+8, 9 and 10 (about 0.25 R, inner ends near 0.55 R) and shorter ones at 7.5, 8.5 and
+9.5 (about 0.15 R).
+
+_Arcs_ (positions reliable; colours washed out by glare, **low confidence**, §9 question 59):
+
+| Arc                                                | From–to (bar) | From–to (angle, model) | Shape                                                                                        |
+| -------------------------------------------------- | ------------- | ---------------------- | -------------------------------------------------------------------------------------------- |
+| thin pale arc, white to pale yellow (hint #d8d8c0) | 1.0 to 2.0    | −100° to −76°          | about 0.04 R wide at about 0.83 R, with a short inward end cap at each end (a bracket shape) |
+| thin pale arc, grey-green (hint #b8c0b0)           | 5.0 to 6.0    | −4° to +20°            | about 0.04 R wide at about 0.84 R, along the tick ends                                       |
+| tan-orange arc (hint #c89a6a)                      | 6.0 to 7.0    | +20° to +44°           | about 0.09 R wide (0.76 R to 0.85 R), visibly wider than the 5–6 part                        |
+| red radial line (pink-red, hint #b04848)           | 7             | +44°                   | the 7 major tick itself drawn red, from about 0.66 R to 0.84 R                               |
+
+Arc ends ±0.2 bar. **No arc between 2 and 5**: the face is plain black there, while
+the CHT's dark green arc shows in the same photos. **No red radial at 5**, and nothing
+below 1.
+
+_Printed words_:
+
+| Item         | Position and size                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| `BAR`        | Centred at (0.48, 0.36), about 0.34 R wide, cap height about 0.12 R                                     |
+| `OIL`        | Centred at (0.50, 0.75), cap height about 0.14 R                                                        |
+| `PRESS`      | Centred at (0.49, 0.84), about 0.63 R wide, same cap height                                             |
+| Maker's mark | A tiny mark under `PRESS`, footprint about (0.47–0.51, 0.89–0.93). **Not reproduced**: area stays blank |
+
+_Reading in the photos_: 0 bar. The needle lies on the 0 tick (about −125°) with the
+engine stopped and the master on, so at zero pressure the needle sits on the 0 mark,
+not below it.
+
+_Stop and rest position_: with power on, on the 0 mark (above). With the master off:
+not visible in photos (§9 question 57).
+
+**§4.3.** The oil pressure row now follows the dial: a pale arc 1–2, nothing from 2
+to 5, a pale arc 5–6, a wider tan-orange arc 6–7 and the red radial at **7**, with
+no red mark at 5. The dial agrees with §4.2 (normal 2–5 bar, minimum 0.8, up to 7
+bar briefly when cold); only the old red line at 5 conflicted with it.
+
+#### 3.10.10 Hour meter
+
+**Face layout (photos).** Unit box: the black rectangular face, width W and height
+H; origin at its top left, x right and y down, as fractions of W and H. Perspective
+removed. Positions ±0.03, sizes ±15 % unless marked **low confidence**. Inert art:
+any running value shown is illustrative, and D-MPGO's own reading is not recorded
+(§3.7).
+
+- **Size.** W ≈ **0.45 A**, H ≈ **0.28 A** (aspect W:H ≈ 1.6, readings 1.55 to
+  1.67; §3.9.2).
+- **Case and mount.** One black rounded rectangle, corner radius ≈ 0.04 W, face and
+  bezel reading as one piece: there is no wider body behind it. A black dome-headed
+  screw on each side at mid-height, centred at about (−0.11, 0.50) and (1.11, 0.50),
+  diameter ≈ 0.19 to 0.20 W (≈ 0.085 A, the same screw as the gauges), just touching
+  the face's ends. Mounted level with the panel rows.
+- **Dial type.** A drum counter: no pointer, no scale, no arcs.
+
+_Layout:_
+
+| Item                                 | Position and size                                                                                                                                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| maker lines                          | two lines of white text in the upper left: a wordmark, footprint x 0.20 to 0.62, y 0.13 to 0.27, and a shorter word under it, footprint x 0.20 to 0.60, y 0.30 to 0.40. **Not reproduced**: the area stays blank |
+| running indicator                    | a small white-outlined glyph like an hourglass, centre (0.77, 0.31), ≈ 0.08 W by 0.16 H (**low confidence** on its shape)                                                                                        |
+| whole-hour digits                    | four white digits on black in one row, centres x 0.11, 0.22, 0.33, 0.44 (pitch 0.11 W), y 0.53; digit height ≈ 0.15 H, width ≈ 0.05 W; no frame round each digit                                                 |
+| fifth window (read as tenths)        | centre (0.54, 0.53), ≈ 0.08 W by 0.19 H: a light (white) surround with a dark digit inside, so it stands out from the four white-on-black digits (**low confidence** that it is the tenths drum)                 |
+| small mark right of the fifth window | x 0.62 to 0.78, y 0.48 to 0.62: a few small strokes, not legible (it reads like a fraction label for the tenths, or a drum caught mid-turn)                                                                      |
+| `HOURS`                              | white bold uppercase sans, centre (0.46, 0.74), width 0.32 W, cap height 0.09 H                                                                                                                                  |
+
+The text block (maker lines, digits, `HOURS`) is centred a little left of the face's
+centre (x ≈ 0.43); the running indicator takes the upper right.
+
+- **Colours.** Face black (hint #10161c); digits and lettering white; the fifth
+  window's surround white.
+- **Stickers.** None.
+- **Not visible.** Whether the digits are separate drums with window frames (they
+  read as plain digits), what the small mark right of the fifth window says.
+- **Position on the panel.** §3.9.2: right of the voltmeter / oil-pressure column,
+  its centre 0.60 A (1.5 E) right of that column's axis, at the height between the
+  two rows of small gauges (about 0.1 of a row pitch below the block's mid-height).
+
+#### 3.10.11 Panel-wide gauge look
+
+**Face layout (photos).** What all instruments share, their sizes and their grouping.
+Sizes are outer-ring diameters in units of A, the ASI's; they repeat §3.9.2's size
+column, which governs (§2a item 10). Absolute panel positions belong to §3.9.2
+(#716); this block gives only relative geometry. Source: the owner's photos (§3.7),
+four panel views.
+
+- **Bezels.** Every round instrument has a thin black ring, 0.03 to 0.07 of its own
+  diameter, around a matte black face of the same black, separated only by a faint
+  edge. There is no chrome, no thick bezel and no strong glass glare to draw.
+- **Mounts.** No square flange or plate anywhere. Each round case sits directly on
+  the field's brushed aluminium, and its screws stand on the bare aluminium at the
+  four corners of a square pattern. The hour meter is the only rectangular case.
+- **Screws.** Black pan heads. The cross-head (Phillips) recess is clear on the
+  upper-left field's instruments; on the upper-right field it is only faintly
+  visible (**low confidence**; drawing cross-heads there too matches the photos).
+  The heads are about the same physical size everywhere (slightly smaller on the
+  engine gauges), so they look much larger beside the small gauges. On every round
+  instrument each head just clears the ring.
+
+| Instrument                          | Screws                                                                                                                                                               | Screw centres (own box)                            | Head Ø (own diameter)          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------ |
+| ASI                                 | 4                                                                                                                                                                    | 0.115 / 0.885 (§3.10.0)                            | 0.10                           |
+| Altimeter                           | 3: upper left, upper right, lower right; the knob boss takes the lower-left corner (§3.10.2)                                                                         | 0.115 / 0.885 (§3.10.0)                            | 0.10                           |
+| VSI                                 | 3: upper left, upper right, lower right; at the lower left a small dark tab about 0.12 of its diameter long, pointing down-left, centre about (0.08, 0.93) (§3.10.3) | 0.08 / 0.92                                        | 0.13                           |
+| Slip indicator                      | 4                                                                                                                                                                    | 0.085 / 0.915                                      | 0.13                           |
+| Tachometer                          | 4                                                                                                                                                                    | 0.08 / 0.92                                        | 0.12                           |
+| CHT, voltmeter, oil temp, oil press | 4 each                                                                                                                                                               | 0.065 / 0.935                                      | 0.19                           |
+| Hour meter                          | 2, one beyond each short end at mid-height, just touching it                                                                                                         | (−0.11, 0.50), (1.11, 0.50) of the face (§3.10.10) | 0.19 to 0.20 of the face width |
+
+The hour meter is one black rectangle, 0.45 A wide (§3.10.10); there is no wider body
+behind the face.
+
+- **Relative sizes** (as §3.9.2):
+
+| Instrument                              | Size                                                     | Basis                                              |
+| --------------------------------------- | -------------------------------------------------------- | -------------------------------------------------- |
+| ASI                                     | 1.00 A                                                   | reference                                          |
+| Altimeter                               | 1.00 A, case only; the knob sticks out at the lower left | same plate, four photos                            |
+| Slip indicator                          | 0.71 A (measured 0.69 to 0.71), round                    | same plate, four photos                            |
+| VSI                                     | 0.71 A (measured 0.70 to 0.73)                           | same plate, four photos                            |
+| Tachometer (T)                          | 0.72 A (±0.04), **low confidence**                       | across plates (see below)                          |
+| CHT, voltmeter, oil temp, oil press (E) | 0.40 A; 0.55 T (0.545 to 0.565), all four equal (±3 %)   | E against T on the same plate, four photos; then T |
+| Hour meter                              | 0.45 A by 0.28 A (0.63 T by 0.39 T)                      | same plate as the tach                             |
+| Generator lamp (not a gauge)            | lens 0.27 A (0.38 T)                                     | same plate as the tach                             |
+
+Basis: every same-plate ratio comes from a correction with a perspective term that
+makes all of a plate's round cases round at once (§3.9.0). Corrections without that
+term, used for the first drafts of these blocks, shrink the cases low on a plate:
+they gave the VSI and the slip indicator 0.64 A, the altimeter 0.96 A, the engine
+gauges 0.53 T and the left plate's row pitch 1.06 A, all superseded. The
+tachometer's link to the airspeed indicator crosses from one plate to another: the
+first survey's unfolding gives 0.71 A, the plain photo ratios 0.68 to 0.70, and the
+corrected centred view about 0.72, so 0.72 A stays **low confidence** until §9
+question 60 settles the diameters. #721's audit figures (VSI and slip 0.67, tach
+0.72, engine gauges 0.48) are superseded where they differ, notably for the engine
+gauges.
+
+The trainer before M19 (`views.ts` panel indicators, as fractions of its airspeed
+size) drew the altimeter 0.89, the VSI 0.89, the tach 0.95 and the engine gauges
+0.68. The photos give 1.00, 0.71, 0.72 and 0.40.
+
+- **Grouping.**
+  - Upper-left field, a 2×2: ASI top left, altimeter top right, slip indicator under
+    the ASI, VSI under the altimeter. Column pitch (ASI to altimeter) 1.30 A, the
+    same in both rows; row pitch 1.12 A (1.09 to 1.14). The columns are straight:
+    the slip indicator sits about 0.01 A right of the ASI's axis and the VSI about
+    0.02 A right of the altimeter's. The raw photos show the lower pair 0.15 to 0.2 A
+    to the right and the lower row's pitch smaller; that is shear and perspective.
+  - Upper-right field: the tachometer at the top left. Below it the 2×2 engine block,
+    CHT and voltmeter on top, oil temp and oil press below; its left column (CHT over
+    oil temp) is under the tach, the tach centre about 0.05 T right of that column's
+    axis. Block pitch 0.74 T (1.35 E, 0.53 A) both ways, leaving about 0.35 E between
+    neighbouring cases. The top row's centres are about 0.99 T (0.71 A) below the
+    tach centre.
+  - The hour meter stands right of the block: its centre 0.60 A (1.5 E) right of the
+    voltmeter column and at the block's mid-height (about 0.1 of a row pitch lower).
+    The Generator lamp stands at the plate's horizontal middle (§3.9.4): right of the
+    tachometer and level with its top half, about 0.24 A left of the hour meter's
+    vertical axis; not at the plate's top right.
+
 ## 4. Limits and values used by the trainer
 
 Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
 in **bold**. Phase presets
 feed `Environment` in knots and feet; the conversions are given so no implementer
-converts. Altitudes are above the field; the trainer models no real aerodrome.
+converts. Altitudes are above the field; the trainer models no real aerodrome. One
+exception: the altimeter adds the home aerodrome's elevation to the height above the
+field (§3.10.2, §9 questions 46 and 48); presets and systems keep heights above the
+field.
 
 ### 4.1 Speeds (km/h IAS, with knots)
 
@@ -1421,32 +3014,37 @@ propeller control in the cockpit (§9).
 
 ### 4.3 Gauge markings
 
-| Gauge              | Scale used           | Markings                                                     |
-| ------------------ | -------------------- | ------------------------------------------------------------ |
-| Airspeed (km/h)    | 40–340               | white 72–115, green 94–245, yellow 245–300, red line **300** |
-| Tachometer (rpm)   | 0–7000               | green 1400–5500, yellow 5500–5800, red line 5800             |
-| Oil pressure (bar) | 0–10                 | red below 0.8, yellow 0.8–2, green 2–5, red line 5           |
-| Oil temp (°C)      | 40–150               | yellow 50–90, green 90–110, yellow 110–130, red line **130** |
-| CHT (°C)           | 40–150               | green 50–120, red line **120**                               |
-| Vertical speed     | ±2000 ft/min         | none                                                         |
-| Altimeter (ft)     | implementer's choice | none                                                         |
+| Gauge              | Scale used                               | Markings                                                                                                              |
+| ------------------ | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Airspeed (km/h)    | 40–340                                   | white 72–115, green 94–245, yellow 245–300, red line **300** (§3.10.1)                                                |
+| Tachometer (rpm)   | 0–7000                                   | red 0–1400, yellow 1400–1800, green 1800–5500, yellow 5500–5800, red line 5800; drawn in #721 (§3.10.5)               |
+| Oil pressure (bar) | 0–10                                     | pale arc 1–2, none 2–5, pale arc 5–6, tan-orange arc 6–7, red line **7** (§3.10.9)                                    |
+| Oil temp (°C)      | 40–150, bunched above 120                | green 90–110, yellow 110–130, red line **130** (§3.10.7)                                                              |
+| CHT (°C)           | 40–150, bunched above 120                | green 90–110, yellow 110–120, red line **120** (§3.10.6)                                                              |
+| Vertical speed     | ±2000 ft/min                             | none; 0 at 9 o'clock, climb clockwise and descent counter-clockwise, both ending at one 2 at 3 o'clock (§3.10.3)      |
+| Altimeter (ft)     | 0–9 × 100 ft, three pointers, hPa window | none; reads field elevation + height above the field, corrected for the knob setting (§3.10.2, §9 questions 46 to 49) |
+| Voltmeter (V)      | 9–17                                     | none (§3.10.8)                                                                                                        |
 
-The handbook gives only the airspeed arcs and the red lines; the other arcs are
-derived from the limits table above, not copied markings.
+The handbook gives only the airspeed arcs and the red lines. The tachometer, oil
+pressure, oil temperature and CHT rows follow the dials in the owner's photos
+(§3.10.5 to §3.10.9), not copied markings.
 
 **Trainer uses (2026-10-10, §2a decision 3):** the airspeed dial of the photos,
 40 to 340 km/h with numbers every 20; the yellow arc from 245 to the red line at
 300 km/h; VNE 300 km/h (162 kt). The green arc's upper end (245) matches the
-photo; the white arc and the green arc's lower end are not legible in the photos,
-so 72–115 and 94 stay. The vertical speed indicator reads thousands of feet per
-minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
+photo; the white arc 72–115 and the green arc's lower end at 94 are confirmed by
+the clearest photo (§3.10.1). The vertical speed indicator reads thousands of feet
+per minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min with
 ticks every 500. Systems may keep metres per second internally; the gauge shows
 ft/min (1 m/s ≈ 197 ft/min).
 
 Trainer deviation (agent decision, M17 T3, open for the owner): the drawn
 airspeed dial prints numbers every 40 (40 to 320) with ticks every 20, because
 fifteen three-digit numerals do not fit the ring at the lettering floor; numbers
-every 20 need a larger gauge (M17 T4's layout) or an owner exemption.
+every 20 need a larger gauge (M17 T4's layout) or an owner exemption. Open for
+#720: §2a item 10 makes numerals a recognition fact, and the real dial numbers every
+20; under §9 question 41 (a) the airspeed indicator shrinks to 193 units, which makes
+numbers every 20 harder to fit.
 
 ### 4.4 Fuel, flaps, masses
 
@@ -1518,10 +3116,11 @@ the transponder is on and squawks 7000 (German VFR, SERA) from `linedUp` through
 `parkingSecuring`, at ACS until `taxiIn` and at STBY in `parkingSecuring`; the GPS is on
 at its map page and the FLARM display ready, each with its position fix, from `linedUp`
 through `parkingSecuring`, so neither restarts its start-up page or self-test when the
-parking-and-securing leg begins. All assumed (unverified). The COM radio has no seed: it
-switches on with avionics power (§9 question 35). Before `linedUp` every unit starts as
-power finds it: at the holding point the GPS is at its database page and the FLARM runs
-its self-test and searches. The map page shows ground speed and track (taken from the
+parking-and-securing leg begins. All assumed (unverified). The COM radio is seeded switched on
+(and powered) in every phase after engine start, from `taxiOut` through `parkingSecuring`, as the
+pilot's `I/O` press in N3 leaves it (owner, §9 question 35); in `parking` it is dark. Before
+`linedUp` the GPS and the FLARM start as power finds them: at the holding point the GPS is at its
+database page and the FLARM runs its self-test and searches. The map page shows ground speed and track (taken from the
 airspeed and heading) at once in the seeded phases; powered up at the holding point the
 units search first. The fix and the ground speed and track it shows are assumed
 (unverified).
@@ -1557,8 +3156,9 @@ extinguisher, ELT remote switch. Folded into N6.
 carb heat off; all breakers in; Avionics Master off; BAT in; Beacon on; fuel valve
 open; key in; choke as needed (cold: on); throttle idle; propeller area
 clear _(confirm)_; key to START until the engine runs (at most 10 s); choke off
-after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; intercom on
-(trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
+after 20–30 s; oil pressure rising within 10 s; GEN in; Avionics Master on; COM radio on
+_(action: press the ATR833's I/O, then a check that it is on; AUTO ON is off, §9 question 35)_;
+intercom on (trainer addition, assumed, §9 question 32); flaps to the taxi setting (0°).
 Before the first start of the day turn the prop by hand; if the aircraft rolls
 during start, ignition off.
 
@@ -1571,15 +3171,18 @@ with the taxiway outside view; it opens with the parking brake released (trainer
 assumed: N3 leaves the brake set and `taxiOut` has it released).
 
 **N6 Before take-off and run-up (Vor dem Start, HB 4-3, 4-4).** Parking brake set;
-belts fastened; doors closed; controls free; altimeter to QNH _(confirm)_;
+belts fastened; doors closed; controls free; altimeter to QNH _(action: the setting
+knob to the scenario's QNH, from the setting left at 1025 hPa, #719)_;
 transponder on, standby _(action: press the TRT800H's I/O, then a check that it is on
-and at STBY)_; GPS: databases accepted, then its map page (trainer addition, assumed, §9
-questions 32 and 38; a pilot who accepted earlier ticks the acceptance, #692); choke
-off; carb heat off; throttle to 4000 rpm; engine gauges in the green; ignition left:
+and at STBY)_; GPS: databases accepted, then its map page (the start-up step is owner-confirmed,
+§9 question 38; only its place in N6 is assumed, §9 question 32; a pilot who accepted earlier
+ticks the acceptance, #692); choke
+off; carb heat off; throttle to 4000 rpm; engine gauges in the green _(checks: oil pressure in the
+green, oil temperature and CHT below their red lines; the CHT needle is still warming toward
+its 90 to 110 green arc at the run-up, #776)_; ignition left:
 drop at most 300 rpm; both; right: drop at most 300 rpm, difference at most 120 rpm;
 both; oil temperature at least 51 °C; generator lamp out; throttle idle; flaps 15°; trim
-neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; FLARM
-Power, GPS and TX lit _(check, assumed, §9 question 34)_; rescue
+neutral; radio set _(confirm)_; GPS position fix _(check, same assumption)_; rescue
 system armed, pin removed (Rettungsgerät entsichert); ELT armed (Notsender); passenger briefed _(confirm)_;
 approach and departure clear _(confirm)_; parking brake released.
 
@@ -1599,7 +3202,9 @@ at most 5500.
 range, 5500 maximum continuous; engine gauges in the green; flaps −12°; carb heat
 only when icing is likely.
 
-**N11 Descent (HB 4-3).** Carb heat as needed; altimeter set.
+**N11 Descent (HB 4-3).** Carb heat as needed; altimeter set _(action: the setting knob to
+the scenario's QNH; the trainer enters the descent with QNH set since N6, so the pilot
+verifies it with a tick, #719)_.
 
 **N12 Before landing (HB 4-3).** Belts tight; 110 km/h; flaps 15–35°; landing light
 as needed.
@@ -2082,16 +3687,28 @@ verifies it on D-MPGO.
     legend is added. **Assumed (unverified)** (§3.6, §3.8.4).
     **Trainer (M18, #678):** the `flarm` install is powered by the avionics bus alone and reads its
     voltage; the Com, Transponder and GPS breaker legends stay as they are.
+    **Owner (2026-10-11, #717):** not answered; the supply stays **assumed (unverified)**.
 34. **FLARM check before take-off**: does the club check that Power, GPS and TX are
     steady before take-off, as the FLARM manual asks? Trainer uses: one check in N6.
     **Assumed (unverified)**, from the manual (§3.8.4).
     **Trainer (M18, #678):** the check "FLARM: Power, GPS and TX lit" follows the GPS fix check in N6
     and rings the Mode key; it passes once the self-test is over and the fix found.
+    **Owner (2026-10-11, #717):** the club does not check the FLARM before take-off. **Answered.**
+    **Trainer (#717):** the check is removed from N6; no procedure checks the FLARM.
 35. **ATR833 AUTO ON**: is the installer setting on, so the radio starts when avionics
     power arrives, or must the pilot press `I/O`? Trainer uses: on, so no COM switch-on
     step exists, as before. **Assumed (unverified)** (§3.8.1).
     **Trainer (M18, #678):** the `atr833` switches on when the avionics bus and the Com breaker give it
     power; no phase seeds it.
+    **Owner (2026-10-11, #717):** AUTO ON is off; the pilot presses `I/O` to switch the radio on.
+    **Answered.**
+    **Trainer (#717):** the handbook checklists name no COM step (question 32). The Avionics Master
+    comes on in N3 after the engine runs and a pilot needs the radio for the taxi call, so N3 presses
+    `I/O` right after the Avionics Master, not at the holding point; N6 keeps its "radio set"
+    confirm and `radioAndTransponder` starts with the radio already on. Every phase after engine
+    start seeds the COM on. The `atr833` no longer switches on when power arrives; an `I/O` press
+    does. Where the club presses `I/O` is not answered: the step's place in N3 is the trainer's
+    choice, **assumed (unverified)**.
 36. **ATR833 generation, and the lower-right knob**: is D-MPGO's unit the original
     ATR833-OLED, an ATR833A-OLED or an ATR833-II? The only source is the II manual, so
     II features the original may lack are unconfirmed: the last-10 list (LST), named
@@ -2101,6 +3718,14 @@ verifies it on D-MPGO.
     (unverified)** (§3.8.1).
     **Trainer (M18, #678):** the dock prints `FREQ −` and `FREQ +`; the slot mirror draws both knobs as
     plain discs, with no lettering.
+    **Owner (2026-10-11, #717):** the unit is the original ATR833-OLED, not the II; nothing is
+    printed at the lower-right knob. **Answered.** The slot mirror stays plain; `FREQ −` and
+    `FREQ +` stay only as the dock touch helpers' wording. Trimming the II-only features is a
+    separate issue.
+    **Trainer (#718):** the `atr833` follows the ATR833A-OLED manual in place of the II's for every
+    control on the face (question 64): the II-only STL, STR and BRT items, the save
+    mode and its mark are gone, REPLAY is absent, the A manual's last-used list (LST) stays and
+    memory names stay unmodelled. Points that manual leaves open are question 65 (§3.8.1).
 37. **TRT800H set-up**: is a Mode S cradle with a 24-bit address fitted (modes STBY,
     ACS, A-S, rather than Mode A/C only), is there a ground switch, and which VFR code
     is stored? Trainer uses: cradle fitted, no ground switch, VFR code 7000, and the
@@ -2108,6 +3733,8 @@ verifies it on D-MPGO.
     **Trainer (M18, #678):** `radioAndTransponder` presses I/O (on, STBY), VFR (7000) and MODE (ACS),
     N6 presses I/O and N15 presses MODE twice (STBY, #692); the seeded phases start the unit
     on at ACS or STBY.
+    **Owner (2026-10-11, #717):** Mode S cradle (STBY, ACS, A-S), no ground switch, VFR code 7000.
+    **Owner-confirmed**, no longer assumed. The trainer already does this.
 38. **aera 500 on D-MPGO**: what happens when cradle power drops (off, or on battery)?
     Which map orientation and data fields does the club use, and what is the start-up
     step? Which software version, and is there a traffic or weather source? Trainer uses:
@@ -2118,6 +3745,10 @@ verifies it on D-MPGO.
     **Trainer (M18, #678):** the aera starts at its database page whenever the GPS breaker and the
     avionics bus give the cradle power; the seeded phases start it on the map page with
     its fix.
+    **Owner (2026-10-11, #717):** the map is track up with the fields GS, ETE NEXT, BRG and
+    DIST NEXT, there is no traffic or weather source, and the start-up step is accepting the
+    databases and opening the map. **Owner-confirmed**, no longer assumed. Still unknown: the
+    behaviour on cradle power loss and the software version. The trainer already does this.
 39. **FLARM display hardware, pairing and traffic**: is the display hardware 1.0 or 2.0
     (the 16 LEDs imply 2.0), which FLARM unit is it paired with (the reboot hold depends
     on it), and does the club want simulated traffic on the display? Traffic would
@@ -2126,3 +3757,265 @@ verifies it on D-MPGO.
     (§3.8.4).
     **Trainer (M18, #678):** the `flarm` declares no traffic input, so `RX` stays dark and the ring
     lights only in the self-test and the Nearest and Collision confirmation.
+    **Owner (2026-10-11, #717):** no simulated FLARM traffic, ever; the owner declined it as a scope
+    change. **Answered.** Still unknown and **assumed (unverified)**: the display hardware version
+    and the FLARM unit it is paired with; also the colour of the lit status LEDs.
+
+40. **Panel colour** (#716): the photos show all three upper plates and the lower
+    column in the same light brushed aluminium, with only the moulding around them
+    dark (§3.9.1). The owner ruled that the centre field takes the outer panel's
+    colour. Should every field then be aluminium, as on D-MPGO, or every field the
+    trainer's dark panel colour? Trainer uses: the ruling as worded against today's
+    trainer, so all fields, the lower column included, take the dark panel colour of
+    today's outer fields. **Assumed (unverified)** (§3.9.1).
+    **Trainer (M19, #716):** every upper plate, the centre one included, takes the outer
+    plates' dark panel colour; the lower column keeps its dark plate.
+41. **Panel proportions against legibility** (#716): D-MPGO's upper panel is 2.64 times
+    as wide as tall, with a narrow upright centre field between two wide outer fields;
+    the trainer's is 3.51 with the centre field widest. At true proportions in today's
+    2372 × 700 box everything is drawn smaller than today (airspeed 193 against 220,
+    tachometer 139, engine gauges 77, radios 139, breakers 42 units apart), and
+    the panel floor would rise from 1110 to about 1267 px to keep today's lettering
+    minimum. Should the trainer (a) draw true proportions in today's box and raise the
+    floor, (b) change the box to about 2044 × 800 at today's scale and narrow the HD
+    panel cell to about 1009 px, or (c) keep today's gauge and slot sizes and take
+    only the positions from the photos, accepting a panel wider than D-MPGO's? Trainer
+    uses: (a), the coordinates marked T in §3.9.2 to §3.9.5. **Assumed (unverified)**
+    (§3.9.7).
+    **Trainer (M19, #716):** neither (a) nor (b) as worded: the floor cannot rise (the
+    panel renders at most 1113 px wide below the 1200 px desktop breakpoint), so the box
+    stays 2372 × 700 at the 1110 px floor. The gauges take T's sizes (their numerals
+    print as secondary lettering at HD) and the plates are drawn wider than true where
+    the floor's touch targets and mirror lettering need room: left 740, centre 578 × 696,
+    right 718 units (§3.9.7).
+42. **Glareshield knob and red-cross disc** (#716): on D-MPGO both sit on the moulding
+    above the centre plate's left half, about 0.23 A above its top edge (§3.9.1). Under
+    either true-proportion layout they fall outside the view box. Should they be left
+    out, stay as today in a strip at the top of the centre field, or should the box
+    grow upward for them? Trainer uses: both kept inside the centre plate's top margin
+    above the FLARM display and the checklist, at their photographed x (0.12 and 0.37
+    of the plate), shrunk to the margin's height (about 34 units under T).
+    **Assumed (unverified)** (§3.9.1, §3.9.7). The red-cross disc is still
+    unidentified (§3.7.1).
+    **Trainer (M19, #716):** both left out: the view box has no room above the centre
+    plate, and inside it they would stand in the FLARM display's and the checklist's
+    top band (§3.9.7).
+43. **Lower column proportions** (#716): the column is taller than wide (0.75), a T
+    with the rocker row across its top and a lower part 0.59 as wide; the `centre` view
+    is 1.33 and drawn as a full rectangle (§3.9.6). Its rockers are 0.21 A apart and the
+    flap selector and ignition nearly touch, which at today's control sizes overlap.
+    Should the view draw the T-shaped plate at its true aspect with dark moulding beside
+    it, or stretch the column across the view and keep today's control sizes? Trainer
+    uses: the column's fractions stretched across today's view (x = 16 + 1168·x,
+    y = 16 + 876·y), controls at today's sizes, nudged apart where they would overlap.
+    **Assumed (unverified)** (§3.9.6).
+    **Trainer (M19, #716):** the `centre` view is not changed yet. At its floor a 44 px
+    target is 121 units and the rockers' printed labels hold them at 150 units wide, so
+    the rocker row cannot close up to D-MPGO's pitch; moving the flap selector, the
+    ignition and the fuel valve changes the valve-over-key geometry, left to a
+    follow-up.
+44. **GPS size against the radios** (#712): the aera 500's cradle is 2.50 by 1.53 COM
+    diameters on D-MPGO (1.80 × 1.10 A), and dominates the centre field; today's slot
+    is 1.62 by 1.01 COM diameters. Should the GPS keep the photographed ratio to the
+    radios even if the radios then sit below their natural size, or keep its natural
+    440 × 275 beside radios at 272? Trainer uses: the photographed ratio, at the scale
+    of §9 question 41 (cradle 347 × 213 under T, 0.79 of natural). **Assumed
+    (unverified)** (§3.9.3).
+    **Trainer (M19, #716):** the photographed ratio at T's scale: cradle 347 × 217 units
+    (1.80 A), radios 139 (0.72 A), so the cradle is 2.50 radio diameters wide (§3.9.7).
+45. **FLARM display size** (#712): the classic FLARM display on D-MPGO is a small strip,
+    0.87 by 0.44 COM diameters (0.63 × 0.32 A), at the centre field's top left beside
+    the checklist summary; today's slot is 1.18 by 0.59 COM diameters (320 × 160 at
+    natural size). Should it
+    shrink to its photographed size, with its LED legends below the lettering floor, or
+    keep a legible minimum? Trainer uses: the photographed size, at the scale of §9
+    question 41 (121 × 61 under T). **Assumed (unverified)** (§3.9.3).
+    **Trainer (M19, #716):** the photographed size, 120 × 60 units (0.62 A), at the top
+    left beside the checklist card; its LED legends are read in the dock, and its tap
+    area grows to the touch target around the slot (§3.9.7).
+
+<!-- prettier-ignore-start -->
+
+46. **Home aerodrome elevation** (altimeter, #719): what is the field elevation of
+    D-MPGO's base, Herrenteich (EDEH, §1)? Trainer uses: **315 ft (96 m)**,
+    **assumed (unverified)**, from general aviation knowledge, to be checked against
+    the current AIP or VFR chart entry. Cross-check from the photos (§3.10.2): parked
+    at its base, the altimeter reads about 330 ft with 1025 hPa set. That fits an
+    elevation near 300 to 330 ft but proves nothing, since the day's QNH is unknown.
+    The trainer places every phase at this aerodrome for the altimeter only: phase
+    presets and systems keep heights above the field (§4), and the altimeter adds
+    the elevation (§9 question 48).
+47. **Scenario QNH and the knob's starting setting** (#719): which QNH does each
+    scenario use, and does the altimeter start at that value? Trainer uses: **QNH
+    1013 hPa** for every scenario unless a scenario sets its own, **assumed
+    (unverified)**, from general knowledge (ISA standard pressure; VFR pilots in
+    Germany set QNH before take-off). Whether the knob starts at another value, so
+    that setting it is a real task, is the #719 PR's decision, named there. The
+    photos show one real example of a setting left over from the last flight: 1025
+    hPa on the parked aircraft. **#719 decided:** parking, taxi out and the holding
+    point enter with that 1025 hPa, so N6 is a real turn of the knob; line-up and every
+    later phase enter with QNH set.
+48. **Indicated altitude** (#719): Trainer uses: indicated altitude (ft) = field
+    elevation (§9 question 46) + height above the field (`altitudeFt`) + (knob setting −
+    QNH) × 27 ft per hPa. A setting above QNH reads high, by about 27 ft per hPa.
+    The window shows the knob setting. All three pointers follow that one value: the
+    long pointer turns once per 1,000 ft (3.6° per 10 ft), the broad pointer once per
+    10,000 ft and the hairline once per 100,000 ft. **Assumed (unverified)**: the
+    27 ft per hPa factor is the general-knowledge value near sea level (about 27 to 30
+    ft per hPa). The transponder's altitude feed (#742) is the same relation with the
+    standard 1013 hPa as the setting, so it follows QNH and not the knob.
+49. **Altimeter details the photos do not show** (#719): the drum's setting range and
+    step, the knob's turning sense, its knurl and length, and the printed pressure
+    unit (the small print at the window's top edge is not legible). Trainer uses: 950
+    to 1050 hPa in 1 hPa steps, turning clockwise raises the setting and the reading,
+    a plain knob, **assumed (unverified)**, from general knowledge of hPa altimeters
+    (typical range about 946 to 1050 hPa). Note for the printed-label rule: no
+    pressure-unit word is legible on the face. **#719 decided:** the trainer prints a
+    small "hPa" beside the knob as its printed label, a trainer placard in the panel's
+    own wording.
+50. **ASI red line against the rescue system** (#720): D-MPGO's dial marks yellow
+    245–300 and the red line at 300 (§3.10.1), which the handbook gives for the
+    Junkers Light Speed or no rescue system (HB 7-20). The rescue-system data plate
+    reads as a BRS 1050 type with a 276 km/h limit (**low confidence**, small print),
+    and for BRS 1050 the handbook gives VNE 276, yellow 245–276 and the red line at
+    276 (HB 2-1, 7-20). Which applies to D-MPGO, and why is the dial marked to 300?
+    Trainer uses: the dial as photographed and VNE 300 (§2a decision 3); the photos
+    show no mark at 276. The question bears on §2a decision 3 and the §8 VNE row;
+    the owner decides.
+51. **Orange triangle beside the ASI** (#720): what does it mark? It points at about
+    100 km/h (§3.10.1), the approach and final speed of §4.1. Trainer uses: none
+    yet; the triangle lies outside the gauge's case box, which the panel layout
+    sizes (#720). Its meaning as an approach-speed reminder is **assumed
+    (unverified)**.
+52. **ASI below 40 km/h** (#720): the needle rests at 12 o'clock on a white index
+    and the scale starts at 40, 10° clockwise of it; the photos do not show how the
+    needle travels between 0 and 40 km/h or whether a stop pin exists. Trainer uses:
+    θ = 10° + 1.10° × (v − 40) from 340° at 340 km/h (held there above) down to the
+    rest index, where the needle stays below about 31 km/h; the face prints every
+    numeral, tick and arc at its measured angle, so from 260 to 300 km/h the needle
+    reads up to 4° past the print (#720). **Assumed (unverified)**.
+53. **VSI face** (#721): no question needed; the photos settle the face (§3.10.3). The
+    legend beside the down arrow is hidden under the resting pointer in every photo;
+    the trainer prints a short down legend mirroring `up`, the word `down`. **Assumed
+    (unverified)**. Two drawing decisions: the `1000 ft.` and `per min.` lines are set
+    at the size of `VERTICAL` and `SPEED`, about twice the measured cap height, because
+    the measured size falls below the secondary-caption floor (legibility traded for
+    recognition, ADR 0002); and the I-mark's serifs stand at ±9° about the 2, in place
+    of the ±1,900 ticks, so they do not smear into them (the photos fix angles to ±5°).
+54. **Slip indicator face** (#721): no question needed (§3.10.4). The photos show the
+    ball only at rest, level. Trainer uses: a ball drawn at the tube's centre in every
+    state, because the aircraft state has no sideslip. **Assumed (unverified)**.
+55. **Tachometer arcs** (#721): the photos show red from 0 to about 1,400 rpm, yellow to
+    about 1,800, green to about 5,500, yellow to about 5,800 and a red line at about
+    5,800 (each boundary read to ±100 rpm). Are those the printed values, and is the
+    green arc continuous from 1,800 to 5,500? Glare washes its colour between about
+    1,800 and 4,000 rpm in every photo. Trainer uses: the values above, green
+    continuous. **Assumed (unverified)** for the continuous green (§3.10.5, §4.3).
+    The trainer's idle (about 1,400 rpm, §4.2) sits on the red/yellow boundary.
+    **Trainer (M19, #721):** drawn as assumed: green continuous, every boundary at its
+    printed rpm on the needle's own linear scale (−142° at 0 to +142° at 7,000 rpm, so
+    the red line sits at +93.3° where the photos read +96°, within the tolerance).
+56. **Hour meter** (#721): no question needed (§3.10.10). Trainer uses: an illustrative
+    fixed reading (D-MPGO's is not recorded) and the running glyph lit while the engine
+    runs; no engine-hours counter. **Assumed (unverified)** that the glyph marks a
+    running engine.
+57. **Engine gauges at rest** (#721): with the master off, and with a
+    cold engine below 40 °C, where do the needles of the CHT, oil temperature,
+    voltmeter and oil pressure gauges rest: on the lowest mark (40, 40, 9, 0) or
+    pinned below it, and how far below? The photos show only live readings with the
+    master on (CHT and oil temperature about 46 °C, voltmeter about 13.5 V, oil
+    pressure on 0). Trainer uses: each needle on its lowest mark whenever the value is
+    below the scale or the gauge has no power, except the CHT and oil temperature
+    needles, which rest at about 8:20, just above the 40 and clear of its numeral (the
+    photo comparison of the rest position). **Assumed (unverified)** (§3.10.6 to
+    §3.10.9).
+58. **Voltmeter band and centre word** (#721): is there a small coloured band near
+    13 to 14 V (#721's audit thought so; the photos show none, but the needle covers
+    part of that sector), and is the word above the dial centre `VOLTS` (only "VO"
+    and a faint third letter show; the rest is under the needle in every photo)?
+    Trainer uses: no coloured band, and `VOLTS`. **Assumed (unverified)** (§3.10.8).
+59. **Oil-pressure arc colours** (#721): which colours are the thin arc from 1 to 2
+    bar, the thin arc from 5 to 6 and the wider arc from 6 to 7 (glare washes them
+    out), and is there really no arc from 2 to 5? Trainer uses: the colours as
+    photographed, pale yellow from 1 to 2, pale grey-green from 5 to 6, tan-orange
+    from 6 to 7, the red line at 7, nothing from 2 to 5. **Assumed (unverified)**
+    (§3.10.9).
+60. **Gauge diameters** (#721): what are the outer ring diameters of the ASI, the
+    tachometer and one small engine gauge (a ruler across each ring is enough)? Sizes
+    across the two upper plates come from photo ratios: the tachometer measures about
+    0.72 of the ASI (low confidence: the link crosses plates) and the small gauges
+    0.55 of the tachometer, about 0.40 of the ASI (#721's audit estimated 0.48).
+    Trainer uses: the photo ratios of §3.9.2. **Assumed (unverified)** (§3.9.2,
+    §3.10.11).
+61. **Panel-wide gauge look** (#721): no question needed; the photos settle the
+    bezels, mounts, screws and grouping (§3.10.11), and the sizes are §3.9.2's (the
+    diameters are question 60).
+62. Not used (reserved for #721).
+63. **Scale start positions (#670)**, for the gauges of §3.10.3 to §3.10.5 and
+    §3.10.10: no question needed. The photos settle them: the VSI's 0 sits at
+    9 o'clock (−90°) and both halves meet at a single 2 at 3 o'clock; the
+    tachometer's 0 sits at about −142° under the resting pointer, sweeping clockwise
+    to 70 at about +145°, with the low red and yellow arcs recorded in §3.10.5 (any
+    doubt on their values is §9 question 55); the slip indicator and the hour meter
+    have no scale start. The airspeed indicator, the altimeter and the four engine
+    gauges record theirs in their own blocks (§3.10.1, §3.10.2 and §3.10.6 to
+    §3.10.9).
+    **Trainer (M19, #721), tachometer:** as recorded here; the red low arc starts at 0,
+    next to the resting pointer.
+64. **ATR833A-OLED manual for D-MPGO's unit (#718)**: does the original ATR833-OLED
+    on D-MPGO behave as the ATR833A-OLED manual (document 01.1411.010.71e, revision
+    3.00) describes? The owner chose that manual because the maker no longer hosts one
+    for the original unit; the variant letter is not visible on the face (§3.8.1).
+    Trainer uses: the A manual's behaviour for every control on the face. **Assumed
+    (unverified)** (§3.8.1).
+65. **ATR833 points the A manual leaves open (#718)**: which key leaves a MEM or LST
+    list, and does it also do its own job; how long the list time-out is; what an
+    unused memory entry holds; whether `LST 00` holds the standby frequency the
+    memory list last set; whether memories and the last-used list survive switch-off;
+    what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
+    whether a cursor field carries into the next when it wraps; where the cursor starts
+    after power-on or a swap; which fields the cursor has in 25 kHz spacing.
+    Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
+    the last-used list and closes it, any other key leaves the list without its own
+    effect, and the frequency knob leaves it and then steps the standby frequency;
+    the 12 s line-3 time-out; unused entries are empty and leave the standby
+    frequency as it is; `LST 00` holds the last standby frequency the memory list set;
+    memories and the last-used list survive; a `MEM` hold outside the memory list
+    acts as a short press; any `I/O` press switches on; the cursor fields wrap without
+    carry; the cursor starts on the MHz field at power-on and stays where it was on a
+    swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
+    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
+    **Assumed (unverified)** (§3.8.1).
+
+66. **TRT800H Auto-On wiring** (#727): is the transponder's Auto-On pin wired to the supply
+    behind the Avionics Master (the unit then starts by itself whenever power arrives and
+    its `I/O` key does nothing), or left open (the pilot presses `I/O` after every power
+    return)? The installation manual asks for the wiring where an avionics master feeds the
+    unit (§3.8.2). Trainer uses: left open, so power returning leaves the unit dark until
+    `I/O` is pressed, and the trainer's `I/O` steps stay. **Assumed (unverified)**; the
+    owner's answer for the COM radio's AUTO ON (question 35) is the nearest evidence.
+67. **TRT800H after a power loss** (#727): after the breaker is pulled and pushed back, does
+    the unit show the word `VFR` again when its active code equals the VFR code, does the
+    unit accept keys at once or only after its start screens (name and versions, then the
+    code screen), and how long do those screens last? Trainer uses: codes kept, STBY, no
+    `VFR` word, no start screens and no blocked keys. **Assumed (unverified)** (§3.8.2).
+68. **aera 500 power loss and return** (#727): when the GPS breaker is pulled or the
+    Avionics Master goes off with the aera running, does the unit go dark, or does it
+    keep running on its own battery and warn (the guide has a `Power Loss Warning`
+    item)? Is a battery fitted in D-MPGO's unit? When power returns, which settings does
+    it keep, and how long is the repeat search? Trainer uses: dark at once, backlight and
+    map range kept, the full search time again. The return on its own and the database
+    page at every switch-on are from the guide; the rest is **assumed (unverified)**
+    (§3.8.3, question 38).
+69. **FLARM start-up and power loss** (#727): how long does the display's start-up take on
+    D-MPGO, is the volume or mode the pilot chose kept across a power loss, and how long
+    does the GPS fix take to return? Which switch or breaker, if any, cuts the FLARM in
+    flight (question 33)? Trainer uses: the display sheet's start-up sequence at the
+    trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
+    start in Nearest at loud volume is from the display sheet; the timings and the
+    absence of a breaker are **assumed (unverified)** (§3.8.4).
+70. **TRT800H flight-level rounding** (#742): does the level shown truncate or round to
+    the nearest 100 ft, and how is a negative pressure altitude shown? Trainer uses:
+    rounded down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
+
+<!-- prettier-ignore-end -->

@@ -9,6 +9,7 @@ import {
   guarded,
   momentary,
   notchedLever,
+  releaseThenLeave,
   rotary,
   toggle2,
   toggle3,
@@ -70,9 +71,29 @@ describe('press and hold', () => {
     fireEvent.pointerDown(button(), { button: 0, pointerId: POINTER });
     fireEvent.pointerUp(button(), { pointerId: POINTER });
     fireEvent.lostPointerCapture(button(), { pointerId: POINTER });
-    fireEvent.click(button());
+    fireEvent.click(button(), { detail: 1 });
     expect(props.onPress).toHaveBeenCalledTimes(1);
     expect(props.onRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['touch', 'mouse'] as const)(
+    'does not press again on the click a %s release sends after the pointer leaves',
+    (pointerType) => {
+      const props = widgetProps(momentary);
+      render(<PushButton {...props} />);
+      releaseThenLeave(button(), pointerType);
+      expect(props.onPress).toHaveBeenCalledTimes(1);
+      expect(props.onRelease).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('still presses on a later element click when a press sent no click of its own', () => {
+    const props = widgetProps(momentary);
+    render(<PushButton {...props} />);
+    releaseThenLeave(button(), 'touch', { click: false });
+    button().click();
+    expect(props.onPress).toHaveBeenCalledTimes(2);
+    expect(props.onRelease).toHaveBeenCalledTimes(2);
   });
 
   it('holds a spring-back detent the same way', () => {
@@ -99,6 +120,10 @@ describe('press and hold', () => {
     render(<PushButton {...props} />);
     fireEvent.pointerDown(button(), { button: 0, pointerId: POINTER });
     fireEvent.pointerLeave(button());
+    expect(props.onRelease).toHaveBeenCalledTimes(1);
+    fireEvent.pointerUp(button(), { pointerId: POINTER });
+    fireEvent.lostPointerCapture(button(), { pointerId: POINTER });
+    expect(props.onPress).toHaveBeenCalledTimes(1);
     expect(props.onRelease).toHaveBeenCalledTimes(1);
   });
 });

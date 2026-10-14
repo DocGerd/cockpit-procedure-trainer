@@ -2,106 +2,129 @@
 
 Every image below was drawn for this project and is released under the MIT licence of the repository. None is based on a handbook drawing, a photo or a manufacturer's artwork.
 
-| File                                            | Use                                                                   |
-| ----------------------------------------------- | --------------------------------------------------------------------- |
-| `src/assets/view-panel.svg`                     | Panel view background (the three upper fields)                        |
-| `src/assets/view-centre.svg`                    | Lower centre field view background                                    |
-| `src/assets/view-console.svg`                   | Centre console view background, seen from above                       |
-| `src/assets/phase-parking.svg`                  | Outside view, parking                                                 |
-| `src/assets/phase-parking-running.svg`          | Outside view, parking, engine running (propeller disc)                |
-| `src/assets/phase-taxi-out.svg`                 | Outside view, taxi out                                                |
-| `src/assets/phase-taxi-out-running.svg`         | Outside view, taxi out, engine running (propeller disc)               |
-| `src/assets/phase-holding.svg`                  | Outside view, holding point                                           |
-| `src/assets/phase-holding-running.svg`          | Outside view, holding point, engine running (propeller disc)          |
-| `src/assets/phase-lined-up.svg`                 | Outside view, lined up on the runway                                  |
-| `src/assets/phase-lined-up-running.svg`         | Outside view, lined up on the runway, engine running (propeller disc) |
-| `src/assets/phase-departure.svg`                | Outside view, departure                                               |
-| `src/assets/phase-departure-running.svg`        | Outside view, departure, engine running (propeller disc)              |
-| `src/assets/phase-cruise.svg`                   | Outside view, cruise                                                  |
-| `src/assets/phase-cruise-running.svg`           | Outside view, cruise, engine running (propeller disc)                 |
-| `src/assets/phase-approach.svg`                 | Outside view, approach                                                |
-| `src/assets/phase-approach-running.svg`         | Outside view, approach, engine running (propeller disc)               |
-| `src/assets/phase-landing.svg`                  | Outside view, landing                                                 |
-| `src/assets/phase-landing-running.svg`          | Outside view, landing, engine running (propeller disc)                |
-| `src/assets/phase-taxi-in.svg`                  | Outside view, taxi in                                                 |
-| `src/assets/phase-taxi-in-running.svg`          | Outside view, taxi in, engine running (propeller disc)                |
-| `src/assets/phase-parking-securing.svg`         | Outside view, parking and securing                                    |
-| `src/assets/phase-parking-securing-running.svg` | Outside view, parking and securing, engine running (propeller disc)   |
-| `src/assets/cue-engine-smoke.svg`               | Outside view overlay, smoke from the engine bay during an engine fire |
-| `src/assets/artwork/gauge-airspeed.svg`         | Gauge face, airspeed                                                  |
-| `src/assets/artwork/glass-gauge.svg`            | Gauge glass and hub cap, shared                                       |
-| `src/assets/artwork/gauge-altimeter.svg`        | Gauge face, altimeter                                                 |
-| `src/assets/artwork/gauge-vsi.svg`              | Gauge face, vsi                                                       |
-| `src/assets/artwork/gauge-tachometer.svg`       | Gauge face, tachometer                                                |
-| `src/assets/artwork/gauge-oil-pressure.svg`     | Gauge face, oil pressure                                              |
-| `src/assets/artwork/gauge-oil-temperature.svg`  | Gauge face, oil temperature                                           |
-| `src/assets/artwork/gauge-cht.svg`              | Gauge face, cht                                                       |
-| `src/assets/artwork/gauge-voltmeter.svg`        | Gauge face, voltmeter                                                 |
-| `src/assets/artwork/needle.svg`                 | Shared gauge needle                                                   |
-| `src/assets/artwork/lamp-charge-face.svg`       | Generator warning lamp bezel and legend                               |
-| `src/assets/artwork/lamp-charge-off.svg`        | Generator warning lamp lens, unlit                                    |
-| `src/assets/artwork/lamp-charge-on.svg`         | Generator warning lamp lens, lit                                      |
-| `src/assets/artwork/rocker-beacon.svg`          | Rocker switch plate, beacon                                           |
-| `src/assets/artwork/rocker-position.svg`        | Rocker switch plate, position                                         |
-| `src/assets/artwork/rocker-intercom.svg`        | Rocker switch plate, intercom                                         |
-| `src/assets/artwork/rocker-cockpit.svg`         | Rocker switch plate, cockpit                                          |
-| `src/assets/artwork/rocker-landing.svg`         | Rocker switch plate, landing                                          |
-| `src/assets/artwork/rocker-avionics.svg`        | Rocker switch plate, avionics                                         |
-| `src/assets/artwork/rocker-on.svg`              | Rocker paddle, on                                                     |
-| `src/assets/artwork/rocker-off.svg`             | Rocker paddle, off                                                    |
-| `src/assets/artwork/rocker-master-on.svg`       | Avionics master paddle, on                                            |
-| `src/assets/artwork/rocker-master-off.svg`      | Avionics master paddle, off                                           |
-| `src/assets/artwork/breaker-com.svg`            | Breaker plate, com                                                    |
-| `src/assets/artwork/breaker-xpdr.svg`           | Breaker plate, xpdr                                                   |
-| `src/assets/artwork/breaker-position.svg`       | Breaker plate, position                                               |
-| `src/assets/artwork/breaker-intercom.svg`       | Breaker plate, intercom                                               |
-| `src/assets/artwork/breaker-gps.svg`            | Breaker plate, gps                                                    |
-| `src/assets/artwork/breaker-strobe.svg`         | Breaker plate, beacon                                                 |
-| `src/assets/artwork/breaker-landing.svg`        | Breaker plate, landing                                                |
-| `src/assets/artwork/breaker-outlet.svg`         | Breaker plate, outlet                                                 |
-| `src/assets/artwork/breaker-flap.svg`           | Breaker plate, flap                                                   |
-| `src/assets/artwork/breaker-in.svg`             | Breaker disc, in                                                      |
-| `src/assets/artwork/breaker-pulled.svg`         | Breaker disc, pulled                                                  |
-| `src/assets/artwork/breaker-flap-in.svg`        | Flap breaker disc, in                                                 |
-| `src/assets/artwork/breaker-flap-pulled.svg`    | Flap breaker disc, pulled                                             |
-| `src/assets/artwork/pushpull-face.svg`          | BAT and GEN switch plate                                              |
-| `src/assets/artwork/pushpull-in.svg`            | BAT and GEN switch knob, in                                           |
-| `src/assets/artwork/pushpull-pulled.svg`        | BAT and GEN switch knob, pulled                                       |
-| `src/assets/artwork/fuel-valve-face.svg`        | Fuel valve slot                                                       |
-| `src/assets/artwork/fuel-valve-open.svg`        | Fuel valve red grip, open                                             |
-| `src/assets/artwork/fuel-valve-closed.svg`      | Fuel valve red grip, closed, over the ignition key slot               |
-| `src/assets/artwork/elt-face.svg`               | ELT remote switch plate                                               |
-| `src/assets/artwork/elt-armed.svg`              | ELT remote switch bat, armed                                          |
-| `src/assets/artwork/elt-on.svg`                 | ELT remote switch bat, on                                             |
-| `src/assets/artwork/valve-face.svg`             | Parking-brake valve curved slot with its arc legend                   |
-| `src/assets/artwork/valve-open.svg`             | Parking-brake valve lever, open                                       |
-| `src/assets/artwork/valve-closed.svg`           | Parking-brake valve lever, closed                                     |
-| `src/assets/artwork/lever-brake-face.svg`       | Console lever slot, brake, fore and aft, seen from above              |
-| `src/assets/artwork/lever-choke-face.svg`       | Console lever slot, choke, fore and aft, seen from above              |
-| `src/assets/artwork/lever-throttle-face.svg`    | Console lever slot, throttle, fore and aft, seen from above           |
-| `src/assets/artwork/handle-brake.svg`           | Console lever grip, brake                                             |
-| `src/assets/artwork/handle-choke.svg`           | Console lever handle, choke                                           |
-| `src/assets/artwork/handle-throttle.svg`        | Console lever grip, throttle                                          |
-| `src/assets/artwork/lever-carb-face.svg`        | Console lever plate, carb                                             |
-| `src/assets/artwork/handle-carb.svg`            | Console lever handle, carb                                            |
-| `src/assets/artwork/trim-wheel-face.svg`        | Trim wheel rim in its slot and indicator scale, seen from above       |
-| `src/assets/artwork/trim-pointer.svg`           | Trim indicator pointer                                                |
-| `src/assets/artwork/flap-selector-face.svg`     | Flap selector dial                                                    |
-| `src/assets/artwork/flap-knob-0.svg`            | Flap selector knob, detent 0                                          |
-| `src/assets/artwork/flap-knob-1.svg`            | Flap selector knob, detent 1                                          |
-| `src/assets/artwork/flap-knob-2.svg`            | Flap selector knob, detent 2                                          |
-| `src/assets/artwork/flap-knob-3.svg`            | Flap selector knob, detent 3                                          |
-| `src/assets/artwork/flap-knob-4.svg`            | Flap selector knob, detent 4                                          |
-| `src/assets/artwork/flap-knob-5.svg`            | Flap selector knob, detent 5                                          |
-| `src/assets/artwork/flap-knob-6.svg`            | Flap selector knob, detent 6                                          |
-| `src/assets/artwork/ignition-face.svg`          | Ignition switch dial                                                  |
-| `src/assets/artwork/ignition-key-out.svg`       | Ignition lock, key out (empty keyway)                                 |
-| `src/assets/artwork/ignition-key-off.svg`       | Ignition key, off                                                     |
-| `src/assets/artwork/ignition-key-l.svg`         | Ignition key, l                                                       |
-| `src/assets/artwork/ignition-key-r.svg`         | Ignition key, r                                                       |
-| `src/assets/artwork/ignition-key-both.svg`      | Ignition key, both                                                    |
-| `src/assets/artwork/ignition-key-start.svg`     | Ignition key, start                                                   |
-| `src/assets/artwork/rescue-face.svg`            | Rescue handle plate with its label on the console's aft shelf         |
-| `src/assets/artwork/rescue-stowed.svg`          | Rescue handle, stowed                                                 |
-| `src/assets/artwork/rescue-stowed-open.svg`     | Rescue handle, stowed, safety pin removed                             |
-| `src/assets/artwork/rescue-pulled.svg`          | Rescue handle, pulled                                                 |
+| File                                                 | Use                                                                   |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `src/assets/view-panel.svg`                          | Panel view background (the three upper fields)                        |
+| `src/assets/view-centre.svg`                         | Lower centre field view background                                    |
+| `src/assets/view-console.svg`                        | Centre console view background, seen from above                       |
+| `src/assets/phase-parking.svg`                       | Outside view, parking                                                 |
+| `src/assets/phase-parking-running.svg`               | Outside view, parking, engine running (propeller disc)                |
+| `src/assets/phase-taxi-out.svg`                      | Outside view, taxi out                                                |
+| `src/assets/phase-taxi-out-running.svg`              | Outside view, taxi out, engine running (propeller disc)               |
+| `src/assets/phase-holding.svg`                       | Outside view, holding point                                           |
+| `src/assets/phase-holding-running.svg`               | Outside view, holding point, engine running (propeller disc)          |
+| `src/assets/phase-lined-up.svg`                      | Outside view, lined up on the runway                                  |
+| `src/assets/phase-lined-up-running.svg`              | Outside view, lined up on the runway, engine running (propeller disc) |
+| `src/assets/phase-departure.svg`                     | Outside view, departure                                               |
+| `src/assets/phase-departure-running.svg`             | Outside view, departure, engine running (propeller disc)              |
+| `src/assets/phase-cruise.svg`                        | Outside view, cruise                                                  |
+| `src/assets/phase-cruise-running.svg`                | Outside view, cruise, engine running (propeller disc)                 |
+| `src/assets/phase-approach.svg`                      | Outside view, approach                                                |
+| `src/assets/phase-approach-running.svg`              | Outside view, approach, engine running (propeller disc)               |
+| `src/assets/phase-landing.svg`                       | Outside view, landing                                                 |
+| `src/assets/phase-landing-running.svg`               | Outside view, landing, engine running (propeller disc)                |
+| `src/assets/phase-taxi-in.svg`                       | Outside view, taxi in                                                 |
+| `src/assets/phase-taxi-in-running.svg`               | Outside view, taxi in, engine running (propeller disc)                |
+| `src/assets/phase-parking-securing.svg`              | Outside view, parking and securing                                    |
+| `src/assets/phase-parking-securing-running.svg`      | Outside view, parking and securing, engine running (propeller disc)   |
+| `src/assets/cue-engine-smoke.svg`                    | Outside view overlay, smoke from the engine bay during an engine fire |
+| `src/assets/artwork/gauge-airspeed.svg`              | Gauge face, airspeed                                                  |
+| `src/assets/artwork/gauge-airspeed-needle.svg`       | Gauge needle, airspeed (lance)                                        |
+| `src/assets/artwork/gauge-altimeter.svg`             | Gauge face, altimeter                                                 |
+| `src/assets/artwork/gauge-altimeter-10000.svg`       | Altimeter hand, ten-thousands of feet                                 |
+| `src/assets/artwork/gauge-altimeter-1000.svg`        | Altimeter hand, thousands of feet                                     |
+| `src/assets/artwork/gauge-altimeter-100.svg`         | Altimeter hand, hundreds of feet, with the hub                        |
+| `src/assets/artwork/gauge-altimeter-glass.svg`       | Altimeter glass, without a hub cap                                    |
+| `src/assets/artwork/gauge-altimeter-knob.svg`        | Altimeter setting knob lug and hPa legend                             |
+| `src/assets/artwork/gauge-altimeter-rim.svg`         | Altimeter setting knob, turning                                       |
+| `src/assets/artwork/gauge-vsi.svg`                   | Gauge face, vsi                                                       |
+| `src/assets/artwork/gauge-vsi-needle.svg`            | Gauge needle, vsi paddle                                              |
+| `src/assets/artwork/gauge-vsi-glass.svg`             | Gauge glass, vsi (no hub cap)                                         |
+| `src/assets/artwork/gauge-tachometer.svg`            | Gauge face, tachometer                                                |
+| `src/assets/artwork/gauge-tach-needle.svg`           | Gauge needle, tachometer                                              |
+| `src/assets/artwork/gauge-oil-pressure.svg`          | Gauge face, oil pressure                                              |
+| `src/assets/artwork/gauge-oil-temperature.svg`       | Gauge face, oil temperature                                           |
+| `src/assets/artwork/gauge-cht.svg`                   | Gauge face, cht                                                       |
+| `src/assets/artwork/gauge-cht-needle.svg`            | Gauge pointer, cht and oil temperature                                |
+| `src/assets/artwork/gauge-voltmeter.svg`             | Gauge face, voltmeter                                                 |
+| `src/assets/artwork/gauge-engine-pointer.svg`        | Gauge pointer, voltmeter and oil pressure                             |
+| `src/assets/artwork/gauge-slip.svg`                  | Gauge face, slip indicator                                            |
+| `src/assets/artwork/gauge-slip-ball.svg`             | Slip indicator ball, centred                                          |
+| `src/assets/artwork/gauge-hour-meter.svg`            | Gauge face, hour meter                                                |
+| `src/assets/artwork/gauge-hour-meter-running.svg`    | Hour meter running glyph, lit                                         |
+| `src/assets/artwork/gauge-hour-meter-stopped.svg`    | Hour meter running glyph, unlit                                       |
+| `src/assets/artwork/lamp-charge-face.svg`            | Generator warning lamp bezel and legend                               |
+| `src/assets/artwork/lamp-charge-off.svg`             | Generator warning lamp lens, unlit                                    |
+| `src/assets/artwork/lamp-charge-on.svg`              | Generator warning lamp lens, lit                                      |
+| `src/assets/artwork/rocker-beacon.svg`               | Rocker switch plate, beacon                                           |
+| `src/assets/artwork/rocker-position.svg`             | Rocker switch plate, position                                         |
+| `src/assets/artwork/rocker-intercom.svg`             | Rocker switch plate, intercom                                         |
+| `src/assets/artwork/rocker-cockpit.svg`              | Rocker switch plate, cockpit                                          |
+| `src/assets/artwork/rocker-landing.svg`              | Rocker switch plate, landing                                          |
+| `src/assets/artwork/rocker-avionics.svg`             | Rocker switch plate, avionics                                         |
+| `src/assets/artwork/rocker-on.svg`                   | Rocker paddle, on                                                     |
+| `src/assets/artwork/rocker-off.svg`                  | Rocker paddle, off                                                    |
+| `src/assets/artwork/rocker-master-on.svg`            | Avionics master paddle, on                                            |
+| `src/assets/artwork/rocker-master-off.svg`           | Avionics master paddle, off                                           |
+| `src/assets/artwork/breaker-com.svg`                 | Breaker plate, com                                                    |
+| `src/assets/artwork/breaker-xpdr.svg`                | Breaker plate, xpdr                                                   |
+| `src/assets/artwork/breaker-position.svg`            | Breaker plate, position                                               |
+| `src/assets/artwork/breaker-intercom.svg`            | Breaker plate, intercom                                               |
+| `src/assets/artwork/breaker-gps.svg`                 | Breaker plate, gps                                                    |
+| `src/assets/artwork/breaker-strobe.svg`              | Breaker plate, beacon                                                 |
+| `src/assets/artwork/breaker-landing.svg`             | Breaker plate, landing                                                |
+| `src/assets/artwork/breaker-outlet.svg`              | Breaker plate, outlet                                                 |
+| `src/assets/artwork/breaker-flap.svg`                | Breaker plate, flap                                                   |
+| `src/assets/artwork/breaker-in-top.svg`              | Breaker disc, in, top row                                             |
+| `src/assets/artwork/breaker-in-right.svg`            | Breaker disc, in, right of its touch box                              |
+| `src/assets/artwork/breaker-in-centre-right.svg`     | Breaker disc, in, right of centre in its touch box                    |
+| `src/assets/artwork/breaker-in-centre-left.svg`      | Breaker disc, in, left of centre in its touch box                     |
+| `src/assets/artwork/breaker-in-left.svg`             | Breaker disc, in, left of its touch box                               |
+| `src/assets/artwork/breaker-pulled-top.svg`          | Breaker disc, pulled, top row                                         |
+| `src/assets/artwork/breaker-pulled-right.svg`        | Breaker disc, pulled, right of its touch box                          |
+| `src/assets/artwork/breaker-pulled-centre-right.svg` | Breaker disc, pulled, right of centre in its touch box                |
+| `src/assets/artwork/breaker-pulled-centre-left.svg`  | Breaker disc, pulled, left of centre in its touch box                 |
+| `src/assets/artwork/breaker-pulled-left.svg`         | Breaker disc, pulled, left of its touch box                           |
+| `src/assets/artwork/breaker-flap-in.svg`             | Flap breaker disc, in                                                 |
+| `src/assets/artwork/breaker-flap-pulled.svg`         | Flap breaker disc, pulled                                             |
+| `src/assets/artwork/pushpull-face.svg`               | BAT and GEN switch plate                                              |
+| `src/assets/artwork/pushpull-in.svg`                 | BAT and GEN switch knob, in                                           |
+| `src/assets/artwork/pushpull-pulled.svg`             | BAT and GEN switch knob, pulled                                       |
+| `src/assets/artwork/fuel-valve-face.svg`             | Fuel valve slot                                                       |
+| `src/assets/artwork/fuel-valve-open.svg`             | Fuel valve red grip, open                                             |
+| `src/assets/artwork/fuel-valve-closed.svg`           | Fuel valve red grip, closed, over the ignition key slot               |
+| `src/assets/artwork/elt-face.svg`                    | ELT remote switch plate                                               |
+| `src/assets/artwork/elt-armed.svg`                   | ELT remote switch bat, armed                                          |
+| `src/assets/artwork/elt-on.svg`                      | ELT remote switch bat, on                                             |
+| `src/assets/artwork/valve-face.svg`                  | Parking-brake valve curved slot with its arc legend                   |
+| `src/assets/artwork/valve-open.svg`                  | Parking-brake valve lever, open                                       |
+| `src/assets/artwork/valve-closed.svg`                | Parking-brake valve lever, closed                                     |
+| `src/assets/artwork/lever-brake-face.svg`            | Console lever slot, brake, fore and aft, seen from above              |
+| `src/assets/artwork/lever-choke-face.svg`            | Console lever slot, choke, fore and aft, seen from above              |
+| `src/assets/artwork/lever-throttle-face.svg`         | Console lever slot, throttle, fore and aft, seen from above           |
+| `src/assets/artwork/handle-brake.svg`                | Console lever grip, brake                                             |
+| `src/assets/artwork/handle-choke.svg`                | Console lever handle, choke                                           |
+| `src/assets/artwork/handle-throttle.svg`             | Console lever grip, throttle                                          |
+| `src/assets/artwork/lever-carb-face.svg`             | Console lever plate, carb                                             |
+| `src/assets/artwork/handle-carb.svg`                 | Console lever handle, carb                                            |
+| `src/assets/artwork/trim-wheel-face.svg`             | Trim wheel rim in its slot and indicator scale, seen from above       |
+| `src/assets/artwork/trim-pointer.svg`                | Trim indicator pointer                                                |
+| `src/assets/artwork/flap-selector-face.svg`          | Flap selector dial                                                    |
+| `src/assets/artwork/flap-knob-0.svg`                 | Flap selector knob, detent 0                                          |
+| `src/assets/artwork/flap-knob-1.svg`                 | Flap selector knob, detent 1                                          |
+| `src/assets/artwork/flap-knob-2.svg`                 | Flap selector knob, detent 2                                          |
+| `src/assets/artwork/flap-knob-3.svg`                 | Flap selector knob, detent 3                                          |
+| `src/assets/artwork/flap-knob-4.svg`                 | Flap selector knob, detent 4                                          |
+| `src/assets/artwork/flap-knob-5.svg`                 | Flap selector knob, detent 5                                          |
+| `src/assets/artwork/flap-knob-6.svg`                 | Flap selector knob, detent 6                                          |
+| `src/assets/artwork/ignition-face.svg`               | Ignition switch dial                                                  |
+| `src/assets/artwork/ignition-key-out.svg`            | Ignition lock, key out (empty keyway)                                 |
+| `src/assets/artwork/ignition-key-off.svg`            | Ignition key, off                                                     |
+| `src/assets/artwork/ignition-key-l.svg`              | Ignition key, l                                                       |
+| `src/assets/artwork/ignition-key-r.svg`              | Ignition key, r                                                       |
+| `src/assets/artwork/ignition-key-both.svg`           | Ignition key, both                                                    |
+| `src/assets/artwork/ignition-key-start.svg`          | Ignition key, start                                                   |
+| `src/assets/artwork/rescue-face.svg`                 | Rescue handle plate with its label on the console's aft shelf         |
+| `src/assets/artwork/rescue-stowed.svg`               | Rescue handle, stowed                                                 |
+| `src/assets/artwork/rescue-stowed-open.svg`          | Rescue handle, stowed, safety pin removed                             |
+| `src/assets/artwork/rescue-pulled.svg`               | Rescue handle, pulled                                                 |

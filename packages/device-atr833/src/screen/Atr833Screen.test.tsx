@@ -53,19 +53,18 @@ describe('Atr833Screen display', () => {
     expect(marked[0]?.textContent).toBe('0');
   });
 
-  it('reads DW for the standby label and marks a saved frequency', () => {
-    const { view, field } = show({ dualWatch: true, saved: true });
+  it('reads DW for the standby label', () => {
+    const { view, field } = show({ dualWatch: true });
     expect(view.container.textContent).toContain('DW');
-    expect(field('standby')).toBe('>119.000');
+    expect(field('standby')).toBe('119.000');
   });
 
-  it('shows a list entry in place of the standby frequency', () => {
-    const memory = [...base.memory];
-    memory[0] = 123450;
-    const { field, view } = show({ memory, list: { kind: 'mem', index: 0 } });
+  it('keeps SBY and the standby frequency while a list is open: the entry is the standby frequency', () => {
+    const { field, view } = show({ standby: 123450, list: { kind: 'mem', index: 7 } });
     expect(field('standby')).toBe('123.450');
-    expect(field('line3')).toBe('MEM 01');
-    expect(view.container.textContent).not.toContain('SBY');
+    expect(field('line3')).toBe('MEM 07');
+    const labels = [...view.container.querySelectorAll('[data-line-label]')];
+    expect(labels.map((label) => label.textContent)).toEqual(['ACT', 'SBY', 'MEM']);
   });
 
   it('is blank while the install is dark or the unit is switched off', () => {

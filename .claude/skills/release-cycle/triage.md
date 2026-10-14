@@ -5,7 +5,8 @@ nothing before the owner approves.
 
 1. One agent sweeps every open issue without a milestone
    (`gh api --paginate "repos/DocGerd/cockpit-procedure-trainer/issues?state=open&milestone=none&per_page=100"`;
-   drop pull requests), reading body, labels, recent comments and linked open
+   drop pull requests; without a working `gh`, the connector route in
+   [../github-connector.md](../github-connector.md)), reading body, labels, recent comments and linked open
    PRs. It writes its table to the scratchpad and returns a summary.
 2. Classify each issue: ready; needs owner decision (label `question`, a
    change to the spec's decisions table, unclear copyright); blocked (label

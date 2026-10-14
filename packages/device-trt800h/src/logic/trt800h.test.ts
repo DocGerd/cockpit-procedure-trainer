@@ -184,13 +184,25 @@ describe('trt800hDevice', () => {
     it.each([
       [3000, 30],
       [3049, 30],
-      [3050, 31],
+      [3099, 30],
+      [3100, 31],
       [0, 0],
+      [3099.9, 30],
       [-1000, -10],
       [35_000, 350],
     ])('takes FL from %i ft as %i', (altitude, level) => {
       expect(step(switchedOn, {}, { altitude }).flightLevel).toBe(level);
     });
+
+    it.each([
+      [-0.5, -1],
+      [-50, -1],
+    ])(
+      'takes FL from %f ft as %i (below zero is unsourced, intake §9 question 70)',
+      (altitude, level) => {
+        expect(step(switchedOn, {}, { altitude }).flightLevel).toBe(level);
+      },
+    );
 
     it.each([-1001, 35_001, Number.NaN, Number.POSITIVE_INFINITY, 'high'])(
       'shows FLerr for %s',
@@ -398,6 +410,116 @@ describe('trt800hDevice', () => {
 
     it('does nothing while off', () => {
       expect(tap(initial, 'vfr')).toMatchObject({ squawk: '2000', vfrShown: false });
+    });
+  });
+  describe('power cycle', () => {
+    const dark = { powered: false };
+
+    it('pull and push back: dark and ignoring keys, back only on I/O, in standby with the codes kept', () => {
+      let state = tap(tap(switchedOn, 'mode'), 'vfr');
+      state = tap(cursorAt(state, 0), 'knob', 'up');
+      state = tap(state, 'ident');
+      expect(state).toMatchObject({
+        mode: 'acs',
+        squawk: '7000',
+        standby: '3000',
+        reporting: true,
+      });
+      expect(state.identMs).toBeGreaterThan(0);
+
+      const pulled = tap(state, 'mode', 'pressed', dark);
+      expect(pulled).toMatchObject({
+        on: false,
+        mode: 'stby',
+        cursor: null,
+        identMs: 0,
+        vfrShown: false,
+        reporting: false,
+        flightLevel: null,
+        squawk: '7000',
+        standby: '3000',
+        vfrCode: '7000',
+      });
+
+      const pushed = step(pulled);
+      expect(pushed.on).toBe(false);
+      expect(tap(pushed, 'mode').on).toBe(false);
+
+      const back = tap(pushed, 'power');
+      expect(back).toMatchObject({
+        on: true,
+        mode: 'stby',
+        squawk: '7000',
+        standby: '3000',
+        vfrCode: '7000',
+        identMs: 0,
+        flightLevel: 30,
+      });
+      expect(tap(back, 'mode').mode).toBe('acs');
+    });
+
+    it('survives a pull in the step right after the I/O press', () => {
+      const pressed = step(initial, { power: 'pressed' });
+      expect(pressed.on).toBe(true);
+      const pulled = step(pressed, { power: 'pressed' }, dark);
+      expect(pulled.on).toBe(false);
+      expect(step(pulled, { power: 'pressed' }).on).toBe(false);
+      expect(tap(step(pulled), 'power').on).toBe(true);
+    });
+
+    it('does not complete a switch-off hold that power loss interrupted', () => {
+      let state = step(switchedOn, { power: 'pressed' });
+      state = step(state, { power: 'pressed' }, { dtMs: POWER_OFF_HOLD_MS - 1 });
+      state = step(state, { power: 'pressed' }, { ...dark, dtMs: 1 });
+      state = step(state, { power: 'pressed' }, { dtMs: POWER_OFF_HOLD_MS });
+      expect(state.on).toBe(false);
+      state = step(state);
+      expect(tap(state, 'power').on).toBe(true);
+      expect(hold(tap(state, 'power'), 'power', POWER_OFF_HOLD_MS).on).toBe(false);
+    });
+
+    it('does not store a VFR code that power loss interrupted', () => {
+      let state = step({ ...switchedOn, squawk: '1200' }, { vfr: 'pressed' });
+      state = step(state, { vfr: 'pressed' }, { ...dark, dtMs: VFR_STORE_HOLD_MS });
+      expect(state).toMatchObject({ vfrCode: '7000', squawk: '1200', storedMs: 0 });
+      state = tap(state, 'power');
+      expect(state).toMatchObject({ on: true, vfrCode: '7000', storedMs: 0 });
+      expect(tap(state, 'vfr')).toMatchObject({ squawk: '7000', standby: '1200' });
+    });
+
+    it('drops a stored-code confirmation and a half-entered cursor with the power', () => {
+      const stored = hold({ ...switchedOn, squawk: '1200' }, 'vfr', VFR_STORE_HOLD_MS);
+      expect(stored.storedMs).toBeGreaterThan(0);
+      const entering = cursorAt(tap(stored, 'vfr'), 1);
+      expect(entering.cursor).toBe(1);
+      const back = tap(step(entering, {}, dark), 'power');
+      expect(back).toMatchObject({ cursor: null, storedMs: 0, vfrShown: false, vfrCode: '1200' });
+    });
+
+    it('takes the level it sees when it comes back, not the one it left with', () => {
+      const high = tap(switchedOn, 'mode', 'pressed', { altitude: 4000 });
+      expect(high.flightLevel).toBe(40);
+      const lost = step(high, {}, { ...dark, altitude: 1000 });
+      expect(lost.flightLevel).toBeNull();
+      expect(tap(lost, 'power', 'pressed', { altitude: 1000 }).flightLevel).toBe(10);
+    });
+
+    it('repeats the same cycle however often the power goes', () => {
+      let state = tap(switchedOn, 'mode');
+      for (let cycle = 0; cycle < 3; cycle++) {
+        state = step(step(state, {}, dark), {}, dark);
+        expect(state).toMatchObject({ on: false, mode: 'stby', squawk: '2000' });
+        state = tap(state, 'power');
+        expect(state).toMatchObject({ on: true, mode: 'stby' });
+        state = tap(state, 'mode');
+        expect(state.mode).toBe('acs');
+      }
+    });
+
+    it('stays off and unchanged when power goes and returns while it was switched off', () => {
+      const off = hold(switchedOn, 'power', POWER_OFF_HOLD_MS);
+      const cycled = step(step(off, {}, dark));
+      expect(cycled).toMatchObject({ on: false, squawk: off.squawk, standby: off.standby });
     });
   });
 });

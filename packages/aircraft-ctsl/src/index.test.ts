@@ -1,5 +1,5 @@
 import { CONTRACT_VERSION, createSession, phaseOrder, STEP_MS, validateAircraft } from '@cpt/core';
-import type { ControlDefinition } from '@cpt/core';
+import type { ControlDefinition, Placement } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import valveClosed from './assets/artwork/fuel-valve-closed.svg?raw';
 import valveOpen from './assets/artwork/fuel-valve-open.svg?raw';
@@ -15,6 +15,7 @@ import { emergencyProcedures } from './procedures/emergency';
 import { normalProcedures } from './procedures/normal';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
+import { outlinePoints, upperPlates } from './test-plates';
 import { deviceSlots, views } from './views';
 
 type Expected = {
@@ -97,6 +98,12 @@ const expectedControls: Record<string, Expected> = {
     initial: 'stowed',
     view: 'console',
   },
+  altimeterSetting: {
+    kind: 'rotary',
+    positions: Array.from({ length: 101 }, (_, step) => String(950 + step)),
+    initial: '1013',
+    view: 'panel',
+  },
 };
 
 const expectedIndicators: Record<string, { widget: string; view: string }> = {
@@ -108,6 +115,8 @@ const expectedIndicators: Record<string, { widget: string; view: string }> = {
   oilTemperature: { widget: 'artwork', view: 'panel' },
   cht: { widget: 'artwork', view: 'panel' },
   voltmeter: { widget: 'artwork', view: 'panel' },
+  slipIndicator: { widget: 'artwork', view: 'panel' },
+  hourMeter: { widget: 'artwork', view: 'panel' },
   chargeLamp: { widget: 'artwork', view: 'panel' },
   flapReadout: { widget: 'digital-readout', view: 'centre' },
   eltLamp: { widget: 'annunciator', view: 'centre' },
@@ -247,10 +256,10 @@ describe('CTSL aircraft', () => {
   });
 
   it.each([
-    ['flarm', 320, 160],
-    ['gps', 440, 275],
-    ['com', 272, 272],
-    ['xpdr', 272, 272],
+    ['flarm', 120, 60],
+    ['gps', 347, 217],
+    ['com', 139, 139],
+    ['xpdr', 139, 139],
   ] as const)('sizes the %s slot at its mirror aspect, %i by %i', (id, w, h) => {
     expect(deviceSlots[id].rect).toMatchObject({ w, h });
     expect(installs[id].placement).toBe(deviceSlots[id]);
@@ -274,30 +283,23 @@ describe('CTSL aircraft', () => {
     const bottom = ({ rect }: { rect: { y: number; h: number } }) => rect.y + rect.h;
     const middle = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
 
-    // The three upper fields are the full-height rects of the panel artwork.
-    const fields = [
-      ...viewPanel.matchAll(/<rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)" height="([\d.]+)"/g),
-    ]
-      .map(([, x, w, h]) => ({ x: Number(x), w: Number(w), h: Number(h) }))
-      .filter(({ w, h }) => h >= 0.95 * panelSize.height && w < panelSize.width)
-      .filter((field, index, all) => all.findIndex(({ x }) => x === field.x) === index)
-      .sort((a, b) => a.x - b.x);
-    const [upperLeft, upperCentre, upperRight] = fields;
-    if (fields.length !== 3 || !upperLeft || !upperCentre || !upperRight) {
-      throw new Error(`expected three upper fields in the panel art, found ${fields.length}`);
-    }
+    const upperCentre = upperPlates.centre;
     const panelFit = Math.min(panel.rect.w, (panel.rect.h * panelSize.width) / panelSize.height);
     const inCockpit = (artX: number) =>
       panel.rect.x + (panel.rect.w - panelFit) / 2 + (artX * panelFit) / panelSize.width;
     const fieldLeft = inCockpit(upperCentre.x);
     const fieldWidth = (upperCentre.w * panelFit) / panelSize.width;
 
-    it('hangs the centre field below the panel, under the middle of the upper-centre field', () => {
+    // On D-MPGO the lower column hangs left of the centre plate's middle, toward the pilot; intake
+    // §3.9.6 gives the measured offset.
+    it('hangs the centre field below the upper-centre plate, offset from its middle toward the pilot', () => {
+      const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
+      const unitA = (airspeed * panelFit) / panelSize.width;
+      const offset = fieldLeft + fieldWidth / 2 - middle(centre);
       expect(centre.rect.y).toBeGreaterThanOrEqual(bottom(panel));
-      expect(middle(centre)).toBeGreaterThan(panel.rect.x + panel.rect.w / 3);
-      expect(middle(centre)).toBeLessThan(panel.rect.x + (2 * panel.rect.w) / 3);
-      expect(middle(centre)).toBeGreaterThan(fieldLeft + fieldWidth / 3);
-      expect(middle(centre)).toBeLessThan(fieldLeft + (2 * fieldWidth) / 3);
+      expect(middle(centre)).toBeGreaterThan(fieldLeft);
+      expect(offset / unitA).toBeGreaterThanOrEqual(0.25);
+      expect(offset / unitA).toBeLessThanOrEqual(0.5);
     });
 
     it('puts the console beside the centre field, toward the right seat', () => {
@@ -315,11 +317,77 @@ describe('CTSL aircraft', () => {
       expect(right(dock)).toBeLessThanOrEqual(centre.rect.x);
     });
 
-    it('reaches under the radio slot with the dock', () => {
-      const { com } = deviceSlots;
-      const [slotLeft, slotRight] = [inCockpit(com.rect.x), inCockpit(com.rect.x + com.rect.w)];
-      const overlap = Math.min(right(dock), slotRight) - Math.max(dock.rect.x, slotLeft);
-      expect(overlap).toBeGreaterThanOrEqual((slotRight - slotLeft) / 3);
+    // The radios sit where D-MPGO has them, at the bottom of the centre plate (intake §3.9.7), so
+    // they no longer reach over the dock.
+    it('sets the radios over the centre column, right of the dock', () => {
+      const { com, xpdr } = deviceSlots;
+      expect(inCockpit(com.rect.x)).toBeGreaterThanOrEqual(right(dock));
+      expect(inCockpit(com.rect.x)).toBeLessThan(middle(centre));
+      expect(inCockpit(xpdr.rect.x + xpdr.rect.w)).toBeGreaterThan(middle(centre));
+    });
+
+    // A cell wider than the panel's own aspect would only frame empty space beside it.
+    it('shapes the panel cell to the panel view', () => {
+      expect(Math.abs(panelFit - panel.rect.w)).toBeLessThan(1);
+    });
+  });
+
+  it('reads only absolute M, L and Z plate outlines', () => {
+    expect(outlinePoints('test', 'M0 0L10 0L10 5Z')).toEqual([
+      [0, 0],
+      [10, 0],
+      [10, 5],
+    ]);
+    expect(() => outlinePoints('test', 'M0 0C1 1 2 2 3 3Z')).toThrow(/absolute M, L, Z/);
+    expect(() => outlinePoints('test', 'M0 0l10 0Z')).toThrow(/absolute M, L, Z/);
+  });
+
+  // The blind photo-fidelity check of #741 measured the plates too wide for what they hold.
+  describe("the upper plates' proportions as D-MPGO's (intake §3.9.1)", () => {
+    const { left, centre, right } = upperPlates;
+    const { airspeed, tachometer } = views.panel.indicators;
+    const unitA = airspeed.rect.w;
+
+    it('draws the left plate about 3.3 airspeed indicators wide, bare only on its outer side', () => {
+      expect(left.w / unitA).toBeGreaterThanOrEqual(3.2);
+      expect(left.w / unitA).toBeLessThanOrEqual(3.5);
+      expect((airspeed.rect.x - left.x) / unitA).toBeGreaterThanOrEqual(0.65);
+      expect((airspeed.rect.x - left.x) / unitA).toBeLessThanOrEqual(0.9);
+    });
+
+    it('draws the centre plate an upright panel that the GPS nearly fills', () => {
+      expect(centre.w / unitA).toBeGreaterThanOrEqual(2.1);
+      expect(centre.w / unitA).toBeLessThanOrEqual(2.4);
+      expect(centre.h / centre.w).toBeGreaterThanOrEqual(1.45);
+      expect(deviceSlots.gps.rect.w / centre.w).toBeGreaterThanOrEqual(0.76);
+    });
+
+    it('draws the right plate about 4.4 tachometers wide', () => {
+      expect(tachometer.rect.w / right.w).toBeGreaterThanOrEqual(0.21);
+      expect(tachometer.rect.w / right.w).toBeLessThanOrEqual(0.235);
+    });
+
+    it('spans the three plates about 2.6 times as wide as the centre plate is tall', () => {
+      const span = right.x + right.w - left.x;
+      expect(span / centre.h).toBeGreaterThanOrEqual(2.55);
+      expect(span / centre.h).toBeLessThanOrEqual(2.8);
+    });
+
+    const leftPlate = ['airspeed', 'altimeter', 'slipIndicator', 'verticalSpeed'];
+    it.each(Object.entries(views.panel.indicators))('keeps %s inside its plate', (id, { rect }) => {
+      const plate = leftPlate.includes(id) ? left : right;
+      expect(rect.x).toBeGreaterThanOrEqual(plate.x);
+      expect(rect.y).toBeGreaterThanOrEqual(plate.y);
+      expect(rect.x + rect.w).toBeLessThanOrEqual(plate.x + plate.w);
+      expect(rect.y + rect.h).toBeLessThanOrEqual(plate.y + plate.h);
+    });
+
+    it('keeps the altimeter setting knob inside the left plate', () => {
+      const { rect } = views.panel.controls.altimeterSetting;
+      expect(rect.x).toBeGreaterThanOrEqual(left.x);
+      expect(rect.y).toBeGreaterThanOrEqual(left.y);
+      expect(rect.x + rect.w).toBeLessThanOrEqual(left.x + left.w);
+      expect(rect.y + rect.h).toBeLessThanOrEqual(left.y + left.h);
     });
   });
 
@@ -425,6 +493,33 @@ describe('CTSL aircraft', () => {
       expect(height * (1 - OPEN_GUARD_SHARE), 'handle').toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
     });
 
+    // §3.9 gives no measured place for the parachute placard; §3.7.1 lists it just forward of the
+    // handle, between the trim wheels, and the handle is centred, so the placard is too (#729).
+    it('centres the parachute placard over the rescue handle', () => {
+      const group = /<g data-placard="parachute"([^>]*)>((?:(?!<\/g>)[\s\S])*)<\/g>/.exec(
+        viewConsole,
+      );
+      expect(group, 'the console art marks the parachute placard').not.toBeNull();
+      const [, attributes = '', body = ''] = group ?? [];
+      const transform = /\btransform="([^"]*)"/.exec(attributes)?.[1];
+      const translate =
+        transform === undefined
+          ? undefined
+          : /^translate\(([-\d.]+)(?:[ ,][-\d.]+)?\)$/.exec(transform);
+      if (transform !== undefined && !translate) {
+        throw new Error(`the parachute placard's transform "${transform}" is not a translate`);
+      }
+      const shift = Number(translate?.[1] ?? 0);
+      const card = /<rect\b[^>]*\bx="([\d.]+)"[^>]*\bwidth="([\d.]+)"[^>]*\bfill="url\(#pc\)"/.exec(
+        body,
+      );
+      expect(card, 'the placard group draws its card').not.toBeNull();
+      const [, x = 0, w = 0] = (card ?? []).map(Number);
+      const handle = rectOf('rescueHandle');
+      expect(Math.abs(shift + x + w / 2 - (handle.x + handle.w / 2))).toBeLessThan(2);
+      expect(rectOf('parkingBrakeValve').x).toBeGreaterThanOrEqual(handle.x + handle.w);
+    });
+
     it('puts the rescue handle low at the aft end, centred between the seats (§9 q26)', () => {
       const rescue = rectOf('rescueHandle');
       expect(rescue.y, 'aft of the lever row').toBeGreaterThanOrEqual(
@@ -483,21 +578,85 @@ describe('CTSL aircraft', () => {
     });
   });
 
-  it('sets the radio and the transponder side by side below the GPS', () => {
-    const { com, xpdr, gps } = deviceSlots;
-    expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
-    expect(com.rect.y).toBe(xpdr.rect.y);
-    expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+  describe("the upper-centre plate as D-MPGO's (intake §3.9.3)", () => {
+    const plate = upperPlates.centre;
+    const middleX = plate.x + plate.w / 2;
+    const centreX = ({ rect }: { rect: { x: number; w: number } }) => rect.x + rect.w / 2;
+
+    it('sets the radio and the transponder side by side at the bottom, the pair centred', () => {
+      const { com, xpdr, gps } = deviceSlots;
+      expect(com.rect.x + com.rect.w).toBeLessThanOrEqual(xpdr.rect.x);
+      expect(com.rect.y).toBe(xpdr.rect.y);
+      expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+      expect(Math.abs((com.rect.x + xpdr.rect.x + xpdr.rect.w) / 2 - middleX)).toBeLessThan(
+        0.03 * plate.w,
+      );
+    });
+
+    it('puts the FLARM display at the top left, above the GPS', () => {
+      const { flarm, gps } = deviceSlots;
+      expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(gps.rect.y);
+      expect(centreX(flarm)).toBeLessThan(middleX);
+      expect(flarm.rect.x - plate.x).toBeLessThan(0.1 * plate.w);
+    });
+
+    it('centres the GPS under the FLARM display and the checklist card', () => {
+      expect(Math.abs(centreX(deviceSlots.gps) - middleX)).toBeLessThan(0.05 * plate.w);
+    });
+
+    it('sizes the radios and the FLARM display against the airspeed indicator as on D-MPGO', () => {
+      const { flarm, com, xpdr } = deviceSlots;
+      const airspeed = ctslAircraft.views.panel?.indicators?.['airspeed']?.rect.w ?? 0;
+      for (const radio of [com, xpdr]) {
+        expect(radio.rect.w / airspeed).toBeGreaterThanOrEqual(0.6);
+        expect(radio.rect.w / airspeed).toBeLessThanOrEqual(0.75);
+      }
+      expect(flarm.rect.w / airspeed).toBeGreaterThanOrEqual(0.55);
+      expect(flarm.rect.w / airspeed).toBeLessThanOrEqual(0.7);
+      expect(xpdr.rect.x - (com.rect.x + com.rect.w)).toBeGreaterThan(0.25 * airspeed);
+    });
+
+    it('draws the GPS cradle wider than the radio pair is tall, and the FLARM the smallest unit', () => {
+      const { flarm, gps, com } = deviceSlots;
+      expect(gps.rect.w).toBeGreaterThan(com.rect.w);
+      expect(flarm.rect.w * flarm.rect.h).toBeLessThan(com.rect.w * com.rect.h);
+    });
   });
 
-  it('puts the FLARM display left of the GPS, above the radio (intake §3.2a)', () => {
-    const { flarm, gps, com } = deviceSlots;
-    expect(flarm.rect.x + flarm.rect.w).toBeLessThanOrEqual(gps.rect.x);
-    expect(flarm.rect.y + flarm.rect.h).toBeLessThanOrEqual(com.rect.y);
+  describe('avionics arrangement (intake §3.9.3)', () => {
+    const { flarm, gps, com, xpdr } = deviceSlots;
+    const centreX = ({ rect }: Placement) => rect.x + rect.w / 2;
+
+    it('stacks three tiers: the FLARM display, the GPS, then the radio pair', () => {
+      expect(flarm.rect.y + flarm.rect.h).toBeLessThan(gps.rect.y);
+      expect(gps.rect.y + gps.rect.h).toBeLessThanOrEqual(com.rect.y);
+    });
+
+    it('sets the FLARM display at the top left, over the GPS', () => {
+      expect(flarm.rect.x).toBeLessThanOrEqual(gps.rect.x);
+      expect(flarm.rect.x + flarm.rect.w).toBeLessThan(centreX(gps));
+    });
+
+    it('centres the GPS over the radio pair', () => {
+      const pair = (centreX(com) + centreX(xpdr)) / 2;
+      expect(Math.abs(centreX(gps) - pair)).toBeLessThanOrEqual(0.03 * gps.rect.w);
+    });
+
+    it('draws the GPS 2.2 to 2.7 round units wide and 1.4 to 1.7 tall, as photographed', () => {
+      expect(gps.rect.w / com.rect.w).toBeGreaterThanOrEqual(2.2);
+      expect(gps.rect.w / com.rect.w).toBeLessThanOrEqual(2.7);
+      expect(gps.rect.h / com.rect.h).toBeGreaterThanOrEqual(1.4);
+      expect(gps.rect.h / com.rect.h).toBeLessThanOrEqual(1.7);
+    });
+
+    it('keeps the GPS at least as wide as the radio pair', () => {
+      expect(gps.rect.w).toBeGreaterThanOrEqual(xpdr.rect.x + xpdr.rect.w - com.rect.x);
+    });
   });
 
-  it('keeps every device slot inside the upper-centre field below its glareshield strip, clear of the others', () => {
-    const field = { x0: 471, y0: 122, x1: 1628, y1: 684 };
+  it('keeps every device slot inside the upper-centre plate, clear of the others', () => {
+    const plate = upperPlates.centre;
+    const field = { x0: plate.x, y0: plate.y, x1: plate.x + plate.w, y1: plate.y + plate.h };
     const rects = Object.values(deviceSlots).map(({ rect }) => rect);
     for (const { x, y, w, h } of rects) {
       expect(x).toBeGreaterThanOrEqual(field.x0);
@@ -890,10 +1049,58 @@ describe('CTSL aircraft', () => {
     expect(at('holding')).toMatchObject({ on: true, page: 'startup' });
   });
 
-  it('seeds no COM state: the radio switches on with the avionics bus', () => {
-    for (const phase of Object.keys(expectedPhases)) {
-      expect(ctslAircraft.phases[phase]?.entry.deviceStates?.com).toBeUndefined();
-    }
+  it.each([
+    ['parking', false],
+    ['taxiOut', true],
+    ['holding', true],
+    ['linedUp', true],
+    ['departure', true],
+    ['cruise', true],
+    ['approach', true],
+    ['landing', true],
+    ['taxiIn', true],
+    ['parkingSecuring', true],
+  ])('enters %s with the COM radio switched on, as N3 leaves it: %s', (phase, on) => {
+    const seed = ctslAircraft.phases[phase]?.entry.deviceStates?.com;
+    expect(seed).toEqual(on ? { on: true, powered: true } : undefined);
+  });
+
+  it('switches the COM radio on only with an I/O press, not with the avionics bus', () => {
+    const session = createSession(ctslAircraft, { devices, phase: 'parking' });
+    session.set('battery', 'in');
+    session.set('avionicsMaster', 'on');
+    session.advance(100);
+    expect(session.state().devices.com?.state).toMatchObject({ powered: true, on: false });
+    session.press('com.power');
+    session.advance(100);
+    session.release('com.power');
+    session.advance(100);
+    expect(session.state().devices.com?.state).toMatchObject({ on: true });
+  });
+
+  it('keeps the COM radio dark after its breaker is pushed back in until I/O is pressed', () => {
+    const session = createSession(ctslAircraft, { devices, phase: 'holding' });
+    const com = () => session.state().devices.com?.state as { active: number; standby: number };
+    session.advance(100);
+    session.press('com.freq', 'up');
+    session.release('com.freq');
+    session.advance(100);
+    const tuned = com();
+    expect(tuned).toMatchObject({ on: true, powered: true, standby: 120000 });
+
+    session.set('comBreaker', 'pulled');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: false, powered: false });
+
+    session.set('comBreaker', 'in');
+    session.advance(5000);
+    expect(com()).toMatchObject({ on: false, powered: true });
+
+    session.press('com.power');
+    session.advance(100);
+    session.release('com.power');
+    session.advance(100);
+    expect(com()).toMatchObject({ on: true, active: tuned.active, standby: tuned.standby });
   });
 
   it.each([

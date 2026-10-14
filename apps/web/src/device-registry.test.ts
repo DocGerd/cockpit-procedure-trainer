@@ -60,7 +60,11 @@ it('enters the CTSL parking phase with every unit dark', () => {
 it('enters the CTSL holding phase with the radio on, the transponder off and the GPS at start-up', () => {
   const session = createSession(ctslOf(), { devices: deviceRegistry, phase: 'holding' });
   session.advance(100);
-  expect(session.state().devices.com?.state).toMatchObject({ on: true, active: 118_000 });
+  expect(session.state().devices.com?.state).toMatchObject({
+    on: true,
+    powered: true,
+    active: 118_000,
+  });
   expect(session.state().devices.xpdr?.state).toMatchObject({ on: false, mode: 'stby' });
   expect(session.state().devices.gps?.state).toMatchObject({
     on: true,

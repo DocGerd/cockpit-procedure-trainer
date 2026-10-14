@@ -122,7 +122,7 @@ const switchedOff = (state: Trt800hState): Trt800hState => ({
 function flightLevel(altitude: unknown): number | null {
   if (typeof altitude !== 'number' || !Number.isFinite(altitude)) return null;
   if (altitude < MIN_ALTITUDE_FT || altitude > MAX_ALTITUDE_FT) return null;
-  return Math.round(altitude / FT_PER_LEVEL);
+  return Math.floor(altitude / FT_PER_LEVEL);
 }
 
 function turnDigit(code: string, place: number, direction: number): string {

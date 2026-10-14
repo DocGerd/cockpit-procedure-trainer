@@ -7,37 +7,44 @@ the CT Supralight does.
 
 ## Source revision
 
-The only source is the manufacturer's ATR833-II operation and installation manual, document
-01.143.010.71e, revision 1.06 (24 Jan 2024), paraphrased in `docs/aircraft/ctsl-intake.md` section
-3.8.1. A function of the II whose control D-MPGO's face lacks is out. The generation of D-MPGO's unit
-is open (intake section 9, question 36). Assumptions, none checked against a unit:
+The source is the manufacturer's ATR833A-OLED operation and installation manual, document
+01.1411.010.71e, revision 3.00, hosted by ManualsLib (manual 876459) because the manufacturer no
+longer hosts manuals for the original unit; the owner chose it on 2026-10-11. It is paraphrased in
+`docs/aircraft/ctsl-intake.md` section 3.8.1. D-MPGO's unit is the original ATR833-OLED (intake
+section 9, question 36); the A variant is assumed to behave like it (question 64). A function whose
+control D-MPGO's face lacks is out. AUTO ON is off on D-MPGO (question 35) and the A manual has no
+such setting: power arriving leaves the unit dark and an I/O press switches it on; power lost
+switches it off. Assumptions, none checked against a unit (intake section 9, question 65):
 
-- AUTO ON is set (question 35): power arriving switches the unit on, power lost switches it off.
 - Spacing is fixed at 8.33 kHz. The range is 118.000 to 136.990: the last name of the 136.975 block.
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
-- Dual watch needs a squelch of at least 1, and ends when either frequency changes, a swap included. Switching off also ends it.
-- A frequency that becomes active joins the last-active list once, newest first, up to 10. A third MEM release closes the lists.
-- SET held 5 s or more would open the setup menu, which is not modelled, so the release that ends such a hold does nothing.
-- Saving writes the standby frequency (key table and worked example) and shows `>` before it until the standby frequency changes. The hold is 1.5 s, the shorter of the manual's two times.
-- A browsed list entry shows its frequency on the standby line, without the `SBY` label; the manual does not say where. Loading an empty entry does nothing.
-- Setting ranges: VOL, INT, STL and STR 1 to 20; SQL, VOX and BRT 0 to 9; EXT 0 to 20, shown as off at 0. The intake gives no default for any setting, so every default (SQL 5 included) is a placeholder.
+- Any I/O press switches the unit on; the manual's about 0.5 s is not enforced.
+- In a list, `▲▼` swaps and leaves it, `MEM` steps from the memory list to the last-used list and then closes it, and SET, DW, `►` and the frequency knob leave it without their own effect (the knob then steps the standby frequency). Lists close after `MENU_TIMEOUT_MS`, as line 3 does.
+- An unused memory entry is empty; browsing onto it leaves the standby frequency as it is.
+- `LST 00` holds the last standby frequency the memory list set; `LST 01` to `LST 10` hold the last active frequencies, newest first.
+- A MEM hold outside the memory list acts as a short press on its release.
+- Memories and the last-used list survive power loss and switch-off, as the frequencies and settings do.
+- Defaults: SQL 05 is the manual's; VOL 10, DIM 10, VOX 05, DWM 00, INT 05 and EXT 00 are placeholders.
 - The knob unlettered on the face is `freq`, the manual's name for it; the trainer prints `FREQ` on its keys, which is not visible lettering.
 - Initial frequencies 118.000 active and 119.000 standby are placeholders.
 
 ## Controls
 
 - `power`: momentary `I/O`. Any press switches the unit on while it is off and powered. Held for `POWER_OFF_HOLD_MS` while on it switches off; the press that switched it on does not count.
-- `set`: momentary `SET`. On release steps line 3 through VOL, SQL, VOX, INT, STL, STR, EXT and BRT; in a MEM or LST list it loads the entry into the standby frequency. A release after `SETUP_MENU_HOLD_MS` ends a setup-menu hold and does nothing.
-- `mem`: momentary `MEM`. On release opens the MEM list, then the LST list. Held for `MEM_SAVE_HOLD_MS` it opens save mode; the release that ends this hold does nothing more.
-- `dw`: momentary `DW`. Toggles dual watch; in a menu, list or save mode it returns to the standard display.
-- `swap`: momentary `▲▼` (accessible name SWAP). Exchanges active and standby; in a list it loads the entry into the active frequency.
-- `cursor`: momentary `►` (accessible name CURSOR). Moves the underline to the next field of the standby frequency.
-- `volSel`: rotary `rest`, `down`, `up` with spring-back, `VOL/SEL −` and `VOL/SEL +`. Steps the line 3 value, the list entry or the save slot.
+- `set`: momentary `SET`. On release steps line 3 through VOL, SQL, DIM, VOX, DWM, INT and EXT; in a list it leaves the list. Held for `LONG_PRESS_MS` it returns line 3 to VOL, and the release that ends the hold does nothing more.
+- `mem`: momentary `MEM`. On release opens the memory list (`MEM 00` to `MEM 99`), then the last-used list (`LST 00` to `LST 10`), then closes it. Held for `LONG_PRESS_MS` in the memory list it writes the active frequency into the shown entry, and the release that ends the hold does nothing more.
+- `dw`: momentary `DW`. Toggles dual watch, which needs a squelch of `DUAL_WATCH_MIN_SQL` or more; in a list it leaves the list.
+- `swap`: momentary `▲▼` (accessible name SWAP). Exchanges active and standby; in a list it also leaves the list.
+- `cursor`: momentary `►` (accessible name CURSOR). Moves the underline to the next field of the standby frequency; in a list it leaves the list.
+- `volSel`: rotary `rest`, `down`, `up` with spring-back, `VOL/SEL −` and `VOL/SEL +`. Steps the line 3 value; in a list, steps the entry, which at once replaces the standby frequency.
 - `freq`: rotary `rest`, `down`, `up` with spring-back, `FREQ −` and `FREQ +`. Steps the underlined field of the standby frequency.
 
-Holds are measured from the time the session advances while the key is down; a menu or list falls back to the
-standard display after `MENU_TIMEOUT_MS` without input. The state keeps the settings, the 20 memory slots and the
-last-active list through power loss and clears the transients (dual watch, menus, lists, the saved mark).
+Holds are measured from the time the session advances while the key is down; line 3 or a list falls back to the
+standard display after `MENU_TIMEOUT_MS` without input. Ranges: VOL 1 to 16, SQL, DIM, VOX and INT 1 to 10, DWM −8
+to 0, EXT 0 to 10; line 3 prints each value with two digits (`DWM -2`). Dual watch ends when either frequency
+changes, a swap included. A frequency that becomes active joins the last-used list once, newest first, up to
+`RECENT_LIMIT`. The state keeps the frequencies, the settings, the `MEMORY_SLOTS` memory entries and the
+last-used list through power loss and clears the transients (dual watch, the line-3 item, an open list).
 
 ## Inputs
 
@@ -51,18 +58,18 @@ keeps full touch targets (see `src/entry.ts`). The unit draws its own face (`fac
 layout in `docs/aircraft/ctsl-intake.md` section 3.8.1, kept in `src/face/geometry.ts`: the black disc with its
 rim, six round key caps with the legends printed above them, the two knurled knobs in the right-hand corners,
 two screws at the left, `COM` down the left, the curved `VOL/SEL` and the yellow OLED window with `ACT`, `SBY`
-(or `DW`) and line 3. One face component draws both views. In the dock each key is one touch target over its
-legend and cap, and a column of plus and minus helpers on the panel metal right of the disc turns each knob
-(`VOL/SEL` and `FREQ`). The slot mirror is the same face at panel scale, square (`ATR833_MIRROR`), with no
-keys; its legends and line labels print in the secondary lettering tier and the frame prints `COM`.
+(or `DW`) and line 3. While a list is open line 2 keeps `SBY` and shows the entry, which is the standby
+frequency. One face component draws both views. In the dock each key is one touch target over its legend and
+cap, and a column of plus and minus helpers on the panel metal right of the disc turns each knob (`VOL/SEL` and
+`FREQ`). The slot mirror is the same face at panel scale, square (`ATR833_MIRROR`), with no keys; its legends
+and line labels print in the secondary lettering tier and the frame prints `COM`.
 
 ## Not modelled
 
-- Reception, transmission and audio (RX, TX, Te and the stuck-microphone time-out; volumes are numbers only)
-- REPLAY of the last call
-- The setup menu (SET held 5 s): spacing (fixed 8.33 kHz), display dimming, dual-watch volume reduction, PTT selection, microphone, headset and external-audio settings, AUTO ON (fixed on), versions
-- Memory names and clearing a slot
+- Reception, transmission and audio (RX, TX, Te and the two-minute transmit cut-off; volumes, DIM and DWM are numbers only)
+- The configuration menu (SET held 5 s): spacing (fixed 8.33 kHz), automatic display darkening, PTT selection, external-audio priority, microphone sensitivities, test mode
+- Memory names
 - The low-voltage BAT warning
-- The start screen
-- Factory reset
-- The external swap button, intercom switch, remote control and PC frequency tool
+- The start screen with type and software version
+- Master reset
+- The external intercom switch, remote control and PC frequency tool
