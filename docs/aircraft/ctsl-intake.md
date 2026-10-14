@@ -2094,16 +2094,16 @@ above are what makes the panel recognisable; the fractions do not change with th
   the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
   inside its box.
 - **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
-  meets the lettering minimum on a tablet in portrait.
+  meets the lettering minimum on a tablet in portrait (superseded by #773 below).
 
 **Trainer (M20, #768, #772, #773): breaker block follow-ups.** They supersede the
 Cockpit Light and header statements above and in the #716 block's "Left out" list:
 
 - **Cockpit Light legend (#768).** The inert cap under column 2 now carries its printed
-  legend in two lines ("Cockpit" over "Light") under it, in the style and at the
-  baselines of the Instrument Light legend. It is backdrop dressing, not a control label:
+  legend in two lines ("Cockpit" over "Light") under it, in the style of the Instrument
+  Light legend, a little higher so its descenders clear the 12V Outlet breaker. It is backdrop dressing, not a control label:
   the cap is inert, and the trainer's cockpit light is the rocker (§3.9.6). The 12V
-  Outlet breaker's face sits under the legend with clear plate between them.
+  Outlet breaker's face sits directly under the legend, its rim just clear of the descenders.
 - **Beacon Light box (#772).** Unchanged, recorded as final in §3.9.4: four 84-unit boxes
   on knobs 69 apart cannot clear the inert Instrument Light cap.
 - **Header (#773).** "Circuit Breakers" now prints 156 units wide (0.81 A, D-MPGO's), on

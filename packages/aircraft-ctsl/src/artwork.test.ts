@@ -790,12 +790,14 @@ describe('CTSL view backdrops', () => {
   });
 
   it('prints the Cockpit Light legend under its inert cap in two lines (#768)', () => {
-    const legend = [
+    const lines = [
       ...backdrop('panel').matchAll(/<text x="1467" y="(\d+)"[^>]*data-decor[^>]*>([^<]*)</g),
-    ]
-      .filter(([, textY]) => Number(textY) > 573)
-      .map(([, , word]) => word);
-    expect(legend).toEqual(['Cockpit', 'Light']);
+    ].filter(([, textY]) => Number(textY) > 573);
+    expect(lines.map(([, , word]) => word)).toEqual(['Cockpit', 'Light']);
+    const descender = 0.25 * 12;
+    expect(Number(lines[1]?.[1]) + descender).toBeLessThan(
+      views.panel.controls.outletBreaker.rect.y,
+    );
   });
 
   it("sets the header at D-MPGO's width (#773)", () => {
@@ -904,8 +906,8 @@ describe('CTSL view backdrops', () => {
         'HS34@1674,507/12',
         'EFIS@1743,507/12',
         'EMS@1812,507/12',
-        'Cockpit@1467,603/12',
-        'Light@1467,615/12',
+        'Cockpit@1467,600/12',
+        'Light@1467,612/12',
         'Instrument@1536,603/12',
         'Light@1536,615/12',
         'Circuit Breakers@1640,652/35',
