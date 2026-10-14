@@ -41,8 +41,8 @@
 }
 
 .shell-outside-view {
-  --outside-view-band-min: calc(var(--space-12) * 1.5);
-  --outside-view-pull: var(--space-3);
+  --outside-view-band-min: var(--space-8);
+  --outside-view-pull: var(--space-4);
   --outside-view-border: 1px;
   box-sizing: border-box;
   overflow: hidden;
@@ -59,12 +59,6 @@
 
 .shell-outside-view[data-folded='true'] .outside-view-caption {
   display: none;
-}
-
-.shell-outside-view[data-folded='hidden'] {
-  height: 0;
-  visibility: hidden;
-  margin-block-end: calc(-1 * (var(--shell-main-gap) + 2 * var(--outside-view-border)));
 }
 
 .shell-panel {

@@ -1,20 +1,21 @@
 import type { Aircraft } from '@cpt/core';
 import type { Locator, Page } from '@playwright/test';
-import { chooseLayout, outsideViewFold } from '../src/panel/cockpit-layout';
+import { SHORT_VIEWPORT_HEIGHT, chooseLayout, outsideViewFold } from '../src/panel/cockpit-layout';
 import type { OutsideStrip } from '../src/panel/cockpit-layout';
 
-export type StripState = 'whole' | 'folded' | 'hidden';
+export type StripState = 'whole' | 'folded';
 export type LayoutKind = 'combined' | 'tabs';
 export type CockpitState = { readonly layout: LayoutKind; readonly strip: StripState };
 
 /**
  * The priority viewports (one-viewport design, "Viewport priority"): the 1080p and 4K desktops, a
- * real 1080p browser window (tab, address and bookmark bars and the taskbar take the rest), and a
- * tablet in each orientation.
+ * real 1080p browser window (tab, address and bookmark bars and the taskbar take the rest), the
+ * browser window of a 4K laptop at 250 % display scaling, and a tablet in each orientation.
  */
 export const priorityViewports = [
   { name: '1080p screen', width: 1920, height: 1080 },
   { name: '1080p browser window', width: 1920, height: 950 },
+  { name: 'scaled 4K laptop window', width: 1536, height: 760 },
   { name: '4K screen', width: 3840, height: 2160 },
   { name: 'tablet landscape', width: 1024, height: 768 },
   { name: 'tablet portrait', width: 768, height: 1024 },
@@ -24,23 +25,25 @@ export type PriorityViewport = (typeof priorityViewports)[number];
 
 /**
  * The state each aircraft must be in at each priority viewport, from the spec's rule (design spec,
- * Screen and Open question 1): the outside-view strip whole, else folded down to its minimum, else
- * hidden, and tabs only when even that leaves a view below its floor. An aircraft without a row
- * is checked against the derivation alone.
+ * Screen and Open question 1): the outside-view strip whole, else folded down to its minimum, and
+ * tabs only when even that leaves a view below its floor; the strip is never hidden. An aircraft
+ * without a row is checked against the derivation alone.
  */
 export const expectedStates: Readonly<
   Record<string, Readonly<Record<PriorityViewport['name'], CockpitState>>>
 > = {
   ctsl: {
     '1080p screen': { layout: 'combined', strip: 'whole' },
-    '1080p browser window': { layout: 'combined', strip: 'hidden' },
+    '1080p browser window': { layout: 'combined', strip: 'folded' },
+    'scaled 4K laptop window': { layout: 'tabs', strip: 'whole' },
     '4K screen': { layout: 'combined', strip: 'whole' },
     'tablet landscape': { layout: 'tabs', strip: 'whole' },
     'tablet portrait': { layout: 'tabs', strip: 'whole' },
   },
   demo: {
     '1080p screen': { layout: 'combined', strip: 'whole' },
-    '1080p browser window': { layout: 'combined', strip: 'whole' },
+    '1080p browser window': { layout: 'combined', strip: 'folded' },
+    'scaled 4K laptop window': { layout: 'tabs', strip: 'whole' },
     '4K screen': { layout: 'combined', strip: 'whole' },
     'tablet landscape': { layout: 'tabs', strip: 'whole' },
     'tablet portrait': { layout: 'tabs', strip: 'whole' },
@@ -56,7 +59,7 @@ type Measure = {
 
 /** The cockpit region as `useCockpitRegion` and `useCockpitLayout` read it, from the live page. */
 const measureRegion = (page: Page): Promise<Measure> =>
-  page.evaluate(() => {
+  page.evaluate((shortBelow) => {
     const pixels = (value: string | undefined) => Number.parseFloat(value ?? '') || 0;
     const query = <T extends Element>(selector: string) => {
       const found = document.querySelector<T>(selector);
@@ -86,7 +89,7 @@ const measureRegion = (page: Page): Promise<Measure> =>
         natural,
         min: pixels(style.getPropertyValue('--outside-view-band-min')),
         pull: pixels(style.getPropertyValue('--outside-view-pull')),
-        gap: pixels(strip.parentElement ? getComputedStyle(strip.parentElement).rowGap : undefined),
+        short: window.innerHeight < shortBelow,
       },
       chrome: {
         width:
@@ -101,7 +104,7 @@ const measureRegion = (page: Page): Promise<Measure> =>
           pixels(box.borderBottomWidth),
       },
     };
-  });
+  }, SHORT_VIEWPORT_HEIGHT);
 
 /** What the spec's rule gives for the room the page leaves the cockpit right now. */
 export async function derivedState(page: Page, aircraft: Aircraft): Promise<CockpitState> {
@@ -119,7 +122,7 @@ export async function renderedState(page: Page): Promise<CockpitState> {
   const folded = await page.locator('.shell-outside-view').getAttribute('data-folded');
   return {
     layout: layout === 'combined' ? 'combined' : 'tabs',
-    strip: folded === 'hidden' ? 'hidden' : folded === 'true' ? 'folded' : 'whole',
+    strip: folded === 'true' ? 'folded' : 'whole',
   };
 }
 
