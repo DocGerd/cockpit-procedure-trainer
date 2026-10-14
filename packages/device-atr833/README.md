@@ -14,7 +14,11 @@ longer hosts manuals for the original unit; the owner chose it on 2026-10-11. It
 section 9, question 36); the A variant is assumed to behave like it (question 64). A function whose
 control D-MPGO's face lacks is out. AUTO ON is off on D-MPGO (question 35) and the A manual has no
 such setting: power arriving leaves the unit dark and an I/O press switches it on; power lost
-switches it off. Assumptions, none checked against a unit (intake section 9, question 65):
+switches it off.
+
+Decided, not yet implemented: the standby rule for opening a list, the two-digit negative `DWM` and dual watch ending when SQL drops below 02 (intake section 9, question 65; Refs #765, #766).
+
+Assumptions, none checked against a unit (intake section 9, questions 64 and 65):
 
 - Spacing is fixed at 8.33 kHz. The range is 118.000 to 136.990: the last name of the 136.975 block.
 - The cursor starts on MHz at power-on. `►` runs MHz, 100 kHz digit, channel digits, MHz. Each field wraps without carrying into its neighbour.
@@ -41,7 +45,7 @@ switches it off. Assumptions, none checked against a unit (intake section 9, que
 
 Holds are measured from the time the session advances while the key is down; line 3 or a list falls back to the
 standard display after `MENU_TIMEOUT_MS` without input. Ranges: VOL 1 to 16, SQL, DIM, VOX and INT 1 to 10, DWM −8
-to 0, EXT 0 to 10; line 3 prints each value with two digits (`DWM -2`). Dual watch ends when either frequency
+to 0, EXT 0 to 10; line 3 prints non-negative values with two digits and `DWM` prints its minus sign with one digit (`DWM -2`, `DWM 00`). Dual watch ends when either frequency
 changes, a swap included. A frequency that becomes active joins the last-used list once, newest first, up to
 `RECENT_LIMIT`. The state keeps the frequencies, the settings, the `MEMORY_SLOTS` memory entries and the
 last-used list through power loss and clears the transients (dual watch, the line-3 item, an open list).

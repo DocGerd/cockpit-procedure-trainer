@@ -876,13 +876,17 @@ external audio input.
 
 **Line-3 settings** (manual §2.4). `SET` chooses the setting and `VOL/SEL` changes
 it; values always show two digits, and line 3 returns to VOL after 12 s untouched.
-Receive volume (`VOL`) runs 01 to 16. Squelch (`SQL`, higher needs a stronger
+Receive volume (`VOL`) runs 01 to 16 (assumed, unverified: §9 question 65). Squelch (`SQL`, higher needs a stronger
 signal, default 05 and the only default the manual gives), display brightness
 (`DIM`), the speech level that opens the intercom (`VOX`, 01 meaning always open)
 and intercom volume (`INT`, shown as `INT --` when the wiring disables the intercom)
 each run 01 to 10. The external audio volume (`EXT`) runs 00 to 10, 00 switching the
 input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
-runs from 00 (none) down to −8, the minus sign printed.
+runs from 00 (none) down to −8, the minus sign printed. **Trainer rule (#766,
+decision):** every numeric value prints as two digits (`INT --` and `EXT 00` as
+above). Only `DWM` can be negative (−8 to 0); it prints its minus sign before the two
+digits, so `DWM -02` and `DWM 00`. The unit's own negative format is unverified
+(§9 question 64).
 
 **Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
 settings: channel spacing, automatic display darkening, push-to-talk assignment,
@@ -896,13 +900,13 @@ the active frequency. Line 2: `SBY` or `DW`, a status field (`RX` in dual watch)
 the standby frequency, with the edit cursor as an underline below one field. Line 3:
 the chosen item and its value (default `VOL nn`), or `MEM nn` with the entry's name,
 or `LST nn`, while browsing a list; `BAT` for a low supply. While a list is open,
-line 2 keeps the `SBY` label and shows the entry, because the entry is the standby
-frequency. The manual's example and D-MPGO's display show the same layout, with the
+line 2 keeps the `SBY` label and shows the standby frequency; only a `VOL/SEL`
+pick loads the entry into it (§9 question 65). The manual's example and D-MPGO's display show the same layout, with the
 cursor on the MHz field.
 
 **Power** (manual §2.2). Holding `I/O` about 0.5 s switches the unit on: a start
 screen with the type and software version, then the frequencies and settings it had
-at switch-off. About 2 s switches it off. The manual names no switch-on when supply
+at switch-off. About 2 s switches it off (assumed, unverified: §9 question 65). The manual names no switch-on when supply
 arrives, so power arriving leaves the unit dark until `I/O` is pressed; this matches
 the owner's answer for D-MPGO (§9 question 35). The manual does not say whether the
 memories and the last-used list survive switch-off.
@@ -923,18 +927,21 @@ optionally named with up to 8 characters. Recall: `MEM` opens the list at entry 
 turning the `VOL/SEL` knob picks an entry, and the entry replaces the standby
 frequency at once; `▲▼` then makes it active and leaves the list. A second short
 `MEM` opens the last-used list: the last 10 active frequencies as `LST 01` to
-`LST 10`, plus `LST 00`, which holds the last standby frequency taken from the
-memory list; picking and swapping work as in the memory list. Save: make the
+`LST 10`, plus `LST 00`, a standby frequency taken from the memory list (what it
+holds exactly: §9 question 65); picking and swapping work as in the memory list. Save: make the
 frequency active, open the memory list, pick the entry, hold `MEM` 1.5 s or more;
-the active frequency is written into the entry (so line 2 now shows it too) and any
+the active frequency is written into the entry (line 2 is unchanged) and any
 name is cleared. There is no save mark. A list is left by a key press or after a
 time-out whose length the manual does not give.
 
 **Dual watch** (manual §2.6). With one receiver, dual watch listens mainly to the
 standby frequency and samples the active one at intervals; a signal on the active
 one takes priority. Transmission is always on the active frequency. Changing either
-frequency ends dual watch. It needs a squelch of at least 02. `DWM` makes standby
-reception quieter so the two can be told apart. The manual advises against dual
+frequency ends dual watch. It needs a squelch of at least 02 (an earlier reading of the manual; the manual was
+not re-checked, so treat it as assumed, §9 question 65). **Trainer rule (#766,
+decision):** `DW` does nothing while the squelch is below 02, and lowering the
+squelch below 02 while dual watch is on switches dual watch off at once. `DWM` makes
+standby reception quieter so the two can be told apart. The manual advises against dual
 watch where a continuous listening watch is required. The pilot swaps before
 answering a call heard on standby.
 
@@ -964,7 +971,8 @@ the three-field cursor (fixed spacing; fields wrap without carry, **assumed
 (unverified)**), swap, dual watch (squelch 02 or more), the line-3 items VOL, SQL,
 DIM, VOX, DWM, INT and EXT as numbers with the SET hold back to VOL and the 12 s
 time-out, the user memory list (100 unnamed entries) and the last-used list with
-`LST 00`, browsing that replaces the standby frequency, and storing the active
+`LST 00`, browsing in which a VOL/SEL pick (not opening the list) replaces the standby
+frequency, and storing the active
 frequency with a `MEM` hold. Frequencies, settings, memories and the last-used list
 survive power loss and switch-off; dual watch, the line-3 item and an open list do
 not. It leaves out reception, transmission and audio (so no `RX`, `TX`, `Te`, and
@@ -1093,11 +1101,14 @@ _Trainer note (#742)._ The level is the pressure altitude: the altimeter's readi
 with 1013 hPa set (§3.10.2, §9 questions 46 to 48), so it follows the day's QNH, not
 the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 000`
 of the parked-aircraft photos is illustrative only, as noted above. The level is
-shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
-issue #742 and not taken from the handbook (the text above says only "in 100 ft
-steps"); to be checked against the handbook (§9 question 70). A level below zero is
-not covered by any source and is shown as the same rounding gives it (`FL -01` for
-−50 ft).
+shown in whole hundreds of feet, rounded down: **still assumed — source checked,
+silent**. Checked on 2026-10-14 against the handbook revision cited above (document
+03.2126.010.71e, revision 3.00): its display section (§2.4) says only that the level is
+in 100 ft steps and that `FLerr` appears beyond −1000 to 35 000 ft, where Mode C goes
+inactive. It names no rounding direction and shows no negative level. **Verified
+(§2.4):** an altitude outside that range shows `FLerr` and stops reporting. A level
+below zero but within the range is **assumed**: it is shown as the same rounding gives
+it (`FL -01` for −50 ft), with a minus sign and two digits. See §9 question 70.
 
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
@@ -3967,7 +3978,11 @@ verifies it on D-MPGO.
     3.00) describes? The owner chose that manual because the maker no longer hosts one
     for the original unit; the variant letter is not visible on the face (§3.8.1).
     Trainer uses: the A manual's behaviour for every control on the face. **Assumed
-    (unverified)** (§3.8.1).
+    (unverified)** (§3.8.1). **Still assumed — source not reachable:** the cited
+    manual (ManualsLib 876459) could not be fetched; the only copy reachable on the
+    maker's site is a different variant (ATR833A-II, document 01.143A.010.71e), which
+    does not verify the OLED unit's behaviour. Every ATR833A item in §3.8.1 and
+    question 65 stays assumed.
 65. **ATR833 points the A manual leaves open (#718)**: which key leaves a MEM or LST
     list, and does it also do its own job; how long the list time-out is; what an
     unused memory entry holds; whether `LST 00` holds the standby frequency the
@@ -3979,13 +3994,26 @@ verifies it on D-MPGO.
     the last-used list and closes it, any other key leaves the list without its own
     effect, and the frequency knob leaves it and then steps the standby frequency;
     the 12 s line-3 time-out; unused entries are empty and leave the standby
-    frequency as it is; `LST 00` holds the last standby frequency the memory list set;
+    frequency as it is; `LST 00` holds the frequency a memory-list pick last loaded into standby;
     memories and the last-used list survive; a `MEM` hold outside the memory list
     acts as a short press; any `I/O` press switches on; the cursor fields wrap without
     carry; the cursor starts on the MHz field at power-on and stays where it was on a
     swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
     VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
     **Assumed (unverified)** (§3.8.1).
+    **Standby rule (#765, decision):** opening the memory list (`MEM 00`) or the
+    last-used list (`LST 00`) does not touch the standby frequency; line 2 keeps
+    showing it. Only a VOL/SEL step in a list loads the entry now shown into the
+    standby frequency (an empty entry leaves it as it is), and only a pick of a
+    non-empty memory-list entry sets `LST 00`, to the frequency that pick loaded (not
+    the standby frequency it replaced). Closing a list without a pick leaves the standby
+    frequency unchanged. Reason: a pilot who only looks at a list must not lose a
+    hand-tuned standby frequency. The intake's earlier reading of the manual
+    (§2.5.3 to §2.5.5) places the replacement at the pick, not at the opening.
+    The 2 s `I/O` hold, VOL 1 to 16, MEM 00 to 99, the list-leaving keys and time-out,
+    memory retention and the power-on defaults above are likewise assumed, not
+    verified. The line-3 digit rule and the dual-watch squelch rule are decisions
+    recorded in §3.8.1.
 
 66. **TRT800H Auto-On wiring** (#727): is the transponder's Auto-On pin wired to the supply
     behind the Avionics Master (the unit then starts by itself whenever power arrives and
@@ -4014,8 +4042,11 @@ verifies it on D-MPGO.
     trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
     start in Nearest at loud volume is from the display sheet; the timings and the
     absence of a breaker are **assumed (unverified)** (§3.8.4).
-70. **TRT800H flight-level rounding** (#742): does the level shown truncate or round to
-    the nearest 100 ft, and how is a negative pressure altitude shown? Trainer uses:
-    rounded down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
+70. **TRT800H flight-level rounding** (#742, #770): does the level shown truncate or round to
+    the nearest 100 ft, and how is a negative pressure altitude shown? Checked against
+    document 03.2126.010.71e revision 3.00 (§2.4): **still assumed — source checked,
+    silent** on the rounding direction and on the format of a negative level. Verified
+    (§2.4): beyond −1000 to 35 000 ft the display shows `FLerr`. Trainer uses: rounded
+    down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
 
 <!-- prettier-ignore-end -->
