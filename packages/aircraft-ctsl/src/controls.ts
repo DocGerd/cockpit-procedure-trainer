@@ -41,7 +41,7 @@ const rockerOf = (name: Text, description: Text, appearance: ArtworkAppearance) 
     appearance,
   }) as const;
 
-const pushPullOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
+const offOnLeverOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
     kind: 'lever',
     click: 'soft',
@@ -266,7 +266,7 @@ export const controls = {
     appearance: controlArtwork.throttle,
   },
   choke: {
-    ...pushPullOf(
+    ...offOnLeverOf(
       text('Choke', 'Choke'),
       text(
         'Kaltstarthilfe. Für einen Kaltstart ganz ziehen, mit dem Gashebel auf Leerlauf.',
@@ -276,7 +276,7 @@ export const controls = {
     ),
     legends: { off: 'Off', on: 'On' },
   },
-  carbHeat: pushPullOf(
+  carbHeat: offOnLeverOf(
     text('Vergaservorwärmung', 'Carb heat'),
     text(
       'Vorläufiges Bedienelement: das Handbuch nennt die Vergaservorwärmung in den Checklisten, zeigt aber keinen Zug. Ort und Ausführung muss der Verein bestätigen.',

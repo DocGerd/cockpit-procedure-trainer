@@ -313,13 +313,13 @@ the aircraft's and its devices' controls (the same set the session builds with
 Wave-1 overrides, declared in step 1 where the kind would give a sound the real
 control does not make:
 
-| Control                               | `click`  | Reason                                                  |
-| ------------------------------------- | -------- | ------------------------------------------------------- |
-| CTSL `throttle`, `trim`               | `silent` | their listed positions are trainer detents, not notches |
-| CTSL `brake`                          | `silent` | a hydraulic lever (intake §4.4), not a key              |
-| CTSL `fuelValve`, `parkingBrakeValve` | `soft`   | a slide lever and a valve, not rockers                  |
-| CTSL `choke`, `carbHeat`              | `soft`   | push-pull knobs, not notched levers                     |
-| aera 500 `touch`                      | `silent` | a touchscreen                                           |
+| Control                               | `click`  | Reason                                                            |
+| ------------------------------------- | -------- | ----------------------------------------------------------------- |
+| CTSL `throttle`, `trim`               | `silent` | their listed positions are trainer detents, not notches           |
+| CTSL `brake`                          | `silent` | a hydraulic lever (intake §4.4), not a key                        |
+| CTSL `fuelValve`, `parkingBrakeValve` | `soft`   | a slide lever and a valve, not rockers                            |
+| CTSL `choke`, `carbHeat`              | `soft`   | a plain slot lever and a provisional pull knob, no sound recorded |
+| aera 500 `touch`                      | `silent` | a touchscreen                                                     |
 
 `soft` is a neutral, low click for a control whose own sound the intake does
 not record. Every other control keeps the kind fallback; §13 question 11 asks
