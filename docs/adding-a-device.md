@@ -44,6 +44,9 @@ Build the device with `defineDevice` from `@cpt/core`:
   `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
   `momentary`, `guarded`). Each has a `name` and `description` in both languages.
+  A control clicks by its kind when the pilot moves it, and may name its own `click`
+  (a `ClickId` from `@cpt/core`, or `silent`) on the same rule as an aircraft
+  control; see Controls in [adding-an-aircraft.md](adding-an-aircraft.md#controls).
 - `initial`: the starting state.
 - `step(state, { controls, powered, inputs, dtMs })`: a pure function returning the
   next state. `controls` holds the device's own controls by local id, `powered` is
@@ -98,7 +101,8 @@ A device that sounds its own tones (a start-up chirp, a key beep) declares
   `deviceCues` in `@cpt/core` pairs each install's previous and next state with
   the device's `cues` and tags each cue with the install and device id. The app
   plays them; a `cues` that throws mutes the cockpit audio, not the trainer. A
-  device without `sounds` makes no sound of its own.
+  device without `sounds` plays no tones; its controls still click, as the
+  `controls` bullet above says.
 
 Export the device, its state type and any constant a test or another package needs
 (ranges, durations, input names) from `src/logic/index.ts`.
