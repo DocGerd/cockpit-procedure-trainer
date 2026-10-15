@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_VOLUME,
+  MAX_VOLUME,
   readHistory,
   readSetting,
   readSound,
@@ -55,7 +56,8 @@ describe('sound settings', () => {
   it('defaults to sound on, below full volume', () => {
     expect(readSound()).toBe('on');
     expect(readVolume()).toBe(DEFAULT_VOLUME);
-    expect(DEFAULT_VOLUME).toBeLessThan(100);
+    expect(DEFAULT_VOLUME).toBeGreaterThan(0);
+    expect(DEFAULT_VOLUME).toBeLessThan(MAX_VOLUME);
   });
 
   it('reads back what writeSetting stored', () => {
@@ -69,10 +71,13 @@ describe('sound settings', () => {
     }
   });
 
-  it.each(['', 'loud', 'ON', ' on', 'true', '1'])('gives sound on for %j', (value) => {
-    writeSetting('sound', value);
-    expect(readSound()).toBe('on');
-  });
+  it.each(['', 'loud', 'ON', ' on', 'true', '1', 'OFF', ' off', 'off\n'])(
+    'gives sound on for %j',
+    (value) => {
+      writeSetting('sound', value);
+      expect(readSound()).toBe('on');
+    },
+  );
 
   it.each([
     '',
@@ -89,6 +94,8 @@ describe('sound settings', () => {
     '+5',
     '05',
     '00',
+    '50\n',
+    '100.0',
   ])('gives the default volume for %j', (value) => {
     writeSetting('volume', value);
     expect(readVolume()).toBe(DEFAULT_VOLUME);
@@ -99,6 +106,16 @@ describe('sound settings', () => {
     writeSetting('volume', '10');
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('denied');
+    });
+    expect(readSound()).toBe('on');
+    expect(readVolume()).toBe(DEFAULT_VOLUME);
+  });
+
+  it('gives the defaults when localStorage itself cannot be reached', () => {
+    writeSetting('sound', 'off');
+    writeSetting('volume', '10');
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new Error('blocked');
     });
     expect(readSound()).toBe('on');
     expect(readVolume()).toBe(DEFAULT_VOLUME);

@@ -22,7 +22,7 @@ export function writeSetting(key: SettingKey, value: string): void {
 export type SoundSetting = 'on' | 'off';
 
 export const DEFAULT_VOLUME = 70;
-const MAX_VOLUME = 100;
+export const MAX_VOLUME = 100;
 
 export function readSound(): SoundSetting {
   return readSetting('sound') === 'off' ? 'off' : 'on';
