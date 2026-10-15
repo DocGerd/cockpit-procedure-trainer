@@ -1,6 +1,6 @@
-import type { JsonObject, JsonValue } from '@cpt/core';
+import type { JsonObject } from '@cpt/core';
 import type { VoiceFactory } from '../voice-factories';
-import { continuousVoice } from './continuous-voice';
+import { continuousVoice, inRange } from './continuous-voice';
 
 type ElectricMotorOptions = {
   /** The whine's pitch at full speed. */
@@ -17,15 +17,22 @@ export const SPIN_UP_PITCH_SHARE = 0.6;
 const HARMONICS = 4;
 const BRIGHTNESS_HARMONICS = 3;
 
-const isPositive = (value: JsonValue | undefined) =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
+// Keeps the brightness low-pass within the Nyquist frequency of a 44.1 kHz context.
+export const WHINE_HZ_RANGE = [20, 44_100 / 2 / BRIGHTNESS_HARMONICS] as const;
+// A shorter fade clicks.
+export const FADE_MS_RANGE = [10, 2000] as const;
+
+const OPTION_RANGES: Readonly<Record<keyof ElectricMotorOptions, readonly [number, number]>> = {
+  whineHz: WHINE_HZ_RANGE,
+  fadeMs: FADE_MS_RANGE,
+};
 
 export const electricMotorProblems = (options: JsonObject): readonly string[] => {
   const problems = Object.keys(options)
-    .filter((key) => !Object.hasOwn(electricMotorDefaults, key))
+    .filter((key) => !Object.hasOwn(OPTION_RANGES, key))
     .map((key) => `unknown option ${key}`);
-  for (const key of Object.keys(electricMotorDefaults)) {
-    if (Object.hasOwn(options, key) && !isPositive(options[key])) {
+  for (const [key, [min, max]] of Object.entries(OPTION_RANGES)) {
+    if (Object.hasOwn(options, key) && !inRange(options[key], min, max)) {
       problems.push(`option ${key} is out of range`);
     }
   }

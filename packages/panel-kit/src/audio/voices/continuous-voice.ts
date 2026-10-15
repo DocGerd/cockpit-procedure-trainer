@@ -1,22 +1,31 @@
+import { STEP_MS } from '@cpt/core';
+import type { JsonValue } from '@cpt/core';
 import type { AudioOut } from '../audio-engine';
 import type { Voice, VoiceFrame } from '../voice-factories';
 
+/** The glide a jump takes: nearly done within one tick, with no hard step to click. */
+export const SMOOTHING_S = STEP_MS / 3 / 1000;
+
 // A change too small to hear is not scheduled. Relative to the value, as loudness and pitch are
 // heard; absolute near 0.
-const AUTOMATION_DEADBAND = 1e-4;
-const RELATIVE_DEADBAND = 1e-3;
-const FADE_TIME_CONSTANT_S = 0.03;
-const TIME_CONSTANTS_TO_SILENCE = 10;
+export const AUTOMATION_DEADBAND = 1e-4;
+export const RELATIVE_DEADBAND = 1e-3;
+export const FADE_TIME_CONSTANT_S = 0.03;
+export const TIME_CONSTANTS_TO_SILENCE = 10;
 
 const inaudible = (next: number, issued: number) =>
   Math.abs(next - issued) <= Math.max(AUTOMATION_DEADBAND, RELATIVE_DEADBAND * Math.abs(issued));
 
+/** Whether an option value is a number from `min` to `max`, both included. */
+export const inRange = (value: JsonValue | undefined, min: number, max: number) =>
+  typeof value === 'number' && value >= min && value <= max;
+
 type Node = <T extends AudioNode>(created: T) => T;
 
 export type ContinuousVoiceSpec<K extends string> = {
-  /** The one input the voice follows; a negative or non-finite reading counts as 0. */
+  /** The one input the voice follows; a missing, negative or non-finite reading counts as 0. */
   readonly input: string;
-  /** Time constant of the glide to a new target, in seconds. */
+  /** Time constant of the glide to a stepped target, in seconds; a jump glides over `SMOOTHING_S`. */
   readonly smoothingS: number;
   /** The parameter values an input reading stands for. */
   targets(reading: number): Record<K, number>;
@@ -63,15 +72,8 @@ export function continuousVoice<K extends string>(
         const at = context.currentTime;
         const jumps = jump.includes(spec.input);
         for (const name of names) {
-          const param = params[name];
-          if (jumps) {
-            param.cancelScheduledValues(at);
-            param.setValueAtTime(next[name], at);
-          } else if (inaudible(next[name], issued[name])) {
-            continue;
-          } else {
-            param.setTargetAtTime(next[name], at, spec.smoothingS);
-          }
+          if (!jumps && inaudible(next[name], issued[name])) continue;
+          params[name].setTargetAtTime(next[name], at, jumps ? SMOOTHING_S : spec.smoothingS);
           issued[name] = next[name];
         }
       },

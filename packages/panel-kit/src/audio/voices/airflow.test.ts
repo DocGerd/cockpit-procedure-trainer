@@ -14,8 +14,10 @@ import {
   LEVEL,
   MAX_RATIO,
   MIN_CUTOFF_HZ,
-  SMOOTHING_S,
+  REFERENCE_KMH_RANGE,
 } from './airflow';
+import { FADE_TIME_CONSTANT_S, SMOOTHING_S, TIME_CONSTANTS_TO_SILENCE } from './continuous-voice';
+import { noiseBuffer } from './noise';
 
 const REFERENCE_KMH = 200;
 const OPTIONS = { referenceKmh: REFERENCE_KMH };
@@ -33,10 +35,11 @@ function setup(options = OPTIONS) {
   const graph = context.nodes.slice(before);
   const [noise] = context.nodesOf('buffer-source');
   const [filter] = context.nodesOf('biquad-filter') as FakeBiquadFilterNode[];
-  const gain = graph.find(
-    (node): node is FakeGainNode => node instanceof FakeGainNode && node !== graph[0],
-  );
-  if (!noise || !filter || !gain) throw new Error('expected the airflow graph');
+  const gain = filter?.connections[0]?.target;
+  const output = gain instanceof FakeGainNode ? gain.connections[0]?.target : undefined;
+  if (!noise || !filter || !(gain instanceof FakeGainNode) || !(output instanceof FakeGainNode)) {
+    throw new Error('expected the airflow graph');
+  }
   let nowMs = 0;
   return {
     context,
@@ -46,6 +49,7 @@ function setup(options = OPTIONS) {
     noise,
     filter,
     gain,
+    output,
     set(airspeedKmh: number, jump: readonly string[] = [], live = true) {
       voice.update({ airspeedKmh }, { nowMs, live, jump });
     },
@@ -70,6 +74,7 @@ describe('airflow voice', () => {
   it('feeds the shared noise through a low-pass and a gain to the master', () => {
     const { context, noise, filter, gain, master } = setup();
     expect(noise.loop).toBe(true);
+    expect(noise.buffer).toBe(noiseBuffer(context.asAudioContext()));
     expect(noise.startedAt).toBeDefined();
     expect(filter.type).toBe('lowpass');
     expect(context.reaches(noise, filter)).toBe(true);
@@ -77,9 +82,10 @@ describe('airflow voice', () => {
     expect(context.reaches(gain, master)).toBe(true);
   });
 
-  it('is silent at rest', () => {
-    const { gain } = setup();
+  it('is silent at rest, with the low-pass at its lowest cutoff', () => {
+    const { gain, filter } = setup();
     expect(gain.gain.value).toBe(0);
+    expect(filter.frequency.value).toBe(MIN_CUTOFF_HZ);
   });
 
   it('follows the square of airspeed over the reference, and the cutoff rises with it', () => {
@@ -91,6 +97,23 @@ describe('airflow voice', () => {
     expect(gain.gain.value).toBeCloseTo(gainFor(REFERENCE_KMH));
     expect(gain.gain.value).toBeCloseTo(LEVEL);
     expect(filter.frequency.value).toBeGreaterThan(cutoffFor(REFERENCE_KMH / 2));
+  });
+
+  it('rises in level and cutoff with every faster reading up to the cap, by the square law', () => {
+    const { gain, filter, set } = setup();
+    let previous = { gain: gain.gain.value, cutoff: filter.frequency.value };
+    for (const kmh of [25, 50, 100, 150, 200, 250, MAX_RATIO * REFERENCE_KMH]) {
+      set(kmh);
+      expect(gain.gain.value).toBeGreaterThan(previous.gain);
+      expect(filter.frequency.value).toBeGreaterThan(previous.cutoff);
+      previous = { gain: gain.gain.value, cutoff: filter.frequency.value };
+    }
+    set(50);
+    const atFifty = gain.gain.value;
+    set(150);
+    expect(gain.gain.value / atFifty).toBeCloseTo(9);
+    set(10 * REFERENCE_KMH);
+    expect(filter.frequency.value).toBeLessThan(44_100 / 2);
   });
 
   it('caps the ratio so a reading far over the reference stays bounded', () => {
@@ -106,6 +129,14 @@ describe('airflow voice', () => {
       set(reading);
       expect(gain.gain.value).toBe(0);
     }
+  });
+
+  it('falls to 0 when the frame lacks airspeedKmh', () => {
+    const { voice, gain, filter, set } = setup();
+    set(REFERENCE_KMH);
+    voice.update({}, { nowMs: 0, live: true, jump: [] });
+    expect(gain.gain.value).toBe(0);
+    expect(filter.frequency.value).toBe(MIN_CUTOFF_HZ);
   });
 
   it('glides to a step over the smoothing time constant', () => {
@@ -127,26 +158,30 @@ describe('airflow voice', () => {
     expect(gain.gain.calls.length + filter.frequency.calls.length).toBe(calls);
   });
 
-  it('takes the target at once on a jump, replacing a glide in flight', () => {
+  it('glides to a jump over SMOOTHING_S in one call per parameter, with no hard step', () => {
     const { gain, filter, set, advance } = setup();
     set(REFERENCE_KMH);
     advance(STEP_MS);
+    const expected = [
+      [gain.gain, gainFor(REFERENCE_KMH / 4), gain.gain.calls.length],
+      [filter.frequency, cutoffFor(REFERENCE_KMH / 4), filter.frequency.calls.length],
+    ] as const;
     set(REFERENCE_KMH / 4, ['airspeedKmh']);
-    for (const [param, target] of [
-      [gain.gain, gainFor(REFERENCE_KMH / 4)],
-      [filter.frequency, cutoffFor(REFERENCE_KMH / 4)],
-    ] as const) {
-      const [cancel, set0] = param.calls.slice(-2);
-      expect(cancel).toEqual({ method: 'cancelScheduledValues', args: [STEP_MS / 1000] });
-      expect(set0).toEqual({ method: 'setValueAtTime', args: [target, STEP_MS / 1000] });
+    for (const [param, target, calls] of expected) {
+      expect(param.calls.slice(calls)).toEqual([
+        { method: 'setTargetAtTime', args: [target, STEP_MS / 1000, SMOOTHING_S] },
+      ]);
     }
   });
 
   it('jumps even to the value it already glides to', () => {
     const { gain, set } = setup();
     set(REFERENCE_KMH);
+    const calls = gain.gain.calls.length;
     set(REFERENCE_KMH, ['airspeedKmh']);
-    expect(gain.gain.calls.at(-1)?.method).toBe('setValueAtTime');
+    expect(gain.gain.calls.slice(calls)).toEqual([
+      { method: 'setTargetAtTime', args: [LEVEL, 0, SMOOTHING_S] },
+    ]);
   });
 
   it('ignores a jump that names another input', () => {
@@ -165,10 +200,16 @@ describe('airflow voice', () => {
   });
 
   it('fades out on stop, stops the noise and disconnects every node', () => {
-    const { context, graph, noise, voice, master, gain, set, advance } = setup();
+    const { context, graph, noise, voice, master, gain, output, set, advance } = setup();
     set(REFERENCE_KMH);
+    advance(STEP_MS);
     voice.stop();
-    expect(noise.stoppedAt).toBeGreaterThan(0);
+    const now = STEP_MS / 1000;
+    expect(output.gain.calls.slice(-2)).toEqual([
+      { method: 'cancelScheduledValues', args: [now] },
+      { method: 'setTargetAtTime', args: [0, now, FADE_TIME_CONSTANT_S] },
+    ]);
+    expect(noise.stoppedAt).toBeCloseTo(now + FADE_TIME_CONSTANT_S * TIME_CONSTANTS_TO_SILENCE);
     advance(1000);
     context.currentTime = noise.stoppedAt ?? 0;
     expect(noise.ended).toBe(true);
@@ -197,14 +238,26 @@ describe('airflow voice', () => {
   });
 
   it('rejects a missing, out-of-range or unknown option, and create throws on them', () => {
-    expect(airflowProblems(OPTIONS)).toEqual([]);
+    const [min, max] = REFERENCE_KMH_RANGE;
+    for (const good of [min, REFERENCE_KMH, max]) {
+      expect(airflowProblems({ referenceKmh: good })).toEqual([]);
+    }
     expect(airflowProblems({})).toEqual(['missing option referenceKmh']);
-    for (const bad of [0, -200, Number.NaN, '200', null]) {
+    const bads = [0, -200, min * 0.99, max * 1.01, 1e9, Number.NaN, Number.POSITIVE_INFINITY];
+    for (const bad of [...bads, '200', null]) {
       expect(airflowProblems({ referenceKmh: bad as number })).toEqual([
         'option referenceKmh is out of range',
       ]);
     }
     expect(airflowProblems({ ...OPTIONS, extra: 1 })).toEqual(['unknown option extra']);
+    expect(airflowProblems({ extra: 1, referenceKmh: 0 })).toEqual([
+      'unknown option extra',
+      'option referenceKmh is out of range',
+    ]);
+    expect(airflowProblems({ extra: 1 })).toEqual([
+      'unknown option extra',
+      'missing option referenceKmh',
+    ]);
     const context = new FakeAudioContext();
     expect(() => airflow.create(context.out(), {})).toThrow(/airflow: missing option/);
     expect(airflow.problems).toBe(airflowProblems);

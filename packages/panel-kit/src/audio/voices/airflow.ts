@@ -1,10 +1,7 @@
-import { STEP_MS } from '@cpt/core';
-import type { JsonObject, JsonValue } from '@cpt/core';
+import type { JsonObject } from '@cpt/core';
 import type { VoiceFactory } from '../voice-factories';
-import { continuousVoice } from './continuous-voice';
+import { continuousVoice, inRange, SMOOTHING_S } from './continuous-voice';
 import { noiseSource } from './noise';
-
-export const SMOOTHING_S = STEP_MS / 3 / 1000;
 
 type AirflowOptions = {
   /** The airspeed at which the airflow reaches its reference level. */
@@ -13,21 +10,23 @@ type AirflowOptions = {
 
 const OPTION_KEYS: readonly string[] = ['referenceKmh'] satisfies (keyof AirflowOptions)[];
 
+/** The plausible airspeed red lines, in km/h. */
+export const REFERENCE_KMH_RANGE = [50, 1000] as const;
+
 // Voice defaults tuned by ear, not aircraft facts.
 export const LEVEL = 0.35;
 export const MAX_RATIO = 1.5;
 export const MIN_CUTOFF_HZ = 150;
 export const CUTOFF_HZ_PER_REFERENCE = 3000;
 
-const isPositive = (value: JsonValue | undefined) =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
-
 export const airflowProblems = (options: JsonObject): readonly string[] => {
   const problems = Object.keys(options)
     .filter((key) => !OPTION_KEYS.includes(key))
     .map((key) => `unknown option ${key}`);
   if (!Object.hasOwn(options, 'referenceKmh')) problems.push('missing option referenceKmh');
-  else if (!isPositive(options.referenceKmh)) problems.push('option referenceKmh is out of range');
+  else if (!inRange(options.referenceKmh, ...REFERENCE_KMH_RANGE)) {
+    problems.push('option referenceKmh is out of range');
+  }
   return problems;
 };
 
