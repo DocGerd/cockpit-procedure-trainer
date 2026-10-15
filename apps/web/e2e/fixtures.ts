@@ -18,7 +18,30 @@ export const injectInlineScript = (page: Page) =>
 export const settleViolations = (context: BrowserContext) =>
   Promise.all(context.pages().map((page) => page.evaluate(() => undefined).catch(() => undefined)));
 
-export const test = base.extend<{ cspViolations: string[] }>({
+const SOUND_KEY = 'cpt.sound';
+
+export const test = base.extend<{
+  cspViolations: string[];
+  seedSoundOff: boolean;
+  soundSeed: undefined;
+}>({
+  // A spec that meets sound turns the option off with test.use({ seedSoundOff: false }).
+  seedSoundOff: [true, { option: true }],
+  soundSeed: [
+    async ({ context, seedSoundOff }, use) => {
+      if (seedSoundOff) {
+        await context.addInitScript((key) => {
+          try {
+            if (window.localStorage.getItem(key) === null) window.localStorage.setItem(key, 'off');
+          } catch {
+            // A page without storage has no setting to seed.
+          }
+        }, SOUND_KEY);
+      }
+      await use(undefined);
+    },
+    { auto: true },
+  ],
   cspViolations: [
     async ({ context }, use) => {
       const violations: string[] = [];
