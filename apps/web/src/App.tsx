@@ -1,5 +1,5 @@
-import { TrainerErrorBoundary } from './errors/TrainerErrorBoundary';
 import { AudioProvider } from './audio';
+import { TrainerErrorBoundary } from './errors/TrainerErrorBoundary';
 import { LanguageProvider } from './i18n';
 import { PwaUpdatePrompt } from './pwa';
 import { Shell } from './shell/Shell';

@@ -13,7 +13,7 @@ import type { ReactNode } from 'react';
 import { DEFAULT_VOLUME, MAX_VOLUME, readSound, readVolume, writeSetting } from '../storage';
 import type { SoundSetting } from '../storage';
 
-export type AudioContextValue = {
+export type AudioSettingsValue = {
   /** Undefined until the provider's effect has created it, and outside the provider. */
   engine: AudioEngine | undefined;
   sound: SoundSetting;
@@ -24,7 +24,7 @@ export type AudioContextValue = {
 
 const noop = () => undefined;
 
-const SILENT: AudioContextValue = {
+const SILENT: AudioSettingsValue = {
   engine: undefined,
   sound: 'on',
   volume: DEFAULT_VOLUME,
@@ -32,7 +32,7 @@ const SILENT: AudioContextValue = {
   setVolume: noop,
 };
 
-const AudioSettingsContext = createContext<AudioContextValue>(SILENT);
+const AudioSettingsContext = createContext<AudioSettingsValue>(SILENT);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [sound, setSoundState] = useState(readSound);
@@ -75,7 +75,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     [engine],
   );
 
-  const value = useMemo<AudioContextValue>(
+  const value = useMemo<AudioSettingsValue>(
     () => ({ engine, sound, volume, setSound, setVolume }),
     [engine, sound, volume, setSound, setVolume],
   );
@@ -84,6 +84,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 }
 
 /** Outside the provider this is silent rather than an error, so a bare Shell still renders. */
-export function useAudio(): AudioContextValue {
+export function useAudio(): AudioSettingsValue {
   return useContext(AudioSettingsContext);
 }
