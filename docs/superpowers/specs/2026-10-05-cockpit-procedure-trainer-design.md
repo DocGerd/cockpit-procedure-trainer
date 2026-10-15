@@ -506,12 +506,17 @@ Outside-view strip on top, the cockpit below, checklist pane at the side
 (collapsible on narrow screens). On desktop the cockpit shows every view at
 once, with the device dock under the panel; where that would make any view
 too small to read and operate, it falls back to one view at a time with view
-tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase, language, theme.
+tabs and the dock below the tab panel. Header: aircraft, procedure, mode,
+phase, language, sound (a button opening a popover with an on/off switch and a
+volume slider), theme.
 
 ### Persistence
 
 `localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
-items" option (`cpt.recall`) and a small run history only.
+items" option (`cpt.recall`), the sound setting (`cpt.sound`, `on` or `off`),
+the volume (`cpt.volume`, an integer 0 to 100) and a small run history only.
+Sound defaults to on at a volume below full; an invalid or unreadable sound
+setting or volume reads as its default.
 The history keeps, per aircraft and procedure, the last run (run mode, deviation
 count, date) and the best Practice run (Guided shows the next control, so it
 never counts as best), so the pilot and an instructor see improvement across
@@ -610,6 +615,7 @@ parallel.
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
 | Procedure walk-through (Vitest, generic) | for every aircraft and every procedure, emergencies included: starting from the phase entry snapshot, performing each item completes the procedure with no deviations, and a normal procedure's flow is done in both the listed and the reversed order; the CTSL full flight does the same with each leg from the cockpit the last one left |
 | Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout at 1920x1080 and 3840x2160; placards and lettering at the existing tablet and desktop sizes and also at 1920x1080 and 3840x2160 |
+| Audio (Vitest, Playwright) | engine lifecycle, click mapping, the voices and the driver against a fake `AudioContext`; without a usable audio context, or after an audio error, the trainer works and stays silent; the sound and volume settings fall back to their defaults on garbage or unreadable storage and survive a reload; the header control's popover; the E2E fixture seeds sound off, a browser check with sound on sees panel presses schedule clicks on the running context, and no check asserts audible output |
 | Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 
 ## 10. Project setup
