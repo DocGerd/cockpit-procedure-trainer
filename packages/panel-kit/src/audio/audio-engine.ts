@@ -27,6 +27,10 @@ const ignore = () => undefined;
 const browserContext = (): AudioContext | undefined =>
   typeof AudioContext === 'function' ? new AudioContext() : undefined;
 
+/**
+ * The engine starts with sound on and its unlock listeners installed, so its owner applies the
+ * stored setting through `setEnabled` right after creating it, before any gesture can build a context.
+ */
 export function createAudioEngine(target: Document, create?: () => AudioContext): AudioEngine {
   const make: () => AudioContext | undefined = create ?? browserContext;
   const listeners = new Set<() => void>();
@@ -42,7 +46,13 @@ export function createAudioEngine(target: Document, create?: () => AudioContext)
   let suspendTimer: ReturnType<typeof setTimeout> | undefined;
 
   const notify = () => {
-    for (const listener of [...listeners]) listener();
+    for (const listener of [...listeners]) {
+      try {
+        listener();
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
   const arm = (on: boolean) => {
@@ -54,8 +64,17 @@ export function createAudioEngine(target: Document, create?: () => AudioContext)
     }
   };
 
+  const drop = () => {
+    context?.removeEventListener('statechange', onStateChange);
+    context = undefined;
+    master = undefined;
+    out = undefined;
+  };
+
+  // A context the browser closed cannot run again: the next gesture builds a new one.
   const onStateChange = () => {
     if (disposed) return;
+    if (context?.state === 'closed') drop();
     arm(!unavailable && context?.state !== 'running');
     notify();
   };
@@ -64,21 +83,24 @@ export function createAudioEngine(target: Document, create?: () => AudioContext)
     let built: AudioContext | undefined;
     try {
       built = make();
-    } catch {
-      built = undefined;
-    }
-    if (!built) {
+      if (!built) {
+        unavailable = true;
+        return undefined;
+      }
+      const gain = built.createGain();
+      gain.gain.value = taper(volume);
+      gain.connect(built.destination);
+      built.addEventListener('statechange', onStateChange);
+      context = built;
+      master = gain;
+      out = { context: built, input: gain };
+      return built;
+    } catch (error) {
       unavailable = true;
+      built?.close().catch(ignore);
+      console.warn('Sound stays off: the audio context could not be built.', error);
       return undefined;
     }
-    const gain = built.createGain();
-    gain.gain.value = taper(volume);
-    gain.connect(built.destination);
-    built.addEventListener('statechange', onStateChange);
-    context = built;
-    master = gain;
-    out = { context: built, input: gain };
-    return built;
   };
 
   // A context counts as starting until the resume of its gesture settles (spec §6.3, live()).
@@ -107,7 +129,7 @@ export function createAudioEngine(target: Document, create?: () => AudioContext)
 
   const onVisibilityChange = () => {
     if (context && target.visibilityState === 'hidden') context.suspend().catch(ignore);
-    else if (context && enabled) context.resume().catch(ignore);
+    else if (context && enabled) context.resume().catch(onStateChange);
     notify();
   };
 
@@ -155,13 +177,8 @@ export function createAudioEngine(target: Document, create?: () => AudioContext)
       arm(false);
       disposed = true;
       target.removeEventListener('visibilitychange', onVisibilityChange);
-      if (context) {
-        context.removeEventListener('statechange', onStateChange);
-        context.close().catch(ignore);
-      }
-      context = undefined;
-      master = undefined;
-      out = undefined;
+      context?.close().catch(ignore);
+      drop();
       notify();
       listeners.clear();
     },

@@ -16,14 +16,15 @@ const times = (...values: readonly number[]) => {
 
 const invalidState = (message: string) => new DOMException(message, 'InvalidStateError');
 
+/** `value` is an assignment, which a browser treats as `setValueAtTime(value, currentTime)`. */
 export type FakeAutomationMethod =
+  | 'value'
   | 'setValueAtTime'
   | 'linearRampToValueAtTime'
   | 'exponentialRampToValueAtTime'
   | 'setTargetAtTime'
   | 'setValueCurveAtTime'
-  | 'cancelScheduledValues'
-  | 'cancelAndHoldAtTime';
+  | 'cancelScheduledValues';
 
 export type FakeAutomation = {
   readonly method: FakeAutomationMethod;
@@ -42,14 +43,17 @@ export class FakeAudioParam {
     this.#value = defaultValue;
   }
 
-  /** The last value set or scheduled, not a browser's value at `currentTime`. */
+  /**
+   * The last value set or scheduled, not a browser's value at `currentTime`; a cancel leaves it
+   * unchanged, where a browser goes back to the last event still scheduled.
+   */
   get value(): number {
     return this.#value;
   }
 
   set value(value: number) {
     finite(value);
-    this.#value = value;
+    this.#record('value', [value], value);
   }
 
   setValueAtTime(value: number, startTime: number): this {
@@ -87,14 +91,10 @@ export class FakeAudioParam {
     return this.#record('setValueCurveAtTime', [curve, startTime, duration], curve.at(-1));
   }
 
+  // No cancelAndHoldAtTime: Firefox lacks it, so a voice calling it fails here too.
   cancelScheduledValues(cancelTime: number): this {
     times(cancelTime);
     return this.#record('cancelScheduledValues', [cancelTime]);
-  }
-
-  cancelAndHoldAtTime(cancelTime: number): this {
-    times(cancelTime);
-    return this.#record('cancelAndHoldAtTime', [cancelTime]);
   }
 
   #record(method: FakeAutomationMethod, args: FakeAutomation['args'], value?: number): this {
@@ -112,8 +112,8 @@ export type FakeConnection = {
 
 export class FakeAudioNode extends EventTarget {
   readonly connections: FakeConnection[] = [];
-  /** Every `disconnect` call, with the target it named, if any. */
-  readonly disconnects: (FakeAudioNode | FakeAudioParam | undefined)[] = [];
+  /** Every `disconnect` call, with the output index or the target it named, if any. */
+  readonly disconnects: (number | FakeAudioNode | FakeAudioParam | undefined)[] = [];
 
   constructor(
     readonly context: FakeAudioContext,
@@ -138,15 +138,24 @@ export class FakeAudioNode extends EventTarget {
     return target instanceof FakeAudioParam ? undefined : target;
   }
 
-  disconnect(target?: FakeAudioNode | FakeAudioParam): void {
-    const kept = this.connections.filter(
-      (connection) => target !== undefined && connection.target !== target,
-    );
-    if (target !== undefined && kept.length === this.connections.length) {
+  disconnect(
+    targetOrOutput?: number | FakeAudioNode | FakeAudioParam,
+    output?: number,
+    input?: number,
+  ): void {
+    const byOutput = typeof targetOrOutput === 'number';
+    const named = (connection: FakeConnection) =>
+      byOutput
+        ? connection.output === targetOrOutput
+        : (targetOrOutput === undefined || connection.target === targetOrOutput) &&
+          (output === undefined || connection.output === output) &&
+          (input === undefined || connection.input === input);
+    const kept = this.connections.filter((connection) => !named(connection));
+    if (!byOutput && targetOrOutput !== undefined && kept.length === this.connections.length) {
       throw new DOMException('The node is not connected to the target.', 'InvalidAccessError');
     }
     this.connections.splice(0, this.connections.length, ...kept);
-    this.disconnects.push(target);
+    this.disconnects.push(targetOrOutput);
   }
 }
 
@@ -390,17 +399,17 @@ export class FakeAudioContext extends EventTarget {
   close(): Promise<void> {
     this.calls.push('close');
     if (this.#state === 'closed') return Promise.reject(invalidState('The context is closed.'));
-    return Promise.resolve().then(() => {
-      this.#change('closed');
-      for (const pending of this.#pendingResumes.splice(0)) {
-        pending.reject(invalidState('The context is closed.'));
-      }
-    });
+    return Promise.resolve().then(() => this.#close());
   }
 
-  /** Changes the state as a browser can on its own (Safari's `interrupted`), firing `statechange`. */
+  /**
+   * Changes the state as a browser can on its own (Safari's `interrupted`), firing `statechange`;
+   * running settles pending resumes and closed rejects them, as a browser does.
+   */
   setState(state: AudioContextState): void {
-    this.#change(state);
+    if (state === 'running') this.#start();
+    else if (state === 'closed') this.#close();
+    else this.#change(state);
   }
 
   createGain(): FakeGainNode {
@@ -487,6 +496,13 @@ export class FakeAudioContext extends EventTarget {
   #start(): void {
     this.#change('running');
     for (const pending of this.#pendingResumes.splice(0)) pending.resolve();
+  }
+
+  #close(): void {
+    this.#change('closed');
+    for (const pending of this.#pendingResumes.splice(0)) {
+      pending.reject(invalidState('The context is closed.'));
+    }
   }
 
   #change(state: AudioContextState): void {

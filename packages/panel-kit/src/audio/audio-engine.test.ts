@@ -109,6 +109,33 @@ describe('createAudioEngine unlock', () => {
     },
   );
 
+  it('counts the overlapping resumes of one tap, live until every one is refused', async () => {
+    const { engine, create } = setup({ allowStart: false });
+    const refusals: (() => void)[] = [];
+    vi.spyOn(FakeAudioContext.prototype, 'resume').mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          refusals.push(() => reject(new DOMException('refused', 'NotAllowedError')));
+        }),
+    );
+
+    for (const type of GESTURES) gesture(type);
+    await flush();
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(refusals).toHaveLength(GESTURES.length);
+    expect(engine.live()).toBe(true);
+
+    for (const refuse of refusals.splice(0, GESTURES.length - 1)) refuse();
+    await flush();
+    expect(engine.live()).toBe(true);
+    for (const refuse of refusals.splice(0)) refuse();
+    await flush();
+    expect(engine.live()).toBe(false);
+
+    gesture();
+    expect(engine.live()).toBe(true);
+  });
+
   it('runs before the control handler of the same gesture, so its click has a context', () => {
     const { engine } = setup();
     const seen: unknown[] = [];
@@ -224,9 +251,11 @@ describe('createAudioEngine unlock', () => {
     expect(engine.out()?.context).toBeInstanceOf(FakeAudioContext);
   });
 
-  it('stays silent and stops asking when the factory throws', () => {
+  it('stays silent, says why and stops asking when the factory throws', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const failure = new DOMException('no audio device', 'NotSupportedError');
     const create = vi.fn((): AudioContext => {
-      throw new DOMException('no audio device', 'NotSupportedError');
+      throw failure;
     });
     const engine = createAudioEngine(document, create);
     engines.push(engine);
@@ -237,6 +266,51 @@ describe('createAudioEngine unlock', () => {
     expect(create).toHaveBeenCalledTimes(1);
     expect(engine.out()).toBeUndefined();
     expect(engine.live()).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]).toContain(failure);
+  });
+
+  it('closes a context it cannot wire up, and stays silent', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const broken = new FakeAudioContext();
+    vi.spyOn(broken, 'createGain').mockImplementation(() => {
+      throw new DOMException('no gain', 'NotSupportedError');
+    });
+    const create = vi.fn(() => broken.asAudioContext());
+    const engine = createAudioEngine(document, create);
+    engines.push(engine);
+
+    gesture();
+    gesture('touchend');
+    await flush();
+
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(broken.state).toBe('closed');
+    expect(engine.out()).toBeUndefined();
+    expect(engine.live()).toBe(false);
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops a context the browser closed on its own and builds a new one on the next gesture', async () => {
+    const { engine, contexts, context } = setup();
+    gesture();
+    await flush();
+    const closed = context();
+
+    closed.setState('closed');
+    expect(engine.live()).toBe(false);
+    expect(engine.out()).toBeUndefined();
+    setVisibility('hidden');
+    setVisibility('visible');
+    gesture('touchend');
+    await flush();
+
+    expect(contexts).toHaveLength(2);
+    const [, rebuilt] = contexts;
+    expect(rebuilt?.state).toBe('running');
+    expect(engine.out()?.context).toBe(rebuilt);
+    expect(engine.live()).toBe(true);
+    expect(closed.calls.filter((call) => call === 'resume')).toHaveLength(1);
   });
 });
 
@@ -284,14 +358,19 @@ describe('createAudioEngine master gain', () => {
     const { engine, context, master, count } = setup();
     gesture();
     await flush();
+    context().currentTime = 1;
 
     engine.setEnabled(false);
     expect(master().gain.value).toBe(0);
-    expect(master().gain.calls.at(-2)?.method).toBe('cancelScheduledValues');
+    const [cancel, fade] = master().gain.calls.slice(-2);
+    expect(cancel).toEqual({ method: 'cancelScheduledValues', args: [1] });
+    expect(fade).toEqual({ method: 'setTargetAtTime', args: [0, 1, expect.any(Number)] });
     expect(engine.live()).toBe(false);
-    expect(count('suspend')).toBe(0);
 
-    vi.runAllTimers();
+    const fadeMs = Math.round(5 * Number(fade?.args[2]) * 1000);
+    vi.advanceTimersByTime(fadeMs - 1);
+    expect(count('suspend')).toBe(0);
+    vi.advanceTimersByTime(1);
     expect(count('suspend')).toBe(1);
     await flush();
     expect(context().state).toBe('suspended');
@@ -391,18 +470,26 @@ describe('createAudioEngine tab visibility', () => {
     expect(context().state).toBe('suspended');
   });
 
-  it('tolerates a context the browser closed on its own', async () => {
+  it('waits for the next gesture when the browser refuses the resume as the tab is shown', async () => {
     const { engine, context } = setup();
     gesture();
     await flush();
-
-    context().setState('closed');
     setVisibility('hidden');
+    await flush();
+    const resume = vi
+      .spyOn(context(), 'resume')
+      .mockRejectedValueOnce(new DOMException('refused', 'NotAllowedError'));
+
     setVisibility('visible');
     await flush();
-
+    expect(context().state).toBe('suspended');
     expect(engine.live()).toBe(false);
-    expect(engine.out()?.context).toBe(context());
+
+    gesture('touchend');
+    await flush();
+    expect(resume).toHaveBeenCalledTimes(2);
+    expect(context().state).toBe('running');
+    expect(engine.live()).toBe(true);
   });
 });
 
@@ -428,6 +515,53 @@ describe('createAudioEngine subscribers and disposal', () => {
     listener.mockClear();
     context().setState('interrupted');
     expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('serves every subscriber when one throws, and reports the error', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { engine } = setup();
+    const failure = new Error('subscriber failed');
+    engine.subscribe(() => {
+      throw failure;
+    });
+    const later = vi.fn();
+    engine.subscribe(later);
+
+    expect(() => gesture()).not.toThrow();
+    expect(later).toHaveBeenCalledTimes(1);
+    await flush();
+
+    expect(later.mock.calls.length).toBeGreaterThan(1);
+    expect(error).toHaveBeenCalledWith(failure);
+  });
+
+  it('lets the off-fade suspend fail quietly on a context the browser closed meanwhile', async () => {
+    vi.useFakeTimers();
+    const { engine, context, count } = setup();
+    gesture();
+    await flush();
+
+    engine.setEnabled(false);
+    context().setState('closed');
+    vi.runAllTimers();
+    await flush();
+
+    expect(count('suspend')).toBe(1);
+    expect(engine.out()).toBeUndefined();
+  });
+
+  it('cancels the suspend of a pending off-fade on dispose', async () => {
+    vi.useFakeTimers();
+    const { engine, count } = setup();
+    gesture();
+    await flush();
+
+    engine.setEnabled(false);
+    engine.dispose();
+    vi.runAllTimers();
+    await flush();
+
+    expect(count('suspend')).toBe(0);
   });
 
   it('closes the context, drops it and removes every listener on dispose', async () => {
@@ -460,10 +594,16 @@ describe('createAudioEngine subscribers and disposal', () => {
 
   it('builds nothing after dispose and ignores a resume that settles late', async () => {
     const { engine, create, context } = setup();
+    const listener = vi.fn();
+    engine.subscribe(listener);
     gesture();
     engine.dispose();
+    listener.mockClear();
+    const added = vi.spyOn(document, 'addEventListener');
     await flush();
 
+    expect(listener).not.toHaveBeenCalled();
+    expect(added).not.toHaveBeenCalled();
     gesture();
     expect(create).toHaveBeenCalledTimes(1);
     expect(context().state).toBe('closed');

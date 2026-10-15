@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { FakeAudioContext, FakeAudioParam } from './fake-audio-context';
+import type { FakeAutomationMethod } from './fake-audio-context';
 
 const flush = async () => {
   for (let turn = 0; turn < 5; turn += 1) await Promise.resolve();
@@ -77,6 +78,20 @@ describe('FakeAudioContext state', () => {
     await expect(context.resume()).rejects.toMatchObject({ name: 'InvalidStateError' });
     await expect(context.suspend()).rejects.toMatchObject({ name: 'InvalidStateError' });
     await expect(context.close()).rejects.toMatchObject({ name: 'InvalidStateError' });
+  });
+
+  it('settles pending resumes when the browser runs or closes the context on its own', async () => {
+    const started = new FakeAudioContext({ allowStart: false });
+    const resumed = started.resume();
+    started.setState('running');
+    await expect(resumed).resolves.toBeUndefined();
+    expect(started.state).toBe('running');
+
+    const closed = new FakeAudioContext({ allowStart: false });
+    const refused = closed.resume();
+    closed.setState('closed');
+    await expect(refused).rejects.toMatchObject({ name: 'InvalidStateError' });
+    expect(closed.state).toBe('closed');
   });
 
   it('forces a state such as interrupted and fires statechange once per change', async () => {
@@ -190,6 +205,22 @@ describe('FakeAudioContext nodes', () => {
     expect(errorName(() => gain.connect(other.destination))).toBe('InvalidAccessError');
   });
 
+  it('disconnects an output by its index, and a target by its output and input', () => {
+    const context = new FakeAudioContext();
+    const gain = context.createGain();
+    const filter = context.createBiquadFilter();
+    gain.connect(filter);
+    gain.connect(context.destination);
+
+    gain.disconnect(filter, 0, 0);
+    expect(gain.connections.map(({ target }) => target)).toEqual([context.destination]);
+    expect(errorName(() => gain.disconnect(context.destination, 0, 1))).toBe('InvalidAccessError');
+    gain.disconnect(0);
+    expect(gain.connections).toEqual([]);
+    gain.disconnect(0);
+    expect(gain.disconnects).toEqual([filter, 0, 0]);
+  });
+
   it('cycles a graph without looping forever when it searches a path', () => {
     const context = new FakeAudioContext();
     const delayed = context.createGain();
@@ -215,7 +246,6 @@ describe('FakeAudioParam', () => {
     param.setValueCurveAtTime(new Float32Array([0, 0.5, 1]), 3, 0.5);
     expect(param.value).toBe(1);
     param.cancelScheduledValues(3);
-    param.cancelAndHoldAtTime(4);
     expect(param.value).toBe(1);
     param.value = 0.2;
     expect(param.value).toBe(0.2);
@@ -227,8 +257,29 @@ describe('FakeAudioParam', () => {
       { method: 'setTargetAtTime', args: [0.75, 2, 0.1] },
       { method: 'setValueCurveAtTime', args: [[0, 0.5, 1], 3, 0.5] },
       { method: 'cancelScheduledValues', args: [3] },
-      { method: 'cancelAndHoldAtTime', args: [4] },
+      { method: 'value', args: [0.2] },
     ]);
+  });
+
+  it('has no cancelAndHoldAtTime, which Firefox lacks', () => {
+    expect('cancelAndHoldAtTime' in new FakeAudioContext().createGain().gain).toBe(false);
+  });
+
+  it('names its methods as the browser interfaces do', () => {
+    type ContextMethod =
+      | 'resume'
+      | 'suspend'
+      | 'close'
+      | 'createGain'
+      | 'createOscillator'
+      | 'createConstantSource'
+      | 'createBiquadFilter'
+      | 'createBufferSource'
+      | 'createBuffer'
+      | 'createPeriodicWave'
+      | 'createMediaElementSource';
+    expectTypeOf<ContextMethod>().toExtend<keyof AudioContext & keyof FakeAudioContext>();
+    expectTypeOf<FakeAutomationMethod>().toExtend<keyof AudioParam & keyof FakeAudioParam>();
   });
 
   it('throws what a browser throws for invalid automation', () => {
@@ -247,7 +298,6 @@ describe('FakeAudioParam', () => {
     expect(errorName(() => param.setValueCurveAtTime([1], 0, 1))).toBe('RangeError');
     expect(errorName(() => param.setValueCurveAtTime([0, 1], 0, 0))).toBe('RangeError');
     expect(errorName(() => param.cancelScheduledValues(-1))).toBe('RangeError');
-    expect(errorName(() => param.cancelAndHoldAtTime(-1))).toBe('RangeError');
     expect(param.calls).toEqual([]);
     expect(param).toBeInstanceOf(FakeAudioParam);
   });
