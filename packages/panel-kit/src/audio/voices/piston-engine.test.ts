@@ -1,7 +1,8 @@
 import { STEP_MS } from '@cpt/core';
 import type { JsonObject } from '@cpt/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  FakeAudioBuffer,
   FakeAudioBufferSourceNode,
   FakeAudioContext,
   FakeAudioNode,
@@ -12,17 +13,20 @@ import {
 } from '../fake-audio-context';
 import type { FakeAutomation } from '../fake-audio-context';
 import { voiceFactories } from '../voice-factories';
+import { NOISE_RMS } from './noise';
 import { pistonEngine, SMOOTHING_S } from './piston-engine';
-import { cycleHz, pistonEngineDefaults, pistonEngineProblems } from './piston-engine-model';
+import { pistonEngineDefaults, pistonEngineProblems } from './piston-engine-model';
 
 const OPTIONS = { cylinders: 4, idleRpm: 1400, maxContinuousRpm: 5500 } satisfies JsonObject;
 const ALL = ['rpm', 'running', 'starter'] as const;
 const SETTLE_MS = 20 * pistonEngineDefaults.runDownMs;
 const CRANK_MS = 3 * pistonEngineDefaults.windMs;
+const PITCH_TOLERANCE = 2e-3;
 
 type Inputs = { rpm: number; running: number; starter: number };
 const PARKED: Inputs = { rpm: 0, running: 0, starter: 0 };
 const IDLE: Inputs = { rpm: OPTIONS.idleRpm, running: 1, starter: 0 };
+const FULL: Inputs = { rpm: OPTIONS.maxContinuousRpm, running: 1, starter: 0 };
 
 const paramsOf = (node: FakeAudioNode) =>
   Object.values(node).filter((value): value is FakeAudioParam => value instanceof FakeAudioParam);
@@ -30,16 +34,22 @@ const paramsOf = (node: FakeAudioNode) =>
 const automationOf = (param: FakeAudioParam) =>
   param.calls.filter(({ method }) => method !== 'value');
 
+const targetsOf = (node: FakeAudioNode) => node.connections.map(({ target }) => target);
+
+const feeds = (node: FakeAudioNode, target: FakeAudioNode | FakeAudioParam) =>
+  targetsOf(node).includes(target);
+
+const feedsKind = (node: FakeAudioNode, kind: FakeAudioNode['kind']) =>
+  targetsOf(node).some((target) => target instanceof FakeAudioNode && target.kind === kind);
+
 const nodeAfter = (node: FakeAudioNode): FakeAudioNode => {
-  const next = node.connections.map(({ target }) => target).find((t) => t instanceof FakeAudioNode);
+  const next = targetsOf(node).find((target) => target instanceof FakeAudioNode);
   if (!next) throw new Error(`${node.kind} feeds no node`);
   return next;
 };
 
 const paramAfter = (node: FakeAudioNode): FakeAudioParam => {
-  const next = node.connections
-    .map(({ target }) => target)
-    .find((t) => t instanceof FakeAudioParam);
+  const next = targetsOf(node).find((target) => target instanceof FakeAudioParam);
   if (!next) throw new Error(`${node.kind} feeds no parameter`);
   return next;
 };
@@ -50,45 +60,75 @@ const only = <T>(items: readonly T[], what: string): T => {
   return item;
 };
 
-function setup(context = new FakeAudioContext()) {
+const waveOf = (oscillator: FakeOscillatorNode) => {
+  if (!oscillator.periodicWave) throw new Error('expected a periodic wave');
+  return oscillator.periodicWave;
+};
+
+const expectPitch = (hz: number, expected: number) =>
+  expect(Math.abs(hz / expected - 1)).toBeLessThan(PITCH_TOLERANCE);
+
+function mastered(context: FakeAudioContext) {
   context.setState('running');
   const master = context.createGain();
   master.connect(context.destination);
-  const out = { context: context.asAudioContext(), input: master as unknown as AudioNode };
+  return {
+    master,
+    out: { context: context.asAudioContext(), input: master as unknown as AudioNode },
+  };
+}
+
+function setup(context = new FakeAudioContext(), options: JsonObject = OPTIONS) {
+  const { master, out } = mastered(context);
   const before = context.nodes.length;
-  const voice = pistonEngine.create(out, OPTIONS);
+  const voice = pistonEngine.create(out, options);
   const graph = context.nodes.slice(before);
 
   const bus = only(context.nodesOf('constant-source'), 'bus');
   const driven = context
     .nodesOf('oscillator')
-    .filter((oscillator) => bus.connections.some(({ target }) => target === oscillator.frequency));
-  const terms = (oscillator: FakeOscillatorNode) => oscillator.periodicWave?.real.length ?? 0;
-  const [firing, modulator] = [...driven].sort((a, b) => terms(b) - terms(a));
+    .filter((oscillator) => feeds(bus, oscillator.frequency));
+  const firing = only(
+    driven.filter((oscillator) => feedsKind(oscillator, 'biquad-filter')),
+    'firing oscillator',
+  );
+  const modulator = only(
+    driven.filter((oscillator) => feedsKind(oscillator, 'gain')),
+    'modulator',
+  );
   const whine = only(
     context.nodesOf('oscillator').filter((oscillator) => !driven.includes(oscillator)),
     'whine',
   );
-  if (!firing || !modulator) throw new Error('expected two oscillators on the bus');
   const firingFilter = nodeAfter(firing) as FakeBiquadFilterNode;
   const firingGain = nodeAfter(firingFilter) as FakeGainNode;
-  const exhaustDepth = nodeAfter(modulator) as FakeGainNode;
-  const exhaustGain = paramAfter(exhaustDepth).owner as FakeGainNode;
-  const exhaustFilter = only(
-    context
-      .nodesOf('biquad-filter')
-      .filter(({ connections }) => connections.some(({ target }) => target === exhaustGain)),
-    'exhaust filter',
-  );
   const whineGain = nodeAfter(whine) as FakeGainNode;
   const compression = only(
-    context
-      .nodesOf('gain')
-      .filter(({ connections }) => connections.some(({ target }) => target === whineGain.gain)),
+    context.nodesOf('gain').filter((gain) => feeds(gain, whineGain.gain)),
     'compression gain',
   );
+  const exhaustDepth = only(
+    targetsOf(modulator).filter(
+      (target): target is FakeGainNode => target instanceof FakeGainNode && target !== compression,
+    ),
+    'exhaust depth',
+  );
+  const exhaustGain = paramAfter(exhaustDepth).owner as FakeGainNode;
+  const exhaustFilter = only(
+    context.nodesOf('biquad-filter').filter((filter) => feeds(filter, exhaustGain)),
+    'exhaust filter',
+  );
+  const jitter = only(
+    context.nodesOf('gain').filter((gain) => feeds(gain, bus.offset)),
+    'jitter gain',
+  );
+  const jitterFilter = only(
+    context.nodesOf('biquad-filter').filter((filter) => feeds(filter, jitter)),
+    'jitter filter',
+  );
+  const noise = only(context.nodesOf('buffer-source'), 'noise source');
   const output = only(
-    graph.filter(({ connections }) => connections.some(({ target }) => target === master)),
+    graph.filter((node) => feeds(node, master)),
     'output gain',
   ) as FakeGainNode;
 
@@ -115,6 +155,9 @@ function setup(context = new FakeAudioContext()) {
       exhaustDepth,
       whineGain,
       compression,
+      jitter,
+      jitterFilter,
+      noise,
       output,
     },
     set(change: Partial<Inputs>, jump: readonly string[] = []) {
@@ -162,12 +205,32 @@ describe('piston-engine voice', () => {
     expect(context.calls).not.toContain('createMediaElementSource');
   });
 
+  it.each(['createPeriodicWave', 'createBuffer'] as const)(
+    'leaves nothing connected when %s throws during create',
+    (method) => {
+      const context = new FakeAudioContext();
+      const { master, out } = mastered(context);
+      const failing = () => {
+        throw new DOMException('The wave is not supported.', 'NotSupportedError');
+      };
+      if (method === 'createBuffer') vi.spyOn(context, method).mockImplementationOnce(failing);
+      else vi.spyOn(context, method).mockImplementationOnce(failing);
+      expect(() => pistonEngine.create(out, OPTIONS)).toThrow('The wave is not supported.');
+      expect(context.liveNodes()).toEqual([master]);
+
+      pistonEngine.create(out, OPTIONS);
+      const noise = context.nodesOf('buffer-source').at(-1);
+      expect(noise?.buffer).toBeInstanceOf(FakeAudioBuffer);
+      expect(noise && context.reaches(noise, master)).toBe(true);
+    },
+  );
+
   it('drives oscillators of frequency 0 from the bus, with the energy on the firing order', () => {
     const { nodes } = setup();
     for (const oscillator of [nodes.firing, nodes.modulator]) {
       expect(oscillator.frequency.value).toBe(0);
       expect(oscillator.startedAt).toBeDefined();
-      const real = oscillator.periodicWave?.real ?? [];
+      const { real } = waveOf(oscillator);
       const firingOrder = real[OPTIONS.cylinders] ?? 0;
       for (let order = 1; order < OPTIONS.cylinders; order += 1) {
         expect(real[order]).toBeGreaterThan(0);
@@ -176,39 +239,85 @@ describe('piston-engine voice', () => {
     }
   });
 
-  it('adds low-passed noise to the bus for cycle-to-cycle variation', () => {
-    const { context, nodes } = setup();
-    const jitter = only(
-      context
-        .nodesOf('gain')
-        .filter(({ connections }) => connections.some(({ target }) => target === nodes.bus.offset)),
-      'jitter gain',
-    );
-    const [lowpass] = context
-      .nodesOf('biquad-filter')
-      .filter(({ connections }) => connections.some(({ target }) => target === jitter));
-    expect(lowpass?.type).toBe('lowpass');
+  it('builds the pulse waves from cosine terms that roll off between and above the firing orders', () => {
+    const { nodes } = setup();
+    const cylinders = OPTIONS.cylinders;
+    for (const oscillator of [nodes.firing, nodes.modulator]) {
+      const { real, imag } = waveOf(oscillator);
+      expect(real[0]).toBe(0);
+      expect(imag.every((term) => term === 0)).toBe(true);
+      const at = (order: number) => real[order] ?? 0;
+      for (let order = 1; order < real.length; order += 1) {
+        expect(at(order)).toBeGreaterThan(0);
+        const lower = order - (order % cylinders);
+        if (order % cylinders === 0) {
+          if (order > cylinders) expect(at(order)).toBeLessThan(at(order - cylinders));
+          continue;
+        }
+        if (lower > 0) expect(at(order)).toBeLessThan(at(lower));
+        if (lower + cylinders < real.length) expect(at(order)).toBeLessThan(at(lower + cylinders));
+      }
+    }
+  });
+
+  it('plays the starter whine on sine terms with falling harmonics', () => {
+    const { real, imag } = waveOf(setup().nodes.whine);
+    expect(real.every((term) => term === 0)).toBe(true);
+    expect(imag[0]).toBe(0);
+    expect(imag[1]).toBeGreaterThan(0);
+    for (let harmonic = 2; harmonic < imag.length; harmonic += 1) {
+      expect(imag[harmonic]).toBeLessThan(imag[harmonic - 1] ?? 0);
+    }
+  });
+
+  it('reads the cylinder count: the firing order and the exhaust band follow it', () => {
+    const rpm = 3000;
+    const ratios = [2, 4, 6].map((cylinders) => {
+      const engine = setup(new FakeAudioContext(), { ...OPTIONS, cylinders });
+      for (const oscillator of [engine.nodes.firing, engine.nodes.modulator]) {
+        const { real } = waveOf(oscillator);
+        expect(real.indexOf(Math.max(...real))).toBe(cylinders);
+      }
+      engine.set({ rpm, running: 1, starter: 0 }, ALL);
+      return engine.nodes.exhaustFilter.frequency.value / (((rpm / 60) * cylinders) / 2);
+    });
+    for (const ratio of ratios) expect(ratio).toBeCloseTo(ratios[0] ?? 0, 9);
+  });
+
+  it('adds low-passed noise to the bus in proportion to it, for cycle-to-cycle variation', () => {
+    const { nodes } = setup();
+    expect(nodes.jitterFilter.type).toBe('lowpass');
+    expect(nodes.jitterFilter.frequency.value).toBeLessThan(20);
+    expect(targetsOf(nodes.noise)).toContain(nodes.jitterFilter);
+    expect(nodes.jitter.gain.value).toBe(0);
+
+    const share = (engine: ReturnType<typeof setup>) => {
+      const { jitter, jitterFilter, bus } = engine.nodes;
+      const below = Math.sqrt((2 * jitterFilter.frequency.value) / engine.context.sampleRate);
+      return (jitter.gain.value * NOISE_RMS * below) / bus.offset.value;
+    };
+    const idle = share(loaded(IDLE));
+    expect(idle).toBeGreaterThan(1e-3);
+    expect(idle).toBeLessThan(2e-2);
+    expect(share(loaded(FULL))).toBeCloseTo(idle, 9);
   });
 
   it('plays the exhaust as looping noise through a band-pass modulated on the bus', () => {
     const { context, nodes } = setup();
     expect(nodes.exhaustFilter.type).toBe('bandpass');
-    const noise = only(context.nodesOf('buffer-source'), 'noise source');
-    expect(noise.loop).toBe(true);
-    expect(context.reaches(noise, nodes.exhaustFilter)).toBe(true);
-    expect(nodes.exhaustDepth.connections.map(({ target }) => target)).toContain(
-      nodes.exhaustGain.gain,
-    );
+    expect(nodes.noise.loop).toBe(true);
+    expect(context.reaches(nodes.noise, nodes.exhaustFilter)).toBe(true);
+    expect(targetsOf(nodes.exhaustDepth)).toContain(nodes.exhaustGain.gain);
   });
 
   it('holds the bus at rpm / 120', () => {
     const engine = loaded(IDLE);
-    expect(engine.nodes.bus.offset.value).toBe(OPTIONS.idleRpm / 120);
+    expect(engine.nodes.bus.offset.value).toBeCloseTo(1400 / 120, 9);
     engine.set({ rpm: 5000 }, ['rpm']);
-    expect(engine.nodes.bus.offset.value).toBe(cycleHz(5000));
+    expect(engine.nodes.bus.offset.value).toBeCloseTo(5000 / 120, 9);
     engine.set({ rpm: 4850 });
     engine.advance(SETTLE_MS);
-    expect(engine.nodes.bus.offset.value).toBeCloseTo(4850 / 120, 3);
+    expectPitch(engine.nodes.bus.offset.value, 4850 / 120);
   });
 
   it('issues one setTargetAtTime per changed target, at currentTime with SMOOTHING_S', () => {
@@ -250,6 +359,21 @@ describe('piston-engine voice', () => {
     }
   });
 
+  it('stops scheduling within a dozen time constants of a throttle change', () => {
+    const changes: [Inputs, Inputs, number][] = [
+      [IDLE, FULL, pistonEngineDefaults.throttleUpMs],
+      [FULL, IDLE, pistonEngineDefaults.throttleDownMs],
+    ];
+    for (const [from, to, timeConstantMs] of changes) {
+      const engine = loaded(from);
+      engine.set(to);
+      engine.advance(12 * timeConstantMs);
+      engine.clear();
+      engine.advance(SETTLE_MS);
+      expect(engine.automation()).toEqual([]);
+    }
+  });
+
   it('issues nothing while not live, then one target per moved parameter on the jump', () => {
     const engine = loaded(IDLE);
     engine.advance(SETTLE_MS);
@@ -266,7 +390,30 @@ describe('piston-engine voice', () => {
     expect(automationOf(engine.nodes.bus.offset)).toEqual([
       {
         method: 'setTargetAtTime',
-        args: [cycleHz(4000), engine.context.currentTime, SMOOTHING_S],
+        args: [expect.closeTo(4000 / 120, 9), engine.context.currentTime, SMOOTHING_S],
+      },
+    ]);
+    for (const node of engine.graph) {
+      for (const param of paramsOf(node)) expect(automationOf(param).length).toBeLessThanOrEqual(1);
+    }
+    expect(engine.automation().length).toBeGreaterThan(1);
+  });
+
+  it('issues one target per moved parameter when it goes live again on an ordinary frame', () => {
+    const engine = loaded(IDLE);
+    engine.advance(SETTLE_MS);
+    engine.clear();
+    engine.setLive(false);
+    engine.set({ rpm: 4000 });
+    engine.advance(SETTLE_MS);
+    expect(engine.automation()).toEqual([]);
+
+    engine.setLive(true);
+    engine.advance(STEP_MS);
+    expect(automationOf(engine.nodes.bus.offset)).toEqual([
+      {
+        method: 'setTargetAtTime',
+        args: [expect.closeTo(4000 / 120, 3), engine.context.currentTime, SMOOTHING_S],
       },
     ]);
     for (const node of engine.graph) {
@@ -280,7 +427,7 @@ describe('piston-engine voice', () => {
     engine.set({ starter: 1 });
     engine.advance(CRANK_MS);
     const { nodes } = engine;
-    expect(nodes.bus.offset.value).toBeCloseTo(cycleHz(pistonEngineDefaults.crankingRpm), 0);
+    expect(nodes.bus.offset.value).toBeCloseTo(pistonEngineDefaults.crankingRpm / 120, 0);
     expect(nodes.firingGain.gain.value).toBe(0);
     expect(nodes.whineGain.gain.value).toBeGreaterThan(0);
     expect(nodes.compression.gain.value).toBeGreaterThan(0);
@@ -299,15 +446,41 @@ describe('piston-engine voice', () => {
     engine.set({ starter: 0 });
     engine.advance(SETTLE_MS);
     const { nodes } = engine;
-    expect(nodes.bus.offset.value).toBeCloseTo(cycleHz(OPTIONS.idleRpm), 3);
+    expectPitch(nodes.bus.offset.value, 1400 / 120);
     expect(nodes.whineGain.gain.value).toBeLessThan(1e-3);
     expect(nodes.compression.gain.value).toBeLessThan(1e-3);
     expect(nodes.whine.frequency.value).toBeLessThan(crankingWhine);
   });
 
+  it('keeps the whine but drops the compression pulses while the key is held through the catch', () => {
+    const engine = loaded(PARKED);
+    engine.set({ starter: 1 });
+    engine.advance(CRANK_MS);
+    const cranking = engine.nodes.compression.gain.value;
+    engine.set({ running: 1, rpm: OPTIONS.idleRpm });
+    engine.advance(SETTLE_MS);
+    const { nodes } = engine;
+    expectPitch(nodes.bus.offset.value, 1400 / 120);
+    expect(nodes.firingGain.gain.value).toBeGreaterThan(0);
+    expect(nodes.whineGain.gain.value).toBeGreaterThan(0);
+    expect(nodes.compression.gain.value).toBeLessThan(cranking / 100);
+  });
+
+  it('adds only the whine when the key is turned to START at idle', () => {
+    const engine = loaded(IDLE);
+    const { nodes } = engine;
+    const firing = nodes.firingGain.gain.value;
+    engine.set({ starter: 1 });
+    engine.advance(CRANK_MS);
+    expect(nodes.bus.offset.value).toBeCloseTo(1400 / 120, 9);
+    expect(nodes.firingGain.gain.value).toBe(firing);
+    expect(nodes.whineGain.gain.value).toBeGreaterThan(0);
+    expect(nodes.compression.gain.value).toBe(0);
+  });
+
   it('is louder, brighter and pulses less at full power than at idle', () => {
     const idle = loaded(IDLE).nodes;
-    const full = loaded({ rpm: OPTIONS.maxContinuousRpm, running: 1, starter: 0 }).nodes;
+    const full = loaded(FULL).nodes;
     const rpmRatio = OPTIONS.maxContinuousRpm / OPTIONS.idleRpm;
     expect(full.firingGain.gain.value).toBeGreaterThan(idle.firingGain.gain.value);
     expect(full.firingFilter.frequency.value / idle.firingFilter.frequency.value).toBeGreaterThan(
@@ -335,7 +508,7 @@ describe('piston-engine voice', () => {
     engine.advance(SETTLE_MS);
     const { nodes } = engine;
     expect(nodes.firingGain.gain.value).toBe(0);
-    expect(nodes.bus.offset.value).toBeCloseTo(cycleHz(1000), 3);
+    expectPitch(nodes.bus.offset.value, 1000 / 120);
     expect(nodes.exhaustGain.gain.value).toBeGreaterThan(0);
   });
 
@@ -344,7 +517,7 @@ describe('piston-engine voice', () => {
     engine.set({ running: 0, rpm: 0 });
     engine.advance(STEP_MS);
     expect(engine.nodes.firingGain.gain.value).toBeLessThan(1e-3);
-    expect(engine.nodes.bus.offset.value).toBeGreaterThan(cycleHz(OPTIONS.idleRpm) / 2);
+    expect(engine.nodes.bus.offset.value).toBeGreaterThan(1400 / 120 / 2);
     engine.advance(SETTLE_MS);
     for (const gain of [engine.nodes.exhaustGain, engine.nodes.whineGain]) {
       expect(gain.gain.value).toBeLessThan(1e-3);
@@ -382,6 +555,30 @@ describe('piston-engine voice', () => {
     expect(engine.context.liveNodes()).toHaveLength(live);
   });
 
+  it('returns to the master alone over repeated creates and stops, building one noise buffer', () => {
+    const context = new FakeAudioContext();
+    const { master, out } = mastered(context);
+    const sizes = new Set<number>();
+    for (let cycle = 0; cycle < 5; cycle += 1) {
+      const before = context.nodes.length;
+      const voice = pistonEngine.create(out, OPTIONS);
+      sizes.add(context.nodes.length - before);
+      // The first voice stops before its first frame.
+      for (let frame = 0; frame < cycle * 20; frame += 1) {
+        voice.update(cycle % 2 === 0 ? FULL : IDLE, {
+          nowMs: frame * STEP_MS,
+          live: true,
+          jump: frame === 0 ? ALL : [],
+        });
+      }
+      voice.stop();
+      context.currentTime = context.nodesOf('constant-source').at(-1)?.stoppedAt ?? 0;
+      expect(context.liveNodes()).toEqual([master]);
+    }
+    expect(sizes.size).toBe(1);
+    expect(context.calls.filter((call) => call === 'createBuffer')).toHaveLength(1);
+  });
+
   it('fades out on stop, then stops every source and disconnects every node', () => {
     const engine = loaded(IDLE);
     engine.advance(STEP_MS);
@@ -389,7 +586,8 @@ describe('piston-engine voice', () => {
     const now = context.currentTime;
     engine.clear();
     engine.voice.stop();
-    expect(automationOf(nodes.output.gain)).toEqual([
+    const fade = automationOf(nodes.output.gain);
+    expect(fade).toEqual([
       { method: 'cancelScheduledValues', args: [now] },
       { method: 'setTargetAtTime', args: [0, now, expect.any(Number)] },
     ]);
@@ -399,17 +597,22 @@ describe('piston-engine voice', () => {
     );
     const stops = new Set(sources.map(({ stoppedAt }) => stoppedAt));
     expect(stops.size).toBe(1);
-    const [end] = stops;
+    const [end = 0] = stops;
     expect(end).toBeGreaterThan(now);
     expect(nodes.bus.stoppedAt).toBe(end);
+    // The sources stop once the fade has left the voice far below hearing.
+    const timeConstant = Number(fade[1]?.args[2]);
+    expect(Math.exp(-(end - now) / timeConstant)).toBeLessThan(1e-4);
     expect(context.liveNodes()).toContain(nodes.output);
 
-    context.currentTime = end ?? 0;
+    context.currentTime = end;
     expect(context.liveNodes()).toEqual([master]);
+    for (const node of engine.graph) expect(node.connections).toEqual([]);
     engine.clear();
     engine.advance(SETTLE_MS);
     engine.voice.stop();
     expect(engine.automation()).toEqual([]);
+    expect(sources.map(({ stoppedAt }) => stoppedAt)).toEqual(sources.map(() => end));
   });
 
   it('disconnects at once when stopped on a context that is not running', async () => {
@@ -422,20 +625,25 @@ describe('piston-engine voice', () => {
     expect(engine.context.liveNodes()).toEqual([engine.master]);
   });
 
-  it('shares one looping noise buffer between the voices on a context', () => {
+  it('shares one long looping noise buffer between the voices on a context', () => {
     const context = new FakeAudioContext();
     setup(context);
     pistonEngine.create(context.out(), OPTIONS);
     const [first, second] = context.nodesOf('buffer-source');
-    expect(first?.buffer).toBeDefined();
-    expect(second?.buffer).toBe(first?.buffer);
-    const samples = first?.buffer?.getChannelData(0) ?? new Float32Array();
-    expect(samples.length).toBeGreaterThan(0);
-    expect(samples.some((sample) => sample !== 0)).toBe(true);
+    const buffer = first?.buffer;
+    expect(buffer).toBeInstanceOf(FakeAudioBuffer);
+    expect(second?.buffer).toBe(buffer);
+    expect(buffer?.numberOfChannels).toBe(1);
+    expect(buffer?.duration).toBeGreaterThanOrEqual(8);
+    const samples = buffer?.getChannelData(0) ?? new Float32Array();
     expect(samples.every((sample) => sample >= -1 && sample <= 1)).toBe(true);
+    const rms = Math.sqrt(
+      samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length,
+    );
+    expect(Math.abs(rms / NOISE_RMS - 1)).toBeLessThan(0.02);
 
     const other = new FakeAudioContext();
     pistonEngine.create(other.out(), OPTIONS);
-    expect(only(other.nodesOf('buffer-source'), 'noise').buffer).not.toBe(first?.buffer);
+    expect(only(other.nodesOf('buffer-source'), 'noise').buffer).not.toBe(buffer);
   });
 });

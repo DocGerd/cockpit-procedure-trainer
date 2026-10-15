@@ -20,8 +20,11 @@ export const SMOOTHING_S = STEP_MS / 3 / 1000;
 
 const INPUTS: readonly string[] = ['rpm', 'running', 'starter'] satisfies PistonEngineInputName[];
 
-// The model only approaches its targets; a change below this is inaudible and not scheduled.
+// The model only approaches its targets; a change too small to hear is not scheduled. Relative to
+// the value, as pitch and loudness are heard, so frequencies in Hz settle as soon as gains do;
+// absolute near 0.
 const AUTOMATION_DEADBAND = 1e-4;
+const RELATIVE_DEADBAND = 1e-3;
 
 // Voice defaults tuned by ear, not aircraft facts.
 const IDLE_LEVEL_DB = -12;
@@ -49,9 +52,12 @@ const WHINE_HARMONICS = 6;
 const WHINE_LEVEL = 0.04;
 const COMPRESSION_DEPTH = 0.8;
 const FADE_TIME_CONSTANT_S = 0.03;
-const TIME_CONSTANTS_TO_SILENCE = 5;
+const TIME_CONSTANTS_TO_SILENCE = 10;
 
 const decibels = (db: number) => 10 ** (db / 20);
+
+const inaudible = (next: number, issued: number) =>
+  Math.abs(next - issued) <= Math.max(AUTOMATION_DEADBAND, RELATIVE_DEADBAND * Math.abs(issued));
 
 const reading = (inputs: Readonly<Record<string, number>>, name: PistonEngineInputName) => {
   const value = inputs[name];
@@ -121,9 +127,13 @@ const targetsFor = (
 
 type Targets = ReturnType<typeof targetsFor>;
 
-function createPistonEngine({ context, input }: AudioOut, options: PistonEngineOptions): Voice {
+function buildPistonEngine(
+  { context, input }: AudioOut,
+  options: PistonEngineOptions,
+  nodes: AudioNode[],
+  disconnect: () => void,
+): Voice {
   const model = pistonEngineModel(options);
-  const nodes: AudioNode[] = [];
   const node = <T extends AudioNode>(created: T) => {
     nodes.push(created);
     return created;
@@ -202,10 +212,6 @@ function createPistonEngine({ context, input }: AudioOut, options: PistonEngineO
   let lastMs: number | undefined;
   let stopped = false;
 
-  const disconnect = () => {
-    for (const each of nodes) each.disconnect();
-  };
-
   return {
     update(inputs, { nowMs, live, jump }: VoiceFrame) {
       if (stopped) return;
@@ -223,7 +229,7 @@ function createPistonEngine({ context, input }: AudioOut, options: PistonEngineO
       if (!live) return;
       const next = targets(state);
       for (const name of names) {
-        if (Math.abs(next[name] - issued[name]) <= AUTOMATION_DEADBAND) continue;
+        if (inaudible(next[name], issued[name])) continue;
         params[name].setTargetAtTime(next[name], context.currentTime, SMOOTHING_S);
         issued[name] = next[name];
       }
@@ -242,6 +248,20 @@ function createPistonEngine({ context, input }: AudioOut, options: PistonEngineO
       if (!running) disconnect();
     },
   };
+}
+
+function createPistonEngine(out: AudioOut, options: PistonEngineOptions): Voice {
+  const nodes: AudioNode[] = [];
+  const disconnect = () => {
+    for (const each of nodes) each.disconnect();
+  };
+  try {
+    return buildPistonEngine(out, options, nodes, disconnect);
+  } catch (error) {
+    // A failed create hands the driver no voice, so nothing else could stop this partial graph.
+    disconnect();
+    throw error;
+  }
 }
 
 export const pistonEngine: VoiceFactory = {

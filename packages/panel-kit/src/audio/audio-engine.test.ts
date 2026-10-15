@@ -673,6 +673,7 @@ describe('audio types', () => {
   });
 
   it('registers voices under kebab-case ids, each with a factory and an option check', () => {
+    expect(Object.keys(voiceFactories)).toContain('piston-engine');
     for (const [id, factory] of Object.entries(voiceFactories)) {
       expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/);
       expect(factory.create).toBeTypeOf('function');

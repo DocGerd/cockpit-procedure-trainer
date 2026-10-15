@@ -1,4 +1,5 @@
-const NOISE_SECONDS = 2;
+// Long enough that the loop is not heard repeating under a steady drone.
+const NOISE_SECONDS = 10;
 
 /** The RMS of white noise spread evenly between -1 and 1. */
 export const NOISE_RMS = 1 / Math.sqrt(3);
