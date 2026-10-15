@@ -111,8 +111,8 @@ not record the real control's own sound, it names the neutral, low `soft` rather
 than inventing one. Every other control keeps the kind's click. The CTSL's
 throttle and trim are `silent` (their listed positions are trainer detents, not
 notches), as is its brake (a hydraulic lever, not a key); its fuel valve and
-parking brake valve (a slide lever and a valve, not rockers) and its choke and
-carb heat (push-pull knobs, not notched levers) are `soft`. A `click` on a
+parking brake valve (a slide lever and a valve, not rockers), its choke (a plain
+slot lever) and its carb heat (a provisional pull knob) are `soft`. A `click` on a
 guarded control covers every move, the guard's included.
 
 ### Indicators

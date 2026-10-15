@@ -318,7 +318,7 @@ control does not make:
 | CTSL `throttle`, `trim`               | `silent` | their listed positions are trainer detents, not notches |
 | CTSL `brake`                          | `silent` | a hydraulic lever (intake §4.4), not a key              |
 | CTSL `fuelValve`, `parkingBrakeValve` | `soft`   | a slide lever and a valve, not rockers                  |
-| CTSL `choke`, `carbHeat`              | `soft`   | push-pull knobs, not notched levers                     |
+| CTSL `choke`, `carbHeat`              | `soft`   | a plain slot lever and a provisional pull knob          |
 | aera 500 `touch`                      | `silent` | a touchscreen                                           |
 
 `soft` is a neutral, low click for a control whose own sound the intake does
