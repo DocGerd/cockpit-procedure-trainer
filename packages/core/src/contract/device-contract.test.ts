@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { defineDevice } from '../devices/define-device';
 import { defineAircraft, everyPhase } from './index';
 import type { Text, TrainerState } from './index';
 
@@ -161,6 +162,77 @@ describe('device ids and installs', () => {
             // @ts-expect-error an object is not a number, boolean or string
             bad: () => ({}),
           },
+        },
+      },
+    });
+  });
+});
+
+describe('device sounds', () => {
+  const device = {
+    id: 'beeper',
+    manual: text,
+    notModelled: [],
+    controls: {},
+    initial: { alarm: false },
+    step: (state: { alarm: boolean }) => state,
+  } as const;
+
+  it('accepts cues that name declared beeps', () => {
+    defineDevice({
+      ...device,
+      sounds: {
+        beeps: { alert: [{ hz: 880, ms: 100 }], ack: [{ hz: 440, ms: 50, pauseMs: 20 }] },
+        cues: (previous, next) =>
+          !previous.alarm && next.alarm ? [{ beep: 'alert' }, { beep: 'ack', level: 0.5 }] : [],
+      },
+    });
+  });
+
+  it('rejects a cue that names an undeclared beep', () => {
+    defineDevice({
+      ...device,
+      sounds: {
+        beeps: { alert: [{ hz: 880, ms: 100 }] },
+        // @ts-expect-error 'alarm' is not a declared beep
+        cues: () => [{ beep: 'alarm' }],
+      },
+    });
+  });
+
+  it('keeps a device without sounds valid', () => {
+    defineDevice(device);
+  });
+
+  it('accepts a click on a control and rejects an unknown click id', () => {
+    const toggle = {
+      kind: 'toggle',
+      positions: ['off', 'on'],
+      initial: 'off',
+      name: text,
+      description: text,
+    } as const;
+    defineAircraft({
+      ...body,
+      controls: { master: { ...toggle, click: 'rocker' } },
+    });
+    defineAircraft({ ...body, controls: { master: { ...toggle, click: 'silent' } } });
+    defineAircraft({
+      ...body,
+      // @ts-expect-error 'squeak' is not a click id
+      controls: { master: { ...toggle, click: 'squeak' } },
+    });
+  });
+
+  it('accepts aircraft sounds that read state', () => {
+    defineAircraft({
+      ...body,
+      sounds: {
+        engine: {
+          voice: 'piston',
+          options: { cylinders: 4 },
+          inputs: { running: (state: TrainerState<State>) => (state.systems.on ? 1 : 0) },
+          carried: ['running'],
         },
       },
     });

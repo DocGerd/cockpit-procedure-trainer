@@ -8,6 +8,7 @@ import type {
   GuardedControl,
   Rect,
   Text,
+  Tone,
   ViewSize,
 } from '../contract';
 
@@ -48,7 +49,9 @@ export type FindingCode =
   | 'invalid-window'
   | 'invalid-check-response'
   | 'invalid-flow'
-  | 'invalid-memory';
+  | 'invalid-memory'
+  | 'invalid-tone'
+  | 'beep-without-tones';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -481,6 +484,29 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         }
       }
     });
+  }
+
+  const isTone = (tone: Tone) =>
+    Number.isFinite(tone.hz) &&
+    tone.hz > 0 &&
+    Number.isFinite(tone.ms) &&
+    tone.ms > 0 &&
+    (tone.pauseMs === undefined || (Number.isFinite(tone.pauseMs) && tone.pauseMs >= 0));
+
+  for (const device of registry) {
+    for (const [beepId, tones] of Object.entries(device.sounds?.beeps ?? {})) {
+      const id = `${device.id}.${beepId}`;
+      if (tones.length === 0) add('beep-without-tones', id, 'the beep has no tones');
+      tones.forEach((tone, index) => {
+        if (!isTone(tone)) {
+          add(
+            'invalid-tone',
+            id,
+            `tone ${index} needs a finite, positive hz and ms and a finite pauseMs of at least 0`,
+          );
+        }
+      });
+    }
   }
 
   const named = new Set<string>();
