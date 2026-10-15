@@ -672,7 +672,11 @@ describe('audio types', () => {
     expectTypeOf(voiceFactories).toEqualTypeOf<Readonly<Record<string, VoiceFactory>>>();
   });
 
-  it('starts with an empty voice registry', () => {
-    expect(voiceFactories).toEqual({});
+  it('registers voices under kebab-case ids, each with a factory and an option check', () => {
+    for (const [id, factory] of Object.entries(voiceFactories)) {
+      expect(id).toMatch(/^[a-z]+(-[a-z]+)*$/);
+      expect(factory.create).toBeTypeOf('function');
+      expect(factory.problems).toBeTypeOf('function');
+    }
   });
 });
