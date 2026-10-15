@@ -1,4 +1,6 @@
 import { writeFileSync } from 'node:fs';
+import type { Aircraft } from '@cpt/core';
+import type { Page } from '@playwright/test';
 import { expect, test } from '../fixtures';
 import { aircraftRegistry } from '../../src/aircraft-registry';
 import { openAircraft, showView } from '../legibility';
@@ -19,13 +21,59 @@ import { range } from './trace';
 /** The plan's performance budget (M12, P1 to P4). */
 const BUDGET = { needleFrameMs: 4, rerasterMs: 33, payloadFactor: 3 };
 
+/**
+ * One arm of the sound A/B (sounds spec §10): `on` or `off` measures each aircraft that declares
+ * sounds from a cruise start, so its voices run; unset, the run measures as before.
+ */
+const SOUND = process.env.E2E_SOUND;
+if (SOUND !== undefined && SOUND !== 'on' && SOUND !== 'off') {
+  throw new Error(`E2E_SOUND is on or off, not ${SOUND}`);
+}
+
+const ARM = SOUND === undefined ? '' : `, sound ${SOUND}`;
+
+test.use({ seedSoundOff: SOUND !== 'on' });
+
+const measured =
+  SOUND === undefined
+    ? aircraftRegistry
+    : aircraftRegistry.filter((aircraft) => Object.keys(aircraft.sounds ?? {}).length > 0);
+
+const cruiseStart = (aircraft: Aircraft) => {
+  const found = Object.entries(aircraft.procedures).find(
+    ([, { type, startPhase }]) => type === 'normal' && startPhase === 'cruise',
+  );
+  if (!found) throw new Error(`${aircraft.id} has no normal procedure that starts in cruise`);
+  return found[0];
+};
+
+type AudioLog = { __audioContexts: AudioContext[] };
+
+// The engine builds its context with `new AudioContext()`, so a subclass sees each one it makes.
+const wrapAudioContext = (page: Page) =>
+  page.addInitScript(() => {
+    const built: AudioContext[] = [];
+    Object.assign(window, { __audioContexts: built });
+    window.AudioContext = class extends window.AudioContext {
+      constructor(options?: AudioContextOptions) {
+        super(options);
+        built.push(this);
+      }
+    };
+  });
+
+const contextStates = (page: Page) =>
+  page.evaluate(() =>
+    (window as unknown as AudioLog).__audioContexts.map((context) => context.state),
+  );
+
 const ms = (value: number | undefined) => (value === undefined ? 'n/a' : value.toFixed(2));
 const spread = (values: readonly number[]) => {
   const { min, max } = range(values);
   return `${ms(median(values))} (${ms(min)}-${ms(max)})`;
 };
 
-for (const aircraft of aircraftRegistry) {
+for (const aircraft of measured) {
   test(`${aircraft.id} keeps needle frames, re-raster and filters in budget (P1-P3)`, async ({
     browser,
     context,
@@ -33,7 +81,15 @@ for (const aircraft of aircraftRegistry) {
   }) => {
     const cdp = await context.newCDPSession(page);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-    await openAircraft(page, aircraft);
+    if (SOUND === undefined) {
+      await openAircraft(page, aircraft);
+    } else {
+      await wrapAudioContext(page);
+      // The picker's clicks are the gesture that starts the context.
+      await openAircraft(page, aircraft, cruiseStart(aircraft));
+      if (SOUND === 'on') await expect.poll(() => contextStates(page)).toEqual(['running']);
+      else expect(await contextStates(page)).toEqual([]);
+    }
     const rows: string[] = [];
     let measuredNeedles = 0;
     for (const [viewId, view] of Object.entries(aircraft.views)) {
@@ -95,7 +151,9 @@ for (const aircraft of aircraftRegistry) {
       expect.soft(filters, `${viewId}: P3 filters`).toEqual([]);
     }
     console.log(
-      [`${aircraft.id}, 1024x768, CPU 4x, median (min-max) of ${SAMPLES}:`, ...rows].join('\n  '),
+      [`${aircraft.id}${ARM}, 1024x768, CPU 4x, median (min-max) of ${SAMPLES}:`, ...rows].join(
+        '\n  ',
+      ),
     );
     expect(measuredNeedles, 'views with a needle to measure (P1)').toBeGreaterThan(0);
   });

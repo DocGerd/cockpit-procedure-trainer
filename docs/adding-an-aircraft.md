@@ -49,7 +49,7 @@ Add `"@cpt/aircraft-<id>": "workspace:*"` to `dependencies` in
 workspace entry. Ids must be unique in the registry.
 
 From then on every registered aircraft is checked by `apps/web`'s own tests
-(`aircraft-validation.test.ts`, `aircraft-widgets.test.ts`,
+(`aircraft-validation.test.ts`, `aircraft-widgets.test.ts`, `aircraft-sounds.test.ts`,
 `procedure-walkthrough.test.ts`), with no change to them.
 
 ## The contract
@@ -64,6 +64,7 @@ so their literal positions survive the move, as `src/controls.ts` in the demo do
       id, name, handbookRevision,
       controls, indicators, views,
       devices,            // optional, see below
+      sounds,             // optional, see below
       systems, failures, phases, procedures,
     })
 
@@ -323,6 +324,45 @@ in-between setting, either write a `check` item with a condition on an indicator
 An aircraft installs an avionics unit through the optional `devices` field; see
 `docs/adding-a-device.md` for the install shape, the `<installId>.<controlId>`
 targets, device entry positions and device entry state. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
+
+### Sounds
+
+Every aircraft gets the control clicks (see Controls). Engine, airflow and other
+continuous sounds come from the optional `sounds` field, which maps a sound id to
+`{ voice, options?, inputs?, carried? }`. Like a widget, a voice is named by its id
+and implemented in `@cpt/panel-kit` (its `voiceFactories`), so the aircraft holds no
+audio code. A sound no voice makes needs a new voice in panel-kit, not code in the
+aircraft or the app.
+
+| `voice`          | Inputs                      | Options                                                                                                                                                                     |
+| ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `piston-engine`  | `rpm`, `running`, `starter` | `cylinders`, `idleRpm` and `maxContinuousRpm` required; `crankingRpm` and the time constants `throttleUpMs`, `throttleDownMs`, `catchMs`, `runDownMs` and `windMs` optional |
+| `airflow`        | `airspeedKmh`               | `referenceKmh` required                                                                                                                                                     |
+| `electric-motor` | `driving`                   | `whineHz` and `fadeMs` optional                                                                                                                                             |
+
+`inputs` maps each input name to a selector over the trainer state that returns a
+number; a condition returns 1 or 0. A voice has no on switch: it falls silent from
+its inputs, as the engine does with no rpm and the flap motor once `driving` is 0.
+`rpm` is the engine rpm the tachometer reads, `running` whether the engine fires
+and `starter` whether the starter turns.
+
+`options` carry the aircraft's facts, taken from the intake: `referenceKmh` is the
+airspeed red line, and the engine's `idleRpm` and `maxContinuousRpm` come from the
+systems' own constants, not copies. An optional value left out keeps the voice's
+default, which is tuned by ear and is no aircraft fact; set one only where the
+intake gives it.
+
+`carried` lists the inputs that follow the phase's set point rather than the
+pilot, such as `rpm` and `airspeedKmh`. When a full flight carries the cockpit into
+the next phase they take the new value at once, while the other inputs keep their
+fades and edges, so a flap motor still running fades out. A reset (a phase jump, a
+retry, a leg restart) sets every input at once.
+
+`apps/web/src/aircraft-sounds.test.ts` gates every registered aircraft: each
+`voice` is a key of `voiceFactories`, the voice's `problems(options)` is empty, and
+every selector returns a finite number on the initial state and on every phase
+entry state. The CTSL's `src/sounds.ts` declares an engine, airflow and the flap
+motor; the demo declares no sounds and plays the control clicks only.
 
 ## Appearance and artwork
 
