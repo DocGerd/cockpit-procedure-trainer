@@ -1,4 +1,5 @@
-export type SettingKey = 'theme' | 'language' | 'aircraft' | 'history' | 'recall';
+export type SettingKey =
+  'theme' | 'language' | 'aircraft' | 'history' | 'recall' | 'sound' | 'volume';
 
 const prefix = 'cpt.';
 
@@ -16,6 +17,22 @@ export function writeSetting(key: SettingKey, value: string): void {
   } catch {
     // The app works without persistence (spec §5).
   }
+}
+
+export type SoundSetting = 'on' | 'off';
+
+export const DEFAULT_VOLUME = 70;
+export const MAX_VOLUME = 100;
+
+export function readSound(): SoundSetting {
+  return readSetting('sound') === 'off' ? 'off' : 'on';
+}
+
+export function readVolume(): number {
+  const raw = readSetting('volume');
+  if (raw === undefined || !/^(0|[1-9]\d{0,2})$/.test(raw)) return DEFAULT_VOLUME;
+  const volume = Number(raw);
+  return volume <= MAX_VOLUME ? volume : DEFAULT_VOLUME;
 }
 
 export type RunMode = 'guided' | 'practice';
