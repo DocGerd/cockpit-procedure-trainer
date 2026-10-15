@@ -283,7 +283,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 **Acceptance criteria:**
 
-- [ ] A table test over kind × change × source: a declared `click` wins; a continuous lever, `spring`, `system` and refused moves are silent; `clickCount` gives one per rotary position stepped (the CTSL key from `off` to `both` gives three), and one for a move into a spring-back position whatever the distance, either way.
+- [ ] A table test over kind × change × source: a declared `click` wins; a continuous lever, `spring`, `system` and refused moves are silent; `clickCount` gives one per rotary position stepped (a test-local key shaped like the CTSL ignition, from `off` to `both`, gives three), and one for a move into a spring-back position whatever the distance, either way.
 - [ ] On the fake context each click starts at the given time and disconnects itself; several detents are spaced by the rate cap; live nodes return to baseline after many clicks; the caps hold.
 
 **Verification:** Checks chain; `pnpm test`.
