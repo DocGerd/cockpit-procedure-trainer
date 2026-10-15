@@ -74,8 +74,9 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 ### Controls
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
-(both `Text`), an `initial` position, an optional `appearance` and an optional
-`placard` and `legends` (see [Printed labels](#printed-labels)).
+(both `Text`), an `initial` position, an optional `appearance`, an optional
+`placard` and `legends` (see [Printed labels](#printed-labels)) and an optional
+`click`, described below.
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -102,6 +103,17 @@ OFF only come out (`['off', 'out']`); open, it keeps the key in
 (`['off', 'left', 'right', 'both', 'start']`). Only pilot moves are refused
 (result `locked`), and the app frame names the holding control; phase entries and
 failures move freely. The other control must be a different one.
+
+A control makes a click when the pilot moves it, picked by its kind. It names
+its own `click`, a `ClickId` from `@cpt/core` or `silent` for none, only where
+the kind would give a sound the real control does not make; where the intake does
+not record the real control's own sound, it names the neutral, low `soft` rather
+than inventing one. Every other control keeps the kind's click. The CTSL's
+throttle and trim are `silent` (their listed positions are trainer detents, not
+notches), as is its brake (a hydraulic lever, not a key); its fuel valve and
+parking brake valve (a slide lever and a valve, not rockers) and its choke and
+carb heat (push-pull knobs, not notched levers) are `soft`. A `click` on a
+guarded control covers every move, the guard's included.
 
 ### Indicators
 
@@ -439,8 +451,9 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the
-`cockpit` codes above. `formatFinding` prints one.
+`artwork-glass-size`, `invalid-needles`, `unknown-window`, `invalid-window`,
+`invalid-check-response`, `invalid-flow`, `invalid-memory`,
+`invalid-tone`, `beep-without-tones` and the `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses

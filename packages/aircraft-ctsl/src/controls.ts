@@ -44,6 +44,7 @@ const rockerOf = (name: Text, description: Text, appearance: ArtworkAppearance) 
 const pushPullOf = (name: Text, description: Text, appearance: ArtworkAppearance) =>
   ({
     kind: 'lever',
+    click: 'soft',
     positions: ['off', 'on'],
     initial: 'off',
     name,
@@ -150,6 +151,7 @@ export const controls = {
   ),
   fuelValve: {
     kind: 'toggle',
+    click: 'soft',
     positions: ['open', 'closed'],
     initial: 'closed',
     legends: { open: 'Open', closed: 'Closed' },
@@ -223,6 +225,7 @@ export const controls = {
   },
   brake: {
     kind: 'momentary',
+    click: 'silent',
     positions: ['off', 'on'],
     initial: 'off',
     legends: { off: 'Off', on: 'On' },
@@ -235,6 +238,7 @@ export const controls = {
   },
   throttle: {
     kind: 'lever',
+    click: 'silent',
     positions: ['idle', 'low', 'runup', 'cruise', 'full'],
     initial: 'idle',
     // The placard prints only Full and Idle; the middle stops are the trainer's own.
@@ -282,6 +286,7 @@ export const controls = {
   ),
   trim: {
     kind: 'lever',
+    click: 'silent',
     positions: ['nose-down', 'half-down', 'neutral', 'half-up', 'nose-up'],
     initial: 'neutral',
     // The placard prints Down and Up only; neutral is what the take-off placard asks for and the
@@ -311,6 +316,7 @@ export const controls = {
   },
   parkingBrakeValve: {
     kind: 'toggle',
+    click: 'soft',
     positions: ['open', 'closed'],
     initial: 'open',
     legends: { open: 'Off', closed: 'On' },

@@ -1,5 +1,6 @@
 import type { JsonObject } from '@cpt/core';
 import type { AudioOut } from './audio-engine';
+import { pistonEngine } from './voices/piston-engine';
 
 export type VoiceFrame = {
   readonly nowMs: number;
@@ -18,4 +19,6 @@ export type VoiceFactory = {
   problems(options: JsonObject): readonly string[];
 };
 
-export const voiceFactories: Readonly<Record<string, VoiceFactory>> = {};
+export const voiceFactories: Readonly<Record<string, VoiceFactory>> = {
+  'piston-engine': pistonEngine,
+};

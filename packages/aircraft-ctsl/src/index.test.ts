@@ -180,6 +180,23 @@ describe('CTSL aircraft', () => {
     },
   );
 
+  it('declares the wave-1 click overrides and no others', () => {
+    const overrides = Object.fromEntries(
+      Object.entries(ctslAircraft.controls).flatMap(([id, control]) =>
+        control.click === undefined ? [] : [[id, control.click]],
+      ),
+    );
+    expect(overrides).toEqual({
+      throttle: 'silent',
+      trim: 'silent',
+      brake: 'silent',
+      fuelValve: 'soft',
+      parkingBrakeValve: 'soft',
+      choke: 'soft',
+      carbHeat: 'soft',
+    });
+  });
+
   it('springs the ignition key back from START to 1+2', () => {
     const ignition = ctslAircraft.controls.ignition;
     expect(ignition?.kind === 'rotary' && ignition.springBack).toEqual({ start: 'both' });
