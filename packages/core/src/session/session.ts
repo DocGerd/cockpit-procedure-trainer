@@ -98,6 +98,13 @@ export type Session = {
   /** Puts the cockpit back as it was when the current item began and counts an assist. */
   retryItem(): void;
   subscribe(listener: () => void): () => void;
+  /**
+   * Hears each control change after the state listeners, once the systems, devices and checklist
+   * have settled; a batched load delivers its changes after the whole load.
+   */
+  onControlChange(listener: (change: ControlChange) => void): () => void;
+  /** Rises on every reset of the systems: a load, a retried item or a restarted leg. */
+  epoch(): number;
 };
 
 const FAILED: SessionControlResult = { applied: false, reason: 'failed' };
@@ -144,7 +151,10 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     | undefined;
   let deviceFailure: RuntimeStatus | undefined;
   let depth = 0;
+  let epoch = 0;
   const listeners = new Set<() => void>();
+  const changeListeners = new Set<(change: ControlChange) => void>();
+  const pendingChanges: ControlChange[] = [];
 
   const status = (): RuntimeStatus => deviceFailure ?? runtime.status();
   const failed = () => status().kind === 'failed';
@@ -176,6 +186,15 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         listener();
       } catch (error) {
         errors.push(error);
+      }
+    }
+    for (let change = pendingChanges.shift(); change; change = pendingChanges.shift()) {
+      for (const listener of [...changeListeners]) {
+        try {
+          listener(change);
+        } catch (error) {
+          errors.push(error);
+        }
       }
     }
     if (errors.length > 0) throw errors[0];
@@ -263,6 +282,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
     runtime.setEnvironment(snapshot.environment);
     runtime.onControlsChanged(store.positions());
     runtime.reset(snapshot.systems);
+    epoch++;
     deviceFailure = undefined;
     settleDevices(0, snapshot.devices);
     phase = id;
@@ -298,6 +318,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
   }
 
   store.subscribe((change: ControlChange) => {
+    pendingChanges.push(change);
     dirty = true;
     try {
       runtime.onControlsChanged(store.positions());
@@ -429,6 +450,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         if (scenario?.injectedAtMs !== undefined) failureSet.inject(scenario.failure);
         runtime.onControlsChanged(store.positions());
         runtime.reset(start.systems);
+        epoch++;
         deviceFailure = undefined;
         settleDevices(0, start.devices);
         beginChecklist(start.id);
@@ -487,6 +509,7 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         }
         runtime.onControlsChanged(store.positions());
         runtime.reset(start.systems);
+        epoch++;
         settleDevices(0, start.devices);
         track(retryItem(running));
       });
@@ -498,5 +521,14 @@ export function createSession(aircraft: Aircraft, options: SessionOptions = {}):
         listeners.delete(listener);
       };
     },
+
+    onControlChange(listener) {
+      changeListeners.add(listener);
+      return () => {
+        changeListeners.delete(listener);
+      };
+    },
+
+    epoch: () => epoch,
   };
 }

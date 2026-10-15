@@ -1536,3 +1536,139 @@ describe('stable snapshots', () => {
     expect(seen).toBe('on');
   });
 });
+
+describe('onControlChange', () => {
+  const collect = (session: Session) => {
+    const changes: { id: string; source: string }[] = [];
+    session.onControlChange((change) => changes.push({ id: change.id, source: change.source }));
+    return changes;
+  };
+
+  it('emits pilot for a press, spring for its release and only system for a load', () => {
+    const session = createSession(fixtureAircraft);
+    const changes = collect(session);
+    session.press('lampTest');
+    session.release('lampTest');
+    expect(changes).toEqual([
+      { id: 'lampTest', source: 'pilot' },
+      { id: 'lampTest', source: 'spring' },
+    ]);
+    changes.length = 0;
+    session.jumpToPhase('holding');
+    expect(changes.length).toBeGreaterThan(0);
+    expect(changes.every((change) => change.source === 'system')).toBe(true);
+  });
+
+  it('delivers after the state listeners, with the settled state', () => {
+    const session = createSession(fixtureAircraft);
+    const order: string[] = [];
+    session.onControlChange(() => order.push(`change:${session.state().controls.master}`));
+    session.subscribe(() => order.push('state'));
+    session.set('master', 'on');
+    expect(order).toEqual(['state', 'change:on']);
+  });
+
+  it('delivers a batched load once it is complete', () => {
+    const session = createSession(fixtureAircraft);
+    const seen: { phase: string; epoch: number; master: unknown; states: number }[] = [];
+    let states = 0;
+    session.subscribe(() => states++);
+    session.onControlChange(() =>
+      seen.push({
+        phase: session.phase(),
+        epoch: session.epoch(),
+        master: session.state().controls.master,
+        states,
+      }),
+    );
+    const before = session.epoch();
+    session.jumpToPhase('holding');
+    expect(seen.length).toBeGreaterThan(0);
+    for (const entry of seen) {
+      expect(entry).toEqual({ phase: 'holding', epoch: before + 1, master: 'on', states: 1 });
+    }
+  });
+
+  it('stops delivering after unsubscribe', () => {
+    const session = createSession(fixtureAircraft);
+    let calls = 0;
+    const off = session.onControlChange(() => calls++);
+    session.set('master', 'on');
+    off();
+    session.set('master', 'off');
+    expect(calls).toBe(1);
+  });
+
+  it('serves every listener, finishes a jump, then rethrows the first error', () => {
+    const session = createSession(fixtureAircraft);
+    const states: string[] = [];
+    session.subscribe(() => states.push(session.phase()));
+    session.onControlChange(() => {
+      throw new Error('change listener broke');
+    });
+    let reached = 0;
+    session.onControlChange(() => reached++);
+    expect(() => session.jumpToPhase('holding')).toThrow('change listener broke');
+    expect(session.phase()).toBe('holding');
+    expect(session.state().controls.master).toBe('on');
+    expect(states).toEqual(['holding']);
+    expect(reached).toBeGreaterThan(0);
+  });
+
+  it('keeps delivering after a listener threw', () => {
+    const session = createSession(fixtureAircraft);
+    const changes = collect(session);
+    session.onControlChange(() => {
+      throw new Error('change listener broke');
+    });
+    expect(() => session.set('master', 'on')).toThrow('change listener broke');
+    expect(() => session.set('master', 'off')).toThrow('change listener broke');
+    expect(changes.map((change) => change.id)).toEqual(['master', 'master']);
+  });
+});
+
+describe('epoch', () => {
+  it('rises on a load, a procedure start, a retry and a leg restart', () => {
+    const session = createSession(fixtureAircraft);
+    let epoch = session.epoch();
+    const rose = () => {
+      const next = session.epoch();
+      const result = next > epoch;
+      epoch = next;
+      return result;
+    };
+
+    session.jumpToPhase('holding');
+    expect(rose()).toBe(true);
+
+    session.startProcedure('alternatorFailure');
+    expect(rose()).toBe(true);
+
+    session.set('master', 'off');
+    session.retryItem();
+    expect(rose()).toBe(true);
+
+    session.startLeg('beforeStart');
+    expect(rose()).toBe(true);
+    session.restartLeg();
+    expect(rose()).toBe(true);
+  });
+
+  it('holds on a control change, an advance, takeChecklist and a carried phase change', () => {
+    const session = createSession(fixtureAircraft);
+    const epoch = session.epoch();
+    session.set('master', 'on');
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    expect(session.epoch()).toBe(epoch);
+  });
+
+  it('is already new in the batched subscribe notification', () => {
+    const session = createSession(fixtureAircraft);
+    const before = session.epoch();
+    const seen: number[] = [];
+    session.subscribe(() => seen.push(session.epoch()));
+    session.jumpToPhase('holding');
+    expect(seen).toEqual([before + 1]);
+  });
+});
