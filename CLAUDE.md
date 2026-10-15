@@ -52,12 +52,17 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Before a PR, run the `CONTRIBUTING.md` Checks chain (the required `check`
   job); a PR that changes what the app renders also gets a `ui-verifier` pass.
   A failed pass blocks landing until a re-run on the final head passes.
+- A rendering fix that lands after the whole-milestone review gets a
+  ui-verifier pass on the release head (`develop`), run by the orchestrator,
+  before the release PR goes to the owner.
 - App settings (language, Hide upcoming) persist in browser storage: browser
   checks set them explicitly. At tablet width the drawer covers the panel, so
   walk the panel at 1920 and then resize.
 - A PR scored against a visual rubric stays a draft until a ui-verifier passes
   it; workflows and the merge train do not check scores. Brief scorers blind:
   no prior scores or "be strict" notes (they anchor).
+- A PR that lands without its `pr-review-toolkit:review-pr` pass owes one on
+  its diff before the release PR; file the findings as issues.
 - Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
   review-toolkit passes that a reviewer agent asks for.
 - The main checkout is pulled only at close-out, so it lags `develop`: give
@@ -76,6 +81,7 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Agents wait on CI in the foreground (a bounded `gh pr checks` loop); a
   background monitor or an idle agent may never wake, so when a wait runs long
   the orchestrator reads `commits/<sha>/check-runs` itself.
+- A `skipping` CodeQL row in `gh pr checks` means Analyze failed, not passed.
 - Rebase only before a branch's first push (force-push is blocked); after
   that the merge train updates the branch from `develop`.
 - A decision the spec does not settle: make it, state it and its reason in the

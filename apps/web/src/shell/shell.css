@@ -41,9 +41,10 @@
 }
 
 .shell-outside-view {
-  --outside-view-band-min: calc(var(--space-12) * 1.5);
-  --outside-view-pull: var(--space-3);
+  --outside-view-band-min: var(--space-8);
+  --outside-view-pull: var(--space-4);
   --outside-view-border: 1px;
+  --outside-view-folded-anchor: 45%;
   box-sizing: border-box;
   overflow: hidden;
   background: var(--color-surface);
@@ -61,10 +62,8 @@
   display: none;
 }
 
-.shell-outside-view[data-folded='hidden'] {
-  height: 0;
-  visibility: hidden;
-  margin-block-end: calc(-1 * (var(--shell-main-gap) + 2 * var(--outside-view-border)));
+.shell-outside-view[data-folded='true'] :is(.outside-view-image, .outside-view-cue) {
+  object-position: center var(--outside-view-folded-anchor);
 }
 
 .shell-panel {

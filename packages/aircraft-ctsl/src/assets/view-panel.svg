@@ -60,8 +60,10 @@
 <g transform="translate(1812 531) scale(0.612)"><use href="#bp" x="-42" y="-48"/></g>
 <text x="1812" y="507" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">EMS</text>
 <g transform="translate(1467 573) scale(0.612)"><use href="#bp" x="-42" y="-48"/></g>
+<text x="1467" y="600" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">Cockpit</text>
+<text x="1467" y="612" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">Light</text>
 <g transform="translate(1536 573) scale(0.612)"><use href="#bp" x="-42" y="-48"/></g>
 <text x="1536" y="603" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" textLength="62" lengthAdjust="spacingAndGlyphs" data-decor="">Instrument</text>
 <text x="1536" y="615" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" data-decor="">Light</text>
-<text x="1640" y="652" font-family="Helvetica, Arial, sans-serif" font-size="35" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" textLength="230" lengthAdjust="spacingAndGlyphs">Circuit Breakers</text>
+<text x="1640" y="652" font-family="Helvetica, Arial, sans-serif" font-size="35" font-weight="bold" fill="#ECEAE3" fill-opacity="0.9" text-anchor="middle" textLength="156" lengthAdjust="spacingAndGlyphs">Circuit Breakers</text>
 </svg>

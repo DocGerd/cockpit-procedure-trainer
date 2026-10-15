@@ -59,7 +59,12 @@ describe('Atr833Screen display', () => {
     expect(field('standby')).toBe('119.000');
   });
 
-  it('keeps SBY and the standby frequency while a list is open: the entry is the standby frequency', () => {
+  it('prints a negative DWM with its minus sign and two digits', () => {
+    const { field } = show({ item: 'dwm', settings: { ...base.settings, dwm: -2 } });
+    expect(field('line3')).toBe('DWM -02');
+  });
+
+  it('keeps SBY and the standby frequency while a list is open', () => {
     const { field, view } = show({ standby: 123450, list: { kind: 'mem', index: 7 } });
     expect(field('standby')).toBe('123.450');
     expect(field('line3')).toBe('MEM 07');

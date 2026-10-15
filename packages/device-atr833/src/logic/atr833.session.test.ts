@@ -177,7 +177,7 @@ describe('atr833 in an aircraft', () => {
     session.release('radio.mem');
     expect(radio(session.state()).memory[0]).toBe(118000);
     expect(radio(session.state())).toMatchObject({
-      standby: 118000,
+      standby: 119000,
       list: { kind: 'mem', index: 0 },
     });
   });

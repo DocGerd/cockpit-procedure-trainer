@@ -8,6 +8,15 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.21.0] - 2026-10-14
+
+### Fixed
+
+- The outside view above the panel no longer disappears on a short browser window: in a 1080p browser window (also for the demo aircraft, at 1920x950) it folds to a thin strip cropped towards the horizon and the cockpit still fits in one view, and where the cockpit falls back to tabs (for example a scaled 4K laptop) the strip stays whole.
+- ATR833 radio: opening the memory or last-used list no longer overwrites the standby frequency (only a VOL/SEL pick loads an entry), line 3 prints negative DWM as two digits (`DWM -02`), and dual watch ends when VOL/SEL lowers the squelch below 02.
+- The CT Supralight panel prints the "Cockpit Light" legend under its breaker cap in the Nav column, as on D-MPGO.
+- The CT Supralight "Circuit Breakers" header is now as wide as on D-MPGO, set in condensed letters that keep the lettering minimum on a tablet.
+
 ## [0.20.0] - 2026-10-14
 
 ### Added
@@ -406,7 +415,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.17.0...v0.18.0

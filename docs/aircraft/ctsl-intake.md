@@ -198,8 +198,8 @@ single "12V Outlet" breaker in the third row (the header's place is **assumed
 Landing Light, Cockpit Light, Instrument Light, Beacon Light, Position Light,
 Intercom, GPS. Com, Transponder, Landing Light, Beacon Light, Position Light, Intercom,
 GPS and 12V Outlet carry the trainer's breakers; Nav, Autopilot, HS34, EFIS, EMS,
-Cockpit Light and Instrument Light are inert caps drawn in the background, without
-legends (the trainer's cockpit light has no breaker). Two of these differ from the
+Cockpit Light and Instrument Light are inert caps drawn in the background (the
+trainer's cockpit light has no breaker). Two of these differ from the
 photos (§3.7.1), **assumed (unverified)**: the photos show EMS fitted, but the analog
 variant has no EMS (E10), so it is drawn as a cap; they show Intercom as a plain cap,
 but the handbook gives the intercom a 2 A breaker (§3.6) and the photo does not show
@@ -207,9 +207,8 @@ whether the cap is a blank, so the trainer keeps that breaker. The legends of th
 breakers print in full words on the control faces, small as on the aircraft: captions
 marked secondary, an ADR 0002 trade-off (realism against the lettering minimum, equal
 rank), because a legend like "Transponder" at the minimum does not fit the strip's
-pitch. The inert caps carry no legend for the same reason, since background lettering
-has no such exemption; the slip indicator, FLARM display and hour meter carry no
-wording either. The type-name script lettering is not reproduced.
+pitch. The inert caps carry backdrop legends, not control labels (§3.9.4, §3.9.7). The slip indicator, FLARM display
+and hour meter carry no wording. The type-name script lettering is not reproduced.
 
 **Update (2026-10-12, #721):** the slip indicator and the hour meter are now drawn
 indicators whose faces carry the `SLIP INDICATOR` and `HOURS` legends as secondary
@@ -876,13 +875,17 @@ external audio input.
 
 **Line-3 settings** (manual §2.4). `SET` chooses the setting and `VOL/SEL` changes
 it; values always show two digits, and line 3 returns to VOL after 12 s untouched.
-Receive volume (`VOL`) runs 01 to 16. Squelch (`SQL`, higher needs a stronger
+Receive volume (`VOL`) runs 01 to 16 (assumed, unverified: §9 question 65). Squelch (`SQL`, higher needs a stronger
 signal, default 05 and the only default the manual gives), display brightness
 (`DIM`), the speech level that opens the intercom (`VOX`, 01 meaning always open)
 and intercom volume (`INT`, shown as `INT --` when the wiring disables the intercom)
 each run 01 to 10. The external audio volume (`EXT`) runs 00 to 10, 00 switching the
 input off. The dual-watch reduction (`DWM`), how much quieter standby is heard,
-runs from 00 (none) down to −8, the minus sign printed.
+runs from 00 (none) down to −8, the minus sign printed. **Trainer rule (#766,
+decision):** every numeric value prints as two digits (`INT --` and `EXT 00` as
+above). Only `DWM` can be negative (−8 to 0); it prints its minus sign before the two
+digits, so `DWM -02` and `DWM 00` (a trainer decision). The unit's own negative
+format is unverified (§9 question 65).
 
 **Configuration menu** (manual §3, `SET` held 5 s; not modelled). Installer
 settings: channel spacing, automatic display darkening, push-to-talk assignment,
@@ -896,13 +899,13 @@ the active frequency. Line 2: `SBY` or `DW`, a status field (`RX` in dual watch)
 the standby frequency, with the edit cursor as an underline below one field. Line 3:
 the chosen item and its value (default `VOL nn`), or `MEM nn` with the entry's name,
 or `LST nn`, while browsing a list; `BAT` for a low supply. While a list is open,
-line 2 keeps the `SBY` label and shows the entry, because the entry is the standby
-frequency. The manual's example and D-MPGO's display show the same layout, with the
+line 2 keeps the `SBY` label and shows the standby frequency; only a `VOL/SEL`
+pick loads the entry into it (§9 question 65). The manual's example and D-MPGO's display show the same layout, with the
 cursor on the MHz field.
 
 **Power** (manual §2.2). Holding `I/O` about 0.5 s switches the unit on: a start
 screen with the type and software version, then the frequencies and settings it had
-at switch-off. About 2 s switches it off. The manual names no switch-on when supply
+at switch-off. About 2 s switches it off (assumed, unverified: §9 question 65). The manual names no switch-on when supply
 arrives, so power arriving leaves the unit dark until `I/O` is pressed; this matches
 the owner's answer for D-MPGO (§9 question 35). The manual does not say whether the
 memories and the last-used list survive switch-off.
@@ -923,18 +926,21 @@ optionally named with up to 8 characters. Recall: `MEM` opens the list at entry 
 turning the `VOL/SEL` knob picks an entry, and the entry replaces the standby
 frequency at once; `▲▼` then makes it active and leaves the list. A second short
 `MEM` opens the last-used list: the last 10 active frequencies as `LST 01` to
-`LST 10`, plus `LST 00`, which holds the last standby frequency taken from the
-memory list; picking and swapping work as in the memory list. Save: make the
+`LST 10`, plus `LST 00`, a standby frequency taken from the memory list (what it
+holds exactly: §9 question 65); picking and swapping work as in the memory list. Save: make the
 frequency active, open the memory list, pick the entry, hold `MEM` 1.5 s or more;
-the active frequency is written into the entry (so line 2 now shows it too) and any
+the active frequency is written into the entry (line 2 is unchanged) and any
 name is cleared. There is no save mark. A list is left by a key press or after a
 time-out whose length the manual does not give.
 
 **Dual watch** (manual §2.6). With one receiver, dual watch listens mainly to the
 standby frequency and samples the active one at intervals; a signal on the active
 one takes priority. Transmission is always on the active frequency. Changing either
-frequency ends dual watch. It needs a squelch of at least 02. `DWM` makes standby
-reception quieter so the two can be told apart. The manual advises against dual
+frequency ends dual watch. It needs a squelch of at least 02 (an earlier reading of the manual; the manual was
+not re-checked, so treat it as assumed, §9 question 65). **Trainer rule (#766,
+decision):** `DW` does nothing while the squelch is below 02, and lowering the
+squelch below 02 while dual watch is on switches dual watch off at once. `DWM` makes
+standby reception quieter so the two can be told apart. The manual advises against dual
 watch where a continuous listening watch is required. The pilot swaps before
 answering a call heard on standby.
 
@@ -964,7 +970,8 @@ the three-field cursor (fixed spacing; fields wrap without carry, **assumed
 (unverified)**), swap, dual watch (squelch 02 or more), the line-3 items VOL, SQL,
 DIM, VOX, DWM, INT and EXT as numbers with the SET hold back to VOL and the 12 s
 time-out, the user memory list (100 unnamed entries) and the last-used list with
-`LST 00`, browsing that replaces the standby frequency, and storing the active
+`LST 00`, browsing in which a VOL/SEL pick (not opening the list) replaces the standby
+frequency, and storing the active
 frequency with a `MEM` hold. Frequencies, settings, memories and the last-used list
 survive power loss and switch-off; dual watch, the line-3 item and an open list do
 not. It leaves out reception, transmission and audio (so no `RX`, `TX`, `Te`, and
@@ -1093,11 +1100,14 @@ _Trainer note (#742)._ The level is the pressure altitude: the altimeter's readi
 with 1013 hPa set (§3.10.2, §9 questions 46 to 48), so it follows the day's QNH, not
 the altimeter knob. On the apron at field elevation it reads `FL 003`; the `FL 000`
 of the parked-aircraft photos is illustrative only, as noted above. The level is
-shown in whole hundreds of feet, rounded down: **assumed (unverified)**, chosen in
-issue #742 and not taken from the handbook (the text above says only "in 100 ft
-steps"); to be checked against the handbook (§9 question 70). A level below zero is
-not covered by any source and is shown as the same rounding gives it (`FL -01` for
-−50 ft).
+shown in whole hundreds of feet, rounded down: **still assumed — source checked,
+silent**. Checked on 2026-10-14 against the handbook revision cited above (document
+03.2126.010.71e, revision 3.00): its display section (§2.4) says only that the level is
+in 100 ft steps and that `FLerr` appears beyond −1000 to 35 000 ft, where Mode C goes
+inactive. It names no rounding direction and shows no negative level. **Verified
+(§2.4):** an altitude outside that range shows `FLerr` and stops reporting. A level
+below zero but within the range is **assumed**: it is shown as the same rounding gives
+it (`FL -01` for −50 ft), with a minus sign and two digits. See §9 question 70.
 
 **Power.** Hold `I/O` for about 0.5 s. A start screen shows the device name and the
 software versions. If the cradle's external memory holds several aircraft records, a
@@ -1815,6 +1825,19 @@ alone under the **second** column:
 - Trainer today: a 100 × 96 grid at x 1650 – 2350, y 372 – 660 (the full plate width,
   rows 96 apart); real rows are 0.22 A apart, so under T the row pitch is 42 units and
   the column pitch 69 (§3.9.7, touch targets).
+- **Final trade-off (#772, M20): the Beacon Light touch box stays over the right edge of
+  the inert Instrument Light cap.** The four operable bottom-row breakers (Beacon Light
+  to GPS) sit on one line, so their 84-unit boxes must all contain that line and cannot
+  overlap one another: the boxes tile along x, 252 units over the three steps, while the
+  knobs are 69 apart, 207 over the three steps. The run therefore leans right, and it can
+  move no further right than the GPS knob (radius 18) allows: it already sits 3 units
+  inside its box's left edge. The Beacon Light box would have to start at the cap's right
+  edge (17.5 units right of the cap's centre), 14.5 units further right than today; the
+  best layout is 3 units, which still leaves the box over about a third of the cap's
+  width, against 41 percent today. Staggering in y cannot help, as every box contains the
+  knob line. It would take a smaller target
+  (stop-and-ask, ADR 0002) or a larger knob pitch than D-MPGO's. Recorded as final; it
+  is revisited only if the touch-target rule or the panel floor changes.
 
 **Generator lamp** (right plate): field x 0.494, y 0.124, a red lens 0.27 A; legend
 "Generator" above it at y 0.08. It sits at the plate's horizontal middle, right of the
@@ -2035,7 +2058,7 @@ above are what makes the panel recognisable; the fractions do not change with th
   centre plate's middle, as on the aircraft.
 - **Left out:** the glareshield knob and the red-cross disc (no room above the FLARM
   display, §9 question 42); the "Push off" label (owner, §3.9.5); the Cockpit Light
-  breaker legend (the 12V Outlet breaker sits right under that breaker, §3.9.4); the
+  breaker legend (drawn in M20, #768, below); the
   plates' corner screws; gauge screws,
   which belong to the gauge faces (#719 to #721).
 - **Not moved in this PR:** the lower column (`centre` view, §9 question 43) and the
@@ -2070,7 +2093,25 @@ above are what makes the panel recognisable; the fractions do not change with th
   the aircraft; the Beacon Light legend sits a little left of its knob so that it stays
   inside its box.
 - **Header.** "Circuit Breakers" prints 1.2 A wide, wider than D-MPGO's 0.81 A, so it
-  meets the lettering minimum on a tablet in portrait.
+  meets the lettering minimum on a tablet in portrait (superseded by #773 below).
+
+**Trainer (M20, #768, #772, #773): breaker block follow-ups.** They supersede the
+Cockpit Light and header statements above and in the #716 block's "Left out" list:
+
+- **Cockpit Light legend (#768).** The inert cap under column 2 now carries its printed
+  legend in two lines ("Cockpit" over "Light") under it, in the style of the Instrument
+  Light legend, a little higher so its descenders clear the 12V Outlet breaker. It is backdrop dressing, not a control label:
+  the cap is inert, and the trainer's cockpit light is the rocker (§3.9.6). The 12V
+  Outlet breaker's face sits directly under the legend, its rim just clear of the descenders.
+- **Beacon Light box (#772).** Unchanged, recorded as final in §3.9.4: four 84-unit boxes
+  on knobs 69 apart cannot clear the inert Instrument Light cap.
+- **Header (#773).** "Circuit Breakers" now prints 156 units wide (0.81 A, D-MPGO's), on
+  one line at the size the tablet-portrait lettering minimum needs. The width is reached
+  by condensing the letters to about 0.58 of their natural width (they were about 0.85);
+  at an unsqueezed size the line would print about 7 px on a tablet in portrait, and two
+  lines do not fit between the bottom-row legends and the plate's lower edge. The
+  letters stay taller than D-MPGO's (§3.9.5 gives its whole header block, "Push off"
+  included, 0.17 A), so the header reads narrower and denser than on the aircraft.
 
 ### 3.10 Gauge faces (photos, M19)
 
@@ -2243,9 +2284,9 @@ unbroken to the red line at 300.
 - **Windows and knobs.** None.
 - **Sticker (on the panel, not the instrument).** A filled orange triangle (hint
   #e89a20) beside the case on the right, its apex pointing left at the dial. The apex
-  is at θ about 75° and r about 1.04 R (box (1.00, 0.36)); the base is upright at box
-  x about 1.13, from y 0.28 to 0.42. The triangle is about 0.13 A wide and 0.14 A
-  tall. About the dial's pivot the apex sits at about 77°, the 100 km/h tick. It
+  is at box (1.00, 0.36): θ about 74° to 76° and r about 1.04 R about the dial's
+  pivot (§3.10.0), on the 100 km/h tick (76°); the base is upright at box x about
+  1.13, from y 0.28 to 0.42. The triangle is about 0.13 A wide and 0.14 A tall. It
   carries no print, so its meaning is not legible (§9 question 51).
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.38, 0.36) of the bounding box of the upper-left field's
@@ -2340,14 +2381,14 @@ question #719 raised). Stacking: the hairline appears to pass under the broad bl
 - **Reading in the photos.** On the parked aircraft the altimeter reads about 330 ft
   with 1025 in the window (the long pointer just past the 3's tick, at about 120°;
   the broad pointer just right of 0, the hairline at 0). The day's QNH is unknown
-  (§9 question 47).
-- **Trainer uses** (§9 questions 46 to 49, all **assumed (unverified)**): a field
-  elevation of 315 ft at the home aerodrome; QNH 1013 hPa unless a scenario sets its
-  own; indicated altitude = field elevation + height above the field + (knob setting
-  − QNH) × 27 ft per hPa, all three pointers following that one value; a setting
-  range of 950 to 1050 hPa in 1 hPa steps, turning the knob clockwise raising the
-  setting and the reading. The knob's starting setting is the #719 PR's decision
-  (§9 question 47).
+  (§9 questions 46 and 47).
+- **Trainer uses** (§9 questions 46 to 49): a field elevation of 315 ft at the home
+  aerodrome; QNH 1013 hPa unless a scenario sets its own; indicated altitude = field
+  elevation + height above the field + (knob setting − QNH) × 27 ft per hPa, all
+  three pointers following that one value; a setting range of 950 to 1050 hPa in 1
+  hPa steps, turning the knob clockwise raising the setting and the reading. All of
+  these are **assumed (unverified)**. The knob's start is per §9 question 47 and the
+  "hPa" label per question 49.
 - **Placement** (cross-check for the panel layout; panel plane corrected, ±0.03).
   The centre sits at about (0.78, 0.36) of the upper-left plate's bounding box
   (§3.9.2's field position (0.781, 0.386) governs), 1.30 A right of the ASI's centre
@@ -2747,7 +2788,7 @@ stopped, so a battery voltage. Illustrative only.
 
 _Stop and rest position_: not visible in photos; §9 question 57.
 
-**§4.3.** The table has no voltmeter row. The dial runs 9–17 V with no markings.
+**§4.3.** Its voltmeter row gives 9–17 V, integer ticks, no coloured arcs (§9 question 58).
 
 #### 3.10.9 Oil pressure
 
@@ -3038,13 +3079,8 @@ per minute, 0 to 2 each way with half steps: the trainer scale is ±2000 ft/min 
 ticks every 500. Systems may keep metres per second internally; the gauge shows
 ft/min (1 m/s ≈ 197 ft/min).
 
-Trainer deviation (agent decision, M17 T3, open for the owner): the drawn
-airspeed dial prints numbers every 40 (40 to 320) with ticks every 20, because
-fifteen three-digit numerals do not fit the ring at the lettering floor; numbers
-every 20 need a larger gauge (M17 T4's layout) or an owner exemption. Open for
-#720: §2a item 10 makes numerals a recognition fact, and the real dial numbers every
-20; under §9 question 41 (a) the airspeed indicator shrinks to 193 units, which makes
-numbers every 20 harder to fit.
+The drawn airspeed dial prints all sixteen numerals every 20, as the real dial does
+(§2a item 10); a scale numbered every 40 is not used.
 
 ### 4.4 Fuel, flaps, masses
 
@@ -3850,7 +3886,7 @@ verifies it on D-MPGO.
     1013 hPa** for every scenario unless a scenario sets its own, **assumed
     (unverified)**, from general knowledge (ISA standard pressure; VFR pilots in
     Germany set QNH before take-off). Whether the knob starts at another value, so
-    that setting it is a real task, is the #719 PR's decision, named there. The
+    that setting it is a real task, was decided in #719 (below). The
     photos show one real example of a setting left over from the last flight: 1025
     hPa on the parked aircraft. **#719 decided:** parking, taxi out and the holding
     point enter with that 1025 hPa, so N6 is a real turn of the knob; line-up and every
@@ -3967,25 +4003,55 @@ verifies it on D-MPGO.
     3.00) describes? The owner chose that manual because the maker no longer hosts one
     for the original unit; the variant letter is not visible on the face (§3.8.1).
     Trainer uses: the A manual's behaviour for every control on the face. **Assumed
-    (unverified)** (§3.8.1).
+    (unverified)** (§3.8.1). **Still assumed — source not reachable:** the cited
+    manual (ManualsLib 876459) could not be fetched; the only copy reachable on the
+    maker's site is a different variant (ATR833A-II, document 01.143A.010.71e), which
+    does not verify the OLED unit's behaviour. Every ATR833A item in §3.8.1 and
+    question 65 stays assumed.
 65. **ATR833 points the A manual leaves open (#718)**: which key leaves a MEM or LST
     list, and does it also do its own job; how long the list time-out is; what an
     unused memory entry holds; whether `LST 00` holds the standby frequency the
     memory list last set; whether memories and the last-used list survive switch-off;
     what a `MEM` hold does outside the memory list; how long the `I/O` press must be;
     whether a cursor field carries into the next when it wraps; where the cursor starts
-    after power-on or a swap; which fields the cursor has in 25 kHz spacing.
+    after power-on or a swap; which fields the cursor has in 25 kHz spacing; the
+    unit's own format for a negative DWM value.
     Trainer uses: `▲▼` swaps and leaves a list, `MEM` steps from the memory list to
     the last-used list and closes it, any other key leaves the list without its own
     effect, and the frequency knob leaves it and then steps the standby frequency;
     the 12 s line-3 time-out; unused entries are empty and leave the standby
-    frequency as it is; `LST 00` holds the last standby frequency the memory list set;
+    frequency as it is; `LST 00` holds the frequency a memory-list pick last loaded into standby;
     memories and the last-used list survive; a `MEM` hold outside the memory list
     acts as a short press; any `I/O` press switches on; the cursor fields wrap without
     carry; the cursor starts on the MHz field at power-on and stays where it was on a
     swap; 25 kHz spacing is not modelled (spacing fixed at 8.33 kHz); the defaults
-    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's).
+    VOL 10, DIM 10, VOX 05, DWM 00, INT 05, EXT 00 (SQL 05 is the manual's); a
+    negative DWM value prints a minus sign plus two digits (`DWM -02`), a trainer
+    decision.
     **Assumed (unverified)** (§3.8.1).
+    **Standby rule (#765, decision):** opening the memory list (`MEM 00`) or the
+    last-used list (`LST 00`) does not touch the standby frequency; line 2 keeps
+    showing it. Only a VOL/SEL step in a list loads the entry now shown into the
+    standby frequency (an empty entry leaves it as it is), and only a pick of a
+    non-empty memory-list entry sets `LST 00`, to the frequency that pick loaded (not
+    the standby frequency it replaced). Closing a list without a pick leaves the standby
+    frequency unchanged. Reason: a pilot who only looks at a list must not lose a
+    hand-tuned standby frequency. The intake's earlier reading of the manual
+    (§2.5.3 to §2.5.5) places the replacement at the pick, not at the opening.
+    **Consequence (open owner question):** while a list is open, the entry's frequency is
+    not shown (line 3 prints only `MEM nn` or `LST nn`, entries are unnamed) until a
+    VOL/SEL pick loads it into standby. `MEM 00` and `LST 00` load only by stepping away
+    and back, when the list has more than one entry. Stepping onto an empty entry leaves
+    line 2 showing the standby frequency as it was (the last loaded entry, or the
+    hand-tuned frequency if nothing was loaded yet) next to the new entry number; the
+    printed line 3 has no mark that the entry is empty (the spoken readout says
+    "empty").
+    Alternative: an opened list loads entry 00 when it is non-empty, which brings back
+    the overwritten-standby problem for `MEM 00`.
+    The 2 s `I/O` hold, VOL 1 to 16, MEM 00 to 99, the list-leaving keys and time-out,
+    memory retention and the power-on defaults above are likewise assumed, not
+    verified. The line-3 digit rule and the dual-watch squelch rule are decisions
+    recorded in §3.8.1.
 
 66. **TRT800H Auto-On wiring** (#727): is the transponder's Auto-On pin wired to the supply
     behind the Avionics Master (the unit then starts by itself whenever power arrives and
@@ -4014,8 +4080,11 @@ verifies it on D-MPGO.
     trainer's own step times, Nearest and loud volume on every start, and a fixed search time. The
     start in Nearest at loud volume is from the display sheet; the timings and the
     absence of a breaker are **assumed (unverified)** (§3.8.4).
-70. **TRT800H flight-level rounding** (#742): does the level shown truncate or round to
-    the nearest 100 ft, and how is a negative pressure altitude shown? Trainer uses:
-    rounded down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
+70. **TRT800H flight-level rounding** (#742, #770): does the level shown truncate or round to
+    the nearest 100 ft, and how is a negative pressure altitude shown? Checked against
+    document 03.2126.010.71e revision 3.00 (§2.4): **still assumed — source checked,
+    silent** on the rounding direction and on the format of a negative level. Verified
+    (§2.4): beyond −1000 to 35 000 ft the display shows `FLerr`. Trainer uses: rounded
+    down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
 
 <!-- prettier-ignore-end -->
