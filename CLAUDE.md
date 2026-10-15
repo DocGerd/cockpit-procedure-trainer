@@ -55,8 +55,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - A rendering fix that lands after the whole-milestone review gets a
   ui-verifier pass on the release head (`develop`), run by the orchestrator,
   before the release PR goes to the owner.
-- App settings (language, Hide upcoming) persist in browser storage: browser
-  checks set them explicitly. At tablet width the drawer covers the panel, so
+- App settings (language, Hide upcoming = key `recall`) persist in browser
+  storage: browser checks set them explicitly. At tablet width the drawer covers the panel, so
   walk the panel at 1920 and then resize.
 - A PR scored against a visual rubric stays a draft until a ui-verifier passes
   it; workflows and the merge train do not check scores. Brief scorers blind:
@@ -160,7 +160,9 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - Once the release-prep PR has folded `changelog.d`, a PR landing before the
   release edits the CHANGELOG.md section instead of adding a fragment.
 - `gh pr merge --delete-branch` errors when a worktree holds the branch (the
-  PR still lands); delete branches after removing the worktree.
+  PR still lands); delete branches after removing the worktree. Agents'
+  remote-branch deletes are refused in auto mode: the orchestrator lists merged
+  remote branches for the owner at session end.
 - After landing a PR, check its `Closes` issue is closed; if not, PATCH
   `repos/<owner>/<repo>/issues/<n>` with `state=closed`, `state_reason=completed`.
 - The OpenSSF Best Practices badge rests on
