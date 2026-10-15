@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { SoundControl } from '../audio';
 import { deployEnv } from '../deploy-env';
 import { LanguageSwitch, useLocalize, useMessages } from '../i18n';
 import { ModeControl } from '../modes/ModeControl';
@@ -153,6 +154,7 @@ export function Header({
           </>
         )}
         <LanguageSwitch />
+        <SoundControl />
         <ThemeSwitch
           labels={{ switchToLight: text.switchToLight, switchToDark: text.switchToDark }}
         />
