@@ -1,15 +1,19 @@
 // @vitest-environment jsdom
+import { FakeAudioContext } from '@cpt/panel-kit';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LanguageProvider } from '../i18n';
 import type { Language } from '../i18n';
 import { readSetting, writeSetting } from '../storage';
 import { AudioProvider, SoundControl } from './index';
 
 beforeEach(() => window.localStorage.clear());
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 function renderControl(language: Language = 'en', extra?: ReactNode) {
   return render(
@@ -33,7 +37,7 @@ describe('SoundControl', () => {
       </button>,
     );
     expect(screen.queryByRole('switch')).toBeNull();
-    expect(opener('Sound')).toHaveProperty('ariaHasPopup', 'dialog');
+    expect(opener('Sound').getAttribute('aria-haspopup')).toBe('dialog');
     await userEvent.click(opener('Sound'));
     expect(screen.getByRole('switch')).toBeTruthy();
     expect(opener('Sound').getAttribute('aria-expanded')).toBe('true');
@@ -73,12 +77,40 @@ describe('SoundControl', () => {
     await userEvent.click(opener('Sound'));
     const slider = screen.getByRole('slider', { name: 'Volume' });
     expect((slider as HTMLInputElement).disabled).toBe(false);
+    expect(['min', 'max', 'step'].map((attribute) => slider.getAttribute(attribute))).toEqual([
+      '0',
+      '100',
+      '1',
+    ]);
     fireEvent.change(slider, { target: { value: '30' } });
     expect(readSetting('volume')).toBe('30');
     expect((slider as HTMLInputElement).value).toBe('30');
+    fireEvent.change(slider, { target: { value: '0' } });
+    expect(readSetting('volume')).toBe('0');
 
     await userEvent.click(screen.getByRole('switch'));
     expect((slider as HTMLInputElement).disabled).toBe(true);
+  });
+
+  it('starts the audio context in the click that turns sound on, and sets its gain', async () => {
+    const contexts: FakeAudioContext[] = [];
+    vi.stubGlobal('AudioContext', function FakeBrowserContext() {
+      const context = new FakeAudioContext();
+      contexts.push(context);
+      return context.asAudioContext();
+    });
+    writeSetting('sound', 'off');
+    renderControl();
+    await userEvent.click(opener('Sound'));
+    expect(contexts).toHaveLength(0);
+
+    await userEvent.click(screen.getByRole('switch'));
+    expect(contexts).toHaveLength(1);
+    const masterGain = () => contexts[0]?.nodesOf('gain')[0]?.gain.value;
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '30' } });
+    expect(masterGain()).toBeCloseTo(0.3 ** 2);
+    await userEvent.click(screen.getByRole('switch'));
+    expect(masterGain()).toBe(0);
   });
 
   it('starts with the stored setting', async () => {
@@ -102,7 +134,9 @@ describe('SoundControl', () => {
 
   it('speaks German', async () => {
     renderControl('de');
+    expect(opener('Ton').getAttribute('title')).toBe('Ton');
     await userEvent.click(opener('Ton'));
+    expect(screen.getByRole('dialog', { name: 'Ton' })).toBeTruthy();
     expect(screen.getByRole('switch', { name: 'Ton an' })).toBeTruthy();
     expect(screen.getByRole('slider', { name: 'Lautstärke' })).toBeTruthy();
     await userEvent.click(screen.getByRole('switch'));

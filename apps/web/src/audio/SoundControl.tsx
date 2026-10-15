@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useMessages } from '../i18n';
 import { headerMessages } from '../shell/header.messages';
 import { MAX_VOLUME } from '../storage';
@@ -34,9 +34,17 @@ export function SoundControl() {
   const text = useMessages(headerMessages);
   const { sound, volume, setSound, setVolume } = useAudio();
   const [open, setOpen] = useState(false);
+  const [alignStart, setAlignStart] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const popover = useRef<HTMLDivElement>(null);
   const popoverId = useId();
   const on = sound === 'on';
+
+  // When a wrapped header row starts with this control, an end-aligned popover goes off-screen.
+  useLayoutEffect(() => {
+    if (!open || !root.current || !popover.current) return;
+    setAlignStart(root.current.getBoundingClientRect().right < popover.current.offsetWidth);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +72,14 @@ export function SoundControl() {
         <SpeakerIcon on={on} />
       </button>
       {open && (
-        <div id={popoverId} className="sound-popover" role="dialog" aria-label={text.sound}>
+        <div
+          id={popoverId}
+          ref={popover}
+          className="sound-popover"
+          role="dialog"
+          aria-label={text.sound}
+          data-align={alignStart ? 'start' : undefined}
+        >
           <label className="sound-row">
             <input
               type="checkbox"
