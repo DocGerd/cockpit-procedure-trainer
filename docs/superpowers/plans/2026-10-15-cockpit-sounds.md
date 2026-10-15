@@ -8,13 +8,13 @@
 
 **Inputs:** the owner approved the spec and ADR-0003 on 2026-10-15 with three answers, recorded in the spec: sound defaults on, below full volume (D9); one header button with a popover holding the switch and the slider (D8); engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) are general knowledge under the intake §9 ruling (D16).
 
-**Milestone:** "M21 Cockpit sounds" (GitHub milestone number TBD) holds wave 1: `T0` to `T20` and `T8a`. Wave 2 (`T21` to `T25d`) is a follow-up milestone (decision 12). Every task below is one GitHub issue, one branch and one PR with `Closes #<n>`. The `T` numbers are placeholders the orchestrator replaces with issue numbers when it files them; the issue body is the task's section below.
+**Milestone:** "M21 Cockpit sounds" (GitHub milestone 22) holds wave 1 (`T0` to `T20` and `T8a`) and wave 2 (`T21` to `T25d`), all filed together (decision 12). Every task below is one GitHub issue, one branch and one PR with `Closes #<n>`. The task index names each task's issue number; the issue body is the task's section below.
 
 **Tech stack:** Web Audio native nodes only (spec §2). No new dependency, no `AudioWorklet`, no media elements, no audio files.
 
 ## Task index
 
-Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, decision 2). A task starts as soon as every task in its Depends-on column has landed. Group = the earliest slot that allows (A starts when T0 lands, B when its A dependencies land, and so on), so the tasks of one group may run at the same time. A phase checkpoint gates that phase's review and, for Phase 3, the release; it never gates a task's start (decision 11).
+Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, decision 2). A task starts as soon as every task in its Depends-on column has landed. Group = the earliest slot that allows (A starts when T0 lands, B when its A dependencies land, and so on), so the tasks of one group may run at the same time. A phase checkpoint gates that phase's review and, for Phase 3, the owner listening check; it never gates a task's start (decision 11).
 
 ### M21 (wave 1)
 
@@ -43,7 +43,7 @@ Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, de
 | T19  | CTSL sounds wired, aircraft sounds check and perf A/B     | `aircraft-sounds-check`, `ctsl-sounds`     | 3     | T12, T15, T16, T17 | F     | M    | `added`      |
 | T20  | Cockpit audio over the real aircraft                      | criteria 1, 2, 8, 14 (spec §12)            | 3     | T18, T19           | G     | S    | No changelog |
 
-### Follow-up milestone (wave 2, blocked)
+### M21 (wave 2, blocked)
 
 | Task | Title                                                    | Capability ids (spec §5)       | Phase | Depends on      | Group | Size | Changelog    |
 | ---- | -------------------------------------------------------- | ------------------------------ | ----- | --------------- | ----- | ---- | ------------ |
@@ -56,7 +56,7 @@ Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, de
 | T25c | Rescue-system deployment (blocked, conditional)          | `ctsl-extra-cues`              | 4     | T25b or T23     | K     | M    | `added`      |
 | T25d | Flap end stop (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T25c or T23     | K     | M    | `added`      |
 
-Counts: M21 holds 22 issues: Phase 0 one; Phase 1 five; Phase 2 nine (T6 to T13 and T8a); Phase 3 seven. The follow-up milestone holds four tasks plus four conditional ones. A conditional task is filed only for an item the intake session confirms; the chain T25b → T25c → T25d skips any item not filed.
+Counts: M21 holds 30 issues. Wave 1 has 22: Phase 0 one; Phase 1 five; Phase 2 nine (T6 to T13 and T8a); Phase 3 seven. Wave 2 has eight: four tasks plus four conditional ones. All are filed up front; a conditional task the intake session does not confirm is closed as not planned, and the chain T25b → T25c → T25d skips it.
 
 Branches: `docs/<n>-…` for T0, T13 and T21; `chore/<n>-…` for T8a; `feat/<n>-…` for the rest (CONTRIBUTING.md Flow).
 
@@ -121,14 +121,14 @@ Branches: `docs/<n>-…` for T0, T13 and T21; `chore/<n>-…` for T8a; `feat/<n>
 
 Each task starts when its Depends-on tasks have landed (Task index). One merge train lands every PR, one at a time; the orchestrator may hold back members of a large group (B has seven) to cap concurrent agents.
 
-| Phase     | Tasks (group)                                                            | Agents                                                                                                                                           |
-| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0         | T0                                                                       | this branch; 1 reviewer                                                                                                                          |
-| 1         | T1, T2, T5 (A); T3, T4 (B)                                               | implementers (`sonnet`, high; T5 `opus`, the browser-lifecycle risk), one reviewer per PR; no ui-verifier (nothing renders)                      |
-| 2         | T7 (A); T6, T8, T9 (B); T8a, T10 (C); T11 (D); T12, T13 (E)              | implementers (`sonnet`, high; T11 and T12 `opus`), reviewers, 1 ui-verifier for T10, a doc-writer plus a committer for T13; T8a the orchestrator |
-| 3         | T14 (A); T15, T17 (B); T16 (C); T18, T19 (F); T20 (G)                    | implementers (`sonnet`, high; T15 `opus`), reviewers; the orchestrator runs the review-toolkit passes reviewers ask for                          |
-| Release   | the release PR, after the Phase 3 checkpoint with every M21 issue closed | `milestone-release`                                                                                                                              |
-| Follow-up | T21 (H, owner); T22, T24, T25a (I); T23 (J); T25b to T25d (K, serial)    | the owner's `CPT_ALLOW_REFERENCE=1` session for T21; then as Phase 3                                                                             |
+| Phase   | Tasks (group)                                                                        | Agents                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0       | T0                                                                                   | this branch; 1 reviewer                                                                                                                          |
+| 1       | T1, T2, T5 (A); T3, T4 (B)                                                           | implementers (`sonnet`, high; T5 `opus`, the browser-lifecycle risk), one reviewer per PR; no ui-verifier (nothing renders)                      |
+| 2       | T7 (A); T6, T8, T9 (B); T8a, T10 (C); T11 (D); T12, T13 (E)                          | implementers (`sonnet`, high; T11 and T12 `opus`), reviewers, 1 ui-verifier for T10, a doc-writer plus a committer for T13; T8a the orchestrator |
+| 3       | T14 (A); T15, T17 (B); T16 (C); T18, T19 (F); T20 (G)                                | implementers (`sonnet`, high; T15 `opus`), reviewers; the orchestrator runs the review-toolkit passes reviewers ask for                          |
+| Release | the release PR, after the Phase 3 checkpoint and wave 2, with every M21 issue closed | `milestone-release`                                                                                                                              |
+| Wave 2  | T21 (H, owner); T22, T24, T25a (I); T23 (J); T25b to T25d (K, serial)                | the owner's `CPT_ALLOW_REFERENCE=1` session for T21; then as Phase 3                                                                             |
 
 ## Dependency graph
 
@@ -141,12 +141,12 @@ T1 + T3 + T6 + T10 ──> T11                                   (group D)
 T4 + T9 + T11 ──> T12;  T11 ──> T13                          (group E)
 T2 + T12 ──> T18;  T12 + T15 + T16 + T17 ──> T19             (group F)
 T18 + T19 ──> T20                                            (group G)
-Phase 3 checkpoint: owner listening check (criterion 13) ──> release PR
+Phase 3 checkpoint: owner listening check (criterion 13); with wave 2 landed ──> release PR
 
 Critical path: T0 → T5 → T8 → T10 → T11 → T12 → T19 → T20 (T7 lands beside T5).
 The engine branch T0 → T14 → T15 → T16 is ready long before T12 lands.
 
-Follow-up milestone:
+Wave 2 (same milestone):
 owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ── T25c ── T25d
                         ├── T24 (+T18)
                         └── T25a (+T3)
@@ -164,7 +164,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 - [ ] The spec status reads Approved 2026-10-15; D8, D9 and D16 record the owner's answers; §14 holds three open questions.
 - [ ] ADR-0003's Consequences name the D16 exception (engine facts used only for sound are recorded as general knowledge), consistent with spec D16 and §11.
-- [ ] Every wave-1 placeholder (T1 to T20 and T8a) names its issue in the M21 milestone; wave-2 placeholders stay until they are filed in the follow-up milestone (decision 12).
+- [ ] Every wave-1 placeholder (T1 to T20 and T8a) names its issue in the M21 milestone; every wave-2 placeholder (T21 to T25d) names its issue in the same milestone (decision 12).
 - [ ] No closing keyword in prose besides the PR's own `Closes` line.
 
 **Verification:** Checks chain (`pnpm format:check` covers the ADRs; `docs/superpowers` is prettier-ignored, so the spec and plan are checked with `pnpm exec prettier --check --ignore-path /dev/null <file>`).
@@ -578,11 +578,11 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 - [ ] T14 to T20 landed; Checks chain green on `develop`; every spec §12 criterion traced to a test, a ui-verifier pass or the listening check.
 - [ ] **Owner listening check** (criterion 13), on UAT or `pnpm dev`: the start and catch, the magneto drop, the cruise drone with airflow, the flap motor and the FLARM power-up beep are each recognised. The result goes into the release summary.
 - [ ] If the engine sounds too synthetic: spec §14 question 2 (an `AudioWorklet` voice is an ask-first change, spec §11).
-- [ ] With every M21 issue closed, `milestone-release` opens the release PR (decision 12).
+- [ ] Wave 2 (T21 to T25d) landed or closed as not planned, so every M21 issue is closed; then `milestone-release` opens the release PR (decision 12).
 
-### Follow-up milestone: wave 2 (blocked on the owner's intake session)
+### Wave 2 (blocked on the owner's intake session)
 
-These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a follow-up milestone when it files M21, marked blocked, and T25a to T25d only for the items T21 confirms. Every task here is **blocked** until the owner runs the intake session with `CPT_ALLOW_REFERENCE=1`. Wave-2 PRs read only the intake; `apps/web` does not change (spec §5). The owner's listening re-check sits in this milestone's checkpoint, not in any task's acceptance: UAT deploys `develop` only after a PR lands.
+These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a to T25d are conditional and are closed as not planned for any item T21 does not confirm. Every task here is **blocked** until the owner runs the intake session with `CPT_ALLOW_REFERENCE=1`, and the M21 release PR waits for them. Wave-2 PRs read only the intake; `apps/web` does not change (spec §5). The owner's listening re-check sits in the wave-2 checkpoint, not in any task's acceptance: UAT deploys `develop` only after a PR lands.
 
 #### T21 Sound-facts intake session (owner)
 
@@ -626,7 +626,7 @@ These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a
 
 - [ ] `sounds.ts` options trace to intake §9 questions 1, 11 and 72; selector tests and `aircraft-sounds.test.ts` pass.
 
-**Verification:** Checks chain; `pnpm test`. The start, the catch and the blade-pass tone are re-checked at the follow-up checkpoint.
+**Verification:** Checks chain; `pnpm test`. The start, the catch and the blade-pass tone are re-checked at the wave-2 checkpoint.
 
 **Dependencies:** T22. **Group J. Blocked.**
 
@@ -685,7 +685,7 @@ These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a
 
 **Size:** M.
 
-#### Checkpoint: follow-up milestone
+#### Checkpoint: wave 2
 
 - [ ] Every filed wave-2 task landed; Checks chain green.
 - [ ] Owner listening re-check, on UAT: the refined engine (start, catch, blade-pass tone), the FLARM tones and each extra cue are recognised.
@@ -707,9 +707,9 @@ These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a
 7. **The piston engine splits into model (T14) and graph (T15).** The model fixes the option profile T17 needs, so the CTSL declarations run beside the graph.
 8. **Criteria over real aircraft get their own task (T20),** which joins 3a and 3b.
 9. **Plan file name.** Kept as `2026-10-15-cockpit-sounds.md` (as the bootstrap and 3D plans, without an `m<n>-` prefix) until the milestone number is fixed; the title names "M21" as the next number after M20.
-10. **The voice types and the empty registry ship with T5.** Spec §5 lists the registry under `cockpit-audio-driver`; it moves to T5, in the same panel-kit folder, so the engine model, the graph and the CTSL declarations (T14, T15, T17) start beside Phases 1 and 2 instead of waiting for T12. The engine's sound quality is the High-impact risk.
+10. **The voice types and the empty registry ship with T5.** Spec §5 now lists the registry under `audio-engine`; it moved to T5, in the same panel-kit folder, so the engine model, the graph and the CTSL declarations (T14, T15, T17) start beside Phases 1 and 2 instead of waiting for T12. The engine's sound quality is the High-impact risk.
 11. **Tasks start on their dependencies.** A phase checkpoint gates that phase's review and, for Phase 3, the release, never a task's start; the orchestrator checks T2 and T5 against the spec as each lands.
-12. **Wave 2 is a follow-up milestone.** M21 holds T0 to T20 and T8a. `milestone-release` runs only when every issue of the milestone is closed, so wave-2 issues blocked on the owner's session stay out of it, and wave 1 releases after the Phase 3 checkpoint.
+12. **Wave 2 is in the same milestone (owner).** M21 holds T0 to T25d. `milestone-release` runs only when every issue of the milestone is closed, so the release PR waits for the owner's `CPT_ALLOW_REFERENCE=1` intake session (T21) and the wave-2 tasks; unconfirmed conditional tasks are closed as not planned.
 13. **`connectCockpitAudio` takes an optional `voices` parameter** after `clock`, defaulting to the panel-kit `voiceFactories`, so T12's tests inject test-local voices without mocking panel-kit. Otherwise spec §6.7's signature stands; T20 uses the default.
 14. **`clickCount` sits beside `clickFor`.** Spec §6.7 keeps `clickFor`'s `ClickId | undefined`; how many detents a multi-position move plays is a separate pure function T6 owns, and T11 plays that many.
 15. **The perf A/B lives in `perf.spec.ts` (T19) under `E2E_SOUND`.** The shared fixture keeps its per-spec option (T8); only the local sound-on arm turns it off, as spec §10 and §11 now say. Both arms open the CTSL in a cruise start, so the A/B measures running voices; an unset `E2E_SOUND` keeps today's perf run.
@@ -730,7 +730,7 @@ These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a
 | StrictMode builds two engines or keeps a disposed one                              | Medium | The provider creates the engine in its own effect and disposes on cleanup; T8 tests StrictMode.                                                                                                               |
 | Parallel PRs collide on barrels, the voice registry, the intake or the parent spec | Medium | Shared files table: positions pre-assigned, serial chains where a file has several owners; the merge train lands one at a time.                                                                               |
 | Main-thread cost of audio on the panel                                             | Medium | Native nodes, automation only on changed targets; T19's A/B perf run, with the engine and airflow running, names the cost.                                                                                    |
-| Wave 2 waits on the owner and holds the release                                    | Medium | Wave 2 is a follow-up milestone (decision 12).                                                                                                                                                                |
+| Wave 2 waits on the owner and holds the release                                    | Medium | Wave 2 is in M21 by the owner's decision (decision 12); wave 1 lands first and stays on `develop`, and the owner schedules the intake session (T21) early.                                                    |
 | CSP violation from audio (`blob:`, `data:`, worklet module)                        | Low    | Native nodes only; `csp.ts` has no diff; the E2E CSP fixture runs with sound on in `sound-settings.spec.ts`.                                                                                                  |
 
 ## Open questions
@@ -738,7 +738,7 @@ These tasks are not in M21 (decision 12). The orchestrator files T21 to T24 in a
 1. **Click overrides** (owner; spec §14 question 1). The wave-1 silent and `soft` list stands until T21 answers intake §9 question 79.
 2. **Engine voice quality** (owner; spec §14 question 2). Decided at the Phase 3 listening check.
 3. **Stall horn** (owner; spec §14 question 3). Only if T21 finds one; it needs a spec change.
-4. **Milestone titles and numbers** (orchestrator). "M21 Cockpit sounds" is assumed; the follow-up milestone's title is set when T21 to T24 are filed. The plan file keeps its name either way.
+4. **Milestone titles and numbers** (orchestrator). "M21 Cockpit sounds" is milestone 22. The plan file keeps its name.
 
 ## Review focus
 
