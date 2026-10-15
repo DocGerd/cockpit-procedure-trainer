@@ -27,8 +27,10 @@ architecture that lets aircraft be added.
 ### Out of scope
 
 - Flight physics, navigation, scoring or exam mode.
-- Avionics behaviour that needs the outside world: audio, reception,
-  navigation databases, moving maps (§4.9).
+- Avionics behaviour that needs the outside world: reception, radio and
+  intercom audio, navigation databases, moving maps (§4.9). Synthesised
+  cockpit and device sounds are in scope, except GPS sounds and alarms and
+  FLARM traffic tones (ADR-0003, `2026-10-15-cockpit-sounds-design.md`).
 - Pilot accounts, a backend, instructor dashboards.
 - Adding aircraft by any means other than code (no editor, no upload).
 - Phones as a target device.
@@ -333,13 +335,17 @@ version it always returns mirror, which keeps in-slot operation on large
 viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
-works; nothing that needs the outside world does. No audio, no reception, no
-navigation database, no map data. The CTSL's GPS (the aera 500) has a simulated
-position fix instead: seeded from line-up, or found after a short search once it is
-powered, with ground speed and track taken from the airspeed and heading and a
-schematic track-up map. The CTSL's FLARM display finds its own fix the same way;
-neither shows traffic, map data or a database. Each device states the manual revision its
-logic follows and lists the functions it does not model.
+works; nothing that needs the outside world does. No reception, no radio or
+intercom audio, no navigation database, no map data. A unit's own start-up and
+key tones that the intake records and the sounds design selects are synthesised;
+GPS sounds and alarms and FLARM traffic tones stay out
+(`2026-10-15-cockpit-sounds-design.md`). The CTSL's GPS (the aera 500) has a
+simulated position fix instead: seeded from line-up, or found after a short
+search once it is powered, with ground speed and track taken from the airspeed
+and heading and a schematic track-up map. The CTSL's FLARM display finds its own
+fix the same way; neither shows traffic, map data or a database. Each device
+states the manual revision its logic follows and lists the functions it does not
+model.
 
 ## 5. Runtime
 
