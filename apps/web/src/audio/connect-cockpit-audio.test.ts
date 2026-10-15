@@ -24,8 +24,10 @@ vi.mock('../aircraft-registry', async () => ({
 
 const { aircraftRegistry } =
   await vi.importActual<typeof import('../aircraft-registry')>('../aircraft-registry');
-const ctsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
-if (!ctsl) throw new Error('The registry has no CTSL');
+const registeredCtsl = aircraftRegistry.find((aircraft) => aircraft.id === 'ctsl');
+if (!registeredCtsl) throw new Error('The registry has no CTSL');
+// The click tests count every oscillator as a click, so they play the CTSL without its voices.
+const ctsl: Aircraft = { ...registeredCtsl, sounds: {} };
 const demo = aircraftRegistry.find((aircraft) => aircraft.id === 'demo');
 if (!demo) throw new Error('The registry has no demo aircraft');
 const touch = deviceRegistry.find((device) => device.id === 'aera500')?.controls['touch'];
