@@ -337,14 +337,15 @@ viewports possible later.
 Scope boundary: everything the pilot does with the unit's knobs and buttons
 works; nothing that needs the outside world does. No reception, no radio or
 intercom audio, no navigation database, no map data. A unit's own start-up and
-key tones that the intake records and the sounds design selects are synthesised
-(wave 1: the FLARM start-up beep and volume tone); GPS sounds and alarms and FLARM
-traffic tones stay out (`2026-10-15-cockpit-sounds-design.md`). The CTSL's GPS (the aera 500) has a simulated
-position fix instead: seeded from line-up, or found after a short search once it is
-powered, with ground speed and track taken from the airspeed and heading and a
-schematic track-up map. The CTSL's FLARM display finds its own fix the same way;
-neither shows traffic, map data or a database. Each device states the manual revision its
-logic follows and lists the functions it does not model.
+key tones that the intake records and the sounds design selects are synthesised;
+GPS sounds and alarms and FLARM traffic tones stay out
+(`2026-10-15-cockpit-sounds-design.md`). The CTSL's GPS (the aera 500) has a
+simulated position fix instead: seeded from line-up, or found after a short
+search once it is powered, with ground speed and track taken from the airspeed
+and heading and a schematic track-up map. The CTSL's FLARM display finds its own
+fix the same way; neither shows traffic, map data or a database. Each device
+states the manual revision its logic follows and lists the functions it does not
+model.
 
 ## 5. Runtime
 

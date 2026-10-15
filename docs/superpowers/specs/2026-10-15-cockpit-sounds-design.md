@@ -125,16 +125,16 @@ Module ids are stable; plans, issues and PRs select work by them. An arrow means
 | `flarm-beep-facts`      | Measured beep pitch, length, pattern and level ratios                                                                                                                                | `device-flarm/src/logic/sounds.ts`                                                      | `flarm-sounds`                                                                            | 2          |
 | `ctsl-extra-cues`       | Only for what the intake session confirms: ELT buzzer, rescue deployment, detent clicks (`click` overrides), flap end stop                                                           | CTSL, panel-kit `audio/voices/`                                                         | `ctsl-sound-facts`                                                                        | 2          |
 
-**Build order** (one issue, one PR per step):
+**Build order** (the plan splits each step into issues and PRs):
 
 0. `spec-adr-0003`.
 1. `sound-contract`, `session-epoch`, `control-change-feed`, `device-cue-diff`:
    pure, unit-tested in core, plus the `click` overrides as data; nothing
    audible.
 2. `audio-engine`, `audio-settings`, `sound-control`, `control-clicks`,
-   `beep-voice`, `cockpit-audio-driver`: the first audible PR (clicks on both
-   aircraft). The E2E fixture seeds sound off in the same PR; a ui-verifier
-   pass on the header.
+   `beep-voice`, `cockpit-audio-driver`: the first audible step (clicks on
+   both aircraft). The E2E fixture seeds sound off before anything plays; a
+   ui-verifier pass on the header.
 3. In parallel:
    - 3a. `aircraft-voices`, `aircraft-sounds-check`, `ctsl-sounds`.
    - 3b. `flarm-sounds`.
@@ -339,9 +339,11 @@ The CTSL declares (in `ctsl-sounds`):
   cool-down, the starter still turns and the engine cannot catch; the lockout
   stands for the limit the pilot must respect (intake §4.2).
 - `driving` is 1 while the flap motor turns: `flapMotorRunning(state)`,
-  exported from `systems.ts`, applies the flap step's own overload cut-out, so
-  the motor is silent while extension is held back above the flap speed
-  (intake §4.4).
+  exported from `systems.ts`, is `flaps.moving` except while extension is held
+  back above the flap speed (the flap step's own overload cut-out, intake
+  §4.4): the selector's target gives the direction and `systems.airspeedKmh`
+  the speed. A selector sees no failures and needs none: without power or a
+  target, `flaps.moving` is already false.
 - The idle and maximum continuous rpm and the power share come from
   `systems.ts` exports (`IDLE_RPM`, `MAX_CONTINUOUS_RPM`, `power`), not copies.
 - Options carry the profile; the voices know nothing about any aircraft, and
@@ -428,14 +430,16 @@ Edges the model reacts to:
 2. `running` rises while the starter turns or the engine windmills: the catch.
    Firing gain to full; rpm to the state value at the catch time constant.
 3. `starter` falls without `running` (a failed start: no choke when cold, the
-   key released before the catch, an engine failure, or the trainer's starter
-   lockout): whine down; rpm to 0 at the run-down time constant.
+   key released before the catch, or an engine failure): whine down; rpm to 0
+   at the run-down time constant. A key held past the trainer's starter
+   lockout keeps the whine with no catch until it is released (D15).
 4. `running` falls: ignition cut. Firing gain to 0 at once; rpm to the state
    value (0, or windmill rpm in flight) at the run-down time constant.
 5. Not running with rpm above 0 (in flight only): windmilling, swish and wind
    without firing — what a pilot hears as "engine quit".
 6. A jump (§6.3): each listed input's smoothed values take their target at
-   once.
+   once, and a listed input fires no edge in that frame: no starter onset,
+   catch or run-down.
 
 Because the state's rpm follows the magneto selection, the drop on one circuit
 is heard as a pitch change by the rpm ratio.
@@ -524,8 +528,10 @@ export function connectCockpitAudio(
   of that gesture schedules on the starting context (§6.3, `live()`).
 - `setEnabled` keeps only the latest request. Off: cancel the master gain's
   scheduled values, ramp it to 0, then `suspend()` only if sound is still off.
-  On: cancel, `resume()` (pressing the switch is the gesture), ramp to the
-  volume; the driver passes a jump.
+  On: cancel, create-or-resume (pressing the switch is the gesture; with
+  sound off from the start this builds the context, since the capture
+  listeners ran while sound was still off), ramp to the volume; the driver
+  passes a jump.
 - Tab hidden: `suspend()`. Visible again: `resume()` if sound is on; if the
   browser refuses without a gesture, the listeners wait for the next one.
 - A voice's pure model keeps its state through mute; its graph jumps to it on
@@ -614,8 +620,8 @@ export function connectCockpitAudio(
   the first gesture, so the first sound answers the pilot's own click. The
   shared E2E fixture seeds sound off, so only `sound-settings.spec.ts` meets
   the default. Confirmed by the owner 2026-10-15.
-- **D10 `beep-voice` ships with the driver in step 2**, which keeps the driver
-  in one PR and lets 3a and 3b touch disjoint code.
+- **D10 `beep-voice` ships with the driver in step 2**, which lets 3a and 3b
+  touch disjoint code.
 - **D11 Engine facts unknown to the intake stay out of wave 1.** The 912
   variant, gearbox ratio and propeller are unknown (intake §4.2, §9 questions 1
   and 11), so wave 1 has no blade-pass tone; the values it does use are listed

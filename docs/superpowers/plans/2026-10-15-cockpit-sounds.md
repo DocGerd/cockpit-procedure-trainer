@@ -8,7 +8,7 @@
 
 **Inputs:** the owner approved the spec and ADR-0003 on 2026-10-15 with three answers, recorded in the spec: sound defaults on, below full volume (D9); one header button with a popover holding the switch and the slider (D8); engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) are general knowledge under the intake §9 ruling (D16). The owner also put wave 2 in the same milestone, so the release PR waits for the owner's intake session (spec §1 owner decisions, Milestone; decision 12).
 
-**Milestone:** "M21 Cockpit sounds" (GitHub milestone 22) holds wave 1 (`T0` to `T20` and `T8a`) and wave 2 (`T21` to `T25d`), all filed together (decision 12). Every task below is one GitHub issue, one branch and one PR with `Closes #<n>`. The task index names each task's issue number; the issue body is the task's section below.
+**Milestone:** "M21 Cockpit sounds" holds wave 1 (`T0` to `T20` and `T8a`) and wave 2 (`T21` to `T25d`), all filed together (decision 12). Every task below is one GitHub issue, one branch and one PR with `Closes #<n>`. The task index names each task's issue number; the issue body is the task's section below.
 
 **Tech stack:** Web Audio native nodes only (spec §2). No new dependency, no `AudioWorklet`, no media elements, no audio files.
 
@@ -45,24 +45,24 @@ Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, de
 
 ### M21 (wave 2, blocked)
 
-| Task | Issue | Title                                                    | Capability ids (spec §5)       | Phase | Depends on      | Group | Size | Changelog    |
-| ---- | ----- | -------------------------------------------------------- | ------------------------------ | ----- | --------------- | ----- | ---- | ------------ |
-| T21  | #821  | Sound-facts intake session (owner, blocked)              | wave-2 input (spec §13)        | 4     | T17, T18, owner | H     | S    | No changelog |
-| T22  | #822  | Engine voice: blade-pass tone and fact options (blocked) | `ctsl-sound-facts` (panel-kit) | 4     | T21, T19        | I     | M    | No changelog |
-| T23  | #823  | CTSL engine sound facts (blocked)                        | `ctsl-sound-facts` (CTSL)      | 4     | T22             | J     | S    | `changed`    |
-| T24  | #824  | FLARM beep facts (blocked)                               | `flarm-beep-facts`             | 4     | T21, T18        | I     | S    | `changed`    |
-| T25a | #825  | Detent clicks (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T21, T3         | I     | M    | `changed`    |
-| T25b | #826  | ELT buzzer (blocked, conditional)                        | `ctsl-extra-cues`              | 4     | T23             | K     | M    | `added`      |
-| T25c | #827  | Rescue-system deployment (blocked, conditional)          | `ctsl-extra-cues`              | 4     | T25b or T23     | K     | M    | `added`      |
-| T25d | #828  | Flap end stop (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T25c or T23     | K     | M    | `added`      |
+| Task | Issue | Title                                                    | Capability ids (spec §5)       | Phase | Depends on                | Group | Size | Changelog    |
+| ---- | ----- | -------------------------------------------------------- | ------------------------------ | ----- | ------------------------- | ----- | ---- | ------------ |
+| T21  | #821  | Sound-facts intake session (owner, blocked)              | wave-2 input (spec §13)        | 4     | T17, T18, owner           | H     | S    | No changelog |
+| T22  | #822  | Engine voice: blade-pass tone and fact options (blocked) | `ctsl-sound-facts` (panel-kit) | 4     | T21, T19                  | I     | M    | No changelog |
+| T23  | #823  | CTSL engine sound facts (blocked)                        | `ctsl-sound-facts` (CTSL)      | 4     | T22                       | J     | S    | `changed`    |
+| T24  | #824  | FLARM beep facts (blocked)                               | `flarm-beep-facts`             | 4     | T21, T18                  | I     | S    | `changed`    |
+| T25a | #825  | Detent clicks (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T21, T3                   | I     | M    | `changed`    |
+| T25b | #826  | ELT buzzer (blocked, conditional)                        | `ctsl-extra-cues`              | 4     | T23                       | K     | M    | `added`      |
+| T25c | #827  | Rescue-system deployment (blocked, conditional)          | `ctsl-extra-cues`              | 4     | T25b or T23               | K     | M    | `added`      |
+| T25d | #828  | Flap end stop (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T25c, else T25b, else T23 | K     | M    | `added`      |
 
-Counts: M21 holds 30 issues. Wave 1 has 22: Phase 0 one; Phase 1 five; Phase 2 nine (T6 to T13 and T8a); Phase 3 seven. Wave 2 has eight: four tasks plus four conditional ones. All are filed up front; a conditional task the intake session does not confirm is closed as not planned, and the chain T25b → T25c → T25d skips it.
+Every task, T0 to T25d, is filed up front; a conditional task the intake session does not confirm is closed as not planned, and the chain T25b → T25c → T25d skips it.
 
 Branches: `docs/sounds-spec` for T0 (opened before its issue existed); `docs/<n>-…` for T13 and T21; `chore/<n>-…` for T8a; `feat/<n>-…` for the rest (CONTRIBUTING.md Flow).
 
 ## Pre-flight checks
 
-**(a) T0 has landed.** The spec reads "Approved 2026-10-15" and §14 holds only the three open questions.
+**(a) T1 onward start only after T0 lands,** with the spec reading "Approved 2026-10-15" and §14 holding only its open questions.
 
 **(b) The E2E seed before the first sound.** T8 seeds `cpt.sound=off` in the shared fixture; T11, the first PR that plays anything, depends on it through T10.
 
@@ -74,7 +74,7 @@ Branches: `docs/sounds-spec` for T0 (opened before its issue existed); `docs/<n>
 
 ## Global constraints
 
-- Everything in the M12 plan's Global constraints applies: base `develop`, one issue per PR with `Closes #<n>`, a fragment or a `No changelog:` line, separate-agent review via `pr-selfreview`, `merge-train`, tests first, and the Checks chain before every push.
+- Process: base `develop`, one issue per PR with `Closes #<n>`, a fragment or a `No changelog:` line, separate-agent review via `pr-selfreview`, `merge-train`, tests first, and the Checks chain before every push.
 - **Checks chain** (CONTRIBUTING.md Checks; the required `check` job): `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e`. Iterate with `pnpm test`; filter E2E with `pnpm test:e2e <spec>`; set `E2E_PORT=<port>` when the default port is busy.
 - An issue's **Files** list is its allowlist: at most five files (T10 names a sixth, with its reason), not counting the changelog fragment and the barrel or registry rows pre-assigned under Shared files. A task that needs another file names it and why in the PR.
 - Synthesise at runtime with native nodes. No audio file, recording, `blob:` or `data:` audio, media element or `AudioWorklet`; `apps/web/src/csp.ts` has no diff (spec §11).
@@ -255,7 +255,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 **Acceptance criteria:**
 
-- [ ] With sound off from the start the factory is never called; with sound on, the first `pointerdown`, `pointerup`, `click`, `touchend` or `keydown` creates or resumes the context and `live()` holds while it starts; off then on quickly leaves it running.
+- [ ] With sound off from the start the factory is never called; with sound on, the first `pointerdown`, `pointerup`, `click`, `touchend` or `keydown` creates or resumes the context and `live()` holds while it starts; off then on quickly leaves it running; with sound off from the start, switching on through `setEnabled(true)` creates the context inside that gesture.
 - [ ] Master gain equals (volume / 100)²; off ramps to 0, then suspends only if still off; tab hidden suspends, visible resumes when on.
 - [ ] Without `AudioContext` (jsdom) the engine stays silent and throws nothing; `addModule` and `createMediaElementSource` are never called.
 - [ ] The fake implements every node factory of spec §2 (`OscillatorNode` with `setPeriodicWave` and `createPeriodicWave`, `ConstantSourceNode`, `BiquadFilterNode`, `GainNode`, `createBuffer` and `AudioBufferSourceNode`), records node creation, connections, `start` and `stop`, and every AudioParam automation call with its arguments, has a settable `currentTime`, and its state settles asynchronously; a test exercises each factory, so later tasks never edit the fake.
@@ -391,7 +391,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 - [ ] Clicks play only on the trainer screen and only for `pilot` changes; the click of the gesture that creates the context is scheduled on the starting context; the picker and the error screen are silent.
 - [ ] Through the real session: a device key clicks, the aera 500 touchscreen stays silent, and a rotary moved several positions plays `clickCount` detents.
 - [ ] A fake node that throws leaves `session.advance` and a press working, logs once and silences audio.
-- [ ] The existing tests that render `TrainerLayout` (`checklist/checklist.test.tsx`, `checklist/a11y.test.tsx`, `checklist/expected.test.tsx`) run unchanged.
+- [ ] The existing tests that render `Shell` or `TrainerLayout` (decision 17: `shell/shell.test.tsx`, `shell/picker.test.tsx`, `shell/layout.test.tsx`, `i18n/language.test.tsx`, `checklist/checklist.test.tsx`, `checklist/a11y.test.tsx`, `checklist/expected.test.tsx`) run unchanged.
 - [ ] `sound-settings.spec.ts`: with sound on, a wrapped `AudioContext` reads `running` after the first panel press; BAT and the key to START give no CSP violation and no `pageerror`.
 
 **Verification:** Checks chain; `pnpm test:e2e sound-settings`; `pnpm test:e2e csp`.
@@ -452,7 +452,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 **Acceptance criteria:**
 
-- [ ] Sequence tests with an injected clock cover each edge of spec §6.5 (1 to 6), with no audio.
+- [ ] Sequence tests with an injected clock cover each edge of spec §6.5 (1 to 6), with no audio; a jump of `running` or `starter` (a phase load from `parking` to `cruise` and back) fires no edge.
 - [ ] A magneto drop changes the frequency target by the rpm ratio; f_c = rpm / 120 and f_f = rpm / 60 × cylinders / 2.
 - [ ] `problems(options)` rejects a missing or out-of-range option.
 
@@ -488,7 +488,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 **Acceptance criteria:**
 
 - [ ] On the fake context: airflow gain and cutoff follow `airspeedKmh`, a step becomes a short swell, a jump takes the target at once; the motor fades with `driving`.
-- [ ] Each `problems(options)` rejects a missing or out-of-range option; both ids registered.
+- [ ] Each `problems(options)` rejects an out-of-range option, and airflow's a missing `referenceKmh`; both ids registered.
 
 **Verification:** Checks chain; `pnpm test`.
 
@@ -500,7 +500,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 #### T17 CTSL sound declarations
 
-**Description:** `packages/aircraft-ctsl/src/sounds.ts` per spec §6.5: `engine` (`piston-engine`; `rpm`, `running`, `starter`; carried `rpm`), `airflow` (`airspeedKmh`, carried), `flaps` (`electric-motor`; `driving`). `starter` follows the key at START with BAT in; `driving` is `flapMotorRunning(state)`. `systems.ts` exports `IDLE_RPM`, `MAX_CONTINUOUS_RPM` and `power`, private today, and gains `flapMotorRunning`, which is new logic: `stepFlaps` reports `moving: true` while extension is held back above the flap speed, so `flapMotorRunning` recomputes the target with `flapTarget` from the `flapSelector` position and the failures, and applies the overload test itself. Not yet wired into the aircraft definition (T19). Records the D16 values beside intake §9 question 1.
+**Description:** `packages/aircraft-ctsl/src/sounds.ts` per spec §6.5: `engine` (`piston-engine`; `rpm`, `running`, `starter`; carried `rpm`), `airflow` (`airspeedKmh`, carried), `flaps` (`electric-motor`; `driving`). `starter` follows the key at START with BAT in; `driving` is `flapMotorRunning(state)`. `systems.ts` exports `IDLE_RPM`, `MAX_CONTINUOUS_RPM` and `power` (module-private before this task) and gains `flapMotorRunning`, which is new logic: `stepFlaps` reports `moving: true` while extension is held back above the flap speed, so `flapMotorRunning` takes `flaps.moving` and clears it while the selector's target lies above the angle and `systems.airspeedKmh` exceeds the flap speed beyond it. A selector sees no failures and needs none: without power or a target, `flaps.moving` is already false. T19, not this task, wires the sounds into the aircraft definition. Records the D16 values beside intake §9 question 1.
 
 **Acceptance criteria:**
 
@@ -538,7 +538,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 #### T19 CTSL sounds wired, aircraft sounds check and perf A/B
 
-**Description:** the CTSL definition declares its `sounds` (one line in `index.ts`), so the engine, starter, airflow and flap motor are heard. `apps/web/src/aircraft-sounds.test.ts` checks every registered aircraft. `docs/adding-an-aircraft.md` gains the aircraft `sounds` section. The A/B perf run of spec §10 (ADR-0002 rank 3) runs from `perf.spec.ts` under `E2E_SOUND` (decision 15): unset keeps today's run; `on` or `off` opens the CTSL in a procedure that starts in cruise with the engine running (`openAircraft`'s `procedureId`), so the engine and airflow voices run, and `on` turns T8's seed option off. The picker clicks that open the aircraft are the gesture that creates the context.
+**Description:** the CTSL definition declares its `sounds` (one line in `index.ts`), so the engine, starter, airflow and flap motor are heard. `apps/web/src/aircraft-sounds.test.ts` checks every registered aircraft. `docs/adding-an-aircraft.md` gains the aircraft `sounds` section. The A/B perf run of spec §10 (ADR-0002 rank 3) runs from `perf.spec.ts` under `E2E_SOUND` (decision 15): unset keeps the existing perf run; `on` or `off` opens the CTSL in a procedure that starts in cruise with the engine running (`openAircraft`'s `procedureId`), so the engine and airflow voices run, and `on` turns T8's seed option off. The picker clicks that open the aircraft are the gesture that creates the context.
 
 **Acceptance criteria:**
 
@@ -679,7 +679,7 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 
 **Verification:** Checks chain; `pnpm test`.
 
-**Dependencies:** T25b on T23; T25c on T25b (or T23 if T25b is closed as not planned); T25d on T25c (or the last of them still open). **Group K**, serial. **Blocked, conditional.**
+**Dependencies:** T25b on T23; T25c on T25b (or T23 if T25b is closed as not planned); T25d on T25c, else T25b, else T23 (skipping any closed as not planned). **Group K**, serial. **Blocked, conditional.**
 
 **Files (each):** `packages/panel-kit/src/audio/voices/<voice>.ts`, `packages/panel-kit/src/audio/voices/<voice>.test.ts`, `packages/aircraft-ctsl/src/sounds.ts`, `packages/aircraft-ctsl/src/sounds.test.ts` (plus the registry row); `changelog.d/<n>.added.md`.
 
@@ -706,13 +706,13 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 6. **CTSL sounds are declared in T17 and wired in T19.** Develop never names a voice id the registry lacks, and T19's fragment is true when it lands.
 7. **The piston engine splits into model (T14) and graph (T15).** The model fixes the option profile T17 needs, so the CTSL declarations run beside the graph.
 8. **Criteria over real aircraft get their own task (T20),** which joins 3a and 3b.
-9. **Plan file name.** Kept as `2026-10-15-cockpit-sounds.md`, without an `m<n>-` prefix (as the bootstrap and 3D plans), now that the milestone is fixed as "M21 Cockpit sounds" (GitHub milestone 22): issues and the milestone description already link this path.
-10. **The voice types and the empty registry ship with T5.** Spec §5 now lists the registry under `audio-engine`; it moved to T5, in the same panel-kit folder, so the engine model, the graph and the CTSL declarations (T14, T15, T17) start beside Phases 1 and 2 instead of waiting for T12. The engine's sound quality is the High-impact risk.
+9. **Plan file name.** `2026-10-15-cockpit-sounds.md`, without an `m<n>-` prefix (as the bootstrap and 3D plans): the issues and the "M21 Cockpit sounds" milestone description link this path.
+10. **The voice types and the empty registry ship with T5** (spec §5 lists them under `audio-engine`, in the same panel-kit folder), so the engine model, the graph and the CTSL declarations (T14, T15, T17) start beside Phases 1 and 2 instead of waiting for T12. The engine's sound quality is the High-impact risk.
 11. **Tasks start on their dependencies.** A phase checkpoint gates that phase's review and, for Phase 3, the release, never a task's start; the orchestrator checks T2 and T5 against the spec as each lands.
 12. **Wave 2 is in the same milestone** (the owner's decision, listed under Inputs; not overrulable here). M21 holds T0 to T25d. `milestone-release` runs only when every issue of the milestone is closed, so the release PR waits for the owner's `CPT_ALLOW_REFERENCE=1` intake session (T21) and the wave-2 tasks; unconfirmed conditional tasks are closed as not planned.
 13. **`connectCockpitAudio` takes an optional `voices` parameter** after `clock`, defaulting to the panel-kit `voiceFactories`, so T12's tests inject test-local voices without mocking panel-kit. Otherwise spec §6.7's signature stands; T20 uses the default.
 14. **`clickCount` sits beside `clickFor`.** Spec §6.7 keeps `clickFor`'s `ClickId | undefined`; how many detents a multi-position move plays is a separate pure function T6 owns, and T11 plays that many.
-15. **The perf A/B lives in `perf.spec.ts` (T19) under `E2E_SOUND`.** The shared fixture keeps its per-spec option (T8); only the local sound-on arm turns it off, as spec §10 and §11 now say. Both arms open the CTSL in a cruise start, so the A/B measures running voices; an unset `E2E_SOUND` keeps today's perf run.
+15. **The perf A/B lives in `perf.spec.ts` (T19) under `E2E_SOUND`.** The shared fixture keeps its per-spec option (T8); only the local sound-on arm turns it off, as spec §10 and §11 say. Both arms open the CTSL in a cruise start, so the A/B measures running voices; an unset `E2E_SOUND` keeps the existing perf run.
 16. **The `CLAUDE.md` app-settings line is its own issue (T8a),** as the M20 `CLAUDE.md` change was, edited by the orchestrator in its own worktree (spec §15).
 17. **The audio hook has a silent default outside `AudioProvider`,** where `useTheme` and `useTrainer` throw: seven existing tests render `Shell` or `TrainerLayout` with only `ThemeProvider` and `TrainerProvider`, and they run unchanged.
 
