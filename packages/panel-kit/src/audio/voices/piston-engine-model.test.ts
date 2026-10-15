@@ -120,6 +120,32 @@ describe('pistonEngineProblems', () => {
     expect(() => pistonEngineOptions({ ...REQUIRED, ...change })).toThrow(key);
   });
 
+  it.each<JsonObject>([{ cylinders: 1 }, { maxContinuousRpm: 1401 }, { crankingRpm: 1399 }])(
+    'accepts %o at the edge of its range',
+    (change) => {
+      expect(pistonEngineProblems({ ...REQUIRED, ...change })).toEqual([]);
+    },
+  );
+
+  it('names a default that the aircraft options put out of range', () => {
+    const idleRpm = pistonEngineDefaults.crankingRpm - 50;
+    expect(pistonEngineProblems({ ...REQUIRED, idleRpm })).toEqual([
+      `default crankingRpm ${pistonEngineDefaults.crankingRpm} is out of range`,
+    ]);
+    expect(pistonEngineProblems({ ...REQUIRED, idleRpm, crankingRpm: idleRpm - 1 })).toEqual([]);
+  });
+
+  it('reports every bad option, and checks the rpm order once idleRpm is valid', () => {
+    const bad = { cylinders: 4, idleRpm: 0 };
+    expect(pistonEngineProblems({ ...bad, maxContinuousRpm: -1 })).toEqual([
+      'option idleRpm is out of range',
+      'option maxContinuousRpm is out of range',
+    ]);
+    expect(pistonEngineProblems({ ...bad, maxContinuousRpm: 1000 })).toEqual([
+      'option idleRpm is out of range',
+    ]);
+  });
+
   it('rejects an option the voice does not know', () => {
     expect(pistonEngineProblems({ ...REQUIRED, blades: 3 })).toEqual(['unknown option blades']);
   });
@@ -137,7 +163,8 @@ describe('frequency and power targets', () => {
   it('runs one four-stroke cycle per two revolutions and fires each cylinder once a cycle', () => {
     expect(cycleHz(4800)).toBe(40);
     expect(firingHz(4800, 4)).toBe(160);
-    expect(firingHz(3000, 6)).toBe(cycleHz(3000) * 6);
+    expect(firingHz(3000, 6)).toBe(150);
+    expect(firingHz(2400, 3)).toBe(60);
   });
 
   it('shares power between idle and maximum continuous rpm', () => {
@@ -152,6 +179,7 @@ describe('frequency and power targets', () => {
     const c = loaded({ rpm: 4000, running: true });
     const both = c.state().rpm;
     c.set({ rpm: 3850 });
+    expect(c.advance(OPTIONS.throttleDownMs).rpm).toBeCloseTo(towards(both, 3850));
     const left = c.advance(SETTLE_MS).rpm;
     expect(cycleHz(left) / cycleHz(both)).toBeCloseTo(3850 / 4000, 6);
     expect(firingHz(left, OPTIONS.cylinders)).toBeCloseTo((3850 / 60) * (4 / 2), 6);
@@ -179,6 +207,81 @@ describe('pistonEngineModel', () => {
     c.set({ rpm: OPTIONS.idleRpm });
     expect(c.advance(OPTIONS.throttleDownMs).rpm).toBeCloseTo(towards(4000, OPTIONS.idleRpm), 3);
     expect(c.edges).toEqual([]);
+  });
+
+  it.each<[string, Partial<Controls>, Partial<Controls>]>([
+    ['a rising throttle', { rpm: OPTIONS.idleRpm, running: true }, { rpm: 4000 }],
+    ['a run-down', { rpm: OPTIONS.idleRpm, running: true }, { rpm: 0, running: false }],
+    ['a starter winding a stopped engine', {}, { starter: true }],
+  ])('reaches the same values through %s whatever the tick', (_, from, change) => {
+    const after = (tickMs: number) => {
+      const c = loaded(from);
+      c.set(change);
+      return c.advance(OPTIONS.throttleUpMs, tickMs);
+    };
+    const coarse = after(OPTIONS.throttleUpMs);
+    for (const tickMs of [10, TICK_MS]) {
+      const fine = after(tickMs);
+      expect(fine.rpm).toBeCloseTo(coarse.rpm, 6);
+      expect(fine.firing).toBeCloseTo(coarse.firing, 6);
+      expect(fine.starter).toBeCloseTo(coarse.starter, 6);
+    }
+  });
+
+  it.each([0, -TICK_MS, Number.NaN])('holds every smoothed value for a dt of %s', (dtMs) => {
+    const c = loaded({ rpm: OPTIONS.idleRpm, running: true });
+    c.set({ rpm: 4000, starter: true });
+    const from = c.advance(TICK_MS);
+    const held = model.step(from, { ...from.input, jump: [] }, dtMs);
+    expect(held).toMatchObject({ rpm: from.rpm, firing: from.firing, starter: from.starter });
+    const next = model.step(held, { ...held.input, jump: [] }, OPTIONS.throttleUpMs);
+    expect(next.rpm).toBeCloseTo(towards(from.rpm, 4000));
+  });
+
+  it('settles every target after a long gap between notifications', () => {
+    const c = loaded({ rpm: OPTIONS.idleRpm, running: true });
+    const from = c.set({ rpm: 4000, starter: true });
+    const later = model.step(from, { ...from.input, jump: [] }, 60_000);
+    expect(later.rpm).toBeCloseTo(4000);
+    expect(later.firing).toBeCloseTo(1);
+    expect(later.starter).toBeCloseTo(1);
+  });
+
+  describe('edges in one frame', () => {
+    it.each<[string, Partial<Controls>, Partial<Controls>, PistonEngineEdge[]]>([
+      [
+        'the starter and running rise together',
+        {},
+        { starter: true, running: true, rpm: OPTIONS.idleRpm },
+        ['starter-on', 'catch'],
+      ],
+      [
+        'the catch lands with the key release',
+        { starter: true },
+        { starter: false, running: true, rpm: OPTIONS.idleRpm },
+        ['catch'],
+      ],
+      [
+        'the starter rises with the ignition cut',
+        { rpm: OPTIONS.idleRpm, running: true },
+        { starter: true, running: false, rpm: 0 },
+        ['starter-on', 'ignition-cut'],
+      ],
+      [
+        'the key release lands with the ignition cut',
+        { rpm: OPTIONS.idleRpm, running: true, starter: true },
+        { starter: false, running: false, rpm: 0 },
+        ['ignition-cut'],
+      ],
+    ])('%s', (_, from, change, edges) => {
+      expect(loaded(from).set(change).edges).toEqual(edges);
+    });
+
+    it('cuts the ignition under a held key, then fails the start on its release', () => {
+      const c = loaded({ rpm: OPTIONS.idleRpm, running: true, starter: true });
+      expect(c.set({ running: false, rpm: 0 }).edges).toEqual(['ignition-cut']);
+      expect(c.set({ starter: false }).edges).toEqual(['failed-start']);
+    });
   });
 
   describe('1: the starter rises', () => {
@@ -237,6 +340,17 @@ describe('pistonEngineModel', () => {
       expect(c.edges).toEqual([]);
     });
 
+    it('does not fire when running returns during a ground run-down with no starter', () => {
+      const c = loaded({ rpm: OPTIONS.idleRpm, running: true });
+      c.set({ running: false, rpm: 0 });
+      const runningDown = c.advance(0.3 * OPTIONS.runDownMs);
+      c.set({ running: true, rpm: OPTIONS.idleRpm });
+      expect(c.advance(OPTIONS.throttleUpMs).rpm).toBeCloseTo(
+        towards(runningDown.rpm, OPTIONS.idleRpm),
+      );
+      expect(c.edges).toEqual(['ignition-cut']);
+    });
+
     it('hands a throttle move during the catch to the throttle time constant', () => {
       const c = cockpit();
       c.set({ starter: true });
@@ -262,7 +376,7 @@ describe('pistonEngineModel', () => {
       expect(c.edges).toEqual(['starter-on', 'failed-start']);
     });
 
-    it('keeps the whine with no catch while a key is held past the lockout', () => {
+    it('keeps cranking with the whine and no catch for as long as the key is held', () => {
       const c = cockpit();
       c.set({ starter: true });
       const held = c.advance(15_000);
@@ -329,6 +443,34 @@ describe('pistonEngineModel', () => {
       expect(cruise).toMatchObject({ rpm: 4800, firing: 1, starter: 0, edges: [] });
       const parking = c.set(PARKED, ALL);
       expect(parking).toMatchObject({ rpm: 0, firing: 0, starter: 0, edges: [] });
+      expect(c.edges).toEqual([]);
+    });
+
+    it('fires no catch for a jumped running, from a windmill or under the starter', () => {
+      const windmill = loaded({ rpm: 220 });
+      expect(windmill.set({ running: true, rpm: 4800 }, ALL)).toMatchObject({
+        rpm: 4800,
+        firing: 1,
+        catching: false,
+        edges: [],
+      });
+      const c = cockpit();
+      c.set({ starter: true });
+      const cranking = c.advance(SETTLE_MS);
+      const caught = c.set({ running: true, rpm: OPTIONS.idleRpm }, ['running']);
+      expect(caught).toMatchObject({ firing: 1, catching: false, edges: [] });
+      expect(caught.rpm).toBeCloseTo(cranking.rpm);
+      expect(c.advance(OPTIONS.throttleUpMs).rpm).toBeCloseTo(
+        towards(cranking.rpm, OPTIONS.idleRpm),
+      );
+      expect(c.edges).toEqual(['starter-on']);
+    });
+
+    it('fires no ignition cut for a jumped running and keeps the rpm smoothing', () => {
+      const c = loaded({ rpm: OPTIONS.idleRpm, running: true });
+      const cut = c.set({ running: false, rpm: 0 }, ['running']);
+      expect(cut).toMatchObject({ rpm: OPTIONS.idleRpm, firing: 0, catching: false, edges: [] });
+      expect(c.advance(OPTIONS.runDownMs).rpm).toBeCloseTo(towards(OPTIONS.idleRpm, 0));
       expect(c.edges).toEqual([]);
     });
 

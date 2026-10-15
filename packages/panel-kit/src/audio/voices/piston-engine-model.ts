@@ -42,7 +42,7 @@ export type PistonEngineModelState = {
   readonly rpm: number;
   readonly firing: number;
   readonly starter: number;
-  /** Rpm still on its way to the state value it caught at. */
+  /** Rpm follows the catch time constant until the state rpm next changes. */
   readonly catching: boolean;
   readonly input: Omit<PistonEngineModelInput, 'jump'>;
   /** Edges fired by the step that produced this state. */
@@ -93,9 +93,12 @@ export const pistonEngineProblems = (options: JsonObject): readonly string[] => 
   };
   const resolved: JsonObject = { ...pistonEngineDefaults, ...options };
   for (const [key, check] of Object.entries(inRange)) {
-    if (Object.hasOwn(resolved, key) && !check(resolved[key])) {
-      problems.push(`option ${key} is out of range`);
-    }
+    if (!Object.hasOwn(resolved, key) || check(resolved[key])) continue;
+    problems.push(
+      Object.hasOwn(options, key)
+        ? `option ${key} is out of range`
+        : `default ${key} ${JSON.stringify(resolved[key])} is out of range`,
+    );
   }
   return problems;
 };
@@ -121,8 +124,10 @@ export const pistonEngineModel = (options: PistonEngineOptions) => {
   const step = (
     previous: PistonEngineModelState,
     { jump, ...input }: PistonEngineModelInput,
-    dtMs: number,
+    elapsedMs: number,
   ): PistonEngineModelState => {
+    // NaN or a clock stepping back would poison every later step.
+    const dtMs = elapsedMs > 0 ? elapsedMs : 0;
     const was = previous.input;
     const jumps = (name: PistonEngineInputName) => jump.includes(name);
     const edges: PistonEngineEdge[] = [];
@@ -133,6 +138,7 @@ export const pistonEngineModel = (options: PistonEngineOptions) => {
       }
     }
     if (!jumps('running')) {
+      // A windmill is a state rpm above 0 (in flight); a smoothed run-down never reaches 0.
       const turning = input.starter || was.starter || was.rpm > 0;
       if (input.running && !was.running && turning) edges.push('catch');
       if (!input.running && was.running) edges.push('ignition-cut');
