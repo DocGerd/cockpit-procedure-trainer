@@ -16,8 +16,16 @@ import {
   MAX_LIVE_CLICKS,
   voiceFactories,
 } from '@cpt/panel-kit';
-import type { AudioEngine, AudioOut, Voice, VoiceFactory, VoiceFrame } from '@cpt/panel-kit';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import type {
+  AudioEngine,
+  AudioOut,
+  FakeAudioNode,
+  Voice,
+  VoiceFactory,
+  VoiceFrame,
+} from '@cpt/panel-kit';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { aircraftRegistry } from '../aircraft-registry';
 import { deviceRegistry } from '../device-registry';
 import { connectCockpitAudio } from './connect-cockpit-audio';
@@ -64,6 +72,29 @@ if (!START_UP || !VOLUME) throw new Error('The FLARM declares no start-up or vol
 const startUps = () => beepPlays.filter(({ tones }) => tones === START_UP);
 const volumeTones = () => beepPlays.filter(({ tones }) => tones === VOLUME);
 
+// Each wait is long past the FLARM's self-test, a brief push and the beeps' own length.
+const SETTLE_MS = 4000;
+const BRIEF_HOLD_MS = 100;
+// The ticks right after a reset, where a baseline taken a frame late would let a cue through.
+const AFTER_RESET_MS = 3 * STEP_MS;
+// Long past the end of any one-shot or voice fade.
+const DRAIN_S = 30;
+
+type Unit = {
+  readonly powered: boolean;
+  readonly lowSupply: boolean;
+  readonly stage: string;
+  readonly volume: string;
+};
+const unit = (session: Session) => session.state().devices['flarm']?.state as Unit | undefined;
+
+const brief = (session: Session, advance: (ms: number) => void) => {
+  session.press('flarm.mode');
+  advance(BRIEF_HOLD_MS);
+  session.release('flarm.mode');
+  advance(SETTLE_MS);
+};
+
 type Heard = {
   readonly voice: string;
   readonly inputs: Readonly<Record<string, number>>;
@@ -99,10 +130,23 @@ function recordVoices(silent: boolean) {
 }
 
 const disconnects: (() => void)[] = [];
+let errors: MockInstance<Console['error']>;
+
+beforeEach(() => {
+  errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+});
 
 afterEach(() => {
-  for (const disconnect of disconnects.splice(0)) disconnect();
-  beepPlays.length = 0;
+  try {
+    for (const disconnect of disconnects.splice(0)) disconnect();
+    // The driver logs an audio error and goes silent, which would pass every "none" here.
+    expect(errors).not.toHaveBeenCalled();
+    // The filters above go by identity: a beep the driver copied would slip past both.
+    expect(beepPlays.filter(({ tones }) => tones !== START_UP && tones !== VOLUME)).toEqual([]);
+  } finally {
+    beepPlays.length = 0;
+    errors.mockRestore();
+  }
 });
 
 function liveEngine() {
@@ -164,9 +208,20 @@ function expectJumped(aircraft: Aircraft, heard: readonly Heard[], from: number,
   }
 }
 
+const resets = [
+  ['a leg restart', (session: Session) => session.restartLeg()],
+  ['a retried item', (session: Session) => session.retryItem()],
+] as const;
+type ResetName = (typeof resets)[number][0];
+
 describe('criterion 1: a reset plays no one-shot cue and every continuous voice jumps', () => {
+  it('has continuous voices in the CTSL and none in the demo, whose cases check the one-shots only', () => {
+    expect(inputsOf(ctsl).length).toBeGreaterThan(0);
+    expect(inputsOf(demo)).toEqual([]);
+  });
+
   it.each(both)('%s: from every phase to every phase, a phase load', (_id, aircraft) => {
-    const { session, context, heard } = cockpit(aircraft);
+    const { session, context, heard, advance } = cockpit(aircraft);
     let armed = 0;
     for (const from of phaseOrder) {
       for (const to of phaseOrder) {
@@ -183,6 +238,8 @@ describe('criterion 1: a reset plays no one-shot cue and every continuous voice 
         expect(oneShots(context), where).toEqual(played);
         expectJumped(aircraft, heard, frames, where);
         armed += deviceCues(aircraft, deviceRegistry, before, session.state().devices).length;
+        advance(AFTER_RESET_MS);
+        expect(oneShots(context), `${where}, after the load`).toEqual(played);
       }
     }
     // Some pair would play a cue if the load did not take a baseline, so the loop can fail.
@@ -202,85 +259,86 @@ describe('criterion 1: a reset plays no one-shot cue and every continuous voice 
     });
   };
 
-  const legCases = both.flatMap(([id, aircraft]) =>
-    flightLegs(aircraft).map((leg) => [id, leg, aircraft] as const),
+  const legCases = resets.flatMap(([reset, run]) =>
+    both.flatMap(([id, aircraft]) =>
+      flightLegs(aircraft).map((leg) => [id, leg, reset, run, aircraft] as const),
+    ),
   );
 
-  const armedRestarts: number[] = [];
+  const armedBy: Record<ResetName, number[]> = { 'a leg restart': [], 'a retried item': [] };
+  const clickedBy: Record<(typeof both)[number][0], number> = { ctsl: 0, demo: 0 };
 
-  it.each(legCases)('%s: %s, a leg restart', (_id, leg, aircraft) => {
+  it.each(legCases)('%s: %s, %s', (id, leg, reset, run, aircraft) => {
     const start = aircraft.procedures[leg]?.startPhase ?? 'parking';
     const { session, context, heard, advance } = cockpit(aircraft, { phase: start });
     session.startLeg(leg);
     const begun = session.state().devices;
+    const quiet = oneShots(context);
     for (const { control, position } of moveable(aircraft, leg)) session.set(control, position);
     advance(STEP_MS);
     const moved = session.state().devices;
     const played = oneShots(context);
+    clickedBy[id] += played.nodes - quiet.nodes;
     const frames = heard.length;
     const epoch = session.epoch();
 
-    session.restartLeg();
+    run(session);
 
     expect(session.epoch()).toBeGreaterThan(epoch);
     expect(oneShots(context)).toEqual(played);
     expectJumped(aircraft, heard, frames, leg);
     expect(session.state().devices).toEqual(begun);
-    if (aircraft === ctsl) {
-      armedRestarts.push(deviceCues(aircraft, deviceRegistry, moved, begun).length);
+    advance(AFTER_RESET_MS);
+    expect(oneShots(context), 'after the reset').toEqual(played);
+    if (aircraft === ctsl)
+      armedBy[reset].push(deviceCues(aircraft, deviceRegistry, moved, begun).length);
+  });
+
+  it.each(resets)('has a CTSL leg where %s would play a cue without a baseline', (reset) => {
+    expect(Math.max(0, ...armedBy[reset])).toBeGreaterThan(0);
+  });
+
+  // The moves before the resets were heard, so a reset that plays nothing is the driver's choice.
+  it.each(both)('%s: clicked for the moves before the resets', (id) => {
+    expect(clickedBy[id]).toBeGreaterThan(0);
+  });
+
+  // A leg whose start finds the FLARM on and past its self-test, so a brief push steps its volume.
+  const steppable = () => {
+    for (const leg of flightLegs(ctsl)) {
+      const phase = ctsl.procedures[leg]?.startPhase ?? 'parking';
+      const session = createSession(ctsl, { devices: deviceRegistry, phase });
+      session.startLeg(leg);
+      if (unit(session)?.stage === 'ready') return { leg, phase };
     }
-  });
+    throw new Error('No CTSL leg starts with the FLARM ready');
+  };
 
-  it('has a CTSL leg whose restart would play a cue without a baseline', () => {
-    expect(Math.max(0, ...armedRestarts)).toBeGreaterThan(0);
-  });
-
-  const armedRetries: number[] = [];
-
-  it.each(legCases)('%s: %s, a retried item', (_id, leg, aircraft) => {
-    const start = aircraft.procedures[leg]?.startPhase ?? 'parking';
-    const { session, context, heard, advance } = cockpit(aircraft, { phase: start });
+  it.each([
+    ['a phase load', (session: Session) => session.jumpToPhase(session.phase())],
+    ...resets,
+  ] as const)('gives no FLARM tone at %s from a volume other than loud', (_reset, run) => {
+    const { leg, phase } = steppable();
+    const { session, context, advance } = cockpit(ctsl, { phase });
     session.startLeg(leg);
-    const begun = session.state().devices;
-    for (const { control, position } of moveable(aircraft, leg)) session.set(control, position);
-    advance(STEP_MS);
-    const moved = session.state().devices;
+    brief(session, advance);
+    expect(volumeTones()).toHaveLength(1);
+    const stepped = session.state().devices;
     const played = oneShots(context);
-    const frames = heard.length;
-    const epoch = session.epoch();
 
-    session.retryItem();
+    run(session);
+    advance(SETTLE_MS);
 
-    expect(session.epoch()).toBeGreaterThan(epoch);
+    const cues = deviceCues(ctsl, deviceRegistry, stepped, session.state().devices);
+    expect(cues.map(({ beep }) => beep)).toEqual(['volume']);
     expect(oneShots(context)).toEqual(played);
-    expectJumped(aircraft, heard, frames, leg);
-    expect(session.state().devices).toEqual(begun);
-    if (aircraft === ctsl) {
-      armedRetries.push(deviceCues(aircraft, deviceRegistry, moved, begun).length);
-    }
-  });
-
-  it('has a CTSL leg whose retried item would play a cue without a baseline', () => {
-    expect(Math.max(0, ...armedRetries)).toBeGreaterThan(0);
   });
 });
 
 describe('criterion 2: the CTSL FLARM beeps', () => {
-  // Each wait is long past the unit's self-test, a brief push and the beeps' own length.
-  const SETTLE_MS = 4000;
-  const BRIEF_HOLD_MS = 100;
   const LOW_SUPPLY_VOLTS = 4;
 
-  type Unit = { readonly powered: boolean; readonly lowSupply: boolean };
-  const unit = (session: Session) => session.state().devices['flarm']?.state as Unit | undefined;
   const powered = (session: Session) => unit(session)?.powered;
-
-  const brief = (session: Session, advance: (ms: number) => void) => {
-    session.press('flarm.mode');
-    advance(BRIEF_HOLD_MS);
-    session.release('flarm.mode');
-    advance(SETTLE_MS);
-  };
 
   const powerUp = (session: Session, advance: (ms: number) => void) => {
     session.set('battery', 'in');
@@ -305,14 +363,14 @@ describe('criterion 2: the CTSL FLARM beeps', () => {
     const position = { battery: 'in', avionicsMaster: 'on' } as const;
     for (const control of order) {
       advance(STEP_MS);
-      expect(startUps(), `before ${control}`).toHaveLength(0);
+      expect(beepPlays, `before ${control}`).toHaveLength(0);
       session.set(control, position[control]);
       advance(STEP_MS);
     }
     advance(SETTLE_MS);
     expect(powered(session)).toBe(true);
-    expect(startUps()).toHaveLength(1);
-    expect(volumeTones()).toHaveLength(0);
+    expect(beepPlays).toHaveLength(1);
+    expect(beepPlays[0]?.tones).toBe(START_UP);
   });
 
   it('gives none on a page load or a phase load, with the unit powered or not', () => {
@@ -340,9 +398,15 @@ describe('criterion 2: the CTSL FLARM beeps', () => {
 
   it('never meets a low supply in the CTSL, where the bus gives the unit its volts whenever it is powered', () => {
     const seen: (Unit | undefined)[] = [];
+    let watching = false;
     const result = walkFlight(ctsl, {
       devices: deviceRegistry,
-      afterChecklist: (session) => seen.push(unit(session)),
+      afterChecklist: (session) => {
+        seen.push(unit(session));
+        if (watching) return;
+        watching = true;
+        session.subscribe(() => seen.push(unit(session)));
+      },
     });
     expect(result).toEqual({ ok: true });
     expect(seen.some((reading) => reading?.powered)).toBe(true);
@@ -367,33 +431,55 @@ describe('criterion 2: the CTSL FLARM beeps', () => {
     expect(startUps()).toHaveLength(1);
   });
 
-  it('gives one start-up beep at the loud level over a power cycle from a quieter volume', () => {
-    const { session, advance } = cockpit(ctsl);
-    powerUp(session, advance);
-    const loud = startUps()[0]?.level;
-    brief(session, advance);
-    brief(session, advance);
-    expect(volumeTones().at(-1)?.level).toBeLessThan(loud ?? 0);
+  const cycles = (
+    [
+      ['avionicsMaster', 'off', 'on'],
+      ['battery', 'pulled', 'in'],
+    ] as const
+  ).flatMap(([control, off, on]) =>
+    (
+      [
+        ['medium', 1],
+        ['quiet', 2],
+        ['silent', 3],
+      ] as const
+    ).map(([volume, pushes]) => [control, volume, off, on, pushes] as const),
+  );
 
-    session.set('avionicsMaster', 'off');
-    advance(SETTLE_MS);
-    session.set('avionicsMaster', 'on');
-    advance(SETTLE_MS);
-    expect(startUps()).toHaveLength(2);
-    expect(startUps()[1]?.level).toBe(loud);
-  });
+  // The unit comes back at loud: its volume does not outlive a loss of power.
+  it.each(cycles)(
+    'gives one start-up beep at the loud level over %s off and on from %s',
+    (control, volume, off, on, pushes) => {
+      const { session, advance } = cockpit(ctsl);
+      powerUp(session, advance);
+      const loud = startUps()[0]?.level;
+      for (let push = 0; push < pushes; push++) brief(session, advance);
+      expect(unit(session)?.volume).toBe(volume);
+      const given = beepPlays.length;
+
+      session.set(control, off);
+      advance(SETTLE_MS);
+      expect(powered(session)).toBe(false);
+      session.set(control, on);
+      advance(SETTLE_MS);
+
+      expect(beepPlays.slice(given).map(({ tones, level }) => ({ tones, level }))).toEqual([
+        { tones: START_UP, level: loud },
+      ]);
+    },
+  );
 });
 
-const CLICK_IDS: readonly ClickId[] = [
-  'rocker',
-  'detent',
-  'notch',
-  'key',
-  'push-pull',
-  'latch',
-  'handle',
-  'soft',
-];
+const CLICK_IDS = Object.keys({
+  rocker: true,
+  detent: true,
+  notch: true,
+  key: true,
+  'push-pull': true,
+  latch: true,
+  handle: true,
+  soft: true,
+} satisfies Record<ClickId, true>) as ClickId[];
 
 /** The nodes one one-shot holds from the moment it is scheduled. */
 const heldBy = (play: (out: AudioOut) => void) => {
@@ -403,20 +489,27 @@ const heldBy = (play: (out: AudioOut) => void) => {
 };
 
 describe('criterion 8: live voices stay bounded over a full CTSL flight', () => {
-  const FLIGHT_END_MARGIN_S = 30;
+  const perClick = Math.max(
+    ...CLICK_IDS.map((id) => heldBy((out) => createClickPlayer(out).play(id, 0))),
+  );
+  const perBeep = heldBy((out) => createBeepPlayer(out).play(START_UP, 0, 1));
 
-  it('holds at most the voices plus the one-shot caps, and returns to the voices alone', () => {
-    const perClick = Math.max(
-      ...CLICK_IDS.map((id) => heldBy((out) => createClickPlayer(out).play(id, 0))),
-    );
-    const perBeep = heldBy((out) => createBeepPlayer(out).play(START_UP, 0, 1));
+  it('holds the voices whole and the one-shots within their caps, and returns to the voices alone', () => {
     const allowance = MAX_LIVE_CLICKS * perClick + MAX_LIVE_BEEPS * perBeep;
-
     const { context, engine } = liveEngine();
     const recording = recordVoices(false);
     let nowMs = 0;
-    let baseline = 0;
-    let peak = 0;
+    let voiceNodes = new Set<FakeAudioNode>();
+    let samples = 0;
+    let fewestVoiceNodes = Infinity;
+    let mostOneShotNodes = 0;
+    const sample = () => {
+      samples += 1;
+      const live = context.liveNodes();
+      const voices = live.filter((node) => voiceNodes.has(node)).length;
+      fewestVoiceNodes = Math.min(fewestVoiceNodes, voices);
+      mostOneShotNodes = Math.max(mostOneShotNodes, live.length - voices);
+    };
     let connected = false;
     const result = walkFlight(ctsl, {
       devices: deviceRegistry,
@@ -424,21 +517,29 @@ describe('criterion 8: live voices stay bounded over a full CTSL flight', () => 
       afterChecklist: (session) => {
         if (connected) return;
         connected = true;
+        // Time passes only as the walk advances the session: the moves between share a moment.
+        const step = session.advance.bind(session);
+        session.advance = (dtMs) => {
+          nowMs += dtMs;
+          context.currentTime = nowMs / 1000;
+          step(dtMs);
+        };
         disconnects.push(
           connectCockpitAudio(session, ctsl, deviceRegistry, engine, () => nowMs, recording.voices),
         );
-        baseline = context.liveNodes().length;
-        session.subscribe(() => {
-          nowMs += STEP_MS;
-          context.currentTime = nowMs / 1000;
-          peak = Math.max(peak, context.liveNodes().length);
-        });
+        voiceNodes = new Set(context.liveNodes());
+        // State listeners hear a change before the click plays, so the clicks need their own.
+        session.subscribe(sample);
+        session.onControlChange(sample);
       },
     });
 
     expect(result).toEqual({ ok: true });
-    expect(baseline).toBeGreaterThan(0);
-    expect(peak - baseline).toBeLessThanOrEqual(allowance);
+    expect(voiceNodes.size).toBeGreaterThan(0);
+    expect(samples).toBeGreaterThan(0);
+    expect(fewestVoiceNodes).toBe(voiceNodes.size);
+    expect(mostOneShotNodes).toBeGreaterThan(0);
+    expect(mostOneShotNodes).toBeLessThanOrEqual(allowance);
     const engineHeard = recording.heard.filter(({ voice }) => voice === 'piston-engine');
     expect(engineHeard.some(({ inputs }) => inputs['running'] === 1 && inputs['rpm'] !== 0)).toBe(
       true,
@@ -447,16 +548,31 @@ describe('criterion 8: live voices stay bounded over a full CTSL flight', () => 
       recording.heard.some(({ voice, inputs }) => voice === 'electric-motor' && inputs['driving']),
     ).toBe(true);
 
-    context.currentTime += FLIGHT_END_MARGIN_S;
-    expect(context.liveNodes()).toHaveLength(baseline);
+    context.currentTime += DRAIN_S;
+    expect(new Set(context.liveNodes())).toEqual(voiceNodes);
     disconnects.at(-1)?.();
-    context.currentTime += FLIGHT_END_MARGIN_S;
+    context.currentTime += DRAIN_S;
+    expect(context.liveNodes()).toEqual([]);
+  });
+
+  it('drops the clicks past the cap in a burst of moves within one tick', () => {
+    const { session, context, advance } = cockpit(ctsl);
+    for (let move = 0; move < 2 * MAX_LIVE_CLICKS; move++) {
+      session.set('parkingBrakeValve', move % 2 === 0 ? 'closed' : 'open');
+    }
+    expect(context.liveNodes()).toHaveLength(MAX_LIVE_CLICKS * perClick);
+    advance(SETTLE_MS);
     expect(context.liveNodes()).toEqual([]);
   });
 });
 
 describe('criterion 14: leaving the trainer screen stops every voice of the CTSL', () => {
-  // The picker and the error screen both unmount the screen's hook, which calls this disconnect.
+  const voices = Object.values(ctsl.sounds ?? {})
+    .map(({ voice }) => voice)
+    .sort();
+
+  // The useCockpitAudio test in connect-cockpit-audio.test.ts pins that the picker and the error
+  // screen unmount the hook, which calls this disconnect.
   it('stops each voice with the engine running, feeds them no more and frees their nodes', () => {
     const { session, context, disconnect, advance, heard, stopped } = cockpit(ctsl, {
       phase: 'cruise',
@@ -469,15 +585,46 @@ describe('criterion 14: leaving the trainer screen stops every voice of the CTSL
     expect(context.liveNodes().length).toBeGreaterThan(0);
 
     disconnect();
-    const voices = Object.values(ctsl.sounds ?? {}).map(({ voice }) => voice);
-    expect([...stopped].sort()).toEqual([...voices].sort());
+    expect([...stopped].sort()).toEqual(voices);
 
     const fed = heard.length;
     session.set('flapSelector', '15');
     advance(1000);
     expect(heard).toHaveLength(fed);
     expect(stopped).toHaveLength(voices.length);
-    context.currentTime += 30;
+    context.currentTime += DRAIN_S;
+    expect(context.liveNodes()).toEqual([]);
+  });
+
+  it('stops each voice once the runtime fails with the engine running, as the session-failure screen shows', () => {
+    let broken = false;
+    const failing: Aircraft = {
+      ...ctsl,
+      systems: {
+        ...ctsl.systems,
+        step: (state, input) => {
+          if (broken) throw new Error('The systems step failed');
+          return ctsl.systems.step(state, input);
+        },
+      },
+    };
+    const { session, context, advance, heard, stopped } = cockpit(failing, {
+      phase: 'cruise',
+      silent: false,
+    });
+    advance(1000);
+    const engineHeard = heard.filter(({ voice }) => voice === 'piston-engine');
+    expect(engineHeard.at(-1)?.inputs['running']).toBe(1);
+
+    broken = true;
+    advance(STEP_MS);
+    expect(session.status().kind).toBe('failed');
+    expect([...stopped].sort()).toEqual(voices);
+
+    const fed = heard.length;
+    advance(1000);
+    expect(heard).toHaveLength(fed);
+    context.currentTime += DRAIN_S;
     expect(context.liveNodes()).toEqual([]);
   });
 });
