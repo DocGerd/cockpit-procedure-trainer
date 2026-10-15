@@ -72,17 +72,24 @@ test('the popover stays open for clicks inside it and closes on a click outside 
   await expect(popover(page)).toHaveCount(0);
 });
 
-type ContextLog = { __audioContexts: AudioContext[] };
+type ContextLog = { __audioContexts: AudioContext[]; __oscillators: { count: number } };
 
-// The engine builds its context with `new AudioContext()`, so a subclass sees each one it makes.
+// The engine builds its context with `new AudioContext()`, so a subclass sees each one it makes;
+// every click builds one oscillator.
 const wrapAudioContext = (page: Page) =>
   page.addInitScript(() => {
     const built: AudioContext[] = [];
-    Object.assign(window, { __audioContexts: built });
+    const oscillators = { count: 0 };
+    Object.assign(window, { __audioContexts: built, __oscillators: oscillators });
     window.AudioContext = class extends window.AudioContext {
       constructor(options?: AudioContextOptions) {
         super(options);
         built.push(this);
+      }
+
+      override createOscillator() {
+        oscillators.count += 1;
+        return super.createOscillator();
       }
     };
   });
@@ -92,7 +99,10 @@ const contextStates = (page: Page) =>
     (window as unknown as ContextLog).__audioContexts.map((context) => context.state),
   );
 
-test('with sound on, the first panel press runs the audio context, and BAT and the key to START raise no error', async ({
+const oscillatorCount = (page: Page) =>
+  page.evaluate(() => (window as unknown as ContextLog).__oscillators.count);
+
+test('with sound on, panel presses schedule clicks on the running context, and BAT and the key to START raise no error', async ({
   page,
 }) => {
   const ctsl = aircraftRegistry.find((entry) => entry.id === 'ctsl');
@@ -112,13 +122,17 @@ test('with sound on, the first panel press runs the audio context, and BAT and t
   await wrapAudioContext(page);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await openAircraft(page, ctsl, 'engineStart');
+  // The picker's own clicks are gestures, so the context already runs before the panel is pressed.
+  await expect.poll(() => contextStates(page)).toEqual(['running']);
+  const beforeBat = await oscillatorCount(page);
 
   await page.locator(`button[aria-label^="${nameOf('battery')}:"]`).click();
-  await expect.poll(() => contextStates(page)).toEqual(['running']);
+  await expect.poll(() => oscillatorCount(page)).toBeGreaterThan(beforeBat);
 
   for (const id of ['fuelValve', 'choke']) {
     await page.locator(`button[aria-label^="${nameOf(id)}:"]`).click();
   }
+  const beforeKey = await oscillatorCount(page);
   const ignition = nameOf('ignition');
   const key = page.getByRole('slider', { name: ignition, exact: true });
   await key.focus();
@@ -131,6 +145,7 @@ test('with sound on, the first panel press runs the audio context, and BAT and t
     await page.keyboard.up('Enter');
   }
   await expect(key).toHaveAttribute('aria-valuetext', 'both');
+  expect(await oscillatorCount(page)).toBeGreaterThan(beforeKey);
   expect(await contextStates(page)).toEqual(['running']);
   expect(pageErrors).toEqual([]);
   expect(consoleErrors).toEqual([]);

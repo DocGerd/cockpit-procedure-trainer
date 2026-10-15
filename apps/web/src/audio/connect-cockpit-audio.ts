@@ -39,7 +39,11 @@ export function connectCockpitAudio(
       click(change);
     } catch (error) {
       silenced = true;
-      console.error('Cockpit sound stopped after an audio error.', error);
+      // Built from the change alone: the engine call that threw must not run again here.
+      console.error(
+        `Cockpit sound stopped after an audio error at ${change.id} (${change.kind} ${String(change.from)} to ${String(change.to)}).`,
+        error,
+      );
     }
   });
 
