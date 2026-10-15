@@ -11,10 +11,10 @@ import type {
 
 export type DeviceStates = Readonly<Record<string, DeviceState>>;
 
-const installs = (aircraft: Aircraft): [string, DeviceInstall<unknown>][] =>
+export const installs = (aircraft: Aircraft): [string, DeviceInstall<unknown>][] =>
   Object.entries(aircraft.devices ?? {});
 
-function deviceOf(registry: readonly Device[], installId: string, id: string): Device {
+export function deviceOf(registry: readonly Device[], installId: string, id: string): Device {
   const device = registry.find((candidate) => candidate.id === id);
   if (!device) throw new Error(`Install "${installId}" names unknown device "${id}"`);
   return device;
