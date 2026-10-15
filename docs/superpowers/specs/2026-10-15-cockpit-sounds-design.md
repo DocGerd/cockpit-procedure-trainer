@@ -700,7 +700,8 @@ const approach = (value: number, target: number, dtMs: number, timeConstantMs: n
 - **E2E.** The auto fixture in `apps/web/e2e/fixtures.ts` seeds
   `cpt.sound=off` through an init script when the key is absent, behind a
   fixture option that `sound-settings.spec.ts` turns off; `pnpm test:perf`
-  runs through the same fixture. `sound-settings.spec.ts` (importing from
+  runs through the same fixture, and only its local sound-on A/B arm
+  (`E2E_SOUND=on`) turns the option off. `sound-settings.spec.ts` (importing from
   `./fixtures`, so the CSP fixture applies): sound off survives a reload; the
   volume survives a reload; with sound on, an init script wraps `AudioContext`
   so the spec reads `state` and sees `running` after the first panel press;
@@ -728,7 +729,8 @@ const approach = (value: number, target: number, dtMs: number, timeConstantMs: n
   and list it in the PR. The engine facts of D16 are recorded as general
   knowledge instead.
 - Tie a unit's beep to its power-on path, never to page or phase load.
-- Seed `cpt.sound=off` in the shared E2E fixture; only the sound spec opts out.
+- Seed `cpt.sound=off` in the shared E2E fixture; only the sound spec opts out,
+  besides the local perf A/B arm with sound on (§10), which never runs in CI.
 - Use the fake context in unit tests; never require audible output.
 - Colours, type and spacing from `tokens.css`; the control stays in the app
   frame.
@@ -854,7 +856,8 @@ Owed by the implementing PRs:
   persisted settings) and the `input_validation` row of
   `docs/openssf-best-practices-badge.md` (the new keys' validation). The
   `CLAUDE.md` app-settings line (`sound`, `volume`, seeded off by the E2E
-  fixture) is the orchestrator's change, in the main session.
+  fixture) is the orchestrator's change, in the main session, landed as its
+  own issue and PR from a worktree.
 - Step 3a: intake §9 question 1 (the general-knowledge engine values of §6.5,
   D16).
 - Step 3b: `packages/device-flarm/README.md` in the same PR as the
