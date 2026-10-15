@@ -3,6 +3,7 @@ import {
   flapMotorRunning,
   IDLE_RPM,
   MAX_CONTINUOUS_RPM,
+  on,
   type CtslState,
   type CtslTrainerState,
 } from './systems';
@@ -13,7 +14,7 @@ const AIRSPEED_RED_LINE_KMH = 300;
 const CYLINDERS = 4;
 
 const starterTurning = ({ controls }: CtslTrainerState) =>
-  controls['ignition'] === 'start' && controls['battery'] === 'in';
+  on(controls, 'ignition', 'start') && on(controls, 'battery', 'in');
 
 export const sounds: Readonly<Record<string, SoundDefinition<CtslState>>> = {
   engine: {

@@ -26,6 +26,10 @@ const engine = (session: Session) => ({
   starter: input(session, 'engine', 'starter'),
 });
 
+const PAST_STARTER_LIMIT_S = 10.5;
+
+const cranking = (session: Session) => (session.state().systems as CtslState).starter.cranking;
+
 const readyToStart = (session: Session) => {
   session.set('battery', 'in');
   session.set('fuelValve', 'open');
@@ -124,13 +128,29 @@ describe('engine inputs over a real start', () => {
     expect(engine(session).running).toBe(0);
   });
 
-  it('keeps the starter on with the key held past the lockout', () => {
+  it('keeps the starter on with no catch once the key is held past the lockout', () => {
     const session = sessionAt('parking');
     readyToStart(session);
     session.press('ignition', 'start');
-    advanceSeconds(session, 15);
-    const state = session.state().systems as CtslState;
-    expect(state.starter.cranking).toBe(false);
+    advanceSeconds(session, PAST_STARTER_LIMIT_S);
+    expect(cranking(session)).toBe(false);
+    session.set('choke', 'on');
+    advanceSeconds(session, 5);
+    expect(cranking(session)).toBe(false);
+    expect(engine(session)).toEqual({ rpm: 0, running: 0, starter: 1 });
+  });
+
+  it('turns the starter with no catch during the cool-down', () => {
+    const session = sessionAt('parking');
+    readyToStart(session);
+    session.press('ignition', 'start');
+    advanceSeconds(session, PAST_STARTER_LIMIT_S);
+    session.release('ignition');
+    session.set('choke', 'on');
+    advanceSeconds(session, 1);
+    session.press('ignition', 'start');
+    advanceSeconds(session, 5);
+    expect(cranking(session)).toBe(false);
     expect(engine(session)).toEqual({ rpm: 0, running: 0, starter: 1 });
   });
 
@@ -138,7 +158,7 @@ describe('engine inputs over a real start', () => {
     const session = sessionAt('parking');
     readyToStart(session);
     session.set('battery', 'pulled');
-    session.press('ignition', 'start');
+    expect(session.press('ignition', 'start').applied).toBe(true);
     advanceSeconds(session, 1);
     expect(engine(session).starter).toBe(0);
   });
@@ -185,7 +205,7 @@ describe('flap motor input', () => {
 
   it('is off without power', () => {
     const session = sessionAt('parking');
-    session.set('flapSelector', '15');
+    expect(session.set('flapSelector', '15').applied).toBe(true);
     advanceSeconds(session, 1);
     expect(driving(session)).toBe(0);
   });
