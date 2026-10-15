@@ -7,23 +7,25 @@ const KIND_CLICK = {
   momentary: 'key',
   guarded: 'handle',
   breaker: 'push-pull',
-} satisfies Record<ControlKind, ClickId>;
+} satisfies Record<ControlKind, ClickId | 'silent'>;
+
+const audible = (click: ClickId | 'silent'): ClickId | undefined =>
+  click === 'silent' ? undefined : click;
 
 const fallback = (definition: ControlDefinition, change: ControlChange): ClickId | undefined => {
-  if (change.kind === 'guard') return definition.kind === 'guarded' ? 'latch' : undefined;
+  if (change.kind === 'guard') return 'latch';
   if (definition.kind === 'lever' && definition.positions === 'continuous') return undefined;
-  return KIND_CLICK[definition.kind];
+  return audible(KIND_CLICK[definition.kind]);
 };
 
-/** Only the pilot's own moves click; a change that moves nothing is a refused move. */
+/** Only the pilot's own moves click. */
 export function clickFor(
   definition: ControlDefinition,
   change: ControlChange,
 ): ClickId | undefined {
   if (change.source !== 'pilot' || change.from === change.to) return undefined;
-  if (definition.click !== undefined) {
-    return definition.click === 'silent' ? undefined : definition.click;
-  }
+  if (change.kind === 'guard' && definition.kind !== 'guarded') return undefined;
+  if (definition.click !== undefined) return audible(definition.click);
   return fallback(definition, change);
 }
 

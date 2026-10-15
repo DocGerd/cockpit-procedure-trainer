@@ -14,8 +14,8 @@ const toggle: ControlDefinition = {
 const ignition: ControlDefinition = {
   ...base,
   kind: 'rotary',
-  positions: ['off', 'right', 'left', 'both', 'start'],
-  initial: 'off',
+  positions: ['out', 'off', 'left', 'right', 'both', 'start'],
+  initial: 'out',
   springBack: { start: 'both' },
 };
 const radioKnob: ControlDefinition = {
@@ -92,18 +92,22 @@ describe('clickFor: the kind table', () => {
   });
 
   it('covers every control kind', () => {
+    const every = {
+      toggle: true,
+      rotary: true,
+      lever: true,
+      momentary: true,
+      guarded: true,
+      breaker: true,
+    } satisfies Record<ControlKind, true>;
     const kinds = new Set<ControlKind>(rows.map(([kind]) => kind));
-    expect([...kinds].sort()).toEqual(
-      ['breaker', 'guarded', 'lever', 'momentary', 'rotary', 'toggle'].sort(),
-    );
+    expect([...kinds].sort()).toEqual(Object.keys(every).sort());
   });
 
-  it.each(['spring', 'system'] as const)('a %s change is silent for every kind', (source) => {
-    expect(clickFor(toggle, move('off', 'on', source))).toBeUndefined();
-    expect(clickFor(ignition, move('start', 'both', source))).toBeUndefined();
-    expect(clickFor(key, move('held', 'rest', source))).toBeUndefined();
-    expect(clickFor(breaker, move('in', 'pulled', source))).toBeUndefined();
-    expect(clickFor(guarded, guardMove('open', 'closed', source))).toBeUndefined();
+  it.each(['spring', 'system'] as const)('a %s change is silent for every row', (source) => {
+    for (const [, definition, change] of rows) {
+      expect(clickFor(definition, { ...change, source })).toBeUndefined();
+    }
   });
 
   it('a move that changes nothing is silent', () => {
@@ -111,8 +115,9 @@ describe('clickFor: the kind table', () => {
     expect(clickFor(guarded, guardMove('open', 'open'))).toBeUndefined();
   });
 
-  it('a guard change on a control without a guard is silent', () => {
+  it('a guard change on a control without a guard is silent, even with a declared click', () => {
     expect(clickFor(toggle, guardMove('closed', 'open'))).toBeUndefined();
+    expect(clickFor({ ...toggle, click: 'soft' }, guardMove('closed', 'open'))).toBeUndefined();
   });
 });
 
@@ -141,6 +146,8 @@ describe('clickCount', () => {
   it('gives one per rotary position stepped', () => {
     expect(clickCount(ignition, move('off', 'both'))).toBe(3);
     expect(clickCount(ignition, move('both', 'off'))).toBe(3);
+    expect(clickCount(ignition, move('out', 'both'))).toBe(4);
+    expect(clickCount(ignition, move('left', 'right'))).toBe(1);
     expect(clickCount(ignition, move('right', 'left'))).toBe(1);
     expect(clickCount(selector, move('a', 'd'))).toBe(3);
     expect(clickCount(selector, move('d', 'a'))).toBe(3);
@@ -153,6 +160,22 @@ describe('clickCount', () => {
     expect(clickCount(radioKnob, move('rest', 'down'))).toBe(1);
     expect(clickCount(radioKnob, move('up', 'down'))).toBe(1);
     expect(clickCount(radioKnob, move('down', 'up'))).toBe(1);
+  });
+
+  it('counts a move out of a spring-back position by its distance', () => {
+    expect(clickCount(radioKnob, move('up', 'rest'))).toBe(1);
+    expect(clickCount(ignition, move('start', 'left'))).toBe(3);
+  });
+
+  it('reads only the spring-back positions the control lists, not inherited keys', () => {
+    const knob: ControlDefinition = {
+      ...base,
+      kind: 'rotary',
+      positions: ['constructor', 'a', 'b', 'c'],
+      initial: 'a',
+      springBack: { c: 'b' },
+    };
+    expect(clickCount(knob, move('c', 'constructor'))).toBe(3);
   });
 
   it('gives one for every other kind and for a guard change', () => {

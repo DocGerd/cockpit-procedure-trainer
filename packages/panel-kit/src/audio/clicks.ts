@@ -2,7 +2,11 @@ import type { ClickId } from '@cpt/core';
 import type { AudioOut } from './audio-engine';
 
 export type ClickPlayer = {
-  /** Plays `count` clicks from `whenS` on the context clock, spaced by the rate cap; a full voice cap drops the rest. */
+  /**
+   * Plays `count` detents from `whenS` on the context clock, spaced by the rate cap; a full voice
+   * cap drops the rest. Call it only while the engine is `live()`: a click on a context that never
+   * runs keeps its voice.
+   */
   play(id: ClickId, whenS: number, count?: number): void;
 };
 
@@ -91,7 +95,7 @@ const CLICK_PROFILES = {
   },
 } satisfies Record<ClickId, ClickProfile>;
 
-/** The least time between the starts of two clicks, which spaces the detents of one move. */
+/** The time between the detents of one move. */
 export const CLICK_SPACING_S = 0.05;
 /** Clicks scheduled or sounding at once; a click that would exceed it is dropped. */
 export const MAX_LIVE_CLICKS = 8;
@@ -101,7 +105,7 @@ const SILENCE = 0.0001;
 const TAIL_S = 0.01;
 
 // A fixed generator keeps every click the same and a test repeatable.
-function noiseSamples(length: number): Float32Array {
+function noiseSamples(length: number): Float32Array<ArrayBuffer> {
   const samples = new Float32Array(length);
   let state = 0x2545f491;
   for (let index = 0; index < length; index += 1) {
@@ -116,13 +120,12 @@ export function createClickPlayer(out: AudioOut): ClickPlayer {
   const { context, input } = out;
   let noise: AudioBuffer | undefined;
   let live = 0;
-  let nextFreeS = 0;
 
   const noiseBuffer = () => {
     if (!noise) {
       const length = Math.ceil(context.sampleRate * NOISE_SECONDS);
       noise = context.createBuffer(1, length, context.sampleRate);
-      noise.copyToChannel(noiseSamples(length) as Float32Array<ArrayBuffer>, 0);
+      noise.copyToChannel(noiseSamples(length), 0);
     }
     return noise;
   };
@@ -132,7 +135,6 @@ export function createClickPlayer(out: AudioOut): ClickPlayer {
     const envelope = context.createGain();
     envelope.gain.setValueAtTime(profile.level, startS);
     envelope.gain.exponentialRampToValueAtTime(SILENCE, startS + profile.decayS);
-    envelope.connect(input);
 
     const filter = context.createBiquadFilter();
     filter.type = 'bandpass';
@@ -155,14 +157,15 @@ export function createClickPlayer(out: AudioOut): ClickPlayer {
     const onEnded = () => {
       ended += 1;
       if (ended < sources.length) return;
-      for (const node of [...sources, filter, envelope]) node.disconnect();
       live -= 1;
+      for (const node of [...sources, filter, envelope]) node.disconnect();
     };
     for (const source of sources) {
       source.onended = onEnded;
       source.start(startS);
       source.stop(endS);
     }
+    envelope.connect(input);
     live += 1;
   };
 
@@ -170,9 +173,7 @@ export function createClickPlayer(out: AudioOut): ClickPlayer {
     play(id, whenS, count = 1) {
       const profile = CLICK_PROFILES[id];
       for (let step = 0; step < count && live < MAX_LIVE_CLICKS; step += 1) {
-        const startS = Math.max(whenS, nextFreeS);
-        click(profile, startS);
-        nextFreeS = startS + CLICK_SPACING_S;
+        click(profile, whenS + step * CLICK_SPACING_S);
       }
     },
   };
