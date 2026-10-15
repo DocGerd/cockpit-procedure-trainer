@@ -18,43 +18,43 @@ Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, de
 
 ### M21 (wave 1)
 
-| Task | Title                                                     | Capability ids (spec §5)                   | Phase | Depends on         | Group | Size | Changelog    |
-| ---- | --------------------------------------------------------- | ------------------------------------------ | ----- | ------------------ | ----- | ---- | ------------ |
-| T0   | Land the sounds spec, ADR-0003 and this plan              | `spec-adr-0003`                            | 0     | —                  | —     | M    | No changelog |
-| T1   | Session control-change feed and reset epoch               | `control-change-feed`, `session-epoch`     | 1     | T0                 | A     | M    | No changelog |
-| T2   | Sound contract types and validator rows                   | `sound-contract` (types)                   | 1     | T0                 | A     | M    | No changelog |
-| T3   | Wave-1 click overrides as data                            | `sound-contract` (data)                    | 1     | T2                 | B     | M    | No changelog |
-| T4   | Device cue diff and contract docs                         | `device-cue-diff`                          | 1     | T2                 | B     | M    | No changelog |
-| T5   | Audio engine lifecycle, fake context and voice types      | `audio-engine`; the `voiceFactories` types | 1     | T0                 | A     | M    | No changelog |
-| T6   | Control clicks: `clickFor`, `clickCount`, click synthesis | `control-clicks`                           | 2     | T2, T5             | B     | M    | No changelog |
-| T7   | Sound settings keys and security docs                     | `audio-settings` (storage)                 | 2     | T0                 | A     | M    | No changelog |
-| T8   | AudioProvider and the E2E sound-off seed                  | `audio-settings` (provider)                | 2     | T5, T7             | B     | M    | No changelog |
-| T8a  | `CLAUDE.md` app-settings line                             | owed docs (spec §15, step 2)               | 2     | T8                 | C     | S    | No changelog |
-| T9   | Beep voice                                                | `beep-voice`                               | 2     | T2, T5             | B     | S    | No changelog |
-| T10  | Header sound control                                      | `sound-control`                            | 2     | T8                 | C     | M    | `added`      |
-| T11  | Cockpit audio driver: clicks (first audible slice)        | `cockpit-audio-driver` (clicks)            | 2     | T1, T3, T6, T10    | D     | M    | `added`      |
-| T12  | Cockpit audio driver: voices, device cues, baselines      | `cockpit-audio-driver` (voices, cues)      | 2     | T4, T9, T11        | E     | M    | No changelog |
-| T13  | Step-2 documentation                                      | owed docs (spec §15, step 2)               | 2     | T11                | E     | M    | No changelog |
-| T14  | Piston-engine model (pure)                                | `aircraft-voices` (engine model)           | 3     | T0                 | A     | S    | No changelog |
-| T15  | Piston-engine voice graph                                 | `aircraft-voices` (engine graph)           | 3     | T5, T14            | B     | M    | No changelog |
-| T16  | Airflow and electric-motor voices                         | `aircraft-voices` (airflow, motor)         | 3     | T15                | C     | M    | No changelog |
-| T17  | CTSL sound declarations                                   | `ctsl-sounds`                              | 3     | T2, T14            | B     | M    | No changelog |
-| T18  | FLARM beeps                                               | `flarm-sounds`                             | 3     | T2, T12            | F     | M    | `added`      |
-| T19  | CTSL sounds wired, aircraft sounds check and perf A/B     | `aircraft-sounds-check`, `ctsl-sounds`     | 3     | T12, T15, T16, T17 | F     | M    | `added`      |
-| T20  | Cockpit audio over the real aircraft                      | criteria 1, 2, 8, 14 (spec §12)            | 3     | T18, T19           | G     | S    | No changelog |
+| Task | Issue | Title                                                     | Capability ids (spec §5)                   | Phase | Depends on         | Group | Size | Changelog    |
+| ---- | ----- | --------------------------------------------------------- | ------------------------------------------ | ----- | ------------------ | ----- | ---- | ------------ |
+| T0   | #799  | Land the sounds spec, ADR-0003 and this plan              | `spec-adr-0003`                            | 0     | —                  | —     | M    | No changelog |
+| T1   | #800  | Session control-change feed and reset epoch               | `control-change-feed`, `session-epoch`     | 1     | T0                 | A     | M    | No changelog |
+| T2   | #801  | Sound contract types and validator rows                   | `sound-contract` (types)                   | 1     | T0                 | A     | M    | No changelog |
+| T3   | #802  | Wave-1 click overrides as data                            | `sound-contract` (data)                    | 1     | T2                 | B     | M    | No changelog |
+| T4   | #803  | Device cue diff and contract docs                         | `device-cue-diff`                          | 1     | T2                 | B     | M    | No changelog |
+| T5   | #804  | Audio engine lifecycle, fake context and voice types      | `audio-engine`; the `voiceFactories` types | 1     | T0                 | A     | M    | No changelog |
+| T6   | #805  | Control clicks: `clickFor`, `clickCount`, click synthesis | `control-clicks`                           | 2     | T2, T5             | B     | M    | No changelog |
+| T7   | #806  | Sound settings keys and security docs                     | `audio-settings` (storage)                 | 2     | T0                 | A     | M    | No changelog |
+| T8   | #807  | AudioProvider and the E2E sound-off seed                  | `audio-settings` (provider)                | 2     | T5, T7             | B     | M    | No changelog |
+| T8a  | #808  | `CLAUDE.md` app-settings line                             | owed docs (spec §15, step 2)               | 2     | T8                 | C     | S    | No changelog |
+| T9   | #809  | Beep voice                                                | `beep-voice`                               | 2     | T2, T5             | B     | S    | No changelog |
+| T10  | #810  | Header sound control                                      | `sound-control`                            | 2     | T8                 | C     | M    | `added`      |
+| T11  | #811  | Cockpit audio driver: clicks (first audible slice)        | `cockpit-audio-driver` (clicks)            | 2     | T1, T3, T6, T10    | D     | M    | `added`      |
+| T12  | #812  | Cockpit audio driver: voices, device cues, baselines      | `cockpit-audio-driver` (voices, cues)      | 2     | T4, T9, T11        | E     | M    | No changelog |
+| T13  | #813  | Step-2 documentation                                      | owed docs (spec §15, step 2)               | 2     | T11                | E     | M    | No changelog |
+| T14  | #814  | Piston-engine model (pure)                                | `aircraft-voices` (engine model)           | 3     | T0                 | A     | S    | No changelog |
+| T15  | #815  | Piston-engine voice graph                                 | `aircraft-voices` (engine graph)           | 3     | T5, T14            | B     | M    | No changelog |
+| T16  | #816  | Airflow and electric-motor voices                         | `aircraft-voices` (airflow, motor)         | 3     | T15                | C     | M    | No changelog |
+| T17  | #817  | CTSL sound declarations                                   | `ctsl-sounds`                              | 3     | T2, T14            | B     | M    | No changelog |
+| T18  | #818  | FLARM beeps                                               | `flarm-sounds`                             | 3     | T2, T12            | F     | M    | `added`      |
+| T19  | #819  | CTSL sounds wired, aircraft sounds check and perf A/B     | `aircraft-sounds-check`, `ctsl-sounds`     | 3     | T12, T15, T16, T17 | F     | M    | `added`      |
+| T20  | #820  | Cockpit audio over the real aircraft                      | criteria 1, 2, 8, 14 (spec §12)            | 3     | T18, T19           | G     | S    | No changelog |
 
 ### M21 (wave 2, blocked)
 
-| Task | Title                                                    | Capability ids (spec §5)       | Phase | Depends on      | Group | Size | Changelog    |
-| ---- | -------------------------------------------------------- | ------------------------------ | ----- | --------------- | ----- | ---- | ------------ |
-| T21  | Sound-facts intake session (owner, blocked)              | wave-2 input (spec §13)        | 4     | T17, T18, owner | H     | S    | No changelog |
-| T22  | Engine voice: blade-pass tone and fact options (blocked) | `ctsl-sound-facts` (panel-kit) | 4     | T21, T19        | I     | M    | No changelog |
-| T23  | CTSL engine sound facts (blocked)                        | `ctsl-sound-facts` (CTSL)      | 4     | T22             | J     | S    | `changed`    |
-| T24  | FLARM beep facts (blocked)                               | `flarm-beep-facts`             | 4     | T21, T18        | I     | S    | `changed`    |
-| T25a | Detent clicks (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T21, T3         | I     | M    | `changed`    |
-| T25b | ELT buzzer (blocked, conditional)                        | `ctsl-extra-cues`              | 4     | T23             | K     | M    | `added`      |
-| T25c | Rescue-system deployment (blocked, conditional)          | `ctsl-extra-cues`              | 4     | T25b or T23     | K     | M    | `added`      |
-| T25d | Flap end stop (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T25c or T23     | K     | M    | `added`      |
+| Task | Issue | Title                                                    | Capability ids (spec §5)       | Phase | Depends on      | Group | Size | Changelog    |
+| ---- | ----- | -------------------------------------------------------- | ------------------------------ | ----- | --------------- | ----- | ---- | ------------ |
+| T21  | #821  | Sound-facts intake session (owner, blocked)              | wave-2 input (spec §13)        | 4     | T17, T18, owner | H     | S    | No changelog |
+| T22  | #822  | Engine voice: blade-pass tone and fact options (blocked) | `ctsl-sound-facts` (panel-kit) | 4     | T21, T19        | I     | M    | No changelog |
+| T23  | #823  | CTSL engine sound facts (blocked)                        | `ctsl-sound-facts` (CTSL)      | 4     | T22             | J     | S    | `changed`    |
+| T24  | #824  | FLARM beep facts (blocked)                               | `flarm-beep-facts`             | 4     | T21, T18        | I     | S    | `changed`    |
+| T25a | #825  | Detent clicks (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T21, T3         | I     | M    | `changed`    |
+| T25b | #826  | ELT buzzer (blocked, conditional)                        | `ctsl-extra-cues`              | 4     | T23             | K     | M    | `added`      |
+| T25c | #827  | Rescue-system deployment (blocked, conditional)          | `ctsl-extra-cues`              | 4     | T25b or T23     | K     | M    | `added`      |
+| T25d | #828  | Flap end stop (blocked, conditional)                     | `ctsl-extra-cues`              | 4     | T25c or T23     | K     | M    | `added`      |
 
 Counts: M21 holds 30 issues. Wave 1 has 22: Phase 0 one; Phase 1 five; Phase 2 nine (T6 to T13 and T8a); Phase 3 seven. Wave 2 has eight: four tasks plus four conditional ones. All are filed up front; a conditional task the intake session does not confirm is closed as not planned, and the chain T25b → T25c → T25d skips it.
 
