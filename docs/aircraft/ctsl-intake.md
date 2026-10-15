@@ -3352,13 +3352,22 @@ Each item lists the value the trainer uses until it is answered.
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
 **assumed (unverified)**, and the implementing PR lists it, until the owner
-verifies it on D-MPGO.
+verifies it on D-MPGO. The one exception is the engine facts used only for sound
+(question 1), which the owner accepted as general knowledge on 2026-10-15 and which
+carry no assumed (unverified) marking.
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
    **Photo survey 2026-10-10 (§3.7):** not visible. No engine type plate is in the
    photos. The wing-root fuel placards ask for RON 95 or better, which matches the
    trainer value of §4.2 but does not settle UL or ULS.
+   **Trainer (sounds):** the engine voice assumes four cylinders and the four-stroke
+   cycle, and cranks at the voice default for the starter's rpm
+   (`pistonEngineDefaults.crankingRpm` in `packages/panel-kit`, tuned by ear). All
+   three are general knowledge of the Rotax 912 named in §4.2, accepted by the owner
+   on 2026-10-15 (sounds spec, D16), not assumed (unverified). They give the firing
+   frequency, the uneven beat and the starter pulses only; the UL or ULS variant,
+   gearbox ratio and propeller stay unknown, so the voice has no blade-pass tone.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
    VNE 260 km/h and the yellow arc 245–260.
    **Photo survey 2026-10-10 (§3.7):** partly answered. The data plate beside the

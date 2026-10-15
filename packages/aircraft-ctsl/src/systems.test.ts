@@ -6,7 +6,14 @@ import { CHT_RED_LINE_C } from './cht-limits';
 import { ctslAircraft } from './index';
 import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import { indicatedAltitudeFt, initial, pressureAltitudeFt, runningFrom, step } from './systems';
+import {
+  flapMotorRunning,
+  indicatedAltitudeFt,
+  initial,
+  pressureAltitudeFt,
+  runningFrom,
+  step,
+} from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -989,5 +996,56 @@ describe('pressureAltitudeFt', () => {
     expect(pressureAltitudeFt(2500, 1013)).toBe(2815);
     expect(pressureAltitudeFt(2500, 1012)).toBe(2842);
     expect(pressureAltitudeFt(2500, 1014)).toBe(2788);
+  });
+});
+
+describe('flapMotorRunning', () => {
+  const FLAP_SPEED_BEYOND_ZERO_KMH = 148;
+  const trainerAt = (
+    flaps: CtslState['flaps'],
+    selector: string,
+    airspeedKmh: number,
+  ): CtslTrainerState => ({
+    controls: { flapSelector: selector },
+    guards: {},
+    systems: { ...initial, flaps, airspeedKmh },
+    devices: {},
+  });
+
+  it('is true while the flaps travel', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 5, moving: true }, '15', 80))).toBe(true);
+    expect(flapMotorRunning(trainerAt({ angle: 20, moving: true }, '0', 80))).toBe(true);
+  });
+
+  it('is false at rest and without power', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 15, moving: false }, '15', 80))).toBe(false);
+    const session = sessionAt('parking');
+    session.set('flapSelector', '15');
+    advanceSeconds(session, 1);
+    expect(flapMotorRunning(trainerState(session))).toBe(false);
+  });
+
+  it('is false while extension is held back above the flap speed beyond the angle', () => {
+    const held = { angle: 0, moving: true };
+    expect(flapMotorRunning(trainerAt(held, '15', FLAP_SPEED_BEYOND_ZERO_KMH + 1))).toBe(false);
+    expect(flapMotorRunning(trainerAt(held, '15', FLAP_SPEED_BEYOND_ZERO_KMH))).toBe(true);
+    expect(flapMotorRunning(trainerAt(held, 'override-down', 400))).toBe(false);
+  });
+
+  it('stays true when retracting fast, which the flap speed does not hold back', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 15, moving: true }, '0', 250))).toBe(true);
+  });
+
+  it('agrees with the step through the cut-out', () => {
+    const cruise = sessionAt('cruise');
+    cruise.set('flapSelector', '0');
+    advanceSeconds(cruise, 5);
+    expect(systems(cruise).flaps.moving).toBe(true);
+    expect(flapMotorRunning(trainerState(cruise))).toBe(false);
+    const approach = sessionAt('approach');
+    approach.set('flapSelector', '30');
+    advanceSeconds(approach, 1);
+    expect(systems(approach).flaps.moving).toBe(true);
+    expect(flapMotorRunning(trainerState(approach))).toBe(true);
   });
 });
