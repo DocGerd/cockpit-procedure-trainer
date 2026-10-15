@@ -1549,10 +1549,14 @@ that runs from the moment power arrives, the four status LEDs (`Power` lit or fl
 good; `RX` dark, there is no traffic), the volume steps, and the Nearest and Collision
 swap with its confirmation run, all acting on release by hold time. It leaves out traffic
 and obstacle warnings, the Nearest bearing, `RX`, the receiver self-test, suppression,
-sound (the volume level is kept but never heard), the version display, reboot, factory
-reset, display setup, fault codes and flight recording. The trainer's timings for the
-self-test steps, the GPS search and the push thresholds are **assumed (unverified)** where
-the manuals give none.
+warning tones, the version display, reboot, factory reset, display setup, fault codes and
+flight recording. Sound is limited to a short start-up beep at loud volume when power
+arrives (none on a low supply) and one tone at the new level for each brief push that steps
+the volume; the mode swap makes no sound. The pitch, length and loud, medium and quiet level
+ratios are **assumed (unverified)**, and no tone on the step into silent is **inferred**: the
+manuals give a tone at the new level and record nothing for silent. The trainer's timings
+for the self-test steps, the GPS search and the push thresholds are **assumed (unverified)**
+where the manuals give none.
 
 **Power cycle (trainer, #727).** With the Avionics Master off, or the battery off with no
 generator running, the display is dark (the FLARM has no breaker of its own in the trainer,
