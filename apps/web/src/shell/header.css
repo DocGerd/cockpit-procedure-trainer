@@ -220,6 +220,62 @@
   height: var(--space-5);
 }
 
+.chrome-button.sound-button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.sound-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+}
+
+.sound-control {
+  position: relative;
+}
+
+.sound-popover {
+  position: absolute;
+  inset-block-start: calc(100% + var(--space-2));
+  inset-inline-end: 0;
+  z-index: 5;
+  display: grid;
+  gap: var(--space-2);
+  min-width: max-content;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.sound-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-target);
+}
+
+.sound-row > span {
+  min-width: max-content;
+}
+
+.sound-volume {
+  flex: 1 1 auto;
+  min-height: var(--size-target);
+  min-width: calc(var(--size-target) * 3);
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.sound-volume:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 @media (min-width: 1024px) {
   .shell-header {
     gap: var(--space-2);
