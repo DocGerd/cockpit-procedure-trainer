@@ -110,10 +110,11 @@ moves are refused (result `locked`); phase entries and failures move controls
 freely. A rotary may also declare positions reachable only from others
 (`onlyFrom`), as the key comes out only at OFF.
 
-Any control may declare a `click`, the sound every move of it makes (§4.10): one
-of the click ids (`rocker`, `detent`, `notch`, `key`, `push-pull`, `latch`,
-`handle`, `soft`), or `silent` for none. A guard's moves make the same click.
-Without it the control's kind picks one.
+Any control may declare a `click`, the sound the pilot's moves of it make
+(§4.10): one of the click ids (`rocker`, `detent`, `notch`, `key`, `push-pull`,
+`latch`, `handle`, `soft`), or `silent` for none. A guard's moves make the same
+click. Without it the control's kind picks a click, or silence for a continuous
+lever. Spring-backs, system moves and refused moves are silent.
 
 ### 4.2 Indicators
 
@@ -354,8 +355,10 @@ model.
 
 ### 4.10 Sounds
 
-Sounds are optional; an aircraft or device that declares none is silent, and the
-contract version does not change. Design: `2026-10-15-cockpit-sounds-design.md`.
+Sounds are optional, and the contract version does not change. A device that
+declares none makes no sound of its own; an aircraft that declares none has no
+voices, while its controls still click (§4.1). Design:
+`2026-10-15-cockpit-sounds-design.md`.
 The contract holds data and pure functions only, so core and the packages use
 no audio API; panel-kit implements the voices and the app plays them.
 
@@ -368,15 +371,20 @@ no audio API; panel-kit implements the voices and the app plays them.
   voices live outside core.
 - **Device `sounds`**: `{ beeps, cues }`. `beeps` maps a beep id to its tones,
   each `{ hz, ms, pauseMs? }`, the silence after the tone being `pauseMs`.
-  `cues(previous, next)` is a pure function of the device's own state before and
-  after a change; it returns the beeps to sound, each `{ beep, level? }`, with
-  `level` multiplying the gain (1 when left out). A cue naming an undeclared beep
-  does not compile.
+  `cues(previous, next)` is a pure function of the device's own `state` before
+  and after a change, not of the install's `on` flag; it returns the beeps to
+  sound, each `{ beep, level? }`, with `level`, finite and not negative,
+  multiplying the gain (1 when left out). A cue naming an undeclared beep does
+  not compile.
 - **`deviceCues(aircraft, registry, previous, next)`** (core) walks the
-  aircraft's installs, passes each install's previous and next device `state` to
-  its device's `cues`, and tags every cue with the install id and the device id.
-  A device without `sounds`, and an install missing from either state set, give
-  no cue. The app plays the cues at each state notification.
+  aircraft's installs in their declared order, passes each install's previous
+  and next device `state` to its device's `cues`, and tags every cue with the
+  install id and the device id. Both state sets come from one session of that
+  aircraft, and an install naming an unknown device throws, as in the runtime. A
+  device without `sounds` gives no cue, nor does an install missing from either
+  state set: there is no change to diff, and `stepDevices` likewise starts a
+  missing state from the device's `initial`. The app plays the cues at each
+  state notification and contains a `cues` that throws (sounds design §6.3).
 
 ## 5. Runtime
 
@@ -584,10 +592,10 @@ parallel.
   `engineRunning` go together: `imageRunning` on a phase requires
   `engineRunning` (`running-image-without-engine`), and `engineRunning`
   requires `imageRunning` on every phase (`phase-without-running-image`); a
-  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`);
-for every device in the validation context, a tone's `hz` and `ms` are finite
-and positive and its `pauseMs`, when given, finite and not negative
-(`invalid-tone`), and a beep has at least one tone (`beep-without-tones`).
+  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`).
+  For every device in the validation context, a tone's `hz` and `ms` are finite
+  and positive and its `pauseMs`, when given, finite and not negative
+  (`invalid-tone`), and a beep has at least one tone (`beep-without-tones`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing view or outside-view image falls back to a labelled placeholder and
   a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their

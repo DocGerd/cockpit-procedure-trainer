@@ -79,21 +79,26 @@ A device that sounds its own tones (a start-up chirp, a key beep) declares
 
 - `beeps` maps a beep id to its tones, a list of `{ hz, ms, pauseMs? }` played in
   order, `pauseMs` being the silence after that tone. Every tone needs a finite,
-  positive `hz` and `ms`, and a beep needs at least one tone; the validator
-  reports `invalid-tone` and `beep-without-tones` otherwise.
+  positive `hz` and `ms` and, when given, a finite `pauseMs` of at least 0, and a
+  beep needs at least one tone; the validator reports `invalid-tone` and
+  `beep-without-tones` otherwise.
 - `cues(previous, next)` is a pure function of the device's own state before and
   after a change, returning `{ beep, level? }` for each beep to sound. `level`
-  multiplies the beep's gain and is 1 when left out. Return an empty list when
-  nothing sounds. Detect an edge by comparing the two states, as in
-  `!previous.powered && next.powered`, never by reading a clock or anything
-  outside the state.
+  multiplies the beep's gain, is finite and not negative, and is 1 when left out.
+  Return an empty list when nothing sounds. `cues` sees neither the step's
+  `powered` input nor the install's `on` flag, so keep in the state whatever a
+  cue compares, as the FLARM keeps `powered`. Detect an edge by comparing the two
+  states, never by reading a clock or anything outside the state:
+  `!previous.powered && next.powered ? [{ beep: 'startup' }] : []`.
 - The beep ids are inferred from the `beeps` keys, so a cue naming a beep the
-  device does not declare fails to compile. Write `cues` as a property, not a
-  method, so a device built by spreading another keeps its state type.
+  device does not declare fails to compile. A cue inside a conditional spread,
+  `...(edge ? [{ beep: 'startup' }] : [])`, widens its id to `string`: write
+  `'startup' as const` there, or return a plain conditional as above.
 - The session runs `step` first, so `next` is the state the change produced;
   `deviceCues` in `@cpt/core` pairs each install's previous and next state with
   the device's `cues` and tags each cue with the install and device id. The app
-  plays it. A device without `sounds` makes no sound.
+  plays them; a `cues` that throws mutes the cockpit audio, not the trainer. A
+  device without `sounds` makes no sound of its own.
 
 Export the device, its state type and any constant a test or another package needs
 (ranges, durations, input names) from `src/logic/index.ts`.
