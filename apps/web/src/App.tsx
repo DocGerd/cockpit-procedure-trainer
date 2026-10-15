@@ -1,3 +1,4 @@
+import { AudioProvider } from './audio';
 import { TrainerErrorBoundary } from './errors/TrainerErrorBoundary';
 import { LanguageProvider } from './i18n';
 import { PwaUpdatePrompt } from './pwa';
@@ -10,11 +11,13 @@ export function App() {
     <LanguageProvider>
       <ThemeProvider>
         <PwaUpdatePrompt />
-        <TrainerProvider>
-          <TrainerErrorBoundary>
-            <Shell />
-          </TrainerErrorBoundary>
-        </TrainerProvider>
+        <AudioProvider>
+          <TrainerProvider>
+            <TrainerErrorBoundary>
+              <Shell />
+            </TrainerErrorBoundary>
+          </TrainerProvider>
+        </AudioProvider>
       </ThemeProvider>
     </LanguageProvider>
   );
