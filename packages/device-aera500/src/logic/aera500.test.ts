@@ -59,9 +59,13 @@ describe('aera500Device definition', () => {
   });
 
   it('makes no click for a touch, and leaves the power key to the kind fallback', () => {
-    const { power, touch } = aera500Device.controls;
-    expect(touch?.click).toBe('silent');
-    expect(power?.click).toBeUndefined();
+    const overrides = Object.fromEntries(
+      Object.entries(aera500Device.controls).flatMap(([id, control]) =>
+        control.click === undefined ? [] : [[id, control.click]],
+      ),
+    );
+    expect(aera500Device.controls.power).toBeDefined();
+    expect(overrides).toEqual({ touch: 'silent' });
   });
 
   it('declares a legend for every touch position', () => {
