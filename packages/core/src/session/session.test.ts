@@ -724,6 +724,18 @@ describe('flight legs', () => {
     expect(session.state().controls.master).toBe('off');
   });
 
+  it('keeps the epoch through a carried phase change', () => {
+    const session = createSession(legs);
+    const epoch = session.epoch();
+    session.startLeg('toRunup');
+    session.checkOff();
+    expect(session.phase()).toBe('taxiOut');
+    expect(session.epoch()).toBe(epoch);
+    session.startLeg('holdingCheck');
+    expect(session.phase()).toBe('holding');
+    expect(session.epoch()).toBe(epoch);
+  });
+
   it('carries the cockpit from a leg that ends in taxiOut into one that starts at holding', () => {
     const reversed = {
       ...legs,
@@ -1534,5 +1546,272 @@ describe('stable snapshots', () => {
     });
     session.set('master', 'on');
     expect(seen).toBe('on');
+  });
+});
+
+describe('onControlChange', () => {
+  type Heard = { id: string; source: string; kind: string };
+  const collect = (session: Session) => {
+    const changes: Heard[] = [];
+    session.onControlChange(({ id, source, kind }) => changes.push({ id, source, kind }));
+    return changes;
+  };
+  const loaded = (...ids: string[]) =>
+    ids.map((id) => ({ id, source: 'system', kind: 'position' }));
+
+  it('emits pilot for a press and a guard, spring for a release and only system for a load', () => {
+    const session = createSession(fixtureAircraft);
+    const changes = collect(session);
+    session.press('lampTest');
+    session.release('lampTest');
+    session.openGuard('fuelPump');
+    expect(changes).toEqual([
+      { id: 'lampTest', source: 'pilot', kind: 'position' },
+      { id: 'lampTest', source: 'spring', kind: 'position' },
+      { id: 'fuelPump', source: 'pilot', kind: 'guard' },
+    ]);
+    changes.length = 0;
+    session.jumpToPhase('holding');
+    expect(changes).toEqual([
+      ...loaded('master', 'ignition', 'fuelPump'),
+      { id: 'fuelPump', source: 'system', kind: 'guard' },
+    ]);
+  });
+
+  it('delivers after the state listeners, with the systems and checklist settled', () => {
+    const session = createSession(fixtureAircraft);
+    session.startProcedure('beforeStart');
+    const order: string[] = [];
+    session.onControlChange(() =>
+      order.push(
+        `change:${fixtureSystems(session).busPowered}:${session.checklist()?.completed.length}`,
+      ),
+    );
+    session.subscribe(() => order.push('state'));
+    session.set('master', 'on');
+    expect(order).toEqual(['state', 'change:true:1']);
+  });
+
+  const loads: readonly {
+    readonly name: string;
+    readonly prepare?: (session: Session) => void;
+    readonly load: (session: Session) => void;
+  }[] = [
+    { name: 'jumpToPhase', load: (session) => session.jumpToPhase('holding') },
+    { name: 'startProcedure', load: (session) => session.startProcedure('alternatorFailure') },
+    {
+      name: 'retryItem',
+      prepare: (session) => {
+        session.startProcedure('beforeStart');
+        session.set('master', 'on');
+        session.openGuard('fuelPump');
+      },
+      load: (session) => session.retryItem(),
+    },
+    {
+      name: 'restartLeg',
+      prepare: (session) => {
+        session.startLeg('beforeStart');
+        session.set('master', 'on');
+      },
+      load: (session) => session.restartLeg(),
+    },
+  ];
+
+  it.each(loads)(
+    'delivers the system changes of $name once it is complete',
+    ({ prepare, load }) => {
+      const session = createSession(fixtureAircraft);
+      prepare?.(session);
+      const before = session.epoch();
+      let states = 0;
+      session.subscribe(() => states++);
+      const seen: { source: string; epoch: number; states: number; state: unknown }[] = [];
+      session.onControlChange((change) =>
+        seen.push({
+          source: change.source,
+          epoch: session.epoch(),
+          states,
+          state: session.state(),
+        }),
+      );
+      load(session);
+      expect(seen.length).toBeGreaterThan(0);
+      for (const entry of seen) {
+        expect(entry).toEqual({
+          source: 'system',
+          epoch: before + 1,
+          states: 1,
+          state: entry.state,
+        });
+        expect(entry.state).toBe(session.state());
+      }
+    },
+  );
+
+  it('stops delivering after unsubscribe', () => {
+    const session = createSession(fixtureAircraft);
+    let calls = 0;
+    const off = session.onControlChange(() => calls++);
+    session.set('master', 'on');
+    off();
+    session.set('master', 'off');
+    expect(calls).toBe(1);
+  });
+
+  it('serves every listener, finishes a jump, then rethrows the first error', () => {
+    const session = createSession(fixtureAircraft);
+    const before = session.epoch();
+    const states: string[] = [];
+    session.subscribe(() => states.push(session.phase()));
+    session.onControlChange(() => {
+      throw new Error('change listener broke');
+    });
+    const changes = collect(session);
+    expect(() => session.jumpToPhase('holding')).toThrow('change listener broke');
+    expect(session.phase()).toBe('holding');
+    expect(session.epoch()).toBe(before + 1);
+    expect(session.state().controls.master).toBe('on');
+    expect(states).toEqual(['holding']);
+    expect(changes).toEqual(loaded('master', 'ignition', 'fuelPump'));
+  });
+
+  it('keeps delivering after a listener threw', () => {
+    const session = createSession(fixtureAircraft);
+    const changes = collect(session);
+    session.onControlChange(() => {
+      throw new Error('change listener broke');
+    });
+    expect(() => session.set('master', 'on')).toThrow('change listener broke');
+    expect(() => session.set('master', 'off')).toThrow('change listener broke');
+    expect(changes.map((change) => change.id)).toEqual(['master', 'master']);
+  });
+
+  it('hands a change a listener causes to every listener after the change it is hearing', () => {
+    const session = createSession(fixtureAircraft);
+    const first: string[] = [];
+    session.onControlChange((change) => {
+      first.push(change.id);
+      if (change.id === 'master') session.set('flaps', 'takeoff');
+    });
+    const second = collect(session);
+    session.set('master', 'on');
+    expect(first).toEqual(['master', 'flaps']);
+    expect(second.map((change) => change.id)).toEqual(['master', 'flaps']);
+  });
+
+  describe('after a call that threw', () => {
+    const text = { de: 'Test', en: 'Test' };
+    const brittle = {
+      ...fixtureAircraft,
+      failures: {
+        ...fixtureAircraft.failures,
+        brittle: { name: text, trips: ['alternatorBreaker', 'master'] },
+      },
+      procedures: {
+        ...fixtureAircraft.procedures,
+        brittleFailure: {
+          title: text,
+          type: 'emergency',
+          startPhase: 'holding',
+          failure: 'brittle',
+          items: [{ type: 'confirm', text }],
+        },
+        stuckMaster: {
+          title: text,
+          type: 'normal',
+          startPhase: 'parking',
+          items: [
+            {
+              type: 'action',
+              control: 'master',
+              position: 'on',
+              holdUntil: () => {
+                throw new Error('hold broke');
+              },
+              text,
+            },
+          ],
+        },
+      },
+    } as Aircraft;
+
+    it('delivers none of the changes of a pilot move whose settling threw', () => {
+      const session = createSession(brittle);
+      session.startProcedure('stuckMaster');
+      const changes = collect(session);
+      expect(() => session.set('master', 'on')).toThrow('hold broke');
+      session.set('flaps', 'takeoff');
+      expect(changes.map((change) => change.id)).toEqual(['flaps']);
+    });
+
+    it('delivers none of the changes of a batched load that threw', () => {
+      const session = createSession(brittle);
+      const changes = collect(session);
+      expect(() => session.startProcedure('brittleFailure')).toThrow('pulled');
+      session.set('flaps', 'takeoff');
+      expect(changes.map((change) => change.id)).toEqual(['flaps']);
+    });
+
+    it('delivers none of the changes of an advance that threw', () => {
+      const session = createSession(brittle);
+      session.startSurprise({ phase: 'holding', failure: 'brittle', delayMs: STEP_MS });
+      const changes = collect(session);
+      expect(() => session.advance(STEP_MS)).toThrow('pulled');
+      session.set('flaps', 'takeoff');
+      expect(changes.map((change) => change.id)).toEqual(['flaps']);
+    });
+  });
+});
+
+describe('epoch', () => {
+  it('rises by one on a load, a surprise, a procedure start, a retry and a leg restart', () => {
+    const session = createSession(fixtureAircraft);
+    let epoch = session.epoch();
+    const rise = () => {
+      const next = session.epoch();
+      const step = next - epoch;
+      epoch = next;
+      return step;
+    };
+
+    session.jumpToPhase('holding');
+    expect(rise()).toBe(1);
+
+    session.startSurprise({ phase: 'holding', failure: 'alternatorFailure', delayMs: STEP_MS });
+    expect(rise()).toBe(1);
+
+    session.startProcedure('alternatorFailure');
+    expect(rise()).toBe(1);
+
+    session.set('master', 'off');
+    session.retryItem();
+    expect(session.state().controls.master).toBe('on');
+    expect(rise()).toBe(1);
+
+    expect(session.phase()).toBe('holding');
+    session.startLeg('beforeStart');
+    expect(session.phase()).toBe('parking');
+    expect(rise()).toBe(1);
+    session.restartLeg();
+    expect(rise()).toBe(1);
+  });
+
+  it('holds on a control change, an advance and takeChecklist', () => {
+    const session = createSession(fixtureAircraft);
+    const epoch = session.epoch();
+    session.set('master', 'on');
+    session.advance(STEP_MS);
+    session.takeChecklist('beforeStart');
+    expect(session.epoch()).toBe(epoch);
+  });
+
+  it('is already new in the batched subscribe notification', () => {
+    const session = createSession(fixtureAircraft);
+    const before = session.epoch();
+    const seen: number[] = [];
+    session.subscribe(() => seen.push(session.epoch()));
+    session.jumpToPhase('holding');
+    expect(seen).toEqual([before + 1]);
   });
 });
