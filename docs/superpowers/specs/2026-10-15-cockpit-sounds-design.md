@@ -165,11 +165,20 @@ export type ClickId =
   'rocker' | 'detent' | 'notch' | 'key' | 'push-pull' | 'latch' | 'handle' | 'soft';
 // ControlBase gains: readonly click?: ClickId | 'silent'
 
-export type Tone = { readonly hz: number; readonly ms: number; readonly pauseMs?: number };
-export type SoundCue<B extends string = string> = { readonly beep: B; readonly level?: number };
+export type Tone = {
+  readonly hz: number;
+  readonly ms: number;
+  /** The silence after this tone. */
+  readonly pauseMs?: number;
+};
+export type SoundCue<B extends string = string> = {
+  readonly beep: B;
+  /** Multiplies the beep's gain; 1 when left out. */
+  readonly level?: number;
+};
 export type DeviceSounds<D, B extends string = string> = {
   readonly beeps: { readonly [id in B]: readonly Tone[] };
-  cues(previous: D, next: D): readonly SoundCue<B>[];
+  readonly cues: (previous: D, next: D) => readonly SoundCue<NoInfer<B>>[];
 };
 // DeviceDefinition gains: readonly sounds?: DeviceSounds<D, B>; defineDevice infers B
 
@@ -197,9 +206,12 @@ export function deviceCues(
 - `cues` sees only the device's own state `D`, as `step` does; `deviceCues`
   passes each install's `state`.
 - `defineDevice` infers `B` from the `beeps` keys, so a cue naming an
-  undeclared beep fails to compile.
+  undeclared beep fails to compile. `NoInfer` keeps the cues out of that
+  inference, which would otherwise add their beep as one more id. `cues` is a
+  function-valued property, not a method: a method's parameters are bivariant,
+  which lets a device built by spreading another widen `D` to `unknown`.
 - A voice silences itself from its inputs: there is no `on` condition, and a
-  boolean passes as an input of 0 or 1.
+  selector returns a boolean as 0 or 1.
 - New validator rows (parent spec §8), over every device in the validation
   context: `invalid-tone` (a tone's `hz` and `ms` are finite and positive,
   `pauseMs` finite and not negative) and `beep-without-tones` (a beep with an

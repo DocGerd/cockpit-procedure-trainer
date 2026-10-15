@@ -119,7 +119,10 @@ type ControlBase = {
   readonly appearance?: Appearance;
   /** Every lock that applies; a move is refused when any of them refuses it. */
   readonly interlock?: readonly ControlInterlock[];
-  /** The click a move of this control makes; without it the kind picks one, and `silent` makes none. */
+  /**
+   * The click every move of this control makes, a guard's moves included; without it the kind
+   * picks one, and `silent` makes none.
+   */
   readonly click?: ClickId | 'silent';
 };
 
@@ -269,9 +272,18 @@ export type DeviceStepInput = {
   readonly dtMs: number;
 };
 
-export type Tone = { readonly hz: number; readonly ms: number; readonly pauseMs?: number };
+export type Tone = {
+  readonly hz: number;
+  readonly ms: number;
+  /** The silence after this tone. */
+  readonly pauseMs?: number;
+};
 
-export type SoundCue<B extends string = string> = { readonly beep: B; readonly level?: number };
+export type SoundCue<B extends string = string> = {
+  readonly beep: B;
+  /** Multiplies the beep's gain; 1 when left out. */
+  readonly level?: number;
+};
 
 export type DeviceSounds<D, B extends string = string> = {
   readonly beeps: { readonly [id in B]: readonly Tone[] };
