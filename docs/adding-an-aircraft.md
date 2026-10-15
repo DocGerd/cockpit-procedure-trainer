@@ -344,7 +344,9 @@ aircraft or the app.
 number; a condition returns 1 or 0. A voice has no on switch: it falls silent from
 its inputs, as the engine does with no rpm and the flap motor once `driving` is 0.
 `rpm` is the engine rpm the tachometer reads, `running` whether the engine fires
-and `starter` whether the starter turns.
+and `starter` whether the starter turns. The names are the voice's own, as the table
+gives them: a voice ignores a name it does not read and reads a missing one as 0,
+without an error.
 
 `options` carry the aircraft's facts, taken from the intake: `referenceKmh` is the
 airspeed red line, and the engine's `idleRpm` and `maxContinuousRpm` come from the
@@ -359,9 +361,9 @@ fades and edges, so a flap motor still running fades out. A reset (a phase jump,
 retry, a leg restart) sets every input at once.
 
 `apps/web/src/aircraft-sounds.test.ts` gates every registered aircraft: each
-`voice` is a key of `voiceFactories`, the voice's `problems(options)` is empty, and
-every selector returns a finite number on the initial state and on every phase
-entry state. The CTSL's `src/sounds.ts` declares an engine, airflow and the flap
+`voice` is a key of `voiceFactories`, the voice's `problems(options)` is empty,
+every `carried` name is one of the sound's `inputs`, and every selector returns a
+finite number on every phase entry state, as a session loads it. The CTSL's `src/sounds.ts` declares an engine, airflow and the flap
 motor; the demo declares no sounds and plays the control clicks only.
 
 ## Appearance and artwork

@@ -45,6 +45,10 @@ describe('declarations', () => {
     expect(sounds['flaps']?.voice).toBe('electric-motor');
   });
 
+  it('is the declaration the CTSL definition carries', () => {
+    expect(ctslAircraft.sounds).toBe(sounds);
+  });
+
   it('carries the set point inputs and nothing else', () => {
     expect(sounds['engine']?.carried).toEqual(['rpm']);
     expect(sounds['airflow']?.carried).toEqual(['airspeedKmh']);

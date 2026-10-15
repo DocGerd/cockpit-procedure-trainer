@@ -38,13 +38,27 @@ const measured =
   SOUND === undefined
     ? aircraftRegistry
     : aircraftRegistry.filter((aircraft) => Object.keys(aircraft.sounds ?? {}).length > 0);
+if (SOUND !== undefined && measured.length === 0) {
+  throw new Error(`E2E_SOUND=${SOUND} has no aircraft that declares sounds to measure`);
+}
 
 const cruiseStart = (aircraft: Aircraft) => {
   const found = Object.entries(aircraft.procedures).find(
     ([, { type, startPhase }]) => type === 'normal' && startPhase === 'cruise',
   );
   if (!found) throw new Error(`${aircraft.id} has no normal procedure that starts in cruise`);
-  return found[0];
+  const [id, { startPhase }] = found;
+  const entry = aircraft.phases[startPhase]?.entry;
+  const running =
+    entry !== undefined &&
+    aircraft.engineRunning?.({
+      controls: entry.controls,
+      guards: {},
+      systems: entry.state,
+      devices: {},
+    });
+  if (!running) throw new Error(`${aircraft.id} starts ${id} with the engine stopped`);
+  return id;
 };
 
 type AudioLog = { __audioContexts: AudioContext[]; __oscillators: { count: number } };
@@ -91,9 +105,15 @@ for (const aircraft of measured) {
   }) => {
     const cdp = await context.newCDPSession(page);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    // The driver answers an audio error by silencing every voice and logging it, nothing more.
+    const errors: string[] = [];
     if (SOUND === undefined) {
       await openAircraft(page, aircraft);
     } else {
+      page.on('pageerror', (error) => errors.push(error.message));
+      page.on('console', (message) => {
+        if (message.type() === 'error') errors.push(message.text());
+      });
       await wrapAudioContext(page);
       // The picker's clicks are the gesture that starts the context.
       await openAircraft(page, aircraft, cruiseStart(aircraft));
@@ -164,6 +184,12 @@ for (const aircraft of measured) {
       expect.soft(show, `${viewId}: P2 show ms`).toBeLessThanOrEqual(BUDGET.rerasterMs);
       expect.soft(filters, `${viewId}: P3 filters`).toEqual([]);
     }
+    if (SOUND !== undefined) {
+      expect(await contextStates(page), 'audio contexts after measuring').toEqual(
+        SOUND === 'on' ? ['running'] : [],
+      );
+      expect(errors, 'console and page errors while measuring').toEqual([]);
+    }
     console.log(
       [`${aircraft.id}${ARM}, 1024x768, CPU 4x, median (min-max) of ${SAMPLES}:`, ...rows].join(
         '\n  ',
@@ -173,6 +199,7 @@ for (const aircraft of measured) {
   });
 
   test(`${aircraft.id} prints each artwork part's rendered size at 1920x1080`, async ({ page }) => {
+    test.skip(SOUND !== undefined, 'the sound A/B measures P1 to P3 only');
     await page.setViewportSize({ width: 1920, height: 1080 });
     await openAircraft(page, aircraft);
     const rows: string[] = [];
