@@ -1551,10 +1551,12 @@ swap with its confirmation run, all acting on release by hold time. It leaves ou
 and obstacle warnings, the Nearest bearing, `RX`, the receiver self-test, suppression,
 warning tones, the version display, reboot, factory reset, display setup, fault codes and
 flight recording. Sound is limited to a short start-up beep at loud volume when power
-arrives (none on a low supply) and one tone at the new level for each brief push that steps
-the volume; the mode swap makes no sound. The pitch, length and loud, medium and quiet level
-ratios are **assumed (unverified)**, and no tone on the step into silent is **inferred**: the
-manuals give a tone at the new level and record nothing for silent. The trainer's timings
+arrives and one tone at the new level for each brief push that steps the volume; the mode
+swap makes no sound. The pitch, length and loud, medium and quiet level ratios are
+**assumed (unverified)**. No tone on the step into silent is **inferred** (the manuals give a
+tone at the new level and record nothing for silent), and so is no sound below 8 V supply
+(FLARM stops working there); a supply that recovers above 8 V while the unit is on gives no
+start-up beep (**assumed (unverified)**). The trainer's timings
 for the self-test steps, the GPS search and the push thresholds are **assumed (unverified)**
 where the manuals give none.
 

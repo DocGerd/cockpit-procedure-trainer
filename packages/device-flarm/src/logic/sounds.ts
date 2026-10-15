@@ -5,7 +5,7 @@ export type FlarmBeep = 'startup' | 'volume';
 
 // Intake §3.8.4 gives a tone at the volume step and nothing about pitch, length or the level
 // ratios: the values here are assumed (unverified).
-export const LEVELS: Readonly<Record<FlarmVolume, number>> = {
+export const VOLUME_LEVELS: Readonly<Record<FlarmVolume, number>> = {
   loud: 1,
   medium: 0.5,
   quiet: 0.25,
@@ -18,7 +18,7 @@ export const beeps: DeviceSounds<FlarmState, FlarmBeep>['beeps'] = {
 };
 
 export function cues(previous: FlarmState, next: FlarmState): readonly SoundCue<FlarmBeep>[] {
-  const level = LEVELS[next.volume];
+  const level = Object.hasOwn(VOLUME_LEVELS, next.volume) ? VOLUME_LEVELS[next.volume] : 0;
   if (next.lowSupply || level === 0) return [];
   if (!previous.powered && next.powered) return [{ beep: 'startup', level }];
   if (previous.powered && next.powered && previous.volume !== next.volume) {

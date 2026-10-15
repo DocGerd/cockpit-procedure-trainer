@@ -29,7 +29,9 @@ traffic (question 39). Assumptions, none settled by a source (intake section 9, 
 - A missing `supplyVolts` reading counts as a good supply.
 - The beeps (intake section 3.8.4, "Trainer (M18)"): the pitch, the length and the loud, medium and
   quiet level ratios are assumed (unverified). No tone on the step into silent is inferred: the intake
-  gives a tone at the new level and records nothing for silent.
+  gives a tone at the new level and records nothing for silent. No sound below `LOW_SUPPLY_V` is
+  inferred: the intake says FLARM stops working there. A supply that recovers while the unit is on
+  gives no start-up beep.
 
 ## Controls
 
@@ -38,7 +40,7 @@ traffic (question 39). Assumptions, none settled by a source (intake section 9, 
   to just under `LONG_PUSH_MS` it swaps Nearest and Collision and runs the confirmation on the ring.
   A push of `LONG_PUSH_MS` or longer does nothing. The key is ignored during the self-test and while unpowered; a key still
   held when the self-test ends counts from that moment. Each brief push gives one tone at the new
-  volume level, none on the step into silent; the mode swap makes no sound.
+  volume level, none on the step into silent or on a low supply; the mode swap makes no sound.
 
 ## Inputs
 
@@ -54,7 +56,8 @@ Intake section 3.8.4, "Power loss and return" and "Power cycle (trainer, #727)";
 
 - Modelled, from the manuals: the unit switches on by itself with its supply and every start is in Nearest mode at loud volume; a low supply flashes `Power`.
 - Assumed (questions 33 and 69): the unit has no breaker of its own, so only the avionics bus takes it down; the chosen volume and mode do not survive a power loss; the self-test and the GPS search restart from nothing, with the trainer's own timings.
-- Every start gives one short beep at loud volume, whatever the volume was before the power loss; a low supply gives none.
+- Modelled, from the manuals: every start gives one short beep at loud volume, whatever the volume was before the power loss.
+- Inferred (FLARM stops working below `LOW_SUPPLY_V`): a low supply gives no beep. Assumed: a supply that recovers while the unit is on gives none either.
 - A pull during the self-test, the search or a mode-swap confirmation drops it; a Mode key held through the return counts from the end of the self-test.
 
 ## Display
@@ -78,7 +81,7 @@ wears no glass. No logo is drawn.
 - Traffic and obstacle warnings
 - The Nearest-mode bearing, the RX light and the receiver self-test
 - Warning suppression (double push)
-- Sound: only the start-up beep and the volume-step tones, with an assumed pitch, length and level ratios; no warning tones
+- Sound: only the start-up beep and the volume-step tones, with assumed pitch, length and level ratios; no warning tones
 - The software versions shown at start-up
 - Reboot, factory reset and the display setup (Mode held at power-up)
 - Fault codes

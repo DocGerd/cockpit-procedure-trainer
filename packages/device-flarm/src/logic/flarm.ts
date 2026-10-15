@@ -105,7 +105,7 @@ export const flarmDevice = defineDevice({
     text('Unterdrücken der Warnungen (Doppeldruck)', 'Warning suppression (double push)'),
     text(
       'Ton: nur der Einschaltton und die Töne beim Lautstärke-Schritt; Tonhöhe, Länge und Pegelverhältnisse sind angenommen, Warntöne gibt es nicht',
-      'Sound: only the start-up beep and the volume-step tones, with an assumed pitch, length and level ratios; no warning tones',
+      'Sound: only the start-up beep and the volume-step tones, with assumed pitch, length and level ratios; no warning tones',
     ),
     text('Die beim Start gezeigten Softwareversionen', 'The software versions shown at start-up'),
     text(

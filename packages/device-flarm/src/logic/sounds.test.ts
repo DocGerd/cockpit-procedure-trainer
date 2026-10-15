@@ -1,109 +1,55 @@
-import {
-  STEP_MS,
-  createSession,
-  defineAircraft,
-  everyPhase,
-  formatFinding,
-  validateAircraft,
-} from '@cpt/core';
-import type { Session, SoundCue, Text, TrainerState } from '@cpt/core';
+import { STEP_MS, createSession, deviceCues, formatFinding, validateAircraft } from '@cpt/core';
+import type { DeviceCue, Session } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import {
   BRIEF_PUSH_MS,
   LONG_PUSH_MS,
+  LOW_SUPPLY_V,
   SELF_TEST_MS,
-  SUPPLY_INPUT,
   VOLUMES,
   flarmDevice,
 } from './flarm';
 import type { FlarmState, FlarmVolume } from './flarm';
-import { LEVELS } from './sounds';
+import { VOLUME_LEVELS } from './sounds';
+import type { FlarmBeep } from './sounds';
+import { build, flarm } from './test-aircraft';
 
-type TestState = { readonly busOn: boolean; readonly volts: number };
-
-const text = (de: string, en: string): Text => ({ de, en });
-const environment = { airspeedKt: 0, altitudeFt: 0, onGround: true };
-
-const build = (volts: number, seeded: boolean) =>
-  defineAircraft({
-    id: 'flarm-sounds-test',
-    name: text('Testflugzeug', 'Test aircraft'),
-    handbookRevision: text('keine, Testaufbau', 'none, test fixture'),
-    controls: {
-      bus: {
-        kind: 'toggle',
-        positions: ['off', 'on'],
-        initial: 'off',
-        name: text('Bus', 'Bus'),
-        description: text('Versorgt das FLARM.', 'Powers the FLARM.'),
-      },
-    },
-    indicators: {},
-    views: {
-      panel: {
-        name: text('Tafel', 'Panel'),
-        image: 'panel.svg',
-        controls: { bus: { rect: { x: 0, y: 50, w: 20, h: 20 } } },
-      },
-    },
-    devices: {
-      flarm: {
-        device: 'flarm',
-        view: 'panel',
-        placement: { rect: { x: 0, y: 0, w: 80, h: 40 } },
-        powered: (state: TrainerState<TestState>) => state.systems.busOn,
-        inputs: {
-          [SUPPLY_INPUT]: (state: TrainerState<TestState>) => state.systems.volts,
-        },
-      },
-    },
-    systems: {
-      initial: { busOn: false, volts: 12 },
-      step: (state: TestState, { controls }): TestState => ({
-        ...state,
-        busOn: controls.bus === 'on',
-      }),
-    },
-    failures: {},
-    phases: everyPhase({
-      image: 'parking.svg',
-      environment,
-      entry: {
-        controls: { bus: 'on' },
-        state: { busOn: true, volts },
-        ...(seeded
-          ? { deviceStates: { flarm: { powered: true, stage: 'ready', fix: true } } }
-          : {}),
-      },
-    }),
-    procedures: {},
-  });
-
-const options = { devices: [flarmDevice] };
-const flarm = (session: Session) => session.state().devices.flarm?.state as FlarmState;
+const registry = [flarmDevice];
+const options = { devices: registry };
+// Every variant installs the FLARM alike, so one of them serves the cue diff.
+const installed = build(12, true);
+const unit = (session: Session) => flarm(session.state());
 const sounds = flarmDevice.sounds;
 if (sounds === undefined) throw new Error('the FLARM declares no sounds');
-const cuesOf = (previous: FlarmState, next: FlarmState): readonly SoundCue[] =>
-  sounds.cues(previous, next);
 
-// Every cue the device's own states give while the session runs, on every change it reports.
+// The driver's diff: the cues between every two states the session reports.
 const watch = (session: Session) => {
-  const cues: SoundCue[] = [];
-  let previous = flarm(session);
-  session.subscribe(() => {
-    const next = flarm(session);
-    cues.push(...cuesOf(previous, next));
+  const cues: DeviceCue[] = [];
+  let previous = session.state().devices;
+  const stop = session.subscribe(() => {
+    const next = session.state().devices;
+    cues.push(...deviceCues(installed, registry, previous, next));
     previous = next;
   });
   return {
-    take: () => cues.splice(0),
     advance: (ms: number) => {
       for (let elapsed = 0; elapsed < ms; elapsed = elapsed + STEP_MS) session.advance(STEP_MS);
+    },
+    take: (): readonly DeviceCue[] => {
+      stop();
+      return cues;
     },
   };
 };
 
 const sessionOf = (volts = 12, seeded = true) => createSession(build(volts, seeded), options);
+
+const unpowered = (volts = 12) => {
+  const session = sessionOf(volts, false);
+  session.set('bus', 'off');
+  session.advance(STEP_MS);
+  return session;
+};
 
 // Power arrives after load, as it does when a pilot closes the circuit.
 const powerUp = (session: Session) => {
@@ -113,20 +59,15 @@ const powerUp = (session: Session) => {
   return run.take();
 };
 
-const unpowered = (volts = 12) => {
-  const session = sessionOf(volts, false);
-  session.set('bus', 'off');
-  session.advance(STEP_MS);
-  return session;
-};
-
 const ready = () => {
   const session = unpowered();
   powerUp(session);
   return session;
 };
 
-const push = (session: Session, holdMs: number): SoundCue[] => {
+const BRIEF_HOLD_MS = 100;
+
+const push = (session: Session, holdMs: number) => {
   const run = watch(session);
   session.press('flarm.mode');
   run.advance(holdMs);
@@ -136,16 +77,26 @@ const push = (session: Session, holdMs: number): SoundCue[] => {
 };
 
 const cycle = (session: Session) => {
+  const run = watch(session);
   session.set('bus', 'off');
-  session.advance(STEP_MS);
-  return powerUp(session);
+  run.advance(STEP_MS);
+  session.set('bus', 'on');
+  run.advance(SELF_TEST_MS);
+  return run.take();
 };
 
-const startup = { beep: 'startup', level: LEVELS.loud };
+const cue = (beep: FlarmBeep, volume: FlarmVolume) => ({
+  beep,
+  level: VOLUME_LEVELS[volume],
+  install: 'flarm',
+  device: 'flarm',
+});
+const startup = cue('startup', 'loud');
+const tone = (volume: FlarmVolume) => cue('volume', volume);
 
 describe('the aircraft', () => {
   it('validates with the beep table', () => {
-    expect(validateAircraft(build(12, true), options).map(formatFinding)).toEqual([]);
+    expect(validateAircraft(installed, options).map(formatFinding)).toEqual([]);
   });
 });
 
@@ -154,27 +105,39 @@ describe('start-up', () => {
     expect(powerUp(unpowered())).toEqual([startup]);
   });
 
-  it('gives one cue at loud on every return of power, whatever the volume was', () => {
-    const session = ready();
-    push(session, 100);
-    expect(flarm(session).volume).toBe('medium');
-    expect(cycle(session)).toEqual([startup]);
-    expect(flarm(session).volume).toBe('loud');
-  });
-
-  it('gives exactly the start-up after the volume was set quiet and the supply cycled', () => {
-    const session = ready();
-    push(session, 100);
-    push(session, 100);
-    expect(flarm(session).volume).toBe('quiet');
-    expect(cycle(session)).toEqual([startup]);
-  });
+  it.each(['medium', 'quiet', 'silent'] as const)(
+    'gives exactly one cue, the start-up at loud, over a supply cycle from %s',
+    (volume) => {
+      const session = ready();
+      for (let pushes = 0; pushes < VOLUMES.indexOf(volume); pushes = pushes + 1) {
+        push(session, BRIEF_HOLD_MS);
+      }
+      expect(unit(session).volume).toBe(volume);
+      expect(cycle(session)).toEqual([startup]);
+      expect(unit(session).volume).toBe('loud');
+    },
+  );
 
   it('gives none on a low supply', () => {
-    expect(powerUp(unpowered(4))).toEqual([]);
+    expect(powerUp(unpowered(LOW_SUPPLY_V - 1))).toEqual([]);
   });
 
-  it('gives none when the unit loads running', () => {
+  it('gives one when the supply reading is not a number', () => {
+    expect(powerUp(unpowered(Number.NaN))).toEqual([startup]);
+  });
+
+  it('gives none when a low supply recovers with the unit on', () => {
+    const session = unpowered();
+    session.set('supply', 'low');
+    expect(powerUp(session)).toEqual([]);
+    const run = watch(session);
+    session.set('supply', 'good');
+    run.advance(SELF_TEST_MS);
+    expect(run.take()).toEqual([]);
+    expect(unit(session).lowSupply).toBe(false);
+  });
+
+  it('gives none while a running unit is left alone', () => {
     const session = sessionOf();
     const run = watch(session);
     run.advance(SELF_TEST_MS);
@@ -185,15 +148,15 @@ describe('start-up', () => {
 describe('the volume', () => {
   it('gives one tone per brief push at the new level and none into silent', () => {
     const session = ready();
-    const steps = VOLUMES.map((): [FlarmVolume, readonly SoundCue[]] => {
-      const cues = push(session, 100);
-      return [flarm(session).volume, cues];
+    const steps = VOLUMES.map((): [FlarmVolume, readonly DeviceCue[]] => {
+      const cues = push(session, BRIEF_HOLD_MS);
+      return [unit(session).volume, cues];
     });
     expect(steps).toEqual([
-      ['medium', [{ beep: 'volume', level: LEVELS.medium }]],
-      ['quiet', [{ beep: 'volume', level: LEVELS.quiet }]],
+      ['medium', [tone('medium')]],
+      ['quiet', [tone('quiet')]],
       ['silent', []],
-      ['loud', [{ beep: 'volume', level: LEVELS.loud }]],
+      ['loud', [tone('loud')]],
     ]);
   });
 
@@ -202,7 +165,7 @@ describe('the volume', () => {
     expect(2000).toBeGreaterThan(BRIEF_PUSH_MS);
     expect(2000).toBeLessThan(LONG_PUSH_MS);
     expect(push(session, 2000)).toEqual([]);
-    expect(flarm(session)).toMatchObject({ mode: 'collision', volume: 'loud' });
+    expect(unit(session)).toMatchObject({ mode: 'collision', volume: 'loud' });
   });
 
   it('gives no cue for a push of LONG_PUSH_MS or longer', () => {
@@ -213,44 +176,63 @@ describe('the volume', () => {
     const session = unpowered();
     session.set('bus', 'on');
     session.advance(STEP_MS);
-    expect(push(session, 100)).toEqual([]);
-    expect(flarm(session).volume).toBe('loud');
+    expect(push(session, BRIEF_HOLD_MS)).toEqual([]);
+    expect(unit(session).volume).toBe('loud');
   });
 
   it('gives none on a low supply', () => {
-    const session = unpowered(4);
+    const session = unpowered(LOW_SUPPLY_V - 1);
     session.set('bus', 'on');
     session.advance(SELF_TEST_MS);
-    expect(push(session, 100)).toEqual([]);
-    expect(flarm(session).volume).toBe('medium');
+    expect(push(session, BRIEF_HOLD_MS)).toEqual([]);
+    expect(unit(session).volume).toBe('medium');
+  });
+
+  it('goes silent while the supply sags and comes back with it', () => {
+    const session = ready();
+    session.set('supply', 'low');
+    session.advance(STEP_MS);
+    expect(push(session, BRIEF_HOLD_MS)).toEqual([]);
+    expect(unit(session).volume).toBe('medium');
+    session.set('supply', 'good');
+    session.advance(STEP_MS);
+    expect(push(session, BRIEF_HOLD_MS)).toEqual([tone('quiet')]);
   });
 });
 
-describe('the levels', () => {
+describe('the cues on their own', () => {
   const state = (patch: Partial<FlarmState>): FlarmState => ({
     ...(flarmDevice.initial as FlarmState),
     ...patch,
   });
 
-  it('fall from loud to quiet and are nothing at silent', () => {
-    expect(LEVELS.loud).toBe(1);
-    expect(LEVELS.loud).toBeGreaterThan(LEVELS.medium);
-    expect(LEVELS.medium).toBeGreaterThan(LEVELS.quiet);
-    expect(LEVELS.quiet).toBeGreaterThan(LEVELS.silent);
-    expect(LEVELS.silent).toBe(0);
+  it('fall in level from loud to quiet and are nothing at silent', () => {
+    expect(VOLUME_LEVELS.loud).toBe(1);
+    expect(VOLUME_LEVELS.loud).toBeGreaterThan(VOLUME_LEVELS.medium);
+    expect(VOLUME_LEVELS.medium).toBeGreaterThan(VOLUME_LEVELS.quiet);
+    expect(VOLUME_LEVELS.quiet).toBeGreaterThan(VOLUME_LEVELS.silent);
+    expect(VOLUME_LEVELS.silent).toBe(0);
   });
 
-  it('mute a start-up that begins at silent', () => {
-    expect(cuesOf(state({}), state({ powered: true, volume: 'silent' }))).toEqual([]);
+  it('are muted at silent, also a start-up the step never gives', () => {
+    expect(sounds.cues(state({}), state({ powered: true, volume: 'silent' }))).toEqual([]);
+  });
+
+  it('are muted at a volume the table does not know', () => {
+    const unknown = 'loudest' as string as FlarmVolume;
+    expect(sounds.cues(state({}), state({ powered: true, volume: unknown }))).toEqual([]);
+    expect(
+      sounds.cues(state({ powered: true }), state({ powered: true, volume: unknown })),
+    ).toEqual([]);
   });
 
   it('name only beeps of the table', () => {
     const named = new Set(Object.keys(sounds.beeps));
     const cues = [
-      ...cuesOf(state({}), state({ powered: true })),
-      ...cuesOf(state({ powered: true }), state({ powered: true, volume: 'quiet' })),
+      ...sounds.cues(state({}), state({ powered: true })),
+      ...sounds.cues(state({ powered: true }), state({ powered: true, volume: 'quiet' })),
     ];
     expect(cues).toHaveLength(2);
-    for (const cue of cues) expect(named.has(cue.beep)).toBe(true);
+    for (const given of cues) expect(named.has(given.beep)).toBe(true);
   });
 });
