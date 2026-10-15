@@ -248,6 +248,7 @@ export const aera500Device = defineDevice({
     },
     touch: {
       kind: 'rotary',
+      click: 'silent',
       positions: ['rest', ...TOUCH_ICONS],
       initial: 'rest',
       springBack,
