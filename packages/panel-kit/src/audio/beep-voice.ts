@@ -4,9 +4,10 @@ import type { AudioOut } from './audio-engine';
 export type BeepPlayer = {
   /**
    * Plays the tones one after another from `whenS` on the context clock, each followed by its
-   * pause, at `level` times the beep gain. A level that is not above 0 or a full voice cap plays
-   * nothing. Call it only while the engine is `live()`: a beep on a context that never runs keeps
-   * its voice.
+   * pause, at `level` times the beep gain. A level that is not a finite number above 0, an empty
+   * sequence or a full beep cap plays nothing. A tone the context rejects throws, and the beep then
+   * plays none of its tones. Call it only while the engine is `live()`: a beep on a context that
+   * never runs keeps its voice.
    */
   play(tones: readonly Tone[], whenS: number, level: number): void;
 };
@@ -23,18 +24,25 @@ export function createBeepPlayer(out: AudioOut): BeepPlayer {
   const { context, input } = out;
   let live = 0;
 
-  const tone = (spec: Tone, startS: number, peak: number, ended: () => void) => {
+  const tone = (
+    spec: Tone,
+    startS: number,
+    peak: number,
+    built: AudioNode[],
+    ended: () => void,
+  ) => {
     const lengthS = spec.ms / MS_PER_S;
     const endS = startS + lengthS;
     const edgeS = Math.min(EDGE_S, lengthS / 4);
 
     const envelope = context.createGain();
+    const oscillator = context.createOscillator();
+    built.push(envelope, oscillator);
     envelope.gain.setValueAtTime(0, startS);
     envelope.gain.linearRampToValueAtTime(peak, startS + edgeS);
     envelope.gain.setValueAtTime(peak, endS - edgeS);
     envelope.gain.linearRampToValueAtTime(0, endS);
 
-    const oscillator = context.createOscillator();
     oscillator.type = 'square';
     oscillator.frequency.setValueAtTime(spec.hz, startS);
     oscillator.connect(envelope);
@@ -54,17 +62,23 @@ export function createBeepPlayer(out: AudioOut): BeepPlayer {
         return;
       }
       const peak = BEEP_GAIN * level;
+      const built: AudioNode[] = [];
       let remaining = tones.length;
       const ended = () => {
         remaining -= 1;
         if (remaining === 0) live -= 1;
       };
       let startS = whenS;
-      live += 1;
-      for (const spec of tones) {
-        tone(spec, startS, peak, ended);
-        startS += (spec.ms + (spec.pauseMs ?? 0)) / MS_PER_S;
+      try {
+        for (const spec of tones) {
+          tone(spec, startS, peak, built, ended);
+          startS += (spec.ms + (spec.pauseMs ?? 0)) / MS_PER_S;
+        }
+      } catch (error) {
+        for (const node of built) node.disconnect();
+        throw error;
       }
+      live += 1;
     },
   };
 }
