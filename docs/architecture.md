@@ -8,14 +8,14 @@ and the [ADRs](adr/); this page is the short map.
 
 ## Packages
 
-| Path                     | Role                                                                                                                                                                                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/core`          | Aircraft contract with the shared phase set, systems runtime, checklist engine, validator. Plain data and pure functions: no DOM, React or assets                                                                                         |
-| `packages/panel-kit`     | Generic GA controls and gauges, the layer renderer for aircraft artwork, and audio (engine, clicks, voices). Depends on `core` only                                                                                                       |
-| `packages/aircraft-<id>` | One aircraft each (a fictional demo aircraft and a real type). Declares controls, indicators, views, systems model, the outside view and entry of every shared phase, and procedures, and optionally its `sounds`. Depends on `core` only |
-| `packages/device-<id>`   | One avionics unit each (logic and screen, and optionally its `sounds`), reusable across aircraft. Imports only `core` and `panel-kit`                                                                                                     |
-| `apps/web`               | The React app: panel, checklist pane, outside view, audio driver and header sound control, PWA shell, i18n, storage, styling tokens                                                                                                       |
-| `tools/`                 | Cross-package contract tests (boundaries, device contracts, design literals)                                                                                                                                                              |
+| Path                     | Role                                                                                                                                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/core`          | Aircraft contract with the shared phase set, systems runtime, checklist engine, validator. Plain data and pure functions: no DOM, React or assets                                                                                    |
+| `packages/panel-kit`     | Generic GA controls and gauges, the layer renderer for aircraft artwork, and audio (engine, clicks, voices). Depends on `core` only                                                                                                  |
+| `packages/aircraft-<id>` | One aircraft each (a fictional demo aircraft and a real type). Declares controls, indicators, views, systems model, the outside view and entry of every shared phase, procedures and optionally its `sounds`. Depends on `core` only |
+| `packages/device-<id>`   | One avionics unit each (logic and screen, and optionally its `sounds`), reusable across aircraft. Imports only `core` and `panel-kit`                                                                                                |
+| `apps/web`               | The React app: panel, checklist pane, outside view, audio (provider, driver and header sound control), PWA shell, i18n, storage, styling tokens                                                                                      |
+| `tools/`                 | Cross-package contract tests (boundaries, device contracts, design literals)                                                                                                                                                         |
 
 ## Boundaries
 
@@ -42,7 +42,9 @@ Rationale: [ADR-0001](adr/0001-architecture-and-aircraft-contract.md).
    items and records deviations. It never blocks or alters input.
 5. The audio driver (`apps/web/src/audio`) observes control changes and plays
    their clicks through the `panel-kit` audio engine. It never blocks or alters
-   input or state; an audio error is logged once and silences it.
+   input or state: an audio error never reaches the session, and the first one
+   is logged and silences the driver until it reconnects for a new session,
+   aircraft or engine. Without a usable audio context the trainer runs silent.
 
 The validator in `core` runs in CI for every registered aircraft and rejects
 inconsistent aircraft data.
