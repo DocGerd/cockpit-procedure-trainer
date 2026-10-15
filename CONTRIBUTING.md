@@ -118,7 +118,7 @@ fixture. Outside-strip steps between the priority heights are in the same spec.
 ## Package boundaries
 
 - `packages/core`: contract and engines. No UI, no assets, no other workspace packages.
-- `packages/panel-kit`: controls and gauges. Depends on `core` only.
+- `packages/panel-kit`: controls, gauges and audio. Depends on `core` only.
 - `packages/aircraft-*`: one aircraft each. Depends on `core` only.
 - `packages/device-*`: one avionics unit each. Of the workspace packages, any file may
   import only `core` and `panel-kit`. `src/logic/` imports `core` only, with no UI or
