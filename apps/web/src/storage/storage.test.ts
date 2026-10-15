@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readHistory, readSetting, recordRun, writeSetting } from './index';
+import {
+  DEFAULT_VOLUME,
+  readHistory,
+  readSetting,
+  readSound,
+  readVolume,
+  recordRun,
+  writeSetting,
+} from './index';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -40,6 +48,60 @@ describe('settings storage', () => {
     });
     expect(() => writeSetting('aircraft', 'alpha')).not.toThrow();
     expect(readSetting('aircraft')).toBeUndefined();
+  });
+});
+
+describe('sound settings', () => {
+  it('defaults to sound on, below full volume', () => {
+    expect(readSound()).toBe('on');
+    expect(readVolume()).toBe(DEFAULT_VOLUME);
+    expect(DEFAULT_VOLUME).toBeLessThan(100);
+  });
+
+  it('reads back what writeSetting stored', () => {
+    writeSetting('sound', 'off');
+    expect(readSound()).toBe('off');
+    writeSetting('sound', 'on');
+    expect(readSound()).toBe('on');
+    for (const volume of [0, 1, 55, 100]) {
+      writeSetting('volume', String(volume));
+      expect(readVolume()).toBe(volume);
+    }
+  });
+
+  it.each(['', 'loud', 'ON', ' on', 'true', '1'])('gives sound on for %j', (value) => {
+    writeSetting('sound', value);
+    expect(readSound()).toBe('on');
+  });
+
+  it.each([
+    '',
+    'loud',
+    '5.5',
+    '1e1',
+    '0x10',
+    ' 50',
+    '50 ',
+    '-1',
+    '101',
+    '1000',
+    'NaN',
+    '+5',
+    '05',
+    '00',
+  ])('gives the default volume for %j', (value) => {
+    writeSetting('volume', value);
+    expect(readVolume()).toBe(DEFAULT_VOLUME);
+  });
+
+  it('gives the defaults when localStorage throws', () => {
+    writeSetting('sound', 'off');
+    writeSetting('volume', '10');
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('denied');
+    });
+    expect(readSound()).toBe('on');
+    expect(readVolume()).toBe(DEFAULT_VOLUME);
   });
 });
 
