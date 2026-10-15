@@ -47,17 +47,24 @@ const cruiseStart = (aircraft: Aircraft) => {
   return found[0];
 };
 
-type AudioLog = { __audioContexts: AudioContext[] };
+type AudioLog = { __audioContexts: AudioContext[]; __oscillators: { count: number } };
 
 // The engine builds its context with `new AudioContext()`, so a subclass sees each one it makes.
+// The picker plays no click, so an oscillator built by the time the trainer shows is a voice's.
 const wrapAudioContext = (page: Page) =>
   page.addInitScript(() => {
     const built: AudioContext[] = [];
-    Object.assign(window, { __audioContexts: built });
+    const oscillators = { count: 0 };
+    Object.assign(window, { __audioContexts: built, __oscillators: oscillators });
     window.AudioContext = class extends window.AudioContext {
       constructor(options?: AudioContextOptions) {
         super(options);
         built.push(this);
+      }
+
+      override createOscillator() {
+        oscillators.count += 1;
+        return super.createOscillator();
       }
     };
   });
@@ -66,6 +73,9 @@ const contextStates = (page: Page) =>
   page.evaluate(() =>
     (window as unknown as AudioLog).__audioContexts.map((context) => context.state),
   );
+
+const oscillatorCount = (page: Page) =>
+  page.evaluate(() => (window as unknown as AudioLog).__oscillators.count);
 
 const ms = (value: number | undefined) => (value === undefined ? 'n/a' : value.toFixed(2));
 const spread = (values: readonly number[]) => {
@@ -87,8 +97,12 @@ for (const aircraft of measured) {
       await wrapAudioContext(page);
       // The picker's clicks are the gesture that starts the context.
       await openAircraft(page, aircraft, cruiseStart(aircraft));
-      if (SOUND === 'on') await expect.poll(() => contextStates(page)).toEqual(['running']);
-      else expect(await contextStates(page)).toEqual([]);
+      if (SOUND === 'on') {
+        await expect.poll(() => contextStates(page)).toEqual(['running']);
+        await expect.poll(() => oscillatorCount(page), 'voices built').toBeGreaterThan(0);
+      } else {
+        expect(await contextStates(page)).toEqual([]);
+      }
     }
     const rows: string[] = [];
     let measuredNeedles = 0;
