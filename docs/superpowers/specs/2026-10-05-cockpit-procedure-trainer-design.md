@@ -110,6 +110,11 @@ moves are refused (result `locked`); phase entries and failures move controls
 freely. A rotary may also declare positions reachable only from others
 (`onlyFrom`), as the key comes out only at OFF.
 
+Any control may declare a `click`, the sound every move of it makes (§4.10): one
+of the click ids (`rocker`, `detent`, `notch`, `key`, `push-pull`, `latch`,
+`handle`, `soft`), or `silent` for none. A guard's moves make the same click.
+Without it the control's kind picks one.
+
 ### 4.2 Indicators
 
 Gauges, lamps and readouts. Each binds to a value in the aircraft state through
@@ -347,6 +352,32 @@ fix the same way; neither shows traffic, map data or a database. Each device
 states the manual revision its logic follows and lists the functions it does not
 model.
 
+### 4.10 Sounds
+
+Sounds are optional; an aircraft or device that declares none is silent, and the
+contract version does not change. Design: `2026-10-15-cockpit-sounds-design.md`.
+The contract holds data and pure functions only, so core and the packages use
+no audio API; panel-kit implements the voices and the app plays them.
+
+- **Aircraft `sounds`**: a record of voices by id. Each names a panel-kit
+  `voice`, may pass `options` (JSON), and may read `inputs`, pure selectors
+  from the trainer state to a number (a boolean reads as 0 or 1). `carried`
+  names the inputs that follow the phase set point and so jump on a carried
+  phase change. A voice silences itself from its inputs: there is no on
+  condition. The voice ids and options are checked outside core, since the
+  voices live outside core.
+- **Device `sounds`**: `{ beeps, cues }`. `beeps` maps a beep id to its tones,
+  each `{ hz, ms, pauseMs? }`, the silence after the tone being `pauseMs`.
+  `cues(previous, next)` is a pure function of the device's own state before and
+  after a change; it returns the beeps to sound, each `{ beep, level? }`, with
+  `level` multiplying the gain (1 when left out). A cue naming an undeclared beep
+  does not compile.
+- **`deviceCues(aircraft, registry, previous, next)`** (core) walks the
+  aircraft's installs, passes each install's previous and next device `state` to
+  its device's `cues`, and tags every cue with the install id and the device id.
+  A device without `sounds`, and an install missing from either state set, give
+  no cue. The app plays the cues at each state notification.
+
 ## 5. Runtime
 
 1. The pilot operates a control; the control store records the new position, or
@@ -553,7 +584,10 @@ parallel.
   `engineRunning` go together: `imageRunning` on a phase requires
   `engineRunning` (`running-image-without-engine`), and `engineRunning`
   requires `imageRunning` on every phase (`phase-without-running-image`); a
-  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`).
+  cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`);
+for every device in the validation context, a tone's `hz` and `ms` are finite
+and positive and its `pauseMs`, when given, finite and not negative
+(`invalid-tone`), and a beep has at least one tone (`beep-without-tones`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing view or outside-view image falls back to a labelled placeholder and
   a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their
