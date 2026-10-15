@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { defineDevice } from '../devices/define-device';
 import { defineAircraft, everyPhase } from './index';
 import type { Text, TrainerState } from './index';
 
@@ -161,6 +162,114 @@ describe('device ids and installs', () => {
             // @ts-expect-error an object is not a number, boolean or string
             bad: () => ({}),
           },
+        },
+      },
+    });
+  });
+});
+
+describe('device sounds', () => {
+  const device = {
+    id: 'beeper',
+    manual: text,
+    notModelled: [],
+    controls: {},
+    initial: { alarm: false },
+    step: (state: { alarm: boolean }) => state,
+  } as const;
+  const beep = [{ hz: 880, ms: 100 }];
+
+  it('accepts cues that name declared beeps', () => {
+    defineDevice({
+      ...device,
+      sounds: {
+        beeps: { alert: [{ hz: 880, ms: 100 }], ack: [{ hz: 440, ms: 50, pauseMs: 20 }] },
+        cues: (previous, next) =>
+          !previous.alarm && next.alarm ? [{ beep: 'alert' }, { beep: 'ack', level: 0.5 }] : [],
+      },
+    });
+  });
+
+  it('rejects a cue that names an undeclared beep', () => {
+    defineDevice({
+      ...device,
+      sounds: {
+        beeps: { alert: beep, ack: beep },
+        // @ts-expect-error 'alarm' is not a declared beep
+        cues: () => [{ beep: 'alarm' }],
+      },
+    });
+    defineDevice({
+      ...device,
+      sounds: {
+        beeps: {},
+        // @ts-expect-error the device declares no beep
+        cues: () => [{ beep: 'alert' }],
+      },
+    });
+  });
+
+  it('leaves sounds out of a device that declares none', () => {
+    expect(defineDevice(device).sounds).toBeUndefined();
+  });
+
+  it('accepts a click on a control and rejects an unknown click id', () => {
+    defineAircraft({ ...body, controls: { master: { ...toggle, click: 'rocker' } } });
+    defineAircraft({ ...body, controls: { master: { ...toggle, click: 'silent' } } });
+    defineAircraft({
+      ...body,
+      // @ts-expect-error 'squeak' is not a click id
+      controls: { master: { ...toggle, click: 'squeak' } },
+    });
+    const key = {
+      kind: 'momentary',
+      positions: ['up', 'down'],
+      initial: 'up',
+      name: text,
+      description: text,
+    } as const;
+    defineDevice({ ...device, controls: { key: { ...key, click: 'key' } } });
+    // @ts-expect-error 'squeak' is not a click id
+    defineDevice({ ...device, controls: { key: { ...key, click: 'squeak' } } });
+  });
+
+  it('types sound inputs from the aircraft state', () => {
+    defineAircraft({
+      ...body,
+      sounds: {
+        engine: {
+          voice: 'piston',
+          options: { cylinders: 4 },
+          inputs: { running: (state) => (state.systems.on ? 1 : 0) },
+          carried: ['running'],
+        },
+      },
+    });
+  });
+
+  it('rejects inputs that are not numbers from the state, and options that are not JSON', () => {
+    defineAircraft({
+      ...body,
+      sounds: {
+        missing: {
+          voice: 'piston',
+          // @ts-expect-error the state has no 'missing'
+          inputs: { level: (state) => (state.systems.missing ? 1 : 0) },
+        },
+        flag: {
+          voice: 'piston',
+          // @ts-expect-error an input is a number: a boolean is written as 0 or 1
+          inputs: { level: (state) => state.systems.on },
+        },
+        word: {
+          voice: 'piston',
+          // @ts-expect-error an input is a number
+          inputs: { level: () => 'loud' },
+        },
+        code: {
+          voice: 'piston',
+          // @ts-expect-error an option is JSON
+          options: { start: () => 1 },
         },
       },
     });
