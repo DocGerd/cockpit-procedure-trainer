@@ -311,3 +311,140 @@ describe('legends of a device control', () => {
     ]);
   });
 });
+
+describe('validateAircraft sounds', () => {
+  const soundsOf = (beeps: unknown, id = 'beeper'): Device =>
+    ({ ...engineMonitor, id, sounds: { beeps, cues: () => [] } }) as Device;
+  const toneFindings = (context?: { devices?: readonly Device[] }) =>
+    validateAircraft(fixtureDeviceAircraft, context).filter(
+      (finding) => finding.code === 'invalid-tone' || finding.code === 'beep-without-tones',
+    );
+  const sounded = (beeps: unknown) => toneFindings({ devices: [engineMonitor, soundsOf(beeps)] });
+  const finding = (code: string, id: string, message: string) =>
+    expect.objectContaining({ code, id, message });
+
+  it('finds nothing in valid beeps', () => {
+    expect(
+      sounded({
+        a: [
+          { hz: 880, ms: 100 },
+          { hz: 440, ms: 50, pauseMs: 0 },
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it('checks a device the aircraft does not install', () => {
+    expect(sounded({ a: [{ hz: 0, ms: 100 }] })).toEqual([
+      finding('invalid-tone', 'beeper.a', 'tone 0 needs a finite, positive hz'),
+    ]);
+  });
+
+  it('checks a device the aircraft installs, once', () => {
+    const installed = soundsOf({ a: [{ hz: 0, ms: 100 }] }, engineMonitor.id);
+    expect(toneFindings({ devices: [installed] })).toEqual([
+      finding('invalid-tone', 'engineMonitor.a', 'tone 0 needs a finite, positive hz'),
+    ]);
+  });
+
+  it('checks no beeps without devices in the context', () => {
+    expect(toneFindings()).toEqual([]);
+  });
+
+  it.each([
+    ['hz zero', { hz: 0, ms: 100 }, 'hz'],
+    ['hz negative', { hz: -1, ms: 100 }, 'hz'],
+    ['hz infinite', { hz: Infinity, ms: 100 }, 'hz'],
+    ['hz -Infinity', { hz: -Infinity, ms: 100 }, 'hz'],
+    ['hz NaN', { hz: NaN, ms: 100 }, 'hz'],
+    ['ms zero', { hz: 440, ms: 0 }, 'ms'],
+    ['ms negative', { hz: 440, ms: -5 }, 'ms'],
+    ['ms infinite', { hz: 440, ms: Infinity }, 'ms'],
+    ['ms -Infinity', { hz: 440, ms: -Infinity }, 'ms'],
+    ['ms NaN', { hz: 440, ms: NaN }, 'ms'],
+  ])('reports a tone with %s', (_name, tone, field) => {
+    expect(sounded({ a: [tone] })).toEqual([
+      finding('invalid-tone', 'beeper.a', `tone 0 needs a finite, positive ${field}`),
+    ]);
+  });
+
+  it.each([
+    ['negative', -1],
+    ['infinite', Infinity],
+    ['NaN', NaN],
+  ])('reports a tone whose pauseMs is %s', (_name, pauseMs) => {
+    expect(sounded({ a: [{ hz: 440, ms: 100, pauseMs }] })).toEqual([
+      finding('invalid-tone', 'beeper.a', 'tone 0 needs a finite pauseMs of at least 0'),
+    ]);
+  });
+
+  it('names every bad field of a tone', () => {
+    expect(sounded({ a: [{ hz: 0, ms: NaN, pauseMs: -1 }] }).map(({ message }) => message)).toEqual(
+      [
+        'tone 0 needs a finite, positive hz',
+        'tone 0 needs a finite, positive ms',
+        'tone 0 needs a finite pauseMs of at least 0',
+      ],
+    );
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['number', 440],
+  ])('reports an entry that is not a tone (%s)', (kind, tone) => {
+    expect(sounded({ a: [tone] })).toEqual([
+      finding('invalid-tone', 'beeper.a', `tone 0 is not a tone (${kind})`),
+    ]);
+  });
+
+  it('reports a beep without tones', () => {
+    expect(sounded({ a: [] })).toEqual([
+      finding('beep-without-tones', 'beeper.a', 'the beep has no tones'),
+    ]);
+  });
+
+  it.each([
+    ['undefined', undefined],
+    ['string', 'beep'],
+    ['object', { hz: 440, ms: 100 }],
+  ])('reports tones that are not a list (%s)', (kind, tones) => {
+    expect(sounded({ a: tones })).toEqual([
+      finding('beep-without-tones', 'beeper.a', `the tones are not a list (${kind})`),
+    ]);
+  });
+
+  it('reports each bad tone of a beep', () => {
+    expect(
+      sounded({
+        a: [
+          { hz: 0, ms: 100 },
+          { hz: 440, ms: 100 },
+          { hz: 440, ms: -1 },
+        ],
+      }).map((finding) => finding.message),
+    ).toEqual(['tone 0 needs a finite, positive hz', 'tone 2 needs a finite, positive ms']);
+  });
+
+  it('keeps the id of each beep on each device', () => {
+    const bad = [{ hz: 0, ms: 100 }];
+    const devices = [
+      engineMonitor,
+      soundsOf({ a: bad, b: [], c: [{ hz: 440, ms: 100 }] }),
+      soundsOf({ a: bad }, 'other'),
+    ];
+    expect(toneFindings({ devices }).map(({ id }) => id)).toEqual([
+      'beeper.a',
+      'beeper.b',
+      'other.a',
+    ]);
+  });
+
+  it('ignores an empty beeps record', () => {
+    expect(sounded({})).toEqual([]);
+  });
+
+  it('ignores sounds without beeps', () => {
+    expect(sounded(undefined)).toEqual([]);
+  });
+});
