@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted, 2026-10-15; the owner questions in the design's §14 are open. Amends
+Accepted, 2026-10-15; the owner approved the design the same day. Amends
 ADR-0001 (Out of scope: audio).
 
 ## Context

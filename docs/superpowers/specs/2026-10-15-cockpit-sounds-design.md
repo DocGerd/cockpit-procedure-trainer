@@ -1,7 +1,7 @@
 # Cockpit sounds — Design
 
-Status: accepted 2026-10-15; the owner questions in §14 are open · Owner: Patrick
-Kuhn · ADR: `docs/adr/0003-synthesised-cockpit-audio.md` · Parent spec:
+Status: Approved 2026-10-15 by the owner · Owner: Patrick Kuhn · ADR:
+`docs/adr/0003-synthesised-cockpit-audio.md` · Parent spec:
 `2026-10-05-cockpit-procedure-trainer-design.md` §1 (Out of scope), §4.1, §4.6,
 §4.9, §5 (Screen, Persistence), §8, §9.
 
@@ -24,14 +24,17 @@ judges sound quality in a listening check; automated tests cannot hear.
 
 ### Owner decisions (2026-10-15, fixed)
 
-| Topic       | Decision                                                                                                                           |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Scope       | Full cockpit audio: control clicks, engine, propeller, starter, airflow, electric motors, device beeps.                            |
-| Source      | Every sound is synthesised in the browser with Web Audio. No audio files.                                                          |
-| Controls    | A sound on/off toggle and a master volume slider.                                                                                  |
-| Waves       | Wave 1 needs no new aircraft facts. Wave 2 refines against facts an owner-run intake session adds later (`CPT_ALLOW_REFERENCE=1`). |
-| Aircraft    | Only the CTSL gets aircraft sounds. The demo aircraft is silent apart from the shared control clicks.                              |
-| Spec change | The audio non-goal (spec §1, §4.9; ADR-0001) is lifted for synthesised cockpit and device sounds (ADR-0003).                       |
+| Topic            | Decision                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scope            | Full cockpit audio: control clicks, engine, propeller, starter, airflow, electric motors, device beeps.                                       |
+| Source           | Every sound is synthesised in the browser with Web Audio. No audio files.                                                                     |
+| Controls         | A sound on/off toggle and a master volume slider.                                                                                             |
+| Waves            | Wave 1 needs no new aircraft facts. Wave 2 refines against facts an owner-run intake session adds later (`CPT_ALLOW_REFERENCE=1`).            |
+| Aircraft         | Only the CTSL gets aircraft sounds. The demo aircraft is silent apart from the shared control clicks.                                         |
+| Spec change      | The audio non-goal (spec §1, §4.9; ADR-0001) is lifted for synthesised cockpit and device sounds (ADR-0003).                                  |
+| Default          | Sound is on by default, below full volume (D9).                                                                                               |
+| Header control   | One header button opens a popover with the on/off switch and the volume slider (D8).                                                          |
+| Engine knowledge | Engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) count as general knowledge under the intake §9 ruling (D16). |
 
 ### Out of scope
 
@@ -115,7 +118,7 @@ Module ids are stable; plans, issues and PRs select work by them. An arrow means
 | `cockpit-audio-driver`  | Connects a session to the engine on the trainer screen: clicks, voices, device cues, baselines, jumps, error containment; the empty `voiceFactories` registry  | web `audio/`, `shell/TrainerLayout.tsx`; registry in panel-kit `audio/`                 | `control-change-feed`, `session-epoch`, `device-cue-diff`, `control-clicks`, `beep-voice` | 1, step 2  |
 | `aircraft-voices`       | `piston-engine`, `airflow`, `electric-motor` voices; fills the `voiceFactories` registry                                                                       | panel-kit `audio/voices/`                                                               | `audio-engine`, `sound-contract`                                                          | 1, step 3a |
 | `aircraft-sounds-check` | Test: every declared voice id exists, `problems(options)` is empty, selectors run on every entry state                                                         | web `aircraft-sounds.test.ts`                                                           | `aircraft-voices`, `ctsl-sounds`                                                          | 1, step 3a |
-| `ctsl-sounds`           | CTSL `sounds`: selectors over its state and the sound profile; the assumed values recorded beside intake §9 question 1                                         | `aircraft-ctsl/src/sounds.ts`, `systems.ts` exports, one line in `index.ts`; intake §9  | `sound-contract`                                                                          | 1, step 3a |
+| `ctsl-sounds`           | CTSL `sounds`: selectors over its state and the sound profile; the general-knowledge engine values recorded beside intake §9 question 1                        | `aircraft-ctsl/src/sounds.ts`, `systems.ts` exports, one line in `index.ts`; intake §9  | `sound-contract`                                                                          | 1, step 3a |
 | `flarm-sounds`          | FLARM beep table and cue diff; the README and the intake §3.8.4 trainer paragraph                                                                              | `device-flarm/src/logic/sounds.ts`, `logic/flarm.ts`, `README.md`; intake §3.8.4        | `sound-contract`                                                                          | 1, step 3b |
 | `ctsl-sound-facts`      | Engine variant, gearbox ratio, blade count, starter character as `piston-engine` options; blade-pass tone                                                      | `aircraft-ctsl/src/sounds.ts`, panel-kit `audio/voices/`                                | `ctsl-sounds`, `aircraft-voices`                                                          | 2          |
 | `flarm-beep-facts`      | Measured beep pitch, length, pattern and level ratios                                                                                                          | `device-flarm/src/logic/sounds.ts`                                                      | `flarm-sounds`                                                                            | 2          |
@@ -343,17 +346,18 @@ The CTSL declares (in `ctsl-sounds`):
 
 Wave-1 values that are not intake facts:
 
-| Value                                 | Used for                      | Status                                                                                                                               |
-| ------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Four cylinders, four-stroke           | firing frequency, uneven beat | **assumed (unverified)**, general knowledge of the Rotax 912 the intake names (§4.2); step 3a records it beside intake §9 question 1 |
-| Cranking rpm                          | starter pulses                | **assumed (unverified)** voice default, tuned by ear; recorded beside §9 question 1; §13 question 4 replaces it                      |
-| Starter whine, levels, time constants | timbre and dynamics           | voice defaults tuned by ear, not aircraft facts                                                                                      |
-| Airspeed reference                    | airflow level                 | intake §4.3, the airspeed red line                                                                                                   |
-| Flap motor                            | `electric-motor`              | intake §4.4, electric spindle motor                                                                                                  |
+| Value                                 | Used for                      | Status                                                                                                                                  |
+| ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Four cylinders, four-stroke           | firing frequency, uneven beat | general knowledge of the Rotax 912 the intake names (§4.2), accepted by the owner (D16); step 3a records it beside intake §9 question 1 |
+| Cranking rpm                          | starter pulses                | general knowledge (D16), a voice default tuned by ear; recorded beside §9 question 1; §13 question 4 replaces it                        |
+| Starter whine, levels, time constants | timbre and dynamics           | voice defaults tuned by ear, not aircraft facts                                                                                         |
+| Airspeed reference                    | airflow level                 | intake §4.3, the airspeed red line                                                                                                      |
+| Flap motor                            | `electric-motor`              | intake §4.4, electric spindle motor                                                                                                     |
 
 The intake §9 owner ruling covers general knowledge of the CT Supralight where
-a panel fact is missing. Using it for engine facts heard only in sound extends
-it, so §14 question 4 asks the owner to confirm.
+a panel fact is missing. The owner extended it on 2026-10-15 to engine facts
+heard only in sound (D16), so these values are recorded beside intake §9
+question 1 as general knowledge, not as assumed (unverified).
 
 #### Engine synthesis: native oscillator bank
 
@@ -380,7 +384,7 @@ node. The worklet's extra pulse detail is not what recognition rewards;
 pre-rendered loops beat against each other when crossfaded and still need a
 synthesiser to render from. If the listening check finds the bank too
 synthetic, a worklet voice replaces it behind the same `Voice` interface (§14,
-question 5).
+question 2).
 
 #### Parameter mapping
 
@@ -595,13 +599,13 @@ export function connectCockpitAudio(
 - **D8 Header control is one button with a popover.** `shell.spec.ts` keeps
   the header in one row in German with the longest titles, and every item
   clear of the others at every tested viewport; a second 44 px item would have
-  to pass both again. Cost: turning sound off takes two clicks. Listed for
-  owner confirmation (§14, question 2).
+  to pass both again. Cost: turning sound off takes two clicks. Confirmed by
+  the owner 2026-10-15.
 - **D9 Sound defaults to on, below full volume.** Training realism ranks above
   polish; the owner asked for full cockpit audio; browsers stay silent until
   the first gesture, so the first sound answers the pilot's own click. The
   shared E2E fixture seeds sound off, so only `sound-settings.spec.ts` meets
-  the default. Listed for owner confirmation (§14, question 1).
+  the default. Confirmed by the owner 2026-10-15.
 - **D10 `beep-voice` ships with the driver in step 2**, which keeps the driver
   in one PR and lets 3a and 3b touch disjoint code.
 - **D11 Engine facts unknown to the intake stay out of wave 1.** The 912
@@ -618,6 +622,12 @@ export function connectCockpitAudio(
   keeps advancing behind the picker and the error screen.
 - **D15 The starter sound follows the key, not the lockout** (§6.5), so the
   audio does not teach that the starter stops itself.
+- **D16 Engine facts used only for sound are general knowledge.** The owner
+  extended the intake §9 ruling on 2026-10-15 to the four cylinders, the
+  four-stroke cycle and the cranking rpm. They are recorded beside intake §9
+  question 1 as general knowledge, not as assumed (unverified); §13 questions 1
+  and 4 still refine them. Any other general knowledge keeps the §9 marking
+  (§11).
 
 ## 9. Code style
 
@@ -715,7 +725,8 @@ const approach = (value: number, target: number, dtMs: number, timeConstantMs: n
 - Synthesise at runtime; keep `csp.ts` unchanged.
 - Take aircraft facts only from the intake, paraphrased; mark general
   knowledge **assumed (unverified)**, record it beside its intake §9 question
-  and list it in the PR.
+  and list it in the PR. The engine facts of D16 are recorded as general
+  knowledge instead.
 - Tie a unit's beep to its power-on path, never to page or phase load.
 - Seed `cpt.sound=off` in the shared E2E fixture; only the sound spec opts out.
 - Use the fake context in unit tests; never require audible output.
@@ -729,7 +740,7 @@ const approach = (value: number, target: number, dtMs: number, timeConstantMs: n
 - An `AudioWorklet` voice (a built same-origin module and a precache change).
 - A new dependency, a new package kind, or any change to the parent spec's
   decisions table.
-- Changing the sound default after the owner answers §14 question 1.
+- Changing the sound default the owner confirmed (D9).
 
 **Never**
 
@@ -814,19 +825,15 @@ intake.
 
 ## 14. Open questions
 
-1. **Sound default** (owner). Used until answered: on, below full volume (D9).
-2. **Header control** (owner). A popover costs two clicks to mute (D8); an
-   inline switch and slider would have to pass the `shell.spec.ts` header
-   tests again.
-3. **Click overrides** (owner). The wave-1 silent and `soft` list (§6.4) until
+The owner answered the sound default (D9), the header control (D8) and the
+engine general knowledge (D16) on 2026-10-15.
+
+1. **Click overrides** (owner). The wave-1 silent and `soft` list (§6.4) until
    §13 question 11 is answered.
-4. **Engine general knowledge** (owner). Does the intake §9 ruling extend to
-   engine facts used only for sound (four cylinders, four-stroke; the cranking
-   rpm)? Until answered they stay **assumed (unverified)** (§6.5).
-5. **Engine voice quality** (owner, listening check). If the oscillator bank
+2. **Engine voice quality** (owner, listening check). If the oscillator bank
    sounds too synthetic, an `AudioWorklet` voice replaces it behind the same
    interface, shipped as a built same-origin module under `script-src 'self'`.
-6. **Stall horn** (owner, only if question 5 of §13 finds one). It needs a
+3. **Stall horn** (owner, only if question 5 of §13 finds one). It needs a
    stall state the systems lack; that is a spec change.
 
 ## 15. Document changes
@@ -848,7 +855,8 @@ Owed by the implementing PRs:
   `docs/openssf-best-practices-badge.md` (the new keys' validation). The
   `CLAUDE.md` app-settings line (`sound`, `volume`, seeded off by the E2E
   fixture) is the orchestrator's change, in the main session.
-- Step 3a: intake §9 question 1 (the assumed engine values of §6.5).
+- Step 3a: intake §9 question 1 (the general-knowledge engine values of §6.5,
+  D16).
 - Step 3b: `packages/device-flarm/README.md` in the same PR as the
   `notModelled` text, which `tools/device-readme.test.ts` keeps equal:
   Controls (the volume tone), Power cycle (the start-up beep), Not modelled
