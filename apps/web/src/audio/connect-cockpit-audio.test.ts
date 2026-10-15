@@ -441,10 +441,11 @@ const beeps = (hz: number, context = contexts.at(-1)) =>
 const startUps = (context?: FakeAudioContext) => beeps(START_UP_HZ, context).map(({ at }) => at);
 
 function soundCockpit({
+  aircraft = sounding,
   registry = [beeper] as readonly Device[],
   recording = recordingVoices(),
 } = {}) {
-  const session = createSession(sounding, { devices: registry });
+  const session = createSession(aircraft, { devices: registry });
   const engine = createAudioEngine(document, build);
   cleanups.push(() => engine.dispose());
   let nowMs = 0;
@@ -455,7 +456,7 @@ function soundCockpit({
   const connect = () => {
     const disconnect = connectCockpitAudio(
       session,
-      sounding,
+      aircraft,
       registry,
       engine,
       () => nowMs,
@@ -548,6 +549,16 @@ describe('connectCockpitAudio voices and device cues', () => {
         session.set('master', 'off');
       },
       act: (session: Session) => session.restartLeg(),
+    },
+    {
+      reset: 'a retried item',
+      setup: (session: Session) => {
+        session.set('pump', 'on');
+        session.startLeg('toTaxi');
+        session.set('master', 'on');
+        session.set('master', 'off');
+      },
+      act: (session: Session) => session.retryItem(),
     },
   ])(
     'takes a baseline on $reset: no cue though the device powers up, every input jumps',
@@ -742,6 +753,110 @@ describe('connectCockpitAudio voices and device cues', () => {
     expect(recording.last('test-motor')?.frame.jump).toEqual(EVERY_INPUT['test-motor']);
   });
 
+  it.each<{ away: string; leave: (session: Session) => void; back: (session: Session) => unknown }>(
+    [
+      {
+        away: 'the runtime fails',
+        leave: (session) => {
+          session.startSurprise({ phase: 'parking', failure: 'seize', delayMs: STEP_MS });
+        },
+        back: (session) => {
+          session.jumpToPhase('cruise');
+        },
+      },
+      {
+        away: 'the browser closes the context',
+        leave: () => contexts[0]?.setState('closed'),
+        back: async () => {
+          gesture();
+          await settle();
+        },
+      },
+    ],
+  )(
+    'logs a voice that throws as it stops once $away, and builds the voices again',
+    async ({ leave, back }) => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const { session, recording, tick } = await liveSoundCockpit({
+        recording: recordingVoices({ 'test-engine': 'stop' }),
+      });
+      leave(session);
+      tick();
+      expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error).toHaveBeenCalledWith(
+        'Cockpit sound could not stop the engine sound (voice test-engine).',
+        expect.objectContaining({ message: 'test-engine stop failed' }),
+      );
+
+      await back(session);
+      const fed = recording.frames.length;
+      tick();
+      expect(recording.created).toHaveLength(4);
+      expect(recording.frames.length).toBeGreaterThan(fed);
+      expect(error).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('names the cockpit sound, not the last voice built, for an engine throw after the build', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { engine, recording, tick, connect } = soundCockpit();
+    connect();
+    gesture();
+    await settle();
+    expect(recording.created).toEqual([]);
+    vi.spyOn(engine, 'live').mockImplementation(() => {
+      throw new Error('live failed');
+    });
+    tick();
+    expect(recording.created).toHaveLength(2);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      'Cockpit sound stopped after an audio error in the cockpit sound.',
+      expect.objectContaining({ message: 'live failed' }),
+    );
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+  });
+
+  const powersUp = (previous: unknown, next: unknown) =>
+    !(previous as BeeperState).powered && (next as BeeperState).powered;
+
+  it('plays every cue of one notification, each at its own level', async () => {
+    const twoCues: Device = {
+      ...beeper,
+      sounds: {
+        beeps: { startUp: [{ hz: START_UP_HZ, ms: 120 }], set: [{ hz: SET_HZ, ms: 40 }] },
+        cues: (previous, next) =>
+          powersUp(previous, next) ? [{ beep: 'startUp' }, { beep: 'set', level: SET_LEVEL }] : [],
+      },
+    };
+    const { session } = await liveSoundCockpit({ registry: [twoCues] });
+    session.set('master', 'on');
+    const [startUp] = beeps(START_UP_HZ);
+    const [set] = beeps(SET_HZ);
+    expect([startUp?.at, set?.at]).toEqual([0, 0]);
+    expect(set?.peak).toBeCloseTo((startUp?.peak ?? 0) * SET_LEVEL);
+  });
+
+  it('logs a cue naming a beep its device does not declare once, and stops every voice', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const undeclared: Device = {
+      ...beeper,
+      sounds: {
+        beeps: { set: [{ hz: SET_HZ, ms: 40 }] },
+        cues: (previous, next) => (powersUp(previous, next) ? [{ beep: 'startUp' }] : []),
+      },
+    };
+    const { session, recording } = await liveSoundCockpit({ registry: [undeclared] });
+    session.set('master', 'on');
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      'Cockpit sound stopped after an audio error at the beeper startUp beep.',
+      expect.objectContaining({ message: 'No beep "startUp" on device "beeper".' }),
+    );
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+  });
+
   const throwingCues: Device = {
     ...beeper,
     sounds: {
@@ -751,6 +866,11 @@ describe('connectCockpitAudio voices and device cues', () => {
       },
     },
   };
+
+  const breakNodes = (context: FakeAudioContext) =>
+    vi.spyOn(context, 'createOscillator').mockImplementation(() => {
+      throw new Error('node failed');
+    });
 
   it.each([
     {
@@ -769,17 +889,24 @@ describe('connectCockpitAudio voices and device cues', () => {
       names: 'device cues',
       options: { registry: [throwingCues] },
     },
+    { site: 'a beep', names: 'beeper startUp', breakAt: breakNodes },
     {
-      site: 'a beep',
-      names: 'beeper startUp',
-      breakAt: (context: FakeAudioContext) =>
-        vi.spyOn(context, 'createOscillator').mockImplementation(() => {
-          throw new Error('node failed');
-        }),
+      site: 'a click',
+      names: 'at pump (position off to on)',
+      breakAt: breakNodes,
+      move: 'pump',
+      then: 'master',
     },
   ])(
     'contains a throw from $site: logs once, stops every voice and leaves the session working',
-    async ({ names, options, breakAt, stops = ['test-engine', 'test-motor'] }) => {
+    async ({
+      names,
+      options,
+      breakAt,
+      stops = ['test-engine', 'test-motor'],
+      move = 'master',
+      then = 'pump',
+    }) => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
       const { session, recording, tick, connect } = soundCockpit(options);
       const disconnect = connect();
@@ -790,15 +917,15 @@ describe('connectCockpitAudio voices and device cues', () => {
       breakAt?.(context);
 
       tick();
-      expect(session.set('master', 'on').applied).toBe(true);
+      expect(session.set(move, 'on').applied).toBe(true);
       expect(error).toHaveBeenCalledTimes(1);
       expect(error).toHaveBeenCalledWith(expect.stringContaining(names), expect.any(Error));
       expect(recording.stopped).toEqual(stops);
 
       const fed = recording.frames.length;
       expect(() => tick()).not.toThrow();
-      expect(session.set('pump', 'on').applied).toBe(true);
-      expect(session.state().controls['pump']).toBe('on');
+      expect(session.set(then, 'on').applied).toBe(true);
+      expect(session.state().controls[then]).toBe('on');
       expect(recording.frames).toHaveLength(fed);
       expect(error).toHaveBeenCalledTimes(1);
       disconnect();
@@ -806,30 +933,106 @@ describe('connectCockpitAudio voices and device cues', () => {
     },
   );
 
-  it('logs a voice that throws as it stops on disconnect once, and still stops the others', async () => {
+  it('names a voice that throws as it stops in the one log that silences the sound, and still stops the others', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { recording } = await liveSoundCockpit({
+      recording: recordingVoices({ 'test-engine': 'update', 'test-motor': 'stop' }),
+    });
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      'Cockpit sound stopped after an audio error in the engine sound (voice test-engine). It could not stop the pump sound (voice test-motor).',
+      expect.objectContaining({ message: 'test-engine update failed' }),
+      expect.objectContaining({ message: 'test-motor stop failed' }),
+    );
+  });
+
+  it('plays again on the next connection after a throw silenced the last one', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { session, recording, connect, disconnect } = await liveSoundCockpit();
+    const context = contexts[0];
+    if (!context) throw new Error('no context');
+    const broken = breakNodes(context);
+    session.set('master', 'on');
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+
+    broken.mockRestore();
+    disconnect();
+    connect();
+    expect(recording.created).toHaveLength(4);
+    session.set('pump', 'on');
+    expect(recording.last('test-motor')?.inputs).toEqual({ driving: 1 });
+    expect(clickTimes()).toHaveLength(1);
+    expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  it('logs every voice that throws as it stops on disconnect once, naming each, and still stops the others', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { recording, disconnect } = await liveSoundCockpit({
-      recording: recordingVoices({ 'test-engine': 'stop' }),
+      recording: recordingVoices({ 'test-engine': 'stop', 'test-motor': 'stop' }),
     });
     disconnect();
     expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
     expect(error).toHaveBeenCalledTimes(1);
     expect(error).toHaveBeenCalledWith(
-      expect.any(String),
+      'Cockpit sound could not stop the engine sound (voice test-engine), the pump sound (voice test-motor).',
       expect.objectContaining({ message: 'test-engine stop failed' }),
+      expect.objectContaining({ message: 'test-motor stop failed' }),
     );
   });
 
-  it('logs a voice that is not in the registry once, and stays silent', async () => {
+  it.each([
+    {
+      voice: 'test-motor',
+      unregister: (voices: Record<string, VoiceFactory>) => delete voices['test-motor'],
+    },
+    {
+      voice: 'toString',
+      aircraft: { ...sounding, sounds: { ...sounding.sounds, pump: { voice: 'toString' } } },
+    },
+  ])(
+    'logs a voice $voice that is not in the registry once, and stays silent',
+    async ({ voice, unregister, aircraft }) => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const recording = recordingVoices();
+      unregister?.(recording.voices);
+      const { session } = await liveSoundCockpit({ recording, ...(aircraft && { aircraft }) });
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error).toHaveBeenCalledWith(
+        `Cockpit sound stopped after an audio error in the pump sound (voice ${voice}).`,
+        expect.objectContaining({ message: `No voice "${voice}" is registered.` }),
+      );
+      expect(recording.stopped).toEqual(['test-engine']);
+      session.set('master', 'on');
+      expect(startUps()).toEqual([]);
+    },
+  );
+
+  it('plays the panel-kit voices, timed by the performance clock, when given neither', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const recording = recordingVoices();
-    delete recording.voices['test-motor'];
-    const { session } = await liveSoundCockpit({ recording });
-    expect(error).toHaveBeenCalledTimes(1);
-    expect(error).toHaveBeenCalledWith(expect.stringContaining('test-motor'), expect.any(Error));
-    expect(recording.stopped).toEqual(['test-engine']);
-    session.set('master', 'on');
-    expect(startUps()).toEqual([]);
+    const motoring: Aircraft = {
+      ...sounding,
+      sounds: {
+        flaps: {
+          voice: 'electric-motor',
+          inputs: { driving: (state) => (state.controls['pump'] === 'on' ? 1 : 0) },
+        },
+      },
+    };
+    const session = createSession(motoring, { devices: [beeper] });
+    const engine = createAudioEngine(document, build);
+    cleanups.push(() => engine.dispose());
+    cleanups.push(connectCockpitAudio(session, motoring, [beeper], engine));
+    gesture();
+    await settle();
+    const now = vi.spyOn(performance, 'now');
+    session.set('pump', 'on');
+    expect(now).toHaveBeenCalled();
+    expect(contexts[0]?.nodesOf('oscillator').some((node) => node.periodicWave !== undefined)).toBe(
+      true,
+    );
+    expect(error).not.toHaveBeenCalled();
   });
 });
 

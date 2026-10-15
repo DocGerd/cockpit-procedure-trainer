@@ -32,12 +32,20 @@ type Sound = {
 
 type Playing = { readonly sound: Sound; readonly voice: Voice };
 
+type StopFailure = { readonly sound: Sound; readonly error: unknown };
+
+const label = (sound: Sound) => `the ${sound.id} sound (voice ${sound.definition.voice})`;
+
+const unstopped = (failures: readonly StopFailure[]) =>
+  `could not stop ${failures.map(({ sound }) => label(sound)).join(', ')}`;
+
 /**
  * Plays the cockpit of `session` through `engine` until the returned disconnect. A click or a
  * device cue is dropped while the engine is not live: a late one would answer a move made long
  * before. Voice frames are timed by `clock`, never by counting notifications. The first audio
  * error is logged, stops every voice and silences this connection; it never reaches the session,
- * so the pilot's press and the advance timer keep working.
+ * so the pilot's press and the advance timer keep working. A voice that throws as it stops is
+ * logged and does not silence the connection: the others stop all the same.
  */
 export function connectCockpitAudio(
   session: Session,
@@ -59,7 +67,7 @@ export function connectCockpitAudio(
     { readonly epoch: number; readonly phase: string; readonly devices: DeviceStates } | undefined;
   let wasLive = false;
 
-  // A context the browser closed is replaced by a new one, which needs its own players and voices.
+  // A context the browser closed is replaced by a new one, which needs its own players.
   const playerFor = (out: AudioOut) => {
     if (clicks?.out !== out) clicks = { out, player: createClickPlayer(out) };
     return clicks.player;
@@ -70,28 +78,30 @@ export function connectCockpitAudio(
     return beeps.player;
   };
 
-  const stopVoices = () => {
+  const stopVoices = (): StopFailure[] => {
     const playing = bank?.playing ?? [];
     bank = undefined;
-    const errors: unknown[] = [];
-    for (const { voice } of playing) {
+    const failures: StopFailure[] = [];
+    for (const { sound, voice } of playing) {
       try {
         voice.stop();
       } catch (error) {
-        errors.push(error);
+        failures.push({ sound, error });
       }
     }
-    if (errors.length > 0) throw errors[0];
+    return failures;
+  };
+
+  const logStops = (failures: readonly StopFailure[]) => {
+    if (failures.length === 0) return;
+    console.error(`Cockpit sound ${unstopped(failures)}.`, ...failures.map(({ error }) => error));
   };
 
   const silence = (message: string, error: unknown) => {
     silenced = true;
-    console.error(message, error);
-    try {
-      stopVoices();
-    } catch {
-      // The error that silenced the connection is the one logged.
-    }
+    const failures = stopVoices();
+    const stops = failures.length > 0 ? ` It ${unstopped(failures)}.` : '';
+    console.error(`${message}${stops}`, error, ...failures.map((failure) => failure.error));
   };
 
   const build = (sound: Sound, out: AudioOut) => {
@@ -115,16 +125,17 @@ export function connectCockpitAudio(
 
       if (sounds.length > 0) {
         const out = session.status().kind === 'failed' ? undefined : engine.out();
-        if (bank && bank.out !== out) stopVoices();
+        if (bank && bank.out !== out) logStops(stopVoices());
         let fresh = false;
         if (!bank && out) {
           const playing: Playing[] = [];
           bank = { out, playing };
           fresh = true;
           for (const sound of sounds) {
-            where = `in the ${sound.id} sound (voice ${sound.definition.voice})`;
+            where = `in ${label(sound)}`;
             playing.push({ sound, voice: build(sound, out) });
           }
+          where = 'in the cockpit sound';
         }
         if (bank) {
           const live = engine.live();
@@ -132,7 +143,7 @@ export function connectCockpitAudio(
           wasLive = live;
           const nowMs = clock();
           for (const { sound, voice } of bank.playing) {
-            where = `in the ${sound.id} sound (voice ${sound.definition.voice})`;
+            where = `in ${label(sound)}`;
             const inputs = Object.fromEntries(
               sound.inputs.map(([name, read]) => [name, read(state)]),
             );
@@ -154,8 +165,11 @@ export function connectCockpitAudio(
       if (!out || !engine.live()) return;
       for (const cue of cues) {
         where = `at the ${cue.install} ${cue.beep} beep`;
-        const tones = registry.find((device) => device.id === cue.device)?.sounds?.beeps[cue.beep];
-        if (tones) beepPlayerFor(out).play(tones, out.context.currentTime, cue.level ?? 1);
+        const declared = registry.find((device) => device.id === cue.device)?.sounds?.beeps;
+        const tones =
+          declared && Object.hasOwn(declared, cue.beep) ? declared[cue.beep] : undefined;
+        if (!tones) throw new Error(`No beep "${cue.beep}" on device "${cue.device}".`);
+        beepPlayerFor(out).play(tones, out.context.currentTime, cue.level ?? 1);
       }
     } catch (error) {
       silence(`Cockpit sound stopped after an audio error ${where}.`, error);
@@ -190,10 +204,6 @@ export function connectCockpitAudio(
     unsubscribeChanges();
     if (silenced) return;
     silenced = true;
-    try {
-      stopVoices();
-    } catch (error) {
-      console.error('Cockpit sound stopped after an audio error as a voice stopped.', error);
-    }
+    logStops(stopVoices());
   };
 }
