@@ -120,7 +120,7 @@ type ControlBase = {
   /** Every lock that applies; a move is refused when any of them refuses it. */
   readonly interlock?: readonly ControlInterlock[];
   /**
-   * The click every move of this control makes, a guard's moves included; without it the kind
+   * The click the pilot's moves of this control make, a guard's moves included; without it the kind
    * picks one, and `silent` makes none.
    */
   readonly click?: ClickId | 'silent';
