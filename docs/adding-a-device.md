@@ -44,6 +44,8 @@ Build the device with `defineDevice` from `@cpt/core`:
   `## Not modelled` bullets repeat the English texts.
 - `controls`: the same control kinds as an aircraft (`toggle`, `rotary`, `lever`,
   `momentary`, `guarded`). Each has a `name` and `description` in both languages.
+  A control may name its own `click` (a `ClickId` or `silent`) on the same rule as
+  an aircraft control; see Controls in [adding-an-aircraft.md](adding-an-aircraft.md#controls).
 - `initial`: the starting state.
 - `step(state, { controls, powered, inputs, dtMs })`: a pure function returning the
   next state. `controls` holds the device's own controls by local id, `powered` is
