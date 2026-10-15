@@ -58,6 +58,12 @@ describe('aera500Device definition', () => {
     for (const icon of TOUCH_ICONS) expect(touch.springBack?.[icon]).toBe('rest');
   });
 
+  it('makes no click for a touch, and leaves the power key to the kind fallback', () => {
+    const { power, touch } = aera500Device.controls;
+    expect(touch?.click).toBe('silent');
+    expect(power?.click).toBeUndefined();
+  });
+
   it('declares a legend for every touch position', () => {
     const { touch } = aera500Device.controls;
     for (const position of ['rest', ...TOUCH_ICONS]) {

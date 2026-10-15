@@ -103,6 +103,14 @@ OFF only come out (`['off', 'out']`); open, it keeps the key in
 (result `locked`), and the app frame names the holding control; phase entries and
 failures move freely. The other control must be a different one.
 
+A control makes a click when the pilot moves it, picked by its kind. It names
+its own `click` (`rocker`, `detent`, `notch`, `key`, `push-pull`, `latch`,
+`handle` or the neutral `soft`; `silent` makes none) only where the kind would
+give a sound the real control does not make: the CTSL's throttle and trim are
+`silent` because their listed positions are trainer detents, and its fuel valve
+and choke are `soft`. A control the intake does not describe keeps the kind's
+click. A `click` on a guarded control covers every move, the guard's included.
+
 ### Indicators
 
 `indicators` maps an id to `{ name, select, appearance }`. `select` reads a value
@@ -439,8 +447,8 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the
-`cockpit` codes above. `formatFinding` prints one.
+`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory`,
+`invalid-tone`, `beep-without-tones` and the `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
