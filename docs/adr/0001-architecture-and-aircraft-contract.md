@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted.
+Accepted. The audio item under Out of scope is amended by ADR-0003
+(2026-10-15).
 
 ## Context
 
@@ -24,8 +25,9 @@ Success criteria:
 Out of scope:
 
 - Flight physics, navigation, scoring or exam mode.
-- Avionics behaviour that needs the outside world: audio, reception,
-  navigation databases, moving maps.
+- Avionics behaviour that needs the outside world: reception, radio and
+  intercom audio, navigation databases, moving maps. Synthesised cockpit and
+  device sounds are in scope (ADR-0003).
 - Pilot accounts, a backend, instructor dashboards.
 - Adding aircraft by any means other than code (no editor, no upload).
 - Phones as a target device.
