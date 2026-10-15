@@ -30,6 +30,7 @@ judges sound quality in a listening check; automated tests cannot hear.
 | Source           | Every sound is synthesised in the browser with Web Audio. No audio files.                                                                     |
 | Controls         | A sound on/off toggle and a master volume slider.                                                                                             |
 | Waves            | Wave 1 needs no new aircraft facts. Wave 2 refines against facts an owner-run intake session adds later (`CPT_ALLOW_REFERENCE=1`).            |
+| Milestone        | Both waves are in one milestone, so its release waits for the owner's intake session.                                                         |
 | Aircraft         | Only the CTSL gets aircraft sounds. The demo aircraft is silent apart from the shared control clicks.                                         |
 | Spec change      | The audio non-goal (spec §1, §4.9; ADR-0001) is lifted for synthesised cockpit and device sounds (ADR-0003).                                  |
 | Default          | Sound is on by default, below full volume (D9).                                                                                               |
@@ -43,7 +44,7 @@ judges sound quality in a listening check; automated tests cannot hear.
   them (§3.3, §3.7, §3.8.1, §3.8.3).
 - FLARM traffic and obstacle tones. There is no traffic (owner, 2026-10-11).
 - A stall horn. The intake records the Generator lamp as the only warning lamp
-  and no aural warning (§2a), and the systems have no stall state. Wave 2
+  (§2a) and names no aural warning, and the systems have no stall state. Wave 2
   revisits it only if the intake session finds a horn (§13, question 5).
 - Recorded samples, downloaded sounds, spatial or binaural audio.
 - New screen-reader or keyboard work (ADR-0002 rank 7).
@@ -168,7 +169,7 @@ export type Tone = { readonly hz: number; readonly ms: number; readonly pauseMs?
 export type SoundCue<B extends string = string> = { readonly beep: B; readonly level?: number };
 export type DeviceSounds<D, B extends string = string> = {
   readonly beeps: { readonly [id in B]: readonly Tone[] };
-  cues(previous: DeviceState<D>, next: DeviceState<D>): readonly SoundCue<B>[];
+  cues(previous: D, next: D): readonly SoundCue<B>[];
 };
 // DeviceDefinition gains: readonly sounds?: DeviceSounds<D, B>; defineDevice infers B
 
@@ -193,6 +194,8 @@ export function deviceCues(
 - An aircraft names voices by id, as it names panel-kit widgets; panel-kit
   implements them. Selectors and `cues` are pure functions over state, which
   keeps core and the packages free of audio APIs.
+- `cues` sees only the device's own state `D`, as `step` does; `deviceCues`
+  passes each install's `state`.
 - `defineDevice` infers `B` from the `beeps` keys, so a cue naming an
   undeclared beep fails to compile.
 - A voice silences itself from its inputs: there is no `on` condition, and a
@@ -286,7 +289,7 @@ the aircraft's and its devices' controls (the same set the session builds with
 | ------------------------------------------------- | --------------------------------------------------------------------- |
 | `toggle`                                          | `rocker`                                                              |
 | `rotary`                                          | one `detent` per position stepped, rate-capped                        |
-| `rotary` with `springBack`, any pilot move        | one `detent`, whatever the index distance (a radio knob's up or down) |
+| `rotary`, a move into a `springBack` position     | one `detent`, whatever the index distance (a radio knob's up or down) |
 | `lever` with listed positions                     | `notch`                                                               |
 | `lever` with `positions: 'continuous'`            | silent                                                                |
 | `momentary` press                                 | `key`                                                                 |
@@ -419,7 +422,9 @@ tick.
 
 Edges the model reacts to:
 
-1. `starter` rises: starter whine on; rpm moves to the cranking rpm.
+1. `starter` rises: starter whine on; with the engine stopped, rpm moves to
+   the cranking rpm. Over a running engine (the key turned to START by
+   mistake) only the whine is added; rpm keeps the state value.
 2. `running` rises while the starter turns or the engine windmills: the catch.
    Firing gain to full; rpm to the state value at the catch time constant.
 3. `starter` falls without `running` (a failed start: no choke when cold, the
@@ -438,7 +443,8 @@ is heard as a pitch change by the rpm ratio.
 ### 6.6 Device beeps
 
 - A device declares `sounds: { beeps, cues }`. `deviceCues` walks the
-  aircraft's installs, calls each device's `cues(previous, next)` and tags each
+  aircraft's installs, calls each device's `cues(previous, next)` on the
+  install's previous and next device `state` and tags each
   cue with the install and device id. The driver plays the named beep through
   `beep-voice` at the cue's level.
 - **FLARM** (intake §3.8.4):
@@ -529,8 +535,10 @@ export function connectCockpitAudio(
 ### 6.8 Settings and header control
 
 - `SettingKey` gains `'sound'` (`on` or `off`) and `'volume'` (an integer 0 to
-  100 stored as a string). Reads are validated like `recall`; an invalid or
-  unreadable value falls back to the default.
+  100 stored as a string). Reads are validated like `theme` and `language` (an
+  allow-list, plus an integer range for the volume), not like `recall`, which
+  its caller compares with `'on'`; an invalid or unreadable value falls back to
+  the default.
 - Default: sound on, volume a constant below full scale (D9).
 - Master gain is (volume / 100)², a perceptual taper.
 - `AudioProvider` sits between `ThemeProvider` and `TrainerProvider` in
@@ -852,7 +860,7 @@ Owed by the implementing PRs:
   `cpt.volume`), §9 Testing (a row for audio); `docs/architecture.md`
   (Persistence; panel-kit audio and the `apps/web` audio folder);
   `CONTRIBUTING.md` Package boundaries (panel-kit holds controls, gauges and
-  voices); `SECURITY.md` and `docs/security-assurance-case.md` C2 (the
+  audio); `SECURITY.md` and `docs/security-assurance-case.md` C2 (the
   persisted settings) and the `input_validation` row of
   `docs/openssf-best-practices-badge.md` (the new keys' validation). The
   `CLAUDE.md` app-settings line (`sound`, `volume`, seeded off by the E2E

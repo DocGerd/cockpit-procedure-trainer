@@ -6,7 +6,7 @@
 
 **Design:** `docs/superpowers/specs/2026-10-15-cockpit-sounds-design.md` (capability map §5, build order §5, success criteria §12, wave-2 questions §13) and `docs/adr/0003-synthesised-cockpit-audio.md`. ADR 0002: rank 2 training realism; rank 3 performance (the A/B perf run); accessibility ranks lowest, so no task adds screen-reader or keyboard work.
 
-**Inputs:** the owner approved the spec and ADR-0003 on 2026-10-15 with three answers, recorded in the spec: sound defaults on, below full volume (D9); one header button with a popover holding the switch and the slider (D8); engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) are general knowledge under the intake §9 ruling (D16).
+**Inputs:** the owner approved the spec and ADR-0003 on 2026-10-15 with three answers, recorded in the spec: sound defaults on, below full volume (D9); one header button with a popover holding the switch and the slider (D8); engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) are general knowledge under the intake §9 ruling (D16). The owner also put wave 2 in the same milestone, so the release PR waits for the owner's intake session (spec §1 owner decisions, Milestone; decision 12).
 
 **Milestone:** "M21 Cockpit sounds" (GitHub milestone 22) holds wave 1 (`T0` to `T20` and `T8a`) and wave 2 (`T21` to `T25d`), all filed together (decision 12). Every task below is one GitHub issue, one branch and one PR with `Closes #<n>`. The task index names each task's issue number; the issue body is the task's section below.
 
@@ -58,7 +58,7 @@ Phase = spec build-order step (Phase 1 also takes `audio-engine` from step 2, de
 
 Counts: M21 holds 30 issues. Wave 1 has 22: Phase 0 one; Phase 1 five; Phase 2 nine (T6 to T13 and T8a); Phase 3 seven. Wave 2 has eight: four tasks plus four conditional ones. All are filed up front; a conditional task the intake session does not confirm is closed as not planned, and the chain T25b → T25c → T25d skips it.
 
-Branches: `docs/<n>-…` for T0, T13 and T21; `chore/<n>-…` for T8a; `feat/<n>-…` for the rest (CONTRIBUTING.md Flow).
+Branches: `docs/sounds-spec` for T0 (opened before its issue existed); `docs/<n>-…` for T13 and T21; `chore/<n>-…` for T8a; `feat/<n>-…` for the rest (CONTRIBUTING.md Flow).
 
 ## Pre-flight checks
 
@@ -279,11 +279,11 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 
 #### T6 Control clicks: `clickFor`, `clickCount` and click synthesis
 
-**Description:** `clickFor(definition, change)` (spec §6.4): the control's `click`, else the kind table, with `satisfies Record<ControlKind, …>`. Beside it the pure `clickCount(definition, change)`, which owns the step count (decision 14): the index distance between `from` and `to` for a rotary without `springBack`, otherwise 1. Click synthesis for every `ClickId`: one-shot nodes that stop and disconnect themselves; several detents play spaced under a rate cap; a voice cap bounds the clicks playing at once.
+**Description:** `clickFor(definition, change)` (spec §6.4): the control's `click`, else the kind table, with `satisfies Record<ControlKind, …>`. Beside it the pure `clickCount(definition, change)`, which owns the step count (decision 14): 1 for a move into a `springBack` position (a radio knob's up or down, the key to START) and for every other kind; for any other rotary move, the index distance between `from` and `to`. Click synthesis for every `ClickId`: one-shot nodes that stop and disconnect themselves; several detents play spaced under a rate cap; a voice cap bounds the clicks playing at once.
 
 **Acceptance criteria:**
 
-- [ ] A table test over kind × change × source: a declared `click` wins; a continuous lever, `spring`, `system` and refused moves are silent; `clickCount` gives one per rotary position stepped, and one for a spring-back knob whatever the distance, either way.
+- [ ] A table test over kind × change × source: a declared `click` wins; a continuous lever, `spring`, `system` and refused moves are silent; `clickCount` gives one per rotary position stepped (the CTSL key from `off` to `both` gives three), and one for a move into a spring-back position whatever the distance, either way.
 - [ ] On the fake context each click starts at the given time and disconnects itself; several detents are spaced by the rate cap; live nodes return to baseline after many clicks; the caps hold.
 
 **Verification:** Checks chain; `pnpm test`.
@@ -524,7 +524,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 **Acceptance criteria:**
 
 - [ ] Fed by the real `step` on the `flarm.session.test.ts` test aircraft: the `powered` edge gives one start-up cue at loud, also when the volume before power-off was not loud; set quiet and cycle the supply gives exactly one cue, the start-up; with low supply, none.
-- [ ] Brief pushes give one tone per volume step at the new level and none at silent; a long push (the mode swap) gives no cue; the FLARM `volume` scales cues and `silent` mutes them.
+- [ ] Brief pushes give one tone per volume step at the new level and none at silent; a push of about two seconds (the mode swap, between `BRIEF_PUSH_MS` and `LONG_PUSH_MS`) gives no cue; the FLARM `volume` scales cues and `silent` mutes them.
 - [ ] The README and the intake §3.8.4 trainer paragraph mark the pitch, length and level ratios assumed (unverified), and no tone on the step into silent inferred (spec §6.6).
 - [ ] `tools/device-readme.test.ts` passes; the validator passes the beep table.
 
@@ -591,7 +591,7 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 **Acceptance criteria:**
 
 - [ ] Each spec §13 question has an answer or stays open with the trainer value.
-- [ ] Each confirmed extra cue (ELT, rescue deployment, detent clicks, flap end stop) is named, so the orchestrator files only those of T25a to T25d.
+- [ ] Each confirmed extra cue (ELT, rescue deployment, detent clicks, flap end stop) is named, so the orchestrator closes the others of T25a to T25d as not planned.
 
 **Verification:** Checks chain (`pnpm format:check` covers the intake).
 
@@ -679,7 +679,7 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 
 **Verification:** Checks chain; `pnpm test`.
 
-**Dependencies:** T25b on T23; T25c on T25b (or T23 if T25b is not filed); T25d on T25c (or the last filed). **Group K**, serial. **Blocked, conditional.**
+**Dependencies:** T25b on T23; T25c on T25b (or T23 if T25b is closed as not planned); T25d on T25c (or the last of them still open). **Group K**, serial. **Blocked, conditional.**
 
 **Files (each):** `packages/panel-kit/src/audio/voices/<voice>.ts`, `packages/panel-kit/src/audio/voices/<voice>.test.ts`, `packages/aircraft-ctsl/src/sounds.ts`, `packages/aircraft-ctsl/src/sounds.test.ts` (plus the registry row); `changelog.d/<n>.added.md`.
 
@@ -706,10 +706,10 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 6. **CTSL sounds are declared in T17 and wired in T19.** Develop never names a voice id the registry lacks, and T19's fragment is true when it lands.
 7. **The piston engine splits into model (T14) and graph (T15).** The model fixes the option profile T17 needs, so the CTSL declarations run beside the graph.
 8. **Criteria over real aircraft get their own task (T20),** which joins 3a and 3b.
-9. **Plan file name.** Kept as `2026-10-15-cockpit-sounds.md` (as the bootstrap and 3D plans, without an `m<n>-` prefix) until the milestone number is fixed; the title names "M21" as the next number after M20.
+9. **Plan file name.** Kept as `2026-10-15-cockpit-sounds.md`, without an `m<n>-` prefix (as the bootstrap and 3D plans), now that the milestone is fixed as "M21 Cockpit sounds" (GitHub milestone 22): issues and the milestone description already link this path.
 10. **The voice types and the empty registry ship with T5.** Spec §5 now lists the registry under `audio-engine`; it moved to T5, in the same panel-kit folder, so the engine model, the graph and the CTSL declarations (T14, T15, T17) start beside Phases 1 and 2 instead of waiting for T12. The engine's sound quality is the High-impact risk.
 11. **Tasks start on their dependencies.** A phase checkpoint gates that phase's review and, for Phase 3, the release, never a task's start; the orchestrator checks T2 and T5 against the spec as each lands.
-12. **Wave 2 is in the same milestone (owner).** M21 holds T0 to T25d. `milestone-release` runs only when every issue of the milestone is closed, so the release PR waits for the owner's `CPT_ALLOW_REFERENCE=1` intake session (T21) and the wave-2 tasks; unconfirmed conditional tasks are closed as not planned.
+12. **Wave 2 is in the same milestone** (the owner's decision, listed under Inputs; not overrulable here). M21 holds T0 to T25d. `milestone-release` runs only when every issue of the milestone is closed, so the release PR waits for the owner's `CPT_ALLOW_REFERENCE=1` intake session (T21) and the wave-2 tasks; unconfirmed conditional tasks are closed as not planned.
 13. **`connectCockpitAudio` takes an optional `voices` parameter** after `clock`, defaulting to the panel-kit `voiceFactories`, so T12's tests inject test-local voices without mocking panel-kit. Otherwise spec §6.7's signature stands; T20 uses the default.
 14. **`clickCount` sits beside `clickFor`.** Spec §6.7 keeps `clickFor`'s `ClickId | undefined`; how many detents a multi-position move plays is a separate pure function T6 owns, and T11 plays that many.
 15. **The perf A/B lives in `perf.spec.ts` (T19) under `E2E_SOUND`.** The shared fixture keeps its per-spec option (T8); only the local sound-on arm turns it off, as spec §10 and §11 now say. Both arms open the CTSL in a cruise start, so the A/B measures running voices; an unset `E2E_SOUND` keeps today's perf run.
@@ -738,7 +738,6 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 1. **Click overrides** (owner; spec §14 question 1). The wave-1 silent and `soft` list stands until T21 answers intake §9 question 79.
 2. **Engine voice quality** (owner; spec §14 question 2). Decided at the Phase 3 listening check.
 3. **Stall horn** (owner; spec §14 question 3). Only if T21 finds one; it needs a spec change.
-4. **Milestone titles and numbers** (orchestrator). "M21 Cockpit sounds" is milestone 22. The plan file keeps its name.
 
 ## Review focus
 
