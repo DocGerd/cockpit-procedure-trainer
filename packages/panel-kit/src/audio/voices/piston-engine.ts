@@ -3,6 +3,7 @@ import type { AudioOut } from '../audio-engine';
 import type { Voice, VoiceFactory, VoiceFrame } from '../voice-factories';
 import { NOISE_RMS, noiseSource } from './noise';
 import {
+  bladePassHz,
   cycleHz,
   firingHz,
   pistonEngineModel,
@@ -50,6 +51,8 @@ const WHINE_HZ = 380;
 const WHINE_FIRST_TURN_SHARE = 0.4;
 const WHINE_HARMONICS = 6;
 const WHINE_LEVEL = 0.04;
+const BLADE_PASS_LEVEL = 0.3;
+const BLADE_PASS_HARMONICS = 4;
 const COMPRESSION_DEPTH = 0.8;
 const FADE_TIME_CONSTANT_S = 0.03;
 const TIME_CONSTANTS_TO_SILENCE = 10;
@@ -85,9 +88,9 @@ const pulseWave = (
   );
 };
 
-const whineWave = (context: BaseAudioContext) => {
+const sineWave = (context: BaseAudioContext, harmonics: number) => {
   const imag = [0];
-  for (let harmonic = 1; harmonic <= WHINE_HARMONICS; harmonic += 1) imag.push(1 / harmonic);
+  for (let harmonic = 1; harmonic <= harmonics; harmonic += 1) imag.push(1 / harmonic);
   return context.createPeriodicWave(
     imag.map(() => 0),
     imag,
@@ -122,6 +125,7 @@ const targetsFor = (
     whineHz: WHINE_HZ * (WHINE_FIRST_TURN_SHARE + (1 - WHINE_FIRST_TURN_SHARE) * starter),
     whine,
     compression: whine * COMPRESSION_DEPTH * (1 - firing),
+    bladePass: level * BLADE_PASS_LEVEL,
   };
 };
 
@@ -180,13 +184,15 @@ function buildPistonEngine(
   }
 
   const whine = node(context.createOscillator());
-  whine.setPeriodicWave(whineWave(context));
+  whine.setPeriodicWave(sineWave(context, WHINE_HARMONICS));
   const whineGain = node(context.createGain());
   const compression = node(context.createGain());
   whine.connect(whineGain).connect(output);
   modulator.connect(compression).connect(whineGain.gain);
 
-  const params: Record<keyof Targets, AudioParam> = {
+  const sources: AudioScheduledSourceNode[] = [bus, noise, firing, modulator, whine];
+
+  const params: Partial<Record<keyof Targets, AudioParam>> = {
     bus: bus.offset,
     jitter: jitter.gain,
     firingCutoff: firingFilter.frequency,
@@ -198,15 +204,29 @@ function buildPistonEngine(
     whine: whineGain.gain,
     compression: compression.gain,
   };
-  const names = Object.keys(params) as (keyof Targets)[];
+
+  // Built only when the aircraft gives both facts, so any other voice keeps its wave-1 graph.
+  const { gearboxRatio, bladeCount } = options;
+  if (gearboxRatio !== undefined && bladeCount !== undefined) {
+    const tone = node(context.createOscillator());
+    tone.setPeriodicWave(sineWave(context, BLADE_PASS_HARMONICS));
+    tone.frequency.value = 0;
+    const scale = node(context.createGain());
+    scale.gain.value = bladePassHz(1, gearboxRatio, bladeCount) / cycleHz(1);
+    const level = node(context.createGain());
+    bus.connect(scale).connect(tone.frequency);
+    tone.connect(level).connect(output);
+    sources.push(tone);
+    params.bladePass = level.gain;
+  }
+  const bound = Object.entries(params) as [keyof Targets, AudioParam][];
   const jitterPerCycleHz = JITTER_RMS_SHARE / jitterRms;
   const targets = (state: PistonEngineModelState) => targetsFor(state, options, jitterPerCycleHz);
 
   let state = model.initial;
   const issued: Targets = targets(state);
-  for (const name of names) params[name].value = issued[name];
+  for (const [name, param] of bound) param.value = issued[name];
 
-  const sources: AudioScheduledSourceNode[] = [bus, noise, firing, modulator, whine];
   for (const source of sources) source.start();
 
   let lastMs: number | undefined;
@@ -228,9 +248,9 @@ function buildPistonEngine(
       lastMs = nowMs;
       if (!live) return;
       const next = targets(state);
-      for (const name of names) {
+      for (const [name, param] of bound) {
         if (inaudible(next[name], issued[name])) continue;
-        params[name].setTargetAtTime(next[name], context.currentTime, SMOOTHING_S);
+        param.setTargetAtTime(next[name], context.currentTime, SMOOTHING_S);
         issued[name] = next[name];
       }
     },

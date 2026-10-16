@@ -11,13 +11,19 @@ export type PistonEngineOptions = {
   readonly runDownMs: number;
   /** The engine turned without combustion: starter wind-up and whine, a windmill speeding up. */
   readonly windMs: number;
+  /** Engine rpm over propeller rpm. An aircraft fact; the blade-pass tone needs it and the blade count. */
+  readonly gearboxRatio?: number;
+  /** An aircraft fact; the blade-pass tone needs it and the gearbox ratio. */
+  readonly bladeCount?: number;
 };
 
 const REQUIRED_OPTIONS = ['cylinders', 'idleRpm', 'maxContinuousRpm'] as const;
 type RequiredOption = (typeof REQUIRED_OPTIONS)[number];
+const FACT_OPTIONS = ['gearboxRatio', 'bladeCount'] as const;
+type FactOption = (typeof FACT_OPTIONS)[number];
 
 /** Voice defaults tuned by ear, not aircraft facts. */
-export const pistonEngineDefaults: Omit<PistonEngineOptions, RequiredOption> = {
+export const pistonEngineDefaults: Omit<PistonEngineOptions, RequiredOption | FactOption> = {
   crankingRpm: 300,
   throttleUpMs: 500,
   throttleDownMs: 800,
@@ -56,6 +62,9 @@ export const cycleHz = (rpm: number) => rpm / SECONDS_PER_MINUTE / REVOLUTIONS_P
 
 export const firingHz = (rpm: number, cylinders: number) => cycleHz(rpm) * cylinders;
 
+export const bladePassHz = (rpm: number, gearboxRatio: number, bladeCount: number) =>
+  (rpm / gearboxRatio / SECONDS_PER_MINUTE) * bladeCount;
+
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
 export const power = (rpm: number, { idleRpm, maxContinuousRpm }: PistonEngineOptions) =>
@@ -70,7 +79,11 @@ const isNumber = (value: JsonValue | undefined): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
 export const pistonEngineProblems = (options: JsonObject): readonly string[] => {
-  const known = new Set<string>([...REQUIRED_OPTIONS, ...Object.keys(pistonEngineDefaults)]);
+  const known = new Set<string>([
+    ...REQUIRED_OPTIONS,
+    ...FACT_OPTIONS,
+    ...Object.keys(pistonEngineDefaults),
+  ]);
   const problems = Object.keys(options)
     .filter((key) => !known.has(key))
     .map((key) => `unknown option ${key}`);
@@ -90,6 +103,8 @@ export const pistonEngineProblems = (options: JsonObject): readonly string[] => 
     catchMs: (value) => isNumber(value) && value > 0,
     runDownMs: (value) => isNumber(value) && value > 0,
     windMs: (value) => isNumber(value) && value > 0,
+    gearboxRatio: (value) => isNumber(value) && value > 0,
+    bladeCount: (value) => isNumber(value) && Number.isInteger(value) && value > 0,
   };
   const resolved: JsonObject = { ...pistonEngineDefaults, ...options };
   for (const [key, check] of Object.entries(inRange)) {

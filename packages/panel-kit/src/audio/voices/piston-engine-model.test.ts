@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { JsonObject } from '@cpt/core';
 import {
+  bladePassHz,
   cycleHz,
   firingHz,
   pistonEngineDefaults,
@@ -150,6 +151,42 @@ describe('pistonEngineProblems', () => {
     expect(pistonEngineProblems({ ...REQUIRED, blades: 3 })).toEqual(['unknown option blades']);
   });
 
+  describe('the fact options', () => {
+    const FACTS: JsonObject = { gearboxRatio: 2.273, bladeCount: 3 };
+
+    it('leaves them out of the resolved options unless the aircraft supplies them', () => {
+      expect(pistonEngineOptions(REQUIRED)).not.toHaveProperty('gearboxRatio');
+      expect(pistonEngineOptions(REQUIRED)).not.toHaveProperty('bladeCount');
+      expect(pistonEngineOptions({ ...REQUIRED, ...FACTS })).toMatchObject(FACTS);
+      expect(Object.keys(pistonEngineDefaults)).not.toContain('gearboxRatio');
+    });
+
+    it.each<JsonObject>([FACTS, { gearboxRatio: 2.273 }, { bladeCount: 2 }, { gearboxRatio: 1 }])(
+      'accepts %o, the tone needing both',
+      (change) => {
+        expect(pistonEngineProblems({ ...REQUIRED, ...change })).toEqual([]);
+      },
+    );
+
+    it.each<[string, JsonObject]>([
+      ['gearboxRatio', { gearboxRatio: 0 }],
+      ['gearboxRatio', { gearboxRatio: -2.273 }],
+      ['gearboxRatio', { gearboxRatio: Number.NaN }],
+      ['gearboxRatio', { gearboxRatio: '2.273' }],
+      ['gearboxRatio', { gearboxRatio: null }],
+      ['bladeCount', { bladeCount: 0 }],
+      ['bladeCount', { bladeCount: 2.5 }],
+      ['bladeCount', { bladeCount: -3 }],
+      ['bladeCount', { bladeCount: '3' }],
+      ['bladeCount', { bladeCount: Number.POSITIVE_INFINITY }],
+    ])('rejects an out-of-range %s', (key, change) => {
+      expect(pistonEngineProblems({ ...REQUIRED, ...change })).toEqual([
+        `option ${key} is out of range`,
+      ]);
+      expect(() => pistonEngineOptions({ ...REQUIRED, ...change })).toThrow(key);
+    });
+  });
+
   it('gives the catch the shortest and the run-down the longest default time constant', () => {
     const { catchMs, runDownMs, throttleUpMs, throttleDownMs, windMs } = pistonEngineDefaults;
     for (const other of [throttleUpMs, throttleDownMs, windMs]) {
@@ -165,6 +202,14 @@ describe('frequency and power targets', () => {
     expect(firingHz(4800, 4)).toBe(160);
     expect(firingHz(3000, 6)).toBe(150);
     expect(firingHz(2400, 3)).toBe(60);
+  });
+
+  it('turns the propeller at engine rpm over the gearbox ratio and passes a blade per blade count', () => {
+    expect(bladePassHz(2400, 2, 2)).toBe(40);
+    expect(bladePassHz(2400, 2, 3)).toBe(60);
+    expect(bladePassHz(5500, 2.273, 3)).toBeCloseTo((5500 / 2.273 / 60) * 3, 9);
+    expect(bladePassHz(5500, 2.43, 3)).toBeLessThan(bladePassHz(5500, 2.273, 3));
+    expect(bladePassHz(0, 2.273, 3)).toBe(0);
   });
 
   it('shares power between idle and maximum continuous rpm', () => {
