@@ -38,9 +38,10 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    and the name no longer says "representative panel"; the rest stands.
 3. **Engine (912 UL or ULS) and rescue system are unknown.** The most conservative
    limits apply (§4) and each is an open question (§9).
-   **Superseded (#892, §9 question 1; §2a decision 3):** the owner states a 912 UL with
-   the standard gearbox; the rescue system is a BRS (§9 question 2). The CHT, oil
-   temperature and fuel values of §4.2 now follow D-MPGO's own dials and placards.
+   **Superseded in part (#892, §9 question 1):** the owner states a 912 UL with the
+   standard gearbox, so the engine is no longer unknown. The rescue system stays open:
+   the photo survey shows a BRS, model not legible (§9 question 2). The CHT, oil
+   temperature and fuel values of §4.2 follow D-MPGO's own dials and placards.
 4. **Handbook contradictions:** the conservative value or step is used (§8) and
    each is listed for the instructor.
 5. **Checklists in the club's own words**, English with German control labels as
@@ -3000,8 +3001,8 @@ size) drew the altimeter 0.89, the VSI 0.89, the tach 0.95 and the engine gauges
 ## 4. Limits and values used by the trainer
 
 Conservative choices per owner decision 4, values from D-MPGO's own dials and
-placards (which superseded decision 3, §4.2), and owner rulings of §2a, are in
-**bold**. Phase presets feed `Environment` in knots and feet; the conversions are
+placards (the justification that replaced §2 decision 3 for the engine, §4.2), and
+owner rulings of §2a, are in **bold**. Phase presets feed `Environment` in knots and feet; the conversions are
 given so no implementer converts. Altitudes are above the field; the trainer models no real aerodrome. One
 exception: the altimeter adds the home aerodrome's elevation to the height above the
 field (§3.10.2, §9 questions 46 and 48); presets and systems keep heights above the
@@ -3041,25 +3042,26 @@ icing, no aerobatics, no intentional spins.
 
 ### 4.2 Engine (Rotax 912 UL)
 
-| Limit                           | UL            | ULS      | Trainer value                                       |
-| ------------------------------- | ------------- | -------- | --------------------------------------------------- |
-| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                                     |
-| Max continuous rpm              | 5500          | 5500     | 5500                                                |
-| Idle                            | ~1400         | ~1400    | 1400                                                |
-| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§3.10.6, §8)        |
-| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**, the gauge red line (§3.10.7, §8)        |
-| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)                     |
-| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold                 |
-| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**, the wing-root fuel placards (§3.7)    |
-| Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **owner-stated** (2.43 : 1 optional, §9) |
+| Limit                           | UL            | ULS      | Trainer value                                                           |
+| ------------------------------- | ------------- | -------- | ----------------------------------------------------------------------- |
+| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                                                         |
+| Max continuous rpm              | 5500          | 5500     | 5500                                                                    |
+| Idle                            | ~1400         | ~1400    | 1400                                                                    |
+| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§3.10.6, §8)                            |
+| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**, the gauge red line (§3.10.7, §8)                            |
+| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)                                         |
+| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold                                     |
+| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**, the wing-root fuel placards (§3.7)                        |
+| Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **owner-stated**, "as far as I know" (2.43 : 1 optional, §9) |
 
 D-MPGO's engine is the UL (owner, §9 question 1). Where the UL's figures differ from
-the trainer value, the trainer keeps the stricter mark D-MPGO itself carries: the CHT
-and oil temperature red lines of its gauges (UL limits 150 °C and 140 °C) and the RON 95
-of its fuel placards (the UL allows RON 90). The rpm limits, idle, the oil temperature
+the trainer value, the trainer keeps the lower mark D-MPGO itself carries: the CHT
+and oil temperature red lines of its gauges (UL limits 150 °C and 140 °C). The fuel
+value is the mogas figure of the wing-root placards, RON 95 (the placard also lists
+100LL and UL91, §3.7), where the UL allows RON 90. The rpm limits, idle, the oil temperature
 minimum and the oil pressures are the same for both variants. The UL's lower power
-(80 PS against 100 PS, HB 1-3, 2-2) changes no trainer value: the trainer models
-power only as a share of the rpm range. The climb, level-flight and range figures of
+(80 PS against 100 PS, HB 1-3, 7-4) changes no trainer value: the trainer's
+`power(rpm)` in `packages/aircraft-ctsl/src/systems.ts` depends on rpm alone. The climb, level-flight and range figures of
 §4.1 come from HB 5-1, which assumes a UL. So no trainer value changes for the UL.
 
 Both variants (HB 1-3, 3-7, 7-4): a four-cylinder four-stroke with liquid-cooled heads,
@@ -3404,9 +3406,9 @@ day, are now handbook facts (question 1).
    ear). The cranking default is general knowledge of the Rotax 912 named in §4.2,
    accepted by the owner on 2026-10-15 (sounds spec, D16), not assumed (unverified). The
    three give the firing frequency, the uneven beat and the starter pulses only; the UL
-   or ULS variant, gearbox ratio and propeller stay unknown (the variant and the ratio
-   are answered below), so the voice has no blade-pass tone.
-   **Sound-facts intake 2026-10-16 (#821):** the variant is **still open**. The
+   or ULS variant, gearbox ratio and propeller stay unknown (the variant is answered
+   below, the ratio owner-stated), so the voice has no blade-pass tone.
+   **Sound-facts intake 2026-10-16 (#821):** the variant was **open** at that date (answered by the owner below, #892). The
    handbook offers both, the 80 PS UL and the 100 PS ULS (HB 1-3, 7-4), and does not
    fix D-MPGO's: its performance figures assume a UL (HB 5-1), while its factory
    example equipment list and avionics block diagrams name a ULS (HB 6-8, 7-9;
@@ -3418,9 +3420,9 @@ day, are now handbook facts (question 1).
    in the handbook. **Trainer uses:** 2.273 : 1, the standard ratio (§4.2); that
    D-MPGO has the standard gearbox is now owner-stated (below).
    **Owner (2026-10-16, #892):** a 912 UL with the standard gearbox, 2.273 : 1, "as far
-   as I know". The UL is **owner-confirmed**, no longer open. The gearbox is
-   **owner-stated**, no longer assumed, but with the owner's own caveat: it is not yet
-   read on the aircraft, so this question stays open for the gearbox alone. **Trainer
+   as I know". Both facts are **owner-stated**, no longer open or assumed, with the
+   owner's own qualifier: "as far as I know" is not a reading on D-MPGO, so re-check
+   them when the aircraft is read. **Trainer
    uses:** the values of §4.2, which follow D-MPGO's dials and placards where they are
    stricter than the UL's limits, and 2.273 : 1. Nothing in the trainer changes.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
