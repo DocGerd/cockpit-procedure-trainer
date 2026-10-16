@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { Activity, StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_VOLUME, readSetting, writeSetting } from '../storage';
-import { AudioProvider, useAudio } from './index';
+import { AudioProvider, useAudio, useAudioEngine } from './index';
 
 const contexts: FakeAudioContext[] = [];
 
@@ -28,7 +28,8 @@ afterEach(() => {
 const gesture = () => document.dispatchEvent(new Event('pointerdown', { bubbles: true }));
 
 function Consumer({ nextVolume = 40.4 }: { nextVolume?: number }) {
-  const { engine, sound, volume, setSound, setVolume } = useAudio();
+  const engine = useAudioEngine();
+  const { sound, volume, setSound, setVolume } = useAudio();
   return (
     <>
       <output data-testid="engine">{engine ? 'engine' : 'none'}</output>
