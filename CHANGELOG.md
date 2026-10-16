@@ -8,6 +8,21 @@ semantic versioning below 1.0: milestone Mn is released as v0.(n+1).0.
 
 Pending changes live in `changelog.d/` and are folded in at each release.
 
+## [0.22.0] - 2026-10-16
+
+### Added
+
+- A sound button in the header turns cockpit sound on or off and sets its volume.
+- Controls click when the pilot operates them, in both aircraft.
+- The CTSL's FLARM display beeps at start-up and when its volume is stepped.
+- The CTSL's engine, starter, airflow and flap motor are heard: the start and catch, the magneto drop, the cruise drone and the shutdown.
+
+### Fixed
+
+- The engine now relights from windmilling only at the handbook's 200 propeller rpm (about 455 engine rpm), no longer at ordinary glide speed.
+- Switching sound on, or showing the tab again, no longer plays the old engine and motor sounds for a moment before they catch up with the cockpit.
+- The volume slider no longer re-renders the whole trainer layout while you drag it.
+
 ## [0.21.0] - 2026-10-14
 
 ### Fixed
@@ -415,7 +430,8 @@ Pending changes live in `changelog.d/` and are folded in at each release.
 
 - Release-cycle skills and the main-merge guard: commands the guard denied, a clearer deny reason, a narrower expansion rule, and exemptions for release and backmerge PRs.
 
-[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.21.0...v0.22.0
 [0.21.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/DocGerd/cockpit-procedure-trainer/compare/v0.18.0...v0.19.0

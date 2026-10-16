@@ -693,6 +693,8 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 ## Not in this milestone
 
 - **Relight threshold in engine rpm** (spec §13 question 3, intake §9 question 71): a systems-model fix outside the sounds spec; filed as its own issue once T21 gives the gearbox ratio.
+  It shipped in M21 as #836 after T21.
+- **T24 (#824, FLARM beep facts):** moved out of M21, still blocked pending the FLARM documents (intake §9 question 75).
 - **Stall horn:** needs a stall state and a spec change (spec §14 question 3).
 - **Radio, intercom, GPS audio, FLARM traffic tones:** out of scope (spec §1).
 
