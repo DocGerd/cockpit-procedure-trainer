@@ -55,14 +55,20 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
 - A rendering fix that lands after the whole-milestone review gets a
   ui-verifier pass on the release head (`develop`), run by the orchestrator,
   before the release PR goes to the owner.
-- App settings (language, Hide upcoming = key `recall`) persist in browser
-  storage: browser checks set them explicitly. At tablet width the drawer covers the panel, so
-  walk the panel at 1920 and then resize.
+- App settings (language, Hide upcoming = key `recall`, sound, volume)
+  persist in browser storage: browser checks set them explicitly. At tablet
+  width the drawer covers the panel, so walk the panel at 1920 and then resize.
+- E2E specs start with `cpt.sound` off (`apps/web/e2e/fixtures.ts`); a spec
+  that needs sound sets `test.use({ seedSoundOff: false })`.
 - A PR scored against a visual rubric stays a draft until a ui-verifier passes
   it; workflows and the merge train do not check scores. Brief scorers blind:
   no prior scores or "be strict" notes (they anchor).
 - A PR that lands without its `pr-review-toolkit:review-pr` pass owes one on
   its diff before the release PR; file the findings as issues.
+- A PR touching aircraft content (paths in `pr-selfreview` step 1) gets an
+  `intake-checker` pass before landing: the reviewer asks for it, the
+  orchestrator (or a workflow's review stage) runs it; the merge train does
+  not check for it.
 - Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
   review-toolkit passes that a reviewer agent asks for.
 - The main checkout is pulled only at close-out, so it lags `develop`: give
@@ -78,7 +84,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   `CPT_ALLOW_MAIN_EDIT=1`.
 - Harness worktrees start on a `worktree-agent-*` branch: switch to the work
   branch from `origin/develop` first; cleanup deletes both branches.
-- Agents wait on CI in the foreground (a bounded `gh pr checks` loop); a
+- Agents wait on CI in the foreground (a bounded `gh pr checks` loop, each
+  Bash call under its 10-minute cap: repeat the call, never background it); a
   background monitor or an idle agent may never wake, so when a wait runs long
   the orchestrator reads `commits/<sha>/check-runs` itself.
 - A `skipping` CodeQL row in `gh pr checks` means Analyze failed, not passed.
