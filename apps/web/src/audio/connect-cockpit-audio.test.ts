@@ -626,11 +626,16 @@ describe('connectCockpitAudio voices and device cues', () => {
     expect(muted.at(-1)?.inputs).toEqual({ rpm: 0, power: 1 });
 
     engine.setEnabled(true);
+    expect(recording.last('test-engine')?.frame).toEqual({
+      nowMs: 3 * STEP_MS,
+      live: true,
+      jump: EVERY_INPUT['test-engine'],
+    });
     tick();
     expect(recording.last('test-engine')?.frame).toEqual({
       nowMs: 4 * STEP_MS,
       live: true,
-      jump: EVERY_INPUT['test-engine'],
+      jump: [],
     });
     await settle();
     tick();
@@ -662,12 +667,93 @@ describe('connectCockpitAudio voices and device cues', () => {
     tick();
     expect(recording.last('test-engine')?.frame.live).toBe(false);
     await come(engine);
-    session.set('master', 'on');
     expect(recording.last('test-engine')?.frame).toMatchObject({
       live: true,
       jump: EVERY_INPUT['test-engine'],
     });
+    session.set('master', 'on');
+    expect(recording.last('test-engine')?.frame).toMatchObject({ live: true, jump: [] });
     expect(startUps()).toEqual([0]);
+  });
+
+  it.each<{ jump: string; leave: Away; come: Away }>([
+    {
+      jump: 'sound on',
+      leave: (engine) => engine.setEnabled(false),
+      come: (engine) => engine.setEnabled(true),
+    },
+    {
+      jump: 'the tab shown',
+      leave: async () => {
+        setVisibility('hidden');
+        await vi.waitFor(() => expect(contexts[0]?.state).toBe('suspended'));
+      },
+      come: async () => {
+        setVisibility('visible');
+        await settle();
+      },
+    },
+  ])(
+    'on $jump, jumps the voices to the current state before the next session tick',
+    async ({ leave, come }) => {
+      const { session, engine, recording, tick } = await liveSoundCockpit();
+      session.set('master', 'on');
+      tick();
+      await leave(engine);
+      session.set('master', 'off');
+      session.set('pump', 'on');
+      const before = recording.frames.length;
+      await come(engine);
+      const jumped = recording.frames.slice(before);
+      expect(jumped.map(({ voice }) => voice)).toEqual(['test-engine', 'test-motor']);
+      expect(jumped.map(({ inputs, frame }) => [inputs, frame])).toEqual([
+        [
+          { rpm: 0, power: 0 },
+          { nowMs: 2 * STEP_MS, live: true, jump: EVERY_INPUT['test-engine'] },
+        ],
+        [{ driving: 1 }, { nowMs: 2 * STEP_MS, live: true, jump: EVERY_INPUT['test-motor'] }],
+      ]);
+    },
+  );
+
+  it('jumps the voices when sound is switched off and on again with no frame between', async () => {
+    const { session, engine, recording } = await liveSoundCockpit();
+    session.set('pump', 'on');
+    expect(recording.last('test-engine')?.frame.jump).toEqual([]);
+    engine.setEnabled(false);
+    engine.setEnabled(true);
+    expect(recording.last('test-engine')?.frame).toMatchObject({
+      live: true,
+      jump: EVERY_INPUT['test-engine'],
+    });
+  });
+
+  it('feeds the voices no frame when the starting context comes to run', async () => {
+    const { session, recording, connect } = soundCockpit();
+    connect();
+    gesture();
+    session.set('pump', 'on');
+    const fed = recording.frames.length;
+    await settle();
+    expect(recording.frames).toHaveLength(fed);
+  });
+
+  it('unsubscribes from the engine on disconnect', () => {
+    const { engine, connect } = soundCockpit();
+    const unsubscribed = vi.fn();
+    const subscribe = engine.subscribe.bind(engine);
+    vi.spyOn(engine, 'subscribe').mockImplementation((listener) => {
+      const unsubscribe = subscribe(listener);
+      return () => {
+        unsubscribed();
+        unsubscribe();
+      };
+    });
+    const disconnect = connect();
+    expect(engine.subscribe).toHaveBeenCalledOnce();
+    expect(unsubscribed).not.toHaveBeenCalled();
+    disconnect();
+    expect(unsubscribed).toHaveBeenCalledOnce();
   });
 
   it('on a carried phase change through track(), jumps only the carried inputs, keeps the cue diff and lets a stopping motor play out', async () => {

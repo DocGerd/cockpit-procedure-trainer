@@ -66,6 +66,7 @@ export function connectCockpitAudio(
   let seen:
     { readonly epoch: number; readonly phase: string; readonly devices: DeviceStates } | undefined;
   let wasLive = false;
+  let where = 'in the cockpit sound';
 
   // A context the browser closed is replaced by a new one, which needs its own players.
   const playerFor = (out: AudioOut) => {
@@ -111,9 +112,30 @@ export function connectCockpitAudio(
     return factory.create(out, sound.definition.options ?? {});
   };
 
+  const feed = (
+    state: TrainerState<unknown>,
+    live: boolean,
+    jumping: 'all' | 'carried' | 'none',
+  ) => {
+    if (!bank) return;
+    const nowMs = clock();
+    for (const { sound, voice } of bank.playing) {
+      where = `in ${label(sound)}`;
+      const inputs = Object.fromEntries(sound.inputs.map(([name, read]) => [name, read(state)]));
+      const jump =
+        jumping === 'all'
+          ? Object.keys(inputs)
+          : jumping === 'carried'
+            ? (sound.definition.carried ?? [])
+            : [];
+      voice.update(inputs, { nowMs, live, jump });
+    }
+    where = 'in the cockpit sound';
+  };
+
   const frame = () => {
     if (silenced) return;
-    let where = 'in the cockpit sound';
+    where = 'in the cockpit sound';
     try {
       const state = session.state();
       const epoch = session.epoch();
@@ -141,19 +163,7 @@ export function connectCockpitAudio(
           const live = engine.live();
           const jumpAll = baseline || fresh || (live && !wasLive);
           wasLive = live;
-          const nowMs = clock();
-          for (const { sound, voice } of bank.playing) {
-            where = `in ${label(sound)}`;
-            const inputs = Object.fromEntries(
-              sound.inputs.map(([name, read]) => [name, read(state)]),
-            );
-            const jump = jumpAll
-              ? Object.keys(inputs)
-              : carried
-                ? (sound.definition.carried ?? [])
-                : [];
-            voice.update(inputs, { nowMs, live, jump });
-          }
+          feed(state, live, jumpAll ? 'all' : carried ? 'carried' : 'none');
         }
       }
 
@@ -184,7 +194,24 @@ export function connectCockpitAudio(
     playerFor(out).play(id, out.context.currentTime, clickCount(definition, change));
   };
 
+  // The engine turns audible between two session frames; a graph left from before would play until
+  // the next one. A context change leaves the rebuild to that frame, which jumps a fresh bank.
+  const resync = () => {
+    if (silenced) return;
+    const live = engine.live();
+    const resumed = live && !wasLive;
+    wasLive = live;
+    if (!resumed || !bank || bank.out !== engine.out()) return;
+    where = 'in the cockpit sound';
+    try {
+      feed(session.state(), live, 'all');
+    } catch (error) {
+      silence(`Cockpit sound stopped after an audio error ${where}.`, error);
+    }
+  };
+
   const unsubscribeState = session.subscribe(frame);
+  const unsubscribeEngine = engine.subscribe(resync);
   const unsubscribeChanges = session.onControlChange((change) => {
     if (silenced) return;
     try {
@@ -201,6 +228,7 @@ export function connectCockpitAudio(
 
   return () => {
     unsubscribeState();
+    unsubscribeEngine();
     unsubscribeChanges();
     if (silenced) return;
     silenced = true;
