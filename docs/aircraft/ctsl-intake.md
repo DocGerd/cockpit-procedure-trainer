@@ -3303,7 +3303,7 @@ Above 100 m: restart (E4).
 
 **E4 Restart in flight (HB 3-1, 3-5).** Fuel valve open; fuel visible in both tanks
 _(confirm)_ (if one shows empty, keep that wing up); ignition both; if the prop
-turns slower than about 200 propeller rpm (about 455 engine rpm, assumed gearbox, §9
+turns slower than about 200 propeller rpm (about 455 engine rpm, assumed (unverified) gearbox, §9
 question 71), use the starter; if it does not start, E5.
 
 **E5 Emergency landing (HB 3-1, 3-3, 3-6).** No field reachable: rescue system;
@@ -3593,7 +3593,7 @@ them as general knowledge on 2026-10-15 and they carry no assumed (unverified) m
     - E3 below 100 m: rpm below idle; no restart, land ahead.
     - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
       both; starter if the prop turns slower than about 200 propeller rpm (about 455 engine rpm,
-      assumed gearbox, §9 question 71).
+      assumed (unverified) gearbox, §9 question 71).
     - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
       out; pull the handle.
     - E6: smoke or flames; fuel valve closed; throttle full until the engine
