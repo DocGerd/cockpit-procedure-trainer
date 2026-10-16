@@ -73,7 +73,7 @@ const CLIMB_FULL_RPM = 4800;
 const BEST_CLIMB_KMH = 105;
 const LEVEL_FLIGHT_MAX_KMH = 240;
 const RELIGHT_PROPELLER_RPM = 200;
-// Assumed (unverified), intake 9 questions 1 and 71.
+// Standard gearbox, owner-stated, intake §9 questions 1 and 71.
 export const GEARBOX_RATIO = 2.273;
 const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
 type FlapDetent = (typeof FLAP_DETENTS)[number];
