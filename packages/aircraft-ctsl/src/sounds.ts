@@ -1,6 +1,7 @@
 import type { SoundDefinition } from '@cpt/core';
 import {
   flapMotorRunning,
+  GEARBOX_RATIO,
   IDLE_RPM,
   MAX_CONTINUOUS_RPM,
   on,
@@ -12,9 +13,6 @@ import {
 const AIRSPEED_RED_LINE_KMH = 300;
 // Intake §9 question 1: four cylinders and the four-stroke cycle, handbook facts.
 const CYLINDERS = 4;
-// Intake §9 question 1: the standard reduction; D-MPGO having it is assumed (unverified).
-// Blade count is open (question 11), so no blade-pass tone renders.
-const GEARBOX_RATIO = 2.273;
 
 const starterTurning = ({ controls }: CtslTrainerState) =>
   on(controls, 'ignition', 'start') && on(controls, 'battery', 'in');
@@ -22,6 +20,7 @@ const starterTurning = ({ controls }: CtslTrainerState) =>
 export const sounds: Readonly<Record<string, SoundDefinition<CtslState>>> = {
   engine: {
     voice: 'piston-engine',
+    // Blade count is open (intake §9 question 11), so the ratio renders no blade-pass tone yet.
     options: {
       cylinders: CYLINDERS,
       idleRpm: IDLE_RPM,
