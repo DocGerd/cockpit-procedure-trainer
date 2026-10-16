@@ -3,7 +3,7 @@ import type { PhaseId, Session, SoundDefinition } from '@cpt/core';
 import { describe, expect, it } from 'vitest';
 import { ctslAircraft } from './index';
 import { sounds } from './sounds';
-import { IDLE_RPM, MAX_CONTINUOUS_RPM, power } from './systems';
+import { GEARBOX_RATIO, IDLE_RPM, MAX_CONTINUOUS_RPM, power } from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -73,6 +73,14 @@ describe('declarations', () => {
     expect(power(MAX_CONTINUOUS_RPM)).toBe(1);
     expect(sounds['airflow']?.options).toEqual({ referenceKmh: 300 });
     expect(sounds['flaps']?.options).toBeUndefined();
+  });
+});
+
+describe('engine sound facts', () => {
+  it('passes the gearbox ratio and, with the blade count open, no blade count', () => {
+    const options = sounds['engine']?.options;
+    expect(options).toMatchObject({ gearboxRatio: GEARBOX_RATIO });
+    expect(options).not.toHaveProperty('bladeCount');
   });
 });
 
