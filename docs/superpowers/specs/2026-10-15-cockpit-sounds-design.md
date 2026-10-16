@@ -365,7 +365,7 @@ Wave-1 values that are not intake facts:
 
 | Value                                 | Used for                      | Status                                                                                                                                  |
 | ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Four cylinders, four-stroke           | firing frequency, uneven beat | general knowledge of the Rotax 912 the intake names (§4.2), accepted by the owner (D16); step 3a records it beside intake §9 question 1 |
+| Four cylinders, four-stroke           | firing frequency, uneven beat | handbook facts, recorded in intake §9 question 1 (first accepted as general knowledge, D16) |
 | Cranking rpm                          | starter pulses                | general knowledge (D16), a voice default tuned by ear; recorded beside §9 question 1; §13 question 4 replaces it                        |
 | Starter whine, levels, time constants | timbre and dynamics           | voice defaults tuned by ear, not aircraft facts                                                                                         |
 | Airspeed reference                    | airflow level                 | intake §4.3, the airspeed red line                                                                                                      |

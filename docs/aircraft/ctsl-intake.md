@@ -3386,14 +3386,14 @@ day, are now handbook facts (question 1).
    **Photo survey 2026-10-10 (§3.7):** not visible. No engine type plate is in the
    photos. The wing-root fuel placards ask for RON 95 or better, which matches the
    trainer value of §4.2 but does not settle UL or ULS.
-   **Trainer (sounds):** the engine voice assumes four cylinders and the four-stroke
-   cycle, and cranks at the voice default for the starter's rpm
-   (`pistonEngineDefaults.crankingRpm` in `packages/panel-kit`, tuned by ear). All
-   three are general knowledge of the Rotax 912 named in §4.2, accepted by the owner
-   on 2026-10-15 (sounds spec, D16), not assumed (unverified). They give the firing
-   frequency, the uneven beat and the starter pulses only; the UL or ULS variant,
-   gearbox ratio and propeller stay unknown (the ratio is answered below), so the voice
-   has no blade-pass tone.
+   **Trainer (sounds):** the engine voice uses four cylinders and the four-stroke cycle,
+   both handbook facts (HB 1-3, 7-4; see below), and cranks at the voice default for the
+   starter's rpm (`pistonEngineDefaults.crankingRpm` in `packages/panel-kit`, tuned by
+   ear). The cranking default is general knowledge of the Rotax 912 named in §4.2,
+   accepted by the owner on 2026-10-15 (sounds spec, D16), not assumed (unverified). The
+   three give the firing frequency, the uneven beat and the starter pulses only; the UL
+   or ULS variant, gearbox ratio and propeller stay unknown (the ratio is answered
+   below), so the voice has no blade-pass tone.
    **Sound-facts intake 2026-10-16 (#821):** the variant is **still open**. The
    handbook offers both, the 80 PS UL and the 100 PS ULS (HB 1-3, 7-4), and does not
    fix D-MPGO's: its performance figures assume a UL (HB 5-1), while its factory
@@ -4194,13 +4194,12 @@ day, are now handbook facts (question 1).
 76. **Flap actuator** (#821, sounds spec §13 question 8): one electric spindle motor,
     mounted aft of the main bulkhead behind the seats, moves both flaps together over a
     shared torsion shaft (HB 7-12); limit and position switches halt it (HB 3-7, 8-7;
-    §4.4). The
-    handbook says nothing of hearing it in the cabin, of a different sound extending and
-    retracting, or of a sound at the end stop. **Not found; still open.** Trainer uses:
+    §4.4). The handbook says nothing of hearing it in the cabin, of a different sound
+    extending and retracting, or of a sound at the end stop. **Not found; still open.** Trainer uses:
     the flap-motor whine while it drives, the same both ways, with no end-stop sound.
 77. **Rescue-system deployment** (#821, sounds spec §13 question 9): no source describes
     what the pilot hears. Sourced: the pilot stops the engine first, then fires the
-    rocket with one firm, full forward pull of the handle (HB 3-4). The handle sits
+    rocket with a firm, full forward pull of the handle (HB 3-4). The handle sits
     between the seats at the main bulkhead and works the rocket mechanically, through a
     cable. Parachute and rocket are stowed in the upper baggage bay aft of the bulkhead
     and leave upwards through a covered opening in the fuselage top (HB 7-13); the
