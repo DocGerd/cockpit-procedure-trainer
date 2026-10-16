@@ -72,8 +72,9 @@ const GROUND_RPM: Record<Throttle, number> = {
 const CLIMB_FULL_RPM = 4800;
 const BEST_CLIMB_KMH = 105;
 const LEVEL_FLIGHT_MAX_KMH = 240;
-export const RELIGHT_PROPELLER_RPM = 200;
-export const GEARBOX_RATIO = 2.273;
+const RELIGHT_PROPELLER_RPM = 200;
+// Assumed (unverified), intake 9 questions 1 and 71.
+const GEARBOX_RATIO = 2.273;
 const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
 type FlapDetent = (typeof FLAP_DETENTS)[number];
 const LAST_FLAP_DETENT: FlapDetent = 35;

@@ -8,11 +8,9 @@ import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
 import {
   flapMotorRunning,
-  GEARBOX_RATIO,
   indicatedAltitudeFt,
   initial,
   pressureAltitudeFt,
-  RELIGHT_PROPELLER_RPM,
   runningFrom,
   step,
 } from './systems';
@@ -437,12 +435,28 @@ describe('engine running', () => {
     expect(fast.state().engine.running).toBe(true);
   });
 
+  it.each([
+    { kmh: 227, relights: false },
+    { kmh: 228, relights: true },
+  ])('windmilling at $kmh km/h relights: $relights', ({ kmh, relights }) => {
+    const r = rig('cruise', [], {
+      airspeedKt: kmh / KMH_PER_KT,
+      altitudeFt: 2500,
+      onGround: false,
+    });
+    r.set('ignition', 'off');
+    r.advance(1);
+    expect(r.state().rpm >= RELIGHT_ENGINE_RPM).toBe(relights);
+    r.set('ignition', 'both');
+    r.advance(3);
+    expect(r.state().engine.running).toBe(relights);
+  });
+
   it('does not relight at cruise speed, where the propeller turns slower than 200 rpm', () => {
     const cruise = rig('cruise');
     cruise.set('ignition', 'off');
     cruise.advance(1);
-    expect(cruise.state().rpm).toBeGreaterThan(200);
-    expect(cruise.state().rpm / GEARBOX_RATIO).toBeLessThan(RELIGHT_PROPELLER_RPM);
+    expect(cruise.state().rpm).toBeLessThan(RELIGHT_ENGINE_RPM);
     cruise.set('ignition', 'both');
     cruise.advance(3);
     expect(cruise.state().engine.running).toBe(false);

@@ -828,9 +828,9 @@ intake.
 2. **Propeller**: make and blade count (§9 question 11), for the blade-pass
    tone.
 3. **Relight threshold**: the intake gives windmill relight from about 200
-   propeller rpm, and the systems compare it with engine rpm. With the ratio
-   from question 1 it converts to engine rpm (a systems-model fix, outside this
-   spec).
+   propeller rpm, and the systems compared it with engine rpm. Answered and
+   fixed by #836 (intake §9 question 71): the systems convert it through the
+   gearbox ratio.
 4. **Starter and start**: engagement sound, cranking rate, typical crank time
    to the catch, the flare at the catch, run-down length, rpm on choke.
 5. **Aural warnings**: confirm none (horn, buzzer, tone into the intercom).
