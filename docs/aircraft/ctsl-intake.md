@@ -1560,6 +1560,10 @@ start-up beep (**assumed (unverified)**). The trainer's timings
 for the self-test steps, the GPS search and the push thresholds are **assumed (unverified)**
 where the manuals give none.
 
+**Sound facts (#821).** The handbook does not mention FLARM, and neither FLARM document
+was among the sound-facts intake's sources; the tone facts above stand as recorded (§9
+question 75).
+
 **Power cycle (trainer, #727).** With the Avionics Master off, or the battery off with no
 generator running, the display is dark (the FLARM has no breaker of its own in the trainer,
 §9 question 33; the other breakers do not affect it). When power returns it starts over:
@@ -3034,30 +3038,42 @@ icing, no aerobatics, no intentional spins.
 
 ### 4.2 Engine (Rotax 912, variant unknown)
 
-| Limit                           | UL            | ULS      | Trainer value                       |
-| ------------------------------- | ------------- | -------- | ----------------------------------- |
-| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                     |
-| Max continuous rpm              | 5500          | 5500     | 5500                                |
-| Idle                            | ~1400         | ~1400    | 1400                                |
-| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§8) |
-| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**                          |
-| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)     |
-| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold |
-| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**                        |
+| Limit                           | UL            | ULS      | Trainer value                                               |
+| ------------------------------- | ------------- | -------- | ----------------------------------------------------------- |
+| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                                             |
+| Max continuous rpm              | 5500          | 5500     | 5500                                                        |
+| Idle                            | ~1400         | ~1400    | 1400                                                        |
+| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§8)                         |
+| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**                                                  |
+| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)                             |
+| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold                         |
+| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**                                                |
+| Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **assumed (unverified)** (2.43 : 1 optional, §9) |
+
+Both variants (HB 1-3, 3-7, 7-4): four cylinders, four-stroke, horizontally opposed, with
+liquid-cooled heads and air-cooled cylinders, two carburettors, dual electronic
+ignition and an electric starter. The propeller turns through a reduction gearbox
+with a vibration damper; the ratio does not depend on UL or ULS. Every rpm in this
+section is engine rpm, the tachometer's, unless it says propeller rpm; propeller rpm
+is engine rpm divided by the reduction.
 
 Starting (HB 4-6, 4-7): starter at most 10 s, then 2 min to cool. Throttle at idle
-(at most about 10 % open). Choke fully on for a cold start, with the throttle
-closed; close the choke slowly after 20–30 s. Oil pressure must rise within 10 s
-or shut down. Raise rpm only with oil pressure above 2 bar. Warm up 2 min at about
-2000 rpm, then 2500 rpm; ready at 50 °C oil.
+(at most about 10 % open), so the gearbox's damper takes no shock load. Choke fully
+on for a cold start, with the throttle closed; close the choke slowly after 20–30 s.
+Once the engine catches, set the throttle where it just runs smoothly, about
+2000–2500 rpm. Oil pressure must rise within 10 s or shut down. Raise rpm only with
+oil pressure above 2 bar. Warm up 2 min at about 2000 rpm, then 2500 rpm; ready at
+50 °C oil.
 
 Ignition check (HB 4-3): at 4000 rpm, each single circuit drops at most 300 rpm;
 the two drops differ by at most 120 rpm. A windmilling engine relights from about
-200 propeller rpm; below that, use the starter.
+200 propeller rpm; below that, use the starter (HB 3-5). In engine rpm that is about
+455 with the standard gearbox, about 486 with the optional one (derived, §9 question
+71; the standard gearbox is assumed (unverified), question 1).
 
-Propeller: ground-adjustable, set at the factory to about 5000 rpm static, 4800 in
+Propeller: ground-adjustable (**assumed (unverified)**, §9 question 11), set at the factory to about 5000 rpm static, 4800 in
 the climb and 5500 in level flight at full throttle, so it cannot overspeed. No
-propeller control in the cockpit (§9).
+propeller control in the cockpit (§9). Make and blade count unknown (§9 question 11).
 
 ### 4.3 Gauge markings
 
@@ -3287,7 +3303,8 @@ Above 100 m: restart (E4).
 
 **E4 Restart in flight (HB 3-1, 3-5).** Fuel valve open; fuel visible in both tanks
 _(confirm)_ (if one shows empty, keep that wing up); ignition both; if the prop
-turns slower than about 200 rpm, use the starter; if it does not start, E5.
+turns slower than about 200 propeller rpm (about 455 engine rpm, assumed gearbox, §9
+question 71), use the starter; if it does not start, E5.
 
 **E5 Emergency landing (HB 3-1, 3-3, 3-6).** No field reachable: rescue system;
 field chosen _(confirm)_; belts tight; loose items stowed _(confirm)_; emergency
@@ -3332,24 +3349,25 @@ get out, fire risk).
 
 ## 8. Handbook contradictions and the value used
 
-| Topic                         | Value A                                                                           | Value B                                                         | Trainer uses                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                           | 120 °C (lowest)                                                                                |
-| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                                 | 120 °C                                                                                         |
-| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                         | 124 l                                                                                          |
-| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                             | 51 °C                                                                                          |
-| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)              | the by-flap table of §4.1; the checklist pair is flagged                                       |
-| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                                      | 105 km/h (more margin over the stall)                                                          |
-| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)                  | 125 km/h flaps 0° (the emergency chapter)                                                      |
-| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)                      | gauge arcs as marked; speeds as listed                                                         |
-| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                  | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
-| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                | never deploy; the fire procedure ends in an emergency landing                                  |
-| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                      | left armed                                                                                     |
-| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)      | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
-| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                      | 130 °C                                                                                         |
-| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                        | GEN first, then avionics, after the engine runs                                                |
-| Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6) | fuel valve closed, then key out                                                                |
-| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)          | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
+| Topic                         | Value A                                                                           | Value B                                                                          | Trainer uses                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| CHT red line                  | 120 °C gauge marking (HB 7-20)                                                    | 150 °C UL / 135 °C ULS limit (HB 2-2)                                            | 120 °C (lowest)                                                                                |
+| CHT in the coolant-loss item  | keep below 150 °C (HB 3-7)                                                        | gauge red line 120 °C (HB 7-20)                                                  | 120 °C                                                                                         |
+| Usable fuel                   | 128 l (HB 2-2)                                                                    | 62 l per side, 124 l (placard, HB 7-20)                                          | 124 l                                                                                          |
+| Minimum oil temp for take-off | 51 °C (run-up checklist, HB 4-3)                                                  | 50 °C (HB 2-2, 4-7)                                                              | 51 °C                                                                                          |
+| Climb speeds                  | Vx 120 / Vy 135 with −12° (climb checklist, HB 4-3)                               | 100–125 by flap setting (HB 4-3 take-off box, 5-1)                               | the by-flap table of §4.1; the checklist pair is flagged                                       |
+| Short take-off climb          | 105 km/h (HB 4-3)                                                                 | 100 km/h with 15° (HB 5-1)                                                       | 105 km/h (more margin over the stall)                                                          |
+| Best glide                    | 125 km/h flaps 0° (HB 3-6)                                                        | 124 / 115 km/h negative flaps by mass (HB 5-8)                                   | 125 km/h flaps 0° (the emergency chapter)                                                      |
+| Stall speeds vs ASI arcs      | VS1 75, VS0 65 (HB 2-1)                                                           | white arc from 72, green from 94 (HB 7-20)                                       | gauge arcs as marked; speeds as listed                                                         |
+| Max flap speed at 0°          | 184 km/h (HB 2-1)                                                                 | flaps 0° inside the green arc to 245 (HB 7-20)                                   | 184 km/h at 0°; 15°, 30° and 35° per §4.1                                                      |
+| Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                                 | never deploy; the fire procedure ends in an emergency landing                                  |
+| Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                                       | left armed                                                                                     |
+| VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)                       | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
+| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                                       | 130 °C                                                                                         |
+| Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's engine-rpm reading of the same 200 (trainer error, §9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836; gearbox assumed (unverified), §9 question 1) |
+| Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                                         | GEN first, then avionics, after the engine runs                                                |
+| Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6)                  | fuel valve closed, then key out                                                                |
+| Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)                           | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
 
 ## 9. Open questions for the club and instructor
 
@@ -3358,9 +3376,9 @@ Each item lists the value the trainer uses until it is answered.
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
 **assumed (unverified)**, and the implementing PR lists it, until the owner
-verifies it on D-MPGO. The one exception is the engine facts used only for sound
-(question 1), which the owner accepted as general knowledge on 2026-10-15 and which
-carry no assumed (unverified) marking.
+verifies it on D-MPGO. The one exception is three engine facts used only for sound
+(question 1): the cylinder count, the cycle and the cranking default. The owner accepted
+them as general knowledge on 2026-10-15 and they carry no assumed (unverified) marking.
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
@@ -3373,7 +3391,19 @@ carry no assumed (unverified) marking.
    three are general knowledge of the Rotax 912 named in §4.2, accepted by the owner
    on 2026-10-15 (sounds spec, D16), not assumed (unverified). They give the firing
    frequency, the uneven beat and the starter pulses only; the UL or ULS variant,
-   gearbox ratio and propeller stay unknown, so the voice has no blade-pass tone.
+   gearbox ratio and propeller stay unknown (the ratio is answered below), so the voice
+   has no blade-pass tone.
+   **Sound-facts intake 2026-10-16 (#821):** the variant is **still open**. The
+   handbook offers both, the 80 PS UL and the 100 PS ULS (HB 1-3, 7-4), and does not
+   fix D-MPGO's: its performance figures assume a UL (HB 5-1), while its factory
+   example equipment list and avionics block diagrams name a ULS (HB 6-8, 7-9;
+   examples, §1). **Answered from the handbook:** four cylinders and the four-stroke
+   cycle (HB 1-3, 7-4), so the engine voice's two counts are now handbook facts; the
+   cranking rpm is not (question 72). Gearbox: both variants have the same standard
+   reduction, 2.273 : 1, with 2.43 : 1 as an option (HB 1-3; HB 7-4 names the same
+   two), so the ratio does not follow from UL or ULS; which gearbox D-MPGO has is not
+   in the handbook. **Trainer uses:** 2.273 : 1, the standard ratio (§4.2); that
+   D-MPGO has the standard gearbox is **assumed (unverified)**.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
    VNE 260 km/h and the yellow arc 245–260.
    **Photo survey 2026-10-10 (§3.7):** partly answered. The data plate beside the
@@ -3430,11 +3460,23 @@ carry no assumed (unverified) marking.
     large knob; "drawn as artwork" is superseded. **Answered (M17 T2, #536):** the
     trainer draws no knob; cabin heat is the glareshield knob (M17 T4).
 11. **Propeller**: ground-adjustable, hydraulic in-flight adjustable or ECS
-    constant speed? Uses ground-adjustable (no cockpit control).
+    constant speed? Uses ground-adjustable (**assumed (unverified)**; no cockpit control).
     **Photo survey 2026-10-10 (§3.7):** not visible: no propeller control in the
-    cockpit photos, which fits the trainer's ground-adjustable propeller; the
+    cockpit photos, which fits the trainer's ground-adjustable propeller (**assumed
+    (unverified)**); the
     propeller itself is not identified. No change to the rpm model follows from the
     photos. **Answered (M17 T2):** no propeller control, as the trainer has it.
+    **Sound-facts intake 2026-10-16 (#821):** make and blade count **still open**.
+    The handbook approves six propellers (HB 1-3, 7-4); the sources do not say which one
+    D-MPGO has, or whether it is ground-adjustable (the trainer's ground-adjustable
+    propeller is **assumed (unverified)**). The approved list includes a two-blade
+    Neuform of 1.66 m and two three-blade composites, a Neuform of 1.70 m and a
+    Kaspar-Brändel of 1.60 m. The factory example
+    equipment list names the two-blade Neuform as the basic propeller, with
+    three-blade upgrades (HB 6-8, an example, §1); the performance figures assume
+    the three-blade Neuform (HB 5-1). **Trainer
+    uses:** no blade count, so the engine voice has no blade-pass tone (sounds spec
+    §13 question 2).
 12. **Trim wheel position**: left of the throttle (text) or below the choke
     (photo)? Uses left of the throttle, with the choke between them (#534). **Handbook check 2026-10-08:** answered by inference from the
     handbook, for the owner to confirm on D-MPGO. Both are true if the figure is
@@ -3550,7 +3592,8 @@ carry no assumed (unverified) marking.
     system are flown from memory and the rest is read:
     - E3 below 100 m: rpm below idle; no restart, land ahead.
     - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
-      both; starter if the prop turns slower than about 200 rpm.
+      both; starter if the prop turns slower than about 200 propeller rpm (about 455 engine rpm,
+      assumed gearbox, §9 question 71).
     - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
       out; pull the handle.
     - E6: smoke or flames; fuel valve closed; throttle full until the engine
@@ -4101,5 +4144,78 @@ carry no assumed (unverified) marking.
     silent** on the rounding direction and on the format of a negative level. Verified
     (§2.4): beyond −1000 to 35 000 ft the display shows `FLerr`. Trainer uses: rounded
     down; below zero as `FL -01` for −50 ft. **Assumed (unverified)** (§3.8.2).
+71. **Windmill relight threshold** (#821, sounds spec §13 question 3): the handbook gives it
+    as a **propeller** rpm: the ignition works only from about 200 propeller rpm, and a
+    propeller windmilling slower than that needs the starter (HB 3-5). The handbook keeps
+    the two apart: the start text marks its rpm as engine rpm (HB 4-6), and the limits and
+    the tachometer are engine rpm (HB 2-2, 7-20). With question 1's reduction the threshold
+    is about 455 engine rpm at 2.273 : 1, or about 486 at the optional 2.43 : 1 (derived).
+    **Answered.** Trainer uses: about 455 engine rpm at the assumed (unverified) 2.273 : 1
+    gearbox (derived, #836); the earlier comparison of 200 with engine rpm **contradicts**
+    the handbook figure.
+72. **Starter and start** (#821, sounds spec §13 question 4): the handbook gives the start
+    procedure (HB 4-6, 4-7; §4.2): starter limits, choke, the throttle nearly closed so the
+    gearbox's damper takes no shock load, and about 2000–2500 engine rpm set by throttle
+    once the engine catches. It says nothing of how the start sounds: no starter
+    engagement sound, cranking rate, crank time to the catch, flare at the catch or
+    run-down length, and no rpm for running on the choke beyond that throttle setting.
+    **Still open** for all of these. Trainer uses: cranking at the voice default
+    (`pistonEngineDefaults.crankingRpm` in `packages/panel-kit`, tuned by ear, question 1)
+    and the voice's own catch, flare and run-down, until the owner gives values.
+73. **Aural warnings** (#821, sounds spec §13 question 5): **none found; no stall warner
+    appears in the sources**. The handbook describes the stall only as airframe
+    behaviour: a restless yaw, then soft controls about 5 km/h above the stall (HB 4-12,
+    3-2). No stall warner, horn or buzzer appears in the minimum equipment (HB 1-3), the
+    electrical block diagram, whose only warning device is the alternator lamp (HB 7-8),
+    the cockpit description or the placards (HB 7-16 to 7-21). The owner's photos show the
+    red "Generator" lamp as the panel's only warning device, and no horn or speaker (§3.7).
+    The handbook's avionics diagram feeds a transponder audio alert and the GPS audio into
+    the intercom (HB 7-9), but for the factory Garmin units, not D-MPGO's (question 78).
+    **Answered (inferred from absence; the owner can reopen).** Trainer uses: no warning horn or
+    buzzer, and no stall horn.
+74. **ELT** (#821, sounds spec §13 question 6): D-MPGO's unit is not in the sources. The
+    handbook treats the ELT as optional equipment (HB 1-3, 3-3), and the Artex ME 406
+    in its equipment list is a factory example (HB 6-8, §1). The pilot notices a trigger by
+    listening on 121.5 MHz with the COM radio, and on the remote unit in the lower centre
+    field, which shows a triggered ELT (HB 4-15, 4-6, 7-18). Neither the handbook nor the
+    photos describe a buzzer or tone in the cabin, for the switch, a trigger or a
+    self-test; the photos do not show the remote (§3.7, question 21). **Not found; still
+    open.** Trainer uses: no ELT sound.
+75. **FLARM tones** (#821, sounds spec §13 question 7): the handbook does not mention FLARM,
+    and neither the EDIATec display sheet V 5.1e nor the FLARM manual 242 was among this
+    session's sources (the handbook and the owner's photos). Nothing is added to §3.8.4:
+    the start-up beep's and the volume tone's pitch, length and pattern, the loud, medium
+    and quiet ratios, a tone on the step into silent and a sound for the mode swap stay as
+    §3.8.4 records them. **Still open.** Trainer uses: the §3.8.4 sounds, **assumed
+    (unverified)** where marked there.
+76. **Flap actuator** (#821, sounds spec §13 question 8): an electric spindle motor at the
+    back of the main bulkhead, just behind the seats, drives both flaps through a torsion
+    shaft (HB 7-12); it stops at end and position switches (HB 3-7, 8-7; §4.4). The
+    handbook says nothing of hearing it in the cabin, of a different sound extending and
+    retracting, or of a sound at the end stop. **Not found; still open.** Trainer uses:
+    the flap-motor whine while it drives, the same both ways, with no end-stop sound.
+77. **Rescue-system deployment** (#821, sounds spec §13 question 9): the handling is
+    sourced: engine off, then the handle pulled hard and far, forward to its stop, until
+    the rocket fires (HB 3-4). The handle at the main bulkhead between the seats fires the
+    rocket by a cable; rocket and parachute sit in the upper baggage bay behind the
+    bulkhead and leave through an opening on top of the fuselage under a light cover that
+    lifts off, so the rocket does not break through the skin (HB 7-13); the harness straps
+    then tear out of the roof (HB 7-14). What the pilot hears is not described. **Not
+    found; still open.** Trainer uses: no deployment sound.
+78. **Other units with a sounder** (#821, sounds spec §13 question 10): the sources name no
+    panel unit with its own speaker or buzzer besides the FLARM display (§3.8.4). The
+    handbook routes the radio, a transponder audio alert and the GPS audio through the
+    intercom, with an audio-input and GPS-sound selector in the lower centre field (HB 7-9,
+    7-18), but for the factory Garmin units; D-MPGO's units are described from their own
+    manuals in §3.8. **Still open.** Trainer uses: the existing exclusions (radio,
+    intercom and GPS audio are outside the sounds, sounds spec §1).
+79. **Audible detents** (#821, sounds spec §13 question 11): the sources describe no
+    control's sound. The handbook's only detents belong to the in-flight adjustable
+    propeller's lever (HB 7-5), which D-MPGO lacks (question 11). The flap selector steps
+    through the five settings with a manual position past each end (HB 7-12, 3-7; legends
+    in §3.7), and the fuel valve's grip covers the ignition key when closed (HB 3-6, 4-6);
+    neither text mentions a click. Whether the owner's pilot knowledge is an acceptable
+    source is the owner's decision. **Still open.** Trainer uses: the wave-1 click set
+    (sounds spec §6.4).
 
 <!-- prettier-ignore-end -->
