@@ -24,18 +24,18 @@ judges sound quality in a listening check; automated tests cannot hear.
 
 ### Owner decisions (2026-10-15, fixed)
 
-| Topic            | Decision                                                                                                                                      |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scope            | Full cockpit audio: control clicks, engine, propeller, starter, airflow, electric motors, device beeps.                                       |
-| Source           | Every sound is synthesised in the browser with Web Audio. No audio files.                                                                     |
-| Controls         | A sound on/off toggle and a master volume slider.                                                                                             |
-| Waves            | Wave 1 needs no new aircraft facts. Wave 2 refines against facts an owner-run intake session adds later (`CPT_ALLOW_REFERENCE=1`).            |
-| Milestone        | Both waves are in one milestone, so its release waits for the owner's intake session.                                                         |
-| Aircraft         | Only the CTSL gets aircraft sounds. The demo aircraft is silent apart from the shared control clicks.                                         |
-| Spec change      | The audio non-goal (spec §1, §4.9; ADR-0001) is lifted for synthesised cockpit and device sounds (ADR-0003).                                  |
-| Default          | Sound is on by default, below full volume (D9).                                                                                               |
-| Header control   | One header button opens a popover with the on/off switch and the volume slider (D8).                                                          |
-| Engine knowledge | Engine facts used only for sound (four cylinders, four-stroke, the cranking rpm) count as general knowledge under the intake §9 ruling (D16). |
+| Topic            | Decision                                                                                                                           |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Scope            | Full cockpit audio: control clicks, engine, propeller, starter, airflow, electric motors, device beeps.                            |
+| Source           | Every sound is synthesised in the browser with Web Audio. No audio files.                                                          |
+| Controls         | A sound on/off toggle and a master volume slider.                                                                                  |
+| Waves            | Wave 1 needs no new aircraft facts. Wave 2 refines against facts an owner-run intake session adds later (`CPT_ALLOW_REFERENCE=1`). |
+| Milestone        | Both waves are in one milestone, so its release waits for the owner's intake session.                                              |
+| Aircraft         | Only the CTSL gets aircraft sounds. The demo aircraft is silent apart from the shared control clicks.                              |
+| Spec change      | The audio non-goal (spec §1, §4.9; ADR-0001) is lifted for synthesised cockpit and device sounds (ADR-0003).                       |
+| Default          | Sound is on by default, below full volume (D9).                                                                                    |
+| Header control   | One header button opens a popover with the on/off switch and the volume slider (D8).                                               |
+| Engine knowledge | Cylinder count and cycle are handbook facts (intake §9 question 1); the cranking rpm is general knowledge (D16).                   |
 
 ### Out of scope
 
@@ -363,18 +363,20 @@ The CTSL declares (in `ctsl-sounds`):
 
 Wave-1 values that are not intake facts:
 
-| Value                                 | Used for                      | Status                                                                                                                                  |
-| ------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Four cylinders, four-stroke           | firing frequency, uneven beat | general knowledge of the Rotax 912 the intake names (§4.2), accepted by the owner (D16); step 3a records it beside intake §9 question 1 |
-| Cranking rpm                          | starter pulses                | general knowledge (D16), a voice default tuned by ear; recorded beside §9 question 1; §13 question 4 replaces it                        |
-| Starter whine, levels, time constants | timbre and dynamics           | voice defaults tuned by ear, not aircraft facts                                                                                         |
-| Airspeed reference                    | airflow level                 | intake §4.3, the airspeed red line                                                                                                      |
-| Flap motor                            | `electric-motor`              | intake §4.4, electric spindle motor                                                                                                     |
+| Value                                 | Used for                      | Status                                                                                                           |
+| ------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Four cylinders, four-stroke           | firing frequency, uneven beat | handbook facts, recorded in intake §9 question 1 (first accepted as general knowledge, D16)                      |
+| Cranking rpm                          | starter pulses                | general knowledge (D16), a voice default tuned by ear; recorded beside §9 question 1; §13 question 4 replaces it |
+| Starter whine, levels, time constants | timbre and dynamics           | voice defaults tuned by ear, not aircraft facts                                                                  |
+| Airspeed reference                    | airflow level                 | intake §4.3, the airspeed red line                                                                               |
+| Flap motor                            | `electric-motor`              | intake §4.4, electric spindle motor                                                                              |
 
 The intake §9 owner ruling covers general knowledge of the CT Supralight where
 a panel fact is missing. The owner extended it on 2026-10-15 to engine facts
-heard only in sound (D16), so these values are recorded beside intake §9
-question 1 as general knowledge, not as assumed (unverified).
+heard only in sound (D16). The cylinder count and the cycle are now recorded as
+handbook facts (intake §9 question 1); only the cranking rpm still rests on the
+ruling and is recorded beside that question as general knowledge, not as
+assumed (unverified).
 
 #### Engine synthesis: native oscillator bank
 
