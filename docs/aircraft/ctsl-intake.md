@@ -3069,7 +3069,7 @@ Ignition check (HB 4-3): at 4000 rpm, each single circuit drops at most 300 rpm;
 the two drops differ by at most 120 rpm. A windmilling engine relights from about
 200 propeller rpm; below that, use the starter (HB 3-5). In engine rpm that is about
 455 with the standard gearbox, about 486 with the optional one (derived, §9 question
-71).
+71; the standard gearbox is assumed (unverified), question 1).
 
 Propeller: ground-adjustable, set at the factory to about 5000 rpm static, 4800 in
 the climb and 5500 in level flight at full throttle, so it cannot overspeed. No
@@ -3363,7 +3363,7 @@ get out, fire risk).
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                               | left armed                                                                                     |
 | VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)               | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
 | Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                               | 130 °C                                                                                         |
-| Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's earlier comparison of 200 with engine rpm (§9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836)                                              |
+| Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's earlier comparison of 200 with engine rpm (§9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836; gearbox assumed (unverified), §9 question 1) |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                                 | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6)          | fuel valve closed, then key out                                                                |
 | Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)                   | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
@@ -3375,9 +3375,9 @@ Each item lists the value the trainer uses until it is answered.
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
 **assumed (unverified)**, and the implementing PR lists it, until the owner
-verifies it on D-MPGO. The one exception is the engine facts used only for sound
-(question 1), which the owner accepted as general knowledge on 2026-10-15 and which
-carry no assumed (unverified) marking.
+verifies it on D-MPGO. The one exception is three engine facts used only for sound
+(question 1): the cylinder count, the cycle and the cranking default. The owner accepted
+them as general knowledge on 2026-10-15 and they carry no assumed (unverified) marking.
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
@@ -3470,8 +3470,7 @@ carry no assumed (unverified) marking.
     a Neuform of 1.70 m and a Kaspar-Brändel of 1.60 m. The factory example
     equipment list names the two-blade Neuform as the basic propeller, with
     three-blade upgrades (HB 6-8, an example, §1); the performance figures assume
-    the three-blade Neuform (HB 5-1). The owner's photos show a single blade standing
-    upright above the glareshield, which does not give the count (§3.7). **Trainer
+    the three-blade Neuform (HB 5-1). **Trainer
     uses:** no blade count, so the engine voice has no blade-pass tone (sounds spec
     §13 question 2).
 12. **Trim wheel position**: left of the throttle (text) or below the choke
@@ -4146,8 +4145,9 @@ carry no assumed (unverified) marking.
     the two apart: the start text marks its rpm as engine rpm (HB 4-6), and the limits and
     the tachometer are engine rpm (HB 2-2, 7-20). With question 1's reduction the threshold
     is about 455 engine rpm at 2.273 : 1, or about 486 at the optional 2.43 : 1 (derived).
-    **Answered.** Trainer uses: 200 compared with engine rpm, which **contradicts** the
-    handbook figure (#836).
+    **Answered.** Trainer uses: about 455 engine rpm at the assumed (unverified) 2.273 : 1
+    gearbox (derived, #836); the earlier comparison of 200 with engine rpm **contradicts**
+    the handbook figure.
 72. **Starter and start** (#821, sounds spec §13 question 4): the handbook gives the start
     procedure (HB 4-6, 4-7; §4.2): starter limits, choke, the throttle nearly closed so the
     gearbox's damper takes no shock load, and about 2000–2500 engine rpm set by throttle
