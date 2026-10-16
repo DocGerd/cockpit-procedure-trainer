@@ -15,7 +15,7 @@ import type { FakeAutomation } from '../fake-audio-context';
 import { voiceFactories } from '../voice-factories';
 import { NOISE_RMS } from './noise';
 import { pistonEngine, SMOOTHING_S } from './piston-engine';
-import { pistonEngineDefaults, pistonEngineProblems } from './piston-engine-model';
+import { bladePassHz, pistonEngineDefaults, pistonEngineProblems } from './piston-engine-model';
 
 const OPTIONS = { cylinders: 4, idleRpm: 1400, maxContinuousRpm: 5500 } satisfies JsonObject;
 const ALL = ['rpm', 'running', 'starter'] as const;
@@ -96,8 +96,14 @@ function setup(context = new FakeAudioContext(), options: JsonObject = OPTIONS) 
     driven.filter((oscillator) => feedsKind(oscillator, 'gain')),
     'modulator',
   );
+  const scaled = context
+    .nodesOf('gain')
+    .filter((gain) => feeds(bus, gain))
+    .flatMap((gain) => context.nodesOf('oscillator').filter((each) => feeds(gain, each.frequency)));
   const whine = only(
-    context.nodesOf('oscillator').filter((oscillator) => !driven.includes(oscillator)),
+    context
+      .nodesOf('oscillator')
+      .filter((oscillator) => !driven.includes(oscillator) && !scaled.includes(oscillator)),
     'whine',
   );
   const firingFilter = nodeAfter(firing) as FakeBiquadFilterNode;
@@ -645,5 +651,147 @@ describe('piston-engine voice', () => {
     const other = new FakeAudioContext();
     pistonEngine.create(other.out(), OPTIONS);
     expect(only(other.nodesOf('buffer-source'), 'noise').buffer).not.toBe(buffer);
+  });
+});
+
+describe('piston-engine voice: blade-pass tone', () => {
+  const FACTS = { gearboxRatio: 2.273, bladeCount: 3 } satisfies JsonObject;
+  const WITH_FACTS = { ...OPTIONS, ...FACTS };
+
+  const kindsOf = (engine: ReturnType<typeof setup>) => engine.graph.map((node) => node.kind);
+
+  /** The blade-pass oscillator: the one whose frequency is fed by a gain that the bus feeds. */
+  const bladeOf = (engine: ReturnType<typeof setup>) => {
+    const { bus } = engine.nodes;
+    const scale = only(
+      engine.context.nodesOf('gain').filter((gain) => feeds(bus, gain)),
+      'blade-pass scale',
+    );
+    const oscillator = only(
+      engine.context.nodesOf('oscillator').filter((each) => feeds(scale, each.frequency)),
+      'blade-pass oscillator',
+    );
+    const level = nodeAfter(oscillator) as FakeGainNode;
+    return { scale, oscillator, level };
+  };
+
+  const toneHz = (engine: ReturnType<typeof setup>) => {
+    const { scale } = bladeOf(engine);
+    return engine.nodes.bus.offset.value * scale.gain.value;
+  };
+
+  it('builds nothing extra without both options, so existing aircraft keep their graph', () => {
+    const plain = setup();
+    for (const options of [
+      { ...OPTIONS, gearboxRatio: 2.273 },
+      { ...OPTIONS, bladeCount: 3 },
+    ]) {
+      const engine = setup(new FakeAudioContext(), options);
+      expect(kindsOf(engine)).toEqual(kindsOf(plain));
+      expect(engine.context.nodesOf('oscillator')).toHaveLength(3);
+    }
+    const scenario = (engine: ReturnType<typeof setup>) => {
+      engine.set(IDLE, ALL);
+      engine.advance(SETTLE_MS);
+      engine.set(FULL);
+      engine.advance(SETTLE_MS);
+      engine.set({ starter: 1, running: 0, rpm: 0 });
+      engine.advance(CRANK_MS);
+      return engine.automation();
+    };
+    const plainAutomation = scenario(setup());
+    expect(plainAutomation.length).toBeGreaterThan(0);
+    for (const options of [
+      { ...OPTIONS, gearboxRatio: 2.273 },
+      { ...OPTIONS, bladeCount: 3 },
+    ]) {
+      expect(scenario(setup(new FakeAudioContext(), options))).toEqual(plainAutomation);
+    }
+  });
+
+  it('adds one oscillator on the bus through a scaling gain, and a level gain to the output', () => {
+    const plain = setup();
+    const engine = setup(new FakeAudioContext(), WITH_FACTS);
+    expect(engine.graph).toHaveLength(plain.graph.length + 3);
+    const { scale, oscillator, level } = bladeOf(engine);
+    expect(oscillator.frequency.value).toBe(0);
+    expect(oscillator.startedAt).toBeDefined();
+    expect(scale.gain.value).toBeCloseTo((2 * FACTS.bladeCount) / FACTS.gearboxRatio, 9);
+    expect(engine.context.reaches(oscillator, engine.master)).toBe(true);
+    for (const node of engine.graph) expect(engine.context.reaches(node, engine.master)).toBe(true);
+    expect(level.gain.value).toBe(0);
+  });
+
+  it('plays the tone on sine terms with falling harmonics', () => {
+    const { real, imag } = waveOf(bladeOf(setup(new FakeAudioContext(), WITH_FACTS)).oscillator);
+    expect(real.every((term) => term === 0)).toBe(true);
+    expect(imag[0]).toBe(0);
+    expect(imag[1]).toBeGreaterThan(0);
+    for (let harmonic = 2; harmonic < imag.length; harmonic += 1) {
+      expect(imag[harmonic]).toBeLessThan(imag[harmonic - 1] ?? 0);
+    }
+  });
+
+  it('holds the tone at rpm / ratio / 60 x blades, with the ratio and blade count read', () => {
+    for (const facts of [
+      FACTS,
+      { gearboxRatio: 2.43, bladeCount: 2 },
+      { gearboxRatio: 1, bladeCount: 5 },
+    ]) {
+      const engine = setup(new FakeAudioContext(), { ...OPTIONS, ...facts });
+      engine.set(IDLE, ALL);
+      expectPitch(toneHz(engine), bladePassHz(IDLE.rpm, facts.gearboxRatio, facts.bladeCount));
+      engine.set({ rpm: 5000 }, ['rpm']);
+      expectPitch(toneHz(engine), bladePassHz(5000, facts.gearboxRatio, facts.bladeCount));
+      engine.set({ rpm: 4850 });
+      engine.advance(SETTLE_MS);
+      expectPitch(toneHz(engine), bladePassHz(4850, facts.gearboxRatio, facts.bladeCount));
+    }
+  });
+
+  it('is silent parked, quieter at idle than at full power, and scales with rpm / idle below idle', () => {
+    const engine = setup(new FakeAudioContext(), WITH_FACTS);
+    const { level } = bladeOf(engine);
+    expect(level.gain.value).toBe(0);
+    engine.set(IDLE, ALL);
+    const idle = level.gain.value;
+    expect(idle).toBeGreaterThan(0);
+    engine.set({ rpm: OPTIONS.maxContinuousRpm }, ['rpm']);
+    expect(level.gain.value).toBeGreaterThan(idle);
+    engine.set({ rpm: OPTIONS.idleRpm / 2 }, ['rpm']);
+    expect(level.gain.value).toBeCloseTo(idle / 2, 6);
+  });
+
+  it('stays quiet but audible while the starter or the wind turns the propeller without firing', () => {
+    const engine = setup(new FakeAudioContext(), WITH_FACTS);
+    const { level } = bladeOf(engine);
+    engine.set(IDLE, ALL);
+    const idle = level.gain.value;
+    for (const turning of [
+      { starter: 1, running: 0, rpm: pistonEngineDefaults.crankingRpm },
+      { starter: 0, running: 0, rpm: pistonEngineDefaults.crankingRpm },
+    ]) {
+      engine.set(turning);
+      engine.advance(CRANK_MS);
+      expect(level.gain.value).toBeGreaterThan(0);
+      expect(level.gain.value).toBeLessThan(idle);
+    }
+  });
+
+  it('issues nothing once settled, and stops and disconnects the extra nodes with the rest', () => {
+    const withFacts = setup(new FakeAudioContext(), WITH_FACTS);
+    withFacts.set(IDLE, ALL);
+    withFacts.set(FULL);
+    withFacts.advance(SETTLE_MS);
+    withFacts.clear();
+    withFacts.advance(SETTLE_MS);
+    expect(withFacts.automation()).toEqual([]);
+
+    withFacts.voice.stop();
+    const { oscillator } = bladeOf(withFacts);
+    expect(oscillator.stoppedAt).toBe(withFacts.nodes.bus.stoppedAt);
+    withFacts.context.currentTime = withFacts.nodes.bus.stoppedAt ?? 0;
+    expect(withFacts.context.liveNodes()).toEqual([withFacts.master]);
+    for (const node of withFacts.graph) expect(node.connections).toEqual([]);
   });
 });
