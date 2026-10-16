@@ -65,10 +65,15 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   no prior scores or "be strict" notes (they anchor).
 - A PR that lands without its `pr-review-toolkit:review-pr` pass owes one on
   its diff before the release PR; file the findings as issues.
+  A toolkit pass run inside a workflow leaves no trace on the PR: post one PR
+  comment naming the agents and their verdicts.
 - A PR touching aircraft content (paths in `pr-selfreview` step 1) gets an
   `intake-checker` pass before landing: the reviewer asks for it, the
   orchestrator (or a workflow's review stage) runs it; the merge train does
-  not check for it.
+  not check for it. Brief it with a first line `VERDICT: PASS|FAIL`, failing
+  only on a fact with two values, a fact without source or certainty, or
+  copied wording, or re-checks never converge. It cannot see `reference/`, so
+  a rewording made against the handbook states its HB basis.
 - Subagents cannot spawn agents: the orchestrator runs the ui-verifier and
   review-toolkit passes that a reviewer agent asks for.
 - The main checkout is pulled only at close-out, so it lags `develop`: give
@@ -151,7 +156,8 @@ summaries: `docs/milestones/`. Codebase map: `docs/architecture.md`.
   `reference/` is local-only — never read it in implementation agents, never
   commit or quote it. `.claude/hooks/reference-guard.sh` (file tools) and
   `bash-reference-guard.sh` (Bash) enforce it; the owner overrides with
-  `CPT_ALLOW_REFERENCE=1` for intake work.
+  `CPT_ALLOW_REFERENCE=1` for intake work. That override reaches every agent
+  the session spawns, so other briefs then forbid `reference/` explicitly.
 - `.claude/hooks/block-main-merge.sh` refuses any Bash command containing the
   substring "merge" (also "emergency", `--no-merges`, jq `mergeCommit`,
   `merged_at`), except one plain `gh pr merge` of a `develop` PR or a plain
