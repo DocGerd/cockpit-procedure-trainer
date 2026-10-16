@@ -644,7 +644,7 @@ describe('connectCockpitAudio voices and device cues', () => {
   });
 
   type Away = (engine: AudioEngine) => void | Promise<void>;
-  it.each<{ jump: string; leave: Away; come: Away }>([
+  const AWAY_CASES: { jump: string; leave: Away; come: Away }[] = [
     {
       jump: 'sound on',
       leave: (engine) => engine.setEnabled(false),
@@ -661,39 +661,26 @@ describe('connectCockpitAudio voices and device cues', () => {
         await settle();
       },
     },
-  ])('jumps every input on $jump and keeps the cue diff', async ({ leave, come }) => {
-    const { session, engine, recording, tick } = await liveSoundCockpit();
-    await leave(engine);
-    tick();
-    expect(recording.last('test-engine')?.frame.live).toBe(false);
-    await come(engine);
-    expect(recording.last('test-engine')?.frame).toMatchObject({
-      live: true,
-      jump: EVERY_INPUT['test-engine'],
-    });
-    session.set('master', 'on');
-    expect(recording.last('test-engine')?.frame).toMatchObject({ live: true, jump: [] });
-    expect(startUps()).toEqual([0]);
-  });
+  ];
+  it.each(AWAY_CASES)(
+    'jumps every input on $jump and keeps the cue diff',
+    async ({ leave, come }) => {
+      const { session, engine, recording, tick } = await liveSoundCockpit();
+      await leave(engine);
+      tick();
+      expect(recording.last('test-engine')?.frame.live).toBe(false);
+      await come(engine);
+      expect(recording.last('test-engine')?.frame).toMatchObject({
+        live: true,
+        jump: EVERY_INPUT['test-engine'],
+      });
+      session.set('master', 'on');
+      expect(recording.last('test-engine')?.frame).toMatchObject({ live: true, jump: [] });
+      expect(startUps()).toEqual([0]);
+    },
+  );
 
-  it.each<{ jump: string; leave: Away; come: Away }>([
-    {
-      jump: 'sound on',
-      leave: (engine) => engine.setEnabled(false),
-      come: (engine) => engine.setEnabled(true),
-    },
-    {
-      jump: 'the tab shown',
-      leave: async () => {
-        setVisibility('hidden');
-        await vi.waitFor(() => expect(contexts[0]?.state).toBe('suspended'));
-      },
-      come: async () => {
-        setVisibility('visible');
-        await settle();
-      },
-    },
-  ])(
+  it.each(AWAY_CASES)(
     'on $jump, jumps the voices to the current state before the next session tick',
     async ({ leave, come }) => {
       const { session, engine, recording, tick } = await liveSoundCockpit();
@@ -736,6 +723,53 @@ describe('connectCockpitAudio voices and device cues', () => {
     const fed = recording.frames.length;
     await settle();
     expect(recording.frames).toHaveLength(fed);
+  });
+
+  it('feeds the old voices no frame when the context was replaced, and jumps the rebuilt ones', async () => {
+    const { recording, tick } = await liveSoundCockpit();
+    contexts[0]?.setState('closed');
+    gesture();
+    await settle();
+    expect(contexts).toHaveLength(2);
+    const fed = recording.frames.length;
+    expect(recording.created).toHaveLength(2);
+    tick();
+    expect(recording.created).toHaveLength(4);
+    expect(recording.frames.slice(fed).map(({ frame }) => frame.jump)).toEqual([
+      EVERY_INPUT['test-engine'],
+      EVERY_INPUT['test-motor'],
+    ]);
+  });
+
+  it('names the voice that throws when the engine turns live between frames, and silences the sound', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const faults: Partial<Record<TestVoice, VoiceFault>> = {};
+    const { engine, recording } = await liveSoundCockpit({ recording: recordingVoices(faults) });
+    engine.setEnabled(false);
+    faults['test-engine'] = 'update';
+    engine.setEnabled(true);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      'Cockpit sound stopped after an audio error in the engine sound (voice test-engine).',
+      expect.objectContaining({ message: 'test-engine update failed' }),
+    );
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
+  });
+
+  it('names the cockpit sound when the engine throws as it turns live between frames', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { engine, recording } = await liveSoundCockpit();
+    engine.setEnabled(false);
+    vi.spyOn(engine, 'live').mockImplementation(() => {
+      throw new Error('live failed');
+    });
+    engine.setEnabled(true);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith(
+      'Cockpit sound stopped after an audio error in the cockpit sound.',
+      expect.objectContaining({ message: 'live failed' }),
+    );
+    expect(recording.stopped).toEqual(['test-engine', 'test-motor']);
   });
 
   it('unsubscribes from the engine on disconnect', () => {

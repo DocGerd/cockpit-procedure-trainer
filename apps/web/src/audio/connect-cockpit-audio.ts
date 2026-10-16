@@ -42,10 +42,11 @@ const unstopped = (failures: readonly StopFailure[]) =>
 /**
  * Plays the cockpit of `session` through `engine` until the returned disconnect. A click or a
  * device cue is dropped while the engine is not live: a late one would answer a move made long
- * before. Voice frames are timed by `clock`, never by counting notifications. The first audio
- * error is logged, stops every voice and silences this connection; it never reaches the session,
- * so the pilot's press and the advance timer keep working. A voice that throws as it stops is
- * logged and does not silence the connection: the others stop all the same.
+ * before. Voice frames are timed by `clock`, never by counting notifications; the engine turning
+ * live also feeds the voices once, jumped to the current state. The first audio error is logged,
+ * stops every voice and silences this connection; it never reaches the session, so the pilot's
+ * press and the advance timer keep working. A voice that throws as it stops is logged and does not
+ * silence the connection: the others stop all the same.
  */
 export function connectCockpitAudio(
   session: Session,
@@ -195,15 +196,16 @@ export function connectCockpitAudio(
   };
 
   // The engine turns audible between two session frames; a graph left from before would play until
-  // the next one. A context change leaves the rebuild to that frame, which jumps a fresh bank.
+  // the next one. After a context change the rebuild waits for the next session frame, which jumps
+  // a fresh bank.
   const resync = () => {
     if (silenced) return;
-    const live = engine.live();
-    const resumed = live && !wasLive;
-    wasLive = live;
-    if (!resumed || !bank || bank.out !== engine.out()) return;
     where = 'in the cockpit sound';
     try {
+      const live = engine.live();
+      const resumed = live && !wasLive;
+      wasLive = live;
+      if (!resumed || !bank || bank.out !== engine.out()) return;
       feed(session.state(), live, 'all');
     } catch (error) {
       silence(`Cockpit sound stopped after an audio error ${where}.`, error);
