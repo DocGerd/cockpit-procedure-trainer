@@ -4199,11 +4199,13 @@ day, are now handbook facts (question 1).
     the flap-motor whine while it drives, the same both ways, with no end-stop sound.
 77. **Rescue-system deployment** (#821, sounds spec §13 question 9): no source describes
     what the pilot hears. Sourced: the pilot stops the engine first, then fires the
-    rocket with a firm, full forward pull of the handle (HB 3-4). The handle sits
-    between the seats at the main bulkhead and works the rocket mechanically, through a
-    cable. Parachute and rocket are stowed in the upper baggage bay aft of the bulkhead
-    and leave upwards through a covered opening in the fuselage top (HB 7-13); the
-    suspension straps, stowed in the roof, are pulled free during deployment (HB 7-14).
+    rocket by pulling the handle firmly forward until it reaches its stop (HB 3-4). The
+    handle sits between the seats (HB 3-4, 7-13) and reaches the rocket through a cable.
+    Parachute and rocket are stowed in the upper baggage bay aft of the main bulkhead and
+    leave upwards through an opening in the fuselage top, closed by a light lid that the
+    deployment lifts off (HB 7-13). Firing normally tears the straps that tie the
+    airframe to the parachute out of the roof; until then they lie hidden there and in
+    the baggage bay (HB 7-14).
     **Not found; still open.** Trainer uses: no deployment sound.
 78. **Other units with a sounder** (#821, sounds spec §13 question 10): the sources name no
     panel unit with its own speaker or buzzer besides the FLARM display (§3.8.4). The
