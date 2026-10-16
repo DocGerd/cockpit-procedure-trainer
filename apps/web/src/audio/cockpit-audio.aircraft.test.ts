@@ -133,6 +133,8 @@ const disconnects: (() => void)[] = [];
 let errors: MockInstance<Console['error']>;
 
 beforeEach(() => {
+  // Measuring a beep's nodes while the file is collected plays one through the recorder.
+  beepPlays.length = 0;
   errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
