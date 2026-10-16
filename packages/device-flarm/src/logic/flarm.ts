@@ -1,5 +1,6 @@
 import { defineDevice } from '@cpt/core';
 import type { Text } from '@cpt/core';
+import { beeps, cues } from './sounds';
 
 export const VOLUMES = ['loud', 'medium', 'quiet', 'silent'] as const;
 export type FlarmVolume = (typeof VOLUMES)[number];
@@ -103,8 +104,8 @@ export const flarmDevice = defineDevice({
     ),
     text('Unterdrücken der Warnungen (Doppeldruck)', 'Warning suppression (double push)'),
     text(
-      'Ton: die Lautstärke wird gemerkt, aber nie gehört',
-      'Sound: the volume level is kept but never heard',
+      'Ton: nur der Einschaltton und die Töne beim Lautstärke-Schritt; Tonhöhe, Länge und Pegelverhältnisse sind angenommen, Warntöne gibt es nicht',
+      'Sound: only the start-up beep and the volume-step tones, with assumed pitch, length and level ratios; no warning tones',
     ),
     text('Die beim Start gezeigten Softwareversionen', 'The software versions shown at start-up'),
     text(
@@ -128,6 +129,7 @@ export const flarmDevice = defineDevice({
     },
   },
   initial,
+  sounds: { beeps, cues },
   step(state: FlarmState, { controls, powered, inputs, dtMs }): FlarmState {
     const position = String(controls.mode);
     if (!powered) {

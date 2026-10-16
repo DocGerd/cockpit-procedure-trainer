@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent, RefObject } from 'react';
+import { useCockpitAudio } from '../audio';
 import { ChecklistAnnouncer } from '../checklist/ChecklistAnnouncer';
 import { ChecklistPane } from '../checklist/ChecklistPane';
 import { format, useMessages } from '../i18n';
@@ -123,6 +124,7 @@ export function TrainerLayout() {
     frame,
   );
   const showPane = !overlay || expanded;
+  useCockpitAudio();
 
   useEffect(() => {
     if (done) setExpanded(true);

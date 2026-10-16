@@ -60,8 +60,8 @@ export const FT_PER_MIN_PER_MS = 60 / 0.3048;
 const STARTER_LIMIT_MS = 10_000;
 const STARTER_COOLING_MS = 120_000;
 const WARM_OIL_C = 50;
-const IDLE_RPM = 1400;
-const MAX_CONTINUOUS_RPM = 5500;
+export const IDLE_RPM = 1400;
+export const MAX_CONTINUOUS_RPM = 5500;
 const GROUND_RPM: Record<Throttle, number> = {
   idle: IDLE_RPM,
   low: 2500,
@@ -72,7 +72,9 @@ const GROUND_RPM: Record<Throttle, number> = {
 const CLIMB_FULL_RPM = 4800;
 const BEST_CLIMB_KMH = 105;
 const LEVEL_FLIGHT_MAX_KMH = 240;
-const RELIGHT_MIN_RPM = 200;
+const RELIGHT_PROPELLER_RPM = 200;
+// Assumed (unverified), intake 9 questions 1 and 71.
+export const GEARBOX_RATIO = 2.273;
 const FLAP_DETENTS = [-12, 0, 15, 30, 35] as const;
 type FlapDetent = (typeof FLAP_DETENTS)[number];
 const LAST_FLAP_DETENT: FlapDetent = 35;
@@ -164,6 +166,8 @@ export const initial: CtslState = {
   },
 };
 
+const NO_FAILURES: ReadonlySet<CtslFailure> = new Set();
+
 const clamp = (value: number, low: number, high: number) => Math.min(high, Math.max(low, value));
 
 const approach = (value: number, target: number, dtMs: number, timeConstantMs: number) =>
@@ -202,7 +206,8 @@ const runningRpm = (
 const windmillRpm = (airspeedKmh: number, onGround: boolean) =>
   onGround ? 0 : Math.round(airspeedKmh * WINDMILL_RPM_PER_KMH);
 
-const power = (rpm: number) => clamp((rpm - IDLE_RPM) / (MAX_CONTINUOUS_RPM - IDLE_RPM), 0, 1);
+export const power = (rpm: number) =>
+  clamp((rpm - IDLE_RPM) / (MAX_CONTINUOUS_RPM - IDLE_RPM), 0, 1);
 
 type Gauges = Pick<CtslState, 'oilPressureBar' | 'oilTempC' | 'chtC'>;
 
@@ -259,6 +264,9 @@ const maxFlapSpeedBeyond = (angle: number) => {
   return MAX_FLAP_SPEED_KMH[next];
 };
 
+const extensionHeldBack = (angle: number, target: number | undefined, airspeedKmh: number) =>
+  target !== undefined && target > angle && airspeedKmh > maxFlapSpeedBeyond(angle);
+
 const stepFlaps = (
   flaps: CtslState['flaps'],
   powered: boolean,
@@ -269,10 +277,10 @@ const stepFlaps = (
   if (!powered || target === undefined || target === flaps.angle) {
     return { angle: flaps.angle, moving: false };
   }
-  const extending = target > flaps.angle;
-  if (extending && airspeedKmh > maxFlapSpeedBeyond(flaps.angle)) {
+  if (extensionHeldBack(flaps.angle, target, airspeedKmh)) {
     return { angle: flaps.angle, moving: true };
   }
+  const extending = target > flaps.angle;
   const travel = FLAP_DEG_PER_MS * dtMs;
   const angle = extending
     ? Math.min(target, flaps.angle + travel)
@@ -284,8 +292,20 @@ type CtslControlId = ControlId<typeof controls>;
 
 const at = (controls: Positions, id: CtslControlId) => controls[id];
 
-const on = (controls: Positions, id: CtslControlId, position: ControlPosition = 'on') =>
+export const on = (controls: Positions, id: CtslControlId, position: ControlPosition = 'on') =>
   at(controls, id) === position;
+
+/**
+ * Whether the flap motor turns. `moving` also holds while extension is held back above the flap
+ * speed, where the step's overload cut-out stops the motor; the selector gives the direction.
+ */
+export const flapMotorRunning = ({ controls, systems }: CtslTrainerState) =>
+  systems.flaps.moving &&
+  !extensionHeldBack(
+    systems.flaps.angle,
+    flapTarget(at(controls, 'flapSelector'), NO_FAILURES),
+    systems.airspeedKmh,
+  );
 
 export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
   state,
@@ -320,7 +340,8 @@ export const step: SystemsDefinition<CtslState, CtslFailure>['step'] = (
 
   const mixtureStarts =
     state.oilTempC >= WARM_OIL_C || (on(controls, 'choke') && throttle === 'idle');
-  const windmilling = !seized && windmillRpm(airspeedKmh, onGround) >= RELIGHT_MIN_RPM;
+  const windmilling =
+    !seized && windmillRpm(airspeedKmh, onGround) / GEARBOX_RATIO >= RELIGHT_PROPELLER_RPM;
   const engine = engineBlock.step(
     state.engine,
     {

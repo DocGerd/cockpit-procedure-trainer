@@ -48,7 +48,9 @@ export type FindingCode =
   | 'invalid-window'
   | 'invalid-check-response'
   | 'invalid-flow'
-  | 'invalid-memory';
+  | 'invalid-memory'
+  | 'invalid-tone'
+  | 'beep-without-tones';
 
 export type Finding = {
   readonly aircraftId: string;
@@ -481,6 +483,35 @@ export function validateAircraft(aircraft: Aircraft, context: ValidationContext 
         }
       }
     });
+  }
+
+  const isNumber = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value);
+  const isPositive = (value: unknown) => isNumber(value) && value > 0;
+
+  // Device is the erased type: a cast or hand-built device can hold anything here.
+  for (const device of registry) {
+    for (const [beepId, tones] of Object.entries(device.sounds?.beeps ?? {})) {
+      const id = `${device.id}.${beepId}`;
+      if (!Array.isArray(tones)) {
+        add('beep-without-tones', id, `the tones are not a list (${kindOf(tones)})`);
+        continue;
+      }
+      if (tones.length === 0) add('beep-without-tones', id, 'the beep has no tones');
+      tones.forEach((tone: unknown, index) => {
+        if (typeof tone !== 'object' || tone === null) {
+          add('invalid-tone', id, `tone ${index} is not a tone (${kindOf(tone)})`);
+          return;
+        }
+        const { hz, ms, pauseMs } = tone as Record<string, unknown>;
+        const flaw = (rule: string) => add('invalid-tone', id, `tone ${index} needs ${rule}`);
+        if (!isPositive(hz)) flaw('a finite, positive hz');
+        if (!isPositive(ms)) flaw('a finite, positive ms');
+        if (pauseMs !== undefined && !(isNumber(pauseMs) && pauseMs >= 0)) {
+          flaw('a finite pauseMs of at least 0');
+        }
+      });
+    }
   }
 
   const named = new Set<string>();

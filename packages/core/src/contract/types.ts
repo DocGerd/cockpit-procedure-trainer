@@ -102,6 +102,9 @@ export type ControlInterlock = {
   readonly holds: readonly string[];
 };
 
+export type ClickId =
+  'rocker' | 'detent' | 'notch' | 'key' | 'push-pull' | 'latch' | 'handle' | 'soft';
+
 type ControlBase = {
   readonly name: Text;
   readonly description: Text;
@@ -116,6 +119,11 @@ type ControlBase = {
   readonly appearance?: Appearance;
   /** Every lock that applies; a move is refused when any of them refuses it. */
   readonly interlock?: readonly ControlInterlock[];
+  /**
+   * The click the pilot's moves of this control make, a guard's moves included; without it the kind
+   * picks one, and `silent` makes none.
+   */
+  readonly click?: ClickId | 'silent';
 };
 
 export type ToggleControl = ControlBase & {
@@ -264,13 +272,39 @@ export type DeviceStepInput = {
   readonly dtMs: number;
 };
 
-export type DeviceDefinition<D, DC extends ControlRecord = ControlRecord> = {
+export type Tone = {
+  readonly hz: number;
+  readonly ms: number;
+  /** The silence after this tone. */
+  readonly pauseMs?: number;
+};
+
+export type SoundCue<B extends string = string> = {
+  readonly beep: B;
+  /** Multiplies the beep's gain; 1 when left out. */
+  readonly level?: number;
+};
+
+export type DeviceSounds<D, B extends string = string> = {
+  readonly beeps: { readonly [id in B]: readonly Tone[] };
+  // A property, not a method: method bivariance would let a spread device widen `D` to unknown.
+  readonly cues: (previous: D, next: D) => readonly SoundCue<NoInfer<B>>[];
+};
+
+export type DeviceCue = SoundCue & { readonly install: string; readonly device: string };
+
+export type DeviceDefinition<
+  D,
+  DC extends ControlRecord = ControlRecord,
+  B extends string = string,
+> = {
   readonly id: string;
   readonly manual: Text;
   readonly notModelled: readonly Text[];
   readonly controls: DC & ControlRules<DC>;
   readonly initial: D;
   step(state: D, input: DeviceStepInput): D;
+  readonly sounds?: DeviceSounds<D, B>;
 };
 
 export type Device = DeviceDefinition<unknown>;
@@ -490,6 +524,14 @@ export type PhaseRecord<D, P extends string> = string extends P
   ? { readonly [id: string]: D }
   : { readonly [K in P]: K extends PhaseId ? D : never } & { readonly [K in PhaseId]: D };
 
+export type SoundDefinition<S> = {
+  readonly voice: string;
+  readonly options?: JsonObject;
+  readonly inputs?: { readonly [name: string]: (state: TrainerState<S>) => number };
+  /** Inputs that follow the phase set point: they jump on a carried phase change. */
+  readonly carried?: readonly string[];
+};
+
 export type AircraftDefinition<
   S,
   CT extends ControlRecord,
@@ -511,6 +553,8 @@ export type AircraftDefinition<
   readonly engineRunning?: Condition<S>;
   /** Images laid over the outside view while their condition holds, such as smoke from the engine. */
   readonly outsideCues?: { readonly [id: string]: OutsideCue<S> };
+  /** Voices by id; panel-kit implements them. */
+  readonly sounds?: { readonly [id: string]: SoundDefinition<S> };
   readonly failures: { readonly [K in F]: FailureDefinition<BreakerId<NoInfer<CT>>> };
   readonly phases: PhaseRecord<PhaseDefinition<S, CT>, P>;
   readonly procedures: {

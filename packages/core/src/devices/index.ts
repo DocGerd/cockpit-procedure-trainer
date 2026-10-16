@@ -1,3 +1,4 @@
+export { deviceCues } from './device-cues';
 export { defineDevice } from './define-device';
 export {
   deviceControls,

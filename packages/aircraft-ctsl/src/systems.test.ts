@@ -6,7 +6,14 @@ import { CHT_RED_LINE_C } from './cht-limits';
 import { ctslAircraft } from './index';
 import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
-import { indicatedAltitudeFt, initial, pressureAltitudeFt, runningFrom, step } from './systems';
+import {
+  flapMotorRunning,
+  indicatedAltitudeFt,
+  initial,
+  pressureAltitudeFt,
+  runningFrom,
+  step,
+} from './systems';
 import type { CtslState, CtslTrainerState } from './systems';
 import { testDevices as devices } from './test-devices';
 
@@ -17,6 +24,7 @@ const OIL_TEMP_RED_LINE_C = 130;
 const STARTER_LIMIT_S = 10;
 const STARTER_COOLING_S = 120;
 const KMH_PER_KT = 1.852;
+const RELIGHT_ENGINE_RPM = 455;
 const END_SWITCH_OVERTRAVEL_MAX_DEG = 5;
 
 const sessionAt = (phase: PhaseId) => createSession(ctslAircraft, { devices, phase });
@@ -58,7 +66,10 @@ const coldStart = () => {
 
 type Rig = {
   state(): CtslState;
+  trainer(): CtslTrainerState;
   set(id: string, position: ControlPosition): void;
+  setEnvironment(environment: Environment): void;
+  setFailures(failures: readonly CtslFailure[]): void;
   advance(seconds: number): void;
   secondsUntil(done: (state: CtslState) => boolean, limitS: number): number;
 };
@@ -81,10 +92,18 @@ const rig = (
   };
   return {
     state: () => runtime.state(),
+    trainer: () => ({
+      controls: { ...controls },
+      guards: {},
+      systems: runtime.state(),
+      devices: {},
+    }),
     set(id, position) {
       controls[id] = position;
       runtime.onControlsChanged({ ...controls });
     },
+    setEnvironment: (next) => runtime.setEnvironment(next),
+    setFailures: (next) => runtime.setFailures(new Set(next)),
     advance,
     secondsUntil(done, limitS) {
       for (let elapsed = 0; elapsed <= limitS * 1000; elapsed += STEP_MS) {
@@ -405,13 +424,43 @@ describe('engine running', () => {
     expect(Math.abs(leftDrop - rightDrop)).toBeLessThanOrEqual(MAX_CIRCUIT_DROP_DIFFERENCE_RPM);
   });
 
-  it('relights a windmilling engine in flight without the starter', () => {
+  it('relights a windmilling engine above the converted propeller threshold without the starter', () => {
+    const fast = rig('cruise', [], { airspeedKt: 130, altitudeFt: 2500, onGround: false });
+    fast.set('ignition', 'off');
+    fast.advance(1);
+    expect(fast.state().engine.running).toBe(false);
+    expect(fast.state().rpm).toBeGreaterThanOrEqual(RELIGHT_ENGINE_RPM);
+    fast.set('ignition', 'both');
+    fast.advance(3);
+    expect(fast.state().engine.running).toBe(true);
+  });
+
+  it.each([
+    { kmh: 227, relights: false },
+    { kmh: 228, relights: true },
+  ])('windmilling at $kmh km/h relights: $relights', ({ kmh, relights }) => {
+    const r = rig('cruise', [], {
+      airspeedKt: kmh / KMH_PER_KT,
+      altitudeFt: 2500,
+      onGround: false,
+    });
+    r.set('ignition', 'off');
+    r.advance(1);
+    expect(r.state().rpm >= RELIGHT_ENGINE_RPM).toBe(relights);
+    r.set('ignition', 'both');
+    r.advance(3);
+    expect(r.state().engine.running).toBe(relights);
+  });
+
+  it('does not relight at cruise speed, where the propeller turns slower than 200 rpm', () => {
     const cruise = rig('cruise');
     cruise.set('ignition', 'off');
     cruise.advance(1);
-    expect(cruise.state().engine.running).toBe(false);
-    expect(cruise.state().rpm).toBeGreaterThanOrEqual(200);
+    expect(cruise.state().rpm).toBeLessThan(RELIGHT_ENGINE_RPM);
     cruise.set('ignition', 'both');
+    cruise.advance(3);
+    expect(cruise.state().engine.running).toBe(false);
+    cruise.set('ignition', 'start');
     cruise.advance(3);
     expect(cruise.state().engine.running).toBe(true);
   });
@@ -420,7 +469,7 @@ describe('engine running', () => {
     const slow = rig('approach', [], { airspeedKt: 40, altitudeFt: 500, onGround: false });
     slow.set('ignition', 'off');
     slow.advance(1);
-    expect(slow.state().rpm).toBeLessThan(200);
+    expect(slow.state().rpm).toBeLessThan(RELIGHT_ENGINE_RPM);
     slow.set('ignition', 'both');
     slow.advance(3);
     expect(slow.state().engine.running).toBe(false);
@@ -989,5 +1038,131 @@ describe('pressureAltitudeFt', () => {
     expect(pressureAltitudeFt(2500, 1013)).toBe(2815);
     expect(pressureAltitudeFt(2500, 1012)).toBe(2842);
     expect(pressureAltitudeFt(2500, 1014)).toBe(2788);
+  });
+});
+
+describe('flapMotorRunning', () => {
+  const FLAP_SPEED_BEYOND_ZERO_KMH = 148;
+  const trainerAt = (
+    flaps: CtslState['flaps'],
+    selector: string,
+    airspeedKmh: number,
+  ): CtslTrainerState => ({
+    controls: { flapSelector: selector },
+    guards: {},
+    systems: { ...initial, flaps, airspeedKmh },
+    devices: {},
+  });
+
+  it('is true while the flaps travel', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 5, moving: true }, '15', 80))).toBe(true);
+    expect(flapMotorRunning(trainerAt({ angle: 20, moving: true }, '0', 80))).toBe(true);
+  });
+
+  it('is false at rest and without power', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 15, moving: false }, '15', 80))).toBe(false);
+    const session = sessionAt('parking');
+    expect(session.set('flapSelector', '15').applied).toBe(true);
+    advanceSeconds(session, 1);
+    expect(flapMotorRunning(trainerState(session))).toBe(false);
+  });
+
+  it('is false while extension is held back above the flap speed beyond the angle', () => {
+    const held = { angle: 0, moving: true };
+    expect(flapMotorRunning(trainerAt(held, '15', FLAP_SPEED_BEYOND_ZERO_KMH + 1))).toBe(false);
+    expect(flapMotorRunning(trainerAt(held, '15', FLAP_SPEED_BEYOND_ZERO_KMH))).toBe(true);
+    expect(flapMotorRunning(trainerAt(held, 'override-down', 400))).toBe(false);
+  });
+
+  it.each([
+    ['a mid-travel angle', 7, '30', 148],
+    ['the last detent, toward the override', 35, 'override-down', 115],
+    ['the override past the up end, back to -12°', -14, '-12', 300],
+  ])('reads the flap speed beyond %s', (_, angle, selector, limitKmh) => {
+    const flaps = { angle, moving: true };
+    expect(flapMotorRunning(trainerAt(flaps, selector, limitKmh))).toBe(true);
+    expect(flapMotorRunning(trainerAt(flaps, selector, limitKmh + 1))).toBe(false);
+  });
+
+  it('turns exactly when the next step moves the flaps, failed control included', () => {
+    const angles = [-14, -12, -5, 0, 7, 15, 30, 35, 37];
+    const selectors = ['-12', '0', '15', '30', '35', 'override-up', 'override-down'];
+    const speedsKmh = [0, 114, 116, 147, 149, 183, 185, 299, 301];
+    const failureSets: readonly CtslFailure[][] = [[], ['flapControlFailure']];
+    const seen = { turning: 0, heldBack: 0 };
+    for (const angle of angles) {
+      for (const flapSelector of selectors) {
+        for (const airspeedKmh of speedsKmh) {
+          for (const failed of failureSets) {
+            const controls = { ...phases.cruise.entry.controls, flapSelector };
+            const input = {
+              controls,
+              failures: new Set(failed),
+              environment: {
+                airspeedKt: airspeedKmh / KMH_PER_KT,
+                altitudeFt: 2500,
+                onGround: false,
+              },
+              dtMs: STEP_MS,
+            };
+            const before = step({ ...initial, flaps: { angle, moving: true } }, input);
+            const after = step(before, input);
+            const turning = flapMotorRunning({
+              controls,
+              guards: {},
+              systems: before,
+              devices: {},
+            });
+            expect(turning, `${angle}° ${flapSelector} ${airspeedKmh} km/h [${failed}]`).toBe(
+              after.flaps.angle !== before.flaps.angle,
+            );
+            if (turning) seen.turning += 1;
+            else if (before.flaps.moving) seen.heldBack += 1;
+          }
+        }
+      }
+    }
+    expect(seen.turning).toBeGreaterThan(0);
+    expect(seen.heldBack).toBeGreaterThan(0);
+  });
+
+  it('turns again once the airspeed falls below the flap speed', () => {
+    const cruise = rig('cruise');
+    cruise.set('flapSelector', '0');
+    cruise.advance(1);
+    expect(flapMotorRunning(cruise.trainer())).toBe(false);
+    cruise.setEnvironment(phases.approach.environment);
+    cruise.advance(1);
+    expect(flapMotorRunning(cruise.trainer())).toBe(true);
+    cruise.advance(10);
+    expect(cruise.state().flaps).toEqual({ angle: 0, moving: false });
+    expect(flapMotorRunning(cruise.trainer())).toBe(false);
+  });
+
+  it('stops when the flap control fails mid-travel on a detent', () => {
+    const approach = rig('approach');
+    approach.set('flapSelector', '30');
+    approach.advance(1);
+    expect(flapMotorRunning(approach.trainer())).toBe(true);
+    approach.setFailures(['flapControlFailure']);
+    approach.advance(STEP_MS / 1000);
+    expect(flapMotorRunning(approach.trainer())).toBe(false);
+  });
+
+  it('stays true when retracting fast, which the flap speed does not hold back', () => {
+    expect(flapMotorRunning(trainerAt({ angle: 15, moving: true }, '0', 250))).toBe(true);
+  });
+
+  it('agrees with the step through the cut-out', () => {
+    const cruise = sessionAt('cruise');
+    cruise.set('flapSelector', '0');
+    advanceSeconds(cruise, 5);
+    expect(systems(cruise).flaps.moving).toBe(true);
+    expect(flapMotorRunning(trainerState(cruise))).toBe(false);
+    const approach = sessionAt('approach');
+    approach.set('flapSelector', '30');
+    advanceSeconds(approach, 1);
+    expect(systems(approach).flaps.moving).toBe(true);
+    expect(flapMotorRunning(trainerState(approach))).toBe(true);
   });
 });

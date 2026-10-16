@@ -27,8 +27,10 @@ architecture that lets aircraft be added.
 ### Out of scope
 
 - Flight physics, navigation, scoring or exam mode.
-- Avionics behaviour that needs the outside world: audio, reception,
-  navigation databases, moving maps (§4.9).
+- Avionics behaviour that needs the outside world: reception, radio and
+  intercom audio, navigation databases, moving maps (§4.9). Synthesised
+  cockpit and device sounds are in scope, except GPS sounds and alarms and
+  FLARM traffic tones (ADR-0003, `2026-10-15-cockpit-sounds-design.md`).
 - Pilot accounts, a backend, instructor dashboards.
 - Adding aircraft by any means other than code (no editor, no upload).
 - Phones as a target device.
@@ -107,6 +109,12 @@ list, as a closed fuel valve over the key slot keeps the key at OFF. Only pilot
 moves are refused (result `locked`); phase entries and failures move controls
 freely. A rotary may also declare positions reachable only from others
 (`onlyFrom`), as the key comes out only at OFF.
+
+Any control may declare a `click`, the sound the pilot's moves of it make
+(§4.10): one of the click ids (`rocker`, `detent`, `notch`, `key`, `push-pull`,
+`latch`, `handle`, `soft`), or `silent` for none. A guard's moves make the same
+click. Without it the control's kind picks a click, or silence for a continuous
+lever. Spring-backs, system moves and refused moves are silent.
 
 ### 4.2 Indicators
 
@@ -333,13 +341,50 @@ version it always returns mirror, which keeps in-slot operation on large
 viewports possible later.
 
 Scope boundary: everything the pilot does with the unit's knobs and buttons
-works; nothing that needs the outside world does. No audio, no reception, no
-navigation database, no map data. The CTSL's GPS (the aera 500) has a simulated
-position fix instead: seeded from line-up, or found after a short search once it is
-powered, with ground speed and track taken from the airspeed and heading and a
-schematic track-up map. The CTSL's FLARM display finds its own fix the same way;
-neither shows traffic, map data or a database. Each device states the manual revision its
-logic follows and lists the functions it does not model.
+works; nothing that needs the outside world does. No reception, no radio or
+intercom audio, no navigation database, no map data. A unit's own start-up and
+key tones that the intake records and the sounds design selects are synthesised;
+GPS sounds and alarms and FLARM traffic tones stay out
+(`2026-10-15-cockpit-sounds-design.md`). The CTSL's GPS (the aera 500) has a
+simulated position fix instead: seeded from line-up, or found after a short
+search once it is powered, with ground speed and track taken from the airspeed
+and heading and a schematic track-up map. The CTSL's FLARM display finds its own
+fix the same way; neither shows traffic, map data or a database. Each device
+states the manual revision its logic follows and lists the functions it does not
+model.
+
+### 4.10 Sounds
+
+Sounds are optional, and the contract version does not change. A device that
+declares none makes no sound of its own; an aircraft that declares none has no
+voices, while its controls still click (§4.1). Design:
+`2026-10-15-cockpit-sounds-design.md`.
+The contract holds data and pure functions only, so core and the packages use
+no audio API; panel-kit implements the voices and the app plays them.
+
+- **Aircraft `sounds`**: a record of voices by id. Each names a panel-kit
+  `voice`, may pass `options` (JSON), and may read `inputs`, pure selectors
+  from the trainer state to a number (a boolean reads as 0 or 1). `carried`
+  names the inputs that follow the phase set point and so jump on a carried
+  phase change. A voice silences itself from its inputs: there is no on
+  condition. The voice ids and options are checked outside core, since the
+  voices live outside core.
+- **Device `sounds`**: `{ beeps, cues }`. `beeps` maps a beep id to its tones,
+  each `{ hz, ms, pauseMs? }`, the silence after the tone being `pauseMs`.
+  `cues(previous, next)` is a pure function of the device's own `state` before
+  and after a change, not of the install's `on` flag; it returns the beeps to
+  sound, each `{ beep, level? }`, with `level`, finite and not negative,
+  multiplying the gain (1 when left out). A cue naming an undeclared beep does
+  not compile.
+- **`deviceCues(aircraft, registry, previous, next)`** (core) walks the
+  aircraft's installs in their declared order, passes each install's previous
+  and next device `state` to its device's `cues`, and tags every cue with the
+  install id and the device id. Both state sets come from one session of that
+  aircraft, and an install naming an unknown device throws, as in the runtime. A
+  device without `sounds` gives no cue, nor does an install missing from either
+  state set: there is no change to diff, and `stepDevices` likewise starts a
+  missing state from the device's `initial`. The app plays the cues at each
+  state notification and contains a `cues` that throws (sounds design §6.3).
 
 ## 5. Runtime
 
@@ -461,12 +506,17 @@ Outside-view strip on top, the cockpit below, checklist pane at the side
 (collapsible on narrow screens). On desktop the cockpit shows every view at
 once, with the device dock under the panel; where that would make any view
 too small to read and operate, it falls back to one view at a time with view
-tabs and the dock below the tab panel. Header: aircraft, procedure, mode, phase, language, theme.
+tabs and the dock below the tab panel. Header: aircraft, procedure, mode,
+phase, language, sound (a button opening a popover with an on/off switch and a
+volume slider), theme.
 
 ### Persistence
 
 `localStorage` holds language, theme, last aircraft, Practice's "Hide upcoming
-items" option (`cpt.recall`) and a small run history only.
+items" option (`cpt.recall`), the sound setting (`cpt.sound`, `on` or `off`),
+the volume (`cpt.volume`, an integer 0 to 100) and a small run history only.
+Sound defaults to on at a volume below full; an invalid or unreadable sound
+setting or volume reads as its default.
 The history keeps, per aircraft and procedure, the last run (run mode, deviation
 count, date) and the best Practice run (Guided shows the next control, so it
 never counts as best), so the pilot and an instructor see improvement across
@@ -548,6 +598,9 @@ parallel.
   `engineRunning` (`running-image-without-engine`), and `engineRunning`
   requires `imageRunning` on every phase (`phase-without-running-image`); a
   cockpit arrangement needs a well-formed `dock` cell (`invalid-cockpit-dock`).
+  For every device in the validation context, a tone's `hz` and `ms` are finite
+  and positive and its `pauseMs`, when given, finite and not negative
+  (`invalid-tone`), and a beep has at least one tone (`beep-without-tones`).
 - **Runtime**: an error boundary around the trainer shows a readable message and
   a reset. A missing view or outside-view image falls back to a labelled placeholder and
   a missing artwork image to the generic widget, rather than a broken panel. The generic indicator widgets and the indicator placeholder carry their
@@ -562,6 +615,7 @@ parallel.
 | Aircraft scenarios (Vitest) | per aircraft: wrong-operation cases such as starter without magnetos |
 | Procedure walk-through (Vitest, generic) | for every aircraft and every procedure, emergencies included: starting from the phase entry snapshot, performing each item completes the procedure with no deviations, and a normal procedure's flow is done in both the listed and the reversed order; the CTSL full flight does the same with each leg from the cockpit the last one left |
 | Browser (Playwright) | pick aircraft, run one procedure in Guided and one in Practice, switch language, offline reload; cockpit layout at 1920x1080 and 3840x2160; placards and lettering at the existing tablet and desktop sizes and also at 1920x1080 and 3840x2160 |
+| Audio (Vitest, Playwright) | engine lifecycle, click mapping, the voices and the driver against a fake `AudioContext`; without a usable audio context, or after an audio error, the trainer works and stays silent; the sound and volume settings fall back to their defaults on garbage or unreadable storage and survive a reload; the header control's popover; the E2E fixture seeds sound off, a browser check with sound on sees panel presses schedule clicks on the running context, and no check asserts audible output |
 | Manual | real-browser pass at 1920x1080 and 3840x2160 for every UI ticket, plus one tablet size to confirm it stays usable |
 
 ## 10. Project setup

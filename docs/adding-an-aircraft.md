@@ -49,7 +49,7 @@ Add `"@cpt/aircraft-<id>": "workspace:*"` to `dependencies` in
 workspace entry. Ids must be unique in the registry.
 
 From then on every registered aircraft is checked by `apps/web`'s own tests
-(`aircraft-validation.test.ts`, `aircraft-widgets.test.ts`,
+(`aircraft-validation.test.ts`, `aircraft-widgets.test.ts`, `aircraft-sounds.test.ts`,
 `procedure-walkthrough.test.ts`), with no change to them.
 
 ## The contract
@@ -64,6 +64,7 @@ so their literal positions survive the move, as `src/controls.ts` in the demo do
       id, name, handbookRevision,
       controls, indicators, views,
       devices,            // optional, see below
+      sounds,             // optional, see below
       systems, failures, phases, procedures,
     })
 
@@ -74,8 +75,9 @@ demo wraps it as `text(de, en)` in `src/text.ts`.
 ### Controls
 
 `controls` maps an id to a definition with a `kind`, a `name` and `description`
-(both `Text`), an `initial` position, an optional `appearance` and an optional
-`placard` and `legends` (see [Printed labels](#printed-labels)).
+(both `Text`), an `initial` position, an optional `appearance`, an optional
+`placard` and `legends` (see [Printed labels](#printed-labels)) and an optional
+`click`, described below.
 
 | `kind`      | `positions`                       | Notes                                            |
 | ----------- | --------------------------------- | ------------------------------------------------ |
@@ -102,6 +104,18 @@ OFF only come out (`['off', 'out']`); open, it keeps the key in
 (`['off', 'left', 'right', 'both', 'start']`). Only pilot moves are refused
 (result `locked`), and the app frame names the holding control; phase entries and
 failures move freely. The other control must be a different one.
+
+A control makes a click when the pilot moves it, picked by its kind. It names
+its own `click`, a `ClickId` from `@cpt/core` or `silent` for none, only where
+the kind would give a sound the real control does not make; where the intake does
+not record the real control's own sound, it names the neutral, low `soft` rather
+than inventing one. Every other control keeps the kind's click. The CTSL's
+throttle and trim are `silent` (their listed positions are trainer detents, not
+notches), as is its brake (a hydraulic lever, not a key); its fuel valve and
+parking brake valve (a slide lever and a valve, not rockers) are `soft`, and so
+are its choke (a plain slot lever) and carb heat (a provisional pull knob), whose
+sounds the intake does not record. A `click` on a guarded control covers every
+move, the guard's included.
 
 ### Indicators
 
@@ -311,6 +325,48 @@ An aircraft installs an avionics unit through the optional `devices` field; see
 `docs/adding-a-device.md` for the install shape, the `<installId>.<controlId>`
 targets, device entry positions and device entry state. The demo installs a COM radio (`radio`) and a transponder (`xpdr`).
 
+### Sounds
+
+Every aircraft gets the control clicks (see Controls). Engine, airflow and other
+continuous sounds come from the optional `sounds` field, which maps a sound id to
+`{ voice, options?, inputs?, carried? }`. Like a widget, a voice is named by its id
+and implemented in `@cpt/panel-kit` (its `voiceFactories`), so the aircraft holds no
+audio code. A sound no voice makes needs a new voice in panel-kit, not code in the
+aircraft or the app.
+
+| `voice`          | Inputs                      | Options                                                                                                                                                                                                                                                              |
+| ---------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `piston-engine`  | `rpm`, `running`, `starter` | `cylinders`, `idleRpm` and `maxContinuousRpm` required; `crankingRpm`, the time constants `throttleUpMs`, `throttleDownMs`, `catchMs`, `runDownMs` and `windMs`, and the facts `gearboxRatio` (engine rpm over propeller rpm) and `bladeCount` (an integer) optional |
+| `airflow`        | `airspeedKmh`               | `referenceKmh` required                                                                                                                                                                                                                                              |
+| `electric-motor` | `driving`                   | `whineHz` and `fadeMs` optional                                                                                                                                                                                                                                      |
+
+`inputs` maps each input name to a selector over the trainer state that returns a
+number; a condition returns 1 or 0. A voice has no on switch: it falls silent from
+its inputs, as the engine does with no rpm and the flap motor once `driving` is 0.
+`rpm` is the engine rpm the tachometer reads, `running` whether the engine fires
+and `starter` whether the starter turns. The names are the voice's own, as the table
+gives them: a voice ignores a name it does not read and reads a missing one as 0,
+without an error.
+
+`options` carry the aircraft's facts, taken from the intake: `referenceKmh` is the
+airspeed red line, and the engine's `idleRpm` and `maxContinuousRpm` come from the
+systems' own constants, not copies. An optional value left out keeps the voice's
+default, which is tuned by ear and is no aircraft fact; set one only where the
+intake gives it. The engine's blade-pass tone is built only when both `gearboxRatio`
+and `bladeCount` are given; one alone is valid and builds no tone.
+
+`carried` lists the inputs that follow the phase's set point rather than the
+pilot, such as `rpm` and `airspeedKmh`. When a full flight carries the cockpit into
+the next phase they take the new value at once, while the other inputs keep their
+fades and edges, so a flap motor still running fades out. A reset (a phase jump, a
+retry, a leg restart) sets every input at once.
+
+`apps/web/src/aircraft-sounds.test.ts` gates every registered aircraft: each
+`voice` is a key of `voiceFactories`, the voice's `problems(options)` is empty,
+every `carried` name is one of the sound's `inputs`, and every selector returns a
+finite number on every phase entry state, as a session loads it. The CTSL's `src/sounds.ts` declares an engine, airflow and the flap
+motor; the demo declares no sounds and plays the control clicks only.
+
 ## Appearance and artwork
 
 A control or indicator names its `appearance`; it never contains rendering code.
@@ -439,8 +495,9 @@ codes are `unknown-target`, `unplaced-control`, `unplaced-indicator`,
 `undeclared-failure`, `unknown-position`, `inexact-lever-target`, `unknown-device`,
 `unknown-device-control`, `unknown-device-state`, `unplaced-device`, `invalid-install-id`,
 `control-in-device-namespace`, `invalid-view-size`, `placement-outside-view`,
-`artwork-glass-size`, `invalid-check-response`, `invalid-flow`, `invalid-memory` and the
-`cockpit` codes above. `formatFinding` prints one.
+`artwork-glass-size`, `invalid-needles`, `unknown-window`, `invalid-window`,
+`invalid-check-response`, `invalid-flow`, `invalid-memory`,
+`invalid-tone`, `beep-without-tones` and the `cockpit` codes above. `formatFinding` prints one.
 
 `walkProcedure(aircraft, procedureId, { devices })` plays a procedure through a real
 session from its `startPhase` snapshot, performing each item: it sets or presses
