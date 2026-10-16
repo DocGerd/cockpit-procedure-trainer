@@ -22,6 +22,7 @@ For maintainers:
 - **Panel-kit audio** (PR #835, PR #843, PR #851, PR #846, PR #852, PR #875): the audio engine lifecycle with a fake context, click synthesis, the beep voice, the piston-engine, airflow and electric-motor voices, and the voice options `gearboxRatio` and `bladeCount`.
 - **Driver and settings** (PR #831, PR #845, PR #858, PR #862): validated sound and volume keys, `AudioProvider` with the e2e sound-off seed, and `connectCockpitAudio` with voices, device cues and baselines.
 - **Checks and docs** (PR #864, PR #868, PR #860, PR #856, PR #857, PR #880): an aircraft sounds check, A/B perf arms, a cockpit-audio test over the real CTSL and demo, and the step-2 documentation.
+- **Agent docs** (PR #798 for #797, PR #869 for #808): the M20 and M21 session learnings recorded in `CLAUDE.md`.
 - **Sound-facts intake** (PR #872 for #821, PR #878 for #873, PR #880 for #879): the spec's wave-2 questions answered in `docs/aircraft/ctsl-intake.md` from the handbook and photos (intake §9 questions 71 to 79); PR #877 for #823 applies the engine facts to the CTSL.
 
 Closed without a change: #825 to #828 (detent clicks, ELT buzzer, rescue deployment, flap end stop) as not planned, #834 and #848 as done, #855 as a duplicate of #866. #824 (FLARM beep facts) moved out of M21.
@@ -49,7 +50,7 @@ Closed without a change: #825 to #828 (detent clicks, ELT buzzer, rescue deploym
 10. **The relight fix shipped in M21** (PR #876 for #836; the plan had deferred it to its own issue). Relight compares propeller rpm, so a windmilling relight now needs about 228 km/h, above cruise and best glide: the starter is the normal restart in a glide. The windmill rate is unchanged (scope limit); follow-up #874.
 11. **Intake polish** (PR #878 for #873, PR #880 for #879): questions 76 and 77 reworded against the handbook, and the engine's cylinder count and cycle recorded as handbook facts everywhere. ADR-0003's general-knowledge bullet was edited in place rather than by a dated note.
 12. **Release review fixes**: PR #884 re-syncs the voices when the engine turns live (the listener tracks `live()` itself, so a mute and unmute with no session frame still jumps); PR #883 moves the engine into its own context, so the volume slider no longer re-renders the trainer.
-13. **Release review process**: this session's PRs #872 to #884 each ran the pr-review-toolkit agents inside the wave workflow (the records are in the session, not on the PRs). A cumulative intake-checker pass over `v0.21.0..develop` aircraft and device content passed with non-blocking traceability notes (a follow-up issue is to come). The T10 ui-verifier pass is recorded on #810.
+13. **Release review process**: this session's PRs #872 to #884 each ran the pr-review-toolkit agents inside the wave workflow (the records are in the session, not on the PRs). A cumulative intake-checker pass over `v0.21.0..develop` aircraft and device content passed with non-blocking traceability notes (a follow-up issue is to come). The release-head ui-verifier pass is VERDICT: PASS with no blocking findings, on a production build of `origin/develop` 1351759 so the strict CSP applied ([recorded on #810](https://github.com/DocGerd/cockpit-procedure-trainer/issues/810#issuecomment-6218910434)).
 
 ## Open questions for the owner
 
@@ -60,6 +61,7 @@ Closed without a change: #825 to #828 (detent clicks, ELT buzzer, rescue deploym
 5. **Rescue handle location wording**: HB 3-4 puts it on the centre console, HB 7-13 on the main bulkhead; the intake now says "between the seats".
 6. **ADR-0003's general-knowledge bullet** was edited in place by PR #880 rather than by a dated note. Acceptable?
 7. **Local e2e failure**: `view-checklist.spec.ts:148` (tablet drawer closed) fails in full local runs and passes in CI (Refs #794).
+8. **Non-blocking ui-verifier observations**: a press of the demo aircraft's COM radio makes no click (not investigated, probably no sound mapping for that unit), and on the 1024 px picker the open sound popover covers the Normal 7 procedure-tab rail until an outside tap.
 
 ## How to verify
 
