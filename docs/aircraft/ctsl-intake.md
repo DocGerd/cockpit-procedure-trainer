@@ -38,6 +38,10 @@ checklist labels, in parentheses. "HB 4-3" means handbook chapter 4, page 3.
    and the name no longer says "representative panel"; the rest stands.
 3. **Engine (912 UL or ULS) and rescue system are unknown.** The most conservative
    limits apply (§4) and each is an open question (§9).
+   **Superseded in part (#892, §9 question 1):** the owner states a 912 UL with the
+   standard gearbox, so the engine is no longer unknown. The rescue system stays open:
+   the photo survey shows a BRS, model not legible (§9 question 2). The CHT, oil
+   temperature and fuel values of §4.2 follow D-MPGO's own dials and placards.
 4. **Handbook contradictions:** the conservative value or step is used (§8) and
    each is listed for the instructor.
 5. **Checklists in the club's own words**, English with German control labels as
@@ -2996,10 +3000,10 @@ size) drew the altimeter 0.89, the VSI 0.89, the tach 0.95 and the engine gauges
 
 ## 4. Limits and values used by the trainer
 
-Conservative choices per owner decisions 3 and 4, and owner rulings of §2a, are
-in **bold**. Phase presets
-feed `Environment` in knots and feet; the conversions are given so no implementer
-converts. Altitudes are above the field; the trainer models no real aerodrome. One
+Conservative choices per owner decision 4, values from D-MPGO's own dials and
+placards (the justification that replaced §2 decision 3 for the engine, §4.2), and
+owner rulings of §2a, are in **bold**. Phase presets feed `Environment` in knots and feet; the conversions are
+given so no implementer converts. Altitudes are above the field; the trainer models no real aerodrome. One
 exception: the altimeter adds the home aerodrome's elevation to the height above the
 field (§3.10.2, §9 questions 46 and 48); presets and systems keep heights above the
 field.
@@ -3036,19 +3040,29 @@ Crosswind limit 30 km/h with flaps 0°, 20 km/h with 35°. Bank at most 60°; no
 turns steeper than 30° below 100 km/h. Load factors +4/−2 g up to VA. Day VFR, no
 icing, no aerobatics, no intentional spins.
 
-### 4.2 Engine (Rotax 912, variant unknown)
+### 4.2 Engine (Rotax 912 UL)
 
-| Limit                           | UL            | ULS      | Trainer value                                               |
-| ------------------------------- | ------------- | -------- | ----------------------------------------------------------- |
-| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                                             |
-| Max continuous rpm              | 5500          | 5500     | 5500                                                        |
-| Idle                            | ~1400         | ~1400    | 1400                                                        |
-| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§8)                         |
-| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**                                                  |
-| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)                             |
-| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold                         |
-| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**                                                |
-| Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **assumed (unverified)** (2.43 : 1 optional, §9) |
+| Limit                           | UL            | ULS      | Trainer value                                                           |
+| ------------------------------- | ------------- | -------- | ----------------------------------------------------------------------- |
+| Max take-off rpm (5 min)        | 5800          | 5800     | 5800 (red line)                                                         |
+| Max continuous rpm              | 5500          | 5500     | 5500                                                                    |
+| Idle                            | ~1400         | ~1400    | 1400                                                                    |
+| CHT max (coolant, hottest head) | 150 °C        | 135 °C   | **120 °C**, the gauge red line (§3.10.6, §8)                            |
+| Oil temperature max             | 140 °C        | 130 °C   | **130 °C**, the gauge red line (§3.10.7, §8)                            |
+| Oil temperature min, ideal      | 50, 90–110 °C | same     | min **51 °C** for take-off (§8)                                         |
+| Oil pressure normal / min       | 2–5 / 0.8 bar | same     | same; up to 7 bar briefly when cold                                     |
+| Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**, the wing-root fuel placards (§3.7)                        |
+| Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **owner-stated**, "as far as I know" (2.43 : 1 optional, §9) |
+
+D-MPGO's engine is the UL (owner-stated, §9 question 1). Where the UL's figures differ from
+the trainer value, the trainer keeps the lower mark D-MPGO itself carries: the CHT
+and oil temperature red lines of its gauges (UL limits 150 °C and 140 °C). The fuel
+value is the mogas figure of the wing-root placards, RON 95 (the placard also lists
+100LL and UL91, §3.7), where the UL allows RON 90. The rpm limits, idle, the oil temperature
+minimum and the oil pressures are the same for both variants. The UL's lower power
+(80 PS against 100 PS, HB 1-3, 7-4) changes no trainer value: the trainer's
+`power(rpm)` in `packages/aircraft-ctsl/src/systems.ts` depends on rpm alone. The climb, level-flight and range figures of
+§4.1 come from HB 5-1, which assumes a UL. So no trainer value changes for the UL.
 
 Both variants (HB 1-3, 3-7, 7-4): a four-cylinder four-stroke with liquid-cooled heads,
 two carburettors, dual ignition and an electric starter. Trainer: the CHT gauge reads
@@ -3069,7 +3083,7 @@ Ignition check (HB 4-3): at 4000 rpm, each single circuit drops at most 300 rpm;
 the two drops differ by at most 120 rpm. A windmilling engine relights from about
 200 propeller rpm; below that, use the starter (HB 3-5). In engine rpm that is about
 455 with the standard gearbox, about 486 with the optional one (derived, §9 question
-71; the standard gearbox is assumed (unverified), question 1).
+71; the standard gearbox is owner-stated, question 1).
 
 Propeller: ground-adjustable (**assumed (unverified)**, §9 question 11), set at the factory to about 5000 rpm static, 4800 in
 the climb and 5500 in level flight at full throttle, so it cannot overspeed. No
@@ -3303,7 +3317,7 @@ Above 100 m: restart (E4).
 
 **E4 Restart in flight (HB 3-1, 3-5).** Fuel valve open; fuel visible in both tanks
 _(confirm)_ (if one shows empty, keep that wing up); ignition both; if the prop
-turns slower than about 200 propeller rpm (about 455 engine rpm, assumed (unverified) gearbox, §9
+turns slower than about 200 propeller rpm (about 455 engine rpm, owner-stated gearbox, §9
 question 71), use the starter; if it does not start, E5.
 
 **E5 Emergency landing (HB 3-1, 3-3, 3-6).** No field reachable: rescue system;
@@ -3363,8 +3377,8 @@ get out, fire risk).
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                                 | never deploy; the fire procedure ends in an emergency landing                                  |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                                       | left armed                                                                                     |
 | VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)                       | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
-| Oil temperature max           | 140 °C UL                                                                         | 130 °C ULS                                                                       | 130 °C                                                                                         |
-| Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's engine-rpm reading of the same 200 (trainer error, §9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836; gearbox assumed (unverified), §9 question 1) |
+| Oil temperature max           | 140 °C UL, D-MPGO's engine (owner-stated, §9 question 1; HB 2-2)                  | 130 °C ULS; D-MPGO's dial red line 130 °C (§3.10.7)                              | 130 °C (the dial)                                                                              |
+| Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's engine-rpm reading of the same 200 (trainer error, §9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836; gearbox owner-stated, §9 question 1)         |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                                         | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6)                  | fuel valve closed, then key out                                                                |
 | Flaps after take-off          | climb checklist: flaps −12° (HB 4-3)                                              | never negative near the ground, no height given (§4.4)                           | 0° above 50 m per N7 (also the `departure` preset); −12° only after a safe-height confirm item |
@@ -3372,6 +3386,9 @@ get out, fire risk).
 ## 9. Open questions for the club and instructor
 
 Each item lists the value the trainer uses until it is answered.
+
+"Owner-stated" marks an owner answer the owner qualified ("as far as I know") or that is
+not yet read on D-MPGO; "owner-confirmed" marks one the owner confirmed outright.
 
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
@@ -3381,8 +3398,8 @@ verifies it on D-MPGO. The one exception is the cranking default, used only for 
 no assumed (unverified) marking. The cylinder count and the cycle, accepted the same
 day, are now handbook facts (question 1).
 
-1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
-   conservative limits of §4.2.
+1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed, and overridden
+   by the owner below.) Used the conservative limits of §4.2 until answered.
    **Photo survey 2026-10-10 (§3.7):** not visible. No engine type plate is in the
    photos. The wing-root fuel placards ask for RON 95 or better, which matches the
    trainer value of §4.2 but does not settle UL or ULS.
@@ -3392,9 +3409,9 @@ day, are now handbook facts (question 1).
    ear). The cranking default is general knowledge of the Rotax 912 named in §4.2,
    accepted by the owner on 2026-10-15 (sounds spec, D16), not assumed (unverified). The
    three give the firing frequency, the uneven beat and the starter pulses only; the UL
-   or ULS variant, gearbox ratio and propeller stay unknown (the ratio is answered
-   below), so the voice has no blade-pass tone.
-   **Sound-facts intake 2026-10-16 (#821):** the variant is **still open**. The
+   or ULS variant and the gearbox ratio are owner-stated (#892, below); only the propeller
+   and its blade count stay open (question 11), so the voice has no blade-pass tone.
+   **Sound-facts intake 2026-10-16 (#821):** the variant was **open** at that date (answered by the owner below, #892). The
    handbook offers both, the 80 PS UL and the 100 PS ULS (HB 1-3, 7-4), and does not
    fix D-MPGO's: its performance figures assume a UL (HB 5-1), while its factory
    example equipment list and avionics block diagrams name a ULS (HB 6-8, 7-9;
@@ -3404,7 +3421,13 @@ day, are now handbook facts (question 1).
    reduction, 2.273 : 1, with 2.43 : 1 as an option (HB 1-3; HB 7-4 names the same
    two), so the ratio does not follow from UL or ULS; which gearbox D-MPGO has is not
    in the handbook. **Trainer uses:** 2.273 : 1, the standard ratio (§4.2); that
-   D-MPGO has the standard gearbox is **assumed (unverified)**.
+   D-MPGO has the standard gearbox is now owner-stated (below).
+   **Owner (2026-10-16, #892):** a 912 UL with the standard gearbox, 2.273 : 1, "as far
+   as I know". Both facts are **owner-stated**, no longer open or assumed, with the
+   owner's own qualifier: "as far as I know" is not a reading on D-MPGO, so re-check
+   them when the aircraft is read. **Trainer
+   uses:** the values of §4.2, which follow D-MPGO's dials and placards where they are
+   stricter than the UL's limits, and 2.273 : 1. Nothing in the trainer changes.
 2. **Rescue system**: BRS 1050, Junkers High Speed or Junkers Light Speed? Uses
    VNE 260 km/h and the yellow arc 245–260.
    **Photo survey 2026-10-10 (§3.7):** partly answered. The data plate beside the
@@ -3594,7 +3617,7 @@ day, are now handbook facts (question 1).
     - E3 below 100 m: rpm below idle; no restart, land ahead.
     - E4: rpm below idle; fuel valve open; fuel visible in both tanks; ignition
       both; starter if the prop turns slower than about 200 propeller rpm (about 455 engine rpm,
-      assumed (unverified) gearbox, §9 question 71).
+      owner-stated gearbox, §9 question 71).
     - E2: rpm below idle; no field reachable, deploy; ignition off; safety pin
       out; pull the handle.
     - E6: smoke or flames; fuel valve closed; throttle full until the engine
@@ -4151,7 +4174,7 @@ day, are now handbook facts (question 1).
     the two apart: the start text marks its rpm as engine rpm (HB 4-6), and the limits and
     the tachometer are engine rpm (HB 2-2, 7-20). With question 1's reduction the threshold
     is about 455 engine rpm at 2.273 : 1, or about 486 at the optional 2.43 : 1 (derived).
-    **Answered.** Trainer uses: about 455 engine rpm at the assumed (unverified) 2.273 : 1
+    **Answered.** Trainer uses: about 455 engine rpm at the owner-stated 2.273 : 1
     gearbox (derived, #836); the earlier comparison of 200 with engine rpm **contradicts**
     the handbook figure.
 72. **Starter and start** (#821, sounds spec §13 question 4): the handbook gives the start
