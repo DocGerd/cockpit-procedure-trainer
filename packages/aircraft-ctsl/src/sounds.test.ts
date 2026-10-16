@@ -76,6 +76,14 @@ describe('declarations', () => {
   });
 });
 
+describe('engine sound facts', () => {
+  it('passes the gearbox ratio and, with the blade count open, no blade count', () => {
+    const options = sounds['engine']?.options;
+    expect(options).toMatchObject({ gearboxRatio: 2.273 });
+    expect(options).not.toHaveProperty('bladeCount');
+  });
+});
+
 describe('engine inputs over a real start', () => {
   it('cranks, catches, idles, runs full, drops on a magneto, and stops', () => {
     const session = sessionAt('parking');
