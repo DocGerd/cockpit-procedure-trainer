@@ -3050,9 +3050,9 @@ icing, no aerobatics, no intentional spins.
 | Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**                                                |
 | Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **assumed (unverified)** (2.43 : 1 optional, §9) |
 
-Both variants (HB 1-3, 3-7, 7-4): four cylinders, four-stroke, horizontally opposed, with
-liquid-cooled heads and air-cooled cylinders, two carburettors, dual electronic
-ignition and an electric starter. The propeller turns through a reduction gearbox
+Both variants (HB 1-3, 3-7, 7-4): a four-cylinder four-stroke with liquid-cooled heads
+(the CHT gauge reads coolant), two carburettors, dual ignition and an electric
+starter. The propeller turns through a reduction gearbox
 with a vibration damper; the ratio does not depend on UL or ULS. Every rpm in this
 section is engine rpm, the tachometer's, unless it says propeller rpm; propeller rpm
 is engine rpm divided by the reduction.
@@ -3376,9 +3376,10 @@ Each item lists the value the trainer uses until it is answered.
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
 **assumed (unverified)**, and the implementing PR lists it, until the owner
-verifies it on D-MPGO. The one exception is three engine facts used only for sound
-(question 1): the cylinder count, the cycle and the cranking default. The owner accepted
-them as general knowledge on 2026-10-15 and they carry no assumed (unverified) marking.
+verifies it on D-MPGO. The one exception is the cranking default, used only for sound
+(question 1): the owner accepted it as general knowledge on 2026-10-15 and it carries
+no assumed (unverified) marking. The cylinder count and the cycle, accepted the same
+day, are now handbook facts (question 1).
 
 1. **Engine**: 912 UL or ULS? (The club web page says ULS; unconfirmed.) Uses the
    conservative limits of §4.2.
@@ -4168,7 +4169,9 @@ them as general knowledge on 2026-10-15 and they carry no assumed (unverified) m
     3-2). No stall warner, horn or buzzer appears in the minimum equipment (HB 1-3), the
     electrical block diagram, whose only warning device is the alternator lamp (HB 7-8),
     the cockpit description or the placards (HB 7-16 to 7-21). The owner's photos show the
-    red "Generator" lamp as the panel's only warning device, and no horn or speaker (§3.7).
+    red "Generator" lamp as the panel's only warning lamp (§3.7); that the panel has no
+    horn or speaker is inferred from the photos, which show none (the FLARM display's own
+    sounder aside, §3.8.4, question 78).
     The handbook's avionics diagram feeds a transponder audio alert and the GPS audio into
     the intercom (HB 7-9), but for the factory Garmin units, not D-MPGO's (question 78).
     **Answered (inferred from absence; the owner can reopen).** Trainer uses: no warning horn or
@@ -4188,20 +4191,21 @@ them as general knowledge on 2026-10-15 and they carry no assumed (unverified) m
     and quiet ratios, a tone on the step into silent and a sound for the mode swap stay as
     §3.8.4 records them. **Still open.** Trainer uses: the §3.8.4 sounds, **assumed
     (unverified)** where marked there.
-76. **Flap actuator** (#821, sounds spec §13 question 8): an electric spindle motor at the
-    back of the main bulkhead, just behind the seats, drives both flaps through a torsion
-    shaft (HB 7-12); it stops at end and position switches (HB 3-7, 8-7; §4.4). The
+76. **Flap actuator** (#821, sounds spec §13 question 8): one electric spindle motor,
+    mounted aft of the main bulkhead behind the seats, moves both flaps together over a
+    shared torsion shaft (HB 7-12); limit and position switches halt it (HB 3-7, 8-7;
+    §4.4). The
     handbook says nothing of hearing it in the cabin, of a different sound extending and
     retracting, or of a sound at the end stop. **Not found; still open.** Trainer uses:
     the flap-motor whine while it drives, the same both ways, with no end-stop sound.
-77. **Rescue-system deployment** (#821, sounds spec §13 question 9): the handling is
-    sourced: engine off, then the handle pulled hard and far, forward to its stop, until
-    the rocket fires (HB 3-4). The handle at the main bulkhead between the seats fires the
-    rocket by a cable; rocket and parachute sit in the upper baggage bay behind the
-    bulkhead and leave through an opening on top of the fuselage under a light cover that
-    lifts off, so the rocket does not break through the skin (HB 7-13); the harness straps
-    then tear out of the roof (HB 7-14). What the pilot hears is not described. **Not
-    found; still open.** Trainer uses: no deployment sound.
+77. **Rescue-system deployment** (#821, sounds spec §13 question 9): no source describes
+    what the pilot hears. Sourced: the pilot stops the engine first, then fires the
+    rocket with one firm, full forward pull of the handle (HB 3-4). The handle sits
+    between the seats at the main bulkhead and works the rocket mechanically, through a
+    cable. Parachute and rocket are stowed in the upper baggage bay aft of the bulkhead
+    and leave upwards through a covered opening in the fuselage top (HB 7-13); the
+    suspension straps, stowed in the roof, are pulled free during deployment (HB 7-14).
+    **Not found; still open.** Trainer uses: no deployment sound.
 78. **Other units with a sounder** (#821, sounds spec §13 question 10): the sources name no
     panel unit with its own speaker or buzzer besides the FLARM display (§3.8.4). The
     handbook routes the radio, a transponder audio alert and the GPS audio through the
