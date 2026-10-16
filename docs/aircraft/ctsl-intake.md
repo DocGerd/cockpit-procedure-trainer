@@ -3051,8 +3051,8 @@ icing, no aerobatics, no intentional spins.
 | Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **assumed (unverified)** (2.43 : 1 optional, §9) |
 
 Both variants (HB 1-3, 3-7, 7-4): a four-cylinder four-stroke with liquid-cooled heads,
-two carburettors, dual ignition and an electric starter. Trainer note: the CHT gauge
-reads coolant. The propeller turns through a reduction gearbox
+two carburettors, dual ignition and an electric starter. Trainer: the CHT gauge reads
+coolant. The propeller turns through a reduction gearbox
 with a vibration damper; the ratio does not depend on UL or ULS. Every rpm in this
 section is engine rpm, the tachometer's, unless it says propeller rpm; propeller rpm
 is engine rpm divided by the reduction.

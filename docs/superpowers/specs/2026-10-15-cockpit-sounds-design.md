@@ -361,7 +361,7 @@ The CTSL declares (in `ctsl-sounds`):
 - Options carry the profile; the voices know nothing about any aircraft, and
   `problems(options)` rejects a missing or out-of-range option.
 
-Wave-1 values that are not intake facts:
+Wave-1 sound values and their status:
 
 | Value                                 | Used for                      | Status                                                                                                           |
 | ------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -858,7 +858,8 @@ intake.
 ## 14. Open questions
 
 The owner answered the sound default (D9), the header control (D8) and the
-cranking rpm general knowledge (D16) on 2026-10-15.
+engine general knowledge (D16) on 2026-10-15; the cylinder count and the cycle are
+handbook facts since.
 
 1. **Click overrides** (owner). The wave-1 silent and `soft` list (§6.4) until
    §13 question 11 is answered.

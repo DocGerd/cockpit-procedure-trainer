@@ -163,7 +163,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 **Acceptance criteria:**
 
 - [ ] The spec status reads Approved 2026-10-15; D8, D9 and D16 record the owner's answers; §14 holds three open questions.
-- [ ] ADR-0003's Consequences name the D16 exception (engine facts used only for sound are recorded as general knowledge), consistent with spec D16 and §11.
+- [ ] ADR-0003's Consequences name the D16 exception (engine facts used only for sound are recorded as general knowledge), consistent with spec D16 and §11. (Superseded: the cylinder count and the cycle are handbook facts; spec D16 covers only the cranking rpm.)
 - [ ] Every wave-1 placeholder (T1 to T20 and T8a) names its issue in the M21 milestone; every wave-2 placeholder (T21 to T25d) names its issue in the same milestone (decision 12).
 - [ ] No closing keyword in prose besides the PR's own `Closes` line.
 
@@ -507,7 +507,7 @@ owner session ──> T21 ──┬── T22 (+T19) ── T23 ── T25b ─�
 - [ ] Selector tests over a real start: crank, catch, idle, full, magneto check, shutdown, failed start (no choke when cold; key released before the catch), key held past the lockout (starter on, no catch), windmill relight, flap motor off during the overload cut-out.
 - [ ] `flapMotorRunning` is true while the flaps travel and false at rest, without power and while extension is held back above the flap speed.
 - [ ] The rpm constants and `power` are imported from `systems.ts`, not copied; options use T14's profile and the pre-assigned airflow and motor options.
-- [ ] Intake §9 question 1 carries a "Trainer (sounds)" note: four cylinders, four-stroke and the cranking rpm, general knowledge accepted by the owner 2026-10-15 (spec D16); the §9 owner-ruling paragraph gains one clause naming this exception to the assumed (unverified) marking.
+- [ ] Intake §9 question 1 carries a "Trainer (sounds)" note: four cylinders, four-stroke and the cranking rpm, general knowledge accepted by the owner 2026-10-15 (spec D16); the §9 owner-ruling paragraph gains one clause naming this exception to the assumed (unverified) marking. (Superseded: the cylinder count and the cycle are handbook facts; spec D16 covers only the cranking rpm.)
 
 **Verification:** Checks chain; `pnpm test`.
 
@@ -745,4 +745,4 @@ These tasks are in M21 too (decision 12), filed with it and marked blocked; T25a
 2. No audio file, recording, `blob:` or `data:` audio, media element or worklet; `csp.ts` untouched.
 3. Nothing audible lands before T8's seed and T10's control (T11, T12, T18 and T19 all follow T10).
 4. Tests use the fake context and the injected clock; coverage holds with no new excludes.
-5. Every aircraft fact traces to the intake; the D16 engine values are recorded as general knowledge, every other assumption as assumed (unverified).
+5. Every aircraft fact traces to the intake; the D16 cranking rpm is recorded as general knowledge, every other assumption as assumed (unverified).

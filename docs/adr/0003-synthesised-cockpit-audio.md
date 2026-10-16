@@ -72,11 +72,9 @@ Design: `docs/superpowers/specs/2026-10-15-cockpit-sounds-design.md`.
   click or silence.
 - Sound facts follow the rule for every aircraft fact: from the intake,
   paraphrased, with general knowledge marked assumed (unverified) beside its
-  intake question. The one exception is the owner's ruling for engine facts
-  used only for sound (four cylinders, four-stroke, the cranking rpm): they are
-  recorded beside the intake question as general knowledge (spec D16). Note
-  2026-10-16: the cylinder count and the cycle are now handbook facts (intake
-  §9 question 1), so the exception covers only the cranking rpm.
+  intake question. The one exception is the owner's ruling for the cranking
+  rpm, used only for sound: it is recorded beside the intake question as
+  general knowledge (spec D16).
 - Audible behaviour follows the systems model: a unit beeps on its power-on
   path, not on page or phase load; audio plays only on the trainer screen.
 - Automated tests cannot hear, so sound quality is judged in an owner
