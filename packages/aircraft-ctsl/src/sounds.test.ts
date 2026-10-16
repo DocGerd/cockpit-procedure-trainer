@@ -167,7 +167,7 @@ describe('engine inputs over a real start', () => {
     expect(engine(session).starter).toBe(0);
   });
 
-  it('shows a windmilling engine as turning but not running, then relit', () => {
+  it('shows a windmilling engine as turning but not running, then started', () => {
     const session = sessionAt('cruise');
     expect(engine(session).running).toBe(1);
     session.set('ignition', 'off');
@@ -176,9 +176,9 @@ describe('engine inputs over a real start', () => {
     expect(windmill.running).toBe(0);
     expect(windmill.starter).toBe(0);
     expect(windmill.rpm).toBeGreaterThan(0);
-    session.set('ignition', 'both');
+    session.set('ignition', 'start');
     advanceSeconds(session, 3);
-    expect(engine(session)).toMatchObject({ running: 1, starter: 0 });
+    expect(engine(session).running).toBe(1);
   });
 });
 

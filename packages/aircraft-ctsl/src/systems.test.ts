@@ -8,9 +8,11 @@ import { altimeterSettingHpa, chargeLampLit, indicators } from './indicators';
 import { phases } from './phases';
 import {
   flapMotorRunning,
+  GEARBOX_RATIO,
   indicatedAltitudeFt,
   initial,
   pressureAltitudeFt,
+  RELIGHT_PROPELLER_RPM,
   runningFrom,
   step,
 } from './systems';
@@ -24,6 +26,7 @@ const OIL_TEMP_RED_LINE_C = 130;
 const STARTER_LIMIT_S = 10;
 const STARTER_COOLING_S = 120;
 const KMH_PER_KT = 1.852;
+const RELIGHT_ENGINE_RPM = 455;
 const END_SWITCH_OVERTRAVEL_MAX_DEG = 5;
 
 const sessionAt = (phase: PhaseId) => createSession(ctslAircraft, { devices, phase });
@@ -423,13 +426,27 @@ describe('engine running', () => {
     expect(Math.abs(leftDrop - rightDrop)).toBeLessThanOrEqual(MAX_CIRCUIT_DROP_DIFFERENCE_RPM);
   });
 
-  it('relights a windmilling engine in flight without the starter', () => {
+  it('relights a windmilling engine above the converted propeller threshold without the starter', () => {
+    const fast = rig('cruise', [], { airspeedKt: 130, altitudeFt: 2500, onGround: false });
+    fast.set('ignition', 'off');
+    fast.advance(1);
+    expect(fast.state().engine.running).toBe(false);
+    expect(fast.state().rpm).toBeGreaterThanOrEqual(RELIGHT_ENGINE_RPM);
+    fast.set('ignition', 'both');
+    fast.advance(3);
+    expect(fast.state().engine.running).toBe(true);
+  });
+
+  it('does not relight at cruise speed, where the propeller turns slower than 200 rpm', () => {
     const cruise = rig('cruise');
     cruise.set('ignition', 'off');
     cruise.advance(1);
-    expect(cruise.state().engine.running).toBe(false);
-    expect(cruise.state().rpm).toBeGreaterThanOrEqual(200);
+    expect(cruise.state().rpm).toBeGreaterThan(200);
+    expect(cruise.state().rpm / GEARBOX_RATIO).toBeLessThan(RELIGHT_PROPELLER_RPM);
     cruise.set('ignition', 'both');
+    cruise.advance(3);
+    expect(cruise.state().engine.running).toBe(false);
+    cruise.set('ignition', 'start');
     cruise.advance(3);
     expect(cruise.state().engine.running).toBe(true);
   });
@@ -438,7 +455,7 @@ describe('engine running', () => {
     const slow = rig('approach', [], { airspeedKt: 40, altitudeFt: 500, onGround: false });
     slow.set('ignition', 'off');
     slow.advance(1);
-    expect(slow.state().rpm).toBeLessThan(200);
+    expect(slow.state().rpm).toBeLessThan(RELIGHT_ENGINE_RPM);
     slow.set('ignition', 'both');
     slow.advance(3);
     expect(slow.state().engine.running).toBe(false);
