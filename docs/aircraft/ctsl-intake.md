@@ -3054,7 +3054,7 @@ icing, no aerobatics, no intentional spins.
 | Fuel grade                      | RON ≥ 90      | RON ≥ 95 | **RON ≥ 95**, the wing-root fuel placards (§3.7)                        |
 | Gearbox reduction               | 2.273 : 1     | same     | 2.273 : 1, **owner-stated**, "as far as I know" (2.43 : 1 optional, §9) |
 
-D-MPGO's engine is the UL (owner, §9 question 1). Where the UL's figures differ from
+D-MPGO's engine is the UL (owner-stated, §9 question 1). Where the UL's figures differ from
 the trainer value, the trainer keeps the lower mark D-MPGO itself carries: the CHT
 and oil temperature red lines of its gauges (UL limits 150 °C and 140 °C). The fuel
 value is the mogas figure of the wing-root placards, RON 95 (the placard also lists
@@ -3377,7 +3377,7 @@ get out, fire risk).
 | Rescue system with fire       | descend to about 200 m and deploy if no landing is possible (HB 3-6 text)         | never deploy with fire on board (HB 3-6 warning)                                 | never deploy; the fire procedure ends in an emergency landing                                  |
 | Shutdown ELT item             | "checked and off" (HB 4-4)                                                        | the remote switch has armed and on, no off                                       | left armed                                                                                     |
 | VNE                           | 276 BRS / 260 Junkers High Speed / 300 Junkers Light Speed or none (HB 2-1, 7-20) | D-MPGO's dial: red line at 300; placard 300 at −12° (§3.7)                       | 300 km/h (owner, §2a decision 3, against BRS 276; assumed (unverified); was 260)               |
-| Oil temperature max           | 140 °C UL, D-MPGO's engine (HB 2-2, §9 question 1)                                | 130 °C ULS; D-MPGO's dial red line 130 °C (§3.10.7)                              | 130 °C (the dial)                                                                              |
+| Oil temperature max           | 140 °C UL, D-MPGO's engine (owner-stated, §9 question 1; HB 2-2)                  | 130 °C ULS; D-MPGO's dial red line 130 °C (§3.10.7)                              | 130 °C (the dial)                                                                              |
 | Windmill relight threshold    | about 200 **propeller** rpm (HB 3-5)                                              | the trainer's engine-rpm reading of the same 200 (trainer error, §9 question 71) | about 455 engine rpm at 2.273 : 1 (derived, #836; gearbox owner-stated, §9 question 1)         |
 | Order at start                | GEN in before Avionics Master (HB 4-3)                                            | placard: avionics off for start and stop                                         | GEN first, then avionics, after the engine runs                                                |
 | Key out in oil loss           | key out, then fuel valve closed (HB 3-7)                                          | the key comes out only with the valve fully closed (HB 3-6, E6)                  | fuel valve closed, then key out                                                                |
@@ -3386,6 +3386,9 @@ get out, fire risk).
 ## 9. Open questions for the club and instructor
 
 Each item lists the value the trainer uses until it is answered.
+
+"Owner-stated" marks an owner answer the owner qualified ("as far as I know") or that is
+not yet read on D-MPGO; "owner-confirmed" marks one the owner confirmed outright.
 
 Owner ruling 2026-10-08: where a panel fact is missing, agents may use general
 knowledge of the CT Supralight. Each such fact is recorded beside its question as
@@ -3406,8 +3409,8 @@ day, are now handbook facts (question 1).
    ear). The cranking default is general knowledge of the Rotax 912 named in §4.2,
    accepted by the owner on 2026-10-15 (sounds spec, D16), not assumed (unverified). The
    three give the firing frequency, the uneven beat and the starter pulses only; the UL
-   or ULS variant, gearbox ratio and propeller stay unknown (the variant is answered
-   below, the ratio owner-stated), so the voice has no blade-pass tone.
+   or ULS variant and the gearbox ratio are owner-stated (#892, below); only the propeller
+   and its blade count stay open (question 11), so the voice has no blade-pass tone.
    **Sound-facts intake 2026-10-16 (#821):** the variant was **open** at that date (answered by the owner below, #892). The
    handbook offers both, the 80 PS UL and the 100 PS ULS (HB 1-3, 7-4), and does not
    fix D-MPGO's: its performance figures assume a UL (HB 5-1), while its factory
