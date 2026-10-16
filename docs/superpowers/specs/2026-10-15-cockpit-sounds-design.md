@@ -119,7 +119,7 @@ Module ids are stable; plans, issues and PRs select work by them. An arrow means
 | `cockpit-audio-driver`  | Connects a session to the engine on the trainer screen: clicks, voices, device cues, baselines, jumps, error containment                                                             | web `audio/`, `shell/TrainerLayout.tsx`                                                 | `control-change-feed`, `session-epoch`, `device-cue-diff`, `control-clicks`, `beep-voice` | 1, step 2  |
 | `aircraft-voices`       | `piston-engine`, `airflow`, `electric-motor` voices; fills the `voiceFactories` registry                                                                                             | panel-kit `audio/voices/`                                                               | `audio-engine`, `sound-contract`                                                          | 1, step 3a |
 | `aircraft-sounds-check` | Test: every declared voice id exists, `problems(options)` is empty, selectors run on every entry state                                                                               | web `aircraft-sounds.test.ts`                                                           | `aircraft-voices`, `ctsl-sounds`                                                          | 1, step 3a |
-| `ctsl-sounds`           | CTSL `sounds`: selectors over its state and the sound profile; the general-knowledge engine values recorded beside intake §9 question 1                                              | `aircraft-ctsl/src/sounds.ts`, `systems.ts` exports, one line in `index.ts`; intake §9  | `sound-contract`                                                                          | 1, step 3a |
+| `ctsl-sounds`           | CTSL `sounds`: selectors over its state and the sound profile; the engine facts recorded beside intake §9 question 1 (cranking rpm: general knowledge)                               | `aircraft-ctsl/src/sounds.ts`, `systems.ts` exports, one line in `index.ts`; intake §9  | `sound-contract`                                                                          | 1, step 3a |
 | `flarm-sounds`          | FLARM beep table and cue diff; the README and the intake §3.8.4 trainer paragraph                                                                                                    | `device-flarm/src/logic/sounds.ts`, `logic/flarm.ts`, `README.md`; intake §3.8.4        | `sound-contract`                                                                          | 1, step 3b |
 | `ctsl-sound-facts`      | Engine variant, gearbox ratio, blade count, starter character as `piston-engine` options; blade-pass tone                                                                            | `aircraft-ctsl/src/sounds.ts`, panel-kit `audio/voices/`                                | `ctsl-sounds`, `aircraft-voices`                                                          | 2          |
 | `flarm-beep-facts`      | Measured beep pitch, length, pattern and level ratios                                                                                                                                | `device-flarm/src/logic/sounds.ts`                                                      | `flarm-sounds`                                                                            | 2          |
@@ -650,11 +650,13 @@ export function connectCockpitAudio(
   keeps advancing behind the picker and the error screen.
 - **D15 The starter sound follows the key, not the lockout** (§6.5), so the
   audio does not teach that the starter stops itself.
-- **D16 Engine facts used only for sound are general knowledge.** The owner
-  extended the intake §9 ruling on 2026-10-15 to the four cylinders, the
-  four-stroke cycle and the cranking rpm. They are recorded beside intake §9
-  question 1 as general knowledge, not as assumed (unverified); §13 questions 1
-  and 4 still refine them. Any other general knowledge keeps the §9 marking
+- **D16 The cranking rpm, used only for sound, is general knowledge.** The
+  owner extended the intake §9 ruling on 2026-10-15 to the four cylinders, the
+  four-stroke cycle and the cranking rpm. The cylinder count and the cycle were
+  first accepted as general knowledge and are now handbook facts (intake §9
+  question 1), so D16 covers only the cranking rpm. It is recorded beside intake
+  §9 question 1 as general knowledge, not as assumed (unverified); §13
+  question 4 still refines it. Any other general knowledge keeps the §9 marking
   (§11).
 
 ## 9. Code style
@@ -754,7 +756,7 @@ const approach = (value: number, target: number, dtMs: number, timeConstantMs: n
 - Synthesise at runtime; keep `csp.ts` unchanged.
 - Take aircraft facts only from the intake, paraphrased; mark general
   knowledge **assumed (unverified)**, record it beside its intake §9 question
-  and list it in the PR. The engine facts of D16 are recorded as general
+  and list it in the PR. The cranking rpm of D16 is recorded as general
   knowledge instead.
 - Tie a unit's beep to its power-on path, never to page or phase load.
 - Seed `cpt.sound=off` in the shared E2E fixture; only the sound spec opts out,
@@ -825,8 +827,8 @@ The owner runs these with `CPT_ALLOW_REFERENCE=1`; the answers land in
 `docs/aircraft/ctsl-intake.md`, paraphrased, and wave-2 PRs read only the
 intake.
 
-1. **Engine**: 912 UL or ULS (§9 question 1)? Gearbox reduction ratio;
-   confirm four cylinders, four-stroke.
+1. **Engine**: 912 UL or ULS (§9 question 1)? Gearbox reduction ratio. Four
+   cylinders and four-stroke are handbook facts already.
 2. **Propeller**: make and blade count (§9 question 11), for the blade-pass
    tone.
 3. **Relight threshold**: the intake gives windmill relight from about 200
@@ -856,7 +858,7 @@ intake.
 ## 14. Open questions
 
 The owner answered the sound default (D9), the header control (D8) and the
-engine general knowledge (D16) on 2026-10-15.
+cranking rpm general knowledge (D16) on 2026-10-15.
 
 1. **Click overrides** (owner). The wave-1 silent and `soft` list (§6.4) until
    §13 question 11 is answered.
@@ -886,8 +888,8 @@ Owed by the implementing PRs:
   `CLAUDE.md` app-settings line (`sound`, `volume`, seeded off by the E2E
   fixture) is the orchestrator's change, in the main session, landed as its
   own issue and PR from a worktree.
-- Step 3a: intake §9 question 1 (the general-knowledge engine values of §6.5,
-  D16).
+- Step 3a: intake §9 question 1 (the engine facts of §6.5: handbook facts,
+  and the cranking rpm as general knowledge, D16).
 - Step 3b: `packages/device-flarm/README.md` in the same PR as the
   `notModelled` text, which `tools/device-readme.test.ts` keeps equal:
   Controls (the volume tone), Power cycle (the start-up beep), Not modelled
