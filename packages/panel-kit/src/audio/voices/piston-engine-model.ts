@@ -11,9 +11,9 @@ export type PistonEngineOptions = {
   readonly runDownMs: number;
   /** The engine turned without combustion: starter wind-up and whine, a windmill speeding up. */
   readonly windMs: number;
-  /** Engine rpm over propeller rpm. An aircraft fact; the blade-pass tone needs it and the blade count. */
+  /** Engine rpm over propeller rpm. An aircraft fact; the blade-pass tone is built only when this and `bladeCount` are both set. */
   readonly gearboxRatio?: number;
-  /** An aircraft fact; the blade-pass tone needs it and the gearbox ratio. */
+  /** Propeller blades, an integer. An aircraft fact. */
   readonly bladeCount?: number;
 };
 

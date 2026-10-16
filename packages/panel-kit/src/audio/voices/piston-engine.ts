@@ -192,7 +192,7 @@ function buildPistonEngine(
 
   const sources: AudioScheduledSourceNode[] = [bus, noise, firing, modulator, whine];
 
-  const params: Partial<Record<keyof Targets, AudioParam>> = {
+  const params: Record<Exclude<keyof Targets, 'bladePass'>, AudioParam> = {
     bus: bus.offset,
     jitter: jitter.gain,
     firingCutoff: firingFilter.frequency,
@@ -205,7 +205,9 @@ function buildPistonEngine(
     compression: compression.gain,
   };
 
-  // Built only when the aircraft gives both facts, so any other voice keeps its wave-1 graph.
+  const bound = Object.entries(params) as [keyof Targets, AudioParam][];
+
+  // Built only when the aircraft gives both facts, so a voice without them keeps its existing graph.
   const { gearboxRatio, bladeCount } = options;
   if (gearboxRatio !== undefined && bladeCount !== undefined) {
     const tone = node(context.createOscillator());
@@ -217,9 +219,8 @@ function buildPistonEngine(
     bus.connect(scale).connect(tone.frequency);
     tone.connect(level).connect(output);
     sources.push(tone);
-    params.bladePass = level.gain;
+    bound.push(['bladePass', level.gain]);
   }
-  const bound = Object.entries(params) as [keyof Targets, AudioParam][];
   const jitterPerCycleHz = JITTER_RMS_SHARE / jitterRms;
   const targets = (state: PistonEngineModelState) => targetsFor(state, options, jitterPerCycleHz);
 

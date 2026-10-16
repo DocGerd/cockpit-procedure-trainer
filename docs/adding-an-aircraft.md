@@ -334,11 +334,11 @@ and implemented in `@cpt/panel-kit` (its `voiceFactories`), so the aircraft hold
 audio code. A sound no voice makes needs a new voice in panel-kit, not code in the
 aircraft or the app.
 
-| `voice`          | Inputs                      | Options                                                                                                                                                                     |
-| ---------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `piston-engine`  | `rpm`, `running`, `starter` | `cylinders`, `idleRpm` and `maxContinuousRpm` required; `crankingRpm` and the time constants `throttleUpMs`, `throttleDownMs`, `catchMs`, `runDownMs` and `windMs` optional |
-| `airflow`        | `airspeedKmh`               | `referenceKmh` required                                                                                                                                                     |
-| `electric-motor` | `driving`                   | `whineHz` and `fadeMs` optional                                                                                                                                             |
+| `voice`          | Inputs                      | Options                                                                                                                                                                                                                                                              |
+| ---------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `piston-engine`  | `rpm`, `running`, `starter` | `cylinders`, `idleRpm` and `maxContinuousRpm` required; `crankingRpm`, the time constants `throttleUpMs`, `throttleDownMs`, `catchMs`, `runDownMs` and `windMs`, and the facts `gearboxRatio` (engine rpm over propeller rpm) and `bladeCount` (an integer) optional |
+| `airflow`        | `airspeedKmh`               | `referenceKmh` required                                                                                                                                                                                                                                              |
+| `electric-motor` | `driving`                   | `whineHz` and `fadeMs` optional                                                                                                                                                                                                                                      |
 
 `inputs` maps each input name to a selector over the trainer state that returns a
 number; a condition returns 1 or 0. A voice has no on switch: it falls silent from
@@ -352,7 +352,8 @@ without an error.
 airspeed red line, and the engine's `idleRpm` and `maxContinuousRpm` come from the
 systems' own constants, not copies. An optional value left out keeps the voice's
 default, which is tuned by ear and is no aircraft fact; set one only where the
-intake gives it.
+intake gives it. The engine's blade-pass tone is built only when both `gearboxRatio`
+and `bladeCount` are given; one alone is valid and builds no tone.
 
 `carried` lists the inputs that follow the phase's set point rather than the
 pilot, such as `rpm` and `airspeedKmh`. When a full flight carries the cockpit into

@@ -660,7 +660,7 @@ describe('piston-engine voice: blade-pass tone', () => {
 
   const kindsOf = (engine: ReturnType<typeof setup>) => engine.graph.map((node) => node.kind);
 
-  /** The blade-pass oscillator: the one oscillator that is neither on the bus directly nor the whine. */
+  /** The blade-pass oscillator: the one whose frequency is fed by a gain that the bus feeds. */
   const bladeOf = (engine: ReturnType<typeof setup>) => {
     const { bus } = engine.nodes;
     const scale = only(
@@ -699,11 +699,14 @@ describe('piston-engine voice: blade-pass tone', () => {
       engine.advance(CRANK_MS);
       return engine.automation();
     };
-    const wave1 = scenario(setup());
-    expect(wave1.length).toBeGreaterThan(0);
-    expect(scenario(setup(new FakeAudioContext(), { ...OPTIONS, gearboxRatio: 2.273 }))).toEqual(
-      wave1,
-    );
+    const plainAutomation = scenario(setup());
+    expect(plainAutomation.length).toBeGreaterThan(0);
+    for (const options of [
+      { ...OPTIONS, gearboxRatio: 2.273 },
+      { ...OPTIONS, bladeCount: 3 },
+    ]) {
+      expect(scenario(setup(new FakeAudioContext(), options))).toEqual(plainAutomation);
+    }
   });
 
   it('adds one oscillator on the bus through a scaling gain, and a level gain to the output', () => {
@@ -746,7 +749,7 @@ describe('piston-engine voice: blade-pass tone', () => {
     }
   });
 
-  it('is silent parked, quieter at idle than at full power, and follows rpm / idle below idle', () => {
+  it('is silent parked, quieter at idle than at full power, and scales with rpm / idle below idle', () => {
     const engine = setup(new FakeAudioContext(), WITH_FACTS);
     const { level } = bladeOf(engine);
     expect(level.gain.value).toBe(0);
@@ -756,7 +759,23 @@ describe('piston-engine voice: blade-pass tone', () => {
     engine.set({ rpm: OPTIONS.maxContinuousRpm }, ['rpm']);
     expect(level.gain.value).toBeGreaterThan(idle);
     engine.set({ rpm: OPTIONS.idleRpm / 2 }, ['rpm']);
-    expect(level.gain.value).toBeLessThan(idle);
+    expect(level.gain.value).toBeCloseTo(idle / 2, 6);
+  });
+
+  it('stays quiet but audible while the starter or the wind turns the propeller without firing', () => {
+    const engine = setup(new FakeAudioContext(), WITH_FACTS);
+    const { level } = bladeOf(engine);
+    engine.set(IDLE, ALL);
+    const idle = level.gain.value;
+    for (const turning of [
+      { starter: 1, running: 0, rpm: pistonEngineDefaults.crankingRpm },
+      { starter: 0, running: 0, rpm: pistonEngineDefaults.crankingRpm },
+    ]) {
+      engine.set(turning);
+      engine.advance(CRANK_MS);
+      expect(level.gain.value).toBeGreaterThan(0);
+      expect(level.gain.value).toBeLessThan(idle);
+    }
   });
 
   it('issues nothing once settled, and stops and disconnects the extra nodes with the rest', () => {
