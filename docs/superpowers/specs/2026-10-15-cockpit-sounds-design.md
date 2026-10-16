@@ -827,6 +827,9 @@ The owner runs these with `CPT_ALLOW_REFERENCE=1`; the answers land in
 `docs/aircraft/ctsl-intake.md`, paraphrased, and wave-2 PRs read only the
 intake.
 
+Status after M21: T24 (#824) moved out of M21 pending the FLARM documents
+(question 7); the relight fix #836 (question 3) shipped in M21.
+
 1. **Engine**: 912 UL or ULS (§9 question 1)? Gearbox reduction ratio. Four
    cylinders and four-stroke are handbook facts already.
 2. **Propeller**: make and blade count (§9 question 11), for the blade-pass
