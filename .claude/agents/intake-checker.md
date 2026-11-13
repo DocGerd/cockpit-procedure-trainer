@@ -24,5 +24,5 @@ docs/aircraft/, procedure text, placards, art assets):
    question (section 9) must use the value it names. A fact marked
    **assumed (unverified)** there counts as supported, but the PR must list it.
 
-Return at most 25 lines: verdict first, then findings by priority, each as
+Return a short summary: verdict first, then findings by priority, each as
 `path:line` with the intake section it fails to match.

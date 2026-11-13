@@ -63,12 +63,15 @@ For each PR `N`:
    whose base is the parent's head branch, run
    `gh api --method PATCH repos/DocGerd/cockpit-procedure-trainer/pulls/<child> --field base=develop`
    (spelled literally; `pr edit --base` is hook-denied). Confirm each child's
-   `baseRefName` is `develop`, and only then delete the parent branch with
+   `baseRefName` is `develop`, and only then attempt to delete the parent branch with
    `gh api --method DELETE repos/DocGerd/cockpit-procedure-trainer/git/refs/heads/<branch>`.
+   Auto mode may refuse a remote-branch delete: do not retry or work around
+   it, list the branch for the owner in the close-out report.
    For any landed PR, if
    `gh api repos/DocGerd/cockpit-procedure-trainer/git/ref/heads/<head.ref>`
    still finds the branch (`--delete-branch` failed while a worktree held it)
-   and no open PR targets it, delete it with the same DELETE call.
+   and no open PR targets it, attempt the same DELETE call (a refusal is
+   listed for the owner as above).
    Recovery if a child was closed: recreate the ref at the parent's
    `head.sha` (POST `git/refs` with `ref=refs/heads/<branch>` and
    `sha=<head.sha>`), reopen the child (PATCH `pulls/<child>` `state=open`),
