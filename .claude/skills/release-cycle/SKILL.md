@@ -65,7 +65,7 @@ workflow changes. Each implementer:
    the attribution line `CLAUDE.md` requires.
 4. Writes its report to a scratch location outside the repository, because a
    worktree agent cannot write elsewhere, and returns the PR number, the head
-   SHA and a summary of at most 25 lines.
+   SHA and a short summary: verdict first, then findings by priority.
 
 ## Phase 3 - Review, fix, merge
 
