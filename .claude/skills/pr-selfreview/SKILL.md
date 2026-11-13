@@ -59,4 +59,4 @@ threads as one pending review, the enumerate, reply and resolve.
 Done when the enumerate query shows `isResolved: true` for every thread. A
 review with no findings posts one PR comment saying so and has no threads.
 Write any report to a scratch location outside the repository and return a
-summary of at most 25 lines.
+short summary: verdict first, then findings by priority.

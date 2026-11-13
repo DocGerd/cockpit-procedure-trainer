@@ -16,4 +16,4 @@ You verify a UI change in a real browser. You do not edit code.
 4. Also report: console errors, anything clipped or overlapping, any status
    colour drawn on the cockpit panel, any control smaller than 44 px.
 
-Return at most 25 lines: verdict first, then findings by severity.
+Return a short summary: verdict first, then findings by priority.
